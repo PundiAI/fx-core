@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) TestKeeper_UpdateContractCode() {
 
 func (suite *KeeperTestSuite) TestKeeper_DeployContract() {
 	erc1967Proxy := fxtypes.GetERC1967Proxy()
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	contract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), erc1967Proxy.ABI, erc1967Proxy.Bin, erc20.Address, []byte{})
 	suite.NoError(err)
 
@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeployContract() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_DeployUpgradableContract() {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	initializeArgs := []interface{}{"FunctionX USD", "fxUSD", uint8(18), suite.app.Erc20Keeper.ModuleAddress()}
 	contract, err := suite.app.EvmKeeper.DeployUpgradableContract(suite.ctx, suite.signer.Address(), erc20.Address, nil, &erc20.ABI, initializeArgs...)
 	suite.NoError(err)
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeployUpgradableContract() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_QueryContract() {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	initializeArgs := []interface{}{"FunctionX USD", "fxUSD", uint8(18), suite.app.Erc20Keeper.ModuleAddress()}
 	contract, err := suite.app.EvmKeeper.DeployUpgradableContract(suite.ctx, suite.signer.Address(), erc20.Address, nil, &erc20.ABI, initializeArgs...)
 	suite.NoError(err)
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestKeeper_QueryContract() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_ApplyContract() {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	initializeArgs := []interface{}{"FunctionX USD", "fxUSD", uint8(18), suite.app.Erc20Keeper.ModuleAddress()}
 	contract, err := suite.app.EvmKeeper.DeployUpgradableContract(suite.ctx, suite.signer.Address(), erc20.Address, nil, &erc20.ABI, initializeArgs...)
 	suite.NoError(err)

@@ -26,6 +26,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -88,7 +89,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	}
 
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
-	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), fxtypes.MustABIJson(StakingTestABI), fxtypes.MustDecodeHex(StakingTestBin))
+	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), fxtypes.MustABIJson(contract.StakingTestMetaData.ABI), fxtypes.MustDecodeHex(contract.StakingTestMetaData.Bin))
 	suite.Require().NoError(err)
 	suite.staking = stakingContract
 

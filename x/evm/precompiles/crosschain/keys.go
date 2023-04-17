@@ -4,6 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v4/contract"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
@@ -42,7 +43,7 @@ const (
 
 var (
 	crossChainAddress = common.HexToAddress(fxtypes.CrossChainAddress)
-	crossChainABI     = fxtypes.MustABIJson(CrosschainMetaData.ABI)
+	crossChainABI     = fxtypes.MustABIJson(contract.ICrossChainMetaData.ABI)
 )
 
 func GetAddress() common.Address {

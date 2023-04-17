@@ -15,7 +15,7 @@ import (
 
 // QueryERC20 returns the data of a deployed ERC20 contract
 func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC20Data, error) {
-	erc20 := fxtypes.GetERC20().ABI
+	erc20 := fxtypes.GetFIP20().ABI
 
 	// Name
 	var nameRes struct{ Value string }
@@ -48,7 +48,7 @@ func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name
 		name = fmt.Sprintf("Wrapped %s", name)
 		symbol = fmt.Sprintf("W%s", symbol)
 	} else {
-		tokenContract = fxtypes.GetERC20()
+		tokenContract = fxtypes.GetFIP20()
 	}
 	k.Logger(ctx).Info("deploy token contract", "name", name, "symbol", symbol, "decimals", decimals)
 

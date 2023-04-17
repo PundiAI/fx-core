@@ -112,13 +112,13 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 			// set allowance
 			suite.app.StakingKeeper.SetAllowance(suite.ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
-			contract := staking.GetAddress()
+			stakingContract := staking.GetAddress()
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.staking
+				stakingContract = suite.staking
 			}
 
 			pack, errArgs := tc.malleate(val.GetOperator(), owner, spender)
-			tx, err := suite.PackEthereumTx(owner, contract, big.NewInt(0), pack)
+			tx, err := suite.PackEthereumTx(owner, stakingContract, big.NewInt(0), pack)
 			var res *evmtypes.MsgEthereumTxResponse
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)

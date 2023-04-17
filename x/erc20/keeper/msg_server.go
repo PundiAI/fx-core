@@ -187,7 +187,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 		return errorsmod.Wrap(err, "failed to escrow coins")
 	}
 
-	erc20 := fxtypes.GetERC20().ABI
+	erc20 := fxtypes.GetFIP20().ABI
 	contract := pair.GetERC20Contract()
 
 	// Mint Tokens and send to receiver
@@ -210,7 +210,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 //   - Check if coin balance increased by amount
 //   - Check if token balance decreased by amount
 func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
-	erc20 := fxtypes.GetERC20().ABI
+	erc20 := fxtypes.GetFIP20().ABI
 	contract := pair.GetERC20Contract()
 
 	// Burn escrowed tokens
@@ -244,7 +244,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 //   - Check if token balance decreased by amount
 //   - Check for unexpected `approve` event in logs
 func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
-	erc20 := fxtypes.GetERC20().ABI
+	erc20 := fxtypes.GetFIP20().ABI
 
 	// Escrow tokens on module account
 	contract := pair.GetERC20Contract()
@@ -298,7 +298,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 		return errorsmod.Wrap(err, "failed to escrow coins")
 	}
 
-	erc20 := fxtypes.GetERC20().ABI
+	erc20 := fxtypes.GetFIP20().ABI
 	contract := pair.GetERC20Contract()
 
 	// Unescrow Tokens and send to receiver

@@ -144,11 +144,11 @@ lint:
 	@which gocyclo > /dev/null || echo "\033[91m install gocyclo ...\033[0m" && go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 	@which gofumpt > /dev/null || echo "\033[91m install gofumpt ...\033[0m" && go install mvdan.cc/gofumpt@latest
 	golangci-lint run -v --go=1.18 --timeout 10m
-	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gocyclo -over 15
-	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -d
+	find . -name '*.go' -type f -not -path "./build*" -not -path "./contract*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gocyclo -over 15
+	find . -name '*.go' -type f -not -path "./build*" -not -path "./contract*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -d
 
 format: format-goimports
-	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -w -l
+	find . -name '*.go' -type f -not -path "./build*" -not -path "./contract*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -w -l
 	golangci-lint run --fix
 
 format-goimports:
@@ -235,6 +235,15 @@ update-swagger-docs: proto-swagger-gen statik
 	perl -pi -e "print \"host: fx-rest.functionx.io\nschemes:\n  - https\n\" if $$.==6 " ./docs/swagger-ui/swagger.yaml
 
 .PHONY: statik update-swagger-docs
+
+###############################################################################
+###                          Compile Contracts                              ###
+###############################################################################
+
+compile-contracts:
+	@./develop/compile-contracts.sh
+
+.PHONY: compile-contracts
 
 ###############################################################################
 ###                                Releasing                                ###

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v4/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -82,7 +83,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegationName, val.String(), del)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -91,7 +92,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 		{
 			name: "contract - ok - zero",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegationName, val.String(), del)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -101,7 +102,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			name: "contract - failed invalid validator address",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegationName, newVal, del)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -114,7 +115,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			name: "contract - failed validator not found",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegationName, newVal, del)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -136,22 +137,22 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			delAmount := sdk.NewInt(int64(tmrand.Int() + 100)).Mul(sdk.NewInt(1e18))
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-			contract := staking.GetAddress()
+			stakingContract := staking.GetAddress()
 			delAddr := signer.Address()
 			stakingABI := staking.GetABI()
 			delegateFunc := staking.DelegateMethodName
 			delegationFunc := staking.DelegationMethodName
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.staking
+				stakingContract = suite.staking
 				delAddr = suite.staking
-				stakingABI = fxtypes.MustABIJson(StakingTestABI)
+				stakingABI = fxtypes.MustABIJson(contract.StakingTestMetaData.ABI)
 				delegateFunc = StakingTestDelegateName
 				delegationFunc = StakingTestDelegationName
 			}
 
 			pack, err := stakingABI.Pack(delegateFunc, val0.GetOperator().String())
 			suite.Require().NoError(err)
-			delegateEthTx, err := suite.PackEthereumTx(signer, contract, delAmount.BigInt(), pack)
+			delegateEthTx, err := suite.PackEthereumTx(signer, stakingContract, delAmount.BigInt(), pack)
 			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), delegateEthTx)
 			suite.Require().NoError(err)
@@ -163,7 +164,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			suite.Commit()
 
 			pack, errArgs := tc.malleate(val0.GetOperator(), delAddr)
-			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &contract, pack, false)
+			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &stakingContract, pack, false)
 
 			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, sdk.AccAddress(delAddr.Bytes()), val0.GetOperator())
 			suite.Require().True(found)

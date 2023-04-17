@@ -58,7 +58,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := fxtypes.GetERC20().ABI.Pack(
+		data, err := fxtypes.GetFIP20().ABI.Pack(
 			"transferCrossChain",
 			helpers.GenerateAddressByModule(moduleName),
 			amount,

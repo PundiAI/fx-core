@@ -39,6 +39,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/contract"
 	fxserverconfig "github.com/functionx/fx-core/v4/server/config"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
@@ -79,7 +80,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
 
-	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), fxtypes.MustABIJson(CrosschainTestABI), fxtypes.MustDecodeHex(CrosschainTestBin))
+	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI), fxtypes.MustDecodeHex(contract.CrossChainTestMetaData.Bin))
 	suite.Require().NoError(err)
 	suite.crosschain = stakingContract
 }
@@ -157,7 +158,7 @@ func (suite *PrecompileTestSuite) DeployContract(from common.Address) (common.Ad
 	contract, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
 
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contract, fxtypes.GetERC20().ABI, "transferOwnership", from)
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contract, fxtypes.GetFIP20().ABI, "transferOwnership", from)
 	suite.Require().NoError(err)
 	return contract, nil
 }
@@ -242,34 +243,34 @@ func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metad
 
 func (suite *PrecompileTestSuite) BalanceOf(contract, account common.Address) *big.Int {
 	var balanceRes struct{ Value *big.Int }
-	err := suite.app.EvmKeeper.QueryContract(suite.ctx, account, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, account)
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, account, contract, fxtypes.GetFIP20().ABI, "balanceOf", &balanceRes, account)
 	suite.Require().NoError(err)
 	return balanceRes.Value
 }
 
 func (suite *PrecompileTestSuite) MintERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	transferData, err := erc20.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendEvmTx(signer, contractAddr, transferData)
 }
 
 func (suite *PrecompileTestSuite) ModuleMintERC20Token(contractAddr, to common.Address, amount *big.Int) {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, erc20.ABI, "mint", to, amount)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 }
 
 func (suite *PrecompileTestSuite) TransferERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	transferData, err := erc20.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendEvmTx(signer, contractAddr, transferData)
 }
 
 func (suite *PrecompileTestSuite) ERC20Approve(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	transferData, err := erc20.ABI.Pack("approve", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendEvmTx(signer, contractAddr, transferData)
@@ -277,13 +278,13 @@ func (suite *PrecompileTestSuite) ERC20Approve(signer *helpers.Signer, contractA
 
 func (suite *PrecompileTestSuite) ERC20Allowance(contract, owner, spender common.Address) *big.Int {
 	var allowanceRes struct{ Value *big.Int }
-	err := suite.app.EvmKeeper.QueryContract(suite.ctx, owner, contract, fxtypes.GetERC20().ABI, "allowance", &allowanceRes, owner, spender)
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, owner, contract, fxtypes.GetFIP20().ABI, "allowance", &allowanceRes, owner, spender)
 	suite.Require().NoError(err)
 	return allowanceRes.Value
 }
 
 func (suite *PrecompileTestSuite) TransferERC20TokenToModule(signer *helpers.Signer, contractAddr common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 	transferData, err := erc20.ABI.Pack("transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)
@@ -291,7 +292,7 @@ func (suite *PrecompileTestSuite) TransferERC20TokenToModule(signer *helpers.Sig
 }
 
 func (suite *PrecompileTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr, from common.Address, amount *big.Int) {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 	_, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, from, contractAddr, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)

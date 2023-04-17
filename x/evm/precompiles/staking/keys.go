@@ -4,6 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v4/contract"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
@@ -40,7 +41,7 @@ const (
 
 var (
 	stakingAddress = common.HexToAddress(fxtypes.StakingAddress)
-	stakingABI     = fxtypes.MustABIJson(StakingMetaData.ABI)
+	stakingABI     = fxtypes.MustABIJson(contract.IStakingMetaData.ABI)
 )
 
 func GetAddress() common.Address {

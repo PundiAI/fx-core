@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v4/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -117,7 +118,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val.String())
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String())
 				suite.Require().NoError(err)
 				return pack, delAmount.BigInt(), nil
 			},
@@ -128,7 +129,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount.Mul(sdk.NewInt(2)))))
 
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val.String())
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String())
 				suite.Require().NoError(err)
 
 				tx, err := suite.PackEthereumTx(signer, suite.staking, delAmount.BigInt(), pack)
@@ -147,7 +148,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val.String()+"1")
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String()+"1")
 				suite.Require().NoError(err)
 				return pack, delAmount.BigInt(), []string{val.String() + "1"}
 			},
@@ -161,7 +162,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val.String())
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String())
 				suite.Require().NoError(err)
 				return pack, big.NewInt(0), []string{big.NewInt(0).String()}
 			},
@@ -175,7 +176,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, sdk.ValAddress(signer.AccAddress()).String())
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, sdk.ValAddress(signer.AccAddress()).String())
 				suite.Require().NoError(err)
 				return pack, delAmount.BigInt(), []string{sdk.ValAddress(signer.AccAddress()).String()}
 			},

@@ -535,7 +535,7 @@ func (suite *KeeperTestSuite) TestRegisterERC20ConversionInvariant() {
 	beforeMintBalance := suite.BalanceOf(contact, suite.signer.Address())
 	suite.Require().EqualValues(beforeMintBalance.String(), big.NewInt(0).String())
 	initBalance := sdkmath.NewInt(1000).MulRaw(1e18)
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contact, fxtypes.GetERC20().ABI, "mint", suite.signer.Address(), initBalance.BigInt())
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contact, fxtypes.GetFIP20().ABI, "mint", suite.signer.Address(), initBalance.BigInt())
 	suite.Require().NoError(err)
 	afterMintBalance := suite.BalanceOf(contact, suite.signer.Address())
 	suite.Require().EqualValues(afterMintBalance.String(), initBalance.String())

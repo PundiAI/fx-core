@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
 
 	recipient := helpers.GenerateAddress()
 	amount := big.NewInt(10)
-	data, err := fxtypes.GetERC20().ABI.Pack("transfer", recipient, amount)
+	data, err := fxtypes.GetFIP20().ABI.Pack("transfer", recipient, amount)
 	suite.Require().NoError(err)
 
 	chanId := suite.app.EvmKeeper.ChainID()
@@ -110,7 +110,7 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx2() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_CallContract() {
-	erc20 := fxtypes.GetERC20()
+	erc20 := fxtypes.GetFIP20()
 	initializeArgs := []interface{}{"FunctionX USD", "fxUSD", uint8(18), suite.app.Erc20Keeper.ModuleAddress()}
 
 	// deploy contract

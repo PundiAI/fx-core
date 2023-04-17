@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v4/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -74,7 +75,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, val.String(), del)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -84,7 +85,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			name: "contract - failed invalid validator address",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -97,7 +98,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			name: "contract - failed validator not found",
 			malleate: func(_ sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -119,15 +120,15 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			signer := suite.RandSigner()
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
 
-			contract := staking.GetAddress()
+			stakingContract := staking.GetAddress()
 			stakingABI := staking.GetABI()
 			delegateMethodName := staking.DelegateMethodName
 			delegationRewardsMethodName := staking.DelegationRewardsMethodName
 			delAddr := signer.Address()
 
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.staking
-				stakingABI = fxtypes.MustABIJson(StakingTestMetaData.ABI)
+				stakingContract = suite.staking
+				stakingABI = fxtypes.MustABIJson(contract.StakingTestMetaData.ABI)
 				delegateMethodName = StakingTestDelegateName
 				delegationRewardsMethodName = StakingTestDelegationRewardsName
 				delAddr = suite.staking
@@ -135,7 +136,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 
 			pack, err := stakingABI.Pack(delegateMethodName, val0.GetOperator().String())
 			suite.Require().NoError(err)
-			tx, err := suite.PackEthereumTx(signer, contract, delAmt.BigInt(), pack)
+			tx, err := suite.PackEthereumTx(signer, stakingContract, delAmt.BigInt(), pack)
 			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 			suite.Require().NoError(err)
@@ -148,7 +149,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			evmDenom := suite.app.EvmKeeper.GetEVMDenom(suite.ctx)
 
 			pack, errArgs := tc.malleate(val0.GetOperator(), delAddr)
-			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &contract, pack, false)
+			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &stakingContract, pack, false)
 
 			if tc.result {
 				suite.Require().NoError(err)

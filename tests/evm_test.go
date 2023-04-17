@@ -46,12 +46,12 @@ func (suite *IntegrationTest) WFXTest() {
 
 func (suite *IntegrationTest) ERC20TokenTest() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetERC20().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetFIP20().Bin)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
-	pack, err := types.GetERC20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
+	pack, err := types.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
 	suite.NoError(err)
@@ -291,19 +291,19 @@ func (suite *IntegrationTest) EVMWeb3Test() {
 
 func (suite *IntegrationTest) CallContractTest() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetERC20().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetFIP20().Bin)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
-	pack, err := types.GetERC20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()))
+	pack, err := types.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	suite.evm.TransferOwnership(suite.evm.privKey, proxy, common.BytesToAddress(authtypes.NewModuleAddress(evmtypes.ModuleName)))
 	amount := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
-	args, err := types.GetERC20().ABI.Pack("mint", suite.evm.HexAddress(), amount)
+	args, err := types.GetFIP20().ABI.Pack("mint", suite.evm.HexAddress(), amount)
 	suite.Require().NoError(err)
 	response, proposalId := suite.BroadcastProposalTx2([]sdk.Msg{&fxevmtypes.MsgCallContract{
 		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),

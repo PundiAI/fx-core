@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v4/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
@@ -347,7 +348,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				moduleName := md.RandModule()
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(moduleName),
@@ -379,7 +380,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().Equal(randMint.String(), allowance.String())
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(moduleName),
@@ -403,7 +404,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				moduleName := ethtypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					common.HexToAddress(fxtypes.EmptyEvmAddress),
 					helpers.GenerateAddressByModule(moduleName),
@@ -445,7 +446,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 
 				suite.ERC20Approve(signer, pair.GetERC20Contract(), suite.crosschain, randMint)
 
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(moduleName),
@@ -499,7 +500,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 
 				suite.ERC20Approve(signer, pair.GetERC20Contract(), suite.crosschain, randMint)
 
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(bsctypes.ModuleName),
@@ -522,7 +523,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 
 				moduleName := ethtypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					common.HexToAddress(fxtypes.EmptyEvmAddress),
 					helpers.GenerateAddressByModule(moduleName),
@@ -549,7 +550,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.ERC20Approve(signer, erc20Token, suite.crosschain, randMint)
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					erc20Token,
 					helpers.GenerateAddressByModule(moduleName),
@@ -580,7 +581,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().NoError(err)
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(moduleName),
@@ -904,7 +905,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				moduleName := md.RandModule()
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(moduleName),
@@ -937,7 +938,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				suite.Require().Equal(randMint.String(), allowance.String())
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(moduleName),
@@ -962,7 +963,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				suite.ERC20Approve(signer, erc20Token, suite.crosschain, randMint)
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					erc20Token,
 					helpers.GenerateAddressByModule(moduleName),
@@ -994,7 +995,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				suite.Require().NoError(err)
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					helpers.GenerateAddressByModule(moduleName),
@@ -1433,7 +1434,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					recipient,
@@ -1489,7 +1490,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					recipient,
@@ -1513,7 +1514,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
 
 				prefix, recipient := suite.RandPrefixAndAddress()
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					common.HexToAddress(fxtypes.EmptyEvmAddress),
 					recipient,
@@ -1544,7 +1545,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				prefix, recipient := suite.RandPrefixAndAddress()
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					recipient,
@@ -1605,7 +1606,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					recipient,
@@ -1634,7 +1635,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				prefix, recipient := suite.RandPrefixAndAddress()
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					common.HexToAddress(fxtypes.EmptyEvmAddress),
 					recipient,
@@ -1908,7 +1909,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					recipient,
@@ -1952,7 +1953,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					recipient,
@@ -1984,7 +1985,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 				prefix, recipient := suite.RandPrefixAndAddress()
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.MustABIJson(CrosschainTestABI).Pack(
+				data, err := fxtypes.MustABIJson(contract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
 					recipient,

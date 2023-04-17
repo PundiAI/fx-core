@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v4/types/contract"
+	"github.com/functionx/fx-core/v4/contract"
 )
 
 const (
@@ -40,25 +40,25 @@ var (
 var (
 	fip20Init = Contract{
 		Address: common.HexToAddress(FIP20LogicAddress),
-		ABI:     MustABIJson(contract.FIP20ABI),
-		Bin:     MustDecodeHex(contract.FIP20Bin),
+		ABI:     MustABIJson(contract.FIP20UpgradableMetaData.ABI),
+		Bin:     MustDecodeHex(contract.FIP20UpgradableMetaData.Bin),
 		Code:    initERC20Code,
 	}
 	wfxInit = Contract{
 		Address: common.HexToAddress(WFXLogicAddress),
-		ABI:     MustABIJson(contract.WFXABI),
-		Bin:     MustDecodeHex(contract.WFXBin),
+		ABI:     MustABIJson(contract.WFXUpgradableMetaData.ABI),
+		Bin:     MustDecodeHex(contract.WFXUpgradableMetaData.Bin),
 		Code:    initWFXCode,
 	}
 	erc1967Proxy = Contract{
 		Address: common.Address{},
-		ABI:     MustABIJson(contract.ERC1967ProxyABI),
-		Bin:     MustDecodeHex(contract.ERC1967ProxyBin),
+		ABI:     MustABIJson(contract.ERC1967ProxyMetaData.ABI),
+		Bin:     MustDecodeHex(contract.ERC1967ProxyMetaData.Bin),
 		Code:    []byte{},
 	}
 )
 
-func GetERC20() Contract {
+func GetFIP20() Contract {
 	return fip20Init
 }
 

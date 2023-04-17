@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
-	args, err := fxtypes.GetERC20().ABI.Pack("")
+	args, err := fxtypes.GetFIP20().ABI.Pack("")
 	suite.Require().NoError(err)
 
 	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.signer.Address())
@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 		big.NewInt(500*1e9),
 		nil,
 		nil,
-		append(fxtypes.GetERC20().Bin, args...),
+		append(fxtypes.GetFIP20().Bin, args...),
 		nil,
 		true,
 	)
@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 	suite.Equal(rsp.GasUsed, uint64(1706373))
 	contractAddress := crypto.CreateAddress(suite.signer.Address(), nonce)
 
-	args, err = fxtypes.GetERC20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenerateAddress())
+	args, err = fxtypes.GetFIP20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenerateAddress())
 	suite.Require().NoError(err)
 
 	msg = ethtypes.NewMessage(
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 	suite.Require().False(rsp.Failed(), rsp)
 
 	amount := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
-	args, err = fxtypes.GetERC20().ABI.Pack("mint", suite.signer.Address(), amount)
+	args, err = fxtypes.GetFIP20().ABI.Pack("mint", suite.signer.Address(), amount)
 	suite.Require().NoError(err)
 
 	msg = ethtypes.NewMessage(
@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, address common.Address) *big.I
 	var balanceRes struct {
 		Value *big.Int
 	}
-	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, address)
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "balanceOf", &balanceRes, address)
 	suite.Require().NoError(err)
 	return balanceRes.Value
 }

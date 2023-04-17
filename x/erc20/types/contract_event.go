@@ -29,7 +29,7 @@ func ParseTransferCrossChainEvent(log *ethtypes.Log) (*TransferCrossChainEvent, 
 	if len(log.Topics) != 2 {
 		return nil, nil
 	}
-	fip20ABI := fxtypes.GetERC20().ABI
+	fip20ABI := fxtypes.GetFIP20().ABI
 	tc := new(TransferCrossChainEvent)
 	if log.Topics[0] != fip20ABI.Events[FIP20EventTransferCrossChain].ID {
 		return nil, nil
@@ -79,7 +79,7 @@ func ParseTransferEvent(log *ethtypes.Log) (*TransferEvent, error) {
 	if len(log.Topics) != 3 {
 		return nil, nil
 	}
-	fip20ABI := fxtypes.GetERC20().ABI
+	fip20ABI := fxtypes.GetFIP20().ABI
 	if log.Topics[0] != fip20ABI.Events[ERC20EventTransfer].ID {
 		return nil, nil
 	}

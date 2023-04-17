@@ -319,12 +319,12 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 
 func (suite *IntegrationTest) OriginERC20Test() {
 	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.erc20.privKey, nil, nil, fxtypes.GetERC20().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.erc20.privKey, nil, nil, fxtypes.GetFIP20().Bin)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.deployProxy(suite.erc20.privKey, logic, []byte{})
-	pack, err := fxtypes.GetERC20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes()))
+	pack, err := fxtypes.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes()))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.erc20.privKey, &proxy, nil, pack)
 	suite.NoError(err)
@@ -426,12 +426,12 @@ func (suite *IntegrationTest) OriginERC20Test() {
 //gocyclo:ignore
 func (suite *IntegrationTest) OriginERC20IBCChainTokenTest() {
 	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.erc20.privKey, nil, nil, fxtypes.GetERC20().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.erc20.privKey, nil, nil, fxtypes.GetFIP20().Bin)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.deployProxy(suite.erc20.privKey, logic, []byte{})
-	pack, err := fxtypes.GetERC20().ABI.Pack("initialize", "Test ERC20", "ERC20IBC", uint8(18), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes()))
+	pack, err := fxtypes.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20IBC", uint8(18), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes()))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.erc20.privKey, &proxy, nil, pack)
 	suite.NoError(err)

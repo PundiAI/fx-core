@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v4/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -79,7 +80,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestWithdrawName, val.String())
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, val.String())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -89,7 +90,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			name: "contract - failed invalid validator address",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestWithdrawName, newVal)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -102,7 +103,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			name: "contract - failed validator not found",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestWithdrawName, newVal)
+				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -124,14 +125,14 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			signer := suite.RandSigner()
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
 
-			contract := staking.GetAddress()
+			stakingContract := staking.GetAddress()
 			stakingABI := staking.GetABI()
 			delegateMethodName := staking.DelegateMethodName
 			withdrawMethodName := staking.WithdrawMethodName
 			delAddr := signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.staking
-				stakingABI = fxtypes.MustABIJson(StakingTestABI)
+				stakingContract = suite.staking
+				stakingABI = fxtypes.MustABIJson(contract.StakingTestMetaData.ABI)
 				delegateMethodName = StakingTestDelegateName
 				withdrawMethodName = StakingTestWithdrawName
 				delAddr = suite.staking
@@ -139,7 +140,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 
 			pack, err := stakingABI.Pack(delegateMethodName, val.GetOperator().String())
 			suite.Require().NoError(err)
-			tx, err := suite.PackEthereumTx(signer, contract, delAmt.BigInt(), pack)
+			tx, err := suite.PackEthereumTx(signer, stakingContract, delAmt.BigInt(), pack)
 			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 			suite.Require().NoError(err)
@@ -156,7 +157,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			suite.Require().True(found)
 
 			pack, errArgs := tc.malleate(val.GetOperator(), delegation.Shares)
-			tx, err = suite.PackEthereumTx(signer, contract, big.NewInt(0), pack)
+			tx, err = suite.PackEthereumTx(signer, stakingContract, big.NewInt(0), pack)
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 			}
