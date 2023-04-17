@@ -141,6 +141,21 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 					// If hash is given, then query the tx by hash.
 					resp, err := authtx.QueryTx(clientCtx, txHash)
 					if err != nil {
+						if err.Error() == fmt.Sprintf("RPC error -32603 - Internal error: tx (%s) not found", strings.ToUpper(txHash)) {
+							tmEvents := []string{fmt.Sprintf("ethereum_tx.ethereumTxHash='0x%s'", strings.ToLower(txHash))}
+							txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, query.DefaultPage, 2, "")
+							if err != nil {
+								return err
+							}
+							if len(txs.Txs) == 0 {
+								return fmt.Errorf("found no txs matching given ethereum tx hash")
+							}
+							if len(txs.Txs) > 1 {
+								// This case means there's a bug somewhere else in the code. Should not happen.
+								return fmt.Errorf("found %d txs matching given ethereum tx hash", len(txs.Txs))
+							}
+							return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
+						}
 						return err
 					}
 
@@ -160,7 +175,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 						tmEvents[i] = fmt.Sprintf("%s.%s='%s'", sdk.EventTypeTx, sdk.AttributeKeySignature, sig)
 					}
 
-					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, query.DefaultPage, query.DefaultLimit, "")
+					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, query.DefaultPage, 2, "")
 					if err != nil {
 						return err
 					}
@@ -182,7 +197,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 					tmEvents := []string{
 						fmt.Sprintf("%s.%s='%s'", sdk.EventTypeTx, sdk.AttributeKeyAccountSequence, args[0]),
 					}
-					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, query.DefaultPage, query.DefaultLimit, "")
+					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, query.DefaultPage, 2, "")
 					if err != nil {
 						return err
 					}
