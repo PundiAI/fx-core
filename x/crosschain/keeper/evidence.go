@@ -16,10 +16,8 @@ func (k Keeper) SetPastExternalSignatureCheckpoint(ctx sdk.Context, checkpoint [
 // IteratePastExternalSignatureCheckpoint iterates through all PastExternalSignatureCheckpoint in the half-open interval [start,end)
 func (k Keeper) IteratePastExternalSignatureCheckpoint(ctx sdk.Context, start uint64, end uint64, cb func([]byte) bool) {
 	store := ctx.KVStore(k.storeKey)
-	// nolint:staticcheck
-	startKey := append(types.PastExternalSignatureCheckpointKey, sdk.Uint64ToBigEndian(start)...)
-	// nolint:staticcheck
-	endKey := append(types.PastExternalSignatureCheckpointKey, sdk.Uint64ToBigEndian(end)...)
+	startKey := append(types.PastExternalSignatureCheckpointKey, sdk.Uint64ToBigEndian(start)...) // nolint:staticcheck
+	endKey := append(types.PastExternalSignatureCheckpointKey, sdk.Uint64ToBigEndian(end)...)     // nolint:staticcheck
 	iter := store.Iterator(startKey, endKey)
 	defer iter.Close()
 

@@ -9928,9 +9928,8 @@ paths:
           type: string
       tags:
         - Query
-  /fx/gov/v1/params:
+  /fx/gov/v1/Params:
     get:
-      summary: Params retrieves the erc20 module params
       operationId: FxGovParams
       responses:
         '200':
@@ -9941,6 +9940,25 @@ paths:
               params:
                 type: object
                 properties:
+                  msg_type:
+                    type: string
+                  min_deposit:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
                   min_initial_deposit:
                     type: object
                     properties:
@@ -9956,6 +9974,63 @@ paths:
                       custom method
 
                       signatures required by gogoproto.
+                  voting_period:
+                    type: string
+                  quorum:
+                    type: string
+                  max_deposit_period:
+                    type: string
+                  threshold:
+                    type: string
+                  veto_threshold:
+                    type: string
+                title: Params defines the fx x/gov module params
+            description: >-
+              QueryBaseParamsResponse is the response type for the
+              Query/BaseParams RPC
+
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: msg_type
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
+  /fx/gov/v1/egf_params:
+    get:
+      operationId: EGFParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
                   egf_deposit_threshold:
                     type: object
                     properties:
@@ -9973,17 +10048,10 @@ paths:
                       signatures required by gogoproto.
                   claim_ratio:
                     type: string
-                  erc20_quorum:
-                    type: string
-                  evm_quorum:
-                    type: string
-                  egf_voting_period:
-                    type: string
-                  evm_voting_period:
-                    type: string
-                title: Params defines the fx x/gov module params
-            description: |-
-              QueryParamsResponse is the response type for the Query/Params RPC
+            description: >-
+              QueryEGFParamsResponse is the response type for the
+              Query/EGFParams RPC
+
               method.
         default:
           description: An unexpected error response.
@@ -32916,21 +32984,9 @@ definitions:
     properties:
       address:
         type: string
-  fx.gov.v1.Params:
+  fx.gov.v1.EGFParams:
     type: object
     properties:
-      min_initial_deposit:
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
       egf_deposit_threshold:
         type: object
         properties:
@@ -32945,36 +33001,54 @@ definitions:
           signatures required by gogoproto.
       claim_ratio:
         type: string
-      erc20_quorum:
+  fx.gov.v1.Params:
+    type: object
+    properties:
+      msg_type:
         type: string
-      evm_quorum:
+      min_deposit:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+      min_initial_deposit:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      voting_period:
         type: string
-      egf_voting_period:
+      quorum:
         type: string
-      evm_voting_period:
+      max_deposit_period:
+        type: string
+      threshold:
+        type: string
+      veto_threshold:
         type: string
     title: Params defines the fx x/gov module params
-  fx.gov.v1.QueryParamsResponse:
+  fx.gov.v1.QueryEGFParamsResponse:
     type: object
     properties:
       params:
         type: object
         properties:
-          min_initial_deposit:
-            type: object
-            properties:
-              denom:
-                type: string
-              amount:
-                type: string
-            description: >-
-              Coin defines a token with a denomination and an amount.
-
-
-              NOTE: The amount field is an Int which implements the custom
-              method
-
-              signatures required by gogoproto.
           egf_deposit_threshold:
             type: object
             properties:
@@ -32992,17 +33066,62 @@ definitions:
               signatures required by gogoproto.
           claim_ratio:
             type: string
-          erc20_quorum:
+    description: |-
+      QueryEGFParamsResponse is the response type for the Query/EGFParams RPC
+      method.
+  fx.gov.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          msg_type:
             type: string
-          evm_quorum:
+          min_deposit:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+          min_initial_deposit:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          voting_period:
             type: string
-          egf_voting_period:
+          quorum:
             type: string
-          evm_voting_period:
+          max_deposit_period:
+            type: string
+          threshold:
+            type: string
+          veto_threshold:
             type: string
         title: Params defines the fx x/gov module params
     description: |-
-      QueryParamsResponse is the response type for the Query/Params RPC
+      QueryBaseParamsResponse is the response type for the Query/BaseParams RPC
       method.
   cosmos.auth.v1beta1.AddressBytesToStringResponse:
     type: object

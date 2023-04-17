@@ -116,7 +116,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 				sdk.NewEvent(
 					types.EventTypeMigrateGovVote,
 					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(types.AttributeKeyVoteOption, options.String()), // nolint:staticcheck
+					sdk.NewAttribute(types.AttributeKeyVoteOption, options.String()),
 				),
 			)
 		}

@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	// check acc vote
 	vote, found := suite.app.GovKeeper.GetVote(suite.ctx, proposal.Id, acc)
 	suite.Require().True(found)
-	suite.Require().Equal(vote.Options, []*govv1.WeightedVoteOption{{Option: govv1.VoteOption_VOTE_OPTION_YES, Weight: "1.000000000000000000"}}) // nolint:staticcheck
+	suite.Require().Equal(vote.Options, []*govv1.WeightedVoteOption{{Option: govv1.VoteOption_VOTE_OPTION_YES, Weight: "1.000000000000000000"}})
 
 	// check to address deposit vote
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, toEthAcc.Bytes())
@@ -193,5 +193,5 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 
 	vote, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.Id, toEthAcc.Bytes())
 	suite.Require().True(found)
-	suite.Require().Equal(vote.Options, []*govv1.WeightedVoteOption{{Option: govv1.VoteOption_VOTE_OPTION_YES, Weight: "1.000000000000000000"}}) // nolint:staticcheck
+	suite.Require().Equal(vote.Options, []*govv1.WeightedVoteOption{{Option: govv1.VoteOption_VOTE_OPTION_YES, Weight: "1.000000000000000000"}})
 }

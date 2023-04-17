@@ -440,7 +440,7 @@ func NewAppKeeper(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(appKeepers.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(appKeepers.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(appKeepers.IBCKeeper.ClientKeeper)).
-		AddRoute(crosschaintypes.RouterKey, crosschain.NewChainProposalHandler(appKeepers.CrosschainKeeper)).
+		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrosschainProposalHandler(appKeepers.CrosschainKeeper)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(appKeepers.Erc20Keeper))
 
 	govConfig := fxgovtypes.DefaultConfig()

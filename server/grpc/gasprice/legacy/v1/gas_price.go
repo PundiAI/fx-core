@@ -9,18 +9,20 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
-// Deprecated: Querier
+// Querier
+// Deprecated
 type Querier struct{}
 
-// nolint:staticcheck
 var _ QueryServer = Querier{}
 
-// Deprecated: FxGasPrice
+// FxGasPrice
+// Deprecated
 func (q Querier) FxGasPrice(ctx context.Context, request *GasPriceRequest) (*GasPriceResponse, error) {
 	return q.GasPrice(ctx, request)
 }
 
-// Deprecated: GasPrice
+// GasPrice
+// Deprecated
 func (q Querier) GasPrice(c context.Context, _ *GasPriceRequest) (*GasPriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	var gasPrices sdk.Coins
@@ -30,7 +32,8 @@ func (q Querier) GasPrice(c context.Context, _ *GasPriceRequest) (*GasPriceRespo
 	return &GasPriceResponse{GasPrices: gasPrices}, nil
 }
 
-// Deprecated: RegisterGRPCGatewayRoutes
+// RegisterGRPCGatewayRoutes
+// Deprecated
 func RegisterGRPCGatewayRoutes(clientConn grpc.ClientConn, mux *runtime.ServeMux) {
 	if err := RegisterQueryHandlerClient(context.Background(), mux, NewQueryClient(clientConn)); err != nil {
 		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", "gas price", err.Error()))

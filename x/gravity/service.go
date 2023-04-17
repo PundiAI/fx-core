@@ -10,7 +10,8 @@ import (
 	"github.com/functionx/fx-core/v4/x/gravity/types"
 )
 
-// Deprecated: RegisterGRPCGatewayRoutes
+// RegisterGRPCGatewayRoutes
+// Deprecated
 func RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 	if err != nil {

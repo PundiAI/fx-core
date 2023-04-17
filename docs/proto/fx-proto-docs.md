@@ -3283,7 +3283,7 @@ Msg defines the ibc/transfer Msg service.
 <a name="fx.base.v1.GetGasPriceRequest"></a>
 
 ### GetGasPriceRequest
-
+Deprecated: after upgrade v4
 
 
 
@@ -3293,7 +3293,7 @@ Msg defines the ibc/transfer Msg service.
 <a name="fx.base.v1.GetGasPriceResponse"></a>
 
 ### GetGasPriceResponse
-
+Deprecated: after upgrade v4
 
 
 | Field | Type | Label | Description |
@@ -3314,7 +3314,7 @@ Msg defines the ibc/transfer Msg service.
 <a name="fx.base.v1.Query"></a>
 
 ### Query
-Deprecated
+Deprecated: after upgrade v4
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |

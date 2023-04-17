@@ -40,8 +40,7 @@ func TestAminoEncode(t *testing.T) {
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"cosmos-sdk/SoftwareUpgradeProposal","value":{"description":"foo","plan":{"height":"123","info":"foo","name":"foo","time":"0001-01-01T00:00:00Z"},"title":"v2"}},"initial_deposit":[]}}`,
 			amino:    govv1betal.ModuleCdc.LegacyAmino,
 			msg: govv1betal.MsgSubmitProposal{
-				// nolint:staticcheck
-				Content: NewAnyWithValue(&upgradetypes.SoftwareUpgradeProposal{
+				Content: NewAnyWithValue(&upgradetypes.SoftwareUpgradeProposal{ // nolint:staticcheck
 					Title:       "v2",
 					Description: "foo",
 					Plan: upgradetypes.Plan{
@@ -60,7 +59,6 @@ func TestAminoEncode(t *testing.T) {
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"cosmos-sdk/MsgSoftwareUpgrade","value":{"authority":"foo","plan":{"height":"123","info":"foo","name":"foo","time":"0001-01-01T00:00:00Z"}}},"initial_deposit":[]}}`,
 			amino:    govv1betal.ModuleCdc.LegacyAmino,
 			msg: govv1betal.MsgSubmitProposal{
-				// nolint:staticcheck
 				Content: NewAnyWithValue(&upgradetypes.MsgSoftwareUpgrade{
 					Authority: "foo",
 					Plan: upgradetypes.Plan{
@@ -96,8 +94,7 @@ func TestAminoEncode(t *testing.T) {
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"erc20/RegisterCoinProposal","value":{"description":"foo","metadata":{"base":"test","denom_units":[{"aliases":["ethtest"],"denom":"test"},{"denom":"TEST","exponent":18}],"description":"test","display":"test","name":"test name","symbol":"TEST"},"title":"v2"}},"initial_deposit":[]}}`,
 			amino:    govv1betal.ModuleCdc.LegacyAmino,
 			msg: govv1betal.MsgSubmitProposal{
-				// nolint:staticcheck
-				Content: NewAnyWithValue(&erc20types.RegisterCoinProposal{
+				Content: NewAnyWithValue(&erc20types.RegisterCoinProposal{ // nolint:staticcheck
 					Title:       "v2",
 					Description: "foo",
 					Metadata: types.Metadata{

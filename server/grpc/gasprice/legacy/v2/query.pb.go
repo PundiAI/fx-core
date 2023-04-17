@@ -31,6 +31,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Deprecated: after upgrade v4
 type GetGasPriceRequest struct {
 }
 
@@ -67,6 +68,7 @@ func (m *GetGasPriceRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetGasPriceRequest proto.InternalMessageInfo
 
+// Deprecated: after upgrade v4
 type GetGasPriceResponse struct {
 	GasPrices github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=gas_prices,json=gasPrices,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"gas_prices" yaml:"gas_prices"`
 }
