@@ -5,7 +5,7 @@ import (
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
+	tmcmd "github.com/tendermint/tendermint/cmd/cometbft/commands"
 )
 
 func TendermintCommand() *cobra.Command {

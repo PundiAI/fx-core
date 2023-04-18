@@ -37,7 +37,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	abciserver "github.com/tendermint/tendermint/abci/server"
-	tcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
+	tcmd "github.com/tendermint/tendermint/cmd/cometbft/commands"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmos "github.com/tendermint/tendermint/libs/os"
