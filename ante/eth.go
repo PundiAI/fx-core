@@ -331,7 +331,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 		}
 
 		// NOTE: pass in an empty coinbase address and nil tracer as we don't need them for the check below
-		cfg := &evmtypes.EVMConfig{
+		cfg := &statedb.EVMConfig{
 			ChainConfig: ethCfg,
 			Params:      params,
 			CoinBase:    common.Address{},

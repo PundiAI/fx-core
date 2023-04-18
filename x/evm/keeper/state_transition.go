@@ -19,7 +19,7 @@ import (
 )
 
 // EVMConfig creates the EVMConfig based on current state
-func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, chainID *big.Int) (*types.EVMConfig, error) {
+func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, chainID *big.Int) (*statedb.EVMConfig, error) {
 	params := k.GetParams(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig(chainID)
 
@@ -36,7 +36,7 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 	}
 
 	baseFee := k.GetBaseFee(ctx, ethCfg)
-	return &types.EVMConfig{
+	return &statedb.EVMConfig{
 		Params:      params,
 		ChainConfig: ethCfg,
 		CoinBase:    coinbase,
@@ -219,7 +219,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	msg core.Message,
 	tracer vm.EVMLogger,
 	commit bool,
-	cfg *types.EVMConfig,
+	cfg *statedb.EVMConfig,
 	txConfig statedb.TxConfig,
 ) (*types.MsgEthereumTxResponse, error) {
 	var (
