@@ -79,7 +79,7 @@ func Test_configTomlConfig_output(t *testing.T) {
   "home": "",
   "instrumentation": {
     "max_open_connections": 3,
-    "namespace": "tendermint",
+    "namespace": "cometbft",
     "prometheus": false,
     "prometheus_listen_addr": ":26660"
   },
@@ -241,7 +241,7 @@ func Test_appTomlConfig_output(t *testing.T) {
   "index-events": [],
   "inter-block-cache": true,
   "json-rpc": {
-    "address": "0.0.0.0:8545",
+    "address": "127.0.0.1:8545",
     "allow-unprotected-txs": false,
     "api": [
       "eth",
@@ -254,14 +254,15 @@ func Test_appTomlConfig_output(t *testing.T) {
     "evm-timeout": 5000000000,
     "feehistory-cap": 100,
     "filter-cap": 200,
+    "fix-revert-gas-refund-height": 0,
     "gas-cap": 30000000,
     "http-idle-timeout": 120000000000,
     "http-timeout": 30000000000,
     "logs-cap": 10000,
     "max-open-connections": 0,
-    "metrics-address": "0.0.0.0:6065",
+    "metrics-address": "127.0.0.1:6065",
     "txfee-cap": 1,
-    "ws-address": "0.0.0.0:8546"
+    "ws-address": "127.0.0.1:8546"
   },
   "min-retain-blocks": 0,
   "minimum-gas-prices": "",

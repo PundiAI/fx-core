@@ -287,10 +287,10 @@ max-tx-gas-wanted = 500000
 enable = true
 
 # Address defines the EVM RPC HTTP server address to bind to.
-address = "0.0.0.0:8545"
+address = "127.0.0.1:8545"
 
 # Address defines the EVM WebSocket server address to bind to.
-ws-address = "0.0.0.0:8546"
+ws-address = "127.0.0.1:8546"
 
 # API defines a list of JSON-RPC namespaces that should be enabled
 # Example: "eth,txpool,personal,net,debug,web3"
@@ -336,7 +336,10 @@ enable-indexer = false
 
 # MetricsAddress defines the EVM Metrics server address to bind to. Pass --metrics in CLI to enable
 # Prometheus metrics path: /debug/metrics/prometheus
-metrics-address = "0.0.0.0:6065"
+metrics-address = "127.0.0.1:6065"
+
+# Upgrade height for fix of revert gas refund logic when transaction reverted.
+fix-revert-gas-refund-height = 0
 
 ###############################################################################
 ###                             TLS Configuration                           ###
