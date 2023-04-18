@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/version"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/shirou/gopsutil/mem"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
@@ -82,6 +83,13 @@ just ignore this. Thanks!
 func printOSInfo() {
 	fmt.Println("Computer Info:")
 	fmt.Printf("\tOS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	fmt.Println("\tCPU: ", runtime.NumCPU())
+	memory, err := mem.VirtualMemory()
+	if err != nil {
+		return
+	}
+	fmt.Printf("\tMemory Total: %v MB, Available: %v MB, UsedPercent: %f%%MB\n",
+		memory.Total/1024/1024, memory.Available/1024/1024, memory.UsedPercent)
 }
 
 func printSelfInfo() {
@@ -90,15 +98,20 @@ func printSelfInfo() {
 	fmt.Println("\tVersion: ", info.Version)
 	fmt.Println("\tGit Commit: ", info.GitCommit)
 	fmt.Println("\tBuild Tags: ", info.BuildTags)
-	fmt.Println("\tGo Version: ", info.GoVersion)
+	fmt.Println("\tGo Version: ", runtime.Version())
 	fmt.Println("\tCosmos SDK Version: ", info.CosmosSdkVersion)
 }
 
 func checkGenesis(genesisFile string) (string, error) {
 	fmt.Println("Genesis:")
 	fmt.Println("\tFile: ", genesisFile)
+
 	genesisSha256, err := getGenesisSha256(genesisFile)
 	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("\tWarning: Not found Genesis file!")
+			return "", nil
+		}
 		return "", err
 	}
 	switch genesisSha256 {
@@ -109,7 +122,7 @@ func checkGenesis(genesisFile string) (string, error) {
 		fmt.Println("\tNetwork: Testnet")
 		return fxtypes.TestnetGenesisHash, nil
 	default:
-		fmt.Println("\tNetwork: Unknown!")
+		fmt.Println("\tWarning: Unknown Network!")
 		return "", nil
 	}
 }
@@ -136,7 +149,7 @@ func checkUpgradeInfo(homeDir string) (*upgradetypes.Plan, error) {
 	data, err := os.ReadFile(file)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Println("\tNot found")
+			fmt.Println("\tNot found file: ", file)
 			return nil, nil
 		}
 		return nil, fmt.Errorf("read upgrade info error: %s", err.Error())
@@ -145,6 +158,7 @@ func checkUpgradeInfo(homeDir string) (*upgradetypes.Plan, error) {
 	if err := json.Unmarshal(data, upgradeInfo); err != nil {
 		return nil, err
 	}
+	fmt.Println("\tFile: ", file)
 	fmt.Println("\tName: ", upgradeInfo.Name)
 	fmt.Println("\tHeight: ", upgradeInfo.Height)
 	return upgradeInfo, nil
@@ -165,7 +179,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *server.Context) blockchain 
 		fmt.Printf("\tRemote Node: %v or %v\n", serverCtx.Viper.Get(flags.FlagGRPC), serverCtx.Viper.Get(flags.FlagNode))
 		return newClient
 	} else {
-		fmt.Printf("\tRemote Node: %s/datas\n", serverCtx.Config.RootDir)
+		fmt.Printf("\tData Dir: %s/datas\n", serverCtx.Config.RootDir)
 		// TODO implement me
 		panic("implement me")
 	}
@@ -209,7 +223,7 @@ func checkBlockchainData(n blockchain, network string, upgradeInfo *upgradetypes
 		fmt.Println("\t\tHeight: ", plan.Height)
 	}
 	if chainId != network {
-		fmt.Printf("\tWarn: The remote node chainId(%s) does not match the local genesis chainId(%s)\n", chainId, network)
+		fmt.Printf("\tWarning: The remote node chainId(%s) does not match the local genesis chainId(%s)\n", chainId, network)
 		return false, nil
 	}
 	if network == fxtypes.MainnetChainId {
@@ -241,7 +255,7 @@ func checkAppConfig(viper *viper.Viper) error {
 		return err
 	}
 	if err := appConfig.ValidateBasic(); err != nil {
-		fmt.Println("\tWarn: ", err.Error())
+		fmt.Println("\tWarning: ", err.Error())
 	}
 	return nil
 }
@@ -250,11 +264,14 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 	fmt.Println("Tendermint Config: ")
 	fmt.Printf("\tFile: %s/config/config.toml\n", config.RootDir)
 	if err := config.ValidateBasic(); err != nil {
-		fmt.Println("\tWarn: ", err.Error())
+		fmt.Println("\tWarning: ", err.Error())
 	}
 	if needUpgrade && config.Consensus.DoubleSignCheckHeight > 0 {
-		fmt.Println("Warn: double_sign_check_height is greater than 0")
+		fmt.Println("Warning: double_sign_check_height is greater than 0")
+		fmt.Println("Warning: double_sign_check_height is greater than 0")
 	}
+	// xcored config config.toml p2p.persistent_peers
+	// fxcored config config.toml p2p.seeds
 	return nil
 }
 

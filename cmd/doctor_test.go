@@ -9,6 +9,12 @@ import (
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
+func Test_doctorCmd(t *testing.T) {
+	cmd := doctorCmd()
+	cmd.SetArgs([]string{})
+	assert.NoError(t, cmd.Execute())
+}
+
 func Test_getGenesisSha256(t *testing.T) {
 	type args struct {
 		genesisFile string
