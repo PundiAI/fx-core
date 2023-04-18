@@ -12,6 +12,7 @@ interface ICrossChain {
         string memory _memo
     ) external payable returns (bool _result);
 
+    // Deprecated: for fip20 only
     function fip20CrossChain(
         address _sender,
         string memory _receipt,

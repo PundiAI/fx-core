@@ -23,6 +23,27 @@ library Encode {
             );
     }
 
+    // Deprecated: for fip20 only
+    function fip20CrossChain(
+        address _sender,
+        string memory _receipt,
+        uint256 _amount,
+        uint256 _fee,
+        bytes32 _target,
+        string memory _memo
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSignature(
+                "fip20CrossChain(address,string,uint256,uint256,bytes32,string)",
+                _sender,
+                _receipt,
+                _amount,
+                _fee,
+                _target,
+                _memo
+            );
+    }
+
     function cancelSendToExternal(
         string memory _chain,
         uint256 _txid

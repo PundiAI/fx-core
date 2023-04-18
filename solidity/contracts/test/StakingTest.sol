@@ -11,7 +11,10 @@ contract StakingTest is IStaking {
     function delegate(
         string memory _val
     ) external payable override returns (uint256, uint256) {
-        (uint256 newShares, uint256 reward) = StakingCall.delegate(_val, msg.value);
+        (uint256 newShares, uint256 reward) = StakingCall.delegate(
+            _val,
+            msg.value
+        );
         validatorShares[_val] += newShares;
         return (newShares, reward);
     }
@@ -20,17 +23,13 @@ contract StakingTest is IStaking {
         string memory _val,
         uint256 _shares
     ) external override returns (uint256, uint256, uint256) {
-        (uint256 amount, uint256 reward, uint256 completionTime) = StakingCall.undelegate(
-            _val,
-            _shares
-        );
+        (uint256 amount, uint256 reward, uint256 completionTime) = StakingCall
+            .undelegate(_val, _shares);
         validatorShares[_val] -= _shares;
         return (amount, reward, completionTime);
     }
 
-    function withdraw(
-        string memory _val
-    ) external override returns (uint256) {
+    function withdraw(string memory _val) external override returns (uint256) {
         uint256 amount = StakingCall.withdraw(_val);
         return amount;
     }
@@ -49,7 +48,11 @@ contract StakingTest is IStaking {
         address _to,
         uint256 _shares
     ) external override returns (uint256, uint256) {
-        (uint256 token, uint256 reward) = StakingCall.transferShares(_val, _to, _shares);
+        (uint256 token, uint256 reward) = StakingCall.transferShares(
+            _val,
+            _to,
+            _shares
+        );
         return (token, reward);
     }
 
@@ -59,7 +62,12 @@ contract StakingTest is IStaking {
         address _to,
         uint256 _shares
     ) external override returns (uint256, uint256) {
-        (uint256 token, uint256 reward) = StakingCall.transferFromShares(_val, _from, _to, _shares);
+        (uint256 token, uint256 reward) = StakingCall.transferFromShares(
+            _val,
+            _from,
+            _to,
+            _shares
+        );
         return (token, reward);
     }
 
@@ -84,5 +92,4 @@ contract StakingTest is IStaking {
     ) public view override returns (uint256) {
         return StakingCall.allowanceShares(_val, _owner, _spender);
     }
-
 }

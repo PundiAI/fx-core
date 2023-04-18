@@ -19,6 +19,9 @@ if [ -d "./solidity/artifacts" ]; then
   (cd ./solidity && yarn clean)
 fi
 
+echo "===> Lint contracts"
+(cd ./solidity && yarn lint:sol)
+
 echo "===> Compiling contracts"
 (cd ./solidity && yarn compile)
 

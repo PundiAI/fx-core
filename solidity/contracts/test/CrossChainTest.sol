@@ -14,14 +14,16 @@ contract CrossChainTest {
         bytes32 _target,
         string memory _memo
     ) external payable returns (bool) {
-
         if (_token != address(0)) {
             IFIP20Upgradable(_token).transferFrom(
                 msg.sender,
                 address(this),
                 _amount + _fee
             );
-            IFIP20Upgradable(_token).approve(CrossChainCall.CrossChainAddress, _amount + _fee);
+            IFIP20Upgradable(_token).approve(
+                CrossChainCall.CrossChainAddress,
+                _amount + _fee
+            );
         }
 
         if (_token != address(0)) {
@@ -40,7 +42,15 @@ contract CrossChainTest {
             );
         }
 
-        return CrossChainCall.crossChain(_token, _receipt, _amount, _fee, _target, _memo);
+        return
+            CrossChainCall.crossChain(
+                _token,
+                _receipt,
+                _amount,
+                _fee,
+                _target,
+                _memo
+            );
     }
 
     function cancelSendToExternal(

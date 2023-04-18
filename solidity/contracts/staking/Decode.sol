@@ -25,10 +25,8 @@ library Decode {
         return reward;
     }
 
-    function approveShares(
-        bytes memory data
-    ) internal pure returns (bool) {
-        (bool result) = abi.decode(data, (bool));
+    function approveShares(bytes memory data) internal pure returns (bool) {
+        bool result = abi.decode(data, (bool));
         return result;
     }
 

@@ -6,12 +6,16 @@ import "./Encode.sol";
 import "./Decode.sol";
 
 library StakingCall {
-    address public constant _stakingAddress = address(0x0000000000000000000000000000000000001003);
+    address public constant _stakingAddress =
+        address(0x0000000000000000000000000000000000001003);
 
-    function delegate(string memory _val, uint256 _value) internal returns (uint256, uint256) {
-        (bool result, bytes memory data) = _stakingAddress.call{
-                value: _value
-            }(Encode.delegate(_val));
+    function delegate(
+        string memory _val,
+        uint256 _value
+    ) internal returns (uint256, uint256) {
+        (bool result, bytes memory data) = _stakingAddress.call{value: _value}(
+            Encode.delegate(_val)
+        );
         Decode.ok(result, data, "delegate failed");
         return Decode.delegate(data);
     }

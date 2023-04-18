@@ -8,6 +8,12 @@ library Decode {
         return result;
     }
 
+    // Deprecated: for fip20 only
+    function fip20CrossChain(bytes memory data) internal pure returns (bool) {
+        bool result = abi.decode(data, (bool));
+        return result;
+    }
+
     function cancelSendToExternal(
         bytes memory data
     ) internal pure returns (bool) {

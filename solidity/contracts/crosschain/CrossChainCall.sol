@@ -6,7 +6,8 @@ import "./Encode.sol";
 import "./Decode.sol";
 
 library CrossChainCall {
-    address public constant CrossChainAddress = address(0x0000000000000000000000000000000000001004);
+    address public constant CrossChainAddress =
+        address(0x0000000000000000000000000000000000001004);
 
     function crossChain(
         address _token,
@@ -17,10 +18,33 @@ library CrossChainCall {
         string memory _memo
     ) internal returns (bool) {
         (bool result, bytes memory data) = CrossChainAddress.call{
-                value: msg.value
-            }(Encode.crossChain(_token, _receipt, _amount, _fee, _target, _memo));
+            value: msg.value
+        }(Encode.crossChain(_token, _receipt, _amount, _fee, _target, _memo));
         Decode.ok(result, data, "cross-chain failed");
         return Decode.crossChain(data);
+    }
+
+    // Deprecated: for fip20 only
+    function fip20CrossChain(
+        address _sender,
+        string memory _receipt,
+        uint256 _amount,
+        uint256 _fee,
+        bytes32 _target,
+        string memory _memo
+    ) internal returns (bool) {
+        (bool result, bytes memory data) = CrossChainAddress.call(
+            Encode.fip20CrossChain(
+                _sender,
+                _receipt,
+                _amount,
+                _fee,
+                _target,
+                _memo
+            )
+        );
+        Decode.ok(result, data, "fip-cross-chain failed");
+        return Decode.fip20CrossChain(data);
     }
 
     function cancelSendToExternal(

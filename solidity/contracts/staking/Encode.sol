@@ -14,11 +14,11 @@ library Encode {
         uint256 _shares
     ) internal pure returns (bytes memory) {
         return
-        abi.encodeWithSignature(
-            "undelegate(string,uint256)",
-            _validator,
-            _shares
-        );
+            abi.encodeWithSignature(
+                "undelegate(string,uint256)",
+                _validator,
+                _shares
+            );
     }
 
     function withdraw(
@@ -33,12 +33,12 @@ library Encode {
         uint256 _shares
     ) internal pure returns (bytes memory) {
         return
-        abi.encodeWithSignature(
-            "approveShares(string,address,uint256)",
-            _validator,
-            _spender,
-            _shares
-        );
+            abi.encodeWithSignature(
+                "approveShares(string,address,uint256)",
+                _validator,
+                _spender,
+                _shares
+            );
     }
 
     function transferShares(
@@ -47,12 +47,12 @@ library Encode {
         uint256 _shares
     ) internal pure returns (bytes memory) {
         return
-        abi.encodeWithSignature(
-            "transferShares(string,address,uint256)",
-            _validator,
-            _to,
-            _shares
-        );
+            abi.encodeWithSignature(
+                "transferShares(string,address,uint256)",
+                _validator,
+                _to,
+                _shares
+            );
     }
 
     function transferFromShares(
@@ -62,13 +62,13 @@ library Encode {
         uint256 _shares
     ) internal pure returns (bytes memory) {
         return
-        abi.encodeWithSignature(
-            "transferFromShares(string,address,address,uint256)",
-            _validator,
-            _from,
-            _to,
-            _shares
-        );
+            abi.encodeWithSignature(
+                "transferFromShares(string,address,address,uint256)",
+                _validator,
+                _from,
+                _to,
+                _shares
+            );
     }
 
     function delegation(
@@ -76,11 +76,11 @@ library Encode {
         address _delegate
     ) internal pure returns (bytes memory) {
         return
-        abi.encodeWithSignature(
-            "delegation(string,address)",
-            _validator,
-            _delegate
-        );
+            abi.encodeWithSignature(
+                "delegation(string,address)",
+                _validator,
+                _delegate
+            );
     }
 
     function delegationRewards(
@@ -88,11 +88,11 @@ library Encode {
         address _delegate
     ) internal pure returns (bytes memory) {
         return
-        abi.encodeWithSignature(
-            "delegationRewards(string,address)",
-            _validator,
-            _delegate
-        );
+            abi.encodeWithSignature(
+                "delegationRewards(string,address)",
+                _validator,
+                _delegate
+            );
     }
 
     function allowanceShares(
@@ -101,11 +101,11 @@ library Encode {
         address _spender
     ) internal pure returns (bytes memory) {
         return
-        abi.encodeWithSignature(
-            "allowanceShares(string,address,address)",
-            _validator,
-            _owner,
-            _spender
-        );
+            abi.encodeWithSignature(
+                "allowanceShares(string,address,address)",
+                _validator,
+                _owner,
+                _spender
+            );
     }
 }

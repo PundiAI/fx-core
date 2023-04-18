@@ -22,14 +22,18 @@ import "../crosschain/CrossChainCall.sol";
  *
  * _Available since v4.1._
  */
-abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable, ERC1967UpgradeUpgradeable {
-    function __UUPSUpgradeable_init() internal onlyInitializing {
-    }
+abstract contract UUPSUpgradeable is
+    Initializable,
+    IERC1822ProxiableUpgradeable,
+    ERC1967UpgradeUpgradeable
+{
+    function __UUPSUpgradeable_init() internal onlyInitializing {}
 
-    function __UUPSUpgradeable_init_unchained() internal onlyInitializing {
-    }
+    function __UUPSUpgradeable_init_unchained() internal onlyInitializing {}
+
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
-    address private immutable __self = 0x0000000000000000000000000000000000001002;
+    address private immutable __self =
+        0x0000000000000000000000000000000000001002;
 
     /**
      * @dev Check that the execution is being performed through a delegatecall call and that the execution context is
@@ -39,8 +43,14 @@ abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable
      * fail.
      */
     modifier onlyProxy() {
-        require(address(this) != __self, "Function must be called through delegatecall");
-        require(_getImplementation() == __self, "Function must be called through active proxy");
+        require(
+            address(this) != __self,
+            "Function must be called through delegatecall"
+        );
+        require(
+            _getImplementation() == __self,
+            "Function must be called through active proxy"
+        );
         _;
     }
 
@@ -49,7 +59,10 @@ abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable
      * callable on the implementing contract but not through proxies.
      */
     modifier notDelegated() {
-        require(address(this) == __self, "UUPSUpgradeable: must not be called through delegatecall");
+        require(
+            address(this) == __self,
+            "UUPSUpgradeable: must not be called through delegatecall"
+        );
         _;
     }
 
@@ -61,7 +74,14 @@ abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable
      * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this
      * function revert if invoked through a proxy. This is guaranteed by the `notDelegated` modifier.
      */
-    function proxiableUUID() external view virtual override notDelegated returns (bytes32) {
+    function proxiableUUID()
+        external
+        view
+        virtual
+        override
+        notDelegated
+        returns (bytes32)
+    {
         return _IMPLEMENTATION_SLOT;
     }
 
@@ -85,7 +105,10 @@ abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable
      *
      * Emits an {Upgraded} event.
      */
-    function upgradeToAndCall(address newImplementation, bytes memory data) external payable virtual onlyProxy {
+    function upgradeToAndCall(
+        address newImplementation,
+        bytes memory data
+    ) external payable virtual onlyProxy {
         _authorizeUpgrade(newImplementation);
         _upgradeToAndCallUUPS(newImplementation, data, true);
     }
@@ -111,10 +134,10 @@ abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable
 }
 
 contract WFXUpgradable is
-Initializable,
-ContextUpgradeable,
-OwnableUpgradeable,
-UUPSUpgradeable
+    Initializable,
+    ContextUpgradeable,
+    OwnableUpgradeable,
+    UUPSUpgradeable
 {
     using CrossChainCall for *;
 
@@ -128,7 +151,7 @@ UUPSUpgradeable
     address private _module;
 
     /**
-    * @dev Emitted when `value` tokens are moved from one account (`from`) to
+     * @dev Emitted when `value` tokens are moved from one account (`from`) to
      * another (`to`).
      *
      * Note that `value` may be zero.
@@ -173,9 +196,7 @@ UUPSUpgradeable
         return _totalSupply;
     }
 
-    function balanceOf(
-        address account
-    ) external view returns (uint256) {
+    function balanceOf(address account) external view returns (uint256) {
         return _balanceOf[account];
     }
 
@@ -186,10 +207,7 @@ UUPSUpgradeable
         return _allowance[owner][spender];
     }
 
-    function approve(
-        address spender,
-        uint256 amount
-    ) external returns (bool) {
+    function approve(address spender, uint256 amount) external returns (bool) {
         _approve(_msgSender(), spender, amount);
         emit Approval(_msgSender(), spender, amount);
         return true;
@@ -326,7 +344,14 @@ UUPSUpgradeable
 
         _transfer(sender, _module, amount + fee);
 
-        CrossChainCall.crossChain(address(this), recipient, amount, fee, target, "");
+        CrossChainCall.fip20CrossChain(
+            sender,
+            recipient,
+            amount,
+            fee,
+            target,
+            ""
+        );
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
