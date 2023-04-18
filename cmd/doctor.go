@@ -357,7 +357,6 @@ func checkCosmovisorUpgrade(path, t string) *upgradetypes.Plan {
 			binFxcored := filepath.Join(bin, "fxcored")
 			exist, isDir, err = checkDirFile(binFxcored)
 			if err == nil && exist && !isDir {
-				fmt.Printf("%s\t\tfxcored: %s\n", t, binFxcored)
 				output, err := exec.Command(binFxcored, "version").Output()
 				if err != nil {
 					fmt.Printf("%s\t\tfxcored exec: %s\n", t, err.Error())
@@ -379,26 +378,25 @@ func checkCosmovisorUpgrade(path, t string) *upgradetypes.Plan {
 				upgradeInfo, err := os.ReadFile(upgradeFile)
 				if err != nil {
 					fmt.Printf("%s\t\t%s read: %s\n", t, upgradetypes.UpgradeInfoFilename, err.Error())
-				} else {
-					fmt.Printf("%s\t\t%s content: %s\n", t, upgradetypes.UpgradeInfoFilename, bytes.Trim(upgradeInfo, "\n"))
-					var plan upgradetypes.Plan
-					if err := json.Unmarshal(upgradeInfo, &plan); err != nil {
-						fmt.Printf("%s\t\t%s error: %s\n", t, upgradetypes.UpgradeInfoFilename, err.Error())
-					} else {
-						if plan.Name != basePath {
-							fmt.Printf("%s\t\tupgrade plan not match: %s\n", t, plan.Name)
-						} else {
-							return &plan
-						}
-					}
+					return nil
 				}
-			} else {
-				errDir(exist, isDir, err, upgradetypes.UpgradeInfoFilename, t+"\t")
+				fmt.Printf("%s\t\t%s content: %s\n", t, upgradetypes.UpgradeInfoFilename, bytes.Trim(upgradeInfo, "\n"))
+				var plan upgradetypes.Plan
+				if err := json.Unmarshal(upgradeInfo, &plan); err != nil {
+					fmt.Printf("%s\t\t%s error: %s\n", t, upgradetypes.UpgradeInfoFilename, err.Error())
+					return nil
+				}
+				if plan.Name != basePath {
+					fmt.Printf("%s\t\tupgrade plan not match: %s\n", t, plan.Name)
+					return nil
+				}
+				return &plan
 			}
+			errDir(exist, isDir, err, upgradetypes.UpgradeInfoFilename, t+"\t")
 		}
-	} else {
-		errDir(exist, isDir, err, title, t)
+		return nil
 	}
+	errDir(exist, isDir, err, title, t)
 	return nil
 }
 
