@@ -1,0 +1,30 @@
+{
+  "name": "@functionx_io/contracts",
+  "description": "Smart Contract library for Solidity",
+  "version": "0.1.2",
+  "files": [
+    "**/*.sol",
+    "/build/contracts/*.json",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "crosschain",
+    "staking"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FunctionX/fx-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FunctionX/fx-core/issues"
+  },
+  "license": "Apache-2.0"
+}

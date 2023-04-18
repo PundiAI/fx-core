@@ -1,7 +1,7 @@
 {
-  "name": "@functionx_io/contracts",
+  "name": "fxcore-solidity",
   "description": "Smart Contract library for Solidity",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "files": [
     "/contracts/**/*.sol",
     "package.json",
