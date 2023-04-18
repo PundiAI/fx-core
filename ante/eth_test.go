@@ -59,10 +59,10 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 			suite.SetupTest()
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
 			params.AllowUnprotectedTxs = tc.allowUnprotectedTxs
-			suite.app.EvmKeeper.SetParams(suite.ctx, params)
-
+			err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
+			suite.NoError(err)
 			dec := ante.NewEthSigVerificationDecorator(suite.app.EvmKeeper)
-			_, err := dec.AnteHandle(suite.ctx.WithIsReCheckTx(tc.reCheckTx), tc.tx(), false, NextFn)
+			_, err = dec.AnteHandle(suite.ctx.WithIsReCheckTx(tc.reCheckTx), tc.tx(), false, NextFn)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

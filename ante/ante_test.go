@@ -501,15 +501,15 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			suite.SetupTest() // reset
 			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 			params.MinGasPrice = sdk.ZeroDec()
-			suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
-
+			err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+			suite.NoError(err)
 			signer := helpers.NewSigner(helpers.NewEthPrivKey())
 
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.Address().Bytes())
 			suite.Require().NoError(acc.SetSequence(1))
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
-			err := suite.app.EvmKeeper.SetBalance(suite.ctx, signer.Address(), big.NewInt(10000000000))
+			err = suite.app.EvmKeeper.SetBalance(suite.ctx, signer.Address(), big.NewInt(10000000000))
 			suite.NoError(err)
 
 			suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, big.NewInt(100))
@@ -781,7 +781,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			params.BaseFee = sdkmath.NewIntFromUint64(ethparams.InitialBaseFee)
 			params.EnableHeight = 1
 			params.NoBaseFee = false
-			suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+			err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+			suite.NoError(err)
 			if !tc.enableLondonHF {
 				ethParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 				maxInt := sdkmath.NewInt(math.MaxInt64)
@@ -791,7 +792,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				ethParams.ChainConfig.MergeNetsplitBlock = &maxInt
 				ethParams.ChainConfig.ShanghaiBlock = &maxInt
 				ethParams.ChainConfig.CancunBlock = &maxInt
-				suite.app.EvmKeeper.SetParams(suite.ctx, ethParams)
+				err = suite.app.EvmKeeper.SetParams(suite.ctx, ethParams)
+				suite.NoError(err)
 			}
 
 			signer := helpers.NewSigner(helpers.NewEthPrivKey())
@@ -800,7 +802,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 			suite.ctx = suite.ctx.WithIsCheckTx(tc.checkTx).WithIsReCheckTx(tc.reCheckTx)
-			err := suite.app.EvmKeeper.SetBalance(suite.ctx, signer.Address(), big.NewInt((ethparams.InitialBaseFee+10)*100000))
+			err = suite.app.EvmKeeper.SetBalance(suite.ctx, signer.Address(), big.NewInt((ethparams.InitialBaseFee+10)*100000))
 			suite.NoError(err)
 			_, err = suite.anteHandler(suite.ctx, tc.txFn(*signer), false)
 			if tc.expPass {
@@ -920,20 +922,20 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 			params.MinGasPrice = sdk.ZeroDec()
 			params.BaseFee = sdkmath.NewIntFromUint64(ethparams.InitialBaseFee)
-			suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
-
+			err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+			suite.NoError(err)
 			ethParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 			ethParams.EnableCall = tc.enableCall
 			ethParams.EnableCreate = tc.enableCreate
-			suite.app.EvmKeeper.SetParams(suite.ctx, ethParams)
-
+			err = suite.app.EvmKeeper.SetParams(suite.ctx, ethParams)
+			suite.NoError(err)
 			signer := helpers.NewSigner(helpers.NewEthPrivKey())
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.Address().Bytes())
 			suite.Require().NoError(acc.SetSequence(1))
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 			suite.ctx = suite.ctx.WithIsCheckTx(true)
-			err := suite.app.EvmKeeper.SetBalance(suite.ctx, signer.Address(), big.NewInt((ethparams.InitialBaseFee+10)*100000))
+			err = suite.app.EvmKeeper.SetBalance(suite.ctx, signer.Address(), big.NewInt((ethparams.InitialBaseFee+10)*100000))
 			suite.NoError(err)
 			_, err = suite.anteHandler(suite.ctx, tc.txFn(*signer), false)
 			if tc.expErr == nil {

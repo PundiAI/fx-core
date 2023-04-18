@@ -72,8 +72,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 	params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 	params.EnableHeight = 1
 	params.NoBaseFee = false
-	suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
-
+	err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+	suite.NoError(err)
 	dec := ante.NewGasWantedDecorator(suite.app.EvmKeeper, suite.app.FeeMarketKeeper)
 
 	// cumulative gas wanted from all test transactions in the same block

@@ -16,8 +16,9 @@ import (
 
 // InitGenesis initializes genesis state based on exported genesis
 func (k *Keeper) InitGenesis(ctx sdk.Context, accountKeeper types.AccountKeeper, data types.GenesisState) []abci.ValidatorUpdate {
-	k.SetParams(ctx, data.Params)
-
+	if err := k.SetParams(ctx, data.Params); err != nil {
+		panic(err)
+	}
 	// ensure evm module account is set
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		panic("the EVM module account has not been set")
