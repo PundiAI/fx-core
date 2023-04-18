@@ -1,7 +1,13 @@
 {
-  "name": "@functionx/fxcore",
+  "name": "@functionx_io/contracts",
   "description": "Smart Contract library for Solidity",
   "version": "0.1.0",
+  "files": [
+    "/contracts/**/*.sol",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "compile": "npx hardhat compile",
     "clean": "rm -rf artifacts cache build dist typechain && npx hardhat clean"
@@ -12,6 +18,10 @@
     "crosschain",
     "staking"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/FunctionX/fx-core.git"
