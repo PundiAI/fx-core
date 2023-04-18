@@ -9,12 +9,10 @@ import (
 )
 
 const (
-	// FIP20CrossChainGas default send to external fee 0.3FX
-	FIP20CrossChainGas = 200000 // if set gas price 500Gwei, about use token 0.1FX
-	CrossChainGas      = 200000
-	// CancelSendToExternalGas default cancel send to external fee 0.7FX
-	CancelSendToExternalGas = 400000 // if set gas price 500Gwei, about use token 0.2FX
-	IncreaseBridgeFeeGas    = 400000
+	FIP20CrossChainGas      = 40000 // 80000 - 160000
+	CrossChainGas           = 40000 // 70000 - 155000
+	CancelSendToExternalGas = 30000 // 70000 - 126000
+	IncreaseBridgeFeeGas    = 40000 // 70000 - 140000
 
 	FIP20CrossChainMethodName      = "fip20CrossChain"
 	CrossChainMethodName           = "crossChain"

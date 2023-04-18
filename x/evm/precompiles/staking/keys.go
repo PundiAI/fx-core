@@ -9,18 +9,15 @@ import (
 )
 
 const (
-	// DelegateGas default delegate use 0.76FX
-	DelegateGas = 400000 // if gas price 500Gwei, fee is 0.2FX
-	// UndelegateGas default undelegate use 0.82FX
-	UndelegateGas = 600000 // if gas price 500Gwei, fee is 0.3FX
-	// WithdrawGas default withdraw use 0.56FX
-	WithdrawGas           = 300000 // if gas price 500Gwei, fee is 0.15FX
-	DelegationGas         = 200000 // if gas price 500Gwei, fee is 0.1FX
-	DelegationRewardsGas  = 200000
-	TransferSharesGas     = 400000
-	ApproveSharesGas      = 200000
-	AllowanceSharesGas    = 100000
-	TransferFromSharesGas = 500000
+	DelegateGas           = 40000 // 98000 - 160000 // 165000
+	UndelegateGas         = 45000 // 94000 - 163000 // 172000
+	WithdrawGas           = 30000 // 94000 // 120000
+	DelegationGas         = 30000 // 98000
+	DelegationRewardsGas  = 30000 // 94000
+	TransferSharesGas     = 50000 // 134000 - 190000
+	ApproveSharesGas      = 10000 // 4400
+	AllowanceSharesGas    = 5000  // 1240
+	TransferFromSharesGas = 60000 // 134000 - 200000
 
 	DelegateMethodName           = "delegate"
 	UndelegateMethodName         = "undelegate"
