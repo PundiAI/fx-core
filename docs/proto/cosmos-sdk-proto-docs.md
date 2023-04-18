@@ -668,6 +668,8 @@
     - [QueryGroupsByAdminResponse](#cosmos.group.v1.QueryGroupsByAdminResponse)
     - [QueryGroupsByMemberRequest](#cosmos.group.v1.QueryGroupsByMemberRequest)
     - [QueryGroupsByMemberResponse](#cosmos.group.v1.QueryGroupsByMemberResponse)
+    - [QueryGroupsRequest](#cosmos.group.v1.QueryGroupsRequest)
+    - [QueryGroupsResponse](#cosmos.group.v1.QueryGroupsResponse)
     - [QueryProposalRequest](#cosmos.group.v1.QueryProposalRequest)
     - [QueryProposalResponse](#cosmos.group.v1.QueryProposalResponse)
     - [QueryProposalsByGroupPolicyRequest](#cosmos.group.v1.QueryProposalsByGroupPolicyRequest)
@@ -3061,7 +3063,7 @@ state transition machine.
 <a name="tendermint.crypto.PublicKey"></a>
 
 ### PublicKey
-PublicKey defines the keys available for use with Tendermint Validators
+PublicKey defines the keys available for use with Validators
 
 
 | Field | Type | Label | Description |
@@ -3245,7 +3247,7 @@ Data contains the set of transactions included in the block
 <a name="tendermint.types.Header"></a>
 
 ### Header
-Header defines the structure of a Tendermint block header.
+Header defines the structure of a block header.
 
 
 | Field | Type | Label | Description |
@@ -4014,7 +4016,7 @@ nondeterministic
 | `codespace` | [string](#string) |  |  |
 | `sender` | [string](#string) |  |  |
 | `priority` | [int64](#int64) |  |  |
-| `mempool_error` | [string](#string) |  | mempool_error is set by Tendermint. ABCI applictions creating a ResponseCheckTX should not set mempool_error. |
+| `mempool_error` | [string](#string) |  | mempool_error is set by CometBFT. ABCI applictions creating a ResponseCheckTX should not set mempool_error. |
 
 
 
@@ -10231,6 +10233,41 @@ QueryGroupsByMemberResponse is the Query/GroupsByMember response type.
 
 
 
+<a name="cosmos.group.v1.QueryGroupsRequest"></a>
+
+### QueryGroupsRequest
+QueryGroupsRequest is the Query/Groups request type.
+
+Since: cosmos-sdk 0.47.1
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupsResponse"></a>
+
+### QueryGroupsResponse
+QueryGroupsResponse is the Query/Groups response type.
+
+Since: cosmos-sdk 0.47.1
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `groups` | [GroupInfo](#cosmos.group.v1.GroupInfo) | repeated | `groups` is all the groups present in state. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
 <a name="cosmos.group.v1.QueryProposalRequest"></a>
 
 ### QueryProposalRequest
@@ -10444,6 +10481,9 @@ Query is the cosmos.group.v1 Query service.
 | `VotesByVoter` | [QueryVotesByVoterRequest](#cosmos.group.v1.QueryVotesByVoterRequest) | [QueryVotesByVoterResponse](#cosmos.group.v1.QueryVotesByVoterResponse) | VotesByVoter queries a vote by voter. | GET|/cosmos/group/v1/votes_by_voter/{voter}|
 | `GroupsByMember` | [QueryGroupsByMemberRequest](#cosmos.group.v1.QueryGroupsByMemberRequest) | [QueryGroupsByMemberResponse](#cosmos.group.v1.QueryGroupsByMemberResponse) | GroupsByMember queries groups by member address. | GET|/cosmos/group/v1/groups_by_member/{address}|
 | `TallyResult` | [QueryTallyResultRequest](#cosmos.group.v1.QueryTallyResultRequest) | [QueryTallyResultResponse](#cosmos.group.v1.QueryTallyResultResponse) | TallyResult returns the tally result of a proposal. If the proposal is still in voting period, then this query computes the current tally state, which might not be final. On the other hand, if the proposal is final, then it simply returns the `final_tally_result` state stored in the proposal itself. | GET|/cosmos/group/v1/proposals/{proposal_id}/tally|
+| `Groups` | [QueryGroupsRequest](#cosmos.group.v1.QueryGroupsRequest) | [QueryGroupsResponse](#cosmos.group.v1.QueryGroupsResponse) | Groups queries all groups in state.
+
+Since: cosmos-sdk 0.47.1 | GET|/cosmos/group/v1/groups|
 
  <!-- end services -->
 
@@ -14493,7 +14533,7 @@ the necessary fields needed for any vesting account implementation.
 | `original_vesting` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `delegated_free` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `delegated_vesting` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `end_time` | [int64](#int64) |  |  |
+| `end_time` | [int64](#int64) |  | Vesting end time, as unix timestamp (in seconds). |
 
 
 
@@ -14510,7 +14550,7 @@ continuously vests by unlocking coins linearly with respect to time.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `base_vesting_account` | [BaseVestingAccount](#cosmos.vesting.v1beta1.BaseVestingAccount) |  |  |
-| `start_time` | [int64](#int64) |  |  |
+| `start_time` | [int64](#int64) |  | Vesting start time, as unix timestamp (in seconds). |
 
 
 
@@ -14542,7 +14582,7 @@ Period defines a length of time and amount of coins that will vest.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `length` | [int64](#int64) |  |  |
+| `length` | [int64](#int64) |  | Period duration in seconds. |
 | `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
@@ -14616,7 +14656,7 @@ Since: cosmos-sdk 0.46
 | ----- | ---- | ----- | ----------- |
 | `from_address` | [string](#string) |  |  |
 | `to_address` | [string](#string) |  |  |
-| `start_time` | [int64](#int64) |  |  |
+| `start_time` | [int64](#int64) |  | start of vesting as unix time (in seconds). |
 | `vesting_periods` | [Period](#cosmos.vesting.v1beta1.Period) | repeated |  |
 
 
@@ -14681,7 +14721,7 @@ account.
 | `from_address` | [string](#string) |  |  |
 | `to_address` | [string](#string) |  |  |
 | `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `end_time` | [int64](#int64) |  |  |
+| `end_time` | [int64](#int64) |  | end of vesting as unix time (in seconds). |
 | `delayed` | [bool](#bool) |  |  |
 
 

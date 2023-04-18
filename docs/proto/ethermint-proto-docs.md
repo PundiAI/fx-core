@@ -8,6 +8,12 @@
     - [PrivKey](#ethermint.crypto.v1.ethsecp256k1.PrivKey)
     - [PubKey](#ethermint.crypto.v1.ethsecp256k1.PubKey)
   
+- [ethermint/evm/v1/events.proto](#ethermint/evm/v1/events.proto)
+    - [EventBlockBloom](#ethermint.evm.v1.EventBlockBloom)
+    - [EventEthereumTx](#ethermint.evm.v1.EventEthereumTx)
+    - [EventMessage](#ethermint.evm.v1.EventMessage)
+    - [EventTxLog](#ethermint.evm.v1.EventTxLog)
+  
 - [ethermint/evm/v1/evm.proto](#ethermint/evm/v1/evm.proto)
     - [AccessTuple](#ethermint.evm.v1.AccessTuple)
     - [ChainConfig](#ethermint.evm.v1.ChainConfig)
@@ -29,6 +35,8 @@
     - [LegacyTx](#ethermint.evm.v1.LegacyTx)
     - [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx)
     - [MsgEthereumTxResponse](#ethermint.evm.v1.MsgEthereumTxResponse)
+    - [MsgUpdateParams](#ethermint.evm.v1.MsgUpdateParams)
+    - [MsgUpdateParamsResponse](#ethermint.evm.v1.MsgUpdateParamsResponse)
   
     - [Msg](#ethermint.evm.v1.Msg)
   
@@ -60,6 +68,10 @@
   
     - [Query](#ethermint.evm.v1.Query)
   
+- [ethermint/feemarket/v1/events.proto](#ethermint/feemarket/v1/events.proto)
+    - [EventBlockGas](#ethermint.feemarket.v1.EventBlockGas)
+    - [EventFeeMarket](#ethermint.feemarket.v1.EventFeeMarket)
+  
 - [ethermint/feemarket/v1/feemarket.proto](#ethermint/feemarket/v1/feemarket.proto)
     - [Params](#ethermint.feemarket.v1.Params)
   
@@ -75,6 +87,12 @@
     - [QueryParamsResponse](#ethermint.feemarket.v1.QueryParamsResponse)
   
     - [Query](#ethermint.feemarket.v1.Query)
+  
+- [ethermint/feemarket/v1/tx.proto](#ethermint/feemarket/v1/tx.proto)
+    - [MsgUpdateParams](#ethermint.feemarket.v1.MsgUpdateParams)
+    - [MsgUpdateParamsResponse](#ethermint.feemarket.v1.MsgUpdateParamsResponse)
+  
+    - [Msg](#ethermint.feemarket.v1.Msg)
   
 - [ethermint/types/v1/account.proto](#ethermint/types/v1/account.proto)
     - [EthAccount](#ethermint.types.v1.EthAccount)
@@ -126,6 +144,90 @@ key format.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `key` | [bytes](#bytes) |  | key is the public key in byte form |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ethermint/evm/v1/events.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ethermint/evm/v1/events.proto
+
+
+
+<a name="ethermint.evm.v1.EventBlockBloom"></a>
+
+### EventBlockBloom
+EventBlockBloom defines an Ethereum block bloom filter event
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `bloom` | [string](#string) |  | bloom is the bloom filter of the block |
+
+
+
+
+
+
+<a name="ethermint.evm.v1.EventEthereumTx"></a>
+
+### EventEthereumTx
+EventEthereumTx defines the event for an Ethereum transaction
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  | amount |
+| `eth_hash` | [string](#string) |  | eth_hash is the Ethereum hash of the transaction |
+| `index` | [string](#string) |  | index of the transaction in the block |
+| `gas_used` | [string](#string) |  | gas_used is the amount of gas used by the transaction |
+| `hash` | [string](#string) |  | hash is the Tendermint hash of the transaction |
+| `recipient` | [string](#string) |  | recipient of the transaction |
+| `eth_tx_failed` | [string](#string) |  | eth_tx_failed contains a VM error should it occur |
+
+
+
+
+
+
+<a name="ethermint.evm.v1.EventMessage"></a>
+
+### EventMessage
+EventMessage
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `module` | [string](#string) |  | module which emits the event |
+| `sender` | [string](#string) |  | sender of the message |
+| `tx_type` | [string](#string) |  | tx_type is the type of the message |
+
+
+
+
+
+
+<a name="ethermint.evm.v1.EventTxLog"></a>
+
+### EventTxLog
+EventTxLog defines the event for an Ethereum transaction log
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `tx_logs` | [string](#string) | repeated | tx_logs is an array of transaction logs |
 
 
 
@@ -514,6 +616,33 @@ MsgEthereumTxResponse defines the Msg/EthereumTx response type.
 
 
 
+
+<a name="ethermint.evm.v1.MsgUpdateParams"></a>
+
+### MsgUpdateParams
+MsgUpdateParams defines a Msg for updating the x/evm module parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `params` | [Params](#ethermint.evm.v1.Params) |  | params defines the x/evm parameters to update. NOTE: All parameters must be supplied. |
+
+
+
+
+
+
+<a name="ethermint.evm.v1.MsgUpdateParamsResponse"></a>
+
+### MsgUpdateParamsResponse
+MsgUpdateParamsResponse defines the response structure for executing a
+MsgUpdateParams message.
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -529,6 +658,7 @@ Msg defines the evm Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `EthereumTx` | [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) | [MsgEthereumTxResponse](#ethermint.evm.v1.MsgEthereumTxResponse) | EthereumTx defines a method submitting Ethereum transactions. | POST|/ethermint/evm/v1/ethereum_tx|
+| `UpdateParams` | [MsgUpdateParams](#ethermint.evm.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#ethermint.evm.v1.MsgUpdateParamsResponse) | UpdateParams defined a governance operation for updating the x/evm module parameters. The authority is hard-coded to the Cosmos SDK x/gov module account | |
 
  <!-- end services -->
 
@@ -953,6 +1083,53 @@ Query defines the gRPC querier service.
 
 
 
+<a name="ethermint/feemarket/v1/events.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ethermint/feemarket/v1/events.proto
+
+
+
+<a name="ethermint.feemarket.v1.EventBlockGas"></a>
+
+### EventBlockGas
+EventBlockGas defines an Ethereum block gas event
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [string](#string) |  | height of the block |
+| `amount` | [string](#string) |  | amount of gas wanted by the block |
+
+
+
+
+
+
+<a name="ethermint.feemarket.v1.EventFeeMarket"></a>
+
+### EventFeeMarket
+EventFeeMarket is the event type for the fee market module
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_fee` | [string](#string) |  | base_fee for EIP-1559 blocks |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ethermint/feemarket/v1/feemarket.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -1122,6 +1299,59 @@ Query defines the gRPC querier service.
 | `Params` | [QueryParamsRequest](#ethermint.feemarket.v1.QueryParamsRequest) | [QueryParamsResponse](#ethermint.feemarket.v1.QueryParamsResponse) | Params queries the parameters of x/feemarket module. | GET|/ethermint/feemarket/v1/params|
 | `BaseFee` | [QueryBaseFeeRequest](#ethermint.feemarket.v1.QueryBaseFeeRequest) | [QueryBaseFeeResponse](#ethermint.feemarket.v1.QueryBaseFeeResponse) | BaseFee queries the base fee of the parent block of the current block. | GET|/ethermint/feemarket/v1/base_fee|
 | `BlockGas` | [QueryBlockGasRequest](#ethermint.feemarket.v1.QueryBlockGasRequest) | [QueryBlockGasResponse](#ethermint.feemarket.v1.QueryBlockGasResponse) | BlockGas queries the gas used at a given block height | GET|/ethermint/feemarket/v1/block_gas|
+
+ <!-- end services -->
+
+
+
+<a name="ethermint/feemarket/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ethermint/feemarket/v1/tx.proto
+
+
+
+<a name="ethermint.feemarket.v1.MsgUpdateParams"></a>
+
+### MsgUpdateParams
+MsgUpdateParams defines a Msg for updating the x/feemarket module parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `params` | [Params](#ethermint.feemarket.v1.Params) |  | params defines the x/feemarket parameters to update. NOTE: All parameters must be supplied. |
+
+
+
+
+
+
+<a name="ethermint.feemarket.v1.MsgUpdateParamsResponse"></a>
+
+### MsgUpdateParamsResponse
+MsgUpdateParamsResponse defines the response structure for executing a
+MsgUpdateParams message.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ethermint.feemarket.v1.Msg"></a>
+
+### Msg
+Msg defines the erc20 Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `UpdateParams` | [MsgUpdateParams](#ethermint.feemarket.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#ethermint.feemarket.v1.MsgUpdateParamsResponse) | UpdateParams defined a governance operation for updating the x/feemarket module parameters. The authority is hard-coded to the Cosmos SDK x/gov module account | |
 
  <!-- end services -->
 
