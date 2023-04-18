@@ -7,10 +7,12 @@ import (
 	"sync"
 	"time"
 
+	cmtdbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	tmnode "github.com/tendermint/tendermint/node"
 	sm "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 	dbm "github.com/tendermint/tm-db"
@@ -47,9 +49,8 @@ func dataQueryBlockCmd() *cobra.Command {
 		Short: "Query blocks heights in database",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
-			backendType := dbm.BackendType(ctx.Viper.GetString(flagDBBackend))
-
-			blockStoreDB, err := openDB(BlockDBName, backendType, ctx.Config.RootDir)
+			ctx.Config.DBBackend = ctx.Viper.GetString(flagDBBackend)
+			blockStoreDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: BlockDBName, Config: ctx.Config})
 			if err != nil {
 				return err
 			}
@@ -95,9 +96,18 @@ func pruneAllCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 
-			blockStoreDB := GetDB(ctx.Config.RootDir, BlockDBName)
-			stateDB := GetDB(ctx.Config.RootDir, StateDBName)
-			appDB := GetDB(ctx.Config.RootDir, AppDBName)
+			blockStoreDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: BlockDBName, Config: ctx.Config})
+			if err != nil {
+				return err
+			}
+			stateDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: StateDBName, Config: ctx.Config})
+			if err != nil {
+				return err
+			}
+			appDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: AppDBName, Config: ctx.Config})
+			if err != nil {
+				return err
+			}
 
 			if viper.GetBool(flagPruning) {
 				baseHeight, retainHeight := getPruneBlockParams(blockStoreDB)
@@ -132,7 +142,10 @@ func pruneAppCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 
-			appDB := GetDB(ctx.Config.RootDir, AppDBName)
+			appDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: AppDBName, Config: ctx.Config})
+			if err != nil {
+				return err
+			}
 			log.Println("--------- compact start ---------")
 			var wg sync.WaitGroup
 			wg.Add(1)
@@ -153,8 +166,14 @@ func pruneBlockCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 
-			blockStoreDB := GetDB(ctx.Config.RootDir, BlockDBName)
-			stateDB := GetDB(ctx.Config.RootDir, StateDBName)
+			blockStoreDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: BlockDBName, Config: ctx.Config})
+			if err != nil {
+				return err
+			}
+			stateDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: StateDBName, Config: ctx.Config})
+			if err != nil {
+				return err
+			}
 
 			if viper.GetBool(flagPruning) {
 				baseHeight, retainHeight := getPruneBlockParams(blockStoreDB)
@@ -183,7 +202,7 @@ func pruneBlockCmd() *cobra.Command {
 	return cmd
 }
 
-func getPruneBlockParams(blockStoreDB dbm.DB) (baseHeight, retainHeight int64) {
+func getPruneBlockParams(blockStoreDB cmtdbm.DB) (baseHeight, retainHeight int64) {
 	baseHeight, size := getBlockInfo(blockStoreDB)
 
 	retainHeight = viper.GetInt64(flagHeight)
@@ -195,7 +214,7 @@ func getPruneBlockParams(blockStoreDB dbm.DB) (baseHeight, retainHeight int64) {
 }
 
 // pruneBlocks deletes blocks between the given heights (including from, excluding to).
-func pruneBlocks(blockStoreDB dbm.DB, baseHeight, retainHeight int64, wg *sync.WaitGroup) {
+func pruneBlocks(blockStoreDB cmtdbm.DB, baseHeight, retainHeight int64, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	log.Printf("Prune blocks [%d,%d)...", baseHeight, retainHeight)
@@ -216,7 +235,7 @@ func pruneBlocks(blockStoreDB dbm.DB, baseHeight, retainHeight int64, wg *sync.W
 }
 
 // pruneStates deletes states between the given heights (including from, excluding to).
-func pruneStates(stateDB dbm.DB, from, to int64, wg *sync.WaitGroup) {
+func pruneStates(stateDB cmtdbm.DB, from, to int64, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	log.Printf("Prune states [%d,%d)...", from, to)
@@ -235,13 +254,13 @@ func pruneStates(stateDB dbm.DB, from, to int64, wg *sync.WaitGroup) {
 	log.Printf("Prune states done in %v \n", time.Since(start))
 }
 
-func compactDB(db dbm.DB, name string, wg *sync.WaitGroup) {
+func compactDB(db cmtdbm.DB, name string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	log.Printf("Compact %s... \n", name)
 	start := time.Now()
 
-	if ldb, ok := db.(*dbm.GoLevelDB); ok {
+	if ldb, ok := db.(*cmtdbm.GoLevelDB); ok {
 		if err := ldb.DB().CompactRange(util.Range{}); err != nil {
 			panic(err)
 		}
@@ -250,7 +269,7 @@ func compactDB(db dbm.DB, name string, wg *sync.WaitGroup) {
 	log.Printf("Compact %s done in %v \n", name, time.Since(start))
 }
 
-func getBlockInfo(blockStoreDB dbm.DB) (baseHeight, size int64) {
+func getBlockInfo(blockStoreDB cmtdbm.DB) (baseHeight, size int64) {
 	blockStore := store.NewBlockStore(blockStoreDB)
 	baseHeight = blockStore.Base()
 	size = blockStore.Size()
