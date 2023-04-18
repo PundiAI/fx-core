@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -53,6 +56,9 @@ func doctorCmd() *cobra.Command {
 				return err
 			}
 			if err := checkTmConfig(serverCtx.Config, needUpgrade); err != nil {
+				return err
+			}
+			if err := checkCosmovisor(serverCtx.Config.RootDir, bc); err != nil {
 				return err
 			}
 			return nil
@@ -250,4 +256,247 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 		fmt.Println("Warn: double_sign_check_height is greater than 0")
 	}
 	return nil
+}
+
+func checkCosmovisor(rootPath string, n blockchain) error {
+	cosmovisorPath := filepath.Join(rootPath, "cosmovisor")
+	exist, isDir, err := checkDirFile(cosmovisorPath)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		fmt.Println("Cosmovisor: Not installed")
+		return nil
+	}
+	if !isDir {
+		fmt.Println("Cosmovisor: Not directory")
+		return nil
+	}
+	fmt.Println("Cosmovisor:")
+	fmt.Println("\tPath:", cosmovisorPath)
+
+	defer func() {
+		fmt.Println("\tList Path:")
+		if err := printDirectory(cosmovisorPath, 0, []bool{false}, "\t\t"); err != nil {
+			fmt.Println("\t", err.Error())
+		}
+	}()
+
+	current := filepath.Join(cosmovisorPath, "current")
+	checkCosmovisorUpgrade(current, "")
+
+	genesis := filepath.Join(cosmovisorPath, "genesis")
+	checkCosmovisorUpgrade(genesis, "")
+
+	upgradePath := filepath.Join(cosmovisorPath, "upgrades")
+	exist, isDir, err = checkDirFile(upgradePath)
+	upgradePlans := make([]*upgradetypes.Plan, 0)
+	if err == nil && exist && isDir {
+		fmt.Println("\tUpgrades:", upgradePath)
+		entries, err := os.ReadDir(upgradePath)
+		if err == nil {
+			if len(entries) > 0 {
+				for _, entry := range entries {
+					if entry.IsDir() {
+						upgrade := filepath.Join(upgradePath, entry.Name())
+						upgradeInfo := checkCosmovisorUpgrade(upgrade, "\t")
+						if upgradeInfo != nil {
+							upgradePlans = append(upgradePlans, upgradeInfo)
+						}
+					} else {
+						fmt.Printf("\tUpgrades %s: is not directory\n", entry.Name())
+					}
+				}
+			} else {
+				fmt.Println("\t\tWarning: Not exist upgrade version")
+			}
+		} else {
+			fmt.Println("\tUpgrades: ", err.Error())
+		}
+	} else {
+		errDir(exist, isDir, err, "Upgrades", "")
+	}
+
+	return checkCosmovisorCurrentVersion(upgradePlans, n)
+}
+
+// checkCosmovisorUpgrade check cosmovisor upgrade plan
+//
+//gocyclo:ignore
+func checkCosmovisorUpgrade(path, t string) *upgradetypes.Plan {
+	basePath := filepath.Base(path)
+	title := "Version " + basePath
+	if basePath == "genesis" {
+		title = "Genesis"
+	} else if basePath == "current" {
+		title = "Current"
+	}
+	exist, isDir, err := checkDirFile(path)
+	if err == nil && exist && isDir {
+		fmt.Printf("%s\t%s: %s\n", t, title, path)
+		bin := filepath.Join(path, "bin")
+		exist, isDir, err = checkDirFile(bin)
+		if err == nil && exist && isDir {
+			binFxcored := filepath.Join(bin, "fxcored")
+			exist, isDir, err = checkDirFile(binFxcored)
+			if err == nil && exist && !isDir {
+				fmt.Printf("%s\t\tfxcored: %s\n", t, binFxcored)
+				output, err := exec.Command(binFxcored, "version").Output()
+				if err != nil {
+					fmt.Printf("%s\t\tfxcored exec: %s\n", t, err.Error())
+				} else {
+					fmt.Printf("%s\t\tfxcored version: %s\n", t, bytes.Trim(output, "\n"))
+				}
+			} else {
+				errFile(exist, isDir, err, "fxcored", t+"\t")
+			}
+		} else {
+			errDir(exist, isDir, err, "bin", t+"\t")
+		}
+
+		if basePath != "genesis" && basePath != "current" {
+			upgradeFile := filepath.Join(path, upgradetypes.UpgradeInfoFilename)
+			exist, isDir, err = checkDirFile(upgradeFile)
+			if err == nil && exist && !isDir {
+				fmt.Printf("%s\t\t%s: %s\n", t, upgradetypes.UpgradeInfoFilename, upgradeFile)
+				upgradeInfo, err := os.ReadFile(upgradeFile)
+				if err != nil {
+					fmt.Printf("%s\t\t%s read: %s\n", t, upgradetypes.UpgradeInfoFilename, err.Error())
+				} else {
+					fmt.Printf("%s\t\t%s content: %s\n", t, upgradetypes.UpgradeInfoFilename, bytes.Trim(upgradeInfo, "\n"))
+					var plan upgradetypes.Plan
+					if err := json.Unmarshal(upgradeInfo, &plan); err != nil {
+						fmt.Printf("%s\t\t%s error: %s\n", t, upgradetypes.UpgradeInfoFilename, err.Error())
+					} else {
+						if plan.Name != basePath {
+							fmt.Printf("%s\t\tupgrade plan not match: %s\n", t, plan.Name)
+						} else {
+							return &plan
+						}
+					}
+				}
+			} else {
+				errDir(exist, isDir, err, upgradetypes.UpgradeInfoFilename, t+"\t")
+			}
+		}
+	} else {
+		errDir(exist, isDir, err, title, t)
+	}
+	return nil
+}
+
+func checkCosmovisorCurrentVersion(upgradePlans []*upgradetypes.Plan, n blockchain) error {
+	sort.SliceStable(upgradePlans, func(i, j int) bool {
+		return upgradePlans[i].Height < upgradePlans[j].Height
+	})
+	if len(upgradePlans) == 0 {
+		return nil
+	}
+	height, err := n.GetBlockHeight()
+	if err != nil {
+		return err
+	}
+	var currentPlan *upgradetypes.Plan
+	for _, info := range upgradePlans {
+		if height <= info.Height {
+			break
+		}
+		currentPlan = info
+	}
+
+	if currentPlan == nil {
+		// genesis
+		fmt.Println("\tCurrent plan: genesis")
+	} else {
+		fmt.Println("\tCurrent plan:", currentPlan.Name)
+	}
+
+	return nil
+}
+
+func checkDirFile(path string) (exist, dir bool, err error) {
+	stat, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false, false, nil
+	}
+	if err != nil {
+		return false, false, err
+	}
+	return true, stat.IsDir(), nil
+}
+
+func errDir(exist, isDir bool, err error, title, t string) {
+	if err != nil {
+		fmt.Printf("%s\t%s: %s\n", title, t, err.Error())
+	} else if !exist {
+		fmt.Printf("%s\t%s: Not exist!\n", t, title)
+	} else if !isDir {
+		fmt.Printf("%s\t%s: Not directory!\n", t, title)
+	}
+}
+
+func errFile(exist, isDir bool, err error, title, t string) {
+	if err != nil {
+		fmt.Printf("%s\t%s: %s\n", t, title, err.Error())
+	} else if !exist {
+		fmt.Printf("%s\t%s: Not exist!\n", t, title)
+	} else if isDir {
+		fmt.Printf("%s\t%s: Is directory!\n", t, title)
+	}
+}
+
+func printDirectory(path string, depth int, last []bool, t string) error {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	printPath := path
+	if depth > 0 {
+		printPath = filepath.Base(path)
+	}
+	printListing(printPath, depth, last, t)
+	for idx, entry := range entries {
+		currentLast := idx == len(entries)-1
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if (info.Mode() & os.ModeSymlink) == os.ModeSymlink {
+			fullPath, err := os.Readlink(filepath.Join(path, entry.Name()))
+			if err != nil {
+				return err
+			} else {
+				printListing(entry.Name()+" -> "+fullPath, depth+1, append(last, currentLast), t)
+			}
+		} else if entry.IsDir() {
+			if err = printDirectory(filepath.Join(path, entry.Name()), depth+1, append(last, currentLast), t); err != nil {
+				return err
+			}
+		} else {
+			printListing(entry.Name(), depth+1, append(last, currentLast), t)
+		}
+	}
+	return nil
+}
+
+func printListing(entry string, depth int, last []bool, t string) {
+	if depth == 0 {
+		fmt.Printf("%s%s\n", t, entry)
+	} else {
+		indent := ""
+		newLast := last[1:]
+		for i := 0; i < len(newLast)-1; i++ {
+			if newLast[i] {
+				indent = fmt.Sprintf("%s    ", indent)
+			} else {
+				indent = fmt.Sprintf("%s│   ", indent)
+			}
+		}
+		sepStr := "├── "
+		if last[len(last)-1] {
+			sepStr = "└── "
+		}
+		fmt.Printf("%s%s%s%s\n", t, indent, sepStr, entry)
+	}
 }
