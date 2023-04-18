@@ -34,6 +34,11 @@ interface ICrossChain {
         uint256 _fee
     ) external payable returns (bool _result);
 
+    function bridgeCoinAmount(
+        address token,
+        bytes32 target
+    ) external view returns (uint256 _amount);
+
     event CrossChain(
         address indexed sender,
         address indexed token,

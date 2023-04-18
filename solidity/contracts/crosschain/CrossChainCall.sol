@@ -70,4 +70,15 @@ library CrossChainCall {
         Decode.ok(result, data, "increase bridge fee failed");
         return Decode.increaseBridgeFee(data);
     }
+
+    function bridgeCoinAmount(
+        address _token,
+        bytes32 _target
+    ) internal view returns (uint256) {
+        (bool result, bytes memory data) = CrossChainAddress.staticcall(
+            Encode.bridgeCoinAmount(_token, _target)
+        );
+        Decode.ok(result, data, "bridge coin failed");
+        return Decode.bridgeCoinAmount(data);
+    }
 }

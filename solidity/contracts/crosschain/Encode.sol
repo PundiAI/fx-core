@@ -71,4 +71,16 @@ library Encode {
                 _fee
             );
     }
+
+    function bridgeCoinAmount(
+        address _token,
+        bytes32 _target
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSignature(
+                "bridgeCoinAmount(address,bytes32)",
+                _token,
+                _target
+            );
+    }
 }

@@ -68,4 +68,11 @@ contract CrossChainTest {
     ) external payable returns (bool) {
         return CrossChainCall.increaseBridgeFee(_chain, _txID, _token, _fee);
     }
+
+    function bridgeCoinAmount(
+        address _token,
+        bytes32 _target
+    ) external view returns (uint256) {
+        return CrossChainCall.bridgeCoinAmount(_token, _target);
+    }
 }
