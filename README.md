@@ -9,7 +9,7 @@
 [![Lint](https://github.com/functionx/fx-core/actions/workflows/lint.yml/badge.svg)](https://github.com/functionx/fx-core/actions/workflows/lint.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/functionx/fx-core/v4)](https://goreportcard.com/report/github.com/functionx/fx-core/v4)
 
-**Note**: Requires [Go 1.18+](https://go.dev/dl)
+**Note**: Requires [Go 1.19+](https://go.dev/dl)
 
 ## Releases
 
