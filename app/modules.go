@@ -181,7 +181,7 @@ func appModules(
 		arbitrum.NewAppModule(app.ArbitrumKeeper),
 		optimism.NewAppModule(app.OptimismKeeper),
 		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.LegacyAmino(), app.GetKey(paramstypes.StoreKey)),
-		feemarket.NewAppModule(app.FeeMarketKeeper),
+		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 		erc20.NewAppModule(app.Erc20Keeper, app.GetSubspace(erc20types.ModuleName)),
 		migrate.NewAppModule(app.MigrateKeeper),
 		fxibctransfer.NewAppModule(app.FxTransferKeeper),

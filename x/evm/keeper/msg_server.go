@@ -130,8 +130,8 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 }
 
 func (k *Keeper) CallContract(goCtx context.Context, msg *fxevmtypes.MsgCallContract) (*fxevmtypes.MsgCallContractResponse, error) {
-	if !strings.EqualFold(k.authority, msg.Authority) {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority, expected %s, got %s", k.authority, msg.Authority)
+	if !strings.EqualFold(k.GetAuthority().String(), msg.Authority) {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority, expected %s, got %s", k.GetAuthority().String(), msg.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	contract := common.HexToAddress(msg.ContractAddress)

@@ -28,11 +28,9 @@ type Keeper struct {
 	hasHooks bool
 
 	module common.Address
-
-	authority string
 }
 
-func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper, authority string) *Keeper {
+func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
 	ctx := sdk.Context{}.WithChainID(fxtypes.ChainIdWithEIP155())
 	ek.WithChainID(ctx)
 	addr := ak.GetModuleAddress(types.ModuleName)
@@ -42,7 +40,6 @@ func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper, authority stri
 	return &Keeper{
 		Keeper:        ek,
 		accountKeeper: ak,
-		authority:     authority,
 		module:        common.BytesToAddress(addr),
 	}
 }

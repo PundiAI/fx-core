@@ -288,9 +288,10 @@ func NewAppKeeper(
 
 	appKeepers.FeeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec,
-		appKeepers.GetSubspace(feemarkettypes.ModuleName),
+		authtypes.NewModuleAddress(govtypes.ModuleName),
 		appKeepers.keys[feemarkettypes.StoreKey],
 		appKeepers.tkeys[feemarkettypes.TransientKey],
+		appKeepers.GetSubspace(feemarkettypes.ModuleName),
 	)
 
 	appKeepers.EvmKeeper = fxevmkeeper.NewKeeper(
@@ -298,7 +299,7 @@ func NewAppKeeper(
 			appCodec,
 			appKeepers.keys[evmtypes.StoreKey],
 			appKeepers.tkeys[evmtypes.TransientKey],
-			appKeepers.GetSubspace(evmtypes.ModuleName),
+			authtypes.NewModuleAddress(govtypes.ModuleName),
 			appKeepers.AccountKeeper,
 			appKeepers.BankKeeper,
 			appKeepers.StakingKeeper,
@@ -306,9 +307,9 @@ func NewAppKeeper(
 			appKeepers.ExtendPrecompiles,
 			geth.NewEVM,
 			cast.ToString(appOpts.Get(srvflags.EVMTracer)),
+			appKeepers.GetSubspace(evmtypes.ModuleName),
 		),
 		appKeepers.AccountKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	appKeepers.Erc20Keeper = erc20keeper.NewKeeper(
@@ -558,8 +559,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(trontypes.ModuleName)
 
 	// ethermint subspaces
-	paramsKeeper.Subspace(evmtypes.ModuleName)
-	paramsKeeper.Subspace(feemarkettypes.ModuleName)
+	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable()) //nolint: staticcheck
+	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
 	paramsKeeper.Subspace(erc20types.ModuleName)
 	return paramsKeeper
 }
