@@ -160,7 +160,7 @@ func (c *Contract) handlerTransferShares(
 	}
 
 	// withdraw reward
-	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
+	evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 	_, err := c.withdraw(ctx, evm, from, valAddr, evmDenom)
 	if err != nil {
 		return nil, nil, fmt.Errorf("withdraw failed: %s", err.Error())

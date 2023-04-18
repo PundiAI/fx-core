@@ -56,7 +56,7 @@ func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	if err != nil {
 		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
-	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
+	evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 
 	rewardAmount, err := c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom)
 	if err != nil {

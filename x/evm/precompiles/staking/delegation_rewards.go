@@ -53,7 +53,7 @@ func (c *Contract) DelegationRewards(ctx sdk.Context, _ *vm.EVM, contract *vm.Co
 		return DelegationRewardsMethod.Outputs.Pack(big.NewInt(0))
 	}
 
-	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
+	evmDenom := c.evmKeeper.GetParams(cacheCtx).EvmDenom
 	endingPeriod := c.distrKeeper.IncrementValidatorPeriod(cacheCtx, validator)
 	rewards := c.distrKeeper.CalculateDelegationRewards(cacheCtx, validator, delegation, endingPeriod)
 

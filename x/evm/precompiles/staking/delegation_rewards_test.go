@@ -146,7 +146,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 
 			resp, err := suite.app.DistrKeeper.DelegationRewards(suite.ctx, &distrtypes.QueryDelegationRewardsRequest{DelegatorAddress: sdk.AccAddress(delAddr.Bytes()).String(), ValidatorAddress: val0.GetOperator().String()})
 			suite.Require().NoError(err)
-			evmDenom := suite.app.EvmKeeper.GetEVMDenom(suite.ctx)
+			evmDenom := suite.app.EvmKeeper.GetParams(suite.ctx).EvmDenom
 
 			pack, errArgs := tc.malleate(val0.GetOperator(), delAddr)
 			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &stakingContract, pack, false)

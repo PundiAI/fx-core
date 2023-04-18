@@ -39,7 +39,8 @@ func NewEthSigVerificationDecorator(ek EVMKeeper) EthSigVerificationDecorator {
 // won't see the error message.
 func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	chainID := esvd.evmKeeper.ChainID()
-	chainCfg := esvd.evmKeeper.GetChainConfig(ctx)
+	evmParams := esvd.evmKeeper.GetParams(ctx)
+	chainCfg := evmParams.GetChainConfig()
 	ethCfg := chainCfg.EthereumConfig(chainID)
 	blockNum := big.NewInt(ctx.BlockHeight())
 	signer := ethtypes.MakeSigner(ethCfg, blockNum)
@@ -50,7 +51,7 @@ func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, s
 			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 		}
 
-		allowUnprotectedTxs := esvd.evmKeeper.GetAllowUnprotectedTxs(ctx)
+		allowUnprotectedTxs := evmParams.GetAllowUnprotectedTxs()
 		ethTx := msgEthTx.AsTransaction()
 		if !allowUnprotectedTxs && !ethTx.Protected() {
 			return ctx, errorsmod.Wrapf(
@@ -184,7 +185,8 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		return next(newCtx, tx, simulate)
 	}
 
-	chainCfg := egcd.evmKeeper.GetChainConfig(ctx)
+	evmParams := egcd.evmKeeper.GetParams(ctx)
+	chainCfg := evmParams.GetChainConfig()
 	ethCfg := chainCfg.EthereumConfig(egcd.evmKeeper.ChainID())
 
 	blockHeight := big.NewInt(ctx.BlockHeight())
@@ -218,7 +220,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			gasWanted += txData.GetGas()
 		}
 
-		evmDenom := egcd.evmKeeper.GetEVMDenom(ctx)
+		evmDenom := evmParams.GetEvmDenom()
 
 		fees, err := keeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, ctx.IsCheckTx())
 		if err != nil {
@@ -471,13 +473,14 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 	txFee := sdk.Coins{}
 	txGasLimit := uint64(0)
 
-	chainCfg := vbd.evmKeeper.GetChainConfig(ctx)
+	evmParams := vbd.evmKeeper.GetParams(ctx)
+	chainCfg := evmParams.GetChainConfig()
 	chainID := vbd.evmKeeper.ChainID()
 	ethCfg := chainCfg.EthereumConfig(chainID)
 	baseFee := vbd.evmKeeper.GetBaseFee(ctx, ethCfg)
-	enableCreate := vbd.evmKeeper.GetEnableCreate(ctx)
-	enableCall := vbd.evmKeeper.GetEnableCall(ctx)
-	evmDenom := vbd.evmKeeper.GetEVMDenom(ctx)
+	enableCreate := evmParams.GetEnableCreate()
+	enableCall := evmParams.GetEnableCall()
+	evmDenom := evmParams.GetEvmDenom()
 
 	for _, msg := range protoTx.GetMsgs() {
 		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
@@ -577,7 +580,8 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 	if !ctx.IsCheckTx() || simulate {
 		return next(ctx, tx, simulate)
 	}
-	chainCfg := mfd.evmKeeper.GetChainConfig(ctx)
+	evmParams := mfd.evmKeeper.GetParams(ctx)
+	chainCfg := evmParams.GetChainConfig()
 	ethCfg := chainCfg.EthereumConfig(mfd.evmKeeper.ChainID())
 
 	baseFee := mfd.evmKeeper.GetBaseFee(ctx, ethCfg)
@@ -586,7 +590,7 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		return next(ctx, tx, simulate)
 	}
 
-	evmDenom := mfd.evmKeeper.GetEVMDenom(ctx)
+	evmDenom := evmParams.GetEvmDenom()
 	minGasPrice := ctx.MinGasPrices().AmountOf(evmDenom)
 
 	for _, msg := range tx.GetMsgs() {

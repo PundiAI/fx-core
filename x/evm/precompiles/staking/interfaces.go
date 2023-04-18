@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 type BankKeeper interface {
@@ -48,5 +49,5 @@ type DistrKeeper interface {
 }
 
 type EvmKeeper interface {
-	GetEVMDenom(ctx sdk.Context) string
+	GetParams(ctx sdk.Context) evmtypes.Params
 }

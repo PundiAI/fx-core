@@ -74,7 +74,7 @@ func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
 	}
 
-	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
+	evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 
 	// sub evm balance and mint delegate amount
 	evm.StateDB.SubBalance(contract.Address(), amount)

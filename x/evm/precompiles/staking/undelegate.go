@@ -75,7 +75,7 @@ func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 
 	sender := sdk.AccAddress(contract.Caller().Bytes())
-	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
+	evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 
 	// withdraw rewards if delegation exist, add reward to evm state balance
 	reward := big.NewInt(0)
