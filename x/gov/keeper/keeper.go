@@ -155,15 +155,15 @@ func (keeper Keeper) EGFProposalMinDeposit(ctx sdk.Context, msgType string, clai
 
 func (keeper Keeper) InitFxGovParams(ctx sdk.Context) error {
 	params := keeper.GetParams(ctx, "")
-	erc20Params := types.Erc20ProposalParams(params.MinDeposit, params.MinInitialDeposit, params.VotingPeriod, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	erc20Params := types.Erc20ProposalParams(params.MinDeposit, params.MinInitialDeposit, params.VotingPeriod, types.DefaultErc20Quorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
 	if err := keeper.SetAllParams(ctx, erc20Params); err != nil {
 		return err
 	}
-	evmParams := types.EVMProposalParams(params.MinDeposit, params.MinInitialDeposit, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	evmParams := types.EVMProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEvmVotingPeriod, types.DefaultEvmQuorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
 	if err := keeper.SetAllParams(ctx, evmParams); err != nil {
 		return err
 	}
-	egfParams := types.EGFProposalParams(params.MinDeposit, params.MinInitialDeposit, params.Quorum, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	egfParams := types.EGFProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEgfVotingPeriod, params.Quorum, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
 	if err := keeper.SetAllParams(ctx, egfParams); err != nil {
 		return err
 	}

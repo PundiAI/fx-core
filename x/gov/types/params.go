@@ -75,7 +75,7 @@ func DefaultEGFParams() *EGFParams {
 }
 
 // Erc20ProposalParams  register default erc20 parameters
-func Erc20ProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration,
+func Erc20ProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration, quorum string,
 	maxDepositPeriod *time.Duration, threshold string, vetoThreshold string,
 ) []*Params {
 	erc20MsgType := []string{
@@ -90,27 +90,27 @@ func Erc20ProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voti
 	}
 	var baseParams []*Params
 	for _, msgType := range erc20MsgType {
-		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, DefaultErc20Quorum.String(),
+		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
 			maxDepositPeriod, threshold, vetoThreshold))
 	}
 	return baseParams
 }
 
 // EVMProposalParams register default evm parameters
-func EVMProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, maxDepositPeriod *time.Duration, threshold string, vetoThreshold string) []*Params {
+func EVMProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration, quorum string, maxDepositPeriod *time.Duration, threshold string, vetoThreshold string) []*Params {
 	evmMsgType := []string{
 		sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),
 	}
 	var baseParams []*Params
 	for _, msgType := range evmMsgType {
-		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, &DefaultEvmVotingPeriod, DefaultEvmQuorum.String(),
+		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
 			maxDepositPeriod, threshold, vetoThreshold))
 	}
 	return baseParams
 }
 
 // EGFProposalParams register default egf parameters
-func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, quorum string,
+func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration, quorum string,
 	maxDepositPeriod *time.Duration, threshold string, vetoThreshold string,
 ) []*Params {
 	EGFMsgType := []string{
@@ -119,7 +119,7 @@ func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, quorum
 	}
 	var baseParams []*Params
 	for _, msgType := range EGFMsgType {
-		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, &DefaultEgfVotingPeriod, quorum,
+		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
 			maxDepositPeriod, threshold, vetoThreshold))
 	}
 	return baseParams
