@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
@@ -103,6 +104,7 @@ func NewRootCmd() *cobra.Command {
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defaultNodeHome string) {
+	myAppCreator := appCreator{encodingConfig}
 	rootCmd.AddCommand(
 		cli.Debug(),
 		cli.InitCmd(defaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec), app.CustomGenesisConsensusParams()),
@@ -113,9 +115,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(),
 		configCmd(),
+		pruning.PruningCmd(myAppCreator.newApp),
 	)
-
-	myAppCreator := appCreator{encodingConfig}
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
