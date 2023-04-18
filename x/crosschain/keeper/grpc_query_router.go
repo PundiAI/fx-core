@@ -230,3 +230,11 @@ func (k RouterKeeper) BridgeTokens(c context.Context, req *types.QueryBridgeToke
 		return queryServer.BridgeTokens(c, req)
 	}
 }
+
+func (k RouterKeeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeCoinByDenom(c, req)
+	}
+}

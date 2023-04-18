@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -367,4 +368,47 @@ func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensReques
 		return false
 	})
 	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
+}
+
+func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
+	if len(req.GetDenom()) <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "denom")
+	}
+
+	var bridgeCoinMetaData banktypes.Metadata
+	k.bankKeeper.IterateAllDenomMetaData(sdk.UnwrapSDKContext(c), func(metadata banktypes.Metadata) bool {
+		if metadata.GetBase() == req.GetDenom() {
+			bridgeCoinMetaData = metadata
+			return true
+		}
+		if len(metadata.GetDenomUnits()) <= 0 {
+			return false
+		}
+		for _, alias := range metadata.GetDenomUnits()[0].GetAliases() {
+			if alias == req.GetDenom() {
+				bridgeCoinMetaData = metadata
+				return true
+			}
+		}
+		return false
+	})
+	if len(bridgeCoinMetaData.GetBase()) <= 0 {
+		return nil, status.Error(codes.NotFound, "denom")
+	}
+
+	bridgeCoinDenom := k.erc20Keeper.ToTargetDenom(
+		sdk.UnwrapSDKContext(c),
+		req.GetDenom(),
+		bridgeCoinMetaData.GetBase(),
+		bridgeCoinMetaData.GetDenomUnits()[0].GetAliases(),
+		fxtypes.ParseFxTarget(req.GetChainName()),
+	)
+
+	token := k.GetDenomByBridgeToken(sdk.UnwrapSDKContext(c), bridgeCoinDenom)
+	if token == nil {
+		return nil, status.Error(codes.NotFound, "denom")
+	}
+
+	supply := k.bankKeeper.GetSupply(sdk.UnwrapSDKContext(c), bridgeCoinDenom)
+	return &types.QueryBridgeCoinByDenomResponse{Coin: supply}, nil
 }

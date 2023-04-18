@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -10,11 +11,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/suite"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -2264,6 +2267,105 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, testCase.expectedError)
+			}
+		})
+	}
+}
+
+func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
+	var (
+		request       *types.QueryBridgeCoinByDenomRequest
+		response      *types.QueryBridgeCoinByDenomResponse
+		expectedError error
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "bridge token not exist",
+			malleate: func() {
+				denom := helpers.GenerateAddress().Hex()
+				request = &types.QueryBridgeCoinByDenomRequest{
+					ChainName: suite.chainName,
+					Denom:     denom,
+				}
+				expectedError = status.Error(codes.NotFound, "denom")
+			},
+			expPass: false,
+		},
+		{
+			name: "bridge token exist",
+			malleate: func() {
+				token := helpers.GenerateAddress().Hex()
+				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, banktypes.Metadata{
+					Description: "The cross chain token of the Function X",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "usdt",
+							Exponent: 0,
+							Aliases: []string{
+								fmt.Sprintf("%s%s", ethtypes.ModuleName, token),
+								fmt.Sprintf("%s%s", bsctypes.ModuleName, token),
+							},
+						},
+						{
+							Denom:    "USDT",
+							Exponent: 18,
+						},
+					},
+					Base:    "usdt",
+					Display: "usdt",
+					Name:    "Tether USD",
+					Symbol:  "USDT",
+				})
+				err := suite.Keeper().AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
+					ChainName:      suite.chainName,
+					TokenContract:  token,
+					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+					ChannelIbc:     hex.EncodeToString([]byte("")),
+				})
+				suite.Require().NoError(err)
+				denom, err := suite.Keeper().TokenToDenom(suite.ctx, &types.QueryTokenToDenomRequest{
+					ChainName: suite.chainName,
+					Token:     token,
+				})
+				suite.Require().NoError(err)
+				request = &types.QueryBridgeCoinByDenomRequest{
+					ChainName: suite.chainName,
+					Denom:     denom.Denom,
+				}
+				amount := sdk.NewInt(int64(tmrand.Uint32() + 1))
+				err = suite.Keeper().AttestationHandler(suite.ctx, &types.MsgSendToFxClaim{
+					ChainName:     suite.chainName,
+					TokenContract: token,
+					Amount:        amount,
+					Receiver:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					TargetIbc:     hex.EncodeToString([]byte("")),
+				})
+				suite.Require().NoError(err)
+				response = &types.QueryBridgeCoinByDenomResponse{
+					Coin: sdk.Coin{
+						Denom:  denom.GetDenom(),
+						Amount: amount,
+					},
+				}
+			},
+			expPass: true,
+		},
+	}
+	for _, testCase := range testCases {
+		suite.Run(testCase.name, func() {
+			suite.SetupTest()
+			testCase.malleate()
+			res, err := suite.Keeper().BridgeCoinByDenom(sdk.WrapSDKContext(suite.ctx), request)
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(response, res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, expectedError)
 			}
 		})
 	}

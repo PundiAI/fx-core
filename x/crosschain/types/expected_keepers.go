@@ -41,6 +41,8 @@ type BankKeeper interface {
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	GetDenomMetaData(ctx sdk.Context, denom string) (bank.Metadata, bool)
+	GetSupply(ctx sdk.Context, denom string) sdk.Coin
+	IterateAllDenomMetaData(ctx sdk.Context, cb func(bank.Metadata) bool)
 }
 
 type Erc20Keeper interface {
@@ -50,6 +52,7 @@ type Erc20Keeper interface {
 	SetOutgoingTransferRelation(ctx sdk.Context, txID uint64)
 	HasOutgoingTransferRelation(ctx sdk.Context, txID uint64) bool
 	IsOriginDenom(ctx sdk.Context, denom string) bool
+	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 }
 
 type IBCTransferKeeper interface {

@@ -84,6 +84,8 @@
     - [QueryBatchFeeResponse](#fx.gravity.crosschain.v1.QueryBatchFeeResponse)
     - [QueryBatchRequestByNonceRequest](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceRequest)
     - [QueryBatchRequestByNonceResponse](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceResponse)
+    - [QueryBridgeCoinByDenomRequest](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomRequest)
+    - [QueryBridgeCoinByDenomResponse](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomResponse)
     - [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest)
     - [QueryBridgeTokensResponse](#fx.gravity.crosschain.v1.QueryBridgeTokensResponse)
     - [QueryCurrentOracleSetRequest](#fx.gravity.crosschain.v1.QueryCurrentOracleSetRequest)
@@ -1583,6 +1585,37 @@ GenesisState struct
 
 
 
+<a name="fx.gravity.crosschain.v1.QueryBridgeCoinByDenomRequest"></a>
+
+### QueryBridgeCoinByDenomRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.QueryBridgeCoinByDenomResponse"></a>
+
+### QueryBridgeCoinByDenomResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `coin` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
 <a name="fx.gravity.crosschain.v1.QueryBridgeTokensRequest"></a>
 
 ### QueryBridgeTokensRequest
@@ -2237,6 +2270,7 @@ Query defines the gRPC querier service
 | `Oracles` | [QueryOraclesRequest](#fx.gravity.crosschain.v1.QueryOraclesRequest) | [QueryOraclesResponse](#fx.gravity.crosschain.v1.QueryOraclesResponse) | Validators queries all oracle that match the given status. | GET|/fx/crosschain/v1/oracles|
 | `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/fx/crosschain/v1/projected_batch_timeout|
 | `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.crosschain.v1.QueryBridgeTokensResponse) |  | GET|/fx/crosschain/v1/bridge_tokens|
+| `BridgeCoinByDenom` | [QueryBridgeCoinByDenomRequest](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomRequest) | [QueryBridgeCoinByDenomResponse](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomResponse) |  | GET|/fx/crosschain/v1/bridge_coin_by_denom|
 
  <!-- end services -->
 
