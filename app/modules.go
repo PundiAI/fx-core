@@ -180,7 +180,7 @@ func appModules(
 		tron.NewAppModule(app.TronKeeper, app.GetSubspace(trontypes.ModuleName)),
 		arbitrum.NewAppModule(app.ArbitrumKeeper),
 		optimism.NewAppModule(app.OptimismKeeper),
-		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.LegacyAmino(), app.GetKey(paramstypes.StoreKey)),
+		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.LegacyAmino(), app.GetKey(paramstypes.StoreKey), app.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 		erc20.NewAppModule(app.Erc20Keeper, app.GetSubspace(erc20types.ModuleName)),
 		migrate.NewAppModule(app.MigrateKeeper),

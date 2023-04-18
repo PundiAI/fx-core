@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/evmos/ethermint/x/evm"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -54,16 +55,18 @@ type AppModule struct {
 	accountKeeper  types.AccountKeeper
 	legacyAmino    *codec.LegacyAmino
 	paramsStoreKey storetypes.StoreKey
+	legacySubspace types.Subspace
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k *keeper.Keeper, accountKeeper types.AccountKeeper, legacyAmino *codec.LegacyAmino, paramsStoreKey storetypes.StoreKey) AppModule {
+func NewAppModule(k *keeper.Keeper, accountKeeper types.AccountKeeper, legacyAmino *codec.LegacyAmino, paramsStoreKey storetypes.StoreKey, legacySubspace types.Subspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		accountKeeper:  accountKeeper,
 		legacyAmino:    legacyAmino,
 		paramsStoreKey: paramsStoreKey,
+		legacySubspace: legacySubspace,
 	}
 }
 
@@ -76,6 +79,16 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	fxevmtypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	m := evmkeeper.NewMigrator(*am.keeper.Keeper, am.legacySubspace)
+	err := cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 4, m.Migrate4to5); err != nil {
+		panic(err)
+	}
 }
 
 // Deprecated: Route returns the message routing key
@@ -116,5 +129,5 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 3
+	return 5
 }
