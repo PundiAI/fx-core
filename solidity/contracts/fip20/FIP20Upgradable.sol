@@ -10,8 +10,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradea
 
 import "./IFIP20Upgradable.sol";
 import "../crosschain/CrossChainCall.sol";
-import "../crosschain/Encode.sol";
-import "../crosschain/Decode.sol";
 
 /**
  * @dev An upgradeability mechanism designed for UUPS proxies. The functions included here can perform an upgrade of an

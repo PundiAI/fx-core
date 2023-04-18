@@ -30,12 +30,12 @@ echo "===> Compiling contracts"
 # add core contracts
 contracts=(WFXUpgradable FIP20Upgradable ICrossChain CrossChainTest IStaking StakingTest)
 # add 3rd party contracts
-contracts+=(ERC1967Proxy ERC721)
+contracts+=(ERC1967Proxy ERC721TokenTest)
 
 for contract in "${contracts[@]}"; do
   echo "===> Ethereum ABI wrapper code generator: $contract"
   file_path=$(find ./solidity/artifacts -name "${contract}.json" -type f)
-  jq -c '.abi' "$file_path" > "./contract/artifacts/${contract}.abi"
-  jq -r '.bytecode' "$file_path" > "./contract/artifacts/${contract}.bin"
+  jq -c '.abi' "$file_path" >"./contract/artifacts/${contract}.abi"
+  jq -r '.bytecode' "$file_path" >"./contract/artifacts/${contract}.bin"
   abigen --abi "./contract/artifacts/${contract}.abi" --bin "./contract/artifacts/${contract}.bin" --type "${contract}" --pkg contract --out "./contract/${contract}.go"
 done
