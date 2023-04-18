@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 		nil,
 		nonce,
 		big.NewInt(0),
-		1706373,
+		1711435,
 		big.NewInt(500*1e9),
 		nil,
 		nil,
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, nil, true)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp.VmError)
-	suite.Equal(rsp.GasUsed, uint64(1706373))
+	suite.Equal(rsp.GasUsed, uint64(1711435))
 	contractAddress := crypto.CreateAddress(suite.signer.Address(), nonce)
 
 	args, err = fxtypes.GetFIP20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenerateAddress())

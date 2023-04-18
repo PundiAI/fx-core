@@ -1,9 +1,11 @@
 package tests
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 	"reflect"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -16,6 +18,7 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v4/client"
+	"github.com/functionx/fx-core/v4/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	"github.com/functionx/fx-core/v4/types"
 	fxevmtypes "github.com/functionx/fx-core/v4/x/evm/types"
@@ -313,4 +316,26 @@ func (suite *IntegrationTest) CallContractTest() {
 	//	suite.Require().EqualValues(amount, suite.evm.BalanceOf(proxy, suite.evm.HexAddress()))
 	suite.Require().EqualValues(response.Code, 0)
 	suite.Require().True(proposalId > 0)
+}
+
+func (suite *IntegrationTest) FIP20CodeCheckTest() {
+	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
+	fip20Addr, _ := suite.evm.DeployContract(suite.evm.privKey, types.GetFIP20().Bin)
+	code, err := suite.evm.EthClient().CodeAt(suite.ctx, fip20Addr, nil)
+	suite.Require().NoError(err)
+	suite.Equal(types.GetFIP20().Code, code, fmt.Sprintf("fip20 deployed code: %s", common.Bytes2Hex(code)))
+
+	deployedCode := bytes.ReplaceAll(code, types.GetFIP20().Address.Bytes(), common.HexToAddress(types.EmptyEvmAddress).Bytes())
+	suite.True(strings.HasSuffix(contract.FIP20UpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
+}
+
+func (suite *IntegrationTest) WFXCodeCheckTest() {
+	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
+	wfxAddr, _ := suite.evm.DeployContract(suite.evm.privKey, types.GetWFX().Bin)
+	code, err := suite.evm.EthClient().CodeAt(suite.ctx, wfxAddr, nil)
+	suite.Require().NoError(err)
+	suite.Equal(types.GetWFX().Code, code, fmt.Sprintf("wfx deployed code: %s", common.Bytes2Hex(code)))
+
+	deployedCode := bytes.ReplaceAll(code, types.GetWFX().Address.Bytes(), common.HexToAddress(types.EmptyEvmAddress).Bytes())
+	suite.True(strings.HasSuffix(contract.WFXUpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
 }
