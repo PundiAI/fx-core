@@ -20,6 +20,7 @@ import (
 	fxcfg "github.com/functionx/fx-core/v4/server/config"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	erc20keeper "github.com/functionx/fx-core/v4/x/erc20/keeper"
+	evmkeeper "github.com/functionx/fx-core/v4/x/evm/keeper"
 	"github.com/functionx/fx-core/v4/x/gov/keeper"
 )
 
@@ -37,6 +38,9 @@ func createUpgradeHandler(
 		// 2. init go fx params
 		InitGovFXParams(cacheCtx, app.GovKeeper)
 
+		// 3. update Logoic code
+		updateLogicCode(cacheCtx, app.EvmKeeper)
+
 		ctx.Logger().Info("start to run v4 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
@@ -49,6 +53,27 @@ func createUpgradeHandler(
 		commit()
 		return toVM, nil
 	}
+}
+
+func updateLogicCode(ctx sdk.Context, evmKeeper *evmkeeper.Keeper) {
+	updateFIP20LogicCode(ctx, evmKeeper)
+	updateWFXLogicCode(ctx, evmKeeper)
+}
+
+func updateFIP20LogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
+	fip20 := fxtypes.GetFIP20()
+	if err := k.UpdateContractCode(ctx, fip20.Address, fip20.Code); err != nil {
+		panic(fmt.Sprintf("update fip logic code error: %s", err.Error()))
+	}
+	ctx.Logger().Info("update FIP20 contract", "module", "upgrade", "codeHash", fip20.CodeHash())
+}
+
+func updateWFXLogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
+	wfx := fxtypes.GetWFX()
+	if err := k.UpdateContractCode(ctx, wfx.Address, wfx.Code); err != nil {
+		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
+	}
+	ctx.Logger().Info("update WFX contract", "module", "upgrade", "codeHash", wfx.CodeHash())
 }
 
 func InitGovFXParams(ctx sdk.Context, keeper keeper.Keeper) {

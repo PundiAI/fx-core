@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
@@ -26,6 +27,8 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	evmtypes "github.com/functionx/fx-core/v4/x/evm/types"
+	fxgovtypes "github.com/functionx/fx-core/v4/x/gov/types"
 	optimismtypes "github.com/functionx/fx-core/v4/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v4/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
@@ -53,19 +56,33 @@ func Test_Upgrade(t *testing.T) {
 			},
 		},
 	}
+
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
 	require.NoError(t, err)
 
+	snapshotHeight := int64(9223921)
+
 	makeEncodingConfig := app.MakeEncodingConfig()
 	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
-		db, nil, true, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
+		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		makeEncodingConfig, app.EmptyAppOptions{})
+	// todo default DefaultStoreLoader  New module verification failed
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(snapshotHeight, v4.Upgrade.StoreUpgrades()))
+	err = myApp.LoadLatestVersion()
+	require.NoError(t, err)
 
 	ctx := newContext(t, myApp)
 
+	// UpgradeBefore
+
+	// check arbitrum and optimism register usdt ,weth
 	checkDenomMetaData(t, ctx, myApp, true)
-	checkERC20ParamStore(t, ctx, myApp, true)
-	checkCrossChainParamStore(t, ctx, myApp, true)
+	// check params migrated from x/param to module erc20
+	checkERC20MigrateParamStore(t, ctx, myApp, true)
+	// check params migrated from x/param to module crosschain
+	checkCrossChainMigrateParamStore(t, ctx, myApp, true)
+	// check fxgovparams
+	checkFXGovParams(t, ctx, myApp, true)
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -78,22 +95,20 @@ func Test_Upgrade(t *testing.T) {
 		})
 	}
 
-	checkGetAccountAddressByID(t, ctx, myApp)
+	// UpgradeAfter
 	checkDenomMetaData(t, ctx, myApp, false)
-	checkERC20ParamStore(t, ctx, myApp, false)
-	checkCrossChainParamStore(t, ctx, myApp, false)
+	checkERC20MigrateParamStore(t, ctx, myApp, false)
+	checkCrossChainMigrateParamStore(t, ctx, myApp, false)
+	checkFXGovParams(t, ctx, myApp, false)
+
+	checkFIP20LogicUpgrade(t, ctx, myApp)
+	checkWFXLogicUpgrade(t, ctx, myApp)
 
 	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.BscKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.TronKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.PolygonKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.AvalancheKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
-}
-
-func checkGetAccountAddressByID(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	accountI := myApp.AccountKeeper.GetAllAccounts(ctx)[0]
-	addr := myApp.AccountKeeper.GetAccountAddressByID(ctx, accountI.GetAccountNumber())
-	require.Equal(t, accountI.GetAddress().String(), addr)
 }
 
 func newContext(t *testing.T, myApp *app.App) sdk.Context {
@@ -141,7 +156,149 @@ func checkDenomMetaData(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgrade
 	}
 }
 
-func checkERC20ParamStore(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
+func checkFIP20LogicUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	// check fip20 logic upgrade
+	fipLogicAcc := myApp.EvmKeeper.GetAccount(ctx, fxtypes.GetFIP20().Address)
+	require.True(t, fipLogicAcc.IsContract())
+
+	fipLogic := fxtypes.GetFIP20()
+	codeHash := crypto.Keccak256Hash(fipLogic.Code)
+	require.Equal(t, codeHash.Bytes(), fipLogicAcc.CodeHash)
+
+	code := myApp.EvmKeeper.GetCode(ctx, codeHash)
+	require.Equal(t, fipLogic.Code, code)
+}
+
+func checkWFXLogicUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	// check wfx logic upgrade
+	wfxLogicAcc := myApp.EvmKeeper.GetAccount(ctx, fxtypes.GetWFX().Address)
+	require.True(t, wfxLogicAcc.IsContract())
+
+	wfxLogic := fxtypes.GetWFX()
+	codeHash := crypto.Keccak256Hash(wfxLogic.Code)
+	require.Equal(t, codeHash.Bytes(), wfxLogicAcc.CodeHash)
+
+	code := myApp.EvmKeeper.GetCode(ctx, codeHash)
+	require.Equal(t, wfxLogic.Code, code)
+}
+
+func checkFXGovParams(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
+	defaultParams := myApp.GovKeeper.GetParams(ctx, "")
+	checkGovERC20ParamsUpgradeBefore(t, ctx, myApp, defaultParams, isUpgradeBefore)
+	checkGovEVMParamsUpgradeBefore(t, ctx, myApp, defaultParams, isUpgradeBefore)
+	checkGovEGFParamsUpgradeBefore(t, ctx, myApp, defaultParams, isUpgradeBefore)
+}
+
+func checkGovEGFParamsUpgradeBefore(t *testing.T, ctx sdk.Context, myApp *app.App, defaultParams fxgovtypes.Params, isUpgradeBefore bool) {
+	if isUpgradeBefore {
+		egfParams := myApp.GovKeeper.GetParams(ctx, "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal")
+		assert.NoError(t, egfParams.ValidateBasic())
+		assert.NoError(t, egfParams.ValidateBasic())
+		assert.EqualValues(t, egfParams.MinDeposit, defaultParams.MinDeposit)
+		assert.EqualValues(t, egfParams.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, fxgovtypes.DefaultMinInitialDeposit).String())
+		assert.EqualValues(t, egfParams.MaxDepositPeriod, defaultParams.MaxDepositPeriod)
+		assert.EqualValues(t, egfParams.VotingPeriod.String(), defaultParams.VotingPeriod.String())
+		assert.EqualValues(t, egfParams.VetoThreshold, defaultParams.VetoThreshold)
+		assert.EqualValues(t, egfParams.Threshold, defaultParams.Threshold)
+		assert.EqualValues(t, egfParams.Quorum, defaultParams.Quorum)
+
+		egf := myApp.GovKeeper.GetEGFParams(ctx)
+		assert.Error(t, egf.ValidateBasic())
+		assert.False(t, egf.EgfDepositThreshold.IsValid())
+		assert.EqualValues(t, egf.ClaimRatio, "")
+		return
+	}
+	egfParams := myApp.GovKeeper.GetParams(ctx, "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal")
+	assert.NoError(t, egfParams.ValidateBasic())
+	assert.EqualValues(t, egfParams.MinDeposit, defaultParams.MinDeposit)
+	assert.EqualValues(t, egfParams.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, fxgovtypes.DefaultMinInitialDeposit).String())
+	assert.EqualValues(t, egfParams.MaxDepositPeriod, defaultParams.MaxDepositPeriod)
+	assert.EqualValues(t, egfParams.VotingPeriod.String(), fxgovtypes.DefaultEgfVotingPeriod.String())
+	assert.EqualValues(t, egfParams.VetoThreshold, defaultParams.VetoThreshold)
+	assert.EqualValues(t, egfParams.Threshold, defaultParams.Threshold)
+	assert.EqualValues(t, egfParams.Quorum, defaultParams.Quorum)
+
+	egf := myApp.GovKeeper.GetEGFParams(ctx)
+	assert.NoError(t, egf.ValidateBasic())
+	assert.EqualValues(t, egf.EgfDepositThreshold, sdk.NewCoin(fxtypes.DefaultDenom, fxgovtypes.DefaultEgfDepositThreshold))
+	assert.EqualValues(t, egf.ClaimRatio, fxgovtypes.DefaultClaimRatio.String())
+}
+
+func checkGovEVMParamsUpgradeBefore(t *testing.T, ctx sdk.Context, myApp *app.App, defaultParams fxgovtypes.Params, isUpgradeBefore bool) {
+	if isUpgradeBefore {
+		evmParams := myApp.GovKeeper.GetParams(ctx, sdk.MsgTypeURL(&evmtypes.MsgCallContract{}))
+		assert.NoError(t, evmParams.ValidateBasic())
+		assert.EqualValues(t, evmParams.MinDeposit, defaultParams.MinDeposit)
+		assert.EqualValues(t, evmParams.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, fxgovtypes.DefaultMinInitialDeposit).String())
+		assert.EqualValues(t, evmParams.MaxDepositPeriod, defaultParams.MaxDepositPeriod)
+		assert.EqualValues(t, evmParams.VotingPeriod.String(), defaultParams.VotingPeriod.String())
+		assert.EqualValues(t, evmParams.VetoThreshold, defaultParams.VetoThreshold)
+		assert.EqualValues(t, evmParams.Threshold, defaultParams.Threshold)
+		assert.EqualValues(t, evmParams.Quorum, defaultParams.Quorum)
+		return
+	}
+	evmParams := myApp.GovKeeper.GetParams(ctx, sdk.MsgTypeURL(&evmtypes.MsgCallContract{}))
+	assert.NoError(t, evmParams.ValidateBasic())
+	assert.EqualValues(t, evmParams.MinDeposit, defaultParams.MinDeposit)
+	assert.EqualValues(t, evmParams.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, fxgovtypes.DefaultMinInitialDeposit).String())
+	assert.EqualValues(t, evmParams.MaxDepositPeriod, defaultParams.MaxDepositPeriod)
+	assert.EqualValues(t, evmParams.VotingPeriod.String(), fxgovtypes.DefaultEvmVotingPeriod.String())
+	assert.EqualValues(t, evmParams.VetoThreshold, defaultParams.VetoThreshold)
+	assert.EqualValues(t, evmParams.Threshold, defaultParams.Threshold)
+	assert.EqualValues(t, evmParams.Quorum, fxgovtypes.DefaultEvmQuorum.String())
+}
+
+func checkGovERC20ParamsUpgradeBefore(t *testing.T, ctx sdk.Context, myApp *app.App, defaultParams fxgovtypes.Params, isUpgradeBefore bool) {
+	if isUpgradeBefore {
+		erc20MsgType := []string{
+			"/fx.erc20.v1.RegisterCoinProposal",
+			"/fx.erc20.v1.RegisterERC20Proposal",
+			"/fx.erc20.v1.ToggleTokenConversionProposal",
+			"/fx.erc20.v1.UpdateDenomAliasProposal",
+			sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+			sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}),
+			sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{}),
+			sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
+		}
+		for _, erc20MsgType := range erc20MsgType {
+			// registered Msg
+			erc20params := myApp.GovKeeper.GetParams(ctx, erc20MsgType)
+			assert.NoError(t, erc20params.ValidateBasic())
+			assert.EqualValues(t, erc20params.MinDeposit, defaultParams.MinDeposit)
+			assert.EqualValues(t, erc20params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, fxgovtypes.DefaultMinInitialDeposit).String())
+			assert.EqualValues(t, erc20params.MaxDepositPeriod, defaultParams.MaxDepositPeriod)
+			assert.EqualValues(t, erc20params.VotingPeriod, defaultParams.VotingPeriod)
+			assert.EqualValues(t, erc20params.VetoThreshold, defaultParams.VetoThreshold)
+			assert.EqualValues(t, erc20params.Threshold, defaultParams.Threshold)
+			assert.EqualValues(t, erc20params.Quorum, defaultParams.Quorum)
+		}
+		return
+	}
+	erc20MsgType := []string{
+		"/fx.erc20.v1.RegisterCoinProposal",
+		"/fx.erc20.v1.RegisterERC20Proposal",
+		"/fx.erc20.v1.ToggleTokenConversionProposal",
+		"/fx.erc20.v1.UpdateDenomAliasProposal",
+		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+		sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}),
+		sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{}),
+		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
+	}
+	for _, erc20MsgType := range erc20MsgType {
+		// registered Msg
+		erc20params := myApp.GovKeeper.GetParams(ctx, erc20MsgType)
+		assert.NoError(t, erc20params.ValidateBasic())
+		assert.EqualValues(t, erc20params.MinDeposit, defaultParams.MinDeposit)
+		assert.EqualValues(t, erc20params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, fxgovtypes.DefaultMinInitialDeposit).String())
+		assert.EqualValues(t, erc20params.MaxDepositPeriod, defaultParams.MaxDepositPeriod)
+		assert.EqualValues(t, erc20params.VotingPeriod, defaultParams.VotingPeriod)
+		assert.EqualValues(t, erc20params.VetoThreshold, defaultParams.VetoThreshold)
+		assert.EqualValues(t, erc20params.Threshold, defaultParams.Threshold)
+		assert.EqualValues(t, erc20params.Quorum, fxgovtypes.DefaultErc20Quorum.String())
+	}
+}
+
+func checkERC20MigrateParamStore(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
 	subspace := myApp.GetSubspace(erc20types.ModuleName)
 	var subspaceParams erc20types.Params
 	if isUpgradeBefore {
@@ -160,7 +317,7 @@ func checkERC20ParamStore(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgra
 	assert.EqualValues(t, params.IbcTimeout, subspaceParams.IbcTimeout)
 }
 
-func checkCrossChainParamStore(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
+func checkCrossChainMigrateParamStore(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
 	crosschainsModule := []string{avalanchetypes.ModuleName, bsctypes.ModuleName, ethtypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName}
 	for _, moduleName := range crosschainsModule {
 		subspace := myApp.GetSubspace(moduleName)
@@ -246,10 +403,10 @@ func getConsensusVersion(appVersion int) (versionMap module.VersionMap) {
 		"distribution": {1, 2},
 		"erc20":        {0, 1, 2, 3},
 		"evidence":     {1},
-		"evm":          {0, 2, 3},
+		"evm":          {0, 0, 3, 5},
 		"eth":          {0, 0, 1, 2, 3},
 		"feegrant":     {0, 0, 1, 2},
-		"feemarket":    {0, 3},
+		"feemarket":    {0, 0, 3, 4},
 		"genutil":      {1},
 		"gov":          {0, 1, 2, 3},
 		"gravity":      {1, 1, 2},
