@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "compile": "npx hardhat compile",
-    "clean": "rm -rf artifacts cache build dist typechain && npx hardhat clean",
+    "clean": "npx hardhat clean && rm -rf ./build ./contracts/build",
     "lint:sol": "npx solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\""
   },
   "keywords": [
