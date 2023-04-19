@@ -1,9 +1,11 @@
 package crosschain_test
 
 import (
-	"github.com/functionx/fx-core/v4/x/evm/precompiles/crosschain"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v4/x/evm/precompiles/crosschain"
 )
 
 func TestBridgeCoinAmountABI(t *testing.T) {
