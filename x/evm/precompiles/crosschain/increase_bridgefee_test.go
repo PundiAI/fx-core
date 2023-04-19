@@ -340,7 +340,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				return data, []string{txID.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("invalid tx id: %s", args[0])
+				return "invalid tx id"
 			},
 			result: false,
 		},
@@ -362,7 +362,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				return data, []string{fee.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("invalid add bridge fee: %s", args[0])
+				return "invalid add bridge fee"
 			},
 			result: false,
 		},
@@ -669,7 +669,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				return data, []string{txID.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("invalid tx id: %s", args[0])
+				return "invalid tx id"
 			},
 			result: false,
 		},
@@ -691,7 +691,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				return data, []string{fee.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("invalid add bridge fee: %s", args[0])
+				return "invalid add bridge fee"
 			},
 			result: false,
 		},

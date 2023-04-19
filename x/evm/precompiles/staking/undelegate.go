@@ -9,47 +9,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
-
-var (
-	UndelegateMethod = abi.NewMethod(
-		UndelegateMethodName,
-		UndelegateMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_amount", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
-			abi.Argument{Name: "_completionTime", Type: types.TypeUint256},
-		},
-	)
-
-	UndelegateEvent = abi.NewEvent(
-		UndelegateEventName,
-		UndelegateEventName,
-		false,
-		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "completionTime", Type: types.TypeUint256, Indexed: false},
-		},
-	)
-)
-
-type UndelegateArgs struct {
-	Validator string   `abi:"_val"`
-	Shares    *big.Int `abi:"_shares"`
-}
 
 func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
@@ -57,23 +21,16 @@ func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 	// parse args
 	var args UndelegateArgs
-	if err := ParseMethodParams(UndelegateMethod, &args, contract.Input[4:]); err != nil {
+	err := types.ParseMethodArgs(UndelegateMethod, &args, contract.Input[4:])
+	if err != nil {
 		return nil, err
 	}
 
-	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
-	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
-	}
-	if args.Shares.Sign() <= 0 {
-		return nil, fmt.Errorf("invalid shares: %s", args.Shares.String())
-	}
-
+	valAddr := args.GetValidator()
 	_, found := c.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
 	}
-
 	sender := sdk.AccAddress(contract.Caller().Bytes())
 	evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 

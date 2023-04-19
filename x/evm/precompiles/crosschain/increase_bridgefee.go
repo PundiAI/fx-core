@@ -7,50 +7,12 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxtypes "github.com/functionx/fx-core/v4/types"
-	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
-
-var (
-	IncreaseBridgeFeeMethod = abi.NewMethod(
-		IncreaseBridgeFeeMethodName,
-		IncreaseBridgeFeeMethodName,
-		abi.Function, "payable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_chain", Type: types.TypeString},
-			abi.Argument{Name: "_txID", Type: types.TypeUint256},
-			abi.Argument{Name: "_token", Type: types.TypeAddress},
-			abi.Argument{Name: "_fee", Type: types.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
-		},
-	)
-
-	IncreaseBridgeFeeEvent = abi.NewEvent(
-		IncreaseBridgeFeeEventName,
-		IncreaseBridgeFeeEventName,
-		false,
-		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "token", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "chain", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "txID", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "fee", Type: types.TypeUint256, Indexed: false},
-		})
-)
-
-type IncreaseBridgeFeeArgs struct {
-	Chain string         `abi:"_chain"`
-	TxID  *big.Int       `abi:"_txID"`
-	Token common.Address `abi:"_token"`
-	Fee   *big.Int       `abi:"_fee"`
-}
 
 // IncreaseBridgeFee add bridge fee to unbatched tx
 //
@@ -62,19 +24,9 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contract *vm.
 
 	// args
 	var args IncreaseBridgeFeeArgs
-	err := ParseMethodParams(IncreaseBridgeFeeMethod, &args, contract.Input[4:])
+	err := types.ParseMethodArgs(IncreaseBridgeFeeMethod, &args, contract.Input[4:])
 	if err != nil {
 		return nil, err
-	}
-
-	if err = crosschaintypes.ValidateModuleName(args.Chain); err != nil {
-		return nil, err
-	}
-	if args.TxID.Cmp(big.NewInt(0)) <= 0 {
-		return nil, fmt.Errorf("invalid tx id: %s", args.TxID.String())
-	}
-	if args.Fee.Cmp(big.NewInt(0)) <= 0 {
-		return nil, fmt.Errorf("invalid add bridge fee: %s", args.Fee.String())
 	}
 
 	if c.router == nil {

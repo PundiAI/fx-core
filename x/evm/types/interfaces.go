@@ -14,3 +14,7 @@ type EvmLogHandler interface {
 	// Handle Process the log
 	Handle(ctx sdk.Context, msg core.Message, log *ethtypes.Log) error
 }
+
+type MethodArgs interface {
+	Validate() error
+}

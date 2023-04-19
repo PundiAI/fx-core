@@ -2,45 +2,14 @@ package staking
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
-
-var (
-	WithdrawMethod = abi.NewMethod(
-		WithdrawMethodName,
-		WithdrawMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
-		},
-	)
-
-	WithdrawEvent = abi.NewEvent(
-		WithdrawEventName,
-		WithdrawEventName,
-		false,
-		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "reward", Type: types.TypeUint256, Indexed: false},
-		},
-	)
-)
-
-type WithdrawArgs struct {
-	Validator string `abi:"_val"`
-}
 
 func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
@@ -48,21 +17,15 @@ func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	}
 	// parse args
 	var args WithdrawArgs
-	if err := ParseMethodParams(WithdrawMethod, &args, contract.Input[4:]); err != nil {
+	if err := types.ParseMethodArgs(WithdrawMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 
-	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
-	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
-	}
 	evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
-
-	rewardAmount, err := c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom)
+	rewardAmount, err := c.withdraw(ctx, evm, contract.Caller(), args.GetValidator(), evmDenom)
 	if err != nil {
 		return nil, err
 	}
-
 	return WithdrawMethod.Outputs.Pack(rewardAmount)
 }
 

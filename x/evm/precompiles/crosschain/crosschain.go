@@ -12,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -21,73 +20,6 @@ import (
 	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
-
-var (
-	FIP20CrossChainMethod = abi.NewMethod(
-		FIP20CrossChainMethodName,
-		FIP20CrossChainMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_sender", Type: types.TypeAddress},
-			abi.Argument{Name: "_receipt", Type: types.TypeString},
-			abi.Argument{Name: "_amount", Type: types.TypeUint256},
-			abi.Argument{Name: "_fee", Type: types.TypeUint256},
-			abi.Argument{Name: "_target", Type: types.TypeBytes32},
-			abi.Argument{Name: "_memo", Type: types.TypeString},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
-		},
-	)
-	CrossChainMethod = abi.NewMethod(
-		CrossChainMethodName,
-		CrossChainMethodName,
-		abi.Function, "payable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_token", Type: types.TypeAddress},
-			abi.Argument{Name: "_receipt", Type: types.TypeString},
-			abi.Argument{Name: "_amount", Type: types.TypeUint256},
-			abi.Argument{Name: "_fee", Type: types.TypeUint256},
-			abi.Argument{Name: "_target", Type: types.TypeBytes32},
-			abi.Argument{Name: "_memo", Type: types.TypeString},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
-		})
-
-	CrossChainEvent = abi.NewEvent(
-		CrossChainEventName,
-		CrossChainEventName,
-		false,
-		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "token", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "denom", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "receipt", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "fee", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "target", Type: types.TypeBytes32, Indexed: false},
-			abi.Argument{Name: "memo", Type: types.TypeString, Indexed: false},
-		})
-)
-
-type FIP20CrossChainArgs struct {
-	Sender  common.Address `abi:"_sender"`
-	Receipt string         `abi:"_receipt"`
-	Amount  *big.Int       `abi:"_amount"`
-	Fee     *big.Int       `abi:"_fee"`
-	Target  [32]byte       `abi:"_target"`
-	Memo    string         `abi:"_memo"`
-}
-
-type CrossChainArgs struct {
-	Token   common.Address `abi:"_token"`
-	Receipt string         `abi:"_receipt"`
-	Amount  *big.Int       `abi:"_amount"`
-	Fee     *big.Int       `abi:"_fee"`
-	Target  [32]byte       `abi:"_target"`
-	Memo    string         `abi:"_memo"`
-}
 
 // FIP20CrossChain only for fip20 contract transferCrossChain called
 //
@@ -104,7 +36,7 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 	}
 
 	var args FIP20CrossChainArgs
-	if err := ParseMethodParams(FIP20CrossChainMethod, &args, contract.Input[4:]); err != nil {
+	if err := types.ParseMethodArgs(FIP20CrossChainMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 
@@ -166,7 +98,7 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 
 	// args
 	var args CrossChainArgs
-	err := ParseMethodParams(CrossChainMethod, &args, contract.Input[4:])
+	err := types.ParseMethodArgs(CrossChainMethod, &args, contract.Input[4:])
 	if err != nil {
 		return nil, err
 	}

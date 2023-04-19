@@ -321,7 +321,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				return data, []string{txID.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("invalid tx id: %s", args[0])
+				return "invalid tx id"
 			},
 			result: false,
 		},

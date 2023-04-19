@@ -4,37 +4,17 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
-var BridgeCoinAmountMethod = abi.NewMethod(
-	BridgeCoinAmountMethodName,
-	BridgeCoinAmountMethodName,
-	abi.Function, "view", false, false,
-	abi.Arguments{
-		abi.Argument{Name: "_token", Type: types.TypeAddress},
-		abi.Argument{Name: "_target", Type: types.TypeBytes32},
-	},
-	abi.Arguments{
-		abi.Argument{Name: "_amount", Type: types.TypeUint256},
-	},
-)
-
-type BridgeCoinAmountArgs struct {
-	Token  common.Address `abi:"_token"`
-	Target [32]byte       `abi:"_target"`
-}
-
 func (c *Contract) BridgeCoinAmount(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
 	// parse args
 	var args BridgeCoinAmountArgs
-	if err := ParseMethodParams(BridgeCoinAmountMethod, &args, contract.Input[4:]); err != nil {
+	if err := types.ParseMethodArgs(BridgeCoinAmountMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 

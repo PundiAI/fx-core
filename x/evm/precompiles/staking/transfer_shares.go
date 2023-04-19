@@ -8,70 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
-
-var (
-	TransferSharesMethod = abi.NewMethod(
-		TransferSharesMethodName,
-		TransferSharesMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_to", Type: types.TypeAddress},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_token", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
-		},
-	)
-	TransferFromSharesMethod = abi.NewMethod(
-		TransferFromSharesMethodName,
-		TransferFromSharesMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_from", Type: types.TypeAddress},
-			abi.Argument{Name: "_to", Type: types.TypeAddress},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_token", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
-		},
-	)
-
-	TransferSharesEvent = abi.NewEvent(
-		TransferSharesEventName,
-		TransferSharesEventName,
-		false,
-		abi.Arguments{
-			abi.Argument{Name: "from", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "to", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "token", Type: types.TypeUint256, Indexed: false},
-		},
-	)
-)
-
-type TransferSharesArgs struct {
-	Validator string         `abi:"_val"`
-	To        common.Address `abi:"_to"`
-	Shares    *big.Int       `abi:"_shares"`
-}
-
-type TransferFromSharesArgs struct {
-	Validator string         `abi:"_val"`
-	From      common.Address `abi:"_from"`
-	To        common.Address `abi:"_to"`
-	Shares    *big.Int       `abi:"_shares"`
-}
 
 func (c *Contract) TransferShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
@@ -79,18 +20,11 @@ func (c *Contract) TransferShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Con
 	}
 	// parse args
 	var args TransferSharesArgs
-	if err := ParseMethodParams(TransferSharesMethod, &args, contract.Input[4:]); err != nil {
+	if err := types.ParseMethodArgs(TransferSharesMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 
-	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
-	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
-	}
-	if args.Shares.Cmp(big.NewInt(0)) < 0 {
-		return nil, errors.New("shares cannot be negative")
-	}
-
+	valAddr := args.GetValidator()
 	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, contract.Caller(), args.To, args.Shares)
 	if err != nil {
 		return nil, err
@@ -104,23 +38,15 @@ func (c *Contract) TransferFromShares(ctx sdk.Context, evm *vm.EVM, contract *vm
 	}
 	// parse args
 	var args TransferFromSharesArgs
-	if err := ParseMethodParams(TransferFromSharesMethod, &args, contract.Input[4:]); err != nil {
+	if err := types.ParseMethodArgs(TransferFromSharesMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 
-	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
-	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
-	}
-	if args.Shares.Cmp(big.NewInt(0)) < 0 {
-		return nil, errors.New("shares cannot be negative")
-	}
-
+	valAddr := args.GetValidator()
 	spender := contract.Caller()
-	if err = c.decrementAllowance(ctx, valAddr, args.From.Bytes(), spender.Bytes(), args.Shares); err != nil {
+	if err := c.decrementAllowance(ctx, valAddr, args.From.Bytes(), spender.Bytes(), args.Shares); err != nil {
 		return nil, err
 	}
-
 	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, args.From, args.To, args.Shares)
 	if err != nil {
 		return nil, err

@@ -2,7 +2,6 @@ package crosschain
 
 import (
 	"errors"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -109,13 +108,9 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 }
 
 func (c *Contract) AddLog(event abi.Event, topics []common.Hash, args ...interface{}) error {
-	data, err := event.Inputs.NonIndexed().Pack(args...)
+	data, newTopic, err := types.PackTopicData(event, topics, args...)
 	if err != nil {
-		return fmt.Errorf("pack %s event error: %s", event.Name, err.Error())
-	}
-	newTopic := []common.Hash{event.ID}
-	if len(topics) > 0 {
-		newTopic = append(newTopic, topics...)
+		return err
 	}
 	c.evm.StateDB.AddLog(&ethtypes.Log{
 		Address:     c.Address(),
@@ -124,12 +119,4 @@ func (c *Contract) AddLog(event abi.Event, topics []common.Hash, args ...interfa
 		BlockNumber: c.evm.Context.BlockNumber.Uint64(),
 	})
 	return nil
-}
-
-func ParseMethodParams(method abi.Method, v interface{}, data []byte) error {
-	unpacked, err := method.Inputs.Unpack(data)
-	if err != nil {
-		return err
-	}
-	return method.Inputs.Copy(v, unpacked)
 }
