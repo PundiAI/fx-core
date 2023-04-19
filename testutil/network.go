@@ -16,6 +16,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -51,7 +52,7 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 			return app.New(ctx.Logger, dbm.NewMemDB(),
 				nil, true, make(map[int64]bool), ctx.Config.RootDir, 0,
 				encCfg,
-				app.EmptyAppOptions{},
+				ctx.Viper,
 				baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(appConfig.Pruning)),
 				baseapp.SetMinGasPrices(appConfig.MinGasPrices),
 			)
@@ -72,6 +73,9 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 			hd2.EthSecp256k1Option(),
 		},
 		PrintMnemonic: false,
+		BypassMinFeeMsgTypes: []string{
+			sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}),
+		},
 	}
 	for _, opt := range opts {
 		opt(&cfg)
