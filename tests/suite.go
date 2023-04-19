@@ -203,7 +203,11 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 
 	gasPrices, err := sdk.ParseCoinsNormalized(suite.network.Config.MinGasPrices)
 	suite.NoError(err)
-	grpcClient.WithGasPrices(gasPrices)
+	if gasPrices.Len() <= 0 {
+		// Let me know if you use sdk.newCoins sanitizeCoins will remove all zero coins
+		gasPrices = sdk.Coins{suite.NewCoin(sdk.ZeroInt())}
+	}
+	grpcClient = grpcClient.WithGasPrices(gasPrices)
 	txRaw, err := grpcClient.BuildTxV1(privKey, msgList, 500000, "", 0)
 	suite.NoError(err)
 
