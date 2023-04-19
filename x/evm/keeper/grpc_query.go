@@ -5,18 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"math/big"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 	ethparams "github.com/ethereum/go-ethereum/params"
@@ -74,20 +71,10 @@ func (k *Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.M
 	return res, nil
 }
 
-// EstimateGas implements eth_estimateGas rpc api.
-func (k *Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*types.EstimateGasResponse, error) {
-	return k.estimateGas(c, req, true)
-}
-
-// EstimateGasWithoutHook implements eth_estimateGas rpc api without evm hook.
-func (k *Keeper) EstimateGasWithoutHook(c context.Context, req *types.EthCallRequest) (*types.EstimateGasResponse, error) {
-	return k.estimateGas(c, req, false)
-}
-
-// estimateGas implements eth_estimateGas rpc api with enable hook flag.
+// EstimateGas implements eth_estimateGas rpc api with enable hook flag.
 //
 //gocyclo:ignore
-func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enableHook bool) (*types.EstimateGasResponse, error) {
+func (k *Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*types.EstimateGasResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -180,52 +167,6 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 				return true, nil, nil // Special case, raise gas limit
 			}
 			return true, nil, err // Bail out
-		}
-		// rsp success and hooks not nil, check tx with PostTxProcessing
-		if enableHook && !rsp.Failed() && k.hasHooks {
-			var (
-				bloom        *big.Int
-				bloomReceipt ethtypes.Bloom
-			)
-			logs := types.LogsToEthereum(rsp.Logs)
-			// Compute block bloom filter
-			if len(logs) > 0 {
-				bloom = k.GetBlockBloomTransient(cacheCtx)
-				bloom.Or(bloom, big.NewInt(0).SetBytes(ethtypes.LogsBloom(logs)))
-				bloomReceipt = ethtypes.BytesToBloom(bloom.Bytes())
-			}
-
-			cumulativeGasUsed := rsp.GasUsed
-			if cacheCtx.BlockGasMeter() != nil {
-				limit := cacheCtx.BlockGasMeter().Limit()
-				consumed := cacheCtx.BlockGasMeter().GasConsumed()
-				cumulativeGasUsed = uint64(math.Min(float64(cumulativeGasUsed+consumed), float64(limit)))
-			}
-
-			var contractAddr common.Address
-			if msg.To() == nil {
-				contractAddr = crypto.CreateAddress(msg.From(), msg.Nonce())
-			}
-
-			receipt := &ethtypes.Receipt{
-				PostState:         nil,
-				Status:            ethtypes.ReceiptStatusSuccessful,
-				CumulativeGasUsed: cumulativeGasUsed,
-				Bloom:             bloomReceipt,
-				Logs:              logs,
-				TxHash:            txConfig.TxHash,
-				ContractAddress:   contractAddr,
-				GasUsed:           rsp.GasUsed,
-				BlockHash:         txConfig.BlockHash,
-				BlockNumber:       big.NewInt(cacheCtx.BlockHeight()),
-				TransactionIndex:  txConfig.TxIndex,
-			}
-			// Only call hooks if tx executed successfully.
-			if err = k.PostTxProcessing(cacheCtx, msg, receipt); err != nil {
-				// If hooks return error, revert the whole tx.
-				rsp.VmError = errorsmod.Wrap(types.ErrPostTxProcessing, err.Error()).Error()
-				return true, rsp, err
-			}
 		}
 		return len(rsp.VmError) > 0, rsp, nil
 	}

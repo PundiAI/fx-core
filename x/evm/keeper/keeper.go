@@ -47,6 +47,9 @@ func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
 // SetHooks sets the hooks for the EVM module
 // It should be called only once during initialization, it panic if called more than once.
 func (k *Keeper) SetHooks(eh types.EvmHooks) *Keeper {
+	if eh == nil {
+		panic("cannot to set nil evm hook")
+	}
 	k.Keeper.SetHooks(eh)
 	k.hasHooks = true
 	return k
