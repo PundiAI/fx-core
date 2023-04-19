@@ -270,8 +270,9 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 		fmt.Println("Warning: double_sign_check_height is greater than 0")
 		fmt.Println("Warning: double_sign_check_height is greater than 0")
 	}
-	// xcored config config.toml p2p.persistent_peers
-	// fxcored config config.toml p2p.seeds
+	if config.P2P.Seeds == "" {
+		fmt.Println("Warning: seeds is empty")
+	}
 	return nil
 }
 
