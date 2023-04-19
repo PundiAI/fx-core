@@ -38,8 +38,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		}
 
 		// convert to base denom
-		_, commit := ctx.CacheContext()
-		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiveAddr, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+		cacheCtx, commit := ctx.CacheContext()
+		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(cacheCtx, receiveAddr, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
 		if err != nil {
 			k.Logger(ctx).Info("failed to convert base denom", "error", err)
 			return nil
