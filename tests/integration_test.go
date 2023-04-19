@@ -54,4 +54,5 @@ func (suite *IntegrationTest) TestRun() {
 	suite.OriginERC20IBCChainTokenTest()
 	suite.FIP20CodeCheckTest()
 	suite.WFXCodeCheckTest()
+	suite.ByPassFeeTest()
 }

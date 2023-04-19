@@ -7,6 +7,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -17,23 +18,26 @@ import (
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
-func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
+func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 	clientCtx := NewClientCtx()
 	txBuilder := clientCtx.TxConfig.NewTxBuilder()
-	mfd := ante.NewMempoolFeeDecorator([]string{
+	dfd := ante.NewDeductFeeDecorator(suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.FeeGrantKeeper, nil, []string{
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
 		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
+		sdk.MsgTypeURL(&ibcchanneltypes.MsgTimeout{}),
 	}, 300_000)
-	anteHandler := sdk.ChainAnteDecorators(mfd)
 	priv1, _, addr1 := testdata.KeyTestPubAddr()
+	anteHandler := sdk.ChainAnteDecorators(dfd)
+	accountI := authtypes.ProtoBaseAccount()
+	suite.NoError(accountI.SetAddress(addr1))
+	suite.app.AccountKeeper.SetAccount(suite.ctx, accountI)
 
 	msg := testdata.NewTestMsg(addr1)
-	feeAmount := testdata.NewTestFeeAmount()
 	gasLimit := testdata.NewTestGasLimit()
 
 	suite.Require().NoError(txBuilder.SetMsgs(msg))
-	txBuilder.SetFeeAmount(feeAmount)
+	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())))
 	txBuilder.SetGasLimit(gasLimit)
 
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
@@ -51,7 +55,7 @@ func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
 
 	// ensure no fees for certain IBC msgs
 	suite.Require().NoError(txBuilder.SetMsgs(
-		ibcchanneltypes.NewMsgRecvPacket(ibcchanneltypes.Packet{}, nil, ibcclienttypes.Height{}, sdk.AccAddress{}.String()),
+		ibcchanneltypes.NewMsgRecvPacket(ibcchanneltypes.Packet{}, nil, ibcclienttypes.Height{}, addr1.String()),
 	))
 
 	oracleTx, err := suite.CreateEmptyTestTx(txBuilder, privs, accNums, accSeqs)

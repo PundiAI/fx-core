@@ -22,6 +22,7 @@ type HandlerOptions struct {
 	IbcKeeper                  *ibckeeper.Keeper
 	SignModeHandler            authsigning.SignModeHandler
 	SigGasConsumer             ante.SignatureVerificationGasConsumer
+	TxFeeChecker               ante.TxFeeChecker
 	MaxTxGasWanted             uint64
 	BypassMinFeeMsgTypes       []string
 	MaxBypassMinFeeMsgGasUsage uint64
@@ -68,12 +69,11 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewRejectExtensionOptionsDecorator(),
-		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes, options.MaxBypassMinFeeMsgGasUsage),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, nil),
+		NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker, options.BypassMinFeeMsgTypes, options.MaxBypassMinFeeMsgGasUsage),
 		NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
