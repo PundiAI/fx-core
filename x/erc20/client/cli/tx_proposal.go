@@ -19,8 +19,8 @@ import (
 	"github.com/functionx/fx-core/v4/x/erc20/types"
 )
 
-// NewRegisterCoinProposalCmd implements the command to submit a register-coin proposal
-func NewRegisterCoinProposalCmd() *cobra.Command {
+// NewLegacyRegisterCoinProposalCmd implements the command to submit a register-coin proposal
+func NewLegacyRegisterCoinProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register-coin [metadata]",
 		Args:  cobra.ExactArgs(1),
@@ -88,8 +88,8 @@ The proposal details must be supplied via a JSON file.`,
 	return cmd
 }
 
-// NewRegisterERC20ProposalCmd implements the command to submit a register-erc20 proposal
-func NewRegisterERC20ProposalCmd() *cobra.Command {
+// NewLegacyRegisterERC20ProposalCmd implements the command to submit a register-erc20 proposal
+func NewLegacyRegisterERC20ProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "register-erc20 [erc20-address]",
 		Args:    cobra.ExactArgs(1),
@@ -155,8 +155,8 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 	return cmd
 }
 
-// NewToggleTokenConversionProposalCmd implements the command to submit a toggle-token-conversion proposal
-func NewToggleTokenConversionProposalCmd() *cobra.Command {
+// NewLegacyToggleTokenConversionProposalCmd implements the command to submit a toggle-token-conversion proposal
+func NewLegacyToggleTokenConversionProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "toggle-token-conversion [token]",
 		Args:    cobra.ExactArgs(1),
@@ -217,10 +217,10 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 	return cmd
 }
 
-// NewUpdateDenomAliasProposalCmd implements the command to submit a update-denom-alias proposal
+// NewLegacyUpdateDenomAliasProposalCmd implements the command to submit a update-denom-alias proposal
 //
 //gocyclo:ignore
-func NewUpdateDenomAliasProposalCmd() *cobra.Command {
+func NewLegacyUpdateDenomAliasProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-denom-alias [denom] [alias]",
 		Args:    cobra.ExactArgs(2),

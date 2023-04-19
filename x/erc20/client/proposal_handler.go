@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	RegisterCoinProposalHandler          = govclient.NewProposalHandler(cli.NewRegisterCoinProposalCmd)
-	RegisterERC20ProposalHandler         = govclient.NewProposalHandler(cli.NewRegisterERC20ProposalCmd)
-	ToggleTokenConversionProposalHandler = govclient.NewProposalHandler(cli.NewToggleTokenConversionProposalCmd)
-	UpdateDenomAliasProposalHandler      = govclient.NewProposalHandler(cli.NewUpdateDenomAliasProposalCmd)
+	LegacyRegisterCoinProposalHandler          = govclient.NewProposalHandler(cli.NewLegacyRegisterCoinProposalCmd)
+	LegacyRegisterERC20ProposalHandler         = govclient.NewProposalHandler(cli.NewLegacyRegisterERC20ProposalCmd)
+	LegacyToggleTokenConversionProposalHandler = govclient.NewProposalHandler(cli.NewLegacyToggleTokenConversionProposalCmd)
+	LegacyUpdateDenomAliasProposalHandler      = govclient.NewProposalHandler(cli.NewLegacyUpdateDenomAliasProposalCmd)
 )
