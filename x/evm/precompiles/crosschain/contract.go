@@ -65,8 +65,8 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return CancelSendToExternalGas
 	case string(IncreaseBridgeFeeMethod.ID):
 		return IncreaseBridgeFeeGas
-	case string(BridgeCoinMethod.ID):
-		return BridgeCoinFeeGas
+	case string(BridgeCoinAmountMethod.ID):
+		return BridgeCoinAmountFeeGas
 	default:
 		return 0
 	}
@@ -90,8 +90,8 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		ret, err = c.CancelSendToExternal(cacheCtx, evm, contract, readonly)
 	case string(IncreaseBridgeFeeMethod.ID):
 		ret, err = c.IncreaseBridgeFee(cacheCtx, evm, contract, readonly)
-	case string(BridgeCoinMethod.ID):
-		ret, err = c.BridgeCoin(cacheCtx, evm, contract, readonly)
+	case string(BridgeCoinAmountMethod.ID):
+		ret, err = c.BridgeCoinAmount(cacheCtx, evm, contract, readonly)
 	default:
 		err = errors.New("unknown method")
 	}

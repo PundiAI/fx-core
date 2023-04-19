@@ -35,8 +35,8 @@ interface ICrossChain {
     ) external payable returns (bool _result);
 
     function bridgeCoinAmount(
-        address token,
-        bytes32 target
+        address _token,
+        bytes32 _target
     ) external view returns (uint256 _amount);
 
     event CrossChain(
