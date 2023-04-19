@@ -353,6 +353,21 @@ func (app *App) GetModules() map[string]module.AppModule {
 	return app.mm.Modules
 }
 
+// GetOrderBeginBlockersModules implements the TestingApp interface.
+func (app *App) GetOrderBeginBlockersModules() []string {
+	return app.mm.OrderBeginBlockers
+}
+
+// GetOrderEndBlockersModules implements the TestingApp interface.
+func (app *App) GetOrderEndBlockersModules() []string {
+	return app.mm.OrderEndBlockers
+}
+
+// GetOrderInitGenesisModules implements the TestingApp interface.
+func (app *App) GetOrderInitGenesisModules() []string {
+	return app.mm.OrderInitGenesis
+}
+
 // EmptyAppOptions is a stub implementing AppOptions
 type EmptyAppOptions struct{}
 

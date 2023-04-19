@@ -218,7 +218,6 @@ func orderBeginBlockers() []string {
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		crosschaintypes.ModuleName,
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
@@ -256,14 +255,13 @@ func orderEndBlockers() []string {
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		crosschaintypes.ModuleName, // *
-		bsctypes.ModuleName,        // *
-		trontypes.ModuleName,       // *
-		polygontypes.ModuleName,    // *
-		avalanchetypes.ModuleName,  // *
-		ethtypes.ModuleName,        // *
-		arbitrumtypes.ModuleName,   // *
-		optimismtypes.ModuleName,   // *
+		bsctypes.ModuleName,       // *
+		trontypes.ModuleName,      // *
+		polygontypes.ModuleName,   // *
+		avalanchetypes.ModuleName, // *
+		ethtypes.ModuleName,       // *
+		arbitrumtypes.ModuleName,  // *
+		optimismtypes.ModuleName,  // *
 
 		evmtypes.ModuleName,
 		feemarkettypes.ModuleName, // *
@@ -294,7 +292,6 @@ func orderInitBlockers() []string {
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		crosschaintypes.ModuleName,
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
