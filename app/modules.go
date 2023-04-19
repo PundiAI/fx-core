@@ -198,22 +198,19 @@ func appModules(
 func orderBeginBlockers() []string {
 	return []string{
 		// upgrades should be run first
-		upgradetypes.ModuleName,    // *
-		capabilitytypes.ModuleName, // *
-		minttypes.ModuleName,       // *
-		distrtypes.ModuleName,      // *
-		slashingtypes.ModuleName,   // *
-		evidencetypes.ModuleName,   // *
-		stakingtypes.ModuleName,    // *
+		upgradetypes.ModuleName,    // begin
+		capabilitytypes.ModuleName, // begin
+		minttypes.ModuleName,       // begin
+		distrtypes.ModuleName,      // begin
+		slashingtypes.ModuleName,   // begin
+		evidencetypes.ModuleName,   // begin
+		stakingtypes.ModuleName,    // begin
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		govtypes.ModuleName,
 		crisistypes.ModuleName,
-		ibctransfertypes.ModuleName,
-		fxibctransfertypes.CompatibleModuleName,
-		ibchost.ModuleName,
 		genutiltypes.ModuleName,
-		authz.ModuleName, // *
+		authz.ModuleName, // begin
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
@@ -226,18 +223,22 @@ func orderBeginBlockers() []string {
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
 
-		feemarkettypes.ModuleName, // *
-		evmtypes.ModuleName,
+		feemarkettypes.ModuleName, // begin
+		evmtypes.ModuleName,       // begin
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
+
+		ibctransfertypes.ModuleName,
+		fxibctransfertypes.CompatibleModuleName,
+		ibchost.ModuleName,
 	}
 }
 
 func orderEndBlockers() []string {
 	return []string{
-		crisistypes.ModuleName,  // *
-		govtypes.ModuleName,     // *
-		stakingtypes.ModuleName, // *
+		crisistypes.ModuleName,  // end
+		govtypes.ModuleName,     // end
+		stakingtypes.ModuleName, // end
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
@@ -245,24 +246,24 @@ func orderEndBlockers() []string {
 		slashingtypes.ModuleName,
 		minttypes.ModuleName,
 		genutiltypes.ModuleName,
-		evidencetypes.ModuleName,
+		evidencetypes.ModuleName, // end
 		authz.ModuleName,
-		feegrant.ModuleName, // *
+		feegrant.ModuleName, // end
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		bsctypes.ModuleName,       // *
-		trontypes.ModuleName,      // *
-		polygontypes.ModuleName,   // *
-		avalanchetypes.ModuleName, // *
-		ethtypes.ModuleName,       // *
-		arbitrumtypes.ModuleName,  // *
-		optimismtypes.ModuleName,  // *
+		bsctypes.ModuleName,       // end
+		trontypes.ModuleName,      // end
+		polygontypes.ModuleName,   // end
+		avalanchetypes.ModuleName, // end
+		ethtypes.ModuleName,       // end
+		arbitrumtypes.ModuleName,  // end
+		optimismtypes.ModuleName,  // end
 
-		evmtypes.ModuleName,
-		feemarkettypes.ModuleName, // *
-		erc20types.ModuleName,     // *
+		evmtypes.ModuleName,       // end
+		feemarkettypes.ModuleName, // end
+		erc20types.ModuleName,
 		migratetypes.ModuleName,
 
 		ibctransfertypes.ModuleName,
