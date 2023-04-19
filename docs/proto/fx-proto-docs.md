@@ -84,6 +84,8 @@
     - [QueryBatchFeeResponse](#fx.gravity.crosschain.v1.QueryBatchFeeResponse)
     - [QueryBatchRequestByNonceRequest](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceRequest)
     - [QueryBatchRequestByNonceResponse](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceResponse)
+    - [QueryBridgeChainListRequest](#fx.gravity.crosschain.v1.QueryBridgeChainListRequest)
+    - [QueryBridgeChainListResponse](#fx.gravity.crosschain.v1.QueryBridgeChainListResponse)
     - [QueryBridgeCoinByDenomRequest](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomRequest)
     - [QueryBridgeCoinByDenomResponse](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomResponse)
     - [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest)
@@ -1585,6 +1587,31 @@ GenesisState struct
 
 
 
+<a name="fx.gravity.crosschain.v1.QueryBridgeChainListRequest"></a>
+
+### QueryBridgeChainListRequest
+
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.QueryBridgeChainListResponse"></a>
+
+### QueryBridgeChainListResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_names` | [string](#string) | repeated |  |
+
+
+
+
+
+
 <a name="fx.gravity.crosschain.v1.QueryBridgeCoinByDenomRequest"></a>
 
 ### QueryBridgeCoinByDenomRequest
@@ -2271,6 +2298,7 @@ Query defines the gRPC querier service
 | `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/fx/crosschain/v1/projected_batch_timeout|
 | `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.crosschain.v1.QueryBridgeTokensResponse) |  | GET|/fx/crosschain/v1/bridge_tokens|
 | `BridgeCoinByDenom` | [QueryBridgeCoinByDenomRequest](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomRequest) | [QueryBridgeCoinByDenomResponse](#fx.gravity.crosschain.v1.QueryBridgeCoinByDenomResponse) |  | GET|/fx/crosschain/v1/bridge_coin_by_denom|
+| `BridgeChainList` | [QueryBridgeChainListRequest](#fx.gravity.crosschain.v1.QueryBridgeChainListRequest) | [QueryBridgeChainListResponse](#fx.gravity.crosschain.v1.QueryBridgeChainListResponse) |  | GET|/fx/crosschain/v1/bridge_chain_list|
 
  <!-- end services -->
 

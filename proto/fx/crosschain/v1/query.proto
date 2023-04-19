@@ -91,6 +91,9 @@ service Query {
   rpc BridgeCoinByDenom(QueryBridgeCoinByDenomRequest) returns (QueryBridgeCoinByDenomResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/bridge_coin_by_denom";
   }
+  rpc BridgeChainList(QueryBridgeChainListRequest) returns (QueryBridgeChainListResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_chain_list";
+  }
 }
 
 message QueryParamsRequest {
@@ -291,4 +294,9 @@ message QueryBridgeCoinByDenomRequest {
 }
 message QueryBridgeCoinByDenomResponse {
   cosmos.base.v1beta1.Coin coin = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryBridgeChainListRequest {}
+message QueryBridgeChainListResponse {
+  repeated string chain_names = 1;
 }

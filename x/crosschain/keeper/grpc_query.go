@@ -10,7 +10,14 @@ import (
 	"google.golang.org/grpc/status"
 
 	fxtypes "github.com/functionx/fx-core/v4/types"
+	arbitrumtypes "github.com/functionx/fx-core/v4/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v4/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
 	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	optimismtypes "github.com/functionx/fx-core/v4/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v4/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -374,9 +381,10 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 	if len(req.GetDenom()) <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
+	ctx := sdk.UnwrapSDKContext(c)
 
 	var bridgeCoinMetaData banktypes.Metadata
-	k.bankKeeper.IterateAllDenomMetaData(sdk.UnwrapSDKContext(c), func(metadata banktypes.Metadata) bool {
+	k.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
 		if metadata.GetBase() == req.GetDenom() {
 			bridgeCoinMetaData = metadata
 			return true
@@ -397,18 +405,31 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 	}
 
 	bridgeCoinDenom := k.erc20Keeper.ToTargetDenom(
-		sdk.UnwrapSDKContext(c),
+		ctx,
 		req.GetDenom(),
 		bridgeCoinMetaData.GetBase(),
 		bridgeCoinMetaData.GetDenomUnits()[0].GetAliases(),
 		fxtypes.ParseFxTarget(req.GetChainName()),
 	)
 
-	token := k.GetDenomByBridgeToken(sdk.UnwrapSDKContext(c), bridgeCoinDenom)
+	token := k.GetDenomByBridgeToken(ctx, bridgeCoinDenom)
 	if token == nil {
 		return nil, status.Error(codes.NotFound, "denom")
 	}
 
-	supply := k.bankKeeper.GetSupply(sdk.UnwrapSDKContext(c), bridgeCoinDenom)
+	supply := k.bankKeeper.GetSupply(ctx, bridgeCoinDenom)
 	return &types.QueryBridgeCoinByDenomResponse{Coin: supply}, nil
+}
+
+func (k Keeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
+	// TODO added new corsschain needs to be updated
+	return &types.QueryBridgeChainListResponse{ChainNames: []string{
+		ethtypes.ModuleName,
+		bsctypes.ModuleName,
+		polygontypes.ModuleName,
+		trontypes.ModuleName,
+		avalanchetypes.ModuleName,
+		arbitrumtypes.ModuleName,
+		optimismtypes.ModuleName,
+	}}, nil
 }

@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
 )
 
 var _ types.QueryServer = RouterKeeper{}
@@ -236,5 +237,13 @@ func (k RouterKeeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridg
 		return nil, err
 	} else {
 		return queryServer.BridgeCoinByDenom(c, req)
+	}
+}
+
+func (k RouterKeeper) BridgeChainList(c context.Context, req *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeChainList(c, req)
 	}
 }
