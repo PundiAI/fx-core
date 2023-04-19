@@ -46,6 +46,9 @@ if [ ! -f "./build/docs/cosmos-sdk/README.md" ]; then
     # shellcheck disable=SC2010
     mv "$(ls | grep cosmos-sdk | grep -v grep | grep -v zip)" cosmos-sdk
     rm -rf cosmos-sdk/.git
+    # remove unused proto files
+    rm -rf cosmos-sdk/proto/cosmos/group
+    rm -rf cosmos-sdk/proto/cosmos/nft
   )
 fi
 

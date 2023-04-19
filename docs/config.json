@@ -7,12 +7,22 @@
   },
   "apis": [
     {
+      "url": "./tmp-swagger-gen/ethermint/feemarket/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "FeemarketParams",
+          "BaseFee": "BaseFee"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/ethermint/evm/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "EVMParams",
           "Account": "EthAccount",
-          "Balance": "EthBalance"
+          "Balance": "EthBalance",
+          "BaseFee": "EthBaseFee"
         }
       }
     },
@@ -68,6 +78,14 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/cosmos/authz/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "AuthzParams"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/cosmos/bank/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
@@ -96,6 +114,14 @@
       "operationIds": {
         "rename": {
           "Params": "EvidenceParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/feegrant/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "FeegrantParams"
         }
       }
     },
@@ -137,6 +163,14 @@
         "rename": {
           "Params": "StakingParams",
           "DelegatorValidators": "StakingDelegatorValidators"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/upgrade/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "UpgradeParams"
         }
       }
     },
