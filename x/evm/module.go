@@ -39,6 +39,7 @@ func (am AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 
 // RegisterLegacyAminoCodec registers the evm module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
 	fxevmtypes.RegisterLegacyAminoCodec(cdc)
 }
 
