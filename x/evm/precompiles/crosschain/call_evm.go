@@ -74,3 +74,19 @@ func (cc *ContractCall) ERC20TransferFrom(from, to common.Address, amount *big.I
 	}
 	return nil
 }
+
+func (cc *ContractCall) ERC20TotalSupply() (*big.Int, error) {
+	data, err := fxtypes.GetFIP20().ABI.Pack("totalSupply")
+	if err != nil {
+		return nil, fmt.Errorf("pack totalSupply: %s", err.Error())
+	}
+	ret, _, err := cc.evm.StaticCall(cc.caller, cc.contract, data, cc.maxGas)
+	if err != nil {
+		return nil, fmt.Errorf("StaticCall totalSupply: %s", err.Error())
+	}
+	var unpackedRet struct{ Value *big.Int }
+	if err := fxtypes.GetFIP20().ABI.UnpackIntoInterface(&unpackedRet, "totalSupply", ret); err != nil {
+		return nil, fmt.Errorf("unpack totalSupply: %s", err.Error())
+	}
+	return unpackedRet.Value, nil
+}

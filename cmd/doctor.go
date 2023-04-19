@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/cosmos/cosmos-sdk/server"
+	cosmosserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/version"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -22,9 +22,12 @@ import (
 	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v4/client/grpc"
+	"github.com/functionx/fx-core/v4/server"
 	fxcfg "github.com/functionx/fx-core/v4/server/config"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
@@ -33,9 +36,8 @@ func doctorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "doctor",
 		Short: "Check your system for potential problems",
-		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			serverCtx := cosmosserver.GetServerContextFromCmd(cmd)
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			printPrompt()
 			printOSInfo()
@@ -48,8 +50,11 @@ func doctorCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			bc := getBlockchain(clientCtx, serverCtx)
-			needUpgrade, err := checkBlockchainData(bc, network, upgradeInfo)
+			bc, err := getBlockchain(clientCtx, serverCtx)
+			if err != nil {
+				return nil
+			}
+			needUpgrade, err := checkBlockchainData(serverCtx, bc, network, upgradeInfo)
 			if err != nil {
 				return err
 			}
@@ -65,6 +70,7 @@ func doctorCmd() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().String(flags.FlagHome, fxtypes.GetDefaultNodeHome(), "The application home directory")
 	cmd.Flags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to Tendermint RPC interface for this chain")
 	cmd.Flags().String(flags.FlagGRPC, "", "the gRPC endpoint to use for this chain")
 	cmd.Flags().Bool(flags.FlagGRPCInsecure, false, "allow gRPC over insecure channels, if not TLS the server must use TLS")
@@ -170,23 +176,34 @@ type blockchain interface {
 	GetSyncing() (bool, error)
 	GetNodeInfo() (*tmservice.VersionInfo, error)
 	CurrentPlan() (*upgradetypes.Plan, error)
+	GetValidators() ([]*tmtypes.Validator, error)
 }
 
-func getBlockchain(cliCtx client.Context, serverCtx *server.Context) blockchain {
+func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (blockchain, error) {
 	newClient := grpc.NewClient(cliCtx)
 	_, err := newClient.GetBlockHeight()
 	if err == nil {
 		fmt.Printf("\tRemote Node: %v or %v\n", serverCtx.Viper.Get(flags.FlagGRPC), serverCtx.Viper.Get(flags.FlagNode))
-		return newClient
+		return newClient, nil
 	} else {
-		fmt.Printf("\tData Dir: %s/datas\n", serverCtx.Config.RootDir)
-		// TODO implement me
-		panic("implement me")
+		fmt.Printf("\tData Dir: %s/data\n", serverCtx.Config.RootDir)
+		if len(serverCtx.Config.RootDir) <= 0 {
+			return nil, fmt.Errorf("root dir is nil")
+		}
+		_, err := os.Stat(serverCtx.Config.RootDir)
+		if err != nil {
+			return nil, err
+		}
+		database, err := server.NewDatabase(serverCtx.Config.RootDir, dbm.GoLevelDBBackend)
+		if err != nil {
+			return nil, err
+		}
+		return database, nil
 	}
 }
 
 //gocyclo:ignore
-func checkBlockchainData(n blockchain, network string, upgradeInfo *upgradetypes.Plan) (bool, error) {
+func checkBlockchainData(ctx *cosmosserver.Context, n blockchain, network string, upgradeInfo *upgradetypes.Plan) (bool, error) {
 	fmt.Println("Blockchain Data:")
 	chainId, err := n.GetChainId()
 	if err != nil {
@@ -203,6 +220,24 @@ func checkBlockchainData(n blockchain, network string, upgradeInfo *upgradetypes
 		return false, nil
 	}
 	fmt.Println("\tSyncing: ", syncing)
+	pvKey := privval.FilePVKey{}
+	keyJSONBytes, err := os.ReadFile(ctx.Config.PrivValidatorKeyFile())
+	if err != nil {
+		return false, err
+	}
+	err = tmjson.Unmarshal(keyJSONBytes, &pvKey)
+	if err != nil {
+		return false, err
+	}
+	validators, err := n.GetValidators()
+	if err != nil {
+		return false, err
+	}
+	for _, validator := range validators {
+		if pvKey.Address.String() == validator.Address.String() {
+			fmt.Println("You are an fxCore validator!")
+		}
+	}
 	app, err := n.GetNodeInfo()
 	if err != nil {
 		return false, nil

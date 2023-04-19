@@ -26,6 +26,8 @@ type Erc20Keeper interface {
 	HasOutgoingTransferRelation(ctx sdk.Context, txID uint64) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (types.TokenPair, bool)
+	IsOriginDenom(ctx sdk.Context, denom string) bool
+	HasDenomAlias(ctx sdk.Context, denom string) (bank.Metadata, bool)
 }
 
 type EvmKeeper interface {
@@ -47,4 +49,8 @@ type BankKeeper interface {
 type IBCTransferKeeper interface {
 	Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error)
 	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (ibctransfertypes.DenomTrace, bool)
+}
+
+type AccountKeeper interface {
+	GetModuleAddress(moduleName string) sdk.AccAddress
 }

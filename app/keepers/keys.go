@@ -86,7 +86,7 @@ func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) ev
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
 		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper)
 	crossChainContract := precompilecrosschain.NewPrecompiledContract(
-		ctx, evm, appKeepers.BankKeeper, appKeepers.EvmKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, transferRouter)
+		ctx, evm, appKeepers.BankKeeper, appKeepers.EvmKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, transferRouter)
 
 	return map[common.Address]vm.PrecompiledContract{
 		stakingContract.Address():    stakingContract,

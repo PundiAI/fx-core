@@ -21,6 +21,7 @@ type Contract struct {
 	evmKeeper         EvmKeeper
 	erc20Keeper       Erc20Keeper
 	ibcTransferKeeper IBCTransferKeeper
+	accountKeeper     AccountKeeper
 }
 
 func NewPrecompiledContract(
@@ -30,6 +31,7 @@ func NewPrecompiledContract(
 	evmKeeper EvmKeeper,
 	erc20Keeper Erc20Keeper,
 	ibcTransferKeeper IBCTransferKeeper,
+	accountKeeper AccountKeeper,
 	router *fxtypes.Router,
 ) *Contract {
 	return &Contract{
@@ -39,6 +41,7 @@ func NewPrecompiledContract(
 		evmKeeper:         evmKeeper,
 		erc20Keeper:       erc20Keeper,
 		ibcTransferKeeper: ibcTransferKeeper,
+		accountKeeper:     accountKeeper,
 		router:            router,
 	}
 }
