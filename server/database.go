@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -52,7 +51,7 @@ func NewDatabase(dir string, dbType tmdb.BackendType) (*Database, error) {
 		upgradetypes.StoreKey,
 	)
 
-	appStore := rootmulti.NewStore(appDB, log.NewTMLogger(os.Stdout))
+	appStore := rootmulti.NewStore(appDB, log.NewNopLogger())
 	for _, storeKey := range storeKeys {
 		appStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	}

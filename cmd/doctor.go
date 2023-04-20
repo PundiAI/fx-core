@@ -57,7 +57,7 @@ func doctorCmd() *cobra.Command {
 			if err != nil {
 				return nil
 			}
-			needUpgrade, err := checkBlockchainData(serverCtx, bc, network, upgradeInfo)
+			needUpgrade, err := checkBlockchainData(bc, network, serverCtx.Config.PrivValidatorKeyFile(), upgradeInfo)
 			if err != nil {
 				return err
 			}
@@ -183,20 +183,18 @@ type blockchain interface {
 }
 
 func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (blockchain, error) {
+	fmt.Println("Blockchain Data:")
 	newClient := grpc.NewClient(cliCtx)
 	_, err := newClient.GetBlockHeight()
 	if err == nil {
 		fmt.Printf("\tRemote Node: %v or %v\n", serverCtx.Viper.Get(flags.FlagGRPC), serverCtx.Viper.Get(flags.FlagNode))
 		return newClient, nil
 	} else {
-		fmt.Printf("\tData Dir: %s/data\n", serverCtx.Config.RootDir)
 		if len(serverCtx.Config.RootDir) <= 0 {
-			return nil, fmt.Errorf("root dir is nil")
+			fmt.Println("\tNot found root dir")
+			return nil, nil
 		}
-		_, err := os.Stat(serverCtx.Config.RootDir)
-		if err != nil {
-			return nil, err
-		}
+		fmt.Printf("\tData Dir: %s/data\n", serverCtx.Config.RootDir)
 		database, err := server.NewDatabase(serverCtx.Config.RootDir, dbm.GoLevelDBBackend)
 		if err != nil {
 			return nil, err
@@ -206,8 +204,10 @@ func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (bloc
 }
 
 //gocyclo:ignore
-func checkBlockchainData(ctx *cosmosserver.Context, n blockchain, network string, upgradeInfo *upgradetypes.Plan) (bool, error) {
-	fmt.Println("Blockchain Data:")
+func checkBlockchainData(n blockchain, network, privValidatorKeyFile string, upgradeInfo *upgradetypes.Plan) (bool, error) {
+	if n == nil {
+		return false, nil
+	}
 	chainId, err := n.GetChainId()
 	if err != nil {
 		return false, err
@@ -224,7 +224,7 @@ func checkBlockchainData(ctx *cosmosserver.Context, n blockchain, network string
 	}
 	fmt.Println("\tSyncing: ", syncing)
 	pvKey := privval.FilePVKey{}
-	keyJSONBytes, err := os.ReadFile(ctx.Config.PrivValidatorKeyFile())
+	keyJSONBytes, err := os.ReadFile(privValidatorKeyFile)
 	if err != nil {
 		return false, err
 	}
@@ -241,7 +241,7 @@ func checkBlockchainData(ctx *cosmosserver.Context, n blockchain, network string
 			sdk.ValAddress(pvKey.Address.Bytes()).String(),
 			validator.GetOperator().String(),
 		) {
-			fmt.Println("You are an fxCore validator!")
+			fmt.Println("\tNode Type: This node is a validator")
 		}
 	}
 	app, err := n.GetNodeInfo()
@@ -312,7 +312,7 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 		fmt.Println("Warning: double_sign_check_height is greater than 0")
 	}
 	if config.P2P.Seeds == "" {
-		fmt.Println("Warning: seeds is empty")
+		fmt.Println("\tWarning: seeds is empty")
 	}
 	return nil
 }
