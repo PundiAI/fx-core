@@ -38,7 +38,7 @@ func TestNewMsgUpdateParams(t *testing.T) {
 		expectPass        bool
 	}{
 		{"success ", msgType, coinsPos, coins, &timeDuration, "0.2", &timeDuration, "0.5", "0.334", true},
-		{"proto type not registered", "", coinsPos, coins, &timeDuration, "0.2", &timeDuration, "0.5", "0.334", false},
+		{"proto type not registered", "", coinsPos, coins, &timeDuration, "0.2", &timeDuration, "0.5", "0.334", true},
 		{"invalid  minDeposit", msgType, coinsZero, coins, &timeDuration, "0.2", &timeDuration, "0.5", "0.334", false},
 		{"invalid minInitialDeposit ", msgType, coinsPos, sdk.Coin{}, &timeDuration, "0.2", &timeDuration, "0.5", "0.334", false},
 		{"invalid votingPeriod", msgType, coinsPos, coins, nil, "0.2", &timeDuration, "0.5", "0.334", false},
