@@ -17,8 +17,10 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/functionx/fx-core/v4/x/gov/client/cli"
 	"github.com/functionx/fx-core/v4/x/gov/keeper"
 	"github.com/functionx/fx-core/v4/x/gov/types"
 )
@@ -39,6 +41,11 @@ func NewAppModuleBasic(legacyProposalHandlers []govclient.ProposalHandler) AppMo
 	return AppModuleBasic{
 		AppModuleBasic: gov.NewAppModuleBasic(legacyProposalHandlers),
 	}
+}
+
+// GetQueryCmd returns the root query command for the gov module.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
 // RegisterLegacyAminoCodec registers the gov module's types for the given codec.
