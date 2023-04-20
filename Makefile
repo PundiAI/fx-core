@@ -237,13 +237,16 @@ update-swagger-docs: proto-swagger-gen statik
 .PHONY: statik update-swagger-docs
 
 ###############################################################################
-###                          Compile Contracts                              ###
+###                               Contracts                                 ###
 ###############################################################################
 
-compile-contracts:
-	@./develop/compile-contracts.sh
+contract-abigen:
+	@./contract/compile.sh
 
-.PHONY: compile-contracts
+contract-publish:
+	@./solidity/release.sh
+
+.PHONY: contract-abigen contract-publish
 
 ###############################################################################
 ###                                Releasing                                ###

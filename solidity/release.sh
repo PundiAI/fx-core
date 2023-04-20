@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
-set -x
 set -eo pipefail
+
+commands=(git yarn jq)
+for cmd in "${commands[@]}"; do
+  if ! command -v "$cmd" &>/dev/null; then
+    echo "$cmd command not found, please install $cmd first" && exit 1
+  fi
+done
 
 project_dir="$(git rev-parse --show-toplevel)"
 solidity_dir="$project_dir"
