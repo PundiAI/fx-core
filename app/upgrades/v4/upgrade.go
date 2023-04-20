@@ -19,6 +19,7 @@ import (
 	"github.com/functionx/fx-core/v4/app/keepers"
 	fxcfg "github.com/functionx/fx-core/v4/server/config"
 	fxtypes "github.com/functionx/fx-core/v4/types"
+	crosschainkeeper "github.com/functionx/fx-core/v4/x/crosschain/keeper"
 	erc20keeper "github.com/functionx/fx-core/v4/x/erc20/keeper"
 	evmkeeper "github.com/functionx/fx-core/v4/x/evm/keeper"
 	"github.com/functionx/fx-core/v4/x/gov/keeper"
@@ -41,17 +42,56 @@ func createUpgradeHandler(
 		// 3. update Logoic code
 		updateLogicCode(cacheCtx, app.EvmKeeper)
 
+		// 4. remove bsc oracles
+		removeBscOracle(cacheCtx, app.BscKeeper)
+
 		ctx.Logger().Info("start to run v4 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
-			panic(fmt.Sprintf("run migrations: %s", err.Error()))
+			return fromVM, err
 		}
 
-		// update arbitrum and optimism denom alias
+		// update arbitrum and optimism denom alias, after bank module migration, because bank module migrates to fixing the bank denom bug
+		// discovered in https://github.com/cosmos/cosmos-sdk/pull/13821
 		UpdateDenomAliases(cacheCtx, app.Erc20Keeper)
 
 		commit()
+		ctx.Logger().Info("Upgrade complete")
 		return toVM, nil
+	}
+}
+
+func removeBscOracle(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
+	bscRemoveOracles := GetBscRemoveOracles(ctx.ChainID())
+	if len(bscRemoveOracles) <= 0 {
+		return
+	}
+
+	proposalOracle, found := bscKeeper.GetProposalOracle(ctx)
+	oracles := proposalOracle.Oracles
+	if !found || len(oracles) <= 0 {
+		return
+	}
+
+	removeOracleMap := make(map[string]bool, len(bscRemoveOracles))
+	for _, oracle := range bscRemoveOracles {
+		removeOracleMap[oracle] = true
+	}
+
+	newOracle := []string{}
+	for _, oracle := range oracles {
+		if _, ok := removeOracleMap[oracle]; ok {
+			continue
+		}
+		newOracle = append(newOracle, oracle)
+	}
+
+	if len(newOracle) == len(oracles) {
+		return
+	}
+	err := bscKeeper.UpdateChainOracles(ctx, newOracle)
+	if err != nil && ctx.ChainID() == fxtypes.TestnetChainId {
+		panic(err)
 	}
 }
 
@@ -102,26 +142,6 @@ func UpdateDenomAliases(ctx sdk.Context, k erc20keeper.Keeper) {
 		}
 		commit()
 		ctx.Logger().Info("update denom alias successfully", "denom", da.Denom, "alias", da.Alias, "add-flag", strconv.FormatBool(addFlag))
-	}
-}
-
-func GetUpdateDenomAlias(chainId string) []DenomAlias {
-	if fxtypes.TestnetChainId == chainId {
-		return []DenomAlias{
-			{Denom: "weth", Alias: "arbitrum0x57b1E4C85B0f141aDE38b5573907BA8eF9aC2298"},
-			{Denom: "usdt", Alias: "arbitrum0xEa99760Ecc3460154670B86E202233974883b153"},
-			{Denom: "weth", Alias: "optimism0xd0fABb17BD2999A4A9fDF0F05c2386e7dF6519bb"},
-			{Denom: "usdt", Alias: "optimism0xeb62B336778ac9E9CF1Aacfd268E0Eb013019DC5"},
-		}
-	} else if chainId == fxtypes.MainnetChainId {
-		return []DenomAlias{
-			{Denom: "weth", Alias: "arbitrum0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"},
-			{Denom: "usdt", Alias: "arbitrum0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"},
-			{Denom: "weth", Alias: "optimism0x4200000000000000000000000000000000000006"},
-			{Denom: "usdt", Alias: "optimism0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"},
-		}
-	} else {
-		panic("invalid chainId:" + chainId)
 	}
 }
 

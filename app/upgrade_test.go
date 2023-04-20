@@ -60,14 +60,12 @@ func Test_Upgrade(t *testing.T) {
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
 	require.NoError(t, err)
 
-	snapshotHeight := int64(9223921)
-
 	makeEncodingConfig := app.MakeEncodingConfig()
 	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
 		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		makeEncodingConfig, app.EmptyAppOptions{})
 	// todo default DefaultStoreLoader  New module verification failed
-	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(snapshotHeight, v4.Upgrade.StoreUpgrades()))
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4.Upgrade.StoreUpgrades()))
 	err = myApp.LoadLatestVersion()
 	require.NoError(t, err)
 
