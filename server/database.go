@@ -8,6 +8,7 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,8 +20,6 @@ import (
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-
-	"github.com/functionx/fx-core/v4/app"
 )
 
 type Database struct {
@@ -29,9 +28,10 @@ type Database struct {
 	appDB      tmdb.DB
 	appStore   *rootmulti.Store
 	storeKeys  map[string]*storetypes.KVStoreKey
+	codec      codec.Codec
 }
 
-func NewDatabase(rootDir string, dbType tmdb.BackendType) (*Database, error) {
+func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (*Database, error) {
 	dataDir := filepath.Join(rootDir, "data")
 	if !Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", BlockDBName))) ||
 		!Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", StateDBName))) ||
@@ -49,7 +49,7 @@ func NewDatabase(rootDir string, dbType tmdb.BackendType) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	appDB, err := tmdb.NewDB(AppDBName, dbType, dataDir)
+	appDB, err := tmdb.NewDB(AppDBName, tmdb.BackendType(dbType), dataDir)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +70,7 @@ func NewDatabase(rootDir string, dbType tmdb.BackendType) (*Database, error) {
 		stateDB:    stateDB,
 		appStore:   appStore,
 		storeKeys:  storeKeys,
+		codec:      cdc,
 	}, err
 }
 
@@ -92,20 +93,11 @@ func (d *Database) GetSyncing() (bool, error) {
 }
 
 func (d *Database) GetNodeInfo() (*tmservice.VersionInfo, error) {
-	stateStore := sm.NewStore(d.stateDB, sm.StoreOptions{DiscardABCIResponses: false})
-	genesisDocKey := []byte("genesisDoc")
-	b, err := d.stateDB.Get(genesisDocKey)
+	genDoc, err := d.GetGensisDoc()
 	if err != nil {
 		return nil, err
 	}
-	if len(b) == 0 {
-		return nil, errors.New("genesis doc not found")
-	}
-	var genDoc *tmtypes.GenesisDoc
-	err = tmjson.Unmarshal(b, &genDoc)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to load genesis doc due to unmarshaling error: %v (bytes: %X)", err, b))
-	}
+	stateStore := sm.NewStore(d.stateDB, sm.StoreOptions{DiscardABCIResponses: false})
 	state, err := stateStore.LoadFromDBOrGenesisDoc(genDoc)
 	if err != nil {
 		return nil, err
@@ -122,25 +114,18 @@ func (d *Database) CurrentPlan() (*upgradetypes.Plan, error) {
 		return nil, nil
 	}
 	var plan upgradetypes.Plan
-	app.MakeEncodingConfig().Codec.MustUnmarshal(bz, &plan)
+	if err := d.codec.Unmarshal(bz, &plan); err != nil {
+		return nil, err
+	}
 	return &plan, nil
 }
 
 func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
-	stateStore := sm.NewStore(d.stateDB, sm.StoreOptions{DiscardABCIResponses: false})
-	genesisDocKey := []byte("genesisDoc")
-	b, err := d.stateDB.Get(genesisDocKey)
+	genDoc, err := d.GetGensisDoc()
 	if err != nil {
 		return nil, err
 	}
-	if len(b) == 0 {
-		return nil, errors.New("genesis doc not found")
-	}
-	var genDoc *tmtypes.GenesisDoc
-	err = tmjson.Unmarshal(b, &genDoc)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to load genesis doc due to unmarshaling error: %v (bytes: %X)", err, b))
-	}
+	stateStore := sm.NewStore(d.stateDB, sm.StoreOptions{DiscardABCIResponses: false})
 	state, err := stateStore.LoadFromDBOrGenesisDoc(genDoc)
 	if err != nil {
 		return nil, err
@@ -152,6 +137,22 @@ func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
 		})
 	}
 	return validators, nil
+}
+
+func (d *Database) GetGensisDoc() (*tmtypes.GenesisDoc, error) {
+	genesisDocKey := []byte("genesisDoc")
+	b, err := d.stateDB.Get(genesisDocKey)
+	if err != nil {
+		return nil, err
+	}
+	if len(b) == 0 {
+		return nil, errors.New("genesis doc not found")
+	}
+	var genDoc *tmtypes.GenesisDoc
+	if err = tmjson.Unmarshal(b, &genDoc); err != nil {
+		return nil, fmt.Errorf("failed to load genesis doc due to unmarshaling error: %v (bytes: %X)", err, b)
+	}
+	return genDoc, nil
 }
 
 func Exists(path string) bool {

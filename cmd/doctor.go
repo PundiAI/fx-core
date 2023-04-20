@@ -27,7 +27,6 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v4/client/grpc"
 	"github.com/functionx/fx-core/v4/server"
@@ -97,7 +96,7 @@ func printOSInfo() {
 	if err != nil {
 		return
 	}
-	fmt.Printf("\tMemory Total: %v MB, Available: %v MB, UsedPercent: %f%%MB\n",
+	fmt.Printf("\tMemory Total: %v MB, Available: %v MB, UsedPercent: %f%%\n",
 		memory.Total/1024/1024, memory.Available/1024/1024, memory.UsedPercent)
 }
 
@@ -194,7 +193,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (bloc
 			fmt.Println("\tNot found root dir")
 			return nil, nil
 		}
-		database, err := server.NewDatabase(serverCtx.Config.RootDir, dbm.GoLevelDBBackend)
+		database, err := server.NewDatabase(serverCtx.Config.RootDir, serverCtx.Config.DBBackend, cliCtx.Codec)
 		if err != nil || database == nil {
 			return nil, nil
 		}

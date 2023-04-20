@@ -6,12 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/functionx/fx-core/v4/app"
 	"github.com/functionx/fx-core/v4/server"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
-func TestDatabase_GetChainId(t *testing.T) {
-	database, err := server.NewDatabase(fxtypes.GetDefaultNodeHome(), dbm.GoLevelDBBackend)
+func TestDatabase(t *testing.T) {
+	cdc := app.MakeEncodingConfig().Codec
+	database, err := server.NewDatabase(fxtypes.GetDefaultNodeHome(), string(dbm.GoLevelDBBackend), cdc)
 	require.NoError(t, err)
 	if database == nil {
 		return

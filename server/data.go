@@ -276,17 +276,6 @@ func getBlockInfo(blockStoreDB cmtdbm.DB) (baseHeight, size int64) {
 	return
 }
 
-func GetDB(rootDir, dbName string) dbm.DB {
-	if dbName != BlockDBName && dbName != StateDBName && dbName != AppDBName {
-		panic(fmt.Sprintf("unknow db name: %s", dbName))
-	}
-	db, err := openDB(BlockDBName, dbm.GoLevelDBBackend, rootDir)
-	if err != nil {
-		panic(err)
-	}
-	return db
-}
-
 func openDB(name string, backendType dbm.BackendType, rootDir string) (dbm.DB, error) {
 	dataDir := filepath.Join(rootDir, "data")
 	return dbm.NewDB(name, backendType, dataDir)
