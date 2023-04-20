@@ -42,6 +42,8 @@ if [[ "$1" == "init" ]]; then
     # update genesis total supply
     jq '.app_state.bank.supply[0].amount = "388604525462891000000000000"' ~/.fxcore/config/genesis.json >~/.fxcore/config/genesis.json.tmp
     mv ~/.fxcore/config/genesis.json.tmp ~/.fxcore/config/genesis.json
+    jq '.app_state.gov.voting_params.voting_period = "15s"' ~/.fxcore/config/genesis.json >~/.fxcore/config/genesis.json.tmp
+    mv ~/.fxcore/config/genesis.json.tmp ~/.fxcore/config/genesis.json
   else
     fxcored add-genesis-account fx1 4000000000000000000000FX
   fi
