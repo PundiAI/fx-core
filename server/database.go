@@ -119,7 +119,6 @@ func (d *Database) CurrentPlan() (*upgradetypes.Plan, error) {
 	kvStore := d.appStore.GetKVStore(d.storeKeys[upgradetypes.StoreKey])
 	bz := kvStore.Get(upgradetypes.PlanKey())
 	if bz == nil {
-		fmt.Println("upgrade plan is nil")
 		return nil, nil
 	}
 	var plan upgradetypes.Plan
