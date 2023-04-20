@@ -9,13 +9,16 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	cosmosserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/spf13/cobra"
@@ -176,7 +179,7 @@ type blockchain interface {
 	GetSyncing() (bool, error)
 	GetNodeInfo() (*tmservice.VersionInfo, error)
 	CurrentPlan() (*upgradetypes.Plan, error)
-	GetValidators() ([]*tmtypes.Validator, error)
+	GetValidators() ([]stakingtypes.Validator, error)
 }
 
 func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (blockchain, error) {
@@ -234,7 +237,10 @@ func checkBlockchainData(ctx *cosmosserver.Context, n blockchain, network string
 		return false, err
 	}
 	for _, validator := range validators {
-		if pvKey.Address.String() == validator.Address.String() {
+		if strings.EqualFold(
+			sdk.ValAddress(pvKey.Address.Bytes()).String(),
+			validator.GetOperator().String(),
+		) {
 			fmt.Println("You are an fxCore validator!")
 		}
 	}

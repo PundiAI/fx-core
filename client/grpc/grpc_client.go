@@ -30,7 +30,6 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	"github.com/gogo/protobuf/proto"
-	tmtypes "github.com/tendermint/tendermint/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 	"google.golang.org/grpc/credentials/insecure"
@@ -364,8 +363,12 @@ func (cli *Client) CurrentPlan() (*upgradetypes.Plan, error) {
 	return response.Plan, nil
 }
 
-func (cli *Client) GetValidators() ([]*tmtypes.Validator, error) {
-	return nil, nil
+func (cli *Client) GetValidators() ([]stakingtypes.Validator, error) {
+	validators, err := cli.StakingQuery().Validators(cli.ctx, &stakingtypes.QueryValidatorsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return validators.GetValidators(), nil
 }
 
 func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {

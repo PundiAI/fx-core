@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -122,7 +123,7 @@ func (d *Database) CurrentPlan() (*upgradetypes.Plan, error) {
 	return plan, nil
 }
 
-func (d *Database) GetValidators() ([]*tmtypes.Validator, error) {
+func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
 	stateStore := sm.NewStore(d.stateDB, sm.StoreOptions{DiscardABCIResponses: false})
 	genesisDocKey := []byte("genesisDoc")
 	b, err := d.stateDB.Get(genesisDocKey)
@@ -141,5 +142,11 @@ func (d *Database) GetValidators() ([]*tmtypes.Validator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return state.Validators.Validators, nil
+	validators := make([]stakingtypes.Validator, 0)
+	for _, validator := range state.Validators.Validators {
+		validators = append(validators, stakingtypes.Validator{
+			OperatorAddress: sdk.ValAddress(validator.Address.Bytes()).String(),
+		})
+	}
+	return validators, nil
 }
