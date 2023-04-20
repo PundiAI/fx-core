@@ -200,6 +200,8 @@ func txCommand() *cobra.Command {
 			ethcli.GetTxCmd(),
 			polygoncli.GetTxCmd(),
 			troncli.GetTxCmd(),
+			arbitrumcli.GetTxCmd(),
+			optimismcli.GetTxCmd(),
 		),
 	)
 
