@@ -36,8 +36,15 @@ if [[ "$1" == "init" ]]; then
   fxcored config output json
   fxcored config broadcast-mode "block"
 
-  fxcored keys add fx1 --algo secp256k1 --coin-type 118
-  fxcored add-genesis-account fx1 4000000000000000000000FX
+  echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
+  if [ -n "$FX_DEBUG" ]; then
+    fxcored add-genesis-account fx1 10004000000000000000000000FX
+    # update genesis total supply
+    jq '.app_state.bank.supply[0].amount = "388604525462891000000000000"' ~/.fxcore/config/genesis.json >~/.fxcore/config/genesis.json.tmp
+    mv ~/.fxcore/config/genesis.json.tmp ~/.fxcore/config/genesis.json
+  else
+    fxcored add-genesis-account fx1 4000000000000000000000FX
+  fi
   fxcored gentx fx1 100000000000000000000FX --chain-id=fxcore \
     --gas="200000" \
     --moniker="fx-validator" \
