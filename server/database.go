@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -30,8 +31,14 @@ type Database struct {
 	storeKeys  map[string]*storetypes.KVStoreKey
 }
 
-func NewDatabase(dir string, dbType tmdb.BackendType) (*Database, error) {
-	dataDir := filepath.Join(dir, "data")
+func NewDatabase(rootDir string, dbType tmdb.BackendType) (*Database, error) {
+	dataDir := filepath.Join(rootDir, "data")
+	if !Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", BlockDBName))) ||
+		!Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", StateDBName))) ||
+		!Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", AppDBName))) {
+		fmt.Println("\tWarning: Not found data file!")
+		return nil, nil
+	}
 	blockStoreDB, err := dbm.NewDB(BlockDBName, dbm.BackendType(dbType), dataDir)
 	if err != nil {
 		return nil, err
@@ -46,11 +53,9 @@ func NewDatabase(dir string, dbType tmdb.BackendType) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	storeKeys := sdk.NewKVStoreKeys(
 		upgradetypes.StoreKey,
 	)
-
 	appStore := rootmulti.NewStore(appDB, log.NewNopLogger())
 	for _, storeKey := range storeKeys {
 		appStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
@@ -148,4 +153,12 @@ func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
 		})
 	}
 	return validators, nil
+}
+
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		return os.IsExist(err)
+	}
+	return true
 }

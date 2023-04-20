@@ -34,7 +34,7 @@ func TestSwaggerConfig(t *testing.T) {
 	app.RegisterAPIRoutes(apiSrv, srvconfig.APIConfig{Swagger: true})
 	assert.NotNil(t, apiSrv.Router.Path("/swagger/"))
 	handler := reflect.Indirect(reflect.ValueOf(apiSrv.GRPCGatewayRouter)).Field(0).MapRange()
-	var route = make(map[string]int)
+	route := make(map[string]int)
 	for handler.Next() {
 		for i := 0; i < handler.Value().Len(); i++ {
 			field := handler.Value().Index(i).Field(0)
@@ -74,7 +74,6 @@ func TestSwaggerConfig(t *testing.T) {
 		// 9. cosmos/gov/v1beta1
 	}
 	assert.Equal(t, ignoreLen, len(route))
-
 }
 
 type config struct {

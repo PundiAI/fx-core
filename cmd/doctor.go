@@ -55,7 +55,7 @@ func doctorCmd() *cobra.Command {
 			}
 			bc, err := getBlockchain(clientCtx, serverCtx)
 			if err != nil {
-				return nil
+				return err
 			}
 			needUpgrade, err := checkBlockchainData(bc, network, serverCtx.Config.PrivValidatorKeyFile(), upgradeInfo)
 			if err != nil {
@@ -194,11 +194,11 @@ func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (bloc
 			fmt.Println("\tNot found root dir")
 			return nil, nil
 		}
-		fmt.Printf("\tData Dir: %s/data\n", serverCtx.Config.RootDir)
 		database, err := server.NewDatabase(serverCtx.Config.RootDir, dbm.GoLevelDBBackend)
-		if err != nil {
-			return nil, err
+		if err != nil || database == nil {
+			return nil, nil
 		}
+		fmt.Printf("\tData Dir: %s/data\n", serverCtx.Config.RootDir)
 		return database, nil
 	}
 }

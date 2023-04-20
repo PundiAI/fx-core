@@ -1,7 +1,6 @@
 package server_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,12 +11,11 @@ import (
 )
 
 func TestDatabase_GetChainId(t *testing.T) {
-	_, err := os.Stat(fxtypes.GetDefaultNodeHome())
-	if err != nil {
-		return
-	}
 	database, err := server.NewDatabase(fxtypes.GetDefaultNodeHome(), dbm.GoLevelDBBackend)
 	require.NoError(t, err)
+	if database == nil {
+		return
+	}
 	id, err := database.GetChainId()
 	require.NoError(t, err)
 	require.NotNil(t, id)
