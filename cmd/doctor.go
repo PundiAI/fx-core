@@ -249,11 +249,21 @@ func checkBlockchainData(n blockchain, network, privValidatorKeyFile string, upg
 		return false, nil
 	}
 	fmt.Println("\tNode Info: ")
-	fmt.Println("\t\tVersion: ", app.Version)
-	fmt.Println("\t\tGit Commit: ", app.GitCommit)
-	fmt.Println("\t\tBuild Tags: ", app.BuildTags)
-	fmt.Println("\t\tGo Version: ", app.GoVersion)
-	fmt.Println("\t\tCosmos SDK Version: ", app.CosmosSdkVersion)
+	if len(app.Version) > 0 {
+		fmt.Println("\t\tVersion: ", app.Version)
+	}
+	if len(app.GitCommit) > 0 {
+		fmt.Println("\t\tGit Commit: ", app.GitCommit)
+	}
+	if len(app.BuildTags) > 0 {
+		fmt.Println("\t\tBuild Tags: ", app.BuildTags)
+	}
+	if len(app.GoVersion) > 0 {
+		fmt.Println("\t\tGo Version: ", app.GoVersion)
+	}
+	if len(app.CosmosSdkVersion) > 0 {
+		fmt.Println("\t\tCosmos SDK Version: ", app.CosmosSdkVersion)
+	}
 	plan, err := n.CurrentPlan()
 	if err != nil {
 		return false, err

@@ -122,9 +122,9 @@ func (d *Database) CurrentPlan() (*upgradetypes.Plan, error) {
 		fmt.Println("upgrade plan is nil")
 		return nil, nil
 	}
-	var plan *upgradetypes.Plan
-	app.MakeEncodingConfig().Codec.MustUnmarshal(bz, plan)
-	return plan, nil
+	var plan upgradetypes.Plan
+	app.MakeEncodingConfig().Codec.MustUnmarshal(bz, &plan)
+	return &plan, nil
 }
 
 func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
