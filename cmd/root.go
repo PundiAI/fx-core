@@ -38,10 +38,12 @@ import (
 	fxserver "github.com/functionx/fx-core/v4/server"
 	fxcfg "github.com/functionx/fx-core/v4/server/config"
 	fxtypes "github.com/functionx/fx-core/v4/types"
+	arbitrumcli "github.com/functionx/fx-core/v4/x/arbitrum/client/cli"
 	avalanchecli "github.com/functionx/fx-core/v4/x/avalanche/client/cli"
 	bsccli "github.com/functionx/fx-core/v4/x/bsc/client/cli"
 	crosschaincli "github.com/functionx/fx-core/v4/x/crosschain/client/cli"
 	ethcli "github.com/functionx/fx-core/v4/x/eth/client/cli"
+	optimismcli "github.com/functionx/fx-core/v4/x/optimism/client/cli"
 	polygoncli "github.com/functionx/fx-core/v4/x/polygon/client/cli"
 	troncli "github.com/functionx/fx-core/v4/x/tron/client/cli"
 )
@@ -163,6 +165,8 @@ func queryCommand() *cobra.Command {
 			ethcli.GetQueryCmd(),
 			polygoncli.GetQueryCmd(),
 			troncli.GetQueryCmd(),
+			arbitrumcli.GetQueryCmd(),
+			optimismcli.GetQueryCmd(),
 		),
 	)
 
