@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -o errexit -o nounset
 
@@ -67,9 +67,9 @@ if test -f "$BINARY"; then
   --node tcp://localhost:26657 \
   --broadcast-mode block \
   --yes
-  echo "Done \n"
+  printf "Done \n"
 
-  echo "Casting vote... \n"
+  printf "Casting vote... \n"
 
 
   if [ -z "$proposal_id" ]; then
