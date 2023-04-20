@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -eo pipefail
-#set -x
 
 if [ ! -d build/docs/bin ]; then
   mkdir -p build/docs/bin
