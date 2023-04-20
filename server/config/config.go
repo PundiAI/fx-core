@@ -3,6 +3,7 @@ package config
 import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 	"github.com/spf13/viper"
@@ -77,7 +78,7 @@ func (c *Config) ToEthermintConfig() *ethermintconfig.Config {
 
 // AppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
-func AppConfig(mintGasPrice string) (string, interface{}) {
+func AppConfig(mintGasPrice sdk.Coin) (string, interface{}) {
 	// Optionally allow the chain developer to overwrite the SDK's default
 	// server config.
 	srvCfg := config.DefaultConfig()
@@ -92,7 +93,8 @@ func AppConfig(mintGasPrice string) (string, interface{}) {
 	//   own app.toml config,
 	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
 	//   own app.toml to override, or use this default value.
-	srvCfg.MinGasPrices = mintGasPrice
+	srvCfg.MinGasPrices = mintGasPrice.String()
+	srvCfg.Rosetta.DenomToSuggest = mintGasPrice.Denom
 
 	customAppConfig := Config{
 		Config:       *srvCfg,

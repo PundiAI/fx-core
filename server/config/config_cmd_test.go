@@ -6,8 +6,11 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
+
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 func Test_output(t *testing.T) {
@@ -265,14 +268,14 @@ func Test_appTomlConfig_output(t *testing.T) {
     "ws-address": "127.0.0.1:8546"
   },
   "min-retain-blocks": 0,
-  "minimum-gas-prices": "",
+  "minimum-gas-prices": "4000000000000FX",
   "pruning": "default",
   "pruning-interval": "0",
   "pruning-keep-recent": "0",
   "rosetta": {
     "address": ":8080",
     "blockchain": "app",
-    "denom-to-suggest": "uatom",
+    "denom-to-suggest": "FX",
     "enable": false,
     "enable-fee-suggestion": false,
     "gas-to-suggest": 200000,
@@ -315,7 +318,9 @@ func Test_appTomlConfig_output(t *testing.T) {
 }
 `
 
-	c := appTomlConfig{config: DefaultConfig()}
+	_, v := AppConfig(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4_000).MulRaw(1e9)))
+	cfg := v.(Config)
+	c := appTomlConfig{config: &cfg}
 	buf := new(bytes.Buffer)
 	clientCtx := client.Context{
 		Output:       buf,

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -91,7 +90,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := fxcfg.AppConfig(fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom))
+			customAppTemplate, customAppConfig := fxcfg.AppConfig(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4_000).MulRaw(1e9)))
 			if err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, tmcfg.DefaultConfig()); err != nil {
 				return err
 			}

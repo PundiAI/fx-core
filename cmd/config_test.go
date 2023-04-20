@@ -98,6 +98,7 @@ func TestPublicAppConfig(t *testing.T) {
 	appConfig.API.Enable = true
 	appConfig.API.Swagger = true
 	appConfig.EVM.MaxTxGasWanted = 500000
+	appConfig.Rosetta.DenomToSuggest = "FX"
 
 	fileName := fmt.Sprintf("%s/app.toml", t.TempDir())
 	config.WriteConfigFile(fileName, appConfig)
