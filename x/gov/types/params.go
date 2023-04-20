@@ -130,7 +130,7 @@ func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voting
 //gocyclo:ignore
 func (p *Params) ValidateBasic() error {
 	// TODO cosmos-sdk V0.47.0 has migrated from gogo/protobuf to cosmos/gogoproto
-	if proto.MessageType(strings.TrimPrefix(p.MsgType, "/")) == nil {
+	if p.MsgType != "" && proto.MessageType(strings.TrimPrefix(p.MsgType, "/")) == nil {
 		return fmt.Errorf("proto message un registered: %s", p.MsgType)
 	}
 	if minDeposit := sdk.Coins(p.MinDeposit); minDeposit.Empty() || !minDeposit.IsValid() {
