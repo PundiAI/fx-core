@@ -3,7 +3,7 @@
   "info": {
     "title": "fxCore REST and gRPC Gateway docs",
     "description": "A REST interface for state queries, legacy transactions",
-    "version": "0.2.0"
+    "version": "0.4.0"
   },
   "apis": [
     {
@@ -51,14 +51,6 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/fx/ibc/applications/transfer/v1/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "IBCTransferParams"
-        }
-      }
-    },
-    {
       "url": "./tmp-swagger-gen/fx/auth/v1/query.swagger.json"
     },
     {
@@ -66,6 +58,14 @@
       "operationIds": {
         "rename": {
           "Params": "FxGovParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/ibc/applications/transfer/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "IBCTransferParams"
         }
       }
     },
@@ -126,7 +126,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/gov/v1beta1/query.swagger.json",
+      "url": "./tmp-swagger-gen/cosmos/gov/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "GovParams"
