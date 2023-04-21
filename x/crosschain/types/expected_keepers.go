@@ -20,6 +20,9 @@ type StakingKeeper interface {
 
 	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error
 	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
+
+	BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error
+	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error
 }
 
 type StakingMsgServer interface {
@@ -29,6 +32,10 @@ type StakingMsgServer interface {
 }
 
 type DistributionKeeper interface {
+	GetDelegatorStartingInfo(ctx sdk.Context, val sdk.ValAddress, del sdk.AccAddress) (period distributiontypes.DelegatorStartingInfo)
+}
+
+type DistributionMsgServer interface {
 	WithdrawDelegatorReward(goCtx context.Context, msg *distributiontypes.MsgWithdrawDelegatorReward) (*distributiontypes.MsgWithdrawDelegatorRewardResponse, error)
 }
 

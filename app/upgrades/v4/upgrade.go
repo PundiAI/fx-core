@@ -19,10 +19,16 @@ import (
 	"github.com/functionx/fx-core/v4/app/keepers"
 	fxcfg "github.com/functionx/fx-core/v4/server/config"
 	fxtypes "github.com/functionx/fx-core/v4/types"
+	avalanchetypes "github.com/functionx/fx-core/v4/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v4/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
 	erc20keeper "github.com/functionx/fx-core/v4/x/erc20/keeper"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
 	evmkeeper "github.com/functionx/fx-core/v4/x/evm/keeper"
 	"github.com/functionx/fx-core/v4/x/gov/keeper"
+	polygontypes "github.com/functionx/fx-core/v4/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 func createUpgradeHandler(
@@ -42,23 +48,74 @@ func createUpgradeHandler(
 		// 3. update Logoic code
 		updateLogicCode(cacheCtx, app.EvmKeeper)
 
-		// 4. remove bsc oracles
-		removeBscOracle(cacheCtx, app.BscKeeper)
-
 		ctx.Logger().Info("start to run v4 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
 			return fromVM, err
 		}
 
-		// update arbitrum and optimism denom alias, after bank module migration, because bank module migrates to fixing the bank denom bug
+		// 4. update arbitrum and optimism denom alias, after bank module migration, because bank module migrates to fixing the bank denom bug
 		// discovered in https://github.com/cosmos/cosmos-sdk/pull/13821
 		UpdateDenomAliases(cacheCtx, app.Erc20Keeper)
+
+		// 5. reset cross chain module oracle delegate, bind oracle delegate starting info
+		err = reSetCrossChainModuleOracleDelegate(cacheCtx, app.CrossChainKeepers, app.StakingKeeper, app.DistrKeeper)
+		if err != nil {
+			return fromVM, err
+		}
+
+		// 6. remove bsc oracles
+		removeBscOracle(cacheCtx, app.BscKeeper)
 
 		commit()
 		ctx.Logger().Info("Upgrade complete")
 		return toVM, nil
 	}
+}
+
+func reSetCrossChainModuleOracleDelegate(ctx sdk.Context, crossChainKeepers keepers.CrossChainKeepers, stakingKeeper types.StakingKeeper, distributionKeeper types.DistributionKeeper) error {
+	needHandlerModules := []string{ethtypes.ModuleName, bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName, avalanchetypes.ModuleName}
+	type crossChainKeeper interface {
+		GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Oracles)
+	}
+	moduleHandler := map[string]crossChainKeeper{
+		ethtypes.ModuleName:       crossChainKeepers.EthKeeper,
+		bsctypes.ModuleName:       crossChainKeepers.BscKeeper,
+		trontypes.ModuleName:      crossChainKeepers.TronKeeper,
+		polygontypes.ModuleName:   crossChainKeepers.PolygonKeeper,
+		avalanchetypes.ModuleName: crossChainKeepers.AvalancheKeeper,
+	}
+	for _, handlerModule := range needHandlerModules {
+		handlerKeeper, ok := moduleHandler[handlerModule]
+		if !ok {
+			continue
+		}
+		oracles := handlerKeeper.GetAllOracles(ctx, false)
+		if len(oracles) <= 0 {
+			continue
+		}
+
+		for _, oracle := range oracles {
+			if oracle.DelegateAmount.IsZero() {
+				continue
+			}
+
+			delegateAddress := oracle.GetDelegateAddress(handlerModule)
+			startingInfo := distributionKeeper.GetDelegatorStartingInfo(ctx, oracle.GetValidator(), delegateAddress)
+			if startingInfo.Height > 0 {
+				continue
+			}
+			err := stakingKeeper.BeforeDelegationCreated(ctx, delegateAddress, oracle.GetValidator())
+			if err != nil {
+				return err
+			}
+			err = stakingKeeper.AfterDelegationModified(ctx, delegateAddress, oracle.GetValidator())
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func removeBscOracle(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {

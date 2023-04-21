@@ -6,9 +6,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
@@ -101,12 +103,50 @@ func Test_Upgrade(t *testing.T) {
 
 	checkFIP20LogicUpgrade(t, ctx, myApp)
 	checkWFXLogicUpgrade(t, ctx, myApp)
+	checkCrossChainOracleDelegateInfo(t, myApp, ctx)
 
 	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.BscKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.TronKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.PolygonKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.AvalancheKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+}
+
+func checkCrossChainOracleDelegateInfo(t *testing.T, myApp *app.App, ctx sdk.Context) {
+	bscRemoveOracles := v4.GetBscRemoveOracles(ctx.ChainID())
+	// list to map
+	bscRemoveOraclesMap := make(map[string]bool)
+	for _, oracle := range bscRemoveOracles {
+		bscRemoveOraclesMap[oracle] = true
+	}
+	crosschainModules := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName, arbitrumtypes.ModuleName, optimismtypes.ModuleName}
+	for _, crosschainModule := range crosschainModules {
+		oracles, err := myApp.CrosschainKeeper.Oracles(ctx, &crosschaintypes.QueryOraclesRequest{ChainName: crosschainModule})
+		if err != nil {
+			ctx.Logger().Error("query oracles error", "module", crosschainModule, "err", err)
+			continue
+		}
+		for _, oracle := range oracles.Oracles {
+			delegateAddress := oracle.GetDelegateAddress(crosschainModule)
+			startingInfo := myApp.DistrKeeper.GetDelegatorStartingInfo(ctx, oracle.GetValidator(), delegateAddress)
+			if crosschainModule == bsctypes.ModuleName && bscRemoveOraclesMap[oracle.GetOracle().String()] {
+				require.EqualValues(t, uint64(0), startingInfo.Height)
+				require.EqualValues(t, uint64(0), startingInfo.PreviousPeriod)
+				require.True(t, startingInfo.Stake.IsNil())
+				continue
+			}
+			require.True(t, startingInfo.Height > 0)
+			require.True(t, startingInfo.PreviousPeriod > 0)
+			require.EqualValues(t, sdk.NewDecFromInt(sdkmath.NewInt(10_000).MulRaw(1e18)).String(), startingInfo.Stake.String())
+
+			// test can get rewards
+			_, err = myApp.DistrKeeper.DelegationRewards(ctx, &distributiontypes.QueryDelegationRewardsRequest{
+				DelegatorAddress: delegateAddress.String(),
+				ValidatorAddress: oracle.GetValidator().String(),
+			})
+			require.NoError(t, err)
+		}
+	}
 }
 
 func newContext(t *testing.T, myApp *app.App) sdk.Context {

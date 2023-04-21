@@ -23,7 +23,7 @@ type Keeper struct {
 
 	stakingKeeper      types.StakingKeeper
 	stakingMsgServer   types.StakingMsgServer
-	distributionKeeper types.DistributionKeeper
+	distributionKeeper types.DistributionMsgServer
 	bankKeeper         types.BankKeeper
 	ibcTransferKeeper  types.IBCTransferKeeper
 	erc20Keeper        types.Erc20Keeper
@@ -33,7 +33,7 @@ type Keeper struct {
 
 // NewKeeper returns a new instance of the gravity keeper
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey,
-	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionKeeper,
+	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionMsgServer,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
 	authority string,
 ) Keeper {
