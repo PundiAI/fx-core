@@ -22,7 +22,7 @@ func TestDefaultGenesisState(t *testing.T) {
 				Params: crosschaintypes.Params{
 					GravityId:                         "fx-optimism-bridge",
 					AverageBlockTime:                  7_000,
-					AverageExternalBlockTime:          2_000,
+					AverageExternalBlockTime:          500,
 					ExternalBatchTimeout:              12 * 3600 * 1000,
 					SignedWindow:                      30_000,
 					SlashFraction:                     sdk.NewDec(8).Quo(sdk.NewDec(10)),
