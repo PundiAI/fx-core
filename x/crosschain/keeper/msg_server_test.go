@@ -158,6 +158,12 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(msg.ValidatorAddress, delegation.ValidatorAddress)
 			suite.Truef(msg.DelegateAmount.Amount.Equal(delegation.GetShares().TruncateInt()), "expect:%s,actual:%s", msg.DelegateAmount.Amount.String(), delegation.GetShares().TruncateInt().String())
+
+			startingInfo := suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, suite.valAddrs[oracleIndex], oracleDelegateAddr)
+			suite.NotNil(startingInfo)
+			suite.EqualValues(uint64(suite.ctx.BlockHeight()), startingInfo.Height)
+			suite.True(startingInfo.PreviousPeriod > 0)
+			suite.EqualValues(sdk.NewDecFromInt(msg.DelegateAmount.Amount).String(), startingInfo.Stake.String())
 		})
 	}
 }
@@ -332,6 +338,11 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(oracle.DelegateValidator, delegation.ValidatorAddress)
 			suite.Truef(expectDelegateAmount.Equal(delegation.GetShares().TruncateInt()), "expect:%s,actual:%s", expectDelegateAmount.String(), delegation.GetShares().TruncateInt().String())
+			startingInfo := suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, suite.valAddrs[oracleIndex], oracleDelegateAddr)
+			suite.NotNil(startingInfo)
+			suite.EqualValues(uint64(suite.ctx.BlockHeight()), startingInfo.Height)
+			suite.True(startingInfo.PreviousPeriod > 0)
+			suite.EqualValues(sdk.NewDecFromInt(expectDelegateAmount).String(), startingInfo.Stake.String())
 		})
 	}
 }
