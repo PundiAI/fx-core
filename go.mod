@@ -157,7 +157,7 @@ require (
 	github.com/prometheus/tsdb v0.7.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/regen-network/cosmos-proto v0.3.1 // indirect
-	github.com/rjeczalik/notify v0.9.2 // indirect
+	github.com/rjeczalik/notify v0.9.3 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/shengdoushi/base58 v1.0.0 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
@@ -174,7 +174,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
-	github.com/ulikunitz/xz v0.5.10 // indirect
+	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/zondax/hid v0.9.1 // indirect
 	github.com/zondax/ledger-go v0.14.1 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
