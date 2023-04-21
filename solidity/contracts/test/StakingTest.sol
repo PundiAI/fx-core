@@ -2,8 +2,11 @@
 
 pragma solidity ^0.8.0;
 
+/* solhint-disable no-global-import */
 import "../staking/IStaking.sol";
 import "../staking/StakingCall.sol";
+
+/* solhint-enable no-global-import */
 
 contract StakingTest is IStaking {
     mapping(string => uint256) public validatorShares;

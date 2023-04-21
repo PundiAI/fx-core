@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/* solhint-disable no-global-import */
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+
+/* solhint-enable no-global-import */
 
 contract ERC721TokenTest is
     Initializable,
@@ -42,9 +45,12 @@ contract ERC721TokenTest is
         _setTokenURI(tokenId, uri);
     }
 
+    /* solhint-disable no-empty-blocks */
     function _authorizeUpgrade(
         address newImplementation
     ) internal override onlyOwner {}
+
+    /* solhint-enable no-empty-blocks */
 
     // The following functions are overrides required by Solidity.
 

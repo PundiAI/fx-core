@@ -2,8 +2,11 @@
 
 pragma solidity ^0.8.0;
 
+/* solhint-disable no-global-import */
 import "../crosschain/CrossChainCall.sol";
 import "../fip20/IFIP20Upgradable.sol";
+
+/* solhint-enable no-global-import */
 
 contract CrossChainTest {
     function crossChain(
@@ -21,7 +24,7 @@ contract CrossChainTest {
                 _amount + _fee
             );
             IFIP20Upgradable(_token).approve(
-                CrossChainCall.CrossChainAddress,
+                CrossChainCall.CROSS_CHAIN_ADDRESS,
                 _amount + _fee
             );
         }
@@ -29,7 +32,7 @@ contract CrossChainTest {
         if (_token != address(0)) {
             uint256 allowance = IFIP20Upgradable(_token).allowance(
                 address(this),
-                CrossChainCall.CrossChainAddress
+                CrossChainCall.CROSS_CHAIN_ADDRESS
             );
             require(
                 allowance == _amount + _fee,

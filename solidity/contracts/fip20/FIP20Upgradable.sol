@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.0;
 
+/* solhint-disable no-global-import */
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -10,6 +11,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradea
 
 import "./IFIP20Upgradable.sol";
 import "../crosschain/CrossChainCall.sol";
+
+/* solhint-enable no-global-import */
 
 /**
  * @dev An upgradeability mechanism designed for UUPS proxies. The functions included here can perform an upgrade of an
@@ -28,8 +31,10 @@ abstract contract UUPSUpgradeable is
     IERC1822ProxiableUpgradeable,
     ERC1967UpgradeUpgradeable
 {
+    // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
     function __UUPSUpgradeable_init() internal onlyInitializing {}
 
+    // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
     function __UUPSUpgradeable_init_unchained() internal onlyInitializing {}
 
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
@@ -250,6 +255,7 @@ contract FIP20Upgradable is
 
     function _isContract(address _addr) internal view returns (bool) {
         uint32 size;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             size := extcodesize(_addr)
         }
@@ -321,6 +327,7 @@ contract FIP20Upgradable is
         );
     }
 
+    // solhint-disable-next-line no-empty-blocks
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
     function initialize(
