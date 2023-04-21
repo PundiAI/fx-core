@@ -33,7 +33,7 @@ require (
 	github.com/tendermint/tendermint v0.34.27
 	github.com/tendermint/tm-db v0.6.7
 	github.com/tyler-smith/go-bip39 v1.1.0
-	golang.org/x/crypto v0.5.0
+	golang.org/x/crypto v0.8.0
 	golang.org/x/exp v0.0.0-20230131160201-f062dba9d201
 	golang.org/x/net v0.9.0
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
