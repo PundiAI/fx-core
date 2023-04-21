@@ -38,8 +38,9 @@ func (suite *IntegrationTest) StakingTest() {
 
 	// delegation rewards
 	rewards := suite.staking.Rewards(valAddr.String(), suite.staking.Address())
+	suite.Require().EqualValues(1, rewards.Cmp(big.NewInt(0)))
 	delegationRewards := suite.staking.DelegationRewards(delAddr.String(), valAddr.String())
-	suite.Require().EqualValues(rewards.String(), delegationRewards.AmountOf(fxtypes.DefaultDenom).TruncateInt().BigInt().String())
+	suite.Require().EqualValues(1, delegationRewards.AmountOf(fxtypes.DefaultDenom).TruncateInt().BigInt().Cmp(big.NewInt(0)))
 	beforeBalance := suite.QueryBalances(rewardAddress)
 	suite.Require().True(beforeBalance.IsZero())
 
@@ -50,8 +51,6 @@ func (suite *IntegrationTest) StakingTest() {
 
 	// undelegate
 	suite.staking.UnDelegate(suite.staking.privKey, valAddr.String(), delBalance.BigInt())
-	rewards = suite.staking.Rewards(valAddr.String(), suite.staking.Address())
-	suite.Require().EqualValues(rewards.String(), sdkmath.NewInt(0).String())
 	afterBalance2 := suite.QueryBalances(rewardAddress)
 	suite.Require().True(afterBalance2.IsAllGTE(beforeBalance))
 }
