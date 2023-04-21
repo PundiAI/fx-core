@@ -7,24 +7,8 @@ deps:
     commit: 1935555c206d4afb9e94615dfd0fad31
   - remote: buf.build
     owner: cosmos
-    repository: cosmos-sdk
-    commit: 8cb30a2c4de74dc9bd8d260b1e75e176
-  - remote: buf.build
-    owner: cosmos
     repository: gogo-proto
     commit: bee5511075b7499da6178d9e4aaa628b
-  - remote: buf.build
-    owner: cosmos
-    repository: ibc
-    commit: 9851f8a91ac6423f91cc2433bfda9495
-  - remote: buf.build
-    owner: cosmos
-    repository: ics23
-    commit: 55085f7c710a45f58fa09947208eb70b
-  - remote: buf.build
-    owner: evmos
-    repository: ethermint
-    commit: 33df5a3714294819950c5c870599c207
   - remote: buf.build
     owner: googleapis
     repository: googleapis

@@ -1,13 +1,9 @@
 version: v1
 name: buf.build/functionx/fx-core
 deps:
-  - buf.build/cosmos/cosmos-sdk:8cb30a2c4de74dc9bd8d260b1e75e176
-  - buf.build/cosmos/ibc:9851f8a91ac6423f91cc2433bfda9495
-  - buf.build/evmos/ethermint:33df5a3714294819950c5c870599c207
   - buf.build/cosmos/gogo-proto:bee5511075b7499da6178d9e4aaa628b
   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
   - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
-  - buf.build/cosmos/ics23:55085f7c710a45f58fa09947208eb70b
 lint:
   use:
     - DEFAULT
