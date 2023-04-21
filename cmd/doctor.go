@@ -193,9 +193,9 @@ func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (bloc
 			fmt.Println("\tNot found root dir")
 			return nil, nil
 		}
-		database, err := server.NewDatabase(serverCtx.Config.RootDir, serverCtx.Config.DBBackend, cliCtx.Codec)
-		if err != nil || database == nil {
-			return nil, nil
+		database, _ := server.NewDatabase(serverCtx.Config.RootDir, serverCtx.Config.DBBackend, cliCtx.Codec)
+		if database == nil {
+			fmt.Println("\tWarning: Not found data file!")
 		}
 		fmt.Printf("\tData Dir: %s/data\n", serverCtx.Config.RootDir)
 		return database, nil
@@ -209,7 +209,8 @@ func checkBlockchainData(n blockchain, network, privValidatorKeyFile string, upg
 	}
 	chainId, err := n.GetChainId()
 	if err != nil {
-		return false, err
+		fmt.Println("\tWarning: ", err.Error())
+		return false, nil
 	}
 	fmt.Println("\tChain ID: ", chainId)
 	blockHeight, err := n.GetBlockHeight()

@@ -2,11 +2,9 @@ package server
 
 import (
 	"errors"
-	"fmt"
-	"os"
 	"path/filepath"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -19,13 +17,16 @@ import (
 	sm "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 )
+
+var genesisDocNotFoundError = errors.New("genesis doc not found")
 
 type Database struct {
 	blockStore *store.BlockStore
-	stateDB    dbm.DB
-	appDB      tmdb.DB
+	stateDB    db.DB
+	stateStore sm.Store
+	appDB      dbm.DB
 	appStore   *rootmulti.Store
 	storeKeys  map[string]*storetypes.KVStoreKey
 	codec      codec.Codec
@@ -33,30 +34,26 @@ type Database struct {
 
 func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (*Database, error) {
 	dataDir := filepath.Join(rootDir, "data")
-	if !Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", BlockDBName))) ||
-		!Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", StateDBName))) ||
-		!Exists(filepath.Join(dataDir, fmt.Sprintf("%s.db", AppDBName))) {
-		fmt.Println("\tWarning: Not found data file!")
-		return nil, nil
-	}
-	blockStoreDB, err := dbm.NewDB(BlockDBName, dbm.BackendType(dbType), dataDir)
+
+	blockStoreDB, err := db.NewDB(BlockDBName, db.BackendType(dbType), dataDir)
 	if err != nil {
 		return nil, err
 	}
 	blockStore := store.NewBlockStore(blockStoreDB)
 
-	stateDB, err := dbm.NewDB(StateDBName, dbm.BackendType(dbType), dataDir)
+	stateDB, err := db.NewDB(StateDBName, db.BackendType(dbType), dataDir)
 	if err != nil {
 		return nil, err
 	}
-	appDB, err := tmdb.NewDB(AppDBName, tmdb.BackendType(dbType), dataDir)
+	stateStore := sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: false})
+
+	appDB, err := dbm.NewDB(AppDBName, dbm.BackendType(dbType), dataDir)
 	if err != nil {
 		return nil, err
 	}
-	storeKeys := sdk.NewKVStoreKeys(
-		upgradetypes.StoreKey,
-	)
+	storeKeys := sdk.NewKVStoreKeys(upgradetypes.StoreKey)
 	appStore := rootmulti.NewStore(appDB, log.NewNopLogger())
+
 	for _, storeKey := range storeKeys {
 		appStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	}
@@ -68,10 +65,23 @@ func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (*Database, err
 		blockStore: blockStore,
 		appDB:      appDB,
 		stateDB:    stateDB,
+		stateStore: stateStore,
 		appStore:   appStore,
 		storeKeys:  storeKeys,
 		codec:      cdc,
 	}, err
+}
+
+func (d *Database) AppStore() *rootmulti.Store {
+	return d.appStore
+}
+
+func (d *Database) StateStore() sm.Store {
+	return d.stateStore
+}
+
+func (d *Database) BlockStore() *store.BlockStore {
+	return d.blockStore
 }
 
 func (d *Database) Close() {
@@ -81,7 +91,11 @@ func (d *Database) Close() {
 }
 
 func (d *Database) GetChainId() (string, error) {
-	return d.blockStore.LoadBaseMeta().Header.ChainID, nil
+	meta := d.blockStore.LoadBaseMeta()
+	if meta == nil {
+		return "", errors.New("not found chain id")
+	}
+	return meta.Header.ChainID, nil
 }
 
 func (d *Database) GetBlockHeight() (int64, error) {
@@ -93,12 +107,7 @@ func (d *Database) GetSyncing() (bool, error) {
 }
 
 func (d *Database) GetNodeInfo() (*tmservice.VersionInfo, error) {
-	genDoc, err := d.GetGensisDoc()
-	if err != nil {
-		return nil, err
-	}
-	stateStore := sm.NewStore(d.stateDB, sm.StoreOptions{DiscardABCIResponses: false})
-	state, err := stateStore.LoadFromDBOrGenesisDoc(genDoc)
+	state, err := d.GetState()
 	if err != nil {
 		return nil, err
 	}
@@ -121,12 +130,7 @@ func (d *Database) CurrentPlan() (*upgradetypes.Plan, error) {
 }
 
 func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
-	genDoc, err := d.GetGensisDoc()
-	if err != nil {
-		return nil, err
-	}
-	stateStore := sm.NewStore(d.stateDB, sm.StoreOptions{DiscardABCIResponses: false})
-	state, err := stateStore.LoadFromDBOrGenesisDoc(genDoc)
+	state, err := d.GetState()
 	if err != nil {
 		return nil, err
 	}
@@ -139,26 +143,38 @@ func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
 	return validators, nil
 }
 
-func (d *Database) GetGensisDoc() (*tmtypes.GenesisDoc, error) {
+func (d *Database) GetState() (sm.State, error) {
+	genDoc, err := d.genesisDoc()
+	if err != nil {
+		return sm.State{}, err
+	}
+	state, err := d.stateStore.LoadFromDBOrGenesisDoc(genDoc)
+	if err != nil {
+		return sm.State{}, err
+	}
+	return state, nil
+}
+
+func (d *Database) SetGenesis(genesis []byte) error {
+	_, err := d.genesisDoc()
+	if !errors.Is(err, genesisDocNotFoundError) {
+		return nil
+	}
+	return d.stateDB.Set([]byte("genesisDoc"), genesis)
+}
+
+func (d *Database) genesisDoc() (*tmtypes.GenesisDoc, error) {
 	genesisDocKey := []byte("genesisDoc")
 	b, err := d.stateDB.Get(genesisDocKey)
 	if err != nil {
 		return nil, err
 	}
 	if len(b) == 0 {
-		return nil, errors.New("genesis doc not found")
+		return nil, genesisDocNotFoundError
 	}
 	var genDoc *tmtypes.GenesisDoc
 	if err = tmjson.Unmarshal(b, &genDoc); err != nil {
-		return nil, fmt.Errorf("failed to load genesis doc due to unmarshaling error: %v (bytes: %X)", err, b)
+		return nil, err
 	}
 	return genDoc, nil
-}
-
-func Exists(path string) bool {
-	_, err := os.Stat(path)
-	if err != nil {
-		return os.IsExist(err)
-	}
-	return true
 }
