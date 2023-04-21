@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"math/big"
 	"math/rand"
 	"strings"
 	"testing"
@@ -185,35 +186,35 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		checkBalance  bool
 		checkCoinAddr sdk.AccAddress
 		expCoins      sdk.Coins
+		afterFn       func(packetData transfertypes.FungibleTokenPacketData)
 	}{
 		{
-			"pass - normal - ibc transfer packet",
-			func(packet *channeltypes.Packet) {
+			name: "pass - normal - ibc transfer packet",
+			malleate: func(packet *channeltypes.Packet) {
 			},
-			true,
-			"",
-			true,
-			receiveAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
+			expPass:       true,
+			errorStr:      "",
+			checkBalance:  true,
+			checkCoinAddr: receiveAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
 		},
 		{
-			"pass - normal - fx ibc transfer packet",
-			func(packet *channeltypes.Packet) {
+			name: "pass - normal - fx ibc transfer packet",
+			malleate: func(packet *channeltypes.Packet) {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = ""
 				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 			},
-			true,
-			"",
-			true,
-			receiveAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
+			expPass:       true,
+			checkBalance:  true,
+			checkCoinAddr: receiveAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
 		},
 		{
-			"pass - normal - receive address is 0xAddress, coin is DefaultCoin",
-			func(packet *channeltypes.Packet) {
+			name: "pass - normal - receive address is 0xAddress, coin is DefaultCoin",
+			malleate: func(packet *channeltypes.Packet) {
 				protID := "transfer"
 				channelID := "channel-0"
 				coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, transferAmount))
@@ -232,15 +233,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}.GetFullDenomPath()
 				packet.Data = packetData.GetBytes()
 			},
-			true,
-			"",
-			true,
-			receiveAddr,
-			sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, transferAmount)),
+			expPass:       true,
+			checkBalance:  true,
+			checkCoinAddr: receiveAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, transferAmount)),
 		},
 		{
-			"pass - normal - receive address is 0xAddress",
-			func(packet *channeltypes.Packet) {
+			name: "pass - normal - receive address is 0xAddress",
+			malleate: func(packet *channeltypes.Packet) {
 				packetData := transfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Receiver = common.BytesToAddress(receiveAddr.Bytes()).String()
@@ -267,15 +267,25 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				_, err := suite.GetApp(suite.chainA.App).Erc20Keeper.RegisterNativeCoin(suite.chainA.GetContext(), meta)
 				suite.Require().NoError(err)
 			},
-			true,
-			"",
-			true,
-			receiveAddr,
-			sdk.NewCoins(),
+			expPass:       true,
+			checkBalance:  true,
+			checkCoinAddr: receiveAddr,
+			expCoins:      sdk.NewCoins(),
+			afterFn: func(packetData transfertypes.FungibleTokenPacketData) {
+				expectBalance, ok := sdkmath.NewIntFromString(packetData.Amount)
+				suite.Require().True(ok)
+				erc20TokenAddr, found := suite.GetApp(suite.chainA.App).Erc20Keeper.GetTokenPair(suite.chainA.GetContext(), ibcDenomTrace.IBCDenom())
+				suite.Require().True(found)
+				toAddress := common.HexToAddress(packetData.Receiver)
+				var balanceRes struct{ Value *big.Int }
+				err := suite.GetApp(suite.chainA.App).EvmKeeper.QueryContract(suite.chainA.GetContext(), common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), fxtypes.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
+				suite.Require().NoError(err)
+				suite.Require().EqualValues(expectBalance.String(), sdk.NewIntFromBigInt(balanceRes.Value).String())
+			},
 		},
 		{
-			"pass - normal - sender is 0xAddress",
-			func(packet *channeltypes.Packet) {
+			name: "pass - normal - sender is 0xAddress router is bsc",
+			malleate: func(packet *channeltypes.Packet) {
 				bscKeeper := suite.GetApp(suite.chainA.App).BscKeeper
 				bscKeeper.AddBridgeToken(suite.chainA.GetContext(), common.BytesToAddress(tmrand.Bytes(20)).String(), ibcDenomTrace.IBCDenom())
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
@@ -286,11 +296,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData.Receiver = common.BytesToAddress(receiveAddr).String()
 				packet.Data = packetData.GetBytes()
 			},
-			true,
-			"",
-			true,
-			senderAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
+			expPass:       true,
+			checkBalance:  true,
+			checkCoinAddr: senderAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
 		{
 			name: "error - normal - transferAfter return error, receive address is error",
@@ -309,35 +318,33 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
 		{
-			"error - normal - router not exists",
-			func(packet *channeltypes.Packet) {
+			name: "error - normal - router not exists",
+			malleate: func(packet *channeltypes.Packet) {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = tmrand.Str(8)
 				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 			},
-			false,
 			// 103: router not found error
-			"ABCI code: 103: error handling packet: see events for details",
-			true,
-			senderAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
+			errorStr:      "ABCI code: 103: error handling packet: see events for details",
+			checkBalance:  true,
+			checkCoinAddr: senderAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
 		{
-			"error - normal - receive address is 0xAddress but coin not registered",
-			func(packet *channeltypes.Packet) {
+			name: "error - normal - receive address is 0xAddress but coin not registered",
+			malleate: func(packet *channeltypes.Packet) {
 				packetData := transfertypes.FungibleTokenPacketData{}
 				transfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Receiver = common.BytesToAddress(receiveAddr.Bytes()).String()
 				packet.Data = packetData.GetBytes()
 			},
-			false,
 			// 4: token pair not found
-			"ABCI code: 4: error handling packet: see events for details",
-			true,
-			senderAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
+			errorStr:      "ABCI code: 4: error handling packet: see events for details",
+			checkBalance:  true,
+			checkCoinAddr: senderAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
 	}
 

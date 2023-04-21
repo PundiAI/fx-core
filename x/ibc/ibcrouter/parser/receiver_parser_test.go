@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/rand"
@@ -12,23 +13,73 @@ import (
 )
 
 func TestParseReceiverDataTransfer(t *testing.T) {
-	data := "cosmos1vzxkv3lxccnttr9rs0002s93sgw72h7ghukuhs|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k"
-	pt, err := parser.ParseReceiverData(data)
+	ethAddr := common.BytesToAddress(rand.Bytes(20)).Hex()
+	cosmosAddr := sdk.AccAddress(rand.Bytes(20)).String()
+	testCases := []struct {
+		name       string
+		data       string
+		expectPass bool
+		expectData *parser.ParsedReceiver
+	}{
+		{
+			name:       "pass - normal transfer",
+			data:       cosmosAddr + "|transfer/channel-0:" + cosmosAddr,
+			expectPass: true,
+			expectData: &parser.ParsedReceiver{
+				ShouldForward: true,
+				HostAccAddr:   sdk.MustAccAddressFromBech32(cosmosAddr),
+				Destination:   cosmosAddr,
+				Port:          "transfer",
+				Channel:       "channel-0",
+			},
+		},
+		{
+			name:       "pass - normal transfer - receive is 0x address",
+			data:       cosmosAddr + "|transfer/channel-0:" + ethAddr,
+			expectPass: true,
+			expectData: &parser.ParsedReceiver{
+				ShouldForward: true,
+				HostAccAddr:   sdk.MustAccAddressFromBech32(cosmosAddr),
+				Destination:   ethAddr,
+				Port:          "transfer",
+				Channel:       "channel-0",
+			},
+		},
+		{
+			name:       "pass - no forward",
+			data:       cosmosAddr,
+			expectPass: true,
+			expectData: &parser.ParsedReceiver{
+				ShouldForward: false,
+			},
+		},
+	}
 
-	require.NoError(t, err)
-	require.True(t, pt.ShouldForward)
-	require.Equal(t, pt.HostAccAddr.String(), "cosmos1vzxkv3lxccnttr9rs0002s93sgw72h7ghukuhs")
-	require.Equal(t, pt.Destination, "cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k")
-	require.Equal(t, pt.Port, "transfer")
-	require.Equal(t, pt.Channel, "channel-0")
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			pt, err := parser.ParseReceiverData(testCase.data)
+
+			if !testCase.expectPass {
+				require.Error(t, err)
+				return
+
+			}
+			require.NoError(t, err)
+			if !testCase.expectData.ShouldForward {
+				require.False(t, pt.ShouldForward)
+				return
+			}
+			checkParsedReceiverData(t, pt, testCase.expectData)
+		})
+	}
 }
 
-func TestParseReceiverDataNoTransfer(t *testing.T) {
-	data := "cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k"
-	pt, err := parser.ParseReceiverData(data)
-
-	require.NoError(t, err)
-	require.False(t, pt.ShouldForward)
+func checkParsedReceiverData(t *testing.T, expect *parser.ParsedReceiver, actual *parser.ParsedReceiver) {
+	require.Equal(t, expect.ShouldForward, actual.ShouldForward)
+	require.Equal(t, expect.HostAccAddr, actual.HostAccAddr)
+	require.Equal(t, expect.Destination, actual.Destination)
+	require.Equal(t, expect.Port, actual.Port)
+	require.Equal(t, expect.Channel, actual.Channel)
 }
 
 func TestParseReceiverDataErrors(t *testing.T) {
@@ -55,6 +106,11 @@ func TestParseReceiverDataErrors(t *testing.T) {
 		{
 			"invalid this chain address",
 			"somm16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k",
+			"decoding bech32 failed",
+		},
+		{
+			"invalid this chain address",
+			common.BytesToAddress(rand.Bytes(20)).Hex() + "|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k",
 			"decoding bech32 failed",
 		},
 		{

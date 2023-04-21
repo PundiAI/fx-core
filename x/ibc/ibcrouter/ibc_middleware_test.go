@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	_ "github.com/functionx/fx-core/v4/app"
 	"github.com/functionx/fx-core/v4/x/ibc/ibcrouter"
@@ -42,6 +44,11 @@ func TestParseIncomingTransferField(t *testing.T) {
 		{
 			name:    "error - forward empty destinationAddress",
 			input:   "cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4|transfer/channel-0:",
+			expPass: false,
+		},
+		{
+			name:    "error - forward thisChain address is 0x",
+			input:   common.BytesToAddress(tmrand.Bytes(20)).Hex() + "|transfer/channel-0:",
 			expPass: false,
 		},
 		{
