@@ -184,13 +184,16 @@ test-count:
 ###############################################################################
 
 protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 protoSwaggerVer=0.11.2
+bufVer=1.17.0
+bufImageName=bufbuild/buf:$(bufVer)
+protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 protoSwaggerName=ghcr.io/cosmos/proto-builder:$(protoSwaggerVer)
 containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
 containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
 containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
 containerProtoDoc=$(PROJECT_NAME)-proto-doc-$(protoVer)
+containerProtoFork=$(PROJECT_NAME)-proto-fork-$(protoVer)
 
 proto-all:
 	@$(MAKE) proto-format
@@ -199,7 +202,7 @@ proto-all:
 
 proto-format:
 	@echo "Formatting Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace/proto bufbuild/buf:1.15.0 \
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace/proto $(bufImageName) \
 		format -w; fi
 
 proto-gen:
@@ -210,7 +213,7 @@ proto-gen:
 
 proto-doc-gen:
 	@echo "Generating Protobuf Doc"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoDoc); else docker run --rm --name $(containerProtoDoc) -v $(CURDIR):/workspace --workdir /workspace $(protoSwaggerName) \
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoDoc}$$"; then docker start -a $(containerProtoDoc); else docker run --rm --name $(containerProtoDoc) -v $(CURDIR):/workspace --workdir /workspace $(protoSwaggerName) \
     		sh ./contrib/protoc/doc-gen.sh; fi
 
 proto-swagger-gen:
@@ -218,7 +221,13 @@ proto-swagger-gen:
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoSwaggerName) \
 		sh ./contrib/protoc/swagger-gen.sh; fi
 
-.PHONY: proto-format proto-gen proto-doc-gen proto-swagger-gen
+proto-fork:
+	@echo "Forking Protobuf files"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFork}$$"; then docker rm $(containerProtoFork); fi
+	@docker run --rm --name $(containerProtoFork) -e BUF_NAME=${BUF_NAME} -e BUF_TOKEN=${BUF_TOKEN} -e BUF_ORG=${BUF_ORG} -v $(CURDIR):/workspace --workdir /workspace $(protoSwaggerName) \
+		sh ./contrib/protoc/fork.sh
+
+.PHONY: proto-format proto-gen proto-doc-gen proto-swagger-gen proto-fork
 
 statik: $(STATIK)
 $(STATIK):
