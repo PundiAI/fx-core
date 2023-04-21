@@ -35,6 +35,26 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v4.0.0] - 2023-04-21
+
+### Features
+
+* Supports optimism and arbitrum cross-chain protocol integration
+* Supports staking through contract calls, with the staking pre-compiled contract address being: 0x0000000000000000000000000000000000001003
+* Supports cross-chain transactions through contract calls, with the gravity and IBC pre-compiled contract address being: 0x0000000000000000000000000000000000001004
+* Supports adding multiple cross-chain tokens through a single proposal
+* Supports contract calls through a proposal
+* Supports IBC cross-chain transactions for contract tokens
+* Supports cross-chain transactions of contract tokens to other chains
+* Added doctor command line tool to check the fxcored working environment 
+
+### Improvements
+
+* Bump go-ethereum version to v1.10.26
+* Bump cosmos-sdk to v0.46.12
+* Bump tendermint to v0.34.27
+* Bump ibc-go to v6.1.0
+
 ## [v3.1.0] - 2023-01-31
 
 ### Bug Fixes
