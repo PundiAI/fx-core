@@ -11,3 +11,5 @@ debug.sh
 artifacts
 local.Dockerfile
 debug.json
+release-note.md
+dist

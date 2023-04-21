@@ -35,7 +35,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
-## [v4.0.0] - 2023-04-21
+## [v4.0.0]
 
 ### Features
 
@@ -54,6 +54,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * Bump cosmos-sdk to v0.46.12
 * Bump tendermint to v0.34.27
 * Bump ibc-go to v6.1.0
+
+---
 
 ## [v3.1.0] - 2023-01-31
 

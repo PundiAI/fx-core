@@ -107,13 +107,10 @@ release:
   mode: keep-existing
   header: |
     # fxCore {{ .Tag }} Release Notes
-    
-    ## ChangeLog
-    * See [CHANGELOG.md](https://github.com/FunctionX/fx-core/blob/release/{{ .Tag }}/CHANGELOG.md) for details.
-
+  footer: |
     ## Docker Images
     * fxcore: `ghcr.io/functionx/fx-core:{{ .Version }}`
     * cosmovisor: `ghcr.io/functionx/fxcorevisor:{{ .Version }}`
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: "{{ .Tag }}"

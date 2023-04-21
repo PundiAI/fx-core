@@ -18,8 +18,10 @@ jobs:
         with:
           go-version: 1.19
           check-latest: true
-      - name: release dry run
-        run: make release-dry-run
+      - name: set tag env
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: generate release note
+        run: ./contrib/scripts/release-note.sh ${{ env.VERSION }}
       - name: setup release environment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
