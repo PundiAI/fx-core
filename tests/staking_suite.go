@@ -61,15 +61,8 @@ func (suite *StakingSuite) TransactionOpts(privateKey cryptotypes.PrivKey) *bind
 	return auth
 }
 
-// DeployStakingContract deploy staking contract
-// solc version 0.8.19 https://github.com/ethereum/solidity/releases
-// abigen version 1.11.5-stable https://github.com/ethereum/go-ethereum/releases
-//
-//go:generate solc --abi ../x/evm/precompiles/staking/solidity/staking_test.sol -o ./artifacts --overwrite
-//go:generate solc --bin ../x/evm/precompiles/staking/solidity/staking_test.sol -o ./artifacts --overwrite
-//go:generate abigen --abi ./artifacts/staking_test.abi --bin ./artifacts/staking_test.bin --type TestStaking --pkg contract --out ./contract/test_staking.go
 func (suite *StakingSuite) DeployStakingContract(privKey cryptotypes.PrivKey) (common.Address, common.Hash) {
-	stakingBin := fxtypes.MustDecodeHex(testscontract.TestStakingMetaData.Bin)
+	stakingBin := fxtypes.MustDecodeHex(testscontract.StakingTestMetaData.Bin)
 	return suite.DeployContract(privKey, stakingBin)
 }
 
@@ -99,7 +92,7 @@ func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr stri
 }
 
 func (suite *StakingSuite) DelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
 	auth := suite.TransactionOpts(privateKey)
@@ -117,7 +110,7 @@ func (suite *StakingSuite) DelegateByContract(privateKey cryptotypes.PrivKey, co
 }
 
 func (suite *StakingSuite) WithdrawByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
 	auth := suite.TransactionOpts(privateKey)
@@ -134,7 +127,7 @@ func (suite *StakingSuite) WithdrawByContract(privateKey cryptotypes.PrivKey, co
 }
 
 func (suite *StakingSuite) UndelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string, shares *big.Int) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
 	auth := suite.TransactionOpts(privateKey)
@@ -207,7 +200,7 @@ func (suite *StakingSuite) TransferShares(privateKey cryptotypes.PrivKey, valAdd
 }
 
 func (suite *StakingSuite) TransferSharesByContract(privateKey cryptotypes.PrivKey, valAddr string, contract, to common.Address, shares *big.Int) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
 	auth := suite.TransactionOpts(privateKey)
@@ -233,7 +226,7 @@ func (suite *StakingSuite) TransferFromShares(privateKey cryptotypes.PrivKey, va
 }
 
 func (suite *StakingSuite) TransferFromSharesByContract(privateKey cryptotypes.PrivKey, valAddr string, contract, from, to common.Address, shares *big.Int) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
 	auth := suite.TransactionOpts(privateKey)

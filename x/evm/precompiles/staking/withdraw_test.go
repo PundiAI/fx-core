@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v4/contract"
+	testscontract "github.com/functionx/fx-core/v4/tests/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -80,7 +80,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, val.String())
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, val.String())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -90,7 +90,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			name: "contract - failed invalid validator address",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -103,7 +103,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			name: "contract - failed validator not found",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -132,7 +132,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			delAddr := signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
-				stakingABI = fxtypes.MustABIJson(contract.StakingTestMetaData.ABI)
+				stakingABI = fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
 				delegateMethodName = StakingTestDelegateName
 				withdrawMethodName = StakingTestWithdrawName
 				delAddr = suite.staking

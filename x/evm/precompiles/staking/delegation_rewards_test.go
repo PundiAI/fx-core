@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v4/contract"
+	testscontract "github.com/functionx/fx-core/v4/tests/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -75,7 +75,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, val.String(), del)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -85,7 +85,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			name: "contract - failed invalid validator address",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -98,7 +98,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			name: "contract - failed validator not found",
 			malleate: func(_ sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegationRewardsName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -128,7 +128,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
-				stakingABI = fxtypes.MustABIJson(contract.StakingTestMetaData.ABI)
+				stakingABI = fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
 				delegateMethodName = StakingTestDelegateName
 				delegationRewardsMethodName = StakingTestDelegationRewardsName
 				delAddr = suite.staking

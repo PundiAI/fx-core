@@ -208,7 +208,6 @@ func (_StakingTest *StakingTestTransactorRaw) Transact(opts *bind.TransactOpts, 
 func (_StakingTest *StakingTestCaller) AllowanceShares(opts *bind.CallOpts, _val string, _owner common.Address, _spender common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _StakingTest.contract.Call(opts, &out, "allowanceShares", _val, _owner, _spender)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -216,7 +215,6 @@ func (_StakingTest *StakingTestCaller) AllowanceShares(opts *bind.CallOpts, _val
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // AllowanceShares is a free data retrieval call binding the contract method 0x7b625c0f.
@@ -239,7 +237,6 @@ func (_StakingTest *StakingTestCallerSession) AllowanceShares(_val string, _owne
 func (_StakingTest *StakingTestCaller) Delegation(opts *bind.CallOpts, _val string, _del common.Address) (*big.Int, *big.Int, error) {
 	var out []interface{}
 	err := _StakingTest.contract.Call(opts, &out, "delegation", _val, _del)
-
 	if err != nil {
 		return *new(*big.Int), *new(*big.Int), err
 	}
@@ -248,7 +245,6 @@ func (_StakingTest *StakingTestCaller) Delegation(opts *bind.CallOpts, _val stri
 	out1 := *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
 
 	return out0, out1, err
-
 }
 
 // Delegation is a free data retrieval call binding the contract method 0xd5c498eb.
@@ -271,7 +267,6 @@ func (_StakingTest *StakingTestCallerSession) Delegation(_val string, _del commo
 func (_StakingTest *StakingTestCaller) DelegationRewards(opts *bind.CallOpts, _val string, _del common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _StakingTest.contract.Call(opts, &out, "delegationRewards", _val, _del)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -279,7 +274,6 @@ func (_StakingTest *StakingTestCaller) DelegationRewards(opts *bind.CallOpts, _v
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // DelegationRewards is a free data retrieval call binding the contract method 0x51af513a.
@@ -302,7 +296,6 @@ func (_StakingTest *StakingTestCallerSession) DelegationRewards(_val string, _de
 func (_StakingTest *StakingTestCaller) ValidatorShares(opts *bind.CallOpts, arg0 string) (*big.Int, error) {
 	var out []interface{}
 	err := _StakingTest.contract.Call(opts, &out, "validatorShares", arg0)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -310,7 +303,6 @@ func (_StakingTest *StakingTestCaller) ValidatorShares(opts *bind.CallOpts, arg0
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // ValidatorShares is a free data retrieval call binding the contract method 0xbf98d772.
@@ -533,7 +525,6 @@ type StakingTestApproveShares struct {
 //
 // Solidity: event ApproveShares(address indexed owner, address indexed spender, string validator, uint256 shares)
 func (_StakingTest *StakingTestFilterer) FilterApproveShares(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*StakingTestApproveSharesIterator, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -554,7 +545,6 @@ func (_StakingTest *StakingTestFilterer) FilterApproveShares(opts *bind.FilterOp
 //
 // Solidity: event ApproveShares(address indexed owner, address indexed spender, string validator, uint256 shares)
 func (_StakingTest *StakingTestFilterer) WatchApproveShares(opts *bind.WatchOpts, sink chan<- *StakingTestApproveShares, owner []common.Address, spender []common.Address) (event.Subscription, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -688,7 +678,6 @@ type StakingTestDelegate struct {
 //
 // Solidity: event Delegate(address indexed delegator, string validator, uint256 amount, uint256 shares)
 func (_StakingTest *StakingTestFilterer) FilterDelegate(opts *bind.FilterOpts, delegator []common.Address) (*StakingTestDelegateIterator, error) {
-
 	var delegatorRule []interface{}
 	for _, delegatorItem := range delegator {
 		delegatorRule = append(delegatorRule, delegatorItem)
@@ -705,7 +694,6 @@ func (_StakingTest *StakingTestFilterer) FilterDelegate(opts *bind.FilterOpts, d
 //
 // Solidity: event Delegate(address indexed delegator, string validator, uint256 amount, uint256 shares)
 func (_StakingTest *StakingTestFilterer) WatchDelegate(opts *bind.WatchOpts, sink chan<- *StakingTestDelegate, delegator []common.Address) (event.Subscription, error) {
-
 	var delegatorRule []interface{}
 	for _, delegatorItem := range delegator {
 		delegatorRule = append(delegatorRule, delegatorItem)
@@ -836,7 +824,6 @@ type StakingTestTransferShares struct {
 //
 // Solidity: event TransferShares(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
 func (_StakingTest *StakingTestFilterer) FilterTransferShares(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*StakingTestTransferSharesIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -857,7 +844,6 @@ func (_StakingTest *StakingTestFilterer) FilterTransferShares(opts *bind.FilterO
 //
 // Solidity: event TransferShares(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
 func (_StakingTest *StakingTestFilterer) WatchTransferShares(opts *bind.WatchOpts, sink chan<- *StakingTestTransferShares, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -992,7 +978,6 @@ type StakingTestUndelegate struct {
 //
 // Solidity: event Undelegate(address indexed sender, string validator, uint256 shares, uint256 amount, uint256 completionTime)
 func (_StakingTest *StakingTestFilterer) FilterUndelegate(opts *bind.FilterOpts, sender []common.Address) (*StakingTestUndelegateIterator, error) {
-
 	var senderRule []interface{}
 	for _, senderItem := range sender {
 		senderRule = append(senderRule, senderItem)
@@ -1009,7 +994,6 @@ func (_StakingTest *StakingTestFilterer) FilterUndelegate(opts *bind.FilterOpts,
 //
 // Solidity: event Undelegate(address indexed sender, string validator, uint256 shares, uint256 amount, uint256 completionTime)
 func (_StakingTest *StakingTestFilterer) WatchUndelegate(opts *bind.WatchOpts, sink chan<- *StakingTestUndelegate, sender []common.Address) (event.Subscription, error) {
-
 	var senderRule []interface{}
 	for _, senderItem := range sender {
 		senderRule = append(senderRule, senderItem)
@@ -1138,7 +1122,6 @@ type StakingTestWithdraw struct {
 //
 // Solidity: event Withdraw(address indexed sender, string validator, uint256 reward)
 func (_StakingTest *StakingTestFilterer) FilterWithdraw(opts *bind.FilterOpts, sender []common.Address) (*StakingTestWithdrawIterator, error) {
-
 	var senderRule []interface{}
 	for _, senderItem := range sender {
 		senderRule = append(senderRule, senderItem)
@@ -1155,7 +1138,6 @@ func (_StakingTest *StakingTestFilterer) FilterWithdraw(opts *bind.FilterOpts, s
 //
 // Solidity: event Withdraw(address indexed sender, string validator, uint256 reward)
 func (_StakingTest *StakingTestFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<- *StakingTestWithdraw, sender []common.Address) (event.Subscription, error) {
-
 	var senderRule []interface{}
 	for _, senderItem := range sender {
 		senderRule = append(senderRule, senderItem)

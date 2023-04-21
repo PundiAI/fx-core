@@ -17,6 +17,7 @@ import (
 
 	"github.com/functionx/fx-core/v4/client"
 	"github.com/functionx/fx-core/v4/contract"
+	testscontract "github.com/functionx/fx-core/v4/tests/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
@@ -241,7 +242,7 @@ func (suite *EvmTestSuite) BurnERC20(privateKey cryptotypes.PrivKey, token, acco
 }
 
 func (suite *EvmTestSuite) BalanceOfERC721(contractAddr, account common.Address) *big.Int {
-	caller, err := contract.NewERC721TokenTest(contractAddr, suite.EthClient())
+	caller, err := testscontract.NewERC721TokenTest(contractAddr, suite.EthClient())
 	suite.NoError(err)
 	balanceOf, err := caller.BalanceOf(nil, account)
 	suite.NoError(err)
@@ -253,7 +254,7 @@ func (suite *EvmTestSuite) CheckBalanceOfERC721(contractAddr, account common.Add
 }
 
 func (suite *EvmTestSuite) TokenURI(contractAddr common.Address, id *big.Int) string {
-	caller, err := contract.NewERC721TokenTest(contractAddr, suite.EthClient())
+	caller, err := testscontract.NewERC721TokenTest(contractAddr, suite.EthClient())
 	suite.NoError(err)
 	uri, err := caller.TokenURI(nil, id)
 	suite.NoError(err)
@@ -261,7 +262,7 @@ func (suite *EvmTestSuite) TokenURI(contractAddr common.Address, id *big.Int) st
 }
 
 func (suite *EvmTestSuite) IsApprovedForAll(contractAddr, owner, operator common.Address) bool {
-	caller, err := contract.NewERC721TokenTest(contractAddr, suite.EthClient())
+	caller, err := testscontract.NewERC721TokenTest(contractAddr, suite.EthClient())
 	suite.NoError(err)
 	isApproved, err := caller.IsApprovedForAll(nil, owner, operator)
 	suite.NoError(err)
@@ -345,7 +346,7 @@ func (suite *EvmTestSuite) TxFee(hash common.Hash) *big.Int {
 
 func GetERC721() fxtypes.Contract {
 	return fxtypes.Contract{
-		ABI: fxtypes.MustABIJson(contract.ERC721TokenTestMetaData.ABI),
-		Bin: fxtypes.MustDecodeHex(contract.ERC721TokenTestMetaData.Bin),
+		ABI: fxtypes.MustABIJson(testscontract.ERC721TokenTestMetaData.ABI),
+		Bin: fxtypes.MustDecodeHex(testscontract.ERC721TokenTestMetaData.Bin),
 	}
 }

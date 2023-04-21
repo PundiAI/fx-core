@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v4/contract"
+	testscontract "github.com/functionx/fx-core/v4/tests/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
@@ -83,7 +83,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, val.String(), del)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -92,7 +92,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 		{
 			name: "contract - ok - zero",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, val.String(), del)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -102,7 +102,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			name: "contract - failed invalid validator address",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, newVal, del)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -115,7 +115,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			name: "contract - failed validator not found",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(contract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, newVal, del)
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegationName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -145,7 +145,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
 				delAddr = suite.staking
-				stakingABI = fxtypes.MustABIJson(contract.StakingTestMetaData.ABI)
+				stakingABI = fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
 				delegateFunc = StakingTestDelegateName
 				delegationFunc = StakingTestDelegationName
 			}

@@ -208,7 +208,6 @@ func (_ERC721TokenTest *ERC721TokenTestTransactorRaw) Transact(opts *bind.Transa
 func (_ERC721TokenTest *ERC721TokenTestCaller) BalanceOf(opts *bind.CallOpts, owner common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "balanceOf", owner)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -216,7 +215,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) BalanceOf(opts *bind.CallOpts, ow
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -239,7 +237,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) BalanceOf(owner common.Add
 func (_ERC721TokenTest *ERC721TokenTestCaller) GetApproved(opts *bind.CallOpts, tokenId *big.Int) (common.Address, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "getApproved", tokenId)
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -247,7 +244,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) GetApproved(opts *bind.CallOpts, 
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // GetApproved is a free data retrieval call binding the contract method 0x081812fc.
@@ -270,7 +266,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) GetApproved(tokenId *big.I
 func (_ERC721TokenTest *ERC721TokenTestCaller) IsApprovedForAll(opts *bind.CallOpts, owner common.Address, operator common.Address) (bool, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "isApprovedForAll", owner, operator)
-
 	if err != nil {
 		return *new(bool), err
 	}
@@ -278,7 +273,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) IsApprovedForAll(opts *bind.CallO
 	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
 	return out0, err
-
 }
 
 // IsApprovedForAll is a free data retrieval call binding the contract method 0xe985e9c5.
@@ -301,7 +295,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) IsApprovedForAll(owner com
 func (_ERC721TokenTest *ERC721TokenTestCaller) Name(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "name")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -309,7 +302,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) Name(opts *bind.CallOpts) (string
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -332,7 +324,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) Name() (string, error) {
 func (_ERC721TokenTest *ERC721TokenTestCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "owner")
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -340,7 +331,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) Owner(opts *bind.CallOpts) (commo
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -363,7 +353,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) Owner() (common.Address, e
 func (_ERC721TokenTest *ERC721TokenTestCaller) OwnerOf(opts *bind.CallOpts, tokenId *big.Int) (common.Address, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "ownerOf", tokenId)
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -371,7 +360,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) OwnerOf(opts *bind.CallOpts, toke
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // OwnerOf is a free data retrieval call binding the contract method 0x6352211e.
@@ -394,7 +382,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) OwnerOf(tokenId *big.Int) 
 func (_ERC721TokenTest *ERC721TokenTestCaller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "proxiableUUID")
-
 	if err != nil {
 		return *new([32]byte), err
 	}
@@ -402,7 +389,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) ProxiableUUID(opts *bind.CallOpts
 	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 
 	return out0, err
-
 }
 
 // ProxiableUUID is a free data retrieval call binding the contract method 0x52d1902d.
@@ -425,7 +411,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) ProxiableUUID() ([32]byte,
 func (_ERC721TokenTest *ERC721TokenTestCaller) SupportsInterface(opts *bind.CallOpts, interfaceId [4]byte) (bool, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "supportsInterface", interfaceId)
-
 	if err != nil {
 		return *new(bool), err
 	}
@@ -433,7 +418,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) SupportsInterface(opts *bind.Call
 	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
 	return out0, err
-
 }
 
 // SupportsInterface is a free data retrieval call binding the contract method 0x01ffc9a7.
@@ -456,7 +440,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) SupportsInterface(interfac
 func (_ERC721TokenTest *ERC721TokenTestCaller) Symbol(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "symbol")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -464,7 +447,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) Symbol(opts *bind.CallOpts) (stri
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -487,7 +469,6 @@ func (_ERC721TokenTest *ERC721TokenTestCallerSession) Symbol() (string, error) {
 func (_ERC721TokenTest *ERC721TokenTestCaller) TokenURI(opts *bind.CallOpts, tokenId *big.Int) (string, error) {
 	var out []interface{}
 	err := _ERC721TokenTest.contract.Call(opts, &out, "tokenURI", tokenId)
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -495,7 +476,6 @@ func (_ERC721TokenTest *ERC721TokenTestCaller) TokenURI(opts *bind.CallOpts, tok
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // TokenURI is a free data retrieval call binding the contract method 0xc87b56dd.
@@ -821,7 +801,6 @@ type ERC721TokenTestAdminChanged struct {
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterAdminChanged(opts *bind.FilterOpts) (*ERC721TokenTestAdminChangedIterator, error) {
-
 	logs, sub, err := _ERC721TokenTest.contract.FilterLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -833,7 +812,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterAdminChanged(opts *bind.F
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchAdminChanged(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestAdminChanged) (event.Subscription, error) {
-
 	logs, sub, err := _ERC721TokenTest.contract.WatchLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -957,7 +935,6 @@ type ERC721TokenTestApproval struct {
 //
 // Solidity: event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterApproval(opts *bind.FilterOpts, owner []common.Address, approved []common.Address, tokenId []*big.Int) (*ERC721TokenTestApprovalIterator, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -982,7 +959,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterApproval(opts *bind.Filte
 //
 // Solidity: event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchApproval(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestApproval, owner []common.Address, approved []common.Address, tokenId []*big.Int) (event.Subscription, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1119,7 +1095,6 @@ type ERC721TokenTestApprovalForAll struct {
 //
 // Solidity: event ApprovalForAll(address indexed owner, address indexed operator, bool approved)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterApprovalForAll(opts *bind.FilterOpts, owner []common.Address, operator []common.Address) (*ERC721TokenTestApprovalForAllIterator, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1140,7 +1115,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterApprovalForAll(opts *bind
 //
 // Solidity: event ApprovalForAll(address indexed owner, address indexed operator, bool approved)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchApprovalForAll(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestApprovalForAll, owner []common.Address, operator []common.Address) (event.Subscription, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1271,7 +1245,6 @@ type ERC721TokenTestBeaconUpgraded struct {
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterBeaconUpgraded(opts *bind.FilterOpts, beacon []common.Address) (*ERC721TokenTestBeaconUpgradedIterator, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1288,7 +1261,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterBeaconUpgraded(opts *bind
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchBeaconUpgraded(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestBeaconUpgraded, beacon []common.Address) (event.Subscription, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1415,7 +1387,6 @@ type ERC721TokenTestInitialized struct {
 //
 // Solidity: event Initialized(uint8 version)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterInitialized(opts *bind.FilterOpts) (*ERC721TokenTestInitializedIterator, error) {
-
 	logs, sub, err := _ERC721TokenTest.contract.FilterLogs(opts, "Initialized")
 	if err != nil {
 		return nil, err
@@ -1427,7 +1398,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterInitialized(opts *bind.Fi
 //
 // Solidity: event Initialized(uint8 version)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestInitialized) (event.Subscription, error) {
-
 	logs, sub, err := _ERC721TokenTest.contract.WatchLogs(opts, "Initialized")
 	if err != nil {
 		return nil, err
@@ -1550,7 +1520,6 @@ type ERC721TokenTestOwnershipTransferred struct {
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*ERC721TokenTestOwnershipTransferredIterator, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -1571,7 +1540,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterOwnershipTransferred(opts
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -1704,7 +1672,6 @@ type ERC721TokenTestTransfer struct {
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterTransfer(opts *bind.FilterOpts, from []common.Address, to []common.Address, tokenId []*big.Int) (*ERC721TokenTestTransferIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1729,7 +1696,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterTransfer(opts *bind.Filte
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestTransfer, from []common.Address, to []common.Address, tokenId []*big.Int) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1864,7 +1830,6 @@ type ERC721TokenTestUpgraded struct {
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterUpgraded(opts *bind.FilterOpts, implementation []common.Address) (*ERC721TokenTestUpgradedIterator, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)
@@ -1881,7 +1846,6 @@ func (_ERC721TokenTest *ERC721TokenTestFilterer) FilterUpgraded(opts *bind.Filte
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_ERC721TokenTest *ERC721TokenTestFilterer) WatchUpgraded(opts *bind.WatchOpts, sink chan<- *ERC721TokenTestUpgraded, implementation []common.Address) (event.Subscription, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)

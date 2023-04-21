@@ -15,7 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	testscontract "github.com/functionx/fx-core/v4/tests/contract"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
 )
 
@@ -73,7 +75,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
-				pack, err := staking.GetABI().Pack(StakingTestApproveSharesName, val.String(), spender.Address(), allowance.BigInt())
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestApproveSharesName, val.String(), spender.Address(), allowance.BigInt())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -82,7 +84,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 		{
 			name: "contract - ok - approve zero",
 			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
-				pack, err := staking.GetABI().Pack(StakingTestApproveSharesName, val.String(), spender.Address(), big.NewInt(0))
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestApproveSharesName, val.String(), spender.Address(), big.NewInt(0))
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -92,7 +94,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 			name: "contract - failed - invalid validator address",
 			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
 				valStr := val.String() + "1"
-				pack, err := staking.GetABI().Pack(StakingTestApproveSharesName, valStr, spender.Address(), allowance.BigInt())
+				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestApproveSharesName, valStr, spender.Address(), allowance.BigInt())
 				suite.Require().NoError(err)
 				return pack, []string{valStr}
 			},

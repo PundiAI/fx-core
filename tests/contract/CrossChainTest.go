@@ -208,7 +208,6 @@ func (_CrossChainTest *CrossChainTestTransactorRaw) Transact(opts *bind.Transact
 func (_CrossChainTest *CrossChainTestCaller) BridgeCoinAmount(opts *bind.CallOpts, _token common.Address, _target [32]byte) (*big.Int, error) {
 	var out []interface{}
 	err := _CrossChainTest.contract.Call(opts, &out, "bridgeCoinAmount", _token, _target)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -216,7 +215,6 @@ func (_CrossChainTest *CrossChainTestCaller) BridgeCoinAmount(opts *bind.CallOpt
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // BridgeCoinAmount is a free data retrieval call binding the contract method 0x8fefb765.
