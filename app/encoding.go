@@ -40,7 +40,6 @@ func MakeEncodingConfig() EncodingConfig {
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
-	registerCryptoEthSecp256k1(encodingConfig.Amino)
 	ethermintcodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	etherminttypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
@@ -49,6 +48,13 @@ func MakeEncodingConfig() EncodingConfig {
 
 	gravitytypes.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
+	registerCryptoEthSecp256k1(encodingConfig.Amino)
+
+	// NOTE: update SDK's amino codec to include the ethsecp256k1 keys.
+	// DO NOT REMOVE unless deprecated on the SDK.
+	legacy.Cdc = encodingConfig.Amino
+	keys.KeysCdc = encodingConfig.Amino
 	return encodingConfig
 }
 
@@ -74,11 +80,6 @@ func makeEncodingConfig() EncodingConfig {
 func registerCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&ethsecp256k1.PubKey{}, ethsecp256k1.PubKeyName, nil)
 	cdc.RegisterConcrete(&ethsecp256k1.PrivKey{}, ethsecp256k1.PrivKeyName, nil)
-
-	// NOTE: update SDK's amino codec to include the ethsecp256k1 keys.
-	// DO NOT REMOVE unless deprecated on the SDK.
-	legacy.Cdc = cdc
-	keys.KeysCdc = cdc
 }
 
 func init() {
@@ -88,6 +89,7 @@ func init() {
 	upgradetypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
 	crosschaintypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
 	erc20types.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+	registerCryptoEthSecp256k1(govv1beta1.ModuleCdc.LegacyAmino)
 
 	// gov v1
 	crosschaintypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
@@ -95,4 +97,5 @@ func init() {
 	upgradetypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
 	fxgovtypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
 	fxevmtypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
+	registerCryptoEthSecp256k1(govv1.ModuleCdc.LegacyAmino)
 }
