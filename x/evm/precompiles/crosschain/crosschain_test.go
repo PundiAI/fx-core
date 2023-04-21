@@ -145,6 +145,42 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			result: true,
 		},
 		{
+			name: "ok - address - origin erc20 token",
+			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
+				moduleName := ethtypes.ModuleName
+				denomAddr := helpers.GenerateAddress().String()
+				alias := fmt.Sprintf("%s%s", moduleName, denomAddr)
+
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, denomAddr, alias)
+
+				token, err := suite.DeployContract(signer.Address())
+				suite.Require().NoError(err)
+
+				suite.MintERC20Token(signer, token, signer.Address(), randMint)
+				balOf := suite.BalanceOf(token, signer.Address())
+				suite.Require().Equal(randMint.String(), balOf.String())
+
+				pair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, token, alias)
+				suite.Require().NoError(err)
+
+				suite.ERC20Approve(signer, token, crosschain.GetAddress(), randMint)
+
+				data, err := crosschain.GetABI().Pack(
+					"crossChain",
+					pair.GetERC20Contract(),
+					helpers.GenerateAddressByModule(moduleName),
+					randMint,
+					big.NewInt(0),
+					fxtypes.MustStrToByte32(moduleName),
+					"",
+				)
+				suite.Require().NoError(err)
+
+				return data, pair, big.NewInt(0), moduleName, nil
+			},
+			result: true,
+		},
+		{
 			name: "ok - address - wrapper origin token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
