@@ -3,7 +3,7 @@
 Installation:
 
 ```shell
-git config core.hooksPath develop/githooks
+git config core.hooksPath contrib/githooks/precommit
 ```
 
 ## pre-commit
