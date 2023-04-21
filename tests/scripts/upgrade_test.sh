@@ -2,9 +2,14 @@
 
 set -eo pipefail
 
-JSON_RPC="http://127.0.0.1:26657"
+JSON_RPC=${JSON_RPC:-"http://127.0.0.1:26657"}
+out_dir=$(mktemp -d)
+function clean() {
+  rm -rf "$out_dir"
+}
+trap clean EXIT
 
-cat <<EOF >register_coin.json
+cat <<EOF >"$out_dir"/register_coin.json
 {
   "description": "Cross chain token of Function X",
   "denom_units": [
@@ -27,31 +32,29 @@ cat <<EOF >register_coin.json
 EOF
 
 ## register-coin
-fxcored tx gov submit-legacy-proposal register-coin `pwd`/register_coin.json  --title "Register test" \
---description "This proposal creates and registers an ERC20 representation of test that can be bridged cross chains" \
---deposit 10000000000000000000000FX --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}"
+fxcored tx gov submit-legacy-proposal register-coin "$out_dir"/register_coin.json --title "Register test" \
+  --description "This proposal creates and registers an ERC20 representation of test that can be bridged cross chains" \
+  --deposit 10000000000000000000000FX --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}"
 
-for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"Register test","summary":"This proposal creates and registers an ERC20 representation of test that can be bridged cross chains","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"Register test","summary":"This proposal creates and registers an ERC20 representation of test that can be bridged cross chains","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
 done
 
-fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.4 --from fx1 -y --node "${JSON_RPC}" 
-
-rm -r `pwd`/register_coin.json
+fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.4 --from fx1 -y --node "${JSON_RPC}"
 
 sleep 20
 
 ## update-denom-alias
 fxcored tx gov submit-legacy-proposal update-denom-alias test bsc0x0000000000000000000000000000000000000000 --title "update denom alias" \
---description "This proposal update denom alias" --deposit 10000000000000000000000FX --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}"
+  --description "This proposal update denom alias" --deposit 10000000000000000000000FX --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}"
 
-for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update denom alias","summary":"This proposal update denom alias","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update denom alias","summary":"This proposal update denom alias","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
 done
 
@@ -61,12 +64,12 @@ sleep 1
 
 ## toggle token conversion
 fxcored tx gov submit-legacy-proposal toggle-token-conversion test --title "toggle token conversion" --description "This proposal toggle token conversion" \
---deposit 10000000000000000000000FX --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "tcp://127.0.0.1:26657"
+  --deposit 10000000000000000000000FX --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "tcp://127.0.0.1:26657"
 
-for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"toggle token conversion","summary":"This proposal toggle token conversion","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"toggle token conversion","summary":"This proposal toggle token conversion","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
 done
 
@@ -74,7 +77,7 @@ fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto
 
 sleep 3
 
-cat <<EOF >msg_register_coin.json
+cat <<EOF >"$out_dir"/msg_register_coin.json
 {
   "messages": [
     {
@@ -89,22 +92,20 @@ cat <<EOF >msg_register_coin.json
 EOF
 
 ## register-coin
-fxcored tx gov submit-proposal `pwd`/msg_register_coin.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
+fxcored tx gov submit-proposal "$out_dir"/msg_register_coin.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
 
-for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"Register test2","summary":"Register test2","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"Register test2","summary":"Register test2","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
 done
 
 fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.4 --from fx1 -y --node "${JSON_RPC}"
 
-rm -r `pwd`/msg_register_coin.json
-
 sleep 20
 
-cat<<EOF >many_msg.json
+cat <<EOF >"$out_dir"/many_msg.json
 {
   "messages": [
     {
@@ -131,22 +132,20 @@ cat<<EOF >many_msg.json
 }
 EOF
 
-fxcored tx gov submit-proposal `pwd`/many_msg.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
+fxcored tx gov submit-proposal "$out_dir"/many_msg.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
 
-  for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"many msg","summary":"many msg","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"many msg","summary":"many msg","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
-  done
+done
 
 fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.4 --from fx1 -y --node "${JSON_RPC}"
 
-rm -r `pwd`/many_msg.json
-
 sleep 2
 
-cat<<EOF >updateCrosschainParams.json
+cat <<EOF >"$out_dir"/updateCrosschainParams.json
 {
     "messages":[
         {
@@ -185,21 +184,19 @@ cat<<EOF >updateCrosschainParams.json
 }
 EOF
 
-fxcored tx gov submit-proposal `pwd`/updateCrosschainParams.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
-  for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+fxcored tx gov submit-proposal "$out_dir"/updateCrosschainParams.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update Crosschain Params","summary":"update Crosschain Params","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update Crosschain Params","summary":"update Crosschain Params","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
-  done
+done
 
 fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.4 --from fx1 -y --node "${JSON_RPC}"
 
-rm -r `pwd`/updateCrosschainParams.json
-
 sleep 2
 
-cat<<EOF >updateERC20Params.json
+cat <<EOF >"$out_dir"/updateERC20Params.json
 {
     "messages":[
         {
@@ -213,21 +210,19 @@ cat<<EOF >updateERC20Params.json
 }
 EOF
 
-fxcored tx gov submit-proposal `pwd`/updateERC20Params.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
-  for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+fxcored tx gov submit-proposal "$out_dir"/updateERC20Params.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update erc20 Params","summary":"update erc20 Params","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update erc20 Params","summary":"update erc20 Params","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
-  done
+done
 
 fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.4 --from fx1 -y --node "${JSON_RPC}"
 
-rm -r `pwd`/updateERC20Params.json
-
 sleep 2
 
-cat <<EOF >updateGovParams.json
+cat <<EOF >"$out_dir"/updateGovParams.json
 {
     "messages":[
         {
@@ -251,27 +246,25 @@ cat <<EOF >updateGovParams.json
 }
 EOF
 
-fxcored tx gov submit-proposal `pwd`/updateGovParams.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
-  for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do 
+fxcored tx gov submit-proposal "$out_dir"/updateGovParams.json --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.3 --from fx1 -y --node "${JSON_RPC}" --chain-id fxcore
+for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
   messages=$(fxcored query gov proposal "${proposal_id}" -o json)
-  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update gov Params","summary":"update gov Params","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]];then
-    break 
+  if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$(echo '{"title":"update gov Params","summary":"update gov Params","metadata":""}' | base64)" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    break
   fi
-  done
+done
 
 fxcored tx gov vote "${proposal_id}" yes --gas-prices=4000000000000FX --gas=auto --gas-adjustment=1.4 --from fx1 -y --node "${JSON_RPC}"
 
-rm -r `pwd`/updateGovParams.json
-
 sleep 2
 
-## migrated parameter query 
+## migrated parameter query
 echo ''
 
 echo 'Query the parameter values after migration of each module...'
 echo "erc20 params: $(fxcored q erc20 params --node "${JSON_RPC}" | jq .)"
 echo ''
-echo "eth params: $(fxcored q crosschain eth params --node "${JSON_RPC}" | jq .)" 
+echo "eth params: $(fxcored q crosschain eth params --node "${JSON_RPC}" | jq .)"
 echo ''
 echo "bsc params: $(fxcored q crosschain bsc params --node "${JSON_RPC}" | jq .)"
 echo ''

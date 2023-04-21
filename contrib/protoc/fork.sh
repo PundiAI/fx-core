@@ -7,13 +7,13 @@ VERSION=$(buf --version)
 echo "buf version: $VERSION"
 
 if [ -z "$BUF_NAME" ]; then
-  echo "buf name not found, please set BUF_NAME";
-  exit 1;
+  echo "buf name not found, please set BUF_NAME"
+  exit 1
 fi
 
 if [ -z "$BUF_TOKEN" ]; then
-  echo "buf token not found, please set BUF_TOKEN";
-  exit 1;
+  echo "buf token not found, please set BUF_TOKEN"
+  exit 1
 fi
 
 if [ -z "$BUF_ORG" ]; then
@@ -22,7 +22,7 @@ if [ -z "$BUF_ORG" ]; then
 fi
 
 echo "buf registry login $BUF_NAME with ******"
-echo "$BUF_TOKEN"|buf registry login --username "$BUF_NAME" --token-stdin
+echo "$BUF_TOKEN" | buf registry login --username "$BUF_NAME" --token-stdin
 
 #read -rp "Are you sure $BUF_NAME want to push proto to $BUF_ORG? [y/N] " input
 #if [[ "$input" != "y" && "$input" != "Y" ]]; then
@@ -31,11 +31,9 @@ echo "$BUF_TOKEN"|buf registry login --username "$BUF_NAME" --token-stdin
 
 echo "USER $BUF_NAME push proto to $BUF_ORG ..."
 
-
 if [ ! -d build/fork ]; then
   mkdir -p build/fork
 fi
-
 
 # download cosmos-sdk proto
 commit_hash=$(go list -m -f '{{.Version}}' github.com/cosmos/cosmos-sdk)

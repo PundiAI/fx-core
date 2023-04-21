@@ -9,7 +9,7 @@ fx_deps=""
 fx_deps="${fx_deps} buf.build/functionx/cosmos-sdk:$(go list -m -f '{{.Version}}' github.com/cosmos/cosmos-sdk)"
 fx_deps="${fx_deps} buf.build/functionx/ethermint:$(go list -m -f '{{.Version}}' github.com/evmos/ethermint)"
 fx_deps="${fx_deps} buf.build/functionx/ibc:$(go list -m -f '{{.Version}}' github.com/cosmos/ibc-go/v6)"
-for dep in $fx_deps ; do
+for dep in $fx_deps; do
   echo "$dep downloading..."
   buf export "$dep" --output third_party/proto --exclude-imports
 done

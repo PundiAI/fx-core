@@ -8,8 +8,8 @@ set -eo pipefail
 mkdir -p "$SWAGGER_DIR/proto"
 mkdir -p "$SWAGGER_DIR/third_party"
 
-printf "version: v1\ndirectories:\n  - proto\n  - third_party" > "$SWAGGER_DIR/buf.work.yaml"
-printf "version: v1\nname: buf.build/functionx/fx-core\n" > "$SWAGGER_DIR/proto/buf.yaml"
+printf "version: v1\ndirectories:\n  - proto\n  - third_party" >"$SWAGGER_DIR/buf.work.yaml"
+printf "version: v1\nname: buf.build/functionx/fx-core\n" >"$SWAGGER_DIR/proto/buf.yaml"
 cp ./proto/buf.gen.swagger.yaml "$SWAGGER_DIR/proto/buf.gen.swagger.yaml"
 
 # copy existing proto files
@@ -22,11 +22,10 @@ fx_deps="${fx_deps} buf.build/functionx/cosmos-sdk:$(go list -m -f '{{.Version}}
 fx_deps="${fx_deps} buf.build/functionx/ethermint:$(go list -m -f '{{.Version}}' github.com/evmos/ethermint)"
 fx_deps="${fx_deps} buf.build/functionx/ibc:$(go list -m -f '{{.Version}}' github.com/cosmos/ibc-go/v6)"
 echo "download fx-core proto deps ..."
-for dep in $fx_deps ; do
+for dep in $fx_deps; do
   echo "$dep downloading..."
   buf export "$dep" --output "$SWAGGER_DIR/third_party" --exclude-imports
 done
-
 
 # create temporary folder to store intermediate results from `buf generate`
 mkdir -p ./tmp-swagger-gen

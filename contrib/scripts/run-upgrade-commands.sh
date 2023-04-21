@@ -29,9 +29,9 @@ if test -f "$BINARY"; then
   echo "wait 3 seconds for blockchain to start"
   sleep 3
 
-	$BINARY config chain-id $CHAINID --home "$NODE_HOME"
-	$BINARY config output json --home "$NODE_HOME"
-	$BINARY config keyring-backend test --home "$NODE_HOME"
+  $BINARY config chain-id $CHAINID --home "$NODE_HOME"
+  $BINARY config output json --home "$NODE_HOME"
+  $BINARY config keyring-backend test --home "$NODE_HOME"
   $BINARY config node tcp://localhost:26657 --home "$NODE_HOME"
   $BINARY config broadcast-mode block --home "$NODE_HOME"
   $BINARY config --home "$NODE_HOME"
@@ -44,26 +44,25 @@ if test -f "$BINARY"; then
 
   # $BINARY keys list --home $NODE_HOME
 
-  upgrade_height=`expr $($BINARY status -o json | jq -r '.SyncInfo.latest_block_height|tonumber') + ${UPGRADE_HEIGHT}`
+  upgrade_height="$(("$($BINARY status -o json | jq -r '.SyncInfo.latest_block_height|tonumber')" + "$UPGRADE_HEIGHT"))"
   printf "\n"
   echo "Upgrade Height = ${upgrade_height}"
   printf "Submitting proposal... \n"
   $BINARY tx gov submit-proposal software-upgrade fxv4 \
-  --title fxv4 \
-  --deposit "$($BINARY q gov params | jq -r '.deposit_params.min_deposit[0].amount')FX" \
-  --upgrade-height "${upgrade_height}" \
-  --upgrade-info "upgrade to fxv4" \
-  --description "upgrade to fxv4" \
-  --gas auto \
-  --gas-prices 4000000000000FX \
-  --gas-adjustment=1.3 \
-  --from fx1 \
-  --home "${NODE_HOME}" \
-  --yes
+    --title fxv4 \
+    --deposit "$($BINARY q gov params | jq -r '.deposit_params.min_deposit[0].amount')FX" \
+    --upgrade-height "${upgrade_height}" \
+    --upgrade-info "upgrade to fxv4" \
+    --description "upgrade to fxv4" \
+    --gas auto \
+    --gas-prices 4000000000000FX \
+    --gas-adjustment=1.3 \
+    --from fx1 \
+    --home "${NODE_HOME}" \
+    --yes
   printf "Done \n"
 
   printf "Casting vote... \n"
-
 
   if [ -z "$proposal_id" ]; then
     proposal_id=$($BINARY q gov proposals --status=voting_period | jq -r '.proposals[0].proposal_id')
@@ -72,12 +71,11 @@ if test -f "$BINARY"; then
   echo "Vote ProposalID  =  ${proposal_id}"
 
   $BINARY tx gov vote "${proposal_id}" yes \
-  --gas auto \
-  --gas-prices 4000000000000FX\
-  --gas-adjustment=1.3 \
-  --from fx1 \
-  --home "${NODE_HOME}" \
-  --yes
+    --gas auto \
+    --gas-prices 4000000000000FX --gas-adjustment=1.3 \
+    --from fx1 \
+    --home "${NODE_HOME}" \
+    --yes
 
   printf "Done \n"
 

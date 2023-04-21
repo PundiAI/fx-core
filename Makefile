@@ -157,12 +157,12 @@ format-goimports:
 
 lint-shell:
 	# install shellcheck > https://github.com/koalaman/shellcheck
-	grep -r '^#!/usr/bin/env bash' ./scripts | cut -d: -f1 | xargs shellcheck
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build}  . | cut -d: -f1 | xargs shellcheck
 
 format-shell:
 	# install shfmt > https://github.com/mvdan/sh
 	go install mvdan.cc/sh/v3/cmd/shfmt@v3.6.0
-	grep -r '^#!/usr/bin/env bash' ./scripts | cut -d: -f1 | xargs shfmt -l -w -i 2
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build}  . | cut -d: -f1 | xargs shfmt -l -w -i 2
 
 .PHONY: format lint format-goimports lint-shell
 

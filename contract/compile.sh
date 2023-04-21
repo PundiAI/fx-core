@@ -36,9 +36,9 @@ for contract in "${contracts[@]}"; do
   jq -c '.abi' "$file_path" >"$project_dir/contract/artifacts/${contract}.abi"
   jq -r '.bytecode' "$file_path" >"$project_dir/contract/artifacts/${contract}.bin"
   abigen --abi "$project_dir/contract/artifacts/${contract}.abi" \
-        --bin "$project_dir/contract/artifacts/${contract}.bin" \
-        --type "${contract}" --pkg contract \
-        --out "$project_dir/contract/${contract}.go"
+    --bin "$project_dir/contract/artifacts/${contract}.bin" \
+    --type "${contract}" --pkg contract \
+    --out "$project_dir/contract/${contract}.go"
 done
 
 rm -rf "$project_dir/contract/artifacts"
