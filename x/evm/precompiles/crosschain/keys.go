@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	FIP20CrossChainGas      = 40000 // 80000 - 160000
-	CrossChainGas           = 40000 // 70000 - 155000
-	CancelSendToExternalGas = 30000 // 70000 - 126000
-	IncreaseBridgeFeeGas    = 40000 // 70000 - 140000
-	BridgeCoinAmountFeeGas  = 10000
+	FIP20CrossChainGas      = 40_000 // 80000 - 160000
+	CrossChainGas           = 40_000 // 70000 - 155000
+	CancelSendToExternalGas = 30_000 // 70000 - 126000
+	IncreaseBridgeFeeGas    = 40_000 // 70000 - 140000
+	BridgeCoinAmountFeeGas  = 10_000 // 9000
 
 	FIP20CrossChainMethodName      = "fip20CrossChain"
 	CrossChainMethodName           = "crossChain"
