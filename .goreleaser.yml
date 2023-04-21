@@ -1,6 +1,6 @@
 before:
   hooks:
-  - go mod download
+    - go mod download
 
 builds:
   - id: "fxcore-darwin"
@@ -81,29 +81,39 @@ builds:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
 
 archives:
-- name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
-  replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    amd64: x86_64
-  format_overrides:
-    - goos: windows
-      format: zip
-  builds:
-  - fxcore-darwin
-  - fxcore-darwin-arm64
-  - fxcore-windows
-  - fxcore-linux
-  - fxcore-linux-arm64
-  
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    builds:
+      - fxcore-darwin
+      - fxcore-darwin-arm64
+      - fxcore-windows
+      - fxcore-linux
+      - fxcore-linux-arm64
+
 checksum:
   name_template: 'checksums.txt'
-changelog:
-  sort: asc
-  filters:
-    exclude:
-    - '^docs:'
-    - '^test:'
+
+release:
+  draft: true
+  replace_existing_draft: true
+  prerelease: auto
+  mode: keep-existing
+  header: |
+    # fxCore {{ .Tag }} Release Notes
+    
+    ## ChangeLog
+    * See [CHANGELOG.md](https://github.com/FunctionX/fx-core/blob/release/{{ .Tag }}/CHANGELOG.md) for details.
+
+    ## Docker Images
+    * fxcore: `ghcr.io/functionx/fx-core:{{ .Version }}`
+    * cosmovisor: `ghcr.io/functionx/fxcorevisor:{{ .Version }}`
+
 snapshot:
   name_template: "{{ .Tag }}-next"

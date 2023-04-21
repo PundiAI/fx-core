@@ -4,8 +4,8 @@ build
 .vscode
 .DS_Store
 github.com
-docker-compose.yml
-testnet
+/docker-compose.yml
+/testnet
 dependency-graph.png
 debug.sh
 artifacts
