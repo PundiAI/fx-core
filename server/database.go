@@ -4,7 +4,7 @@ import (
 	"errors"
 	"path/filepath"
 
-	"github.com/cometbft/cometbft-db"
+	cmtdbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -22,9 +22,18 @@ import (
 
 var genesisDocNotFoundError = errors.New("genesis doc not found")
 
+type Blockchain interface {
+	GetChainId() (string, error)
+	GetBlockHeight() (int64, error)
+	GetSyncing() (bool, error)
+	GetNodeInfo() (*tmservice.VersionInfo, error)
+	CurrentPlan() (*upgradetypes.Plan, error)
+	GetValidators() ([]stakingtypes.Validator, error)
+}
+
 type Database struct {
 	blockStore *store.BlockStore
-	stateDB    db.DB
+	stateDB    cmtdbm.DB
 	stateStore sm.Store
 	appDB      dbm.DB
 	appStore   *rootmulti.Store
@@ -32,16 +41,16 @@ type Database struct {
 	codec      codec.Codec
 }
 
-func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (*Database, error) {
+func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (Blockchain, error) {
 	dataDir := filepath.Join(rootDir, "data")
 
-	blockStoreDB, err := db.NewDB(BlockDBName, db.BackendType(dbType), dataDir)
+	blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(dbType), dataDir)
 	if err != nil {
 		return nil, err
 	}
 	blockStore := store.NewBlockStore(blockStoreDB)
 
-	stateDB, err := db.NewDB(StateDBName, db.BackendType(dbType), dataDir)
+	stateDB, err := cmtdbm.NewDB(StateDBName, cmtdbm.BackendType(dbType), dataDir)
 	if err != nil {
 		return nil, err
 	}

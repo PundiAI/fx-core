@@ -13,12 +13,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	cosmosserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/spf13/cobra"
@@ -172,16 +170,7 @@ func checkUpgradeInfo(homeDir string) (*upgradetypes.Plan, error) {
 	return upgradeInfo, nil
 }
 
-type blockchain interface {
-	GetChainId() (string, error)
-	GetBlockHeight() (int64, error)
-	GetSyncing() (bool, error)
-	GetNodeInfo() (*tmservice.VersionInfo, error)
-	CurrentPlan() (*upgradetypes.Plan, error)
-	GetValidators() ([]stakingtypes.Validator, error)
-}
-
-func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (blockchain, error) {
+func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (server.Blockchain, error) {
 	fmt.Println("Blockchain Data:")
 	newClient := grpc.NewClient(cliCtx)
 	_, err := newClient.GetBlockHeight()
@@ -203,7 +192,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (bloc
 }
 
 //gocyclo:ignore
-func checkBlockchainData(n blockchain, network, privValidatorKeyFile string, upgradeInfo *upgradetypes.Plan) (bool, error) {
+func checkBlockchainData(n server.Blockchain, network, privValidatorKeyFile string, upgradeInfo *upgradetypes.Plan) (bool, error) {
 	if n == nil {
 		return false, nil
 	}
@@ -327,7 +316,7 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 	return nil
 }
 
-func checkCosmovisor(rootPath string, n blockchain) error {
+func checkCosmovisor(rootPath string, n server.Blockchain) error {
 	cosmovisorPath := filepath.Join(rootPath, "cosmovisor")
 	exist, isDir, err := checkDirFile(cosmovisorPath)
 	if err != nil {
@@ -452,7 +441,7 @@ func checkCosmovisorUpgrade(path, t string) *upgradetypes.Plan {
 	return nil
 }
 
-func checkCosmovisorCurrentVersion(upgradePlans []*upgradetypes.Plan, n blockchain) error {
+func checkCosmovisorCurrentVersion(upgradePlans []*upgradetypes.Plan, n server.Blockchain) error {
 	sort.SliceStable(upgradePlans, func(i, j int) bool {
 		return upgradePlans[i].Height < upgradePlans[j].Height
 	})

@@ -38,7 +38,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/node"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
-	db "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
 	fxcfg "github.com/functionx/fx-core/v4/server/config"
@@ -222,7 +222,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 	for i := 0; i < cfg.NumValidators; i++ {
 		srvCtx := server.NewDefaultContext()
 		srvCtx.Logger = log.NewNopLogger()
-		srvCtx.Config.DBBackend = string(db.MemDBBackend)
+		srvCtx.Config.DBBackend = string(dbm.MemDBBackend)
 		if cfg.NumValidators == 1 {
 			srvCtx.Config.Consensus = tmcfg.TestConsensusConfig()
 		}

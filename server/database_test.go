@@ -22,10 +22,12 @@ func TestDatabase(t *testing.T) {
 	config := cfg.ResetTestRoot("blockchain_database_test")
 	defer os.RemoveAll(config.RootDir)
 
-	database, err := server.NewDatabase(config.RootDir, string(dbm.GoLevelDBBackend), cdc.Codec)
+	db, err := server.NewDatabase(config.RootDir, string(dbm.GoLevelDBBackend), cdc.Codec)
 	require.NoError(t, err)
-	defer database.Close()
+	database, ok := db.(*server.Database)
+	require.True(t, ok)
 
+	defer database.Close()
 	_, err = database.GetChainId()
 	require.Errorf(t, err, errors.New("not found chain id").Error())
 

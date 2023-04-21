@@ -178,7 +178,7 @@ func (cli *Client) AppVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return info.ApplicationVersion.Version, nil
+	return info.GetApplicationVersion().GetVersion(), nil
 }
 
 func (cli *Client) QueryAccount(address string) (authtypes.AccountI, error) {
@@ -203,7 +203,7 @@ func (cli *Client) QueryBalance(address string, denom string) (sdk.Coin, error) 
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-	return *response.Balance, nil
+	return *response.GetBalance(), nil
 }
 
 func (cli *Client) QueryBalances(address string) (sdk.Coins, error) {
@@ -213,7 +213,7 @@ func (cli *Client) QueryBalances(address string) (sdk.Coins, error) {
 	if err != nil {
 		return nil, err
 	}
-	return response.Balances, nil
+	return response.GetBalances(), nil
 }
 
 func (cli *Client) QuerySupply() (sdk.Coins, error) {
@@ -221,7 +221,7 @@ func (cli *Client) QuerySupply() (sdk.Coins, error) {
 	if err != nil {
 		return nil, err
 	}
-	return response.Supply, nil
+	return response.GetSupply(), nil
 }
 
 func (cli *Client) GetMintDenom() (string, error) {
@@ -229,7 +229,7 @@ func (cli *Client) GetMintDenom() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return response.Params.MintDenom, nil
+	return response.GetParams().MintDenom, nil
 }
 
 func (cli *Client) GetStakingDenom() (string, error) {
@@ -237,7 +237,7 @@ func (cli *Client) GetStakingDenom() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return response.Params.BondDenom, nil
+	return response.GetParams().BondDenom, nil
 }
 
 func (cli *Client) GetBlockHeight() (int64, error) {
@@ -245,7 +245,7 @@ func (cli *Client) GetBlockHeight() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return response.SdkBlock.Header.Height, nil
+	return response.GetSdkBlock().GetHeader().Height, nil
 }
 
 func (cli *Client) GetChainId() (string, error) {
@@ -256,7 +256,7 @@ func (cli *Client) GetChainId() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return response.SdkBlock.Header.ChainID, nil
+	return response.GetSdkBlock().GetHeader().ChainID, nil
 }
 
 func (cli *Client) GetBlockTimeInterval() (time.Duration, error) {
@@ -265,16 +265,16 @@ func (cli *Client) GetBlockTimeInterval() (time.Duration, error) {
 	if err != nil {
 		return 0, err
 	}
-	if response1.SdkBlock.Header.Height <= 1 {
+	if response1.GetSdkBlock().GetHeader().Height <= 1 {
 		return 0, fmt.Errorf("please try again later, the current block height is less than 1")
 	}
 	response2, err := tmClient.GetBlockByHeight(cli.ctx, &tmservice.GetBlockByHeightRequest{
-		Height: response1.SdkBlock.Header.Height - 1,
+		Height: response1.GetSdkBlock().GetHeader().Height - 1,
 	})
 	if err != nil {
 		return 0, err
 	}
-	return response1.SdkBlock.Header.Time.Sub(response2.SdkBlock.Header.Time), nil
+	return response1.GetSdkBlock().GetHeader().Time.Sub(response2.GetSdkBlock().GetHeader().Time), nil
 }
 
 func (cli *Client) GetLatestBlock() (*tmservice.Block, error) {
@@ -282,7 +282,7 @@ func (cli *Client) GetLatestBlock() (*tmservice.Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	return response.SdkBlock, nil
+	return response.GetSdkBlock(), nil
 }
 
 func (cli *Client) GetBlockByHeight(blockHeight int64) (*tmservice.Block, error) {
@@ -292,7 +292,7 @@ func (cli *Client) GetBlockByHeight(blockHeight int64) (*tmservice.Block, error)
 	if err != nil {
 		return nil, err
 	}
-	return response.SdkBlock, nil
+	return response.GetSdkBlock(), nil
 }
 
 func (cli *Client) GetStatusByTx(txHash string) (*tx.GetTxResponse, error) {
@@ -325,10 +325,10 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if len(response.Validators) <= 0 {
+	if len(response.GetValidators()) <= 0 {
 		return "", errors.New("no found validator")
 	}
-	prefix, _, err := bech32.DecodeAndConvert(response.Validators[0].Address)
+	prefix, _, err := bech32.DecodeAndConvert(response.GetValidators()[0].GetAddress())
 	if err != nil {
 		return "", err
 	}
@@ -352,7 +352,7 @@ func (cli *Client) GetNodeInfo() (*tmservice.VersionInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return response.ApplicationVersion, nil
+	return response.GetApplicationVersion(), nil
 }
 
 func (cli *Client) CurrentPlan() (*upgradetypes.Plan, error) {
@@ -360,7 +360,7 @@ func (cli *Client) CurrentPlan() (*upgradetypes.Plan, error) {
 	if err != nil {
 		return nil, err
 	}
-	return response.Plan, nil
+	return response.GetPlan(), nil
 }
 
 func (cli *Client) GetValidators() ([]stakingtypes.Validator, error) {
@@ -380,7 +380,7 @@ func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return response.GasInfo, nil
+	return response.GetGasInfo(), nil
 }
 
 func (cli *Client) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
@@ -422,7 +422,7 @@ func (cli *Client) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.
 	if err != nil {
 		return nil, err
 	}
-	return broadcastTxResponse.TxResponse, nil
+	return broadcastTxResponse.GetTxResponse(), nil
 }
 
 func (cli *Client) BroadcastTxBytes(txBytes []byte, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
@@ -444,7 +444,7 @@ func (cli *Client) BroadcastTxBytes(txBytes []byte, mode ...tx.BroadcastMode) (*
 	if err != nil {
 		return nil, err
 	}
-	return broadcastTxResponse.TxResponse, nil
+	return broadcastTxResponse.GetTxResponse(), nil
 }
 
 func (cli *Client) TxByHash(txHash string) (*sdk.TxResponse, error) {
@@ -452,7 +452,7 @@ func (cli *Client) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.TxResponse, nil
+	return resp.GetTxResponse(), nil
 }
 
 func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
@@ -489,8 +489,8 @@ func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLim
 	if err != nil {
 		return nil, err
 	}
-	if estimatingGas.GasUsed > uint64(gasLimit) {
-		gasLimit = int64(estimatingGas.GasUsed) + (int64(estimatingGas.GasUsed) * 2 / 10)
+	if estimatingGas.GetGasUsed() > uint64(gasLimit) {
+		gasLimit = int64(estimatingGas.GetGasUsed()) + (int64(estimatingGas.GetGasUsed()) * 2 / 10)
 	}
 	return client.BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
 }
