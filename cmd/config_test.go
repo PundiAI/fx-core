@@ -11,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	tmcfg "github.com/tendermint/tendermint/config"
 
@@ -55,7 +57,7 @@ func TestPublicTmConfig(t *testing.T) {
 	defer assert.NoError(t, os.RemoveAll(tempDir))
 	assert.NoError(t, os.MkdirAll(tempDir, 0o700))
 
-	serverCtx := server.NewDefaultContext()
+	serverCtx := server.NewContext(viper.New(), fxcfg.DefaultTendermintConfig(), server.ZeroLogWrapper{Logger: log.Logger})
 	fileName := fmt.Sprintf("%s/config.toml", t.TempDir())
 	serverCtx.Config.BaseConfig.Moniker = "your-moniker"
 	serverCtx.Config.Consensus.TimeoutCommit = 5 * time.Second
