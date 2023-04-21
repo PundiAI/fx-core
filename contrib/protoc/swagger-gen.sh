@@ -2,6 +2,7 @@
 SWAGGER_DIR=./swagger-proto
 
 set -eo pipefail
+#set -x
 
 # prepare swagger generation
 mkdir -p "$SWAGGER_DIR/proto"
@@ -16,6 +17,10 @@ cp -r ./proto/fx "$SWAGGER_DIR/proto"
 
 # download fx proto deps
 fx_deps=$(awk '/^[^ ]/{ f=/^deps:/; next } f{ if (sub(/:$/,"")) deps=$2; else print $2 }' proto/buf.yaml)
+# add fork proto deps
+fx_deps="${fx_deps} buf.build/functionx/cosmos-sdk:$(go list -m -f '{{.Version}}' github.com/cosmos/cosmos-sdk)"
+fx_deps="${fx_deps} buf.build/functionx/ethermint:$(go list -m -f '{{.Version}}' github.com/evmos/ethermint)"
+fx_deps="${fx_deps} buf.build/functionx/ibc:$(go list -m -f '{{.Version}}' github.com/cosmos/ibc-go/v6)"
 echo "download fx-core proto deps ..."
 for dep in $fx_deps ; do
   echo "$dep downloading..."
