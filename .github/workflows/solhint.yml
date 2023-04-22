@@ -15,6 +15,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-      - run: npm install -g solhint
-      - run: solhint --version
-      - run: cd solidity && solhint 'contracts/**/*.sol'
+      - run: cd solidity && yarn install && yarn lint:sol
