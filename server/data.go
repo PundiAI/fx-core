@@ -31,7 +31,7 @@ const (
 func DataCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "data",
-		Short: "modify data or query data in database",
+		Short: "Modify data or query data in database",
 	}
 
 	cmd.AddCommand(
