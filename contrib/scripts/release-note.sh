@@ -27,5 +27,5 @@ echo "writing release note for version $version"
 cat <<EOF >./release-note.md
 ## ChangeLog
 $changelog
-* See [CHANGELOG.md](https://github.com/FunctionX/fx-core/blob/release/$version/CHANGELOG.md) for details.
+* See [CHANGELOG.md](https://github.com/FunctionX/fx-core/blob/$version/CHANGELOG.md) for details.
 EOF
