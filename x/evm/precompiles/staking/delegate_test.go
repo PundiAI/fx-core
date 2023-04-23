@@ -282,3 +282,36 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 		})
 	}
 }
+
+func (suite *PrecompileTestSuite) TestDelegateCompare() {
+	vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
+	val := vals[0]
+	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
+	signer1 := suite.RandSigner()
+	signer2 := suite.RandSigner()
+
+	helpers.AddTestAddr(suite.app, suite.ctx, signer1.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+
+	// signer1 chain delegate to val
+	shares1, err := suite.app.StakingKeeper.Delegate(suite.ctx, signer1.AccAddress(), delAmount, stakingtypes.Unbonded, val, true)
+	suite.Require().NoError(err)
+
+	// signer2 evm delegate to val
+	shares2 := suite.PrecompileStakingDelegate(signer2, val.GetOperator(), delAmount.BigInt())
+
+	// shares1 should equal shares2
+	suite.Require().EqualValues(shares1.TruncateInt().BigInt(), shares2)
+
+	// generate block
+	suite.Commit()
+
+	// signer1 chain withdraw
+	rewards1, err := suite.app.DistrKeeper.WithdrawDelegationRewards(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	suite.Require().NoError(err)
+
+	// signer2 evm withdraw
+	rewards2 := suite.PrecompileStakingWithdraw(signer2, val.GetOperator())
+
+	// rewards1 should equal rewards2
+	suite.Require().EqualValues(rewards1.AmountOf(fxtypes.DefaultDenom).BigInt(), rewards2)
+}

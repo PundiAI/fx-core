@@ -298,3 +298,107 @@ func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spende
 	suite.Require().NoError(err)
 	return pack, shares, nil
 }
+
+func (suite *PrecompileTestSuite) PrecompileStakingDelegation(val sdk.ValAddress, del common.Address) (*big.Int, *big.Int) {
+	var res struct {
+		Shares *big.Int `abi:"_shares"`
+		Amount *big.Int `abi:"_delegateAmount"`
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, del, staking.GetAddress(), staking.GetABI(),
+		staking.DelegationMethodName, &res, val.String(), del)
+	suite.Require().NoError(err)
+	return res.Shares, res.Amount
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingDelegate(signer *helpers.Signer, val sdk.ValAddress, amt *big.Int) *big.Int {
+	helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amt))))
+	pack, err := staking.GetABI().Pack(staking.DelegateMethodName, val.String())
+	suite.Require().NoError(err)
+	tx, err := suite.PackEthereumTx(signer, staking.GetAddress(), amt, pack)
+	suite.Require().NoError(err)
+
+	_, amountBefore := suite.PrecompileStakingDelegation(val, signer.Address())
+
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+	suite.Require().NoError(err)
+	suite.Require().False(res.Failed(), res.VmError)
+
+	shares, amount := suite.PrecompileStakingDelegation(val, signer.Address())
+	suite.Require().Equal(amt.String(), big.NewInt(0).Sub(amount, amountBefore).String())
+	return shares
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingWithdraw(signer *helpers.Signer, val sdk.ValAddress) *big.Int {
+	balanceBefore := suite.app.EvmKeeper.GetBalance(suite.ctx, signer.Address())
+	pack, err := staking.GetABI().Pack(staking.WithdrawMethodName, val.String())
+	suite.Require().NoError(err)
+	tx, err := suite.PackEthereumTx(signer, staking.GetAddress(), big.NewInt(0), pack)
+	suite.Require().NoError(err)
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+	suite.Require().NoError(err)
+	suite.Require().False(res.Failed(), res.VmError)
+	balanceAfter := suite.app.EvmKeeper.GetBalance(suite.ctx, signer.Address())
+	rewards := big.NewInt(0).Sub(balanceAfter, balanceBefore)
+	return rewards
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingTransferShares(signer *helpers.Signer, val sdk.ValAddress, receipt common.Address, shares *big.Int) (*big.Int, *big.Int) {
+	balanceBefore := suite.app.EvmKeeper.GetBalance(suite.ctx, signer.Address())
+	pack, err := staking.GetABI().Pack(staking.TransferSharesMethodName, val.String(), receipt, shares)
+	suite.Require().NoError(err)
+	tx, err := suite.PackEthereumTx(signer, staking.GetAddress(), big.NewInt(0), pack)
+	suite.Require().NoError(err)
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+	suite.Require().NoError(err)
+	suite.Require().False(res.Failed(), res.VmError)
+
+	signerShares, _ := suite.PrecompileStakingDelegation(val, signer.Address())
+
+	balanceAfter := suite.app.EvmKeeper.GetBalance(suite.ctx, signer.Address())
+	rewards := big.NewInt(0).Sub(balanceAfter, balanceBefore)
+	return signerShares, rewards
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingUndelegate(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
+	balanceBefore := suite.app.EvmKeeper.GetBalance(suite.ctx, signer.Address())
+	pack, err := staking.GetABI().Pack(staking.UndelegateMethodName, val.String(), shares)
+	suite.Require().NoError(err)
+	tx, err := suite.PackEthereumTx(signer, staking.GetAddress(), big.NewInt(0), pack)
+	suite.Require().NoError(err)
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+	suite.Require().NoError(err)
+	suite.Require().False(res.Failed(), res.VmError)
+	balanceAfter := suite.app.EvmKeeper.GetBalance(suite.ctx, signer.Address())
+	rewards := big.NewInt(0).Sub(balanceAfter, balanceBefore)
+	return rewards
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingApproveShares(signer *helpers.Signer, val sdk.ValAddress, spender common.Address, shares *big.Int) {
+	pack, err := staking.GetABI().Pack(staking.ApproveSharesMethodName, val.String(), spender, shares)
+	suite.Require().NoError(err)
+	tx, err := suite.PackEthereumTx(signer, staking.GetAddress(), big.NewInt(0), pack)
+	suite.Require().NoError(err)
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+	suite.Require().NoError(err)
+	suite.Require().False(res.Failed(), res.VmError)
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingTransferFromShares(signer *helpers.Signer, val sdk.ValAddress, from, receipt common.Address, shares *big.Int) {
+	pack, err := staking.GetABI().Pack(staking.TransferFromSharesMethodName, val.String(), from, receipt, shares)
+	suite.Require().NoError(err)
+	tx, err := suite.PackEthereumTx(signer, staking.GetAddress(), big.NewInt(0), pack)
+	suite.Require().NoError(err)
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+	suite.Require().NoError(err)
+	suite.Require().False(res.Failed(), res.VmError)
+}
+
+func (suite *PrecompileTestSuite) Delegate(val sdk.ValAddress, amount sdkmath.Int, dels ...sdk.AccAddress) {
+	for _, del := range dels {
+		helpers.AddTestAddr(suite.app, suite.ctx, del, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amount)))
+		validator, found := suite.app.StakingKeeper.GetValidator(suite.ctx, val)
+		suite.Require().True(found)
+		_, err := suite.app.StakingKeeper.Delegate(suite.ctx, del, amount, stakingtypes.Unbonded, validator, true)
+		suite.Require().NoError(err)
+	}
+}
