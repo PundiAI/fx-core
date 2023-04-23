@@ -35,25 +35,27 @@ func updateCfgCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Update app.toml and config.toml files to the latest version, default only missing parts are added",
 		Args:  cobra.RangeArgs(0, 2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			rootDir := serverCtx.Config.RootDir
-			fileName := filepath.Join(rootDir, "config", configFileName)
-			tmcfg.WriteConfigFile(fileName, serverCtx.Config)
-			serverCtx.Logger.Info("Update config.toml is successful", "fileName", fileName)
-
-			config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
-			appConfig := fxcfg.DefaultConfig()
-			if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
-				return err
-			}
-			fileName = filepath.Join(rootDir, "config", appFileName)
-			config.WriteConfigFile(fileName, appConfig)
-			serverCtx.Logger.Info("Update app.toml is successful", "fileName", fileName)
-			return nil
-		},
+		RunE:  updateConfig,
 	}
 	return cmd
+}
+
+func updateConfig(cmd *cobra.Command, _ []string) error {
+	serverCtx := server.GetServerContextFromCmd(cmd)
+	rootDir := serverCtx.Config.RootDir
+	fileName := filepath.Join(rootDir, "config", configFileName)
+	tmcfg.WriteConfigFile(fileName, serverCtx.Config)
+	serverCtx.Logger.Info("Update config.toml is successful", "fileName", fileName)
+
+	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
+	appConfig := fxcfg.DefaultConfig()
+	if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
+		return err
+	}
+	fileName = filepath.Join(rootDir, "config", appFileName)
+	config.WriteConfigFile(fileName, appConfig)
+	serverCtx.Logger.Info("Update app.toml is successful", "fileName", fileName)
+	return nil
 }
 
 func appTomlCfgCmd() *cobra.Command {
@@ -82,5 +84,18 @@ func tmTomlCfgCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
+	return cmd
+}
+
+// preUpgradeCmd called by cosmovisor
+func preUpgradeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pre-upgrade",
+		Short: "Called by cosmovisor, before migrations upgrade",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return updateConfig(cmd, args)
+		},
+	}
 	return cmd
 }

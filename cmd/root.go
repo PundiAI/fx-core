@@ -130,7 +130,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		fxserver.ExportSateCmd(myAppCreator.appExport, defaultNodeHome),
 		fxserver.StartCmd(myAppCreator.newApp, defaultNodeHome),
 		fxserver.TendermintCommand(),
-		app.GetUpgrades().GetLatest().PreUpgradeCmd,
+		preUpgradeCmd(),
 		doctorCmd(),
 	)
 

@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/spf13/cobra"
 
 	"github.com/functionx/fx-core/v4/app/keepers"
 )
@@ -23,8 +22,6 @@ type Upgrade struct {
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
 	StoreUpgrades func() *storetypes.StoreUpgrades
-
-	PreUpgradeCmd *cobra.Command
 }
 
 type Upgrades []Upgrade

@@ -33,7 +33,6 @@ var (
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          "fxv4",
 	CreateUpgradeHandler: createUpgradeHandler,
-	PreUpgradeCmd:        preUpgradeCmd(),
 	StoreUpgrades: func() *storetypes.StoreUpgrades {
 		return &storetypes.StoreUpgrades{
 			Added: []string{
