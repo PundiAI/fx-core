@@ -1,0 +1,29 @@
+{
+  "messages": [
+    {
+      "@type": "/fx.erc20.v1.MsgRegisterCoin",
+      "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
+      "metadata": {
+        "description": "Cross chain token of Function X",
+        "denom_units": [
+          {
+            "denom": "test",
+            "aliases": [
+              "eth0x0000000000000000000000000000000000000001"
+            ]
+          },
+          {
+            "denom": "TEST",
+            "exponent": 18
+          }
+        ],
+        "base": "test",
+        "display": "test",
+        "name": "upgrade test token",
+        "symbol": "TEST"
+      }
+    }
+  ],
+  "metadata": "eyJ0aXRsZSI6ICJyZWdpc3RlciBjb2luIiwic3VtbWFyeSI6ICJlcmMyMCByZWdpc3RlciBjb2luIHByb3Bvc2FsIiwibWV0YWRhdGEiOiIifQo=",
+  "deposit": "1000000000000000000000000FX"
+}

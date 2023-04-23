@@ -1,0 +1,11 @@
+{
+  "messages": [
+    {
+      "@type": "/fx.erc20.v1.MsgToggleTokenConversion",
+      "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
+      "token": "test"
+    }
+  ],
+  "metadata": "eyJ0aXRsZSI6ICJ0b2dnbGUgdG9rZW4gY29udmVyc2lvbiIsInN1bW1hcnkiOiAidG9nZ2xlIHRva2VuIGNvbnZlcnNpb24gcHJvcG9zYWwiLCJtZXRhZGF0YSI6IiJ9Cg==",
+  "deposit": "1000000000000000000000000FX"
+}

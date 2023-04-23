@@ -1,0 +1,15 @@
+{
+  "messages": [
+    {
+      "@type": "/fx.erc20.v1.MsgUpdateParams",
+      "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
+      "params": {
+        "enable_erc20": true,
+        "enable_evm_hook": true,
+        "ibc_timeout": "12h"
+      }
+    }
+  ],
+  "metadata": "eyJ0aXRsZSI6ICJ1cGRhdGUgZXJjMjAgUGFyYW1zIiwic3VtbWFyeSI6ICJ1cGRhdGUgZXJjMjAgUGFyYW1zIHByb3Bvc2FsIiwibWV0YWRhdGEiOiIifQo=",
+  "deposit": "1000000000000000000000000FX"
+}

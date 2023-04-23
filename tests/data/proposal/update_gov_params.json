@@ -1,0 +1,72 @@
+{
+  "messages": [
+    {
+      "@type": "/fx.gov.v1.MsgUpdateParams",
+      "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
+      "params": {
+        "msg_type": "",
+        "min_deposit": [
+          {
+            "denom": "FX",
+            "amount": "1000"
+          }
+        ],
+        "min_initial_deposit": {
+          "denom": "FX",
+          "amount": "1000"
+        },
+        "voting_period": "12097000s",
+        "quorum": "0.3",
+        "max_deposit_period": "12097000s",
+        "threshold": "0.5",
+        "veto_threshold": "0.334"
+      }
+    },
+    {
+      "@type": "/fx.gov.v1.MsgUpdateParams",
+      "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
+      "params": {
+        "msg_type": "/fx.erc20.v1.MsgUpdateDenomAlias",
+        "min_deposit": [
+          {
+            "denom": "FX",
+            "amount": "1000"
+          }
+        ],
+        "min_initial_deposit": {
+          "denom": "FX",
+          "amount": "1000"
+        },
+        "voting_period": "15s",
+        "quorum": "0.25",
+        "max_deposit_period": "12097000s",
+        "threshold": "0.5",
+        "veto_threshold": "0.334"
+      }
+    },
+    {
+      "@type": "/fx.gov.v1.MsgUpdateParams",
+      "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
+      "params": {
+        "msg_type": "/fx.evm.v1.MsgCallContract",
+        "min_deposit": [
+          {
+            "denom": "FX",
+            "amount": "1000"
+          }
+        ],
+        "min_initial_deposit": {
+          "denom": "FX",
+          "amount": "1000"
+        },
+        "voting_period": "20s",
+        "quorum": "0.25",
+        "max_deposit_period": "12097000s",
+        "threshold": "0.5",
+        "veto_threshold": "0.334"
+      }
+    }
+  ],
+  "metadata": "eyJ0aXRsZSI6ICJ1cGRhdGUgZ292IFBhcmFtcyIsInN1bW1hcnkiOiAidXBkYXRlIGdvdiBQYXJhbXMgcHJvcG9zYWwiLCJtZXRhZGF0YSI6IiJ9Cg==",
+  "deposit": "1000000000000000000000000FX"
+}
