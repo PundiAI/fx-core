@@ -32,10 +32,8 @@ func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, sender common.Address, valAddr sdk.ValAddress, withDrawDenom string) (*big.Int, error) {
 	delAddr := sdk.AccAddress(sender.Bytes())
 	withdrawAddr := c.distrKeeper.GetDelegatorWithdrawAddr(ctx, delAddr)
-	if !withdrawAddr.Equals(delAddr) {
-		// cache withdraw address state, before withdraw rewards
-		evm.StateDB.GetBalance(common.BytesToAddress(withdrawAddr.Bytes()))
-	}
+	// cache withdraw address state, before withdraw rewards
+	evm.StateDB.GetBalance(common.BytesToAddress(withdrawAddr.Bytes()))
 
 	rewards, err := c.distrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
 	if err != nil {
