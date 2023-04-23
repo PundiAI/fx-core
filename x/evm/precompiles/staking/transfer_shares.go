@@ -82,7 +82,7 @@ func (c *Contract) handlerTransferShares(
 
 	shares := sdk.NewDecFromBigInt(sharesInt) // TODO share with sdk.Precision
 	if fromDel.GetShares().LT(shares) {
-		return nil, nil, fmt.Errorf("insufficient shares(%s < %s)", shares.TruncateInt().String(), fromDel.GetShares().TruncateInt().String())
+		return nil, nil, fmt.Errorf("insufficient shares(%s < %s)", fromDel.GetShares().TruncateInt().String(), shares.TruncateInt().String())
 	}
 
 	// withdraw reward
