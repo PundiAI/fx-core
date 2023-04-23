@@ -48,7 +48,7 @@ message Params {
 message EGFParams {
   cosmos.base.v1beta1.Coin egf_deposit_threshold = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "min_initial_deposit,omitempty"
+    (gogoproto.jsontag) = "egf_deposit_threshold,omitempty"
   ];
 
   string claim_ratio = 2 [
