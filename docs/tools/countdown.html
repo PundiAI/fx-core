@@ -32,7 +32,7 @@
             font-size: 60px;
             font-weight: 700;
             line-height: 1.17;
-            margin: 0px auto 80px;
+            margin: 0 auto 80px;
             max-width: 900px;
         }
 
@@ -112,12 +112,12 @@
         <div class="row">
             <div class="col-sm-4 mb32"></div>
             <div class="col-sm-4 mb32">
-                <img src="favicon.svg" style="width: 150px;height: 150px">
+                <img src="favicon.svg" style="width: 150px;height: 150px" alt="">
             </div>
             <div class="col-sm-4 mb32"></div>
         </div>
-        <h1><strong>f(x)Core</strong> upgrade v3.1.0 countdown
-            <span id="block" style="color: rgb(220,5,5)"/>
+        <h1><strong>f(x)Core</strong><span id="version"></span>
+            <span id="block" style="color: rgb(220,5,5)"></span>
         </h1>
     </div>
 </div>
@@ -150,10 +150,11 @@
 <script src="./js/index.js"></script>
 <script type="text/javascript">
     const network = getQueryVariable("network")
-    let upgradeBlockHeight = 8756000;
-    if (network === "testnet") {
-        upgradeBlockHeight = 6578000
-    }
+
+    let plan = getCurrentPlan()
+    plan = plan? plan : {name: "unknown", height: 0}
+    const upgradeBlockHeight = plan.height;
+    document.getElementById("version").innerHTML = ` upgrade ${plan.name} countdown`;
 
     let myInterval
 

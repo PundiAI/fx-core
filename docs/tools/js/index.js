@@ -84,7 +84,13 @@ function getTotalSupply() {
     const result = httpGetJson(getFxRestUrl() + `/cosmos/bank/v1beta1/supply`)
     return result.supply
 }
+
 function getMetadatas() {
     const result = httpGetJson(getFxRestUrl() + `/cosmos/bank/v1beta1/denoms_metadata`)
     return result.metadatas
+}
+
+function getCurrentPlan() {
+    const result = httpGetJson(getFxRestUrl() + `/cosmos/upgrade/v1beta1/current_plan`)
+    return result.plan
 }
