@@ -310,7 +310,9 @@ func (suite *PrecompileTestSuite) RandPrefixAndAddress() (string, string) {
 
 func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID string) {
 	portID = "transfer"
-	channelID = fmt.Sprintf("channel-%d", tmrand.Intn(100))
+
+	channelSequence := suite.app.IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.ctx)
+	channelID = fmt.Sprintf("channel-%d", channelSequence)
 	connectionID := connectiontypes.FormatConnectionIdentifier(uint64(tmrand.Intn(100)))
 	clientID := clienttypes.FormatClientIdentifier(exported.Localhost, uint64(tmrand.Intn(100)))
 
@@ -338,7 +340,7 @@ func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID strin
 	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(portID, channelID), []string{connectionID}, ibctesting.DefaultChannelVersion)
 	suite.app.IBCKeeper.ChannelKeeper.SetChannel(suite.ctx, portID, channelID, channel)
 	suite.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.ctx, portID, channelID, uint64(tmrand.Intn(10000)))
-
+	suite.app.IBCKeeper.ChannelKeeper.SetNextChannelSequence(suite.ctx, channelSequence+1)
 	return portID, channelID
 }
 
