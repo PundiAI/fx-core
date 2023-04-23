@@ -346,16 +346,6 @@ func (app *App) RegisterNodeService(clientCtx client.Context) {
 
 // TestingApp functions
 
-// GetBaseApp implements the TestingApp interface.
-func (app *App) GetBaseApp() *baseapp.BaseApp {
-	return app.BaseApp
-}
-
-// GetTxConfig implements the TestingApp interface.
-func (app *App) GetTxConfig() client.TxConfig {
-	return MakeEncodingConfig().TxConfig
-}
-
 // GetModules implements the TestingApp interface.
 func (app *App) GetModules() map[string]module.AppModule {
 	return app.mm.Modules

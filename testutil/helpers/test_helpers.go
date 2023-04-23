@@ -434,6 +434,17 @@ func GenTx(gen client.TxConfig, msgs []sdk.Msg, gasPrice sdk.Coin, gas uint64, c
 
 type TestingApp struct {
 	*app.App
+	TxConfig client.TxConfig
+}
+
+// GetBaseApp implements the TestingApp interface.
+func (app *TestingApp) GetBaseApp() *baseapp.BaseApp {
+	return app.BaseApp
+}
+
+// GetTxConfig implements the TestingApp interface.
+func (app *TestingApp) GetTxConfig() client.TxConfig {
+	return app.TxConfig
 }
 
 func (app *TestingApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
@@ -451,9 +462,9 @@ func (app *TestingApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 // SetupTestingApp initializes the IBC-go testing application
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	cfg := app.MakeEncodingConfig()
-	resultApp := app.New(log.NewNopLogger(), dbm.NewMemDB(),
+	myApp := app.New(log.NewNopLogger(), dbm.NewMemDB(),
 		nil, true, map[int64]bool{}, os.TempDir(), 5, cfg, simapp.EmptyAppOptions{})
-	testingApp := &TestingApp{resultApp}
+	testingApp := &TestingApp{App: myApp, TxConfig: cfg.TxConfig}
 	return testingApp, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cfg.Codec)
 }
 
