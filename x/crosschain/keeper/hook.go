@@ -21,7 +21,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive st
 	}
 
 	if !originToken {
-		k.erc20Keeper.SetOutgoingTransferRelation(ctx, txID)
+		k.erc20Keeper.SetOutgoingTransferRelation(ctx, k.moduleName, txID)
 	}
 	return nil
 }

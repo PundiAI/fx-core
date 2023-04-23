@@ -121,6 +121,12 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)
 	k.DeleteBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract)
+	// Delete outgoing transfer relation
+	for _, tx := range batch.Transactions {
+		if k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, tx.Id) {
+			k.erc20Keeper.DeleteOutgoingTransferRelation(ctx, k.moduleName, tx.Id)
+		}
+	}
 }
 
 // StoreBatch stores a transaction batch

@@ -361,6 +361,18 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 
 			pair, moduleName, originToken := tc.prepare(pair, moduleName, signer, randMint)
 
+			if len(originToken) > 0 && originToken != fxtypes.DefaultDenom {
+				petxs, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
+					ChainName:     moduleName,
+					SenderAddress: signer.AccAddress().String(),
+				})
+				suite.Require().NoError(err)
+				if len(petxs.UnbatchedTransfers) > 0 && !strings.Contains(tc.name, "ok - address + origin token") { // send by chain, not add relation
+					relation := suite.app.Erc20Keeper.HasOutgoingTransferRelation(suite.ctx, moduleName, petxs.UnbatchedTransfers[0].Id)
+					suite.Require().True(relation)
+				}
+			}
+
 			packData, errArgs := tc.malleate(moduleName, md, signer, randMint)
 
 			// check init balance zero
@@ -451,4 +463,63 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			}
 		})
 	}
+}
+
+func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
+	signer := suite.RandSigner()
+	// token pair
+	md := suite.GenerateCrossChainDenoms()
+	pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
+	suite.Require().NoError(err)
+	randMint := big.NewInt(int64(tmrand.Uint32() + 10))
+	suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
+	moduleName := md.RandModule()
+
+	coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
+	helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+	_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+		Coin:     coin,
+		Receiver: signer.Address().Hex(),
+		Sender:   signer.AccAddress().String(),
+	})
+	suite.Require().NoError(err)
+
+	suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+
+	fee := big.NewInt(1)
+	amount := big.NewInt(0).Sub(randMint, fee)
+	data, err := crosschain.GetABI().Pack("crossChain", pair.GetERC20Contract(),
+		helpers.GenerateAddressByModule(moduleName), amount, fee, fxtypes.MustStrToByte32(moduleName), "")
+	suite.Require().NoError(err)
+	tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), data)
+	suite.Require().NoError(err)
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+	suite.Require().NoError(err)
+	suite.Require().False(res.Failed(), res.VmError)
+
+	// get crosschain pending tx
+	petxs, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
+		ChainName:     moduleName,
+		SenderAddress: signer.AccAddress().String(),
+	})
+	suite.Require().NoError(err)
+	suite.Require().Len(petxs.UnbatchedTransfers, 1)
+
+	txId := petxs.UnbatchedTransfers[0].Id
+	txContract := petxs.UnbatchedTransfers[0].Token.Contract
+
+	suite.CrossChainKeepers()[moduleName].SetLastObservedBlockHeight(suite.ctx, 100, uint64(suite.ctx.BlockHeight()))
+
+	batch, err := suite.CrossChainKeepers()[moduleName].BuildOutgoingTxBatch(suite.ctx, txContract,
+		signer.Address().String(), 100, sdkmath.NewInt(0), sdkmath.NewInt(1))
+	suite.Require().NoError(err)
+	batchNonce := batch.BatchNonce
+
+	relation := suite.app.Erc20Keeper.HasOutgoingTransferRelation(suite.ctx, moduleName, txId)
+	suite.Require().True(relation)
+
+	suite.CrossChainKeepers()[moduleName].OutgoingTxBatchExecuted(suite.ctx, txContract, batchNonce)
+
+	relation = suite.app.Erc20Keeper.HasOutgoingTransferRelation(suite.ctx, moduleName, txId)
+	suite.Require().False(relation)
 }

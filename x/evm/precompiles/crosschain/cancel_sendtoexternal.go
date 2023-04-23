@@ -29,7 +29,7 @@ func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *
 
 	originDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 	// NOTE: must be get relation before cancel, cancel will delete it if relation exist
-	hasRelation := c.erc20Keeper.HasOutgoingTransferRelation(ctx, args.TxID.Uint64())
+	hasRelation := c.erc20Keeper.HasOutgoingTransferRelation(ctx, args.Chain, args.TxID.Uint64())
 
 	refundCoin, err := route.PrecompileCancelSendToExternal(ctx, args.TxID.Uint64(), sender.Bytes())
 	if err != nil {

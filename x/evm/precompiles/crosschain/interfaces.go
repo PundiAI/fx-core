@@ -23,7 +23,7 @@ type Erc20Keeper interface {
 	ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error
 	GetIbcTimeout(ctx sdk.Context) time.Duration
 	SetIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64)
-	HasOutgoingTransferRelation(ctx sdk.Context, txID uint64) bool
+	HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (types.TokenPair, bool)
 	IsOriginDenom(ctx sdk.Context, denom string) bool

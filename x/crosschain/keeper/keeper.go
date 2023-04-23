@@ -172,3 +172,7 @@ func (k Keeper) UnbondedOracleFromProposal(ctx sdk.Context, oracle types.Oracle)
 
 	return nil
 }
+
+func (k Keeper) ModuleName() string {
+	return k.moduleName
+}

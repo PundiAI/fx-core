@@ -35,6 +35,6 @@ func GetIBCTransferKey(sourceChannel string, sequence uint64) []byte {
 }
 
 // GetOutgoingTransferKey [txID]
-func GetOutgoingTransferKey(txID uint64) []byte {
-	return append(KeyPrefixOutgoingTransfer, sdk.Uint64ToBigEndian(txID)...)
+func GetOutgoingTransferKey(moduleName string, txID uint64) []byte {
+	return append(append(KeyPrefixOutgoingTransfer, []byte(moduleName)...), sdk.Uint64ToBigEndian(txID)...)
 }

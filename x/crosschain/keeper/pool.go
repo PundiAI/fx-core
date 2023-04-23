@@ -141,8 +141,8 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	// if not origin token, refund to contract token
-	if k.erc20Keeper.HasOutgoingTransferRelation(ctx, txId) {
-		if err = k.erc20Keeper.HookOutgoingRefund(ctx, txId, sender, targetCoin); err != nil {
+	if k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, txId) {
+		if err = k.erc20Keeper.HookOutgoingRefund(ctx, k.moduleName, txId, sender, targetCoin); err != nil {
 			return sdk.Coin{}, errorsmod.Wrap(err, "outgoing refund")
 		}
 	}

@@ -769,6 +769,11 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 						suite.Require().Equal("", memo)
 					}
 				}
+
+				if value.Cmp(big.NewInt(0)) == 0 {
+					relation := suite.app.Erc20Keeper.HasOutgoingTransferRelation(suite.ctx, moduleName, resp.UnbatchedTransfers[0].Id)
+					suite.Require().True(relation)
+				}
 			} else {
 				suite.Require().Error(err)
 				suite.Require().EqualError(err, tc.error(errArgs))

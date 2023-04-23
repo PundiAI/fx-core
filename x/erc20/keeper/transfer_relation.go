@@ -45,7 +45,7 @@ func (k Keeper) hasIBCTransferRelation(ctx sdk.Context, channel string, sequence
 	return ctx.KVStore(k.storeKey).Has(types.GetIBCTransferKey(channel, sequence))
 }
 
-func (k Keeper) HookOutgoingRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error {
+func (k Keeper) HookOutgoingRefund(ctx sdk.Context, moduleName string, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error {
 	if _, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
 		Coin:     totalCoin,
 		Receiver: common.BytesToAddress(sender.Bytes()).String(),
@@ -54,20 +54,20 @@ func (k Keeper) HookOutgoingRefund(ctx sdk.Context, txID uint64, sender sdk.AccA
 		return err
 	}
 
-	k.DeleteOutgoingTransferRelation(ctx, txID)
+	k.DeleteOutgoingTransferRelation(ctx, moduleName, txID)
 	return nil
 }
 
-func (k Keeper) SetOutgoingTransferRelation(ctx sdk.Context, txID uint64) {
+func (k Keeper) SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetOutgoingTransferKey(txID), []byte{})
+	store.Set(types.GetOutgoingTransferKey(moduleName, txID), []byte{})
 }
 
-func (k Keeper) DeleteOutgoingTransferRelation(ctx sdk.Context, txID uint64) {
+func (k Keeper) DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetOutgoingTransferKey(txID))
+	store.Delete(types.GetOutgoingTransferKey(moduleName, txID))
 }
 
-func (k Keeper) HasOutgoingTransferRelation(ctx sdk.Context, txID uint64) bool {
-	return ctx.KVStore(k.storeKey).Has(types.GetOutgoingTransferKey(txID))
+func (k Keeper) HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool {
+	return ctx.KVStore(k.storeKey).Has(types.GetOutgoingTransferKey(moduleName, txID))
 }
