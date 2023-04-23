@@ -237,7 +237,7 @@ func TestAminoEncode(t *testing.T) {
 		},
 		{
 			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateEGFParams",
-			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateEGFParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","min_initial_deposit":{"amount":"10000000000000000000000","denom":"FX"}}}}]}`,
+			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateEGFParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"}}}}]}`,
 			amino:    fxgovtypes.ModuleCdc.LegacyAmino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
