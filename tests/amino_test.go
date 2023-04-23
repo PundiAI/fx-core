@@ -17,7 +17,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/app"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
@@ -26,6 +26,7 @@ import (
 )
 
 func TestAminoEncode(t *testing.T) {
+	_ = app.MakeEncodingConfig()
 	oneDec := sdk.NewDec(1)
 	oneInt := sdk.NewInt(1)
 
@@ -221,8 +222,8 @@ func TestAminoEncode(t *testing.T) {
 		},
 		{
 			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateParams",
-			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateParams","value":{"authority":"1","params":{"max_deposit_period":"172800000000000","min_deposit":[{"amount":"10000000","denom":"stake"}],"min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"},"msg_type":"/fx.evm.v1.MsgCallContract","quorum":"0.334000000000000000","threshold":"0.500000000000000000","veto_threshold":"0.334000000000000000","voting_period":"172800000000000"}}}]}`,
-			amino:    fxgovtypes.ModuleCdc.LegacyAmino,
+			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateParams","value":{"authority":"1","params":{"max_deposit_period":"172800000000000","min_deposit":[{"amount":"10000000","denom":"stake"}],"min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"},"msg_type":"/fx.evm.v1.MsgCallContract","quorum":"0.334000000000000000","threshold":"0.500000000000000000","veto_threshold":"0.334000000000000000","voting_period":"172800000000000"}}}]}}`,
+			amino:    govv1.ModuleCdc.LegacyAmino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
 					NewAnyWithValue(&fxgovtypes.MsgUpdateParams{
@@ -237,8 +238,8 @@ func TestAminoEncode(t *testing.T) {
 		},
 		{
 			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateEGFParams",
-			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateEGFParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"}}}}]}`,
-			amino:    fxgovtypes.ModuleCdc.LegacyAmino,
+			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateEGFParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"}}}}]}}`,
+			amino:    govv1.ModuleCdc.LegacyAmino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
 					NewAnyWithValue(&fxgovtypes.MsgUpdateEGFParams{

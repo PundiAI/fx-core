@@ -9,19 +9,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ethermintcodec "github.com/evmos/ethermint/crypto/codec"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	etherminttypes "github.com/evmos/ethermint/types"
 
 	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
-	fxevmtypes "github.com/functionx/fx-core/v4/x/evm/types"
-	fxgovtypes "github.com/functionx/fx-core/v4/x/gov/types"
 	gravitytypes "github.com/functionx/fx-core/v4/x/gravity/types"
 )
 
@@ -50,6 +44,9 @@ func MakeEncodingConfig() EncodingConfig {
 	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	registerCryptoEthSecp256k1(encodingConfig.Amino)
+
+	govv1beta1.ModuleCdc = codec.NewAminoCodec(encodingConfig.Amino)
+	govv1.ModuleCdc = codec.NewAminoCodec(encodingConfig.Amino)
 
 	// NOTE: update SDK's amino codec to include the ethsecp256k1 keys.
 	// DO NOT REMOVE unless deprecated on the SDK.
@@ -80,22 +77,4 @@ func makeEncodingConfig() EncodingConfig {
 func registerCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&ethsecp256k1.PubKey{}, ethsecp256k1.PubKeyName, nil)
 	cdc.RegisterConcrete(&ethsecp256k1.PrivKey{}, ethsecp256k1.PrivKeyName, nil)
-}
-
-func init() {
-	// gov v1beta1
-	distrtypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
-	paramproposal.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
-	upgradetypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
-	crosschaintypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
-	erc20types.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
-	registerCryptoEthSecp256k1(govv1beta1.ModuleCdc.LegacyAmino)
-
-	// gov v1
-	crosschaintypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
-	erc20types.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
-	upgradetypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
-	fxgovtypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
-	fxevmtypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
-	registerCryptoEthSecp256k1(govv1.ModuleCdc.LegacyAmino)
 }

@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/functionx/fx-core/v4/app"
@@ -11,6 +12,7 @@ import (
 
 func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	encodingConfig := app.MakeEncodingConfig()
+
 	interfaceRegistry := reflect.ValueOf(encodingConfig.Codec).Elem().Field(0).Elem().Elem()
 
 	interfaceNames := interfaceRegistry.Field(0).MapRange()
@@ -36,4 +38,25 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 		t.Log(typeURLMap.Key())
 	}
 	assert.Equal(t, 258, count3)
+
+	govContent := encodingConfig.InterfaceRegistry.ListImplementations("cosmos.gov.v1beta1.Content")
+	assert.Equal(t, 14, len(govContent))
+
+	msgImplementations := encodingConfig.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName)
+	assert.Equal(t, 99, len(msgImplementations))
+
+	type govProposalMsg interface {
+		GetAuthority() string
+	}
+	var govMsg []string
+	for _, implementation := range msgImplementations {
+		resolvedMsg, err := encodingConfig.InterfaceRegistry.Resolve(implementation)
+		assert.NoError(t, err)
+
+		if _, ok := resolvedMsg.(govProposalMsg); ok {
+			t.Log(len(govMsg), implementation)
+			govMsg = append(govMsg, implementation)
+		}
+	}
+	assert.Equal(t, 15, len(govMsg))
 }
