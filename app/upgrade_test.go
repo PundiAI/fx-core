@@ -26,6 +26,7 @@ import (
 	arbitrumtypes "github.com/functionx/fx-core/v4/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v4/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	"github.com/functionx/fx-core/v4/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
@@ -119,13 +120,11 @@ func checkCrossChainOracleDelegateInfo(t *testing.T, myApp *app.App, ctx sdk.Con
 	for _, oracle := range bscRemoveOracles {
 		bscRemoveOraclesMap[oracle] = true
 	}
+	routerServer := keeper.NewMsgServerRouterImpl(myApp.CrosschainKeeper)
 	crosschainModules := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName, arbitrumtypes.ModuleName, optimismtypes.ModuleName}
 	for _, crosschainModule := range crosschainModules {
 		oracles, err := myApp.CrosschainKeeper.Oracles(ctx, &crosschaintypes.QueryOraclesRequest{ChainName: crosschainModule})
-		if err != nil {
-			ctx.Logger().Error("query oracles error", "module", crosschainModule, "err", err)
-			continue
-		}
+		require.NoError(t, err)
 		for _, oracle := range oracles.Oracles {
 			delegateAddress := oracle.GetDelegateAddress(crosschainModule)
 			startingInfo := myApp.DistrKeeper.GetDelegatorStartingInfo(ctx, oracle.GetValidator(), delegateAddress)
@@ -140,9 +139,20 @@ func checkCrossChainOracleDelegateInfo(t *testing.T, myApp *app.App, ctx sdk.Con
 			require.EqualValues(t, sdk.NewDecFromInt(sdkmath.NewInt(10_000).MulRaw(1e18)).String(), startingInfo.Stake.String())
 
 			// test can get rewards
-			_, err = myApp.DistrKeeper.DelegationRewards(ctx, &distributiontypes.QueryDelegationRewardsRequest{
+			reward, err := myApp.DistrKeeper.DelegationRewards(ctx, &distributiontypes.QueryDelegationRewardsRequest{
 				DelegatorAddress: delegateAddress.String(),
 				ValidatorAddress: oracle.GetValidator().String(),
+			})
+			require.NoError(t, err)
+
+			if reward.Rewards.IsZero() {
+				continue
+			}
+
+			// test can withdraw rewards
+			_, err = routerServer.WithdrawReward(ctx, &crosschaintypes.MsgWithdrawReward{
+				ChainName:     crosschainModule,
+				OracleAddress: oracle.GetOracle().String(),
 			})
 			require.NoError(t, err)
 		}
@@ -176,20 +186,14 @@ func checkDenomMetaData(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgrade
 			assert.False(t, found)
 			continue
 		}
-		// todo testnet not deployed weth
-		if os.Getenv("CHAIN_ID") == fxtypes.TestnetChainId && da.Denom == "weth" {
-			_, found := myApp.BankKeeper.GetDenomMetaData(ctx, denomKey)
-			assert.False(t, found)
+		md, found := myApp.BankKeeper.GetDenomMetaData(ctx, denomKey)
+		assert.True(t, found)
+		assert.True(t, len(md.DenomUnits) > 0)
+		assert.True(t, len(md.DenomUnits[0].Aliases) > 0)
+		if isUpgradeBefore {
+			assert.False(t, contain(md.DenomUnits[0].Aliases, da.Alias))
 		} else {
-			md, found := myApp.BankKeeper.GetDenomMetaData(ctx, denomKey)
-			assert.True(t, found)
-			assert.True(t, len(md.DenomUnits) > 0)
-			assert.True(t, len(md.DenomUnits[0].Aliases) > 0)
-			if isUpgradeBefore {
-				assert.False(t, contain(md.DenomUnits[0].Aliases, da.Alias))
-			} else {
-				assert.True(t, contain(md.DenomUnits[0].Aliases, da.Alias))
-			}
+			assert.True(t, contain(md.DenomUnits[0].Aliases, da.Alias))
 		}
 	}
 }
@@ -400,7 +404,7 @@ func checkCrossChainMigrateParamStore(t *testing.T, ctx sdk.Context, myApp *app.
 		params := response.Params
 		assert.EqualValues(t, params.GravityId, fmt.Sprintf("fx-%s-bridge", newModule))
 		assert.EqualValues(t, params.AverageBlockTime, defaultParams.AverageBlockTime)
-		assert.EqualValues(t, params.AverageExternalBlockTime, 2000)
+		assert.EqualValues(t, params.AverageExternalBlockTime, 500)
 		assert.EqualValues(t, params.ExternalBatchTimeout, defaultParams.ExternalBatchTimeout)
 		assert.EqualValues(t, params.SignedWindow, defaultParams.SignedWindow)
 		assert.EqualValues(t, params.SlashFraction, defaultParams.SlashFraction)
