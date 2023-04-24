@@ -21,7 +21,7 @@ func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *type
 	}
 }
 
-func (k Keeper) GetDenomByBridgeToken(ctx sdk.Context, denom string) *types.BridgeToken {
+func (k Keeper) GetDenomBridgeToken(ctx sdk.Context, denom string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.GetTokenToDenomKey(denom))
 	if len(data) <= 0 {

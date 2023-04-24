@@ -1830,7 +1830,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 				)
 				suite.Require().NoError(err)
 				suite.Require().Equal(pool, uint64(1))
-				bridgeToken := suite.Keeper().GetDenomByBridgeToken(suite.ctx, denom.Denom)
+				bridgeToken := suite.Keeper().GetDenomBridgeToken(suite.ctx, denom.Denom)
 				suite.Require().Equal(bridgeToken.Denom, denom.Denom)
 				suite.Require().Equal(bridgeToken.Token, denom.Token)
 				bridgeTokenFee := types.NewERC20Token(sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), bridgeToken.Token)
@@ -2247,7 +2247,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 					bridgeTokenFromToken := suite.Keeper().GetBridgeTokenDenom(suite.ctx, common.BytesToAddress(key.PubKey().Address()).String())
 					suite.Require().Equal(bridgeTokenFromToken.Token, common.BytesToAddress(key.PubKey().Address()).String())
 
-					bridgeTokenFromDenom := suite.Keeper().GetDenomByBridgeToken(suite.ctx, bridgeTokenFromToken.Denom)
+					bridgeTokenFromDenom := suite.Keeper().GetDenomBridgeToken(suite.ctx, bridgeTokenFromToken.Denom)
 					suite.Require().Equal(bridgeTokenFromDenom.Token, common.BytesToAddress(key.PubKey().Address()).String())
 					suite.Require().Equal(bridgeTokenFromDenom.Denom, bridgeTokenFromToken.Denom)
 

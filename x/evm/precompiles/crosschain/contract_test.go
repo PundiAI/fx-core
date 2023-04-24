@@ -422,7 +422,7 @@ func (m Metadata) GetMetadata() banktypes.Metadata {
 
 type CrossChainKeeper interface {
 	AddBridgeToken(ctx sdk.Context, token, denom string)
-	GetDenomByBridgeToken(ctx sdk.Context, denom string) *crosschaintypes.BridgeToken
+	GetDenomBridgeToken(ctx sdk.Context, denom string) *crosschaintypes.BridgeToken
 	SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error)
 	GetPendingSendToExternal(c context.Context, req *crosschaintypes.QueryPendingSendToExternalRequest) (*crosschaintypes.QueryPendingSendToExternalResponse, error)
 	AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error)

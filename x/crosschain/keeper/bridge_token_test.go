@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {
 	bridgeToken := &types.BridgeToken{Token: tokenContract, Denom: denom}
 	suite.EqualValues(bridgeToken, suite.Keeper().GetBridgeTokenDenom(suite.ctx, tokenContract))
 
-	suite.EqualValues(bridgeToken, suite.Keeper().GetDenomByBridgeToken(suite.ctx, denom))
+	suite.EqualValues(bridgeToken, suite.Keeper().GetDenomBridgeToken(suite.ctx, denom))
 
 	suite.Keeper().IterateBridgeTokenToDenom(suite.ctx, func(bt *types.BridgeToken) bool {
 		suite.Equal(bt.Token, tokenContract)

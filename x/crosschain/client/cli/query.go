@@ -72,7 +72,7 @@ func GetQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetDenomToExternalToken(chainName),
 		CmdGetExternalTokenToDenom(chainName),
 		CmdGetBridgeTokens(chainName),
-		CmdGetBridgeCoinByToken(chainName),
+		CmdGetBridgeCoinByDenom(chainName),
 
 		// 1. oracle event nonce
 		CmdGetOracleEventNonce(chainName),
@@ -839,7 +839,7 @@ func CmdCovertBridgeToken(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdGetBridgeCoinByToken(chainName string) *cobra.Command {
+func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bridge-coin [denom]",
 		Short: "Query bridge coin from contract address",
@@ -847,11 +847,7 @@ func CmdGetBridgeCoinByToken(chainName string) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
-
-			denom, err := getContractAddr(args[0])
-			if err != nil {
-				return err
-			}
+			denom := args[0]
 			res, err := queryClient.BridgeCoinByDenom(cmd.Context(), &types.QueryBridgeCoinByDenomRequest{
 				ChainName: chainName,
 				Denom:     denom,

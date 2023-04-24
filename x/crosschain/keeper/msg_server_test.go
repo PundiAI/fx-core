@@ -986,7 +986,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	require.NotNil(suite.T(), bridgeDenomData)
 	tokenDenom := fmt.Sprintf("%s%s", suite.chainName, sendToFxToken)
 	require.EqualValues(suite.T(), tokenDenom, bridgeDenomData.Denom)
-	bridgeTokenData := suite.Keeper().GetDenomByBridgeToken(suite.ctx, tokenDenom)
+	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.ctx, tokenDenom)
 	require.NotNil(suite.T(), bridgeTokenData)
 	require.EqualValues(suite.T(), sendToFxToken, bridgeTokenData.Token)
 

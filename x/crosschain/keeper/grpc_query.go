@@ -234,7 +234,7 @@ func (k Keeper) DenomToToken(c context.Context, req *types.QueryDenomToTokenRequ
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
 
-	bridgeToken := k.GetDenomByBridgeToken(sdk.UnwrapSDKContext(c), req.Denom)
+	bridgeToken := k.GetDenomBridgeToken(sdk.UnwrapSDKContext(c), req.Denom)
 	if bridgeToken == nil {
 		return nil, status.Error(codes.NotFound, "bridge token")
 	}
@@ -412,7 +412,7 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 		fxtypes.ParseFxTarget(req.GetChainName()),
 	)
 
-	token := k.GetDenomByBridgeToken(ctx, bridgeCoinDenom)
+	token := k.GetDenomBridgeToken(ctx, bridgeCoinDenom)
 	if token == nil {
 		return nil, status.Error(codes.NotFound, "denom")
 	}

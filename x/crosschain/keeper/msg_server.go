@@ -418,7 +418,7 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	bridgeToken := s.GetDenomByBridgeToken(ctx, msg.Denom)
+	bridgeToken := s.GetDenomBridgeToken(ctx, msg.Denom)
 	if bridgeToken == nil {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}

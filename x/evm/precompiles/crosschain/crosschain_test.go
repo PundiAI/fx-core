@@ -738,7 +738,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().Equal(randMint.String(), resp.UnbatchedTransfers[0].Fee.Amount.Add(resp.UnbatchedTransfers[0].Token.Amount).BigInt().String())
 
 				if !strings.EqualFold(resp.UnbatchedTransfers[0].Token.Contract, strings.TrimPrefix(Metadata{metadata: newMD}.GetDenom(moduleName), moduleName)) {
-					bridgeToken := suite.CrossChainKeepers()[moduleName].GetDenomByBridgeToken(suite.ctx, newPair.Denom)
+					bridgeToken := suite.CrossChainKeepers()[moduleName].GetDenomBridgeToken(suite.ctx, newPair.Denom)
 					suite.Require().Equal(resp.UnbatchedTransfers[0].Token.Contract, bridgeToken.Token, moduleName)
 				}
 
@@ -1151,7 +1151,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				suite.Require().Equal(randMint.String(), resp.UnbatchedTransfers[0].Fee.Amount.Add(resp.UnbatchedTransfers[0].Token.Amount).BigInt().String())
 
 				if !strings.EqualFold(resp.UnbatchedTransfers[0].Token.Contract, strings.TrimPrefix(md.GetDenom(moduleName), moduleName)) {
-					bridgeToken := suite.CrossChainKeepers()[moduleName].GetDenomByBridgeToken(suite.ctx, newPair.Denom)
+					bridgeToken := suite.CrossChainKeepers()[moduleName].GetDenomBridgeToken(suite.ctx, newPair.Denom)
 					suite.Require().Equal(resp.UnbatchedTransfers[0].Token.Contract, bridgeToken.Token, moduleName)
 				}
 

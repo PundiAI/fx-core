@@ -19,7 +19,7 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	bridgeToken := k.GetDenomByBridgeToken(ctx, amount.Denom)
+	bridgeToken := k.GetDenomBridgeToken(ctx, amount.Denom)
 	if bridgeToken == nil {
 		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
@@ -164,7 +164,7 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 	if err != nil {
 		return errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
-	bridgeToken := k.GetDenomByBridgeToken(ctx, addBridgeFee.Denom)
+	bridgeToken := k.GetDenomBridgeToken(ctx, addBridgeFee.Denom)
 	if bridgeToken == nil {
 		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
