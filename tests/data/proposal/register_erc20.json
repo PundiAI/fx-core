@@ -3,10 +3,12 @@
     {
       "@type": "/fx.erc20.v1.MsgRegisterERC20",
       "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
-      "erc20address": "0xF6B6E623a7b4Ca88D8e480FD872D5a12A09b4526",
-      "aliases": ["eth0x0000000000000000000000000000000000000010"]
+      "erc20address": "0xF8dCc43Ab6DE0336934A7ceB25b2C04000Cb598d",
+      "aliases": [
+        "eth0xF2066b95093b59337E0aFc22e6C16810E268D276"
+      ]
     }
   ],
   "metadata": "eyJ0aXRsZSI6ICJbQF0iLCJzdW1tYXJ5IjogImVyYzIwIHJlZ2lzdGVyIGZpcDIwIGNvbnRyYWN0IHRva2VuIiwibWV0YWRhdGEiOiIifQo=",
-  "deposit": "1000000000000000000000000FX"
+  "deposit": "3000000000000000000000FX"
 }

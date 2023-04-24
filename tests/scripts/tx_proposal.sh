@@ -21,8 +21,8 @@ submit_proposal() {
   local metadata="$2"
 
   fxcored tx gov submit-proposal "$data_file" --gas-prices="$GAS_PRICES" --gas=auto --gas-adjustment="$GAS_ADJUSTMENT" --from fx1 -y --node "$JSON_RPC" --chain-id "$CHAIN_ID"
-  for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
-    messages=$(fxcored query gov proposal "${proposal_id}" -o json)
+  for proposal_id in $(fxcored query gov proposals --node "$JSON_RPC" -o json | jq -r '.proposals[].id'); do
+    messages=$(fxcored query gov proposal "${proposal_id}" --node "$JSON_RPC" -o json)
     if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$metadata" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
       break
     fi
@@ -68,7 +68,7 @@ function msg_register_erc20_proposal() {
   jq '.metadata = "'"$metadata"'" ' "${DATA_DIR}"/register_erc20.json >register_erc20_tmp.json && mv register_erc20_tmp.json "${DATA_DIR}"/register_erc20.json
 
   for erc20address in $(jq -r '.messages[].erc20address' "${DATA_DIR}"/register_erc20.json); do
-    if [[ $(fxcored q evm code "${erc20address}" -o json | jq -r '.code') == null ]]; then
+    if [[ $(fxcored q evm code "${erc20address}" --node "$JSON_RPC" -o json | jq -r '.code') == null ]]; then
       echo "contract $erc20address not deployed, cannot initiate MsgRegisterERC20 proposal" && exit 1
     fi
   done
@@ -93,7 +93,7 @@ function msg_update_denom_alias_proposal() {
   jq '.metadata = "'"$metadata"'" ' "${DATA_DIR}"/update_denom_alias.json >update_denom_alias_tmp.json && mv update_denom_alias_tmp.json "${DATA_DIR}"/update_denom_alias.json
 
   for denom in $(jq -r '.messages[].denom' "${DATA_DIR}"/update_denom_alias.json); do
-    if ! fxcored q erc20 token-pair "${denom}" >/dev/null 2>&1; then
+    if ! fxcored q erc20 token-pair "${denom}" --node "$JSON_RPC" >/dev/null 2>&1; then
       echo "token $denom unregistered, cannot initiate MsgUpdateDenomAlias proposal" && exit 1
     fi
   done
@@ -118,7 +118,7 @@ function msg_toggle_token_conversion_proposal() {
   jq '.metadata = "'"$metadata"'" ' "${DATA_DIR}"/toggle_token_conversion.json >toggle_token_conversion_tmp.json && mv toggle_token_conversion_tmp.json "${DATA_DIR}"/toggle_token_conversion.json
 
   for token in $(jq -r '.messages[].token' "${DATA_DIR}"/toggle_token_conversion.json); do
-    if ! fxcored q erc20 token-pair "${token}" >/dev/null 2>&1; then
+    if ! fxcored q erc20 token-pair "${token}" --node "$JSON_RPC" >/dev/null 2>&1; then
       echo "$token unregistered, cannot initiate MsgToggleTokenConversion proposal" && exit 1
     fi
   done
@@ -210,8 +210,8 @@ function distribution_community_pool_spend_proposal() {
 
   fxcored tx gov submit-legacy-proposal community-pool-spend "${DATA_DIR}"/leagcy_community_pool_spend.json --gas-prices="$GAS_PRICES" --gas=auto --gas-adjustment="$GAS_ADJUSTMENT" --from fx1 -y --node "$JSON_RPC" --chain-id "$CHAIN_ID"
 
-  for proposal_id in $(fxcored query gov proposals -o json | jq -r '.proposals[].id'); do
-    messages=$(fxcored query gov proposal "${proposal_id}" -o json)
+  for proposal_id in $(fxcored query gov proposals --node "$JSON_RPC" -o json | jq -r '.proposals[].id'); do
+    messages=$(fxcored query gov proposal "${proposal_id}" --node "$JSON_RPC" -o json)
     if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$metadata" && "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
       break
     fi
