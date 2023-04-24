@@ -44,7 +44,7 @@ if test -f "$BINARY"; then
 
   # $BINARY keys list --home $NODE_HOME
 
-  upgrade_height="$(("$($BINARY status -o json | jq -r '.SyncInfo.latest_block_height|tonumber')" + "$UPGRADE_HEIGHT"))"
+  upgrade_height=$($BINARY status -o json | jq -r '.SyncInfo.latest_block_height|tonumber + '"${UPGRADE_HEIGHT}"'')
   printf "\n"
   echo "Upgrade Height = ${upgrade_height}"
   printf "Submitting proposal... \n"
