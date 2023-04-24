@@ -130,12 +130,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		fxserver.ExportSateCmd(myAppCreator.appExport, defaultNodeHome),
 		fxserver.StartCmd(myAppCreator.newApp, defaultNodeHome),
 		fxserver.TendermintCommand(),
+		fxserver.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
 		preUpgradeCmd(),
 		doctorCmd(),
 	)
-
-	// add rosetta
-	rootCmd.AddCommand(server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 }
 
 func queryCommand() *cobra.Command {

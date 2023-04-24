@@ -628,10 +628,10 @@ components:
       properties:
         blockchain:
           type: string
-          example: "FunctionX"
+          example: "fxcore"
         network:
           type: string
-          example: "fxcore"
+          example: "mainnet"
         sub_network_identifier:
           $ref: "#/components/schemas/SubNetworkIdentifier"
 
@@ -642,7 +642,7 @@ components:
       properties:
         address:
           type: string
-          example: "fx149hrsy9sze6635a29p7tp33sep35zxqf8xz3vr"
+          example: "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3"
         metadata:
           type: object
     AccountIdentifier:
