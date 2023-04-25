@@ -2,6 +2,6 @@
   "title": "Community Pool Spend",
   "description": "Pay me some FX!",
   "recipient": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
-  "amount": "10000000000000000000000FX",
-  "deposit": "3000000000000000000000FX"
+  "amount": "20000000000000000000000FX",
+  "deposit": "2000000000000000000000.000000000000000000FX"
 }
