@@ -5,11 +5,8 @@ import (
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/functionx/fx-core/v4/app/upgrades"
 	v4 "github.com/functionx/fx-core/v4/app/upgrades/v4"
 )
-
-var upgradeArray = upgrades.Upgrades{v4.Upgrade}
 
 // configure store loader that checks if version == upgradeHeight and applies store upgrades
 func (app *App) setupUpgradeStoreLoaders() {
@@ -21,27 +18,18 @@ func (app *App) setupUpgradeStoreLoaders() {
 	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		return
 	}
-
-	for _, upgrade := range upgradeArray {
-		if upgradeInfo.Name == upgrade.UpgradeName {
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, upgrade.StoreUpgrades()))
-		}
+	if upgradeInfo.Name == v4.Upgrade.UpgradeName {
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v4.Upgrade.StoreUpgrades()))
 	}
 }
 
 func (app *App) setupUpgradeHandlers() {
-	for _, upgrade := range upgradeArray {
-		app.UpgradeKeeper.SetUpgradeHandler(
-			upgrade.UpgradeName,
-			upgrade.CreateUpgradeHandler(
-				app.mm,
-				app.configurator,
-				app.AppKeepers,
-			),
-		)
-	}
-}
-
-func GetUpgrades() upgrades.Upgrades {
-	return upgradeArray
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v4.Upgrade.UpgradeName,
+		v4.Upgrade.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.AppKeepers,
+		),
+	)
 }
