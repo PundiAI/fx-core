@@ -271,17 +271,20 @@ func checkBlockchainData(n server.Blockchain, network, privValidatorKeyFile stri
 			fmt.Println("Version: V1")
 		} else if blockHeight < fxtypes.MainnetBlockHeightV3 {
 			fmt.Println("Version: V2")
+		} else {
+			fmt.Println("Version: V3")
 		}
-		fmt.Println("Version: V3")
 	}
 	if network == fxtypes.TestnetChainId {
-		switch blockHeight {
-		case fxtypes.TestnetBlockHeightV2:
+		if blockHeight < fxtypes.TestnetBlockHeightV2 {
 			fmt.Println("Version: V1")
-		case fxtypes.TestnetBlockHeightV3:
+		} else if blockHeight < fxtypes.TestnetBlockHeightV3 {
 			fmt.Println("Version: V2")
+		} else if blockHeight < fxtypes.TestnetBlockHeightV4 {
+			fmt.Println("Version: V3")
+		} else {
+			fmt.Println("Version: V4")
 		}
-		fmt.Println("Version: V3")
 	}
 	return plan != nil && syncing, nil
 }
@@ -307,8 +310,9 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 		fmt.Println("\tWarning: ", err.Error())
 	}
 	if needUpgrade && config.Consensus.DoubleSignCheckHeight > 0 {
-		fmt.Println("Warning: double_sign_check_height is greater than 0")
-		fmt.Println("Warning: double_sign_check_height is greater than 0")
+		fmt.Println("\tWarning: double_sign_check_height is greater than 0")
+		fmt.Println("\t\tPlease check the upgrade plan and set double_sign_check_height to 0")
+		fmt.Println("\t\tIf you are sure that the upgrade has been completed, you can ignore this warning")
 	}
 	if config.P2P.Seeds == "" {
 		fmt.Println("\tWarning: seeds is empty")
