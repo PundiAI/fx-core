@@ -22,10 +22,8 @@ func TestDatabase(t *testing.T) {
 	config := cfg.ResetTestRoot("blockchain_database_test")
 	defer os.RemoveAll(config.RootDir)
 
-	db, err := server.NewDatabase(config.RootDir, string(dbm.GoLevelDBBackend), cdc.Codec)
+	database, err := server.NewDatabase(config.RootDir, string(dbm.GoLevelDBBackend), cdc.Codec)
 	require.NoError(t, err)
-	database, ok := db.(*server.Database)
-	require.True(t, ok)
 
 	defer database.Close()
 	_, err = database.GetChainId()

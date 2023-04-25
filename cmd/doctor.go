@@ -8,15 +8,16 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	cosmosserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/spf13/cobra"
@@ -32,6 +33,17 @@ import (
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
+const SPACE = "  "
+
+type blockchain interface {
+	GetChainId() (string, error)
+	GetBlockHeight() (int64, error)
+	GetSyncing() (bool, error)
+	GetNodeInfo() (*tmservice.VersionInfo, error)
+	CurrentPlan() (*upgradetypes.Plan, error)
+	GetValidators() ([]stakingtypes.Validator, error)
+}
+
 func doctorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "doctor",
@@ -42,29 +54,28 @@ func doctorCmd() *cobra.Command {
 			printPrompt()
 			printOSInfo()
 			printSelfInfo()
-			network, err := checkGenesis(serverCtx.Config.GenesisFile())
+			chainId, err := checkGenesis(serverCtx.Config.GenesisFile())
 			if err != nil {
 				return err
 			}
-			upgradeInfo, err := checkUpgradeInfo(serverCtx.Config.RootDir)
-			if err != nil {
+			if err := checkUpgradeInfo(serverCtx.Config.RootDir); err != nil {
 				return err
 			}
 			bc, err := getBlockchain(clientCtx, serverCtx)
 			if err != nil {
 				return err
 			}
-			needUpgrade, err := checkBlockchainData(bc, network, serverCtx.Config.PrivValidatorKeyFile(), upgradeInfo)
+			needUpgrade, err := checkBlockchainData(bc, chainId, serverCtx.Config.PrivValidatorKeyFile())
 			if err != nil {
 				return err
 			}
-			if err := checkAppConfig(serverCtx.Viper); err != nil {
+			if err = checkAppConfig(serverCtx.Viper); err != nil {
 				return err
 			}
-			if err := checkTmConfig(serverCtx.Config, needUpgrade); err != nil {
+			if err = checkTmConfig(serverCtx.Config, needUpgrade); err != nil {
 				return err
 			}
-			if err := checkCosmovisor(serverCtx.Config.RootDir, bc); err != nil {
+			if err = checkCosmovisor(serverCtx.Config.RootDir, bc); err != nil {
 				return err
 			}
 			return nil
@@ -83,53 +94,366 @@ Please note that these warnings are just used to help the fxCore maintainers
 If everything you use "fxcored" for is working fine: please don't worry; 
 just ignore this. Thanks!
 `)
-	fmt.Println()
+	fmt.Printf("\n")
 }
 
 func printOSInfo() {
-	fmt.Println("Computer Info:")
-	fmt.Printf("\tOS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
-	fmt.Println("\tCPU: ", runtime.NumCPU())
+	fmt.Printf("Computer Info:\n")
+	fmt.Printf("%sOS/Arch: %s/%s\n", SPACE, runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("%sCPU: %d\n", SPACE, runtime.NumCPU())
 	memory, err := mem.VirtualMemory()
 	if err != nil {
 		return
 	}
-	fmt.Printf("\tMemory Total: %v MB, Available: %v MB, UsedPercent: %f%%\n",
-		memory.Total/1024/1024, memory.Available/1024/1024, memory.UsedPercent)
+	fmt.Printf("%sMemory Total: %v MB, Available: %v MB, UsedPercent: %f%%\n",
+		SPACE, memory.Total/1024/1024, memory.Available/1024/1024, memory.UsedPercent)
 }
 
 func printSelfInfo() {
-	fmt.Println("fxcored Info:")
+	fmt.Printf("fxcored Info:\n")
 	info := version.NewInfo()
-	fmt.Println("\tVersion: ", info.Version)
-	fmt.Println("\tGit Commit: ", info.GitCommit)
-	fmt.Println("\tBuild Tags: ", info.BuildTags)
-	fmt.Println("\tGo Version: ", runtime.Version())
-	fmt.Println("\tCosmos SDK Version: ", info.CosmosSdkVersion)
+	fmt.Printf("%sVersion: %s\n", SPACE, info.Version)
+	fmt.Printf("%sGit Commit: %s\n", SPACE, info.GitCommit)
+	fmt.Printf("%sBuild Tags: %s\n", SPACE, info.BuildTags)
+	fmt.Printf("%sGo Version: %s\n", SPACE, runtime.Version())
+	fmt.Printf("%sCosmos SDK Version: %s\n", SPACE, info.CosmosSdkVersion)
 }
 
 func checkGenesis(genesisFile string) (string, error) {
-	fmt.Println("Genesis:")
-	fmt.Println("\tFile: ", genesisFile)
+	fmt.Printf("Genesis:\n")
+	fmt.Printf("%sFile: %s\n", SPACE, genesisFile)
 
 	genesisSha256, err := getGenesisSha256(genesisFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Println("\tWarning: Not found Genesis file!")
+			fmt.Printf("%sWarning: Not found Genesis file!\n", SPACE)
 			return "", nil
 		}
 		return "", err
 	}
 	switch genesisSha256 {
 	case fxtypes.MainnetGenesisHash:
-		fmt.Println("\tNetwork: Mainnet")
-		return fxtypes.MainnetGenesisHash, nil
+		fmt.Printf("%sNetwork: Mainnet\n", SPACE)
+		return fxtypes.MainnetChainId, nil
 	case fxtypes.TestnetGenesisHash:
-		fmt.Println("\tNetwork: Testnet")
-		return fxtypes.TestnetGenesisHash, nil
+		fmt.Printf("%sNetwork: Testnet\n", SPACE)
+		return fxtypes.TestnetChainId, nil
 	default:
-		fmt.Println("\tWarning: Unknown Network!")
-		return "", nil
+		fmt.Printf("%sWarning: Unknown Network!\n", SPACE)
+		return "Unknown", nil
+	}
+}
+
+func checkUpgradeInfo(homeDir string) error {
+	file := filepath.Join(homeDir, "data", upgradetypes.UpgradeInfoFilename)
+	data, err := os.ReadFile(file)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("read upgrade info error: %s", err.Error())
+	}
+	upgradeInfo := new(upgradetypes.Plan)
+	if err := json.Unmarshal(data, upgradeInfo); err != nil {
+		return err
+	}
+	fmt.Printf("Upgrade Info:\n")
+	fmt.Printf("%sFile: %s\n", SPACE, file)
+	fmt.Printf("%sName: %s\n", SPACE, upgradeInfo.Name)
+	fmt.Printf("%sHeight: %d\n", SPACE, upgradeInfo.Height)
+	return nil
+}
+
+func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (blockchain, error) {
+	fmt.Printf("Blockchain Data:\n")
+	grpcAddr := serverCtx.Viper.GetString(flags.FlagGRPC)
+	newClient := grpc.NewClient(cliCtx)
+	_, err := newClient.GetBlockHeight()
+	if err == nil {
+		fmt.Printf("%sRemote Node: %s %s\n", SPACE, serverCtx.Viper.GetString(flags.FlagNode), grpcAddr)
+		return newClient, nil
+	}
+	if len(grpcAddr) > 0 {
+		return nil, err
+	}
+	if len(serverCtx.Config.RootDir) <= 0 {
+		fmt.Printf("%sWarning: Not found root dir\n", SPACE)
+		return nil, nil
+	}
+	database, err := server.NewDatabase(serverCtx.Config.RootDir, serverCtx.Config.DBBackend, cliCtx.Codec)
+	if err != nil {
+		return nil, err
+	}
+	if database == nil {
+		fmt.Printf("%sWarning: Not found data file!\n", SPACE)
+		return nil, nil
+	}
+	fmt.Printf("%sData Dir: %s/data\n", SPACE, serverCtx.Config.RootDir)
+	return database, nil
+}
+
+//gocyclo:ignore
+func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) (bool, error) {
+	if bc == nil {
+		return false, nil
+	}
+	chainId, err := bc.GetChainId()
+	if err != nil {
+		fmt.Printf("%sWarning: %s\n", SPACE, err.Error())
+		return false, nil
+	}
+	if len(chainId) > 0 {
+		fmt.Printf("%sChain ID: %s\n", SPACE, chainId)
+	}
+	blockHeight, err := bc.GetBlockHeight()
+	if err != nil {
+		return false, err
+	}
+	if blockHeight > 0 {
+		fmt.Printf("%sBlock Height: %d\n", SPACE, blockHeight)
+	}
+	syncing, err := bc.GetSyncing()
+	if err != nil {
+		return false, nil
+	}
+	fmt.Printf("%sSyncing: %v\n", SPACE, syncing)
+	pvKey := privval.FilePVKey{}
+	keyJSONBytes, err := os.ReadFile(privValidatorKeyFile)
+	if err != nil {
+		return false, err
+	}
+	if err = tmjson.Unmarshal(keyJSONBytes, &pvKey); err != nil {
+		return false, err
+	}
+	validators, err := bc.GetValidators()
+	if err != nil {
+		return false, err
+	}
+	for _, validator := range validators {
+		if strings.EqualFold(
+			sdk.ValAddress(pvKey.Address.Bytes()).String(),
+			validator.GetOperator().String(),
+		) {
+			fmt.Printf("%sNode Type: This node is a validator\n", SPACE)
+		}
+	}
+	app, err := bc.GetNodeInfo()
+	if err != nil {
+		return false, err
+	}
+	fmt.Printf("%sNode Info: \n", SPACE)
+	if len(app.Version) > 0 {
+		fmt.Printf("%s%sVersion: %s\n", SPACE, SPACE, app.Version)
+	}
+	if len(app.GitCommit) > 0 {
+		fmt.Printf("%s%sGit Commit: %s\n", SPACE, SPACE, app.GitCommit)
+	}
+	if len(app.BuildTags) > 0 {
+		fmt.Printf("%s%sBuild Tags: %s\n", SPACE, SPACE, app.BuildTags)
+	}
+	if len(app.GoVersion) > 0 {
+		fmt.Printf("%s%sGo Version: %s\n", SPACE, SPACE, app.GoVersion)
+	}
+	if len(app.CosmosSdkVersion) > 0 {
+		fmt.Printf("%s%sCosmos SDK Version: %s\n", SPACE, SPACE, app.CosmosSdkVersion)
+	}
+	plan, err := bc.CurrentPlan()
+	if err != nil {
+		return false, err
+	}
+	if plan != nil {
+		fmt.Printf("%sCurrent Upgrade Plan:\n", SPACE)
+		fmt.Printf("%s%sName: %s\n", SPACE, SPACE, plan.Name)
+		fmt.Printf("%s%sHeight: %d\n", SPACE, SPACE, plan.Height)
+	}
+	if chainId != genesisId {
+		fmt.Printf("%s%sWarning: The remote node chainId(%s) does not match the local genesis chainId(%s)\n", SPACE, SPACE, chainId, genesisId)
+		return false, nil
+	}
+	if chainId == fxtypes.MainnetChainId {
+		if blockHeight < fxtypes.MainnetBlockHeightV2 {
+			fmt.Printf("%sVersion: V1\n", SPACE)
+		} else if blockHeight < fxtypes.MainnetBlockHeightV3 {
+			fmt.Printf("%sVersion: V2\n", SPACE)
+		}
+	}
+	if chainId == fxtypes.TestnetChainId {
+		if blockHeight < fxtypes.TestnetBlockHeightV2 {
+			fmt.Printf("%sVersion: V1\n", SPACE)
+		} else if blockHeight < fxtypes.TestnetBlockHeightV3 {
+			fmt.Printf("%sVersion: V2\n", SPACE)
+		} else if blockHeight < fxtypes.TestnetBlockHeightV4 {
+			fmt.Printf("%sVersion: V3\n", SPACE)
+		}
+	}
+	return plan != nil && syncing, nil
+}
+
+func checkAppConfig(viper *viper.Viper) error {
+	fmt.Printf("App Config:\n")
+	fmt.Printf("%sFile: %s\n", SPACE, viper.ConfigFileUsed())
+	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
+	appConfig := fxcfg.DefaultConfig()
+	if err := viper.Unmarshal(appConfig); err != nil {
+		return err
+	}
+	if err := appConfig.ValidateBasic(); err != nil {
+		fmt.Printf("%sWarning: %s\n", SPACE, err.Error())
+	}
+	return nil
+}
+
+func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
+	fmt.Printf("Tendermint Config:\n")
+	fmt.Printf("%sFile: %s/config/config.toml\n", SPACE, config.RootDir)
+	if err := config.ValidateBasic(); err != nil {
+		fmt.Printf("%sWarning: ", err.Error())
+	}
+	if needUpgrade && config.Consensus.DoubleSignCheckHeight > 0 {
+		fmt.Printf("%sWarning: double_sign_check_height is greater than 0\n", SPACE)
+		fmt.Printf("%s%sPlease check the upgrade plan and set double_sign_check_height to 0\n", SPACE, SPACE)
+		fmt.Printf("%s%sIf you are sure that the upgrade has been completed, you can ignore this warning\n", SPACE, SPACE)
+	}
+	if config.P2P.Seeds == "" {
+		fmt.Printf("%sWarning: seeds is empty\n", SPACE)
+	}
+	return nil
+}
+
+//gocyclo:ignore
+func checkCosmovisor(rootPath string, bc blockchain) error {
+	cosmovisorPath := filepath.Join(rootPath, "cosmovisor")
+	if _, err := os.Stat(cosmovisorPath); os.IsNotExist(err) {
+		fmt.Printf("Cosmovisor: %s\n", "not found")
+		return nil
+	}
+
+	fmt.Printf("Cosmovisor:\n")
+	for _, dir := range []string{"current", "genesis"} {
+		fmt.Printf("%s%s%s:\n", SPACE, strings.ToUpper(dir[:1]), dir[1:])
+		fxcored := filepath.Join(cosmovisorPath, dir, "bin/fxcored")
+		fmt.Printf("%s%sBinary File: %s\n", SPACE, SPACE, fxcored)
+		output, err := exec.Command(fxcored, "version").Output()
+		if err != nil {
+			fmt.Printf("%s%sWarning: %s\n", SPACE, SPACE, err.Error())
+			return nil
+		}
+		v := string(bytes.Trim(output, "\n"))
+		fmt.Printf("%s%sfxcored version: %s\n", SPACE, SPACE, v)
+		if dir == "current" && !strings.HasPrefix(v, "release/v3.1.x") {
+			fmt.Printf("%s%sWarning: current fxcored version is not v3.1.x\n", SPACE, SPACE)
+		}
+	}
+
+	upgradesPath := filepath.Join(cosmovisorPath, "upgrades")
+	fmt.Printf("%sUpgrades:\n", SPACE)
+	fmt.Printf("%s%sPath: %s\n", SPACE, SPACE, upgradesPath)
+	entries, err := os.ReadDir(upgradesPath)
+	if err != nil {
+		fmt.Printf("%s%sWarning: %s\n", SPACE, SPACE, err.Error())
+		return nil
+	}
+	plan, _ := bc.CurrentPlan()
+	var planVersion bool
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		if plan != nil && plan.Name == entry.Name() {
+			planVersion = true
+		}
+		fmt.Printf("%s%s%s:\n", SPACE, SPACE, entry.Name())
+		fxcored := filepath.Join(upgradesPath, entry.Name(), "bin/fxcored")
+		fmt.Printf("%s%s%sBinary File: %s\n", SPACE, SPACE, SPACE, fxcored)
+		output, err := exec.Command(fxcored, "version").Output()
+		if err != nil {
+			fmt.Printf("%s%s%sWarning: %s\n", SPACE, SPACE, SPACE, err.Error())
+			continue
+		}
+		v := string(bytes.Trim(output, "\n"))
+		fmt.Printf("%s%s%sfxcored version: %s\n", SPACE, SPACE, SPACE, v)
+		if !strings.HasPrefix(v, "release/v"+entry.Name()[len(entry.Name())-1:]) {
+			fmt.Printf("%s%s%sWarning: fxcored version is not match upgrade plan\n", SPACE, SPACE, SPACE)
+		}
+		upgradeInfoFile := filepath.Join(upgradesPath, entry.Name(), upgradetypes.UpgradeInfoFilename)
+
+		upgradeInfo, err := os.ReadFile(upgradeInfoFile)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				fmt.Printf("%s%s%sWarning: %s\n", SPACE, SPACE, SPACE, err.Error())
+			}
+			continue
+		}
+		fmt.Printf("%s%s%sUpgrade Info File: %s\n", SPACE, SPACE, SPACE, upgradeInfoFile)
+		var plan upgradetypes.Plan
+		if err := json.Unmarshal(upgradeInfo, &plan); err != nil {
+			fmt.Printf("%s%s%sWarning: %s\n", SPACE, SPACE, SPACE, err.Error())
+			continue
+		}
+		fmt.Printf("%s%s%sUpgrade Plan: %s %d\n", SPACE, SPACE, SPACE, plan.Name, plan.Height)
+		if plan.Name != entry.Name() {
+			fmt.Printf("%s%s%sWarning: fxcored version is not match upgrade plan\n", SPACE, SPACE, SPACE)
+		}
+	}
+	if plan != nil && !planVersion {
+		fmt.Printf("%s%sWarning: current upgrade plan is not found in cosmovisor\n", SPACE, SPACE)
+	}
+	return printDirectory(cosmovisorPath, 0, []bool{false}, SPACE)
+}
+
+func printDirectory(path string, depth int, last []bool, tab string) error {
+	printPath := path
+	if depth > 0 {
+		printPath = filepath.Base(path)
+	}
+	printTree(printPath, depth, last, tab)
+
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+	for idx, entry := range entries {
+		currentLast := idx == len(entries)-1
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if (info.Mode() & os.ModeSymlink) == os.ModeSymlink {
+			fullPath, err := os.Readlink(filepath.Join(path, entry.Name()))
+			if err != nil {
+				return err
+			} else {
+				printTree(entry.Name()+" -> "+fullPath, depth+1, append(last, currentLast), tab)
+			}
+		} else if entry.IsDir() {
+			if err = printDirectory(filepath.Join(path, entry.Name()), depth+1, append(last, currentLast), tab); err != nil {
+				return err
+			}
+		} else {
+			printTree(entry.Name(), depth+1, append(last, currentLast), tab)
+		}
+	}
+	return nil
+}
+
+func printTree(entry string, depth int, last []bool, tab string) {
+	if depth == 0 {
+		fmt.Printf("%s%s\n", tab, entry)
+	} else {
+		indent := ""
+		newLast := last[1:]
+		for i := 0; i < len(newLast)-1; i++ {
+			if newLast[i] {
+				indent = fmt.Sprintf("%s    ", indent)
+			} else {
+				indent = fmt.Sprintf("%s│   ", indent)
+			}
+		}
+		sepStr := "├── "
+		if last[len(last)-1] {
+			sepStr = "└── "
+		}
+		fmt.Printf("%s%s%s%s\n", tab, indent, sepStr, entry)
 	}
 }
 
@@ -147,416 +471,4 @@ func getGenesisSha256(genesisFile string) (string, error) {
 		return "", err
 	}
 	return fxtypes.Sha256Hex(genesisBytes), nil
-}
-
-func checkUpgradeInfo(homeDir string) (*upgradetypes.Plan, error) {
-	fmt.Println("Upgrade Info:")
-	file := filepath.Join(homeDir, "data", upgradetypes.UpgradeInfoFilename)
-	data, err := os.ReadFile(file)
-	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("\tNot found file: ", file)
-			return nil, nil
-		}
-		return nil, fmt.Errorf("read upgrade info error: %s", err.Error())
-	}
-	upgradeInfo := new(upgradetypes.Plan)
-	if err := json.Unmarshal(data, upgradeInfo); err != nil {
-		return nil, err
-	}
-	fmt.Println("\tFile: ", file)
-	fmt.Println("\tName: ", upgradeInfo.Name)
-	fmt.Println("\tHeight: ", upgradeInfo.Height)
-	return upgradeInfo, nil
-}
-
-func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (server.Blockchain, error) {
-	fmt.Println("Blockchain Data:")
-	newClient := grpc.NewClient(cliCtx)
-	_, err := newClient.GetBlockHeight()
-	if err == nil {
-		fmt.Printf("\tRemote Node: %v or %v\n", serverCtx.Viper.Get(flags.FlagGRPC), serverCtx.Viper.Get(flags.FlagNode))
-		return newClient, nil
-	} else {
-		if len(serverCtx.Config.RootDir) <= 0 {
-			fmt.Println("\tNot found root dir")
-			return nil, nil
-		}
-		database, _ := server.NewDatabase(serverCtx.Config.RootDir, serverCtx.Config.DBBackend, cliCtx.Codec)
-		if database == nil {
-			fmt.Println("\tWarning: Not found data file!")
-		}
-		fmt.Printf("\tData Dir: %s/data\n", serverCtx.Config.RootDir)
-		return database, nil
-	}
-}
-
-//gocyclo:ignore
-func checkBlockchainData(n server.Blockchain, network, privValidatorKeyFile string, upgradeInfo *upgradetypes.Plan) (bool, error) {
-	if n == nil {
-		return false, nil
-	}
-	chainId, err := n.GetChainId()
-	if err != nil {
-		fmt.Println("\tWarning: ", err.Error())
-		return false, nil
-	}
-	fmt.Println("\tChain ID: ", chainId)
-	blockHeight, err := n.GetBlockHeight()
-	if err != nil {
-		return false, err
-	}
-	fmt.Printf("\tBlock Height: %d\n", blockHeight)
-	syncing, err := n.GetSyncing()
-	if err != nil {
-		return false, nil
-	}
-	fmt.Println("\tSyncing: ", syncing)
-	pvKey := privval.FilePVKey{}
-	keyJSONBytes, err := os.ReadFile(privValidatorKeyFile)
-	if err != nil {
-		return false, err
-	}
-	err = tmjson.Unmarshal(keyJSONBytes, &pvKey)
-	if err != nil {
-		return false, err
-	}
-	validators, err := n.GetValidators()
-	if err != nil {
-		return false, err
-	}
-	for _, validator := range validators {
-		if strings.EqualFold(
-			sdk.ValAddress(pvKey.Address.Bytes()).String(),
-			validator.GetOperator().String(),
-		) {
-			fmt.Println("\tNode Type: This node is a validator")
-		}
-	}
-	app, err := n.GetNodeInfo()
-	if err != nil {
-		return false, nil
-	}
-	fmt.Println("\tNode Info: ")
-	if len(app.Version) > 0 {
-		fmt.Println("\t\tVersion: ", app.Version)
-	}
-	if len(app.GitCommit) > 0 {
-		fmt.Println("\t\tGit Commit: ", app.GitCommit)
-	}
-	if len(app.BuildTags) > 0 {
-		fmt.Println("\t\tBuild Tags: ", app.BuildTags)
-	}
-	if len(app.GoVersion) > 0 {
-		fmt.Println("\t\tGo Version: ", app.GoVersion)
-	}
-	if len(app.CosmosSdkVersion) > 0 {
-		fmt.Println("\t\tCosmos SDK Version: ", app.CosmosSdkVersion)
-	}
-	plan, err := n.CurrentPlan()
-	if err != nil {
-		return false, err
-	}
-	if plan != nil && !plan.Equal(upgradeInfo) {
-		fmt.Println("\tUpgrade Plan:")
-		fmt.Println("\t\tName: ", plan.Name)
-		fmt.Println("\t\tHeight: ", plan.Height)
-	}
-	if chainId != network {
-		fmt.Printf("\tWarning: The remote node chainId(%s) does not match the local genesis chainId(%s)\n", chainId, network)
-		return false, nil
-	}
-	if network == fxtypes.MainnetChainId {
-		if blockHeight < fxtypes.MainnetBlockHeightV2 {
-			fmt.Println("Version: V1")
-		} else if blockHeight < fxtypes.MainnetBlockHeightV3 {
-			fmt.Println("Version: V2")
-		} else {
-			fmt.Println("Version: V3")
-		}
-	}
-	if network == fxtypes.TestnetChainId {
-		if blockHeight < fxtypes.TestnetBlockHeightV2 {
-			fmt.Println("Version: V1")
-		} else if blockHeight < fxtypes.TestnetBlockHeightV3 {
-			fmt.Println("Version: V2")
-		} else if blockHeight < fxtypes.TestnetBlockHeightV4 {
-			fmt.Println("Version: V3")
-		} else {
-			fmt.Println("Version: V4")
-		}
-	}
-	return plan != nil && syncing, nil
-}
-
-func checkAppConfig(viper *viper.Viper) error {
-	fmt.Println("App Config:")
-	fmt.Println("\tFile: ", viper.ConfigFileUsed())
-	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
-	appConfig := fxcfg.DefaultConfig()
-	if err := viper.Unmarshal(appConfig); err != nil {
-		return err
-	}
-	if err := appConfig.ValidateBasic(); err != nil {
-		fmt.Println("\tWarning: ", err.Error())
-	}
-	return nil
-}
-
-func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
-	fmt.Println("Tendermint Config: ")
-	fmt.Printf("\tFile: %s/config/config.toml\n", config.RootDir)
-	if err := config.ValidateBasic(); err != nil {
-		fmt.Println("\tWarning: ", err.Error())
-	}
-	if needUpgrade && config.Consensus.DoubleSignCheckHeight > 0 {
-		fmt.Println("\tWarning: double_sign_check_height is greater than 0")
-		fmt.Println("\t\tPlease check the upgrade plan and set double_sign_check_height to 0")
-		fmt.Println("\t\tIf you are sure that the upgrade has been completed, you can ignore this warning")
-	}
-	if config.P2P.Seeds == "" {
-		fmt.Println("\tWarning: seeds is empty")
-	}
-	return nil
-}
-
-func checkCosmovisor(rootPath string, n server.Blockchain) error {
-	cosmovisorPath := filepath.Join(rootPath, "cosmovisor")
-	exist, isDir, err := checkDirFile(cosmovisorPath)
-	if err != nil {
-		return err
-	}
-	if !exist {
-		fmt.Println("Cosmovisor: Not installed")
-		return nil
-	}
-	if !isDir {
-		fmt.Println("Cosmovisor: Not directory")
-		return nil
-	}
-	fmt.Println("Cosmovisor:")
-	fmt.Println("\tPath:", cosmovisorPath)
-
-	defer func() {
-		fmt.Println("\tList Path:")
-		if err := printDirectory(cosmovisorPath, 0, []bool{false}, "\t\t"); err != nil {
-			fmt.Println("\t", err.Error())
-		}
-	}()
-
-	current := filepath.Join(cosmovisorPath, "current")
-	checkCosmovisorUpgrade(current, "")
-
-	genesis := filepath.Join(cosmovisorPath, "genesis")
-	checkCosmovisorUpgrade(genesis, "")
-
-	upgradePath := filepath.Join(cosmovisorPath, "upgrades")
-	exist, isDir, err = checkDirFile(upgradePath)
-	upgradePlans := make([]*upgradetypes.Plan, 0)
-	if err == nil && exist && isDir {
-		fmt.Println("\tUpgrades:", upgradePath)
-		entries, err := os.ReadDir(upgradePath)
-		if err == nil {
-			if len(entries) > 0 {
-				for _, entry := range entries {
-					if entry.IsDir() {
-						upgrade := filepath.Join(upgradePath, entry.Name())
-						upgradeInfo := checkCosmovisorUpgrade(upgrade, "\t")
-						if upgradeInfo != nil {
-							upgradePlans = append(upgradePlans, upgradeInfo)
-						}
-					} else {
-						fmt.Printf("\tUpgrades %s: is not directory\n", entry.Name())
-					}
-				}
-			} else {
-				fmt.Println("\t\tWarning: Not exist upgrade version")
-			}
-		} else {
-			fmt.Println("\tUpgrades: ", err.Error())
-		}
-	} else {
-		errDir(exist, isDir, err, "Upgrades", "")
-	}
-
-	return checkCosmovisorCurrentVersion(upgradePlans, n)
-}
-
-// checkCosmovisorUpgrade check cosmovisor upgrade plan
-//
-//gocyclo:ignore
-func checkCosmovisorUpgrade(path, t string) *upgradetypes.Plan {
-	basePath := filepath.Base(path)
-	title := "Version " + basePath
-	if basePath == "genesis" {
-		title = "Genesis"
-	} else if basePath == "current" {
-		title = "Current"
-	}
-	exist, isDir, err := checkDirFile(path)
-	if err == nil && exist && isDir {
-		fmt.Printf("%s\t%s: %s\n", t, title, path)
-		bin := filepath.Join(path, "bin")
-		exist, isDir, err = checkDirFile(bin)
-		if err == nil && exist && isDir {
-			binFxcored := filepath.Join(bin, "fxcored")
-			exist, isDir, err = checkDirFile(binFxcored)
-			if err == nil && exist && !isDir {
-				output, err := exec.Command(binFxcored, "version").Output()
-				if err != nil {
-					fmt.Printf("%s\t\tfxcored exec: %s\n", t, err.Error())
-				} else {
-					fmt.Printf("%s\t\tfxcored version: %s\n", t, bytes.Trim(output, "\n"))
-				}
-			} else {
-				errFile(exist, isDir, err, "fxcored", t+"\t")
-			}
-		} else {
-			errDir(exist, isDir, err, "bin", t+"\t")
-		}
-
-		if basePath != "genesis" && basePath != "current" {
-			upgradeFile := filepath.Join(path, upgradetypes.UpgradeInfoFilename)
-			exist, isDir, err = checkDirFile(upgradeFile)
-			if err == nil && exist && !isDir {
-				fmt.Printf("%s\t\t%s: %s\n", t, upgradetypes.UpgradeInfoFilename, upgradeFile)
-				upgradeInfo, err := os.ReadFile(upgradeFile)
-				if err != nil {
-					fmt.Printf("%s\t\t%s read: %s\n", t, upgradetypes.UpgradeInfoFilename, err.Error())
-					return nil
-				}
-				fmt.Printf("%s\t\t%s content: %s\n", t, upgradetypes.UpgradeInfoFilename, bytes.Trim(upgradeInfo, "\n"))
-				var plan upgradetypes.Plan
-				if err := json.Unmarshal(upgradeInfo, &plan); err != nil {
-					fmt.Printf("%s\t\t%s error: %s\n", t, upgradetypes.UpgradeInfoFilename, err.Error())
-					return nil
-				}
-				if plan.Name != basePath {
-					fmt.Printf("%s\t\tupgrade plan not match: %s\n", t, plan.Name)
-					return nil
-				}
-				return &plan
-			}
-			errDir(exist, isDir, err, upgradetypes.UpgradeInfoFilename, t+"\t")
-		}
-		return nil
-	}
-	errDir(exist, isDir, err, title, t)
-	return nil
-}
-
-func checkCosmovisorCurrentVersion(upgradePlans []*upgradetypes.Plan, n server.Blockchain) error {
-	sort.SliceStable(upgradePlans, func(i, j int) bool {
-		return upgradePlans[i].Height < upgradePlans[j].Height
-	})
-	if len(upgradePlans) == 0 {
-		return nil
-	}
-	height, err := n.GetBlockHeight()
-	if err != nil {
-		return err
-	}
-	var currentPlan *upgradetypes.Plan
-	for _, info := range upgradePlans {
-		if height <= info.Height {
-			break
-		}
-		currentPlan = info
-	}
-
-	if currentPlan == nil {
-		// genesis
-		fmt.Println("\tCurrent plan: genesis")
-	} else {
-		fmt.Println("\tCurrent plan:", currentPlan.Name)
-	}
-
-	return nil
-}
-
-func checkDirFile(path string) (exist, dir bool, err error) {
-	stat, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false, false, nil
-	}
-	if err != nil {
-		return false, false, err
-	}
-	return true, stat.IsDir(), nil
-}
-
-func errDir(exist, isDir bool, err error, title, t string) {
-	if err != nil {
-		fmt.Printf("%s\t%s: %s\n", title, t, err.Error())
-	} else if !exist {
-		fmt.Printf("%s\t%s: Not exist!\n", t, title)
-	} else if !isDir {
-		fmt.Printf("%s\t%s: Not directory!\n", t, title)
-	}
-}
-
-func errFile(exist, isDir bool, err error, title, t string) {
-	if err != nil {
-		fmt.Printf("%s\t%s: %s\n", t, title, err.Error())
-	} else if !exist {
-		fmt.Printf("%s\t%s: Not exist!\n", t, title)
-	} else if isDir {
-		fmt.Printf("%s\t%s: Is directory!\n", t, title)
-	}
-}
-
-func printDirectory(path string, depth int, last []bool, t string) error {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return err
-	}
-
-	printPath := path
-	if depth > 0 {
-		printPath = filepath.Base(path)
-	}
-	printListing(printPath, depth, last, t)
-	for idx, entry := range entries {
-		currentLast := idx == len(entries)-1
-		info, err := entry.Info()
-		if err != nil {
-			return err
-		}
-		if (info.Mode() & os.ModeSymlink) == os.ModeSymlink {
-			fullPath, err := os.Readlink(filepath.Join(path, entry.Name()))
-			if err != nil {
-				return err
-			} else {
-				printListing(entry.Name()+" -> "+fullPath, depth+1, append(last, currentLast), t)
-			}
-		} else if entry.IsDir() {
-			if err = printDirectory(filepath.Join(path, entry.Name()), depth+1, append(last, currentLast), t); err != nil {
-				return err
-			}
-		} else {
-			printListing(entry.Name(), depth+1, append(last, currentLast), t)
-		}
-	}
-	return nil
-}
-
-func printListing(entry string, depth int, last []bool, t string) {
-	if depth == 0 {
-		fmt.Printf("%s%s\n", t, entry)
-	} else {
-		indent := ""
-		newLast := last[1:]
-		for i := 0; i < len(newLast)-1; i++ {
-			if newLast[i] {
-				indent = fmt.Sprintf("%s    ", indent)
-			} else {
-				indent = fmt.Sprintf("%s│   ", indent)
-			}
-		}
-		sepStr := "├── "
-		if last[len(last)-1] {
-			sepStr = "└── "
-		}
-		fmt.Printf("%s%s%s%s\n", t, indent, sepStr, entry)
-	}
 }

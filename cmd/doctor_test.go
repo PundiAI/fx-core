@@ -52,3 +52,49 @@ func Test_getGenesisSha256(t *testing.T) {
 		})
 	}
 }
+
+func Test_checkGenesis(t *testing.T) {
+	type args struct {
+		genesisFile string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "mainnet",
+			args: args{genesisFile: "../public/mainnet/genesis.json"},
+			want: fxtypes.MainnetChainId,
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				return assert.NoError(t, err, i)
+			},
+		},
+		{
+			name: "testnet",
+			args: args{genesisFile: "../public/testnet/genesis.json"},
+			want: fxtypes.TestnetChainId,
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				return assert.NoError(t, err, i)
+			},
+		},
+		{
+			name: "not exist",
+			args: args{genesisFile: "../public/invalid/genesis.json"},
+			want: "",
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				return assert.NoError(t, err, i)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := checkGenesis(tt.args.genesisFile)
+			if !tt.wantErr(t, err, fmt.Sprintf("checkGenesis(%v)", tt.args.genesisFile)) {
+				return
+			}
+			assert.Equalf(t, tt.want, got, "checkGenesis(%v)", tt.args.genesisFile)
+		})
+	}
+}

@@ -22,15 +22,6 @@ import (
 
 var genesisDocNotFoundError = errors.New("genesis doc not found")
 
-type Blockchain interface {
-	GetChainId() (string, error)
-	GetBlockHeight() (int64, error)
-	GetSyncing() (bool, error)
-	GetNodeInfo() (*tmservice.VersionInfo, error)
-	CurrentPlan() (*upgradetypes.Plan, error)
-	GetValidators() ([]stakingtypes.Validator, error)
-}
-
 type Database struct {
 	blockStore *store.BlockStore
 	stateDB    cmtdbm.DB
@@ -41,7 +32,7 @@ type Database struct {
 	codec      codec.Codec
 }
 
-func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (Blockchain, error) {
+func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (*Database, error) {
 	dataDir := filepath.Join(rootDir, "data")
 
 	blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(dbType), dataDir)
