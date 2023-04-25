@@ -154,7 +154,7 @@
     let plan = getCurrentPlan()
     plan = plan? plan : {name: "unknown", height: 0}
     const upgradeBlockHeight = plan.height;
-    document.getElementById("version").innerHTML = ` upgrade ${plan.name} countdown`;
+    document.getElementById("version").innerHTML = ` upgrade ${network}-${plan.name} countdown`;
 
     let myInterval
 
