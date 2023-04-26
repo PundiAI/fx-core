@@ -10,24 +10,38 @@
 </head>
 <body>
 <div class="text-center">
-    <h2>CurrentModule: <span id="currentModule"></span></h2>
-    <ul class="list-group">
-        <li class="list-group-item"><a href="balances.html?module=total">Query Total</a></li>
-        <li class="list-group-item"><a href="balances.html">Query ERC20</a></li>
-    </ul>
     <div class="row">
-        <table class="table table-striped table-hover">
-            <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">BlockChain</th>
-                <th scope="col">Symbol</th>
-                <th scope="col">Balance</th>
-            </tr>
-            </thead>
-            <tbody id="crosschain">
-            </tbody>
-        </table>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid" style="margin-left: 20px; margin-top: 10px">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="balances.html?module=total">Total Supply</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="balances.html?module=erc20">ERC20 Module</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="col-6">
+            <table class="table table-striped table-hover table-bordered">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">BlockChain</th>
+                    <th scope="col">Symbol</th>
+                    <th scope="col" style="text-align: right">Balance</th>
+                </tr>
+                </thead>
+                <tbody id="balances">
+                </tbody>
+            </table>
+        </div>
+        <div class="col-6">
+            <canvas id="myChart"></canvas>
+        </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js"
@@ -36,27 +50,58 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js"
         integrity="sha384-ODmDIVzN+pFdexxHEHFBQH3/9/vQ9uori45z4JjnFsRydbmQbmL5t1tQ0culUzyK"
         crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
 <script src="./js/bech32.js"></script>
 <script src="./js/index.js"></script>
+<script src="./js/constants.js"></script>
 <script type="text/javascript">
     let module = getQueryVariable("module")
+    // erc20 module address
     let moduleAddress = "fx1glht96kr2rseywuvhhay894qw7ekuc4qs5z0yh"
-    if (module === "total") {
-        moduleAddress = "total"
+
+    function getRandomRGBColor() {
+        const r = Math.floor(Math.random() * 255)
+        const g = Math.floor(Math.random() * 255)
+        const b = Math.floor(Math.random() * 255)
+        return `rgb(${r}, ${g}, ${b})`
+    }
+
+    let myChart = null
+    function show_pie_chart(token) {
+        let data = {
+            labels: [],
+            datasets: [{
+                label: '',
+                data: [],
+                backgroundColor: [],
+                hoverOffset: 4
+            }]
+        }
+        token.forEach((item) => {
+            data.labels.push(item.blockchain)
+            data.datasets[0].label = item.symbol
+            data.datasets[0].data.push(item.amount)
+            data.datasets[0].backgroundColor.push(getRandomRGBColor())
+        })
+        const config = {
+            type: 'pie',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+        const ctx = document.getElementById('myChart');
+        if (myChart){
+            myChart.destroy()
+        }
+        myChart = new Chart(ctx, config);
     }
 
     const metadatas = getMetadatas()
-
-    function getModuleBalances(moduleAddress) {
-        let balances
-        if (!moduleAddress) {
-            balances = getTotalSupply()
-        } else {
-            balances = getBalances(moduleAddress)
-        }
-        return balances
-    }
-
     function balancesSymbol(balances) {
         for (let i = 0; i < balances.length; i++) {
             for (let j = 0; j < metadatas.length; j++) {
@@ -79,44 +124,23 @@
         }
         return balances
     }
-
-    document.querySelector("#currentModule").innerHTML = module === "total" ? "TotalSupply" : "ERC20"
-    let balances = getModuleBalances(module === "total" ? "" : moduleAddress)
+    let balances = module === "total" ? getTotalSupply() : getBalances(moduleAddress)
     balances = balancesSymbol(balances);
-    balances.sort((a, b) => {
-        return a.symbol.localeCompare(b.symbol)
-    })
+
     let results = []
     for (let i = 0; i < balances.length; i++) {
-        let balance = balances[i]
         let blockchain = "fxCore"
-        let bridgeURL = "https://starscan.io"
-        if (balance.denom.startsWith("eth")) {
-            blockchain = "Ethereum"
-            bridgeURL = "https://etherscan.com/address/0x6f1D09Fed11115d65E1071CD2109eDb300D80A27"
-        }
-        if (balance.denom.startsWith("bsc")) {
-            blockchain = "BSC"
-            bridgeURL = "https://bscscan.com/address/0x84238c00c8313920826D798e3cF6793Ef4F610ad"
-        }
-        if (balance.denom.startsWith("polygon")) {
-            blockchain = "Polygon"
-            bridgeURL = "https://polygonscan.com/address/0x4052eA614c5a96631C546d8B8d323a7C3D9ABb69"
-        }
-        if (balance.denom.startsWith("tron")) {
-            blockchain = "Tron"
-            bridgeURL = "https://tronscan.org/#/contract/TKLDunqAynYcXRktcYHqncp3R6nJeEXLd5"
-        }
-        if (balance.denom.startsWith("avalanche")) {
-            blockchain = "Avalanche"
-            bridgeURL = "https://snowtrace.io/address/0xDc3706d164d2D88b85ed702079ab331e2476D475"
-        }
-        if (balance.denom.startsWith("arbitrum")) {
-            blockchain = "Arbitrum"
-        }
-        if (balance.denom.startsWith("optimism")) {
-            blockchain = "Optimism"
-        }
+        let bridgeURL = `https://starscan.io/address/${moduleAddress}`
+        let balance = balances[i]
+        BRIDGES_INFO.forEach(bridge => {
+            if (balance.denom.startsWith(bridge.denom_prefix)) {
+                blockchain = bridge.name
+                bridgeURL = `${bridge.explorer}/address/${bridge.bridge_address}`
+                if (blockchain === "Tron") {
+                    bridgeURL = `${bridge.explorer}/#/contract/${bridge.bridge_address}`
+                }
+            }
+        })
         if (balance.denom.startsWith("ibc")) {
             if (balance.symbol === "PURSE") {
                 blockchain = "PUNDIX"
@@ -129,22 +153,32 @@
         results = results.concat({
             bridgeURL: bridgeURL,
             blockchain: blockchain,
-            symbol: `${balance.symbol} [${balance.denom}]`,
-            amount: `${(Number(BigInt(balance.amount) / BigInt(decimal)) / 100).toLocaleString()}`,
+            denom: balance.denom,
+            symbol: balance.symbol,
+            amount: Number(BigInt(balance.amount) / BigInt(decimal)) / 100,
         })
     }
-    const signBody = document.getElementById("crosschain")
-    signBody.innerHTML = ''
+    const tokens = groupBy(results, "symbol")
+    show_pie_chart(tokens["USDT"])
+    const table = document.getElementById("balances")
     results.sort((a, b) => (a.blockchain > b.blockchain) ? 1 : -1)
     results.forEach((v, i) => {
         let para = document.createElement('tr');
         para.innerHTML = `
-                <th scope="row">${i + 1}</th>
-                <td style="text-align: left"><a href="${v.bridgeURL}">${v.blockchain}</a></td>
-                <td style="text-align: left">${v.symbol}</td>
-                <td style="text-align: left">${v.amount}</td>`
-        signBody.appendChild(para)
+                <th scope="row">
+                    <a href="${v.bridgeURL}" target="_blank">${i + 1}</a>
+                </th>
+                <td>${v.blockchain}</td>
+                <td data-bs-toggle="tooltip" data-bs-title="${v.denom}">
+                    <button type="button" class="btn btn-sm" onclick="show_pie_chart(tokens[this.innerHTML])" style="height: 100%;width: 100%">
+                        ${v.symbol}
+                    </button>
+                </td>
+                <td style="text-align: right">${v.amount.toLocaleString()}</td>`
+        table.appendChild(para)
     })
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const _ = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 </script>
 </body>
 </html>

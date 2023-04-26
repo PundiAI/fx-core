@@ -16,6 +16,17 @@ function toHexString(byteArray) {
     }).join('')
 }
 
+const groupBy = (arr, property) => {
+    return arr.reduce((acc, obj) => {
+        const key = obj[property];
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+    }, {});
+};
+
 function httpGetJson(theUrl) {
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", theUrl, false); // false for synchronous request
