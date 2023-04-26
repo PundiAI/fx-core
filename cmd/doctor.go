@@ -17,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ type blockchain interface {
 	GetSyncing() (bool, error)
 	GetNodeInfo() (*tmservice.VersionInfo, error)
 	CurrentPlan() (*upgradetypes.Plan, error)
-	GetValidators() ([]stakingtypes.Validator, error)
+	GetConsensusValidators() ([]*tmservice.Validator, error)
 }
 
 func doctorCmd() *cobra.Command {
@@ -180,7 +179,11 @@ func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (bloc
 		fmt.Printf("%sWarning: Not found root dir\n", SPACE)
 		return nil, nil
 	}
-	database, err := server.NewDatabase(serverCtx.Config.RootDir, serverCtx.Config.DBBackend, cliCtx.Codec)
+
+	database, err := server.NewDatabase(
+		serverCtx.Config,
+		cliCtx.Codec,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -225,14 +228,14 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 	if err = tmjson.Unmarshal(keyJSONBytes, &pvKey); err != nil {
 		return false, err
 	}
-	validators, err := bc.GetValidators()
+	validators, err := bc.GetConsensusValidators()
 	if err != nil {
 		return false, err
 	}
 	for _, validator := range validators {
 		if strings.EqualFold(
-			sdk.ValAddress(pvKey.Address.Bytes()).String(),
-			validator.GetOperator().String(),
+			sdk.ConsAddress(pvKey.Address.Bytes()).String(),
+			validator.GetAddress(),
 		) {
 			fmt.Printf("%sNode Type: This node is a validator\n", SPACE)
 		}

@@ -1,38 +1,104 @@
 package server_test
 
 import (
-	"errors"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v4/app"
 	"github.com/functionx/fx-core/v4/server"
 )
 
-func TestDatabase(t *testing.T) {
+type DatabaseTestSuite struct {
+	suite.Suite
+	config   *cfg.Config
+	database *server.Database
+}
+
+func TestDatabaseTestSuite(t *testing.T) {
+	suite.Run(t, new(DatabaseTestSuite))
+}
+
+func (suite *DatabaseTestSuite) SetupTest() {
 	cdc := app.MakeEncodingConfig()
-	config := cfg.ResetTestRoot("blockchain_database_test")
-	defer os.RemoveAll(config.RootDir)
+	newCfg := cfg.ResetTestRootWithChainID("blockchain_database_test", "fxcore")
 
-	database, err := server.NewDatabase(config.RootDir, string(dbm.GoLevelDBBackend), cdc.Codec)
-	require.NoError(t, err)
+	database, err := server.NewDatabase(newCfg, cdc.Codec)
+	require.NoError(suite.T(), err)
 
-	defer database.Close()
-	_, err = database.GetChainId()
-	require.Errorf(t, err, errors.New("not found chain id").Error())
+	_, err = database.StateStore().LoadFromDBOrGenesisFile(newCfg.GenesisFile())
+	require.NoError(suite.T(), err)
+	suite.config = newCfg
+	suite.database = database
+}
 
-	state, err := database.StateStore().LoadFromDBOrGenesisFile(config.GenesisFile())
-	require.NoError(t, err)
+func (suite *DatabaseTestSuite) TearDownSuite() {
+	defer os.RemoveAll(suite.config.RootDir)
+	suite.database.Close()
+}
 
-	for h := int64(1); h <= 5; h++ {
+func (suite *DatabaseTestSuite) TestGetChainID() {
+	_, err := suite.database.GetChainId()
+	require.Error(suite.T(), err, "not found chain id")
+
+	suite.newBlock(1)
+
+	chainID, err := suite.database.GetChainId()
+	require.NoError(suite.T(), err)
+	require.Equal(suite.T(), "fxcore", chainID)
+}
+
+func (suite *DatabaseTestSuite) TestGetBlockHeight() {
+	height, err := suite.database.GetBlockHeight()
+	require.NoError(suite.T(), err)
+	require.Equal(suite.T(), int64(0), height)
+
+	suite.newBlock(5)
+
+	height, err = suite.database.GetBlockHeight()
+	require.NoError(suite.T(), err)
+	require.Equal(suite.T(), int64(5), height)
+}
+
+func (suite *DatabaseTestSuite) TestGetSyncing() {
+	syncing, err := suite.database.GetSyncing()
+	require.NoError(suite.T(), err)
+	require.True(suite.T(), syncing)
+}
+
+func (suite *DatabaseTestSuite) TestGetNodeInfo() {
+	nodeInfo, err := suite.database.GetNodeInfo()
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), nodeInfo)
+}
+
+func (suite *DatabaseTestSuite) TestCurrentPlan() {
+	plan, err := suite.database.CurrentPlan()
+	require.NoError(suite.T(), err)
+	require.Nil(suite.T(), plan)
+}
+
+// test database GetConsensusValidators
+func (suite *DatabaseTestSuite) TestGetConsensusValidators() {
+	validators, err := suite.database.GetConsensusValidators()
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), validators)
+	require.Equal(suite.T(), 2, len(validators))
+}
+
+// test database GetLatestHeight
+func (suite *DatabaseTestSuite) newBlock(height int64) {
+	state, err := suite.database.StateStore().LoadFromDBOrGenesisFile(suite.config.GenesisFile())
+	require.NoError(suite.T(), err)
+
+	for h := int64(1); h <= height; h++ {
 		block, _ := state.MakeBlock(h, nil, new(tmtypes.Commit), nil, state.Validators.GetProposer().Address)
 		partSet := block.MakePartSet(2)
 		commitSigs := []tmtypes.CommitSig{{
@@ -42,30 +108,6 @@ func TestDatabase(t *testing.T) {
 			Signature:        []byte("Signature"),
 		}}
 		commit := tmtypes.NewCommit(h, 0, tmtypes.BlockID{Hash: []byte(""), PartSetHeader: tmtypes.PartSetHeader{Hash: []byte(""), Total: 2}}, commitSigs)
-		database.BlockStore().SaveBlock(block, partSet, commit)
+		suite.database.BlockStore().SaveBlock(block, partSet, commit)
 	}
-
-	chainid, err := database.GetChainId()
-	require.NoError(t, err)
-	require.Equal(t, chainid, "cometbft_test")
-
-	height, err := database.GetBlockHeight()
-	require.NoError(t, err)
-	require.Equal(t, height, int64(5))
-
-	_, err = database.GetNodeInfo()
-	require.Errorf(t, err, "genesis doc not found")
-
-	genesis, err := os.ReadFile(config.GenesisFile())
-	require.NoError(t, err)
-
-	err = database.SetGenesis(genesis)
-	require.NoError(t, err)
-
-	_, err = database.GetNodeInfo()
-	require.NoError(t, err)
-	_, err = database.CurrentPlan()
-	require.NoError(t, err)
-	_, err = database.GetValidators()
-	require.NoError(t, err)
 }

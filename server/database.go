@@ -7,12 +7,13 @@ import (
 	cmtdbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmcfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
 	sm "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
@@ -20,34 +21,32 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-var genesisDocNotFoundError = errors.New("genesis doc not found")
-
 type Database struct {
-	blockStore *store.BlockStore
-	stateDB    cmtdbm.DB
-	stateStore sm.Store
-	appDB      dbm.DB
-	appStore   *rootmulti.Store
-	storeKeys  map[string]*storetypes.KVStoreKey
-	codec      codec.Codec
+	genesisFile string
+	blockStore  *store.BlockStore
+	stateStore  sm.Store
+	appDB       dbm.DB
+	appStore    *rootmulti.Store
+	storeKeys   map[string]*storetypes.KVStoreKey
+	codec       codec.Codec
 }
 
-func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (*Database, error) {
-	dataDir := filepath.Join(rootDir, "data")
+func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec) (*Database, error) {
+	dataDir := filepath.Join(cfg.RootDir, "data")
 
-	blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(dbType), dataDir)
+	blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(cfg.DBBackend), dataDir)
 	if err != nil {
 		return nil, err
 	}
 	blockStore := store.NewBlockStore(blockStoreDB)
 
-	stateDB, err := cmtdbm.NewDB(StateDBName, cmtdbm.BackendType(dbType), dataDir)
+	stateDB, err := cmtdbm.NewDB(StateDBName, cmtdbm.BackendType(cfg.DBBackend), dataDir)
 	if err != nil {
 		return nil, err
 	}
 	stateStore := sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: false})
 
-	appDB, err := dbm.NewDB(AppDBName, dbm.BackendType(dbType), dataDir)
+	appDB, err := dbm.NewDB(AppDBName, dbm.BackendType(cfg.DBBackend), dataDir)
 	if err != nil {
 		return nil, err
 	}
@@ -60,15 +59,14 @@ func NewDatabase(rootDir string, dbType string, cdc codec.Codec) (*Database, err
 	if err = appStore.LoadLatestVersion(); err != nil {
 		return nil, err
 	}
-
 	return &Database{
-		blockStore: blockStore,
-		appDB:      appDB,
-		stateDB:    stateDB,
-		stateStore: stateStore,
-		appStore:   appStore,
-		storeKeys:  storeKeys,
-		codec:      cdc,
+		genesisFile: cfg.GenesisFile(),
+		blockStore:  blockStore,
+		appDB:       appDB,
+		stateStore:  stateStore,
+		appStore:    appStore,
+		storeKeys:   storeKeys,
+		codec:       cdc,
 	}, err
 }
 
@@ -85,9 +83,9 @@ func (d *Database) BlockStore() *store.BlockStore {
 }
 
 func (d *Database) Close() {
-	_ = d.blockStore.Close()
-	_ = d.stateDB.Close()
 	_ = d.appDB.Close()
+	_ = d.blockStore.Close()
+	_ = d.stateStore.Close()
 }
 
 func (d *Database) GetChainId() (string, error) {
@@ -129,52 +127,46 @@ func (d *Database) CurrentPlan() (*upgradetypes.Plan, error) {
 	return &plan, nil
 }
 
-func (d *Database) GetValidators() ([]stakingtypes.Validator, error) {
+func (d *Database) GetConsensusValidators() ([]*tmservice.Validator, error) {
 	state, err := d.GetState()
 	if err != nil {
 		return nil, err
 	}
-	validators := make([]stakingtypes.Validator, 0)
-	for _, validator := range state.Validators.Validators {
-		validators = append(validators, stakingtypes.Validator{
-			OperatorAddress: sdk.ValAddress(validator.Address.Bytes()).String(),
-		})
+	if len(state.Validators.Validators) == 0 {
+		return nil, nil
+	}
+	validators := make([]*tmservice.Validator, len(state.Validators.Validators))
+	for _, val := range state.Validators.Validators {
+		validator, err := toValidator(val)
+		if err != nil {
+			return nil, err
+		}
+		validators = append(validators, validator)
 	}
 	return validators, nil
 }
 
 func (d *Database) GetState() (sm.State, error) {
-	genDoc, err := d.genesisDoc()
-	if err != nil {
-		return sm.State{}, err
-	}
-	state, err := d.stateStore.LoadFromDBOrGenesisDoc(genDoc)
+	state, err := d.stateStore.LoadFromDBOrGenesisFile(d.genesisFile)
 	if err != nil {
 		return sm.State{}, err
 	}
 	return state, nil
 }
 
-func (d *Database) SetGenesis(genesis []byte) error {
-	_, err := d.genesisDoc()
-	if !errors.Is(err, genesisDocNotFoundError) {
-		return nil
-	}
-	return d.stateDB.Set([]byte("genesisDoc"), genesis)
-}
-
-func (d *Database) genesisDoc() (*tmtypes.GenesisDoc, error) {
-	genesisDocKey := []byte("genesisDoc")
-	b, err := d.stateDB.Get(genesisDocKey)
+func toValidator(validator *tmtypes.Validator) (*tmservice.Validator, error) {
+	pk, err := cryptocodec.FromTmPubKeyInterface(validator.PubKey)
 	if err != nil {
 		return nil, err
 	}
-	if len(b) == 0 {
-		return nil, genesisDocNotFoundError
-	}
-	var genDoc *tmtypes.GenesisDoc
-	if err = tmjson.Unmarshal(b, &genDoc); err != nil {
+	anyPub, err := codectypes.NewAnyWithValue(pk)
+	if err != nil {
 		return nil, err
 	}
-	return genDoc, nil
+	return &tmservice.Validator{
+		Address:          sdk.ConsAddress(validator.Address.Bytes()).String(),
+		ProposerPriority: validator.ProposerPriority,
+		PubKey:           anyPub,
+		VotingPower:      validator.VotingPower,
+	}, nil
 }

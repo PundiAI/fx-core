@@ -371,6 +371,14 @@ func (cli *Client) GetValidators() ([]stakingtypes.Validator, error) {
 	return validators.GetValidators(), nil
 }
 
+func (cli *Client) GetConsensusValidators() ([]*tmservice.Validator, error) {
+	response, err := cli.TMServiceClient().GetLatestValidatorSet(cli.ctx, &tmservice.GetLatestValidatorSetRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return response.GetValidators(), nil
+}
+
 func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	txBytes, err := proto.Marshal(raw)
 	if err != nil {
