@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	cosmosserver "github.com/cosmos/cosmos-sdk/server"
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -49,7 +49,7 @@ func doctorCmd() *cobra.Command {
 		Use:   "doctor",
 		Short: "Check your system for potential problems",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := cosmosserver.GetServerContextFromCmd(cmd)
+			serverCtx := sdkserver.GetServerContextFromCmd(cmd)
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			printPrompt()
 			printOSInfo(serverCtx.Config.RootDir)
@@ -171,7 +171,7 @@ func checkUpgradeInfo(homeDir string) error {
 	return nil
 }
 
-func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (blockchain, error) {
+func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockchain, error) {
 	fmt.Printf("Blockchain Data:\n")
 	grpcAddr := serverCtx.Viper.GetString(flags.FlagGRPC)
 	newClient := grpc.NewClient(cliCtx)
@@ -188,10 +188,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *cosmosserver.Context) (bloc
 		return nil, nil
 	}
 
-	database, err := server.NewDatabase(
-		serverCtx.Config,
-		cliCtx.Codec,
-	)
+	database, err := server.NewDatabase(serverCtx.Config, cliCtx.Codec)
 	if err != nil {
 		return nil, err
 	}
@@ -311,6 +308,15 @@ func checkAppConfig(viper *viper.Viper) error {
 	if err := appConfig.ValidateBasic(); err != nil {
 		fmt.Printf("%sWarning: %s\n", SPACE, err.Error())
 	}
+	if appConfig.TLS.KeyPath == "" && appConfig.TLS.CertificatePath != "" {
+		fmt.Printf("%sWarning: certificate_path is set, but key_path is not set\n", SPACE)
+	}
+	if appConfig.TLS.KeyPath != "" && appConfig.TLS.CertificatePath == "" {
+		fmt.Printf("%sWarning: key_path is set, but certificate_path is not set\n", SPACE)
+	}
+	if appConfig.IAVLCacheSize > 781250 {
+		fmt.Printf("%sWarning: if the node does not require high API query, you can appropriately reduce iavl_cache_size to reduce memory usage\n", SPACE)
+	}
 	return nil
 }
 
@@ -328,16 +334,28 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 	if config.P2P.Seeds == "" {
 		fmt.Printf("%sWarning: seeds is empty\n", SPACE)
 	}
+	if config.RPC.TLSKeyFile == "" && config.RPC.TLSCertFile != "" {
+		fmt.Printf("%sWarning: tls_cert_file is not empty, but tls_key_file is empty\n", SPACE)
+	}
+	if config.RPC.TLSKeyFile != "" && config.RPC.TLSCertFile == "" {
+		fmt.Printf("%sWarning: tls_key_file is not empty, but tls_cert_file is empty\n", SPACE)
+	}
 	return nil
 }
 
 //gocyclo:ignore
 func checkCosmovisor(rootPath string, bc blockchain) error {
 	cosmovisorPath := filepath.Join(rootPath, "cosmovisor")
-	if _, err := os.Stat(cosmovisorPath); os.IsNotExist(err) {
-		fmt.Printf("Cosmovisor: %s\n", "not found")
-		return nil
+	if _, err := os.Stat(cosmovisorPath); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("Cosmovisor: %s\n", "not found")
+			return nil
+		}
+		return err
 	}
+	defer func() {
+		_ = printDirectory(cosmovisorPath, 0, []bool{false}, SPACE)
+	}()
 
 	fmt.Printf("Cosmovisor:\n")
 	for _, dir := range []string{"current", "genesis"} {
@@ -409,7 +427,7 @@ func checkCosmovisor(rootPath string, bc blockchain) error {
 	if plan != nil && !planVersion {
 		fmt.Printf("%s%sWarning: current upgrade plan is not found in cosmovisor\n", SPACE, SPACE)
 	}
-	return printDirectory(cosmovisorPath, 0, []bool{false}, SPACE)
+	return nil
 }
 
 func printDirectory(path string, depth int, last []bool, tab string) error {
