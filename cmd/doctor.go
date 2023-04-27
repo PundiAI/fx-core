@@ -18,7 +18,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
@@ -51,7 +52,7 @@ func doctorCmd() *cobra.Command {
 			serverCtx := cosmosserver.GetServerContextFromCmd(cmd)
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			printPrompt()
-			printOSInfo()
+			printOSInfo(serverCtx.Config.RootDir)
 			printSelfInfo()
 			chainId, err := checkGenesis(serverCtx.Config.GenesisFile())
 			if err != nil {
@@ -96,7 +97,7 @@ just ignore this. Thanks!
 	fmt.Printf("\n")
 }
 
-func printOSInfo() {
+func printOSInfo(home string) {
 	fmt.Printf("Computer Info:\n")
 	fmt.Printf("%sOS/Arch: %s/%s\n", SPACE, runtime.GOOS, runtime.GOARCH)
 	fmt.Printf("%sCPU: %d\n", SPACE, runtime.NumCPU())
@@ -104,8 +105,15 @@ func printOSInfo() {
 	if err != nil {
 		return
 	}
-	fmt.Printf("%sMemory Total: %v MB, Available: %v MB, UsedPercent: %f%%\n",
-		SPACE, memory.Total/1024/1024, memory.Available/1024/1024, memory.UsedPercent)
+	fmt.Printf("%sMemory Total: %.2f GB, Available: %.2f GB, UsedPercent: %.2f%%\n",
+		SPACE, float64(memory.Total)/1024/1024/1024, float64(memory.Available)/1024/1024/1024, memory.UsedPercent)
+	usage, err := disk.Usage(home)
+	if err != nil {
+		return
+	}
+	fmt.Printf("%sDisk Total: %.2f GB, Free: %.2f GB, UsedPercent: %.2f%%\n",
+		SPACE, float64(usage.Total)/1024/1024/1024, float64(usage.Free)/1024/1024/1024, usage.UsedPercent)
+	fmt.Printf("%s%sPath: %s\n", SPACE, SPACE, usage.Path)
 }
 
 func printSelfInfo() {
