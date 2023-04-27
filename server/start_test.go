@@ -22,6 +22,7 @@ import (
 
 	"github.com/functionx/fx-core/v4/app"
 	fxserver "github.com/functionx/fx-core/v4/server"
+	fxcfg "github.com/functionx/fx-core/v4/server/config"
 )
 
 var cancelledInPreRun = errors.New("cancelled in prerun")
@@ -427,8 +428,9 @@ func TestEmptyMinGasPrices(t *testing.T) {
 
 	// Modify app.toml.
 	appCfgTempFilePath := filepath.Join(tempDir, "config", "app.toml")
-	appConf := config.DefaultConfig()
+	appConf := fxcfg.DefaultConfig()
 	appConf.BaseConfig.MinGasPrices = ""
+	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 	config.WriteConfigFile(appCfgTempFilePath, appConf)
 
 	// Run StartCmd.
@@ -438,4 +440,5 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	}
 	err = cmd.ExecuteContext(ctx)
 	require.Errorf(t, err, errortypes.ErrAppConfig.Error())
+	require.Equal(t, err.Error(), "set min gas price in app.toml or flag or env variable: error in app.toml")
 }

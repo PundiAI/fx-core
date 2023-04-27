@@ -118,12 +118,11 @@ type Validator struct {
 	RPCClient     tmclient.Client
 	JSONRPCClient *ethclient.Client
 
-	tmNode      *node.Node
-	api         *api.Server
-	grpc        *grpc.Server
-	grpcWeb     *http.Server
-	jsonrpc     *http.Server
-	jsonrpcDone chan struct{}
+	tmNode  *node.Node
+	api     *api.Server
+	grpc    *grpc.Server
+	grpcWeb *http.Server
+	jsonrpc *http.Server
 }
 
 // Logger is a network logger interface that exposes testnet-level Log() methods for an in-process testing network
@@ -230,6 +229,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			srvCtx.Config.Consensus.SkipTimeoutCommit = false
 			srvCtx.Config.Consensus.TimeoutCommit = cfg.TimeoutCommit
 		}
+		srvCtx.Config.RPC.PprofListenAddress = ""
 		srvCtx.Config.RPC.ListenAddress = ""
 		srvCtx.Config.Instrumentation.Prometheus = false
 
@@ -298,6 +298,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			}
 			appCfg.JSONRPC.Enable = true
 			appCfg.JSONRPC.API = config.GetAPINamespaces()
+			appCfg.JSONRPC.WsAddress = ""
 
 			if cfg.EnableTMLogging {
 				srvCtx.Logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
@@ -402,8 +403,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 		memo := fmt.Sprintf("%s@%s", nodeIDs[i], srvCtx.Config.P2P.ListenAddress)
 		fee := sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, sdkmath.NewInt(0)))
 		txBuilder := cfg.TxConfig.NewTxBuilder()
-		err = txBuilder.SetMsgs(createValMsg)
-		if err != nil {
+		if err = txBuilder.SetMsgs(createValMsg); err != nil {
 			return nil, err
 		}
 		txBuilder.SetFeeAmount(fee)    // Arbitrary fee
@@ -571,17 +571,7 @@ func (n *Network) Cleanup() {
 		}
 
 		if v.jsonrpc != nil {
-			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 5*time.Second)
-			if err := v.jsonrpc.Shutdown(shutdownCtx); err != nil {
-				n.Logger.Log("HTTP server shutdown produced a warning", "error", err.Error())
-			} else {
-				n.Logger.Log("HTTP server shut down, waiting...")
-				select {
-				case <-time.Tick(1 * time.Second):
-				case <-v.jsonrpcDone:
-				}
-			}
-			cancelFn()
+			_ = v.jsonrpc.Shutdown(context.Background())
 		}
 	}
 

@@ -15,13 +15,8 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/node"
@@ -36,7 +31,6 @@ import (
 	"github.com/functionx/fx-core/v4/app"
 	"github.com/functionx/fx-core/v4/server"
 	fxtypes "github.com/functionx/fx-core/v4/types"
-	fxstakingtypes "github.com/functionx/fx-core/v4/x/staking/types"
 )
 
 //gocyclo:ignore
@@ -126,15 +120,12 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		val.ClientCtx = val.ClientCtx.WithGRPCClient(grpcClient)
 	}
 
-	errCh := make(chan error)
 	if val.AppConfig.API.Enable && val.APIAddress != "" {
 		val.api = api.New(val.ClientCtx, logger.With("module", "api-server"))
 		myApp.RegisterAPIRoutes(val.api, val.AppConfig.API)
 
 		go func() {
-			if err = val.api.Start(val.AppConfig.Config); err != nil {
-				errCh <- err
-			}
+			_ = val.api.Start(val.AppConfig.Config)
 		}()
 	}
 
@@ -161,22 +152,23 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		tmRPCAddr := val.RPCAddress
 
 		clientCtx := val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
-		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, val.AppConfig.ToEthermintConfig(), nil)
+		val.jsonrpc, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, val.AppConfig.ToEthermintConfig(), nil)
 		if err != nil {
 			return err
 		}
+		ln, err := server.Listen(val.jsonrpc.Addr, val.AppConfig.JSONRPC.MaxOpenConnections)
+		if err != nil {
+			return err
+		}
+		go func() {
+			_ = val.jsonrpc.Serve(ln)
+		}()
 		val.JSONRPCClient, err = ethclient.Dial(fmt.Sprintf("http://%s", val.AppConfig.JSONRPC.Address))
 		if err != nil {
 			return fmt.Errorf("failed to dial JSON-RPC at %s: %w", val.AppConfig.JSONRPC.Address, err)
 		}
 	}
-
-	select {
-	case err = <-errCh:
-		return err
-	case <-time.After(1 * time.Second): // assume server started successfully
-		return nil
-	}
+	return nil
 }
 
 func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
@@ -216,33 +208,8 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 	// set the balances in the genesis state
 	var bankGenState banktypes.GenesisState
 	cfg.Codec.MustUnmarshalJSON(cfg.GenesisState[banktypes.ModuleName], &bankGenState)
-
 	bankGenState.Balances = append(bankGenState.Balances, genBalances...)
 	cfg.GenesisState[banktypes.ModuleName] = cfg.Codec.MustMarshalJSON(&bankGenState)
-
-	var stakingGenState fxstakingtypes.GenesisState
-	cfg.Codec.MustUnmarshalJSON(cfg.GenesisState[stakingtypes.ModuleName], &stakingGenState)
-
-	stakingGenState.Params.BondDenom = cfg.BondDenom
-	cfg.GenesisState[stakingtypes.ModuleName] = cfg.Codec.MustMarshalJSON(&stakingGenState)
-
-	var govGenState govv1.GenesisState
-	cfg.Codec.MustUnmarshalJSON(cfg.GenesisState[govtypes.ModuleName], &govGenState)
-
-	govGenState.DepositParams.MinDeposit[0].Denom = cfg.BondDenom
-	cfg.GenesisState[govtypes.ModuleName] = cfg.Codec.MustMarshalJSON(&govGenState)
-
-	var mintGenState mintypes.GenesisState
-	cfg.Codec.MustUnmarshalJSON(cfg.GenesisState[mintypes.ModuleName], &mintGenState)
-
-	mintGenState.Params.MintDenom = cfg.BondDenom
-	cfg.GenesisState[mintypes.ModuleName] = cfg.Codec.MustMarshalJSON(&mintGenState)
-
-	var crisisGenState crisistypes.GenesisState
-	cfg.Codec.MustUnmarshalJSON(cfg.GenesisState[crisistypes.ModuleName], &crisisGenState)
-
-	crisisGenState.ConstantFee.Denom = cfg.BondDenom
-	cfg.GenesisState[crisistypes.ModuleName] = cfg.Codec.MustMarshalJSON(&crisisGenState)
 
 	appGenStateJSON, err := json.MarshalIndent(cfg.GenesisState, "", "  ")
 	if err != nil {
@@ -272,13 +239,11 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 }
 
 func writeFile(name string, dir string, contents []byte) error {
-	file := filepath.Join(dir, name)
-
-	err := tmos.EnsureDir(dir, 0o755)
-	if err != nil {
+	if err := tmos.EnsureDir(dir, 0o755); err != nil {
 		return err
 	}
 
+	file := filepath.Join(dir, name)
 	return tmos.WriteFile(file, contents, 0o644)
 }
 
