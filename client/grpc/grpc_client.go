@@ -42,9 +42,10 @@ import (
 )
 
 type Client struct {
-	chainId   string
-	gasPrices sdk.Coins
-	ctx       context.Context
+	chainId    string
+	addrPrefix string
+	gasPrices  sdk.Coins
+	ctx        context.Context
 	grpc1.ClientConn
 }
 
@@ -321,7 +322,10 @@ func (cli *Client) GetGasPrices() (sdk.Coins, error) {
 }
 
 func (cli *Client) GetAddressPrefix() (string, error) {
-	response, err := cli.TMServiceClient().GetValidatorSetByHeight(cli.ctx, &tmservice.GetValidatorSetByHeightRequest{Height: 1})
+	if len(cli.addrPrefix) > 0 {
+		return cli.addrPrefix, nil
+	}
+	response, err := cli.TMServiceClient().GetLatestValidatorSet(cli.ctx, &tmservice.GetLatestValidatorSetRequest{})
 	if err != nil {
 		return "", err
 	}
@@ -334,7 +338,8 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 	}
 	valConPrefix := sdk.PrefixValidator + sdk.PrefixConsensus
 	if strings.HasSuffix(prefix, valConPrefix) {
-		return prefix[:len(prefix)-len(valConPrefix)], nil
+		cli.addrPrefix = prefix[:len(prefix)-len(valConPrefix)]
+		return cli.addrPrefix, nil
 	}
 	return "", errors.New("no found address prefix")
 }

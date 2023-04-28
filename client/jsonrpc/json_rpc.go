@@ -28,11 +28,12 @@ type jsonRPCCaller interface {
 }
 
 type NodeRPC struct {
-	chainId   string
-	gasPrices sdk.Coins
-	height    int64
-	ctx       context.Context
-	caller    jsonRPCCaller
+	chainId    string
+	addrPrefix string
+	gasPrices  sdk.Coins
+	height     int64
+	ctx        context.Context
+	caller     jsonRPCCaller
 }
 
 func NewNodeRPC(caller jsonRPCCaller, ctx ...context.Context) *NodeRPC {
@@ -105,6 +106,9 @@ func (c *NodeRPC) GetMintDenom() (denom string, err error) {
 }
 
 func (c *NodeRPC) GetAddressPrefix() (prefix string, err error) {
+	if len(c.addrPrefix) > 0 {
+		return c.addrPrefix, nil
+	}
 	genesis, err := c.Genesis()
 	if err != nil {
 		return
@@ -122,11 +126,11 @@ func (c *NodeRPC) GetAddressPrefix() (prefix string, err error) {
 	if err = json.Unmarshal(appState[authtypes.ModuleName], &authGen); err != nil {
 		return
 	}
-	for _, account := range authGen.Accounts {
-		prefix, _, err := bech32.Decode(account.Address)
-		return prefix, err
+	if len(authGen.Accounts) <= 0 {
+		return sdk.Bech32MainPrefix, nil
 	}
-	return sdk.Bech32MainPrefix, nil
+	c.addrPrefix, _, err = bech32.Decode(authGen.Accounts[0].Address)
+	return c.addrPrefix, err
 }
 
 func (c *NodeRPC) GetStakeValidators(status stakingtypes.BondStatus) (stakingtypes.Validators, error) {
