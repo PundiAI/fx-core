@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 		nil,
 		nonce,
 		big.NewInt(0),
-		1711423,
+		1711435,
 		big.NewInt(500*1e9),
 		nil,
 		nil,
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, nil, true)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp.VmError)
-	suite.Equal(rsp.GasUsed, uint64(1711423))
+	suite.Equal(uint64(1711435), rsp.GasUsed)
 	contractAddress := crypto.CreateAddress(suite.signer.Address(), nonce)
 
 	args, err = fxtypes.GetFIP20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenerateAddress())
@@ -141,4 +141,180 @@ func (suite *KeeperTestSuite) BurnEvmRefundFee(addr sdk.AccAddress, coins sdk.Co
 
 	err = suite.app.BankKeeper.BurnCoins(suite.ctx, evmtypes.ModuleName, sdk.NewCoins(bal))
 	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) Owner(contract common.Address) common.Address {
+	var ownerRes struct {
+		Value common.Address
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "owner", &ownerRes)
+	suite.Require().NoError(err)
+	return ownerRes.Value
+}
+
+func (suite *KeeperTestSuite) Name(contract common.Address) string {
+	var nameRes struct {
+		Value string
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "name", &nameRes)
+	suite.Require().NoError(err)
+	return nameRes.Value
+}
+
+func (suite *KeeperTestSuite) Symbol(contract common.Address) string {
+	var symbolRes struct {
+		Value string
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "symbol", &symbolRes)
+	suite.Require().NoError(err)
+	return symbolRes.Value
+}
+
+func (suite *KeeperTestSuite) Decimals(contract common.Address) uint8 {
+	var decimalsRes struct {
+		Value uint8
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "decimals", &decimalsRes)
+	suite.Require().NoError(err)
+	return decimalsRes.Value
+}
+
+func (suite *KeeperTestSuite) TotalSupply(contract common.Address) *big.Int {
+	var totalSupplyRes struct {
+		Value *big.Int
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "totalSupply", &totalSupplyRes)
+	suite.Require().NoError(err)
+	return totalSupplyRes.Value
+}
+
+func (suite *KeeperTestSuite) Allowance(contract, owner, spender common.Address) *big.Int {
+	var allowanceRes struct {
+		Value *big.Int
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "allowance", &allowanceRes, owner, spender)
+	suite.Require().NoError(err)
+	return allowanceRes.Value
+}
+
+func (suite *KeeperTestSuite) Module(contract common.Address) common.Address {
+	var moduleRes struct {
+		Value common.Address
+	}
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetFIP20().ABI, "module", &moduleRes)
+	suite.Require().NoError(err)
+	return moduleRes.Value
+}
+
+func (suite *KeeperTestSuite) Approve(contract, spender common.Address, amount *big.Int) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, spender, contract, fxtypes.GetFIP20().ABI, "approve", suite.signer.Address(), amount)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+// function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+func (suite *KeeperTestSuite) Transfer(contract, recipient common.Address, amount *big.Int) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "transfer", recipient, amount)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) TransferFrom(contract, sender, recipient common.Address, amount *big.Int) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "transferFrom", sender, recipient, amount)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) Mint(contract, to common.Address, amount *big.Int) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "mint", to, amount)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) Burn(contract, from common.Address, amount *big.Int) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "burn", from, amount)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) TransferOwnership(contract, newOwner common.Address) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "transferOwnership", newOwner)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) Deposit(contract common.Address, amount *big.Int) {
+	args, err := fxtypes.GetWFX().ABI.Pack("deposit")
+	suite.Require().NoError(err)
+
+	msg := ethtypes.NewMessage(
+		suite.signer.Address(),
+		&contract,
+		suite.app.EvmKeeper.GetNonce(suite.ctx, suite.signer.Address()),
+		amount,
+		80000,
+		big.NewInt(500*1e9),
+		nil,
+		nil,
+		args,
+		nil,
+		true,
+	)
+
+	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, evmtypes.NewNoOpTracer(), true)
+	suite.Require().NoError(err)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) Withdraw(contract common.Address, amount *big.Int) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetWFX().ABI, "withdraw", suite.signer.Address(), amount)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) CheckFIP20Method(contract common.Address, name, symbol string, decimals uint8, totalSupply *big.Int, owner common.Address) {
+	account := helpers.NewSigner(helpers.NewEthPrivKey())
+	helpers.AddTestAddr(suite.app, suite.ctx, account.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).MulRaw(1e18))))
+
+	// name
+	suite.Equal(name, suite.Name(contract))
+	// symbol
+	suite.Equal(symbol, suite.Symbol(contract))
+	// decimals
+	suite.Equal(decimals, suite.Decimals(contract))
+	// totalSupply
+	suite.True(suite.TotalSupply(contract).Cmp(totalSupply) == 0)
+	// balanceOf
+	suite.True(suite.BalanceOf(contract, suite.signer.Address()).Cmp(big.NewInt(0)) == 0)
+	// allowance
+	suite.True(suite.Allowance(contract, suite.signer.Address(), account.Address()).Cmp(big.NewInt(0)) == 0)
+	// owner
+	suite.Equal(owner, suite.Owner(contract))
+	// approve
+	suite.Approve(contract, account.Address(), big.NewInt(100))
+	suite.True(suite.Allowance(contract, account.Address(), suite.signer.Address()).Cmp(big.NewInt(100)) == 0)
+	// mint
+	suite.Mint(contract, suite.signer.Address(), big.NewInt(100))
+	suite.True(suite.BalanceOf(contract, suite.signer.Address()).Cmp(big.NewInt(100)) == 0)
+	// burn
+	suite.Burn(contract, suite.signer.Address(), big.NewInt(1))
+	suite.True(suite.BalanceOf(contract, suite.signer.Address()).Cmp(big.NewInt(99)) == 0)
+	suite.Burn(contract, suite.signer.Address(), big.NewInt(99))
+	suite.True(suite.BalanceOf(contract, suite.signer.Address()).Cmp(big.NewInt(0)) == 0)
+	// transfer
+	suite.Mint(contract, suite.signer.Address(), big.NewInt(100))
+	suite.Transfer(contract, account.Address(), big.NewInt(100))
+	suite.True(suite.BalanceOf(contract, suite.signer.Address()).Cmp(big.NewInt(0)) == 0)
+	suite.True(suite.BalanceOf(contract, account.Address()).Cmp(big.NewInt(100)) == 0)
+
+	// transferFrom
+	suite.Approve(contract, account.Address(), big.NewInt(100))
+	suite.TransferFrom(contract, account.Address(), suite.signer.Address(), big.NewInt(100))
+	suite.True(suite.BalanceOf(contract, suite.signer.Address()).Cmp(big.NewInt(100)) == 0)
+	suite.True(suite.BalanceOf(contract, account.Address()).Cmp(big.NewInt(0)) == 0)
+	suite.Burn(contract, suite.signer.Address(), big.NewInt(100))
+
+	// module
+	suite.Equal(common.BytesToAddress(suite.app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)), suite.Module(contract))
 }

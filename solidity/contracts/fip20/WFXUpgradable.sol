@@ -141,8 +141,8 @@ abstract contract UUPSUpgradeable is
 contract WFXUpgradable is
     Initializable,
     ContextUpgradeable,
-    OwnableUpgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    OwnableUpgradeable
 {
     using CrossChainCall for *;
 

@@ -142,8 +142,8 @@ abstract contract UUPSUpgradeable is
 contract FIP20Upgradable is
     Initializable,
     ContextUpgradeable,
-    OwnableUpgradeable,
     UUPSUpgradeable,
+    OwnableUpgradeable,
     IFIP20Upgradable
 {
     using CrossChainCall for *;
