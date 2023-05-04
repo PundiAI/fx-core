@@ -7,11 +7,15 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
@@ -52,6 +56,8 @@ func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		args.Validator, args.Shares, unDelAmount.BigInt(), big.NewInt(completionTime.Unix())); err != nil {
 		return nil, err
 	}
+	// add undelegate event
+	UndelegateEmitEvents(ctx, sender, valAddr, unDelAmount, completionTime)
 
 	return UndelegateMethod.Outputs.Pack(unDelAmount.BigInt(), reward, big.NewInt(completionTime.Unix()))
 }
@@ -86,4 +92,31 @@ func Undelegate(ctx sdk.Context, sk StakingKeeper, bk BankKeeper, delAddr sdk.Ac
 	sk.InsertUBDQueue(ctx, ubd, completionTime)
 
 	return returnAmount, completionTime, nil
+}
+
+func UndelegateEmitEvents(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdkmath.Int, completionTime time.Time) {
+	if amount.IsInt64() {
+		defer func() {
+			telemetry.IncrCounter(1, evmtypes.ModuleName, "undelegate")
+			telemetry.SetGaugeWithLabels(
+				[]string{"tx", "msg", evmtypes.TypeMsgEthereumTx},
+				float32(amount.Int64()),
+				[]metrics.Label{telemetry.NewLabel("denom", fxtypes.DefaultDenom)},
+			)
+		}()
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			stakingtypes.EventTypeUnbond,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, validator.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, delegator.String()),
+		),
+	})
 }

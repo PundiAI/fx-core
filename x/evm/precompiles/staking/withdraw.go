@@ -4,9 +4,12 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
@@ -40,6 +43,9 @@ func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, sender common.Address,
 		return nil, err
 	}
 
+	// add withdraw event
+	WithdrawEmitEvents(ctx, delAddr, rewards)
+
 	rewardAmount := rewards.AmountOf(withDrawDenom).BigInt()
 	if rewardAmount.Cmp(big.NewInt(0)) == 0 {
 		return rewardAmount, nil
@@ -57,4 +63,25 @@ func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, sender common.Address,
 	}
 
 	return rewardAmount, nil
+}
+
+func WithdrawEmitEvents(ctx sdk.Context, delegator sdk.AccAddress, amount sdk.Coins) {
+	defer func() {
+		for _, a := range amount {
+			if a.Amount.IsInt64() {
+				telemetry.SetGaugeWithLabels(
+					[]string{"tx", "msg", "withdraw_reward"},
+					float32(a.Amount.Int64()),
+					[]metrics.Label{telemetry.NewLabel("denom", a.Denom)},
+				)
+			}
+		}
+	}()
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, delegator.String()),
+		),
+	)
 }
