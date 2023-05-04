@@ -21,6 +21,7 @@ import (
 
 	"github.com/functionx/fx-core/v4/app"
 	v4 "github.com/functionx/fx-core/v4/app/upgrades/v4"
+	"github.com/functionx/fx-core/v4/app/upgrades/v4_1"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	arbitrumtypes "github.com/functionx/fx-core/v4/x/arbitrum/types"
@@ -37,10 +38,11 @@ import (
 	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
-func Test_Upgrade(t *testing.T) {
+func Test_TestnetUpgradeV4_1(t *testing.T) {
 	helpers.SkipTest(t, "Skipping local test: ", t.Name())
 
 	fxtypes.SetConfig(true)
+	fxtypes.SetChainId(fxtypes.TestnetChainId) // only for testnet
 
 	testCases := []struct {
 		name                  string
@@ -50,12 +52,12 @@ func Test_Upgrade(t *testing.T) {
 		plan                  upgradetypes.Plan
 	}{
 		{
-			name:        "upgrade v4",
+			name:        "upgrade v4.1",
 			fromVersion: 3,
 			toVersion:   4,
 			plan: upgradetypes.Plan{
-				Name: v4.Upgrade.UpgradeName,
-				Info: "local test upgrade v4",
+				Name: v4_1.Upgrade().UpgradeName,
+				Info: "local test upgrade v4.1",
 			},
 		},
 	}
@@ -68,11 +70,76 @@ func Test_Upgrade(t *testing.T) {
 		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		makeEncodingConfig, app.EmptyAppOptions{})
 	// todo default DefaultStoreLoader  New module verification failed
-	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4.Upgrade.StoreUpgrades()))
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4_1.Upgrade().StoreUpgrades()))
 	err = myApp.LoadLatestVersion()
 	require.NoError(t, err)
 
 	ctx := newContext(t, myApp)
+	if ctx.ChainID() != fxtypes.TestnetChainId {
+		require.Fail(t, "only testnet can run this test")
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.plan.Height = ctx.BlockHeight()
+
+			myApp.UpgradeKeeper.ApplyUpgrade(ctx, testCase.plan)
+
+			checkVersionMap(t, ctx, myApp, getConsensusVersion(testCase.toVersion))
+		})
+	}
+
+	// UpgradeAfter
+	checkFIP20LogicUpgrade(t, ctx, myApp)
+	checkWFXLogicUpgrade(t, ctx, myApp)
+
+	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.BscKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.TronKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.PolygonKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.AvalancheKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+}
+
+func Test_MainnetUpgradeV4_1(t *testing.T) {
+	helpers.SkipTest(t, "Skipping local test: ", t.Name())
+
+	fxtypes.SetConfig(true)
+	fxtypes.SetChainId(fxtypes.MainnetChainId) // only for mainnet
+
+	testCases := []struct {
+		name                  string
+		fromVersion           int
+		toVersion             int
+		LocalStoreBlockHeight uint64
+		plan                  upgradetypes.Plan
+	}{
+		{
+			name:        "upgrade v4.1",
+			fromVersion: 3,
+			toVersion:   4,
+			plan: upgradetypes.Plan{
+				Name: v4_1.Upgrade().UpgradeName,
+				Info: "local test upgrade v4.1",
+			},
+		},
+	}
+
+	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
+	require.NoError(t, err)
+
+	makeEncodingConfig := app.MakeEncodingConfig()
+	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
+		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
+		makeEncodingConfig, app.EmptyAppOptions{})
+	// todo default DefaultStoreLoader  New module verification failed
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4_1.Upgrade().StoreUpgrades()))
+	err = myApp.LoadLatestVersion()
+	require.NoError(t, err)
+
+	ctx := newContext(t, myApp)
+	if ctx.ChainID() != fxtypes.MainnetChainId {
+		require.Fail(t, "only mainnet can run this test")
+	}
 
 	// UpgradeBefore
 

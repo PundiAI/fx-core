@@ -33,13 +33,13 @@ func createUpgradeHandler(
 		cacheCtx, commit := ctx.CacheContext()
 
 		// 1. initialize the evm module account
-		createEvmModuleAccount(cacheCtx, app.AccountKeeper)
+		CreateEvmModuleAccount(cacheCtx, app.AccountKeeper)
 
 		// 2. init go fx params
-		initGovFXParams(cacheCtx, app.GovKeeper)
+		InitGovFXParams(cacheCtx, app.GovKeeper)
 
-		// 3. update Logoic code
-		updateLogicCode(cacheCtx, app.EvmKeeper)
+		// 3. update Logic code
+		UpdateLogicCode(cacheCtx, app.EvmKeeper)
 
 		ctx.Logger().Info("start to run v4 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
@@ -49,16 +49,16 @@ func createUpgradeHandler(
 
 		// 4. update arbitrum and optimism denom alias, after bank module migration, because bank module migrates to fixing the bank denom bug
 		// discovered in https://github.com/cosmos/cosmos-sdk/pull/13821
-		updateDenomAliases(cacheCtx, app.Erc20Keeper)
+		UpdateDenomAliases(cacheCtx, app.Erc20Keeper)
 
 		// 5. reset cross chain module oracle delegate, bind oracle delegate starting info
-		err = reSetCrossChainModuleOracleDelegate(cacheCtx, app.CrossChainKeepers, app.StakingKeeper, app.DistrKeeper)
+		err = ResetCrossChainModuleOracleDelegate(cacheCtx, app.CrossChainKeepers, app.StakingKeeper, app.DistrKeeper)
 		if err != nil {
 			return fromVM, err
 		}
 
 		// 6. remove bsc oracles
-		removeBscOracle(cacheCtx, app.BscKeeper)
+		RemoveBscOracle(cacheCtx, app.BscKeeper)
 
 		commit()
 		ctx.Logger().Info("Upgrade complete")
@@ -66,7 +66,7 @@ func createUpgradeHandler(
 	}
 }
 
-func reSetCrossChainModuleOracleDelegate(ctx sdk.Context, crossChainKeepers keepers.CrossChainKeepers, stakingKeeper types.StakingKeeper, distributionKeeper types.DistributionKeeper) error {
+func ResetCrossChainModuleOracleDelegate(ctx sdk.Context, crossChainKeepers keepers.CrossChainKeepers, stakingKeeper types.StakingKeeper, distributionKeeper types.DistributionKeeper) error {
 	needHandlerModules := []string{ethtypes.ModuleName, bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName, avalanchetypes.ModuleName}
 	type crossChainKeeper interface {
 		GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Oracles)
@@ -111,7 +111,7 @@ func reSetCrossChainModuleOracleDelegate(ctx sdk.Context, crossChainKeepers keep
 	return nil
 }
 
-func removeBscOracle(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
+func RemoveBscOracle(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 	bscRemoveOracles := GetBscRemoveOracles(ctx.ChainID())
 	if len(bscRemoveOracles) <= 0 {
 		return
@@ -145,12 +145,12 @@ func removeBscOracle(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 	}
 }
 
-func updateLogicCode(ctx sdk.Context, evmKeeper *evmkeeper.Keeper) {
-	updateFIP20LogicCode(ctx, evmKeeper)
-	updateWFXLogicCode(ctx, evmKeeper)
+func UpdateLogicCode(ctx sdk.Context, evmKeeper *evmkeeper.Keeper) {
+	UpdateFIP20LogicCode(ctx, evmKeeper)
+	UpdateWFXLogicCode(ctx, evmKeeper)
 }
 
-func updateFIP20LogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
+func UpdateFIP20LogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
 	fip20 := fxtypes.GetFIP20()
 	if err := k.UpdateContractCode(ctx, fip20.Address, fip20.Code); err != nil {
 		panic(fmt.Sprintf("update fip logic code error: %s", err.Error()))
@@ -158,7 +158,7 @@ func updateFIP20LogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
 	ctx.Logger().Info("update FIP20 contract", "module", "upgrade", "codeHash", fip20.CodeHash())
 }
 
-func updateWFXLogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
+func UpdateWFXLogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
 	wfx := fxtypes.GetWFX()
 	if err := k.UpdateContractCode(ctx, wfx.Address, wfx.Code); err != nil {
 		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
@@ -166,20 +166,20 @@ func updateWFXLogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
 	ctx.Logger().Info("update WFX contract", "module", "upgrade", "codeHash", wfx.CodeHash())
 }
 
-func initGovFXParams(ctx sdk.Context, keeper keeper.Keeper) {
+func InitGovFXParams(ctx sdk.Context, keeper keeper.Keeper) {
 	if err := keeper.InitFxGovParams(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func createEvmModuleAccount(ctx sdk.Context, k authkeeper.AccountKeeper) {
+func CreateEvmModuleAccount(ctx sdk.Context, k authkeeper.AccountKeeper) {
 	account, _ := k.GetModuleAccountAndPermissions(ctx, evmtypes.ModuleName)
 	if account == nil {
 		panic("create evm module account empty")
 	}
 }
 
-func updateDenomAliases(ctx sdk.Context, k erc20keeper.Keeper) {
+func UpdateDenomAliases(ctx sdk.Context, k erc20keeper.Keeper) {
 	denomAlias := GetUpdateDenomAlias(ctx.ChainID())
 	for _, da := range denomAlias {
 		cacheCtx, commit := ctx.CacheContext()
