@@ -17,6 +17,7 @@ import (
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
+	fxstakingtypes "github.com/functionx/fx-core/v4/x/staking/types"
 )
 
 func TestStakingTransferSharesABI(t *testing.T) {
@@ -32,6 +33,7 @@ func TestStakingTransferSharesABI(t *testing.T) {
 	require.Equal(t, 5, len(staking.TransferSharesEvent.Inputs))
 }
 
+//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestTransferShares() {
 	testCases := []struct {
 		name        string
@@ -349,6 +351,45 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 				} else {
 					suite.Require().True(toBalances.Empty())
 				}
+
+				existLog := false
+				for _, log := range res.Logs {
+					if log.Topics[0] == staking.TransferSharesEvent.ID.String() {
+						suite.Require().Equal(3, len(log.Topics))
+						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
+						suite.Require().Equal(log.Topics[2], toSigner.Address().Hash().String())
+						unpack, err := staking.TransferSharesEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						unpackValStr := unpack[0].(string)
+						unpackShares := unpack[1].(*big.Int)
+						suite.Require().Equal(val.GetOperator().String(), unpackValStr)
+						suite.Require().Equal(shares.String(), unpackShares.String())
+						existLog = true
+					}
+				}
+				suite.Require().True(existLog)
+
+				existEvent := false
+				for _, event := range suite.ctx.EventManager().Events() {
+					if event.Type == fxstakingtypes.EventTypeTransferShares {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == fxstakingtypes.AttributeKeyFrom {
+								suite.Require().Equal(string(attr.Value), sdk.AccAddress(delAddr.Bytes()).String())
+							}
+							if string(attr.Key) == fxstakingtypes.AttributeKeyRecipient {
+								suite.Require().Equal(string(attr.Value), toSigner.AccAddress().String())
+							}
+							if string(attr.Key) == stakingtypes.AttributeKeyValidator {
+								suite.Require().Equal(string(attr.Value), val.GetOperator().String())
+							}
+							if string(attr.Key) == fxstakingtypes.AttributeKeyShares {
+								suite.Require().Equal(string(attr.Value), shares.String())
+							}
+						}
+						existEvent = true
+					}
+				}
+				suite.Require().True(existEvent)
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 			}
@@ -365,6 +406,7 @@ func TestStakingTransferFromSharesABI(t *testing.T) {
 	require.Equal(t, 2, len(staking.TransferFromSharesMethod.Outputs))
 }
 
+//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestTransferFromShares() {
 	testCases := []struct {
 		name        string
@@ -691,6 +733,45 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 				} else {
 					suite.Require().True(toBalances.Empty())
 				}
+
+				existLog := false
+				for _, log := range res.Logs {
+					if log.Topics[0] == staking.TransferSharesEvent.ID.String() {
+						suite.Require().Equal(3, len(log.Topics))
+						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
+						suite.Require().Equal(log.Topics[2], toSigner.Address().Hash().String())
+						unpack, err := staking.TransferSharesEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						unpackValStr := unpack[0].(string)
+						unpackShares := unpack[1].(*big.Int)
+						suite.Require().Equal(val.GetOperator().String(), unpackValStr)
+						suite.Require().Equal(shares.String(), unpackShares.String())
+						existLog = true
+					}
+				}
+				suite.Require().True(existLog)
+
+				existEvent := false
+				for _, event := range suite.ctx.EventManager().Events() {
+					if event.Type == fxstakingtypes.EventTypeTransferShares {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == fxstakingtypes.AttributeKeyFrom {
+								suite.Require().Equal(string(attr.Value), sdk.AccAddress(delAddr.Bytes()).String())
+							}
+							if string(attr.Key) == fxstakingtypes.AttributeKeyRecipient {
+								suite.Require().Equal(string(attr.Value), toSigner.AccAddress().String())
+							}
+							if string(attr.Key) == stakingtypes.AttributeKeyValidator {
+								suite.Require().Equal(string(attr.Value), val.GetOperator().String())
+							}
+							if string(attr.Key) == fxstakingtypes.AttributeKeyShares {
+								suite.Require().Equal(string(attr.Value), shares.String())
+							}
+						}
+						existEvent = true
+					}
+				}
+				suite.Require().True(existEvent)
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 			}

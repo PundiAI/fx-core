@@ -8,6 +8,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -19,6 +20,7 @@ import (
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	"github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
+	fxstakingtypes "github.com/functionx/fx-core/v4/x/staking/types"
 )
 
 func TestStakingApproveSharesABI(t *testing.T) {
@@ -34,6 +36,7 @@ func TestStakingApproveSharesABI(t *testing.T) {
 	require.Equal(t, 4, len(staking.ApproveSharesEvent.Inputs))
 }
 
+//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestApproveShares() {
 	testCases := []struct {
 		name     string
@@ -159,6 +162,32 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 					}
 				}
 				suite.Require().True(existLog)
+
+				existEvent := false
+				for _, event := range suite.ctx.EventManager().Events() {
+					if event.Type == fxstakingtypes.EventTypeApproveShares {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == stakingtypes.AttributeKeyValidator {
+								suite.Require().Equal(string(attr.Value), val.GetOperator().String())
+							}
+							if string(attr.Key) == fxstakingtypes.AttributeKeyOwner {
+								suite.Require().Equal(string(attr.Value), sdk.AccAddress(sender.Bytes()).String())
+							}
+							if string(attr.Key) == fxstakingtypes.AttributeKeySpender {
+								suite.Require().Equal(string(attr.Value), spender.AccAddress().String())
+							}
+							if string(attr.Key) == fxstakingtypes.AttributeKeyShares {
+								if strings.Contains(tc.name, "zero") {
+									suite.Require().Equal(string(attr.Value), "0")
+								} else {
+									suite.Require().Equal(string(attr.Value), allowanceAmt.String())
+								}
+							}
+						}
+						existEvent = true
+					}
+				}
+				suite.Require().True(existEvent)
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 				if err != nil {
