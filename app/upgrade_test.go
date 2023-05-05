@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	cmtdbm "github.com/cometbft/cometbft-db"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/tendermint/tendermint/store"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v4/app"
@@ -61,6 +63,12 @@ func Test_TestnetUpgradeV4_1(t *testing.T) {
 			},
 		},
 	}
+
+	blockStoreDB, err := cmtdbm.NewDB("blockstore", cmtdbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
+	require.NoError(t, err)
+	blockStore := store.NewBlockStore(blockStoreDB)
+	meta := blockStore.LoadBaseMeta()
+	require.Equal(t, fxtypes.TestnetChainId, meta.Header.ChainID, "only testnet can run this test")
 
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
 	require.NoError(t, err)
@@ -123,6 +131,12 @@ func Test_MainnetUpgradeV4_1(t *testing.T) {
 			},
 		},
 	}
+
+	blockStoreDB, err := cmtdbm.NewDB("blockstore", cmtdbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
+	require.NoError(t, err)
+	blockStore := store.NewBlockStore(blockStoreDB)
+	meta := blockStore.LoadBaseMeta()
+	require.Equal(t, fxtypes.MainnetChainId, meta.Header.ChainID, "only mainnet can run this test")
 
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
 	require.NoError(t, err)
