@@ -69,7 +69,7 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contract *vm.
 	}
 
 	// add event log
-	if err := c.AddLog(IncreaseBridgeFeeEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+	if err := c.AddLog(evm, IncreaseBridgeFeeEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
 		args.Chain, args.TxID, args.Fee); err != nil {
 		return nil, err
 	}

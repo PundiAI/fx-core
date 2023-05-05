@@ -11,7 +11,7 @@ import (
 	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
-func (c *Contract) BridgeCoinAmount(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
+func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
 	// parse args
 	var args BridgeCoinAmountArgs
@@ -30,7 +30,7 @@ func (c *Contract) BridgeCoinAmount(ctx sdk.Context, _ *vm.EVM, contract *vm.Con
 	}
 	// OriginDenom
 	if c.erc20Keeper.IsOriginDenom(cacheCtx, pair.GetDenom()) {
-		supply, err := NewContractCall(cacheCtx, c.evm, c.Address(), args.Token).ERC20TotalSupply()
+		supply, err := NewContractCall(cacheCtx, evm, c.Address(), args.Token).ERC20TotalSupply()
 		if err != nil {
 			return nil, err
 		}

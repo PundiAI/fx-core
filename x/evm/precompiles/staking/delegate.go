@@ -66,7 +66,7 @@ func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	}
 
 	// add delegate log
-	if err := c.AddLog(DelegateEvent, []common.Hash{contract.Caller().Hash()},
+	if err := c.AddLog(evm, DelegateEvent, []common.Hash{contract.Caller().Hash()},
 		args.Validator, amount, shares.TruncateInt().BigInt()); err != nil {
 		return nil, err
 	}

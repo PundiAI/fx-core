@@ -49,7 +49,6 @@ import (
 	srvflags "github.com/evmos/ethermint/server/flags"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
@@ -304,8 +303,6 @@ func NewAppKeeper(
 			appKeepers.BankKeeper,
 			appKeepers.StakingKeeper,
 			appKeepers.FeeMarketKeeper,
-			appKeepers.ExtendPrecompiles,
-			geth.NewEVM,
 			cast.ToString(appOpts.Get(srvflags.EVMTracer)),
 			appKeepers.GetSubspace(evmtypes.ModuleName),
 		),
@@ -515,6 +512,9 @@ func NewAppKeeper(
 		appKeepers.StakingKeeper,
 		appKeepers.SlashingKeeper,
 	)
+
+	// set evm precompiled contracts
+	appKeepers.EvmPrecompiled()
 
 	return appKeepers
 }

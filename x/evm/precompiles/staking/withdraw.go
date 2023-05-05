@@ -58,7 +58,7 @@ func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, sender common.Address,
 	}
 
 	// add withdraw log
-	if err := c.AddLog(WithdrawEvent, []common.Hash{sender.Hash()}, valAddr.String(), rewardAmount); err != nil {
+	if err := c.AddLog(evm, WithdrawEvent, []common.Hash{sender.Hash()}, valAddr.String(), rewardAmount); err != nil {
 		return nil, err
 	}
 

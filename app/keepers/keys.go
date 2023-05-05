@@ -18,10 +18,9 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	evm "github.com/evmos/ethermint/x/evm/vm"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	fxtypes "github.com/functionx/fx-core/v4/types"
@@ -30,7 +29,7 @@ import (
 	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
-	precompilecrosschain "github.com/functionx/fx-core/v4/x/evm/precompiles/crosschain"
+	precompilescrosschain "github.com/functionx/fx-core/v4/x/evm/precompiles/crosschain"
 	precompilesstaking "github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
 	migratetypes "github.com/functionx/fx-core/v4/x/migrate/types"
 	optimismtypes "github.com/functionx/fx-core/v4/x/optimism/types"
@@ -72,11 +71,22 @@ func (appKeepers *AppKeepers) GetMemoryStoreKey() map[string]*storetypes.MemoryS
 	return appKeepers.memKeys
 }
 
-// ExtendPrecompiles  get extend pre compile contracts function
-func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) evm.PrecompiledContracts {
-	stakingContract := precompilesstaking.NewPrecompiledContract(
-		ctx, evm, appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, appKeepers.EvmKeeper)
+// EvmPrecompiled  set evm precompiled contracts
+func (appKeepers *AppKeepers) EvmPrecompiled() {
+	precompiled := evmkeeper.BerlinPrecompiled()
 
+	// staking precompile
+	precompiled[precompilesstaking.GetAddress()] = func(ctx sdk.Context) vm.PrecompiledContract {
+		return precompilesstaking.NewPrecompiledContract(
+			ctx,
+			appKeepers.BankKeeper,
+			appKeepers.StakingKeeper,
+			appKeepers.DistrKeeper,
+			appKeepers.EvmKeeper,
+		)
+	}
+
+	// cross chain precompile
 	transferRouter := fxtypes.NewRouter().
 		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
@@ -85,13 +95,20 @@ func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) ev
 		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
 		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper)
-	crossChainContract := precompilecrosschain.NewPrecompiledContract(
-		ctx, evm, appKeepers.BankKeeper, appKeepers.EvmKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, transferRouter)
-
-	return map[common.Address]vm.PrecompiledContract{
-		stakingContract.Address():    stakingContract,
-		crossChainContract.Address(): crossChainContract,
+	precompiled[precompilescrosschain.GetAddress()] = func(ctx sdk.Context) vm.PrecompiledContract {
+		return precompilescrosschain.NewPrecompiledContract(
+			ctx,
+			appKeepers.BankKeeper,
+			appKeepers.EvmKeeper,
+			appKeepers.Erc20Keeper,
+			appKeepers.IBCTransferKeeper,
+			appKeepers.AccountKeeper,
+			transferRouter,
+		)
 	}
+
+	// set precompiled contracts
+	appKeepers.EvmKeeper.WithPrecompiled(precompiled)
 }
 
 // GetKey returns the KVStoreKey for the provided store key.

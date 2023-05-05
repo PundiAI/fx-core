@@ -76,7 +76,7 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 	}
 
 	// add event log
-	if err := c.AddLog(CrossChainEvent, []common.Hash{args.Sender.Hash(), tokenPair.GetERC20Contract().Hash()},
+	if err := c.AddLog(evm, CrossChainEvent, []common.Hash{args.Sender.Hash(), tokenPair.GetERC20Contract().Hash()},
 		tokenPair.GetDenom(), args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 
 	// add event log
-	if err := c.AddLog(CrossChainEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+	if err := c.AddLog(evm, CrossChainEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
 		crossChainDenom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
 		return nil, err
 	}

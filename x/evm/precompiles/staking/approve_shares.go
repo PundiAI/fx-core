@@ -16,7 +16,7 @@ import (
 	fxstakingtypes "github.com/functionx/fx-core/v4/x/staking/types"
 )
 
-func (c *Contract) ApproveShares(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) ApproveShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("approve method not readonly")
 	}
@@ -31,7 +31,7 @@ func (c *Contract) ApproveShares(ctx sdk.Context, _ *vm.EVM, contract *vm.Contra
 	c.stakingKeeper.SetAllowance(ctx, args.GetValidator(), owner.Bytes(), args.Spender.Bytes(), args.Shares)
 
 	// add log
-	if err := c.AddLog(ApproveSharesEvent, []common.Hash{owner.Hash(), args.Spender.Hash()}, args.Validator, args.Shares); err != nil {
+	if err := c.AddLog(evm, ApproveSharesEvent, []common.Hash{owner.Hash(), args.Spender.Hash()}, args.Validator, args.Shares); err != nil {
 		return nil, err
 	}
 	// add emit event

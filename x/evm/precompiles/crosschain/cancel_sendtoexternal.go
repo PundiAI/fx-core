@@ -41,7 +41,7 @@ func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *
 	}
 
 	// add event log
-	if err := c.AddLog(CancelSendToExternalEvent, []common.Hash{sender.Hash()}, args.Chain, args.TxID); err != nil {
+	if err := c.AddLog(evm, CancelSendToExternalEvent, []common.Hash{sender.Hash()}, args.Chain, args.TxID); err != nil {
 		return nil, err
 	}
 

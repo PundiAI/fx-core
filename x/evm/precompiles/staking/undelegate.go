@@ -52,7 +52,7 @@ func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 
 	// add undelegate log
-	if err := c.AddLog(UndelegateEvent, []common.Hash{contract.Caller().Hash()},
+	if err := c.AddLog(evm, UndelegateEvent, []common.Hash{contract.Caller().Hash()},
 		args.Validator, args.Shares, unDelAmount.BigInt(), big.NewInt(completionTime.Unix())); err != nil {
 		return nil, err
 	}

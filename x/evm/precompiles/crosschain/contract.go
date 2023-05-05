@@ -15,7 +15,6 @@ import (
 
 type Contract struct {
 	ctx               sdk.Context
-	evm               *vm.EVM
 	router            *fxtypes.Router
 	bankKeeper        BankKeeper
 	evmKeeper         EvmKeeper
@@ -26,7 +25,6 @@ type Contract struct {
 
 func NewPrecompiledContract(
 	ctx sdk.Context,
-	evm *vm.EVM,
 	bankKeeper BankKeeper,
 	evmKeeper EvmKeeper,
 	erc20Keeper Erc20Keeper,
@@ -36,7 +34,6 @@ func NewPrecompiledContract(
 ) *Contract {
 	return &Contract{
 		ctx:               ctx,
-		evm:               evm,
 		bankKeeper:        bankKeeper,
 		evmKeeper:         evmKeeper,
 		erc20Keeper:       erc20Keeper,
@@ -110,16 +107,16 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 	return ret, nil
 }
 
-func (c *Contract) AddLog(event abi.Event, topics []common.Hash, args ...interface{}) error {
+func (c *Contract) AddLog(evm *vm.EVM, event abi.Event, topics []common.Hash, args ...interface{}) error {
 	data, newTopic, err := types.PackTopicData(event, topics, args...)
 	if err != nil {
 		return err
 	}
-	c.evm.StateDB.AddLog(&ethtypes.Log{
+	evm.StateDB.AddLog(&ethtypes.Log{
 		Address:     c.Address(),
 		Topics:      newTopic,
 		Data:        data,
-		BlockNumber: c.evm.Context.BlockNumber.Uint64(),
+		BlockNumber: evm.Context.BlockNumber.Uint64(),
 	})
 	return nil
 }

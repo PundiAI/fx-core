@@ -168,7 +168,7 @@ func (c *Contract) handlerTransferShares(
 	token := validator.TokensFromShares(shares).TruncateInt()
 
 	// add log
-	if err := c.AddLog(TransferSharesEvent, []common.Hash{from.Hash(), to.Hash()},
+	if err := c.AddLog(evm, TransferSharesEvent, []common.Hash{from.Hash(), to.Hash()},
 		valAddr.String(), shares.TruncateInt().BigInt(), token.BigInt()); err != nil {
 		return nil, nil, err
 	}
