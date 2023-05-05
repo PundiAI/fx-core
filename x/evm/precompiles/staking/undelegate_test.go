@@ -5,10 +5,12 @@ import (
 	"math/big"
 	"strings"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -34,6 +36,7 @@ func TestStakingUndelegateABI(t *testing.T) {
 	require.Equal(t, 5, len(staking.UndelegateEvent.Inputs))
 }
 
+//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestUndelegate() {
 	testCases := []struct {
 		name     string
@@ -186,7 +189,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 				suite.Require().Equal(val.GetOperator().String(), undelegations[0].ValidatorAddress)
 				suite.Require().Equal(delAmt, undelegations[0].Entries[0].Balance)
 
-				exitLog := false
+				existLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.UndelegateEvent.ID.String() {
 						suite.Require().Equal(log.Address, staking.GetAddress().String())
@@ -201,11 +204,31 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 						suite.Require().Equal(amount.String(), undelegations[0].Entries[0].Balance.BigInt().String())
 						completionTime := unpack[3].(*big.Int)
 						suite.Require().Equal(completionTime.Int64(), undelegations[0].Entries[0].CompletionTime.Unix())
-						exitLog = true
+						existLog = true
 					}
 				}
-				suite.Require().True(exitLog)
+				suite.Require().True(existLog)
 
+				existEvent := false
+				for _, event := range suite.ctx.EventManager().Events() {
+					if event.Type == stakingtypes.EventTypeUnbond {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == stakingtypes.AttributeKeyValidator {
+								suite.Require().Equal(string(attr.Value), val.GetOperator().String())
+								existEvent = true
+							}
+							if string(attr.Key) == sdk.AttributeKeyAmount {
+								suite.Require().Equal(string(attr.Value), undelegations[0].Entries[0].Balance.String())
+								existEvent = true
+							}
+							if string(attr.Key) == stakingtypes.AttributeKeyCompletionTime {
+								suite.Require().Equal(string(attr.Value), undelegations[0].Entries[0].CompletionTime.Format(time.RFC3339))
+								existEvent = true
+							}
+						}
+					}
+				}
+				suite.Require().True(existEvent)
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 				if err != nil {

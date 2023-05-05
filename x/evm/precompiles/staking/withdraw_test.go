@@ -9,6 +9,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -34,6 +35,7 @@ func TestStakingWithdrawABI(t *testing.T) {
 	require.Equal(t, 3, len(staking.WithdrawEvent.Inputs))
 }
 
+//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestWithdraw() {
 	testCases := []struct {
 		name     string
@@ -177,7 +179,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
 
-				exitLog := false
+				existLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.WithdrawEvent.ID.String() {
 						suite.Require().Equal(log.Address, staking.GetAddress().String())
@@ -188,11 +190,31 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 						suite.Require().Equal(unpackValidator, val.GetOperator().String())
 						reward := unpack[1].(*big.Int)
 						suite.Require().Equal(reward.String(), chainBalances.AmountOf(fxtypes.DefaultDenom).BigInt().String())
-						exitLog = true
+						existLog = true
 					}
 				}
-				suite.Require().True(exitLog)
+				suite.Require().True(existLog)
 
+				existEvent := false
+				for _, event := range suite.ctx.EventManager().Events() {
+					if event.Type == distritypes.EventTypeWithdrawRewards {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == distritypes.AttributeKeyValidator {
+								suite.Require().Equal(string(attr.Value), val.GetOperator().String())
+								existEvent = true
+							}
+							if string(attr.Key) == sdk.AttributeKeyAmount {
+								suite.Require().Equal(string(attr.Value), sdk.NewCoin(fxtypes.DefaultDenom, chainBalances.AmountOf(fxtypes.DefaultDenom)).String())
+								existEvent = true
+							}
+							if string(attr.Key) == distritypes.AttributeKeyDelegator {
+								suite.Require().Equal(string(attr.Value), sdk.AccAddress(delAddr.Bytes()).String())
+								existEvent = true
+							}
+						}
+					}
+				}
+				suite.Require().True(existEvent)
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 				if err != nil {

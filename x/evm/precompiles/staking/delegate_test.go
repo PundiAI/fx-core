@@ -36,6 +36,7 @@ func TestStakingDelegateABI(t *testing.T) {
 	require.Equal(t, 4, len(staking.DelegateEvent.Inputs))
 }
 
+//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestDelegate() {
 	testCases := []struct {
 		name     string
@@ -243,7 +244,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), vaAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
 				suite.Require().Equal(delAmount, vaAfter.GetTokens().Sub(valBefore.GetTokens()))
 
-				exitLog := false
+				existLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.DelegateEvent.ID.String() {
 						suite.Require().Equal(log.Address, staking.GetAddress().String())
@@ -256,10 +257,27 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 						suite.Require().Equal(amount.String(), delAmount.BigInt().String())
 						shares := unpack[2].(*big.Int)
 						suite.Require().Equal(shares.String(), delAfter.GetShares().Sub(delBefore.GetShares()).TruncateInt().BigInt().String())
-						exitLog = true
+						existLog = true
 					}
 				}
-				suite.Require().True(exitLog)
+				suite.Require().True(existLog)
+
+				existEvent := false
+				for _, event := range suite.ctx.EventManager().Events() {
+					if event.Type == stakingtypes.TypeMsgDelegate {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == stakingtypes.AttributeKeyValidator {
+								suite.Require().Equal(string(attr.Value), val.GetOperator().String())
+								existEvent = true
+							}
+							if string(attr.Key) == sdk.AttributeKeyAmount {
+								suite.Require().Equal(string(attr.Value), delAmount.String())
+								existEvent = true
+							}
+						}
+					}
+				}
+				suite.Require().True(existEvent)
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 				if err != nil {
