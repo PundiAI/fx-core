@@ -5,13 +5,18 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v4/x/evm/types"
+	fxstakingtypes "github.com/functionx/fx-core/v4/x/staking/types"
 )
 
 func (c *Contract) TransferShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
@@ -29,6 +34,14 @@ func (c *Contract) TransferShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Con
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(contract.Caller().Bytes()).String()),
+		),
+	})
 	return TransferSharesMethod.Outputs.Pack(token, reward)
 }
 
@@ -51,6 +64,14 @@ func (c *Contract) TransferFromShares(ctx sdk.Context, evm *vm.EVM, contract *vm
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(contract.Caller().Bytes()).String()),
+		),
+	})
 	return TransferFromSharesMethod.Outputs.Pack(token, reward)
 }
 
@@ -146,11 +167,14 @@ func (c *Contract) handlerTransferShares(
 	// calculate token from shares
 	token := validator.TokensFromShares(shares).TruncateInt()
 
-	// add Transfer event
+	// add log
 	if err := c.AddLog(TransferSharesEvent, []common.Hash{from.Hash(), to.Hash()},
 		valAddr.String(), shares.TruncateInt().BigInt(), token.BigInt()); err != nil {
 		return nil, nil, err
 	}
+
+	// add emit event
+	TransferSharesEmitEvents(ctx, valAddr, from.Bytes(), to.Bytes(), sdkmath.NewIntFromBigInt(sharesInt))
 
 	return token.BigInt(), toReward, nil
 }
@@ -177,4 +201,27 @@ func decrementReferenceCount(k DistrKeeper, ctx sdk.Context, valAddr sdk.ValAddr
 	} else {
 		k.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
 	}
+}
+
+func TransferSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, from, recipient sdk.AccAddress, shares sdkmath.Int) {
+	if shares.IsInt64() {
+		defer func() {
+			telemetry.IncrCounter(1, evmtypes.ModuleName, "transfer_shares")
+			telemetry.SetGaugeWithLabels(
+				[]string{"tx", "msg", evmtypes.TypeMsgEthereumTx},
+				float32(shares.Int64()),
+				[]metrics.Label{telemetry.NewLabel("validator", validator.String())},
+			)
+		}()
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			fxstakingtypes.EventTypeTransferShares,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, validator.String()),
+			sdk.NewAttribute(fxstakingtypes.AttributeKeyFrom, from.String()),
+			sdk.NewAttribute(fxstakingtypes.AttributeKeyRecipient, recipient.String()),
+			sdk.NewAttribute(fxstakingtypes.AttributeKeyShares, shares.String()),
+		),
+	})
 }
