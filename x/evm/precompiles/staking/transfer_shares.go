@@ -100,6 +100,10 @@ func (c *Contract) handlerTransferShares(
 	if !found {
 		return nil, nil, errors.New("from delegation not found")
 	}
+	// if from has receiving redelegation, can't transfer shares
+	if c.stakingKeeper.HasReceivingRedelegation(ctx, from.Bytes(), valAddr) {
+		return nil, nil, errors.New("from has receiving redelegation")
+	}
 
 	shares := sdk.NewDecFromBigInt(sharesInt) // TODO share with sdk.Precision
 	if fromDel.GetShares().LT(shares) {
