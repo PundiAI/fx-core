@@ -1,7 +1,29 @@
 import {HardhatUserConfig} from "hardhat/config";
 import "hardhat-dependency-compiler"
+import "@nomiclabs/hardhat-ethers";
+
+import './tasks/bridge_task';
+
+const port = process.env.LOCAL_PORT || 8535
 
 const config: HardhatUserConfig = {
+    defaultNetwork: "hardhat",
+    networks: {
+        hardhat: {
+            mining: {
+                interval: 1000
+            },
+            accounts: {
+                mnemonic: "test test test test test test test test test test test junk",
+                initialIndex: 0,
+                count: 10,
+                accountsBalance: "1000000000000000000000000",
+            },
+        },
+        localhost: {
+            url: `http://localhost:${port}`,
+        }
+    },
     solidity: {
         compilers: [
             {
@@ -36,6 +58,7 @@ const config: HardhatUserConfig = {
     dependencyCompiler: {
         paths: [
             "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
+            "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol",
         ],
     },
 };
