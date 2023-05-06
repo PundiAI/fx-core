@@ -130,7 +130,7 @@ $(INSTALL_DIR):
 	mkdir -p $@
 
 run-local: install
-	@./develop/run_fxcore.sh init
+	@./contrib/run-fxcore.sh init
 
 .PHONY: build build-win install docker go.sum run-local
 

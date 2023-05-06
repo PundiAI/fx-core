@@ -12,27 +12,6 @@
 
 * [Web Tools](tools)
 
-# f(x)Core Scripts Stats
-
-* Validator Reward
-
-```shell
-curl -s https://raw.githubusercontent.com/functionx/fx-core/main/contrib/stats/validator_reward.sh | bash
-```
-
-* Validator Vote
-
-```shell
-curl -s https://raw.githubusercontent.com/functionx/fx-core/main/contrib/stats/validator_vote.sh | bash
-```
-
-* Module Account
-
-```shell
-curl -s https://raw.githubusercontent.com/functionx/fx-core/main/contrib/stats/module_account.sh | bash
-```
-
-
 # f(x)Core SDK
 
 * [Go SDK](https://github.com/functionx/fx-core)

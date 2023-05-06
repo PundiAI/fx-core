@@ -13,3 +13,4 @@ local.Dockerfile
 debug.json
 release-note.md
 dist
+out
