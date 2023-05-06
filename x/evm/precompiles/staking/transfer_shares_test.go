@@ -1031,3 +1031,33 @@ func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
 	suite.PrecompileStakingTransferFromShares(signer1, val.GetOperator(), signer3.Address(), signer1.Address(), shares1)
 	suite.Commit()
 }
+
+func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
+	vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
+	val := vals[0]
+	valTmp := vals[1]
+	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
+	signer1 := suite.RandSigner()
+	signer2 := suite.RandSigner()
+
+	// delegate 1 and 2
+	suite.Delegate(valTmp.GetOperator(), delAmount, signer1.AccAddress())
+	suite.Commit()
+
+	delegationTmp, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, signer1.AccAddress(), valTmp.GetOperator())
+	suite.Require().True(found)
+
+	// redelegate
+	suite.Redelegate(valTmp.GetOperator(), val.GetOperator(), signer1.AccAddress(), delegationTmp.Shares)
+	suite.Commit()
+
+	delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	suite.Require().True(found)
+	suite.Require().Equal(delegationTmp.Shares, delegation.Shares)
+
+	// transfer shares
+	pack, err := staking.GetABI().Pack(staking.TransferSharesMethodName, val.GetOperator().String(), signer2.Address(), delegation.Shares.TruncateInt().BigInt())
+	suite.Require().NoError(err)
+	_, err = suite.PackEthereumTx(signer1, staking.GetAddress(), big.NewInt(0), pack)
+	suite.Require().EqualError(err, "from has receiving redelegation")
+}

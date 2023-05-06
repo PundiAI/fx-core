@@ -64,7 +64,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	require.NoError(suite.T(), err)
 	suite.signer = helpers.NewSigner(priv)
 
-	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+1, nil)
+	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+2, nil)
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
@@ -401,4 +401,9 @@ func (suite *PrecompileTestSuite) Delegate(val sdk.ValAddress, amount sdkmath.In
 		_, err := suite.app.StakingKeeper.Delegate(suite.ctx, del, amount, stakingtypes.Unbonded, validator, true)
 		suite.Require().NoError(err)
 	}
+}
+
+func (suite *PrecompileTestSuite) Redelegate(valSrc, valDest sdk.ValAddress, del sdk.AccAddress, shares sdk.Dec) {
+	_, err := suite.app.StakingKeeper.BeginRedelegation(suite.ctx, del, valSrc, valDest, shares)
+	suite.Require().NoError(err)
 }
