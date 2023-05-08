@@ -7,7 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
@@ -15,16 +17,17 @@ import (
 	"github.com/functionx/fx-core/v4/app"
 	"github.com/functionx/fx-core/v4/testutil"
 	"github.com/functionx/fx-core/v4/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 const (
-	flagValidatorNum = "validators"
-	flagOutputDir    = "output-dir"
-	flagDockerImage  = "docker-image"
+	flagOutputDir   = "output-dir"
+	flagDockerImage = "docker-image"
 )
 
 // testnetCmd get cmd to initialize all files for tendermint testnet and application
-func testnetCmd() *cobra.Command {
+func testnetCmd(encCfg app.EncodingConfig) *cobra.Command {
+	networkConfig := testutil.DefaultNetworkConfig(encCfg)
 	cmd := &cobra.Command{
 		Use:   "testnet",
 		Short: "Initialize files for a fxcore local testnet",
@@ -38,15 +41,15 @@ Example:
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			outputDir, _ := cmd.Flags().GetString(flagOutputDir)
-			valNum, _ := cmd.Flags().GetInt(flagValidatorNum)
-			encCfg := app.MakeEncodingConfig()
-			networkConfig := testutil.DefaultNetworkConfig(encCfg)
-			networkConfig.NumValidators = valNum
+			stakingTokens, _ := cmd.Flags().GetInt64("staking-tokens")
+			networkConfig.StakingTokens = sdkmath.NewIntWithDecimal(stakingTokens, fxtypes.DenomUnit)
+			bondedTokens, _ := cmd.Flags().GetInt64("bonded-tokens")
+			networkConfig.BondedTokens = sdkmath.NewIntWithDecimal(bondedTokens, fxtypes.DenomUnit)
 			validators, err := network.GenerateGenesisAndValidators(outputDir, &networkConfig)
 			if err != nil {
 				return err
 			}
-			cmd.Println(fmt.Sprintf("Successfully initialized %d node directories", valNum))
+			cmd.Println(fmt.Sprintf("Successfully initialized %d node directories", networkConfig.NumValidators))
 
 			dockerImage, _ := cmd.Flags().GetString(flagDockerImage)
 			if len(dockerImage) <= 0 {
@@ -60,9 +63,20 @@ Example:
 		},
 	}
 
-	cmd.Flags().IntP(flagValidatorNum, "v", 4, "Number of validators to initialize the testnet with")
 	cmd.Flags().String(flagOutputDir, "./testnet", "Directory to store initialization data for the testnet")
-	cmd.Flags().String(flagDockerImage, "functionx/fx-core:latest", "set docker run image")
+	cmd.Flags().String(flagDockerImage, "", "set docker run image")
+	cmd.Flags().IntVarP(&networkConfig.NumValidators, "validator-number", "v", 4, "Number of validators to initialize the testnet with")
+	cmd.Flags().StringSliceVar(&networkConfig.Mnemonics, "mnemonics", []string{}, "Mnemonics for the validator accounts")
+	cmd.Flags().StringVar(&networkConfig.BondDenom, "bond-denom", networkConfig.BondDenom, "Coin denomination used for bonds")
+	cmd.Flags().StringVar(&networkConfig.RPCAddress, "rpc-address", "", "RPC listen address (including port)")
+	cmd.Flags().StringVar(&networkConfig.APIAddress, "api-address", "", "REST API listen address (including port)")
+	cmd.Flags().StringVar(&networkConfig.GRPCAddress, "grpc-address", "", "GRPC server listen address (including port)")
+	cmd.Flags().StringVar(&networkConfig.JSONRPCAddress, "jsonrpc-address", "", "JSON-RPC listen address (including port)")
+	cmd.Flags().StringVar(&networkConfig.ChainID, "chain-id", networkConfig.ChainID, "genesis file chain-id, if left blank will be randomly created")
+	cmd.Flags().StringVar(&networkConfig.MinGasPrices, "min-gas-prices", networkConfig.MinGasPrices, "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
+	cmd.Flags().DurationVar(&networkConfig.TimeoutCommit, "timeout-commit", 5*time.Second, "The amount of time to wait before a commit is returned as a timeout")
+	cmd.Flags().Int64("staking-tokens", 5000, "the amount of tokens each validator has available to stake")
+	cmd.Flags().Int64("bonded-tokens", 100, "the amount of tokens each validator stakes")
 	return cmd
 }
 
