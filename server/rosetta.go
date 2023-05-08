@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/rosetta"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
 	fxtypes "github.com/functionx/fx-core/v4/types"
@@ -53,7 +52,7 @@ func RosettaCommand(ir codectypes.InterfaceRegistry, cdc codec.Codec) *cobra.Com
 	cmd.Flags().Bool(rosetta.FlagEnableFeeSuggestion, rosetta.DefaultEnableFeeSuggestion, "enable default fee suggestion")
 	cmd.Flags().Int(rosetta.FlagGasToSuggest, flags.DefaultGasLimit, "default gas for fee suggestion")
 	cmd.Flags().String(rosetta.FlagDenomToSuggest, fxtypes.GetDefaultNodeHome(), "default denom for fee suggestion")
-	cmd.Flags().String(rosetta.FlagPricesToSuggest, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4_000).MulRaw(1e9)).String(), "default prices for fee suggestion")
+	cmd.Flags().String(rosetta.FlagPricesToSuggest, fxtypes.GetDefGasPrice().String(), "default prices for fee suggestion")
 
 	return cmd
 }

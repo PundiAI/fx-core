@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -62,7 +61,7 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 		ChainID:         fxtypes.MainnetChainId,
 		NumValidators:   4,
 		BondDenom:       fxtypes.DefaultDenom,
-		MinGasPrices:    fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom),
+		MinGasPrices:    fxtypes.GetDefGasPrice().String(),
 		AccountTokens:   sdk.TokensFromConsensusPower(1000, sdk.DefaultPowerReduction),
 		StakingTokens:   sdk.TokensFromConsensusPower(5000, sdk.DefaultPowerReduction),
 		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),

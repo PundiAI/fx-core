@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
 
@@ -318,7 +317,7 @@ func Test_appTomlConfig_output(t *testing.T) {
 }
 `
 
-	_, v := AppConfig(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4_000).MulRaw(1e9)))
+	_, v := AppConfig(fxtypes.GetDefGasPrice())
 	cfg := v.(Config)
 	c := appTomlConfig{config: &cfg}
 	buf := new(bytes.Buffer)

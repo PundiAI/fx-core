@@ -91,7 +91,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := fxcfg.AppConfig(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4_000).MulRaw(1e9)))
+			customAppTemplate, customAppConfig := fxcfg.AppConfig(fxtypes.GetDefGasPrice())
 			if err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, fxcfg.DefaultTendermintConfig()); err != nil {
 				return err
 			}
@@ -113,7 +113,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		cli.AddGenesisAccountCmd(defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		testnetCmd(),
+		testnetCmd(encodingConfig),
 		configCmd(),
 		pruning.PruningCmd(myAppCreator.newApp),
 	)

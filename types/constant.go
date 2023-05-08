@@ -43,6 +43,10 @@ func init() {
 	defaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 }
 
+func GetDefGasPrice() sdk.Coin {
+	return sdk.NewCoin(DefaultDenom, sdk.NewInt(4_000).MulRaw(1e9))
+}
+
 func GetDefaultNodeHome() string {
 	return defaultNodeHome
 }
