@@ -1,8 +1,8 @@
-import {HardhatUserConfig} from "hardhat/config";
+import {HardhatUserConfig} from "hardhat/config"
 import "hardhat-dependency-compiler"
-import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-ethers"
 
-import './tasks/bridge_task';
+import './tasks/bridge_task'
 
 const port = process.env.LOCAL_PORT || 8535
 
@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
         },
         localhost: {
             url: `http://localhost:${port}`,
-        }
+        },
     },
     solidity: {
         compilers: [
