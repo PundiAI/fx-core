@@ -1,0 +1,184 @@
+[
+  {
+    "msg_type": "/fx.evm.v1.MsgCallContract",
+    "title": "call contract",
+    "summary": "This proposal is used to call the method of the solidity contract",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.evm.v1.MsgCallContract",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "contractAddress": "0xF6B6E623a7b4Ca88D8e480FD872D5a12A09b4526",
+          "data": "40c10f190000000000000000000000008886a087f906c7e99353f236568de3b8ef4ec8020000000000000000000000000000000000000000000000056bc75e2d63100000"
+        }
+      ]
+    }
+  },
+  {
+    "msg_type": "/fx.erc20.v1.MsgToggleTokenConversion",
+    "title": "toggle token conversion",
+    "summary": "This proposal is used to enable or disable the conversion of coins and tokens",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.erc20.v1.MsgToggleTokenConversion",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "token": "test"
+        }
+      ]
+    }
+  },
+  {
+    "msg_type": "/fx.erc20.v1.MsgUpdateDenomAlias",
+    "title": "update denom alias",
+    "summary": "This proposal allows modifying the alias of the bridge corresponding to the coin",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.erc20.v1.MsgUpdateDenomAlias",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "denom": "test",
+          "alias": "tron0x0000000000000000000000000000000000000001"
+        }
+      ]
+    }
+  },
+  {
+    "msg_type": "/fx.erc20.v1.MsgUpdateParams",
+    "title": "update erc20 params",
+    "summary": "This proposal is used to modify the variable parameters of the erc20 module",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.erc20.v1.MsgUpdateParams",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "params": {
+            "enable_erc20": true,
+            "enable_evm_hook": true,
+            "ibc_timeout": "12h"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "msg_type": "/fx.erc20.v1.MsgRegisterERC20",
+    "title": "Register ERC20",
+    "summary": "This proposal registers and creates a corresponding native coin for ERC20 tokens",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.erc20.v1.MsgRegisterERC20",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "erc20address": "0xF8dCc43Ab6DE0336934A7ceB25b2C04000Cb598d",
+          "aliases": [
+            "eth0xF2066b95093b59337E0aFc22e6C16810E268D276"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "msg_type": "/fx.erc20.v1.MsgRegisterCoin",
+    "title": "register coin",
+    "summary": "This proposal creates and registers an ERC20 representation for the coin",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.erc20.v1.MsgRegisterCoin",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "metadata": {
+            "description": "Cross chain token of Function X",
+            "denom_units": [
+              {
+                "denom": "test",
+                "aliases": [
+                  "eth0x0000000000000000000000000000000000000001"
+                ]
+              },
+              {
+                "denom": "TEST",
+                "exponent": 18
+              }
+            ],
+            "base": "test",
+            "display": "test",
+            "name": "upgrade test token",
+            "symbol": "TEST"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "msg_type": "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
+    "title": "Community Pool Spend",
+    "summary": "Pay me some FX!",
+    "proposal": {
+      "title": "Community Pool Spend",
+      "description": "Pay me some FX!",
+      "recipient": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+      "amount": "20000000000000000000000FX"
+    }
+  },
+  {
+    "msg_type": "/fx.gravity.crosschain.v1.MsgUpdateParams",
+    "title": "update crosschain params",
+    "summary": "This proposal is used to modify the variable parameters of the cross-chain",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.gravity.crosschain.v1.MsgUpdateParams",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "chain_name": "bsc",
+          "params": {
+            "gravityId": "fx-bsc-bridge",
+            "average_block_time": 7000,
+            "external_batch_timeout": 43200000,
+            "average_external_block_time": 5000,
+            "signed_window": 30000,
+            "slash_fraction": "0.810000000000000000",
+            "oracle_set_update_power_change_percent": "0.100000000000000000",
+            "ibc_transfer_timeout_height": 20000,
+            "delegate_threshold": {
+              "denom": "FX",
+              "amount": "10000000000000000000000"
+            },
+            "delegate_multiple": 10
+          }
+        }
+      ]
+    }
+  },
+  {
+    "msg_type": "/fx.gov.v1.MsgUpdateParams",
+    "title": "update gov params",
+    "summary": "This proposal is used to modify the variable parameters of the gov module",
+    "proposal": {
+      "messages": [
+        {
+          "@type": "/fx.gov.v1.MsgUpdateParams",
+          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "params": {
+            "msg_type": "/fx.gov.v1.MsgUpdateParams",
+            "min_deposit": [
+              {
+                "denom": "FX",
+                "amount": "1000"
+              }
+            ],
+            "min_initial_deposit": {
+              "denom": "FX",
+              "amount": "1000"
+            },
+            "voting_period": "3s",
+            "quorum": "0.3",
+            "max_deposit_period": "12097000s",
+            "threshold": "0.5",
+            "veto_threshold": "0.334"
+          }
+        }
+      ]
+    }
+  }
+]
