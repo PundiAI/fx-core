@@ -10,7 +10,7 @@ import (
 
 func Upgrade() upgrades.Upgrade {
 	upgrade := upgrades.Upgrade{
-		UpgradeName:          "fxv4.1",
+		UpgradeName:          "v4.1.x",
 		CreateUpgradeHandler: createUpgradeHandler,
 		StoreUpgrades:        v4.Upgrade.StoreUpgrades,
 	}
