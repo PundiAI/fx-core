@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
 
-set -o errexit -o nounset
+set -eo pipefail
 
-export CUR_VERSION=${CUR_VERSION:-"v3"}
-export NEXT_VERSION=${NEXT_VERSION:-"v4"}
+current_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+readonly current_path
 
-export NODE_HOME=${NODE_HOME:-"./out/.fxcore"}
-export BINARY=${BINARY:-"$NODE_HOME/cosmovisor/genesis/bin/fxcored"}
+export NODE_HOME=${NODE_HOME:-"./out/.upgrade"}
+[[ -d "$NODE_HOME" ]] && rm -r "$NODE_HOME" && mkdir -p "$NODE_HOME"
 
-export CHAIN_ID=${CHAIN_ID:-"fxcore"}
+[[ ! -f "${current_path}/run-upgrade.sh" ]] && echo "run-upgrade.sh not found" && exit 1
+nohup "${current_path}/run-upgrade.sh" 10 >&1 &
 
-cur_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-readonly cur_path
-
-"${cur_path}/run.sh" >"./run.log" 2>&1 &
-readonly pid=$!
-trap 'kill -9 $pid' SIGINT SIGTERM EXIT
-
-"${cur_path}/run-upgrade.sh" 10
-
-wait $pid
+[[ ! -f "${current_path}/run-cosmovisor.sh" ]] && echo "run-cosmovisor.sh not found" && exit 1
+"${current_path}/run-cosmovisor.sh" init "v3.1.x" "v4.1.x"
