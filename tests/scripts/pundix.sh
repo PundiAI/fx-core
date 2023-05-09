@@ -27,7 +27,7 @@ function start() {
 
   $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:$rpc_port" --home "$NODE_HOME"
   $DAEMON add-genesis-account px1a53udazy8ayufvy0s434pfwjcedzqv34hargq6 "$(to_18 "10^5")${MINT_DENOM}" --home "$NODE_HOME"
-  
+
   if docker stats --no-stream; then
     docker run -d --name "$CHAIN_NAME" --network bridge -v "${NODE_HOME}:/root/.$CHAIN_NAME" \
       -e LOCAL_MINT_DENOM="$LOCAL_MINT_DENOM" \

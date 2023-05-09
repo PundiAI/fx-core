@@ -13,7 +13,7 @@ export CHAIN_ID=${CHAIN_ID:-"fxcore"}
 cur_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 readonly cur_path
 
-"${cur_path}/run.sh" > "./run.log" 2>&1 &
+"${cur_path}/run.sh" >"./run.log" 2>&1 &
 readonly pid=$!
 trap 'kill -9 $pid' SIGINT SIGTERM EXIT
 
