@@ -25,8 +25,9 @@ function start() {
   [[ -d "$NODE_HOME" ]] && rm -r "$NODE_HOME"
   gen_cosmos_genesis
 
+  $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:$rpc_port" --home "$NODE_HOME"
   $DAEMON add-genesis-account px1a53udazy8ayufvy0s434pfwjcedzqv34hargq6 "$(to_18 "10^5")${MINT_DENOM}" --home "$NODE_HOME"
-
+  
   if docker stats --no-stream; then
     docker run -d --name "$CHAIN_NAME" --network bridge -v "${NODE_HOME}:/root/.$CHAIN_NAME" \
       -e LOCAL_MINT_DENOM="$LOCAL_MINT_DENOM" \
@@ -39,7 +40,6 @@ function start() {
     $DAEMON config app.toml api.address "tcp://0.0.0.0:2317" --home "$NODE_HOME"
     $DAEMON config app.toml grpc.address "0.0.0.0:8090" --home "$NODE_HOME"
     $DAEMON config config.toml p2p.laddr "tcp://0.0.0.0:36656" --home "$NODE_HOME"
-    $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:$rpc_port" --home "$NODE_HOME"
     nohup $DAEMON start --home "$NODE_HOME" >"$NODE_HOME/$CHAIN_NAME.log" 2>&1 &
   fi
   node_catching_up "$NODE_RPC"

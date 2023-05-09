@@ -21,7 +21,9 @@ export BECH32_PREFIX="fx"
 function start() {
   [[ -d "$NODE_HOME" ]] && rm -r "$NODE_HOME"
   gen_cosmos_genesis
-
+  
+  $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:$rpc_port" --home "$NODE_HOME"
+  
   if docker stats --no-stream; then
     docker run -d --name "$CHAIN_NAME" --network bridge -v "${NODE_HOME}:/root/.$CHAIN_NAME" \
       -p "0.0.0.0:9090:9090" -p "0.0.0.0:$rpc_port:26657" -p "0.0.0.0:1317:1317" "$docker_image" start
