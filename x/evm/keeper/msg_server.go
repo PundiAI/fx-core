@@ -135,6 +135,10 @@ func (k *Keeper) CallContract(goCtx context.Context, msg *fxevmtypes.MsgCallCont
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	contract := common.HexToAddress(msg.ContractAddress)
+	account := k.GetAccount(ctx, contract)
+	if !account.IsContract() {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidProposalMsg, "contract %s not found", contract.Hex())
+	}
 	_, err := k.CallEVMWithoutGas(ctx, k.module, &contract, common.Hex2Bytes(msg.Data), true)
 	if err != nil {
 		return nil, err
