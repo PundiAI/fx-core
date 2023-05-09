@@ -22,12 +22,12 @@ export type BridgeInfo = {
 
 async function main() {
     const signers = await ethers.getSigners()
-    
-    const config_file = process.env.CONFIG_PATH || "./config.json"
-    const out_file = process.env.OUT_PATH || "./out.json"
 
-    if (!config_file || !out_file) {
-        console.error("CONFIG_PATH or OUT_PATH is not set")
+    const config_file = process.env.BRIDGE_CONFIG_FILE || "./bridge.json"
+    const out_file = process.env.CONFIG_OUT_FILE || "./bridge.json"
+
+    if (!config_file) {
+        console.error("BRIDGE_CONFIG_FILE || CONFIG_OUT_FILE is not set")
         return
     }
 
@@ -44,6 +44,7 @@ async function main() {
                 bridge_info[i].bridge_token[j].total_supply
             );
             await erc20.deployed();
+            console.log(`${bridge_info[i].bridge_token[j].symbol} deployed to: ${erc20.address}`);
 
             bridge_info[i].bridge_token[j].address = erc20.address
         }
@@ -57,6 +58,8 @@ async function main() {
         const proxy = await proxy_factory.deploy(bridge_logic.address, signers[0].address, "0x");
         await proxy.deployed();
 
+        console.log("Bridge logic deployed to:", bridge_logic.address);
+        console.log("Bridge proxy deployed to:", proxy.address);
         bridge_info[i].bridge_contract_address = proxy.address
     }
 

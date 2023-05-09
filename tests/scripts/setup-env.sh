@@ -130,6 +130,16 @@ function node_catching_up() {
   done
 }
 
+function show_address() {
+  local from=${1:-"$FROM"} opt=${2:-""}
+  $DAEMON keys show "$from" "$opt" --home "$NODE_HOME"
+}
+
+function add_key() {
+  local name=$1 index=$2
+  echo "$TEST_MNEMONIC" | $DAEMON keys add "$name" --index "$index" --home "$NODE_HOME" --recover
+}
+
 export DAEMON=${DAEMON:-"fxcored"}
 export CHAIN_ID=${CHAIN_ID:-"fxcore"}
 export CHAIN_NAME=${CHAIN_NAME:-"fxcore"}

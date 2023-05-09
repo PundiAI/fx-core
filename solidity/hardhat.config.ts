@@ -2,26 +2,18 @@ import {HardhatUserConfig} from "hardhat/config"
 import "hardhat-dependency-compiler"
 import "@nomiclabs/hardhat-ethers"
 
-import './tasks/bridge_task'
-
-const port = process.env.LOCAL_PORT || 8535
+import './tasks/index'
 
 const config: HardhatUserConfig = {
-    defaultNetwork: "hardhat",
+    defaultNetwork: "localhost",
     networks: {
         hardhat: {
             mining: {
                 interval: 1000
-            },
-            accounts: {
-                mnemonic: "test test test test test test test test test test test junk",
-                initialIndex: 0,
-                count: 10,
-                accountsBalance: "1000000000000000000000000",
-            },
+            }
         },
         localhost: {
-            url: `http://localhost:${port}`,
+            url: `${process.env.LOCAL_URL || "http://localhost:8545"}`,
         },
     },
     solidity: {

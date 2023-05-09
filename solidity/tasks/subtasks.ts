@@ -12,6 +12,7 @@ export const SUB_CREATE_LEDGER_WALLET: string = "sub:create-ledger-wallet";
 export const SUB_CREATE_TRANSACTION: string = "sub:create-transaction";
 export const SUB_CONFIRM_TRANSACTION: string = "sub:confirm-transaction";
 export const SUB_MNEMONIC_WALLET: string = "sub:mnemonic-wallet";
+export const SUB_SEND_ETH: string = "sub:send-eth";
 // public flag
 export const DISABLE_CONFIRM_FLAG: string = "disableConfirm";
 export const PRIVATE_KEY_FLAG = "privateKey";
@@ -23,6 +24,7 @@ export const GAS_PRICE_FLAG = "gasPrice";
 export const MAX_FEE_PER_GAS_FLAG = "maxFeePerGas";
 export const MAX_PRIORITY_FEE_PER_GAS_FLAG = "maxPriorityFeePerGas";
 export const GAS_LIMIT_FLAG = "gasLimit";
+export const VALUE_FLAG = "value";
 
 export const DEFAULT_DRIVE_PATH = "m/44'/60'/0'/0/0";
 export const DEFAULT_PRIORITY_FEE = "1500000000";
@@ -31,6 +33,7 @@ export const PROMPT_CHECK_TRANSACTION_DATA = "Do you want continue?";
 type Transaction = {
     from: string,
     to?: string,
+    value?: BigNumber,
     data?: string,
     gasPrice?: BigNumber,
     maxFeePerGas?: BigNumber,
@@ -40,9 +43,39 @@ type Transaction = {
     chainId: number
 }
 
+subtask(SUB_SEND_ETH, "send eth").setAction(
+    async (taskArgs, hre) => {
+        const {to, value, data, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, gasLimit, chainId} = taskArgs;
+        const {wallet} = await hre.run(SUB_PRIVATE_KEY_WALLET, taskArgs);
+        const transaction: Transaction = await hre.run(SUB_CREATE_TRANSACTION, {
+            from: wallet.address,
+            to: to,
+            value: value,
+            data: data,
+            gasPrice: gasPrice,
+            maxFeePerGas: maxFeePerGas,
+            maxPriorityFeePerGas: maxPriorityFeePerGas,
+            nonce: nonce,
+            gasLimit: gasLimit,
+            chainId: chainId
+        });
+        const {confirmed} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+            transaction: transaction,
+            wallet: wallet
+        });
+        if (confirmed) {
+            await wallet.sendTransaction(transaction).then(
+                (tx: any) => {
+                    console.log(`${tx.hash}`);
+                }
+            );
+        }
+    }
+);
+
 subtask(SUB_CREATE_TRANSACTION, "create transaction").setAction(
     async (taskArgs, hre) => {
-        let {from, to, data, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, gasLimit, chainId} = taskArgs;
+        let {from, to, value, data, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, gasLimit, chainId} = taskArgs;
         if (gasPrice && maxFeePerGas) {
             throw new Error("Please provide only one of gasPrice or maxFeePerGas and maxPriorityFeePerGas");
         }
@@ -50,6 +83,7 @@ subtask(SUB_CREATE_TRANSACTION, "create transaction").setAction(
             await hre.ethers.provider.getBlock("latest").then(
                 async (block) => {
                     if (block.baseFeePerGas) {
+                        maxPriorityFeePerGas = maxPriorityFeePerGas ? maxPriorityFeePerGas : BigNumber.from(DEFAULT_PRIORITY_FEE);
                         maxFeePerGas = block.baseFeePerGas.add(maxPriorityFeePerGas);
                     } else {
                         gasPrice = await hre.ethers.provider.getGasPrice()
@@ -64,6 +98,7 @@ subtask(SUB_CREATE_TRANSACTION, "create transaction").setAction(
         const transaction: Transaction = {
             from: from,
             to: to,
+            value: value,
             data: data,
             nonce: nonce ? nonce : await hre.ethers.provider.getTransactionCount(from),
             gasLimit: gasLimit ? gasLimit : await hre.ethers.provider.estimateGas({
@@ -80,18 +115,6 @@ subtask(SUB_CREATE_TRANSACTION, "create transaction").setAction(
             transaction.maxFeePerGas = maxFeePerGas;
             transaction.maxPriorityFeePerGas = maxPriorityFeePerGas;
         }
-        console.log(
-            "New Transaction:\n",
-            `from: ${transaction.from}\n`,
-            `to: ${transaction.to}\n`,
-            `data: ${transaction.data}\n`,
-            `gasPrice: ${transaction.gasPrice ? transaction.gasPrice.toString() : "null"}\n`,
-            `maxFeePerGas: ${transaction.maxFeePerGas ? transaction.maxFeePerGas.toString() : "null"}\n`,
-            `maxPriorityFeePerGas: ${transaction.maxPriorityFeePerGas ? transaction.maxPriorityFeePerGas.toString() : "null"}\n`,
-            `nonce: ${transaction.nonce}\n`,
-            `gasLimit: ${transaction.gasLimit ? transaction.gasLimit.toString() : "null"}\n`,
-            `chainId: ${transaction.chainId}`
-        )
         return transaction;
     }
 );

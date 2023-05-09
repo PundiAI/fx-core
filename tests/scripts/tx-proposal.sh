@@ -17,7 +17,7 @@ function base64_metadata() {
 ## DESC: get proposal template
 function get_proposal_template() {
   local msg_type=$1
-  jq -r --arg msg_type "$msg_type" '.[]|select(.msg_type == $msg_type)' "$proposals_file" > "$out_dir/${msg_type##*.}.json"
+  jq -r --arg msg_type "$msg_type" '.[]|select(.msg_type == $msg_type)' "$proposals_file" >"$out_dir/${msg_type##*.}.json"
 }
 
 ## ARGS: <msg_type> <amount>
@@ -39,6 +39,31 @@ function query_min_deposit() {
     fi
   fi
   echo "${base_deposit}${STAKING_DENOM}"
+}
+
+## ARGS: <proposal_id> <option>
+## DESC: vote proposal
+function vote() {
+  local proposal_id=$1 option=$2
+
+  for proposal_id in $(cosmos_query gov proposals | jq -r '.proposals[].id'); do
+    messages=$(cosmos_query gov proposal "${proposal_id}")
+    if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$metadata" &&
+    "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+      break
+    fi
+  done
+
+  cosmos_tx gov vote "${proposal_id}" "$option" --from fx1 -y
+
+  voting_period=$(cosmos_query gov params | jq -r '.params.voting_period')
+  while true; do
+    if [ "$($DAEMON query gov proposal "$proposal_id" | jq -r '.status')" == "PROPOSAL_STATUS_PASSED" ]; then
+      break
+    fi
+    echo "wait for voting period"
+    sleep "${voting_period%?}"
+  done
 }
 
 ## ARGS: <proposal_file>

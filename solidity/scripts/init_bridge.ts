@@ -7,14 +7,15 @@ async function main() {
     const signers = await ethers.getSigners()
     const vote_power = 2834678415
 
-    const out_file = process.env.OUT_PATH || "./out.json"
+    const config_file = process.env.CONFIG_FILE || "./bridge.json"
     const rest_rpc = process.env.REST_RPC || "http://127.0.0.1:1317"
 
-    if (!out_file) {
-        console.error("OUT_PATH is not set")
+    if (!config_file || !rest_rpc) {
+        console.error("BRIDGE_CONFIG_FILE or REST_RPC is not set")
         return
     }
-    const bridge_info: BridgeInfo[] = JSON.parse(fs.readFileSync(out_file, 'utf8'))
+
+    const bridge_info: BridgeInfo[] = JSON.parse(fs.readFileSync(config_file, 'utf8'))
 
     for (let i = 0; i < bridge_info.length; i++) {
         const bridge_logic_factory = await ethers.getContractFactory(bridge_info[i].bridge_contract)
@@ -48,12 +49,16 @@ async function main() {
         await proxy.upgradeToAndCall(bridge_info[i].bridge_logic_address, init_data)
         await proxy.changeAdmin(signers[signers.length - 1].address)
 
+        console.log(`init ${bridge_info[i].chain_name} bridge done`)
+
         const bridge_contract = await ethers.getContractAt(bridge_info[i].bridge_contract, bridge_info[i].bridge_contract_address as string)
 
         for (let j = 0; j < bridge_info[i].bridge_token.length; j++) {
             const ibc = ethers.utils.formatBytes32String(bridge_info[i].bridge_token[j].target_ibc || "")
             bridge_contract.addBridgeToken(bridge_info[i].bridge_token[j].address, ibc, bridge_info[i].bridge_token[j].is_original)
         }
+
+        console.log(`${bridge_info[i].chain_name} add bridge token done`)
     }
 }
 
