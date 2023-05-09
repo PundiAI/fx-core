@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e -o errexit -o pipefail
+set -eo pipefail
 
 if [[ "$1" == "init" ]]; then
   if [ -d ~/.fxcore ]; then
@@ -36,7 +36,7 @@ if [[ "$1" == "init" ]]; then
   fxcored config broadcast-mode "block"
 
   echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
-  if [ -n "$FX_DEBUG" ]; then
+  if [ -n "${2:-""}" ]; then
     fxcored add-genesis-account fx1 10004000000000000000000000FX
     genesis_tmp=~/.fxcore/config/genesis.json.tmp
     # update genesis total supply
