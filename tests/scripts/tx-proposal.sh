@@ -14,7 +14,9 @@ function submit_proposal() {
   local data_file="$1"
   local metadata="$2"
 
-  cosmos_tx gov submit-proposal "$data_file" --from fx1 -y
+  if ! cosmos_tx gov submit-proposal "$data_file" --from fx1 -y; then
+    exit 1
+  fi
 
   for proposal_id in $(cosmos_query gov proposals | jq -r '.proposals[].id'); do
     messages=$(cosmos_query gov proposal "${proposal_id}")
@@ -102,7 +104,9 @@ function update_denom_alias_proposal() {
   json_processor "${out_dir}/update_denom_alias.json" '.deposit = "'"$deposit"'"'
 
   for denom in $(jq -r '.messages[].denom' "${out_dir}/update_denom_alias.json"); do
-    cosmos_query erc20 token-pair "${denom}"
+    if ! cosmos_query erc20 token-pair "${denom}"; then
+      exit 1
+    fi
   done
 
   submit_proposal "${out_dir}/update_denom_alias.json" "$metadata"
@@ -120,7 +124,9 @@ function toggle_token_conversion_proposal() {
   json_processor "${out_dir}/toggle_token_conversion.json" '.deposit = "'"$deposit"'"'
 
   for token in $(jq -r '.messages[].token' "${out_dir}/toggle_token_conversion.json"); do
-    cosmos_query erc20 token-pair "${token}"
+    if ! cosmos_query erc20 token-pair "${token}"; then
+      exit 1
+    fi
   done
 
   submit_proposal "${out_dir}/toggle_token_conversion.json" "$metadata"
