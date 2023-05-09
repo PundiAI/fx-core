@@ -37,7 +37,8 @@ if [ -z "$($BINARY keys show fx1 --home "$NODE_HOME")" ]; then
   echo "$TEST_MNEMONIC" | $BINARY --home "$NODE_HOME" keys add fx1 --recover
 fi
 
-readonly upgrade_height=$($BINARY status --home "$NODE_HOME" | jq -r '.SyncInfo.latest_block_height|tonumber + '"${UPGRADE_HEIGHT_INTERVAL}"'')
+upgrade_height=$($BINARY status --home "$NODE_HOME" | jq -r '.SyncInfo.latest_block_height|tonumber + '"${UPGRADE_HEIGHT_INTERVAL}"'')
+readonly upgrade_height
 printf "\n"
 echo "Upgrade Height = ${upgrade_height}"
 printf "Submitting proposal... \n"

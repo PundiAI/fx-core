@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o errexit -o pipefail
+set -e -o errexit -o pipefail
 
 if [[ "$1" == "init" ]]; then
   if [ -d ~/.fxcore ]; then

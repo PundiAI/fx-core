@@ -10,7 +10,8 @@ export BINARY=${BINARY:-"$NODE_HOME/cosmovisor/genesis/bin/fxcored"}
 
 export CHAIN_ID=${CHAIN_ID:-"fxcore"}
 
-readonly cur_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cur_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+readonly cur_path
 
 "${cur_path}/run.sh" > "./run.log" 2>&1 &
 readonly pid=$!

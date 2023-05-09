@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-readonly project_dir="$(git rev-parse --show-toplevel)"
-readonly out_dir="$(git rev-parse --show-toplevel)/out"
+project_dir="$(git rev-parse --show-toplevel)"
+readonly project_dir
+readonly out_dir="${project_dir}/out"
 
 readonly ibc_from="ibc-$FROM"
 readonly ibc_home_dir="$out_dir/.ibcrelayer"

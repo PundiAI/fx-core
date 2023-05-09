@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-readonly project_dir="$(git rev-parse --show-toplevel)"
-readonly out_dir="$(git rev-parse --show-toplevel)/out"
+project_dir="$(git rev-parse --show-toplevel)"
+readonly project_dir
+readonly out_dir="${project_dir}/out"
 
 readonly docker_images="ghcr.io/pundix/pundix:0.2.3"
 readonly rpc_port="16657"
@@ -56,7 +57,7 @@ function start() {
 EOF
 }
 
-function close() {
+function stop() {
   if docker stats --no-stream; then
     docker stop "$CHAIN_NAME"
     docker rm "$CHAIN_NAME"

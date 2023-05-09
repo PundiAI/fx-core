@@ -102,7 +102,7 @@ function gen_cosmos_genesis() {
 
   set +e && supply="$($DAEMON validate-genesis --home "$NODE_HOME" 2>&1 | grep "expected .*$STAKING_DENOM" | cut -d " " -f 14)" && set -e
   if [ -n "$supply" ]; then
-    json_processor "$NODE_HOME/config/genesis.json" ".app_state.bank.supply[0].amount = \"${supply%%$STAKING_DENOM}\""
+    json_processor "$NODE_HOME/config/genesis.json" ".app_state.bank.supply[0].amount = \"${supply%%"$STAKING_DENOM"}\""
   fi
 
   json_processor "$NODE_HOME/config/genesis.json" '.app_state.gov.voting_params.voting_period = "5s"'

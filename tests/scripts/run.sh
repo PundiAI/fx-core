@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-readonly project_dir="$(git rev-parse --show-toplevel)"
+project_dir="$(git rev-parse --show-toplevel)"
+readonly project_dir
 
 function start() {
   "${project_dir}/tests/scripts/fxcore.sh" start
@@ -15,11 +16,11 @@ function start() {
   "${project_dir}/tests/scripts/run-ibc.sh"
 }
 
-function close() {
-  "${project_dir}/tests/scripts/fxcore.sh" close
-  "${project_dir}/tests/scripts/pundix.sh" close
+function stop() {
+  "${project_dir}/tests/scripts/fxcore.sh" stop
+  "${project_dir}/tests/scripts/pundix.sh" stop
 }
 
-trap close EXIT
+trap stop EXIT
 
 run

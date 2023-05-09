@@ -2,7 +2,8 @@
 
 set -eo pipefail
 
-readonly project_dir="$(git rev-parse --show-toplevel)"
+project_dir="$(git rev-parse --show-toplevel)"
+readonly project_dir
 readonly out_dir="${project_dir}/out"
 readonly data_dir="${project_dir}/tests/data"
 readonly proposal_dir="${data_dir}/proposal"
