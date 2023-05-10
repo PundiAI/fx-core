@@ -4,21 +4,22 @@ set -eo pipefail
 
 project_dir="$(git rev-parse --show-toplevel)"
 readonly project_dir
+
+solidity_dir="${project_dir}/solidity"
 readonly bridge_config_file="${project_dir}/tests/data/bridge.json"
 readonly bridge_config_out_file="${project_dir}/out/bridge_contract.json"
 
-readonly json_rpc_port="8535"
-readonly hardhat_network="localhost"
-
 export REST_RPC="http://127.0.0.1:1317"
-export LOCAL_URL="http://127.0.0.1:$json_rpc_port"
+
+export LOCAL_PORT=${LOCAL_PORT:-"8545"}
+export LOCAL_URL=${LOCAL_URL:-"http://127.0.0.1:$LOCAL_PORT"}
 
 function start() {
   (
-    cd "$project_dir/solidity" || exit 1
+    cd "$solidity_dir" || exit 1
     yarn install
 
-    nohup npx hardhat node --port "$json_rpc_port" &
+    nohup npx hardhat node --port "$LOCAL_PORT" &
   )
 }
 
@@ -29,7 +30,7 @@ function deploy_bridge_contract() {
 
     export BRIDGE_CONFIG_FILE="${bridge_config_file}"
     export CONFIG_OUT_FILE="${bridge_config_out_file}"
-    npx hardhat run scripts/deploy_bridge.ts --network "$hardhat_network"
+    npx hardhat run scripts/deploy_bridge.ts
   )
 }
 
@@ -39,7 +40,25 @@ function init_bridge_contract() {
     yarn install
 
     export CONFIG_FILE="${bridge_config_out_file}"
-    npx hardhat run scripts/init_bridge.ts --network "$hardhat_network"
+    npx hardhat run scripts/init_bridge.ts
+  )
+}
+
+function send() {
+  (
+    cd "$project_dir/solidity" || exit 1
+    yarn install
+
+    npx hardhat send "$@"
+  )
+}
+
+function call() {
+  (
+    cd "$project_dir/solidity" || exit 1
+    yarn install
+
+    npx hardhat call "$@"
   )
 }
 
