@@ -28,48 +28,33 @@ export const VALUE_FLAG = "value";
 
 export const DEFAULT_DRIVE_PATH = "m/44'/60'/0'/0/0";
 export const DEFAULT_PRIORITY_FEE = "1500000000";
-export const PROMPT_CHECK_TRANSACTION_DATA = "Do you want continue?";
 
-type Transaction = {
-    from: string,
-    to?: string,
-    value?: BigNumber,
-    data?: string,
-    gasPrice?: BigNumber,
-    maxFeePerGas?: BigNumber,
-    maxPriorityFeePerGas?: BigNumber,
-    nonce: number,
-    gasLimit?: number,
-    chainId: number
-}
 
 subtask(SUB_SEND_ETH, "send eth").setAction(
     async (taskArgs, hre) => {
-        const {to, value, data, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, gasLimit, chainId} = taskArgs;
-        const {wallet} = await hre.run(SUB_PRIVATE_KEY_WALLET, taskArgs);
+        const {to, value, wallet, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, gasLimit, chainId} = taskArgs;
         const transaction: Transaction = await hre.run(SUB_CREATE_TRANSACTION, {
             from: wallet.address,
             to: to,
             value: value,
-            data: data,
             gasPrice: gasPrice,
             maxFeePerGas: maxFeePerGas,
             maxPriorityFeePerGas: maxPriorityFeePerGas,
             nonce: nonce,
-            gasLimit: gasLimit,
+            gasLimit: gasLimit || 21000,
             chainId: chainId
         });
-        const {confirmed} = await hre.run(SUB_CONFIRM_TRANSACTION, {
-            transaction: transaction,
-            wallet: wallet
+        const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+            message: `\n${TransactionToJson(transaction)}\n`,
+            disableConfirm: taskArgs.disableConfirm,
         });
-        if (confirmed) {
-            await wallet.sendTransaction(transaction).then(
-                (tx: any) => {
-                    console.log(`${tx.hash}`);
-                }
-            );
+        if (!answer) {
+            return
         }
+        const tx = await wallet.sendTransaction(transaction)
+        console.log(`${tx.hash}`)
+        await tx.wait()
+        return
     }
 );
 
@@ -198,3 +183,32 @@ subtask(SUB_CONFIRM_TRANSACTION, "confirm transaction").setAction(
         }
         return {answer: _answer};
     });
+
+type Transaction = {
+    from: string,
+    to?: string,
+    value?: BigNumber,
+    data?: string,
+    gasPrice?: BigNumber,
+    maxFeePerGas?: BigNumber,
+    maxPriorityFeePerGas?: BigNumber,
+    nonce: number,
+    gasLimit?: number,
+    chainId: number
+}
+
+// function Transaction to json string
+export function TransactionToJson(transaction: Transaction): string {
+    return JSON.stringify({
+        from: transaction.from,
+        to: transaction.to,
+        value: transaction.value,
+        data: transaction.data,
+        gasPrice: transaction.gasPrice ? transaction.gasPrice.toString() : undefined,
+        maxFeePerGas: transaction.maxFeePerGas ? transaction.maxFeePerGas.toString() : undefined,
+        maxPriorityFeePerGas: transaction.maxPriorityFeePerGas ? transaction.maxPriorityFeePerGas.toString() : undefined,
+        nonce: transaction.nonce,
+        gasLimit: transaction.gasLimit ? transaction.gasLimit.toString() : undefined,
+        chainId: transaction.chainId
+    }, null, 2);
+}

@@ -11,11 +11,12 @@ import {
     MNEMONIC_FLAG,
     NONCE_FLAG,
     PRIVATE_KEY_FLAG,
-    PROMPT_CHECK_TRANSACTION_DATA,
     SUB_CHECK_PRIVATE_KEY,
     SUB_CONFIRM_TRANSACTION,
     SUB_CREATE_TRANSACTION,
+    SUB_GET_NODE_URL,
     SUB_SEND_ETH,
+    TransactionToJson,
     VALUE_FLAG
 } from "./subtasks";
 
@@ -46,10 +47,18 @@ task("send", "send tx, Example: npx hardhat send 0x... transfer(address,uint256)
         }
 
         if (!func) {
-            await hre.run(SUB_SEND_ETH, taskArgs);
+            await hre.run(SUB_SEND_ETH, {
+                to: to,
+                value: taskArgs.value,
+                wallet: wallet,
+                gasPrice: taskArgs.gasPrice,
+                maxFeePerGas: taskArgs.maxFeePerGas,
+                maxPriorityFeePerGas: taskArgs.maxPriorityFeePerGas,
+                nonce: taskArgs.nonce,
+                gasLimit: taskArgs.gasLimit,
+            });
             return
         }
-
         const abi = parseAbiItemFromSignature(func)
         const abiInterface = new hre.ethers.utils.Interface([abi])
 
@@ -69,7 +78,7 @@ task("send", "send tx, Example: npx hardhat send 0x... transfer(address,uint256)
         });
 
         const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
-            message: `${PROMPT_CHECK_TRANSACTION_DATA}(send tx ${abi.name})`,
+            message: `\n${TransactionToJson(tx)}\n`,
             disableConfirm: taskArgs.disableConfirm,
         });
         if (!answer) return;
@@ -83,6 +92,39 @@ task("send", "send tx, Example: npx hardhat send 0x... transfer(address,uint256)
             return;
         }
     });
+
+task("call", "call contract, Example: npx hardhat call 0x... balanceOf(address)(uint256) 0x...")
+    .addParam("from", "", undefined, string, true)
+    .addVariadicPositionalParam("params", "call contract params", undefined, string, true)
+    .setAction(async (taskArgs, hre) => {
+            const nodeUrl = await hre.run(SUB_GET_NODE_URL, taskArgs)
+            const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);
+
+            const {from, params} = taskArgs;
+            const to = params[0];
+            const func = params[1];
+            params.splice(0, 2);
+
+            if (!to || !func) {
+                throw new Error("Please provide to address and func");
+            }
+
+            const abi = parseAbiItemFromSignature(func)
+            const abiInterface = new hre.ethers.utils.Interface([abi])
+
+            if (abi.inputs && (abi.inputs.length !== params.length)) {
+                throw new Error(`Please provide ${abi.inputs.length} params`)
+            }
+            const data = abiInterface.encodeFunctionData(abi.name as string, params)
+            const result = await provider.call({
+                    to: to,
+                    from: from,
+                    data: data
+                }
+            )
+            console.log(abiInterface.decodeFunctionResult(abi.name as string, result).toString())
+        }
+    )
 
 interface AbiItem {
     name?: string;
@@ -111,15 +153,10 @@ function parseAbiItemFromSignature(signature: string): AbiItem {
     }
 
     data.name = match[1];
-    let index = 1
 
     if (match[2]) {
         data.inputs = match[2].split(',').map((input) => {
             let [type, name] = input.trim().split(' ');
-            if (!name) {
-                name = `param${index}`;
-                index++;
-            }
             return {name: name, type: type};
         });
     }
@@ -127,10 +164,6 @@ function parseAbiItemFromSignature(signature: string): AbiItem {
     if (match[3]) {
         data.outputs = match[3].split(',').map((output) => {
             let [type, name] = output.trim().split(' ');
-            if (!name) {
-                name = `param${index}`;
-                index++;
-            }
             return {name: name, type: type};
         });
     }
@@ -141,6 +174,3 @@ function parseAbiItemFromSignature(signature: string): AbiItem {
 
     return data;
 }
-
-
-

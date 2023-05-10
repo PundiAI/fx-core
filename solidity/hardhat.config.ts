@@ -2,7 +2,7 @@ import {HardhatUserConfig} from "hardhat/config"
 import "hardhat-dependency-compiler"
 import "@nomiclabs/hardhat-ethers"
 
-import './tasks/index'
+import './tasks/task'
 
 const config: HardhatUserConfig = {
     defaultNetwork: "localhost",
