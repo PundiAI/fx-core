@@ -119,7 +119,7 @@ function gen_cosmos_genesis() {
 }
 
 function node_catching_up() {
-  local node_url=$1
+  local node_url=${1:-"$REST_RPC"}
   while true; do
     sync_state=$(curl -s "$node_url/status" | jq -r '.result.sync_info.catching_up')
     if [ "$sync_state" != "false" ]; then
@@ -140,10 +140,20 @@ function add_key() {
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$name" --index "$index" --home "$NODE_HOME" --recover
 }
 
+function cosmos_grpc() {
+    grpcurl -plaintext "$NODE_GRPC" "$@"
+}
+
+function cosmos_reset() {
+    curl -s "$REST_RPC/$*" | jq -r '.result'
+}
+
 export DAEMON=${DAEMON:-"fxcored"}
 export CHAIN_ID=${CHAIN_ID:-"fxcore"}
 export CHAIN_NAME=${CHAIN_NAME:-"fxcore"}
 export NODE_RPC=${NODE_RPC:-"http://127.0.0.1:26657"}
+export REST_RPC=${REST_RPC:-"http://127.0.0.1:1317"}
+export NODE_GRPC=${NODE_GRPC:-"127.0.0.1:9090"}
 export NODE_HOME=${NODE_HOME:-"$HOME/.$CHAIN_NAME"}
 
 export DENOM=${DENOM:-"FX"}

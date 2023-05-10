@@ -5,7 +5,8 @@ set -eo pipefail
 readonly bridger_start_index=2
 readonly bridger_oracle_number=3
 
-readonly project_dir="$(git rev-parse --show-toplevel)"
+project_dir="$(git rev-parse --show-toplevel)"
+readonly project_dir
 readonly out_dir="${project_dir}/out"
 
 export NODE_HOME="$out_dir/.fxcore"
