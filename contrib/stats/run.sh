@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-export REST_RPC=${REST_RPC:-"http://localhost:1317"}
+export REST_RPC=${REST_RPC:-"https://fx-rest.functionx.io"}
 export BECH32_PREFIX=${BECH32_PREFIX:-"fx"}
 export MINT_DENOM=${MINT_DENOM:-"FX"}
 
@@ -14,7 +14,6 @@ if [ -z "$MINT_DENOM" ]; then
   MINT_DENOM=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/params" | jq -r '.params.mint_denom') || echo "failed to get mint_denom"
 fi
 
-## DESC: show validator reward
 function show_validator_reward() {
   local decimals=18
   {
@@ -50,7 +49,6 @@ function show_validator_reward() {
   } | column -t -s"#"
 }
 
-## DESC: show validator vote
 function show_validator_vote() {
   if [ -z "$PROPOSAL_ID" ]; then
     {
@@ -71,7 +69,6 @@ function show_validator_vote() {
   } | column -t -s"#"
 }
 
-## DESC: show module accounts
 function show_module_account() {
   local denom=${1:-"$MINT_DENOM"}
   local decimals=18
@@ -84,5 +81,82 @@ function show_module_account() {
   done < <(curl -s "$REST_RPC/cosmos/auth/v1beta1/module_accounts" | jq -r '.accounts[]|"\(.name) \(.base_account.address) \(.permissions)"')
 }
 
-[[ "$#" -gt 0 && "$(type -t "$1")" != "function" ]] && echo "invalid command: $1" && exit 1
+function show_mint_info() {
+  printf "mint module docs: https://docs.cosmos.network/main/modules/mint/\n\n"
+  # query mint module params
+  min_params=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/params" | jq -r '.params')
+  # mint denom
+  mint_denom=$(echo "$min_params" | jq -r '.mint_denom')
+  printf "current mint module params: (cant be modified by proposal)\n"
+
+  # maximum annual change in inflation rate
+  inflation_rate_change=$(echo "$min_params" | jq -r '.inflation_rate_change')
+  printf "    minting inflation rate change:\t%s\n" "$(echo "scale=2;$inflation_rate_change*100/1" | bc)%"
+
+  # maximum inflation rate
+  max_inflation_rate=$(echo "$min_params" | jq -r '.inflation_max')
+  printf "    minting max inflation rate:\t\t%s\n" "$(echo "scale=2;$max_inflation_rate*100/1" | bc)%"
+
+  # minimum inflation rate
+  min_inflation_rate=$(echo "$min_params" | jq -r '.inflation_min')
+  printf "    minting min inflation rate:\t\t%s\n" "$(echo "scale=2;$min_inflation_rate*100/1" | bc)%"
+
+  # goal of percent bonded atoms
+  goal_bonded=$(echo "$min_params" | jq -r '.goal_bonded')
+  printf "    minting goal bonded:\t\t%s\n" "$(echo "scale=2;$goal_bonded*100/1" | bc)%"
+
+  # expected blocks per year
+  blocks_per_year=$(echo "$min_params" | jq -r '.blocks_per_year')
+  printf "    minting blocks per year:\t\t%s\n" "$blocks_per_year"
+  printf "        |-> ⚠️blocks_per_year here is calculated based on 5s block time, the actual block time is not fixed, so this value is inaccurate\n"
+  printf "\n"
+
+  # query total supply by mint denom
+  total_supply=$(curl -s "$REST_RPC/cosmos/bank/v1beta1/supply" | jq -r ".supply[]|select(.denom == \"$mint_denom\")|.amount")
+  printf "current total supply:\t\t\t%s\n" "$(echo "scale=2;$total_supply/10^18" | bc)"
+
+  # query staking pool
+  staking_pool=$(curl -s "$REST_RPC/cosmos/staking/v1beta1/pool" | jq -r '.pool')
+
+  # bonded tokens
+  bonded_tokens=$(echo "$staking_pool" | jq -r '.bonded_tokens')
+  printf "current staking bonded tokens:\t\t%s\n" "$(echo "scale=2;$bonded_tokens/10^18" | bc)"
+
+  # bonded ratio = bonded_tokens / total_supply
+  bonded_ratio=$(printf "%.6f" "$(echo "scale=6;$bonded_tokens*100/$total_supply" | bc)")
+  printf "current staking bonded ratio:\t\t%s\n" "$bonded_ratio%"
+  printf "    |-> ⚠️bonded_ratio = bonded_tokens / total_supply\n"
+  printf "\n"
+
+  # query minting inflation
+  inflation=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/inflation" | jq -r '.inflation')
+  printf "current minting inflation:\t\t%s\n" "$(echo "scale=2;$inflation*100/1" | bc)%"
+  printf "    |-> ⚠️inflation = latest_inflation + ((1 - bonded_ratio/goal_bonded) * inflation_rate_change) / blocks_per_year\n"
+
+  # query annual provisions
+  annual_provisions=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/annual_provisions" | jq -r '.annual_provisions')
+  printf "current minting annual provisions:\t%s\n" "$(echo "scale=2;$annual_provisions/10^18" | bc)"
+  printf "    |-> ⚠️annual_provisions = inflation * total_supply\n"
+
+  # average inflation per block = annual_provisions / blocks_per_year
+  average_inflation_per_block=$(echo "scale=2;$annual_provisions/$blocks_per_year" | bc)
+  printf "average inflation per block:\t\t%s\n" "$(echo "scale=2;$average_inflation_per_block/10^18" | bc)"
+  printf "\n"
+}
+
+function help() {
+  printf "This script is used to stats cosmos chain info.\n"
+  printf "Usage:\n"
+  printf "    %s <command> [args]\n" "$0"
+  printf "The commands are:\n"
+  printf "    show_validator_rewards \t show validator rewards\n"
+  printf "    show_validator_votes \t show validator votes\n"
+  printf "    show_module_account \t show all module accounts\n"
+  printf "    show_mint_info \t\t show mint module info\n"
+  printf "    help \t\t\t show this help message\n"
+  printf "\nVersion: Alpha\n"
+}
+
+[[ "$#" -eq 0 || "$1" == "help" ]] && help && exit 0
+[[ "$#" -gt 0 && "$(type -t "$1")" != "function" ]] && echo "invalid args: $1" && exit 1
 "$@" || (echo "failed: $0" "$@" && exit 1)
