@@ -141,11 +141,11 @@ function add_key() {
 }
 
 function cosmos_grpc() {
-    grpcurl -plaintext "$NODE_GRPC" "$@"
+  grpcurl -plaintext "$NODE_GRPC" "$@"
 }
 
 function cosmos_reset() {
-    curl -s "$REST_RPC/$*" | jq -r '.result'
+  curl -s "$REST_RPC/$*" | jq -r '.result'
 }
 
 export DAEMON=${DAEMON:-"fxcored"}
