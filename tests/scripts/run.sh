@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
+
 project_dir="$(git rev-parse --show-toplevel)"
 readonly project_dir
 
