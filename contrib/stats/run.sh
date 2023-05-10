@@ -6,6 +6,16 @@ export REST_RPC=${REST_RPC:-"https://fx-rest.functionx.io"}
 export BECH32_PREFIX=${BECH32_PREFIX:-"fx"}
 export MINT_DENOM=${MINT_DENOM:-"FX"}
 
+function check_command() {
+  commands=("$@")
+  for cmd in "${commands[@]}"; do
+    if ! command -v "$cmd" &>/dev/null; then
+      echo "$cmd command not found, please install $cmd first" && exit 1
+    fi
+  done
+}
+check_command jq bc curl
+
 if [ -z "$BECH32_PREFIX" ]; then
   BECH32_PREFIX=$(curl -s "$REST_RPC/cosmos/auth/v1beta1/bech32" | jq -r '.bech32_prefix') || echo "failed to get bech32_prefix"
 fi
@@ -82,6 +92,8 @@ function show_module_account() {
 }
 
 function show_mint_info() {
+  local after_days=${1:-"365"}
+
   printf "mint module docs: https://docs.cosmos.network/main/modules/mint/\n\n"
   # query mint module params
   min_params=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/params" | jq -r '.params')
@@ -108,12 +120,17 @@ function show_mint_info() {
   # expected blocks per year
   blocks_per_year=$(echo "$min_params" | jq -r '.blocks_per_year')
   printf "    minting blocks per year:\t\t%s\n" "$blocks_per_year"
-  printf "        |-> ⚠️blocks_per_year here is calculated based on 5s block time, the actual block time is not fixed, so this value is inaccurate\n"
+  printf "        |-> ⚠️ blocks_per_year here is calculated based on 5s block time, the actual block time is not fixed, so this value is inaccurate\n"
   printf "\n"
 
-  # query total supply by mint denom
-  total_supply=$(curl -s "$REST_RPC/cosmos/bank/v1beta1/supply" | jq -r ".supply[]|select(.denom == \"$mint_denom\")|.amount")
-  printf "current total supply:\t\t\t%s\n" "$(echo "scale=2;$total_supply/10^18" | bc)"
+  # query total supply
+  supply=$(curl -s "$REST_RPC/cosmos/bank/v1beta1/supply")
+
+  # query staking params
+  bond_denom=$(curl -s "$REST_RPC/cosmos/staking/v1beta1/params" | jq -r '.params.bond_denom')
+  # staking total supply
+  staking_total_supply=$(echo "$supply" | jq -r ".supply[]|select(.denom == \"$bond_denom\")|.amount")
+  printf "current staking total supply:\t\t%s\n" "$(echo "scale=2;$staking_total_supply/10^18" | bc)"
 
   # query staking pool
   staking_pool=$(curl -s "$REST_RPC/cosmos/staking/v1beta1/pool" | jq -r '.pool')
@@ -122,26 +139,60 @@ function show_mint_info() {
   bonded_tokens=$(echo "$staking_pool" | jq -r '.bonded_tokens')
   printf "current staking bonded tokens:\t\t%s\n" "$(echo "scale=2;$bonded_tokens/10^18" | bc)"
 
-  # bonded ratio = bonded_tokens / total_supply
-  bonded_ratio=$(printf "%.6f" "$(echo "scale=6;$bonded_tokens*100/$total_supply" | bc)")
-  printf "current staking bonded ratio:\t\t%s\n" "$bonded_ratio%"
-  printf "    |-> ⚠️bonded_ratio = bonded_tokens / total_supply\n"
+  # bonded ratio = bonded_tokens / staking_total_supply
+  bonded_ratio=$(printf "%.8f" "$(echo "scale=8;$bonded_tokens/$staking_total_supply" | bc)")
+  printf "current staking bonded ratio:\t\t%s\n" "$(printf "%.6f" "$(echo "scale=6;$bonded_ratio*100/1" | bc)")%"
+  printf "    |-> bonded_ratio = bonded_tokens / staking_total_supply\n"
   printf "\n"
 
-  # query minting inflation
+  total_supply=$staking_total_supply
+  if [ "$mint_denom" != "$bond_denom" ]; then
+    # mint denom total supply
+    mint_total_supply=$(echo "$supply" | jq -r ".supply[]|select(.denom == \"$mint_denom\")|.amount")
+    printf "current mint total supply:\t\t%s\n" "$(echo "scale=2;$mint_total_supply/10^18" | bc)"
+    total_supply=$mint_total_supply
+  fi
+
+  # inflation_per_block = (1 - bonded_ratio/goal_bonded) * inflation_rate_change / blocks_per_year
+  inflation_per_block=$(printf "%.8f" "$(echo "scale=8;(1 - $bonded_ratio/$goal_bonded) * $inflation_rate_change / $blocks_per_year" | bc)")
+  printf "current mint inflation per block:\t%s\n" "$(printf "%.6f" "$(echo "scale=6;$inflation_per_block*100/1" | bc)")%"
+  printf "    |-> inflation_per_block = (1 - bonded_ratio/goal_bonded) * inflation_rate_change / blocks_per_year\n"
+
+  # query mint inflation
   inflation=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/inflation" | jq -r '.inflation')
-  printf "current minting inflation:\t\t%s\n" "$(echo "scale=2;$inflation*100/1" | bc)%"
-  printf "    |-> ⚠️inflation = latest_inflation + ((1 - bonded_ratio/goal_bonded) * inflation_rate_change) / blocks_per_year\n"
+  printf "current mint inflation:\t\t\t%s\n" "$(echo "scale=6;$inflation*100/1" | bc)%"
+  printf "    |-> inflation = inflation + inflation_per_block\n"
 
   # query annual provisions
   annual_provisions=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/annual_provisions" | jq -r '.annual_provisions')
-  printf "current minting annual provisions:\t%s\n" "$(echo "scale=2;$annual_provisions/10^18" | bc)"
-  printf "    |-> ⚠️annual_provisions = inflation * total_supply\n"
+  printf "current mint annual provisions:\t\t%s\n" "$(echo "scale=2;$annual_provisions/10^18" | bc)"
+  printf "    |-> annual_provisions = inflation * staking_total_supply\n"
 
   # average inflation per block = annual_provisions / blocks_per_year
   average_inflation_per_block=$(echo "scale=2;$annual_provisions/$blocks_per_year" | bc)
   printf "average inflation per block:\t\t%s\n" "$(echo "scale=2;$average_inflation_per_block/10^18" | bc)"
   printf "\n"
+
+  check_command python3
+  printf "expected after %s days: (only for reference, not accurate)\n" "$after_days"
+  # blocks_per_day = blocks_per_year / 365
+  blocks_per_day=$(echo "$blocks_per_year/365" | bc)
+  # inflation_after_days = inflation * (1 + inflation_per_block) ^ (after_days * blocks_per_day)
+  # inflation_after_days=$(echo "scale=8;$inflation * ((1+$inflation_per_block)^($after_days*$blocks_per_day))" | bc)
+  inflation_after_days=$(python3 -c "print ($inflation * ((1+$inflation_per_block)**($after_days*$blocks_per_day)))")
+  printf "    inflation:\t\t\t\t%s\n" "$(echo "scale=6;$inflation_after_days*100/1" | bc)%"
+  # if inflation_after_days < min inflation or inflation_after_days > max inflation, then print warning
+  if [[ "$(echo "$inflation_after_days < $min_inflation_rate" | bc)" -eq 1 ]]; then
+    printf "        |-> ⚠️ in blockchain, inflation will not decrease after inflation < min_inflation_rate\n"
+  fi
+  if [[ "$(echo "$inflation_after_days > $max_inflation_rate" | bc)" -eq 1 ]]; then
+    printf "        |-> ⚠️ in blockchain, inflation will not increase after inflation > max_inflation_rate\n"
+  fi
+
+  # calculate mint denom total supply after days
+  # total_supply_after_days=$(echo "scale=2;$total_supply * ((1+$inflation_per_block)^($after_days*$blocks_per_day))" | bc)
+  total_supply_after_days=$(python3 -c "print ($total_supply/10**18 * ((1+$inflation_per_block)**($after_days*$blocks_per_day)))")
+  printf "    mint token total supply:\t\t%s\n" "$total_supply_after_days"
 }
 
 function help() {
@@ -149,12 +200,14 @@ function help() {
   printf "Usage:\n"
   printf "    %s <command> [args]\n" "$0"
   printf "The commands are:\n"
-  printf "    show_validator_rewards \t show validator rewards\n"
-  printf "    show_validator_votes \t show validator votes\n"
-  printf "    show_module_account \t show all module accounts\n"
-  printf "    show_mint_info \t\t show mint module info\n"
-  printf "    help \t\t\t show this help message\n"
-  printf "\nVersion: Alpha\n"
+  {
+    printf "    show_validator_rewards # # show validator rewards\n"
+    printf "    show_validator_votes # # show validator votes\n"
+    printf "    show_module_account # # show all module accounts\n"
+    printf "    show_mint_info # [<after_days>] # show mint module info\n"
+    printf "    help # # show this help message\n"
+    printf "\nVersion: Alpha\n"
+  } | column -t -s "#"
 }
 
 [[ "$#" -eq 0 || "$1" == "help" ]] && help && exit 0
