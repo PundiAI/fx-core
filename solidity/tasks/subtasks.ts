@@ -89,7 +89,8 @@ subtask(SUB_CREATE_TRANSACTION, "create transaction").setAction(
             gasLimit: gasLimit ? gasLimit : await hre.ethers.provider.estimateGas({
                 from: from,
                 to: to,
-                data: data
+                data: data,
+                value: value
             }),
             chainId: chainId ? chainId : await hre.ethers.provider.getNetwork().then(network => network.chainId)
         }

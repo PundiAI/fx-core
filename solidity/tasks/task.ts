@@ -146,14 +146,17 @@ function parseAbiItemFromSignature(signature: string): AbiItem {
     };
 
     const funcRegex = /^(\w+)\((.*)\)\((.*)\)$/s;
-    const match = signature.match(funcRegex);
+    let match = signature.match(funcRegex);
 
     if (!match) {
-        throw new Error('Invalid signature');
+        const funcRegex = /^(\w+)\((.*)\)$/s;
+        match = signature.match(funcRegex);
+        if (!match) {
+            throw new Error('Invalid signature');
+        }
     }
 
     data.name = match[1];
-
     if (match[2]) {
         data.inputs = match[2].split(',').map((input) => {
             let [type, name] = input.trim().split(' ');
