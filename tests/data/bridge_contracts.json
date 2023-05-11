@@ -1,0 +1,10 @@
+[
+  {
+    "chain_name": "eth",
+    "contract_class_name": "FxBridgeLogicETH"
+  },
+  {
+    "chain_name": "bsc",
+    "contract_class_name": "FxBridgeLogicBSC"
+  }
+]

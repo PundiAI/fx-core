@@ -1,38 +1,20 @@
 import {task} from "hardhat/config";
-import {boolean, string} from "hardhat/internal/core/params/argumentTypes";
+import {string} from "hardhat/internal/core/params/argumentTypes";
 import {
-    DISABLE_CONFIRM_FLAG,
-    DRIVER_PATH_FLAG,
-    GAS_LIMIT_FLAG,
-    GAS_PRICE_FLAG,
-    IS_LEDGER_FLAG,
-    MAX_FEE_PER_GAS_FLAG,
-    MAX_PRIORITY_FEE_PER_GAS_FLAG,
-    MNEMONIC_FLAG,
-    NONCE_FLAG,
-    PRIVATE_KEY_FLAG,
+    AddTxParam,
     SUB_CHECK_PRIVATE_KEY,
     SUB_CONFIRM_TRANSACTION,
     SUB_CREATE_TRANSACTION,
     SUB_GET_NODE_URL,
     SUB_SEND_ETH,
-    TransactionToJson,
-    VALUE_FLAG
+    TransactionToJson
 } from "./subtasks";
 
-task("send", "send tx, Example: npx hardhat send 0x... transfer(address,uint256) 0x... 1000000000000000000 --privateKey ...")
+import "./bridge_tasks"
+import "./contract_task"
+
+const send = task("send", "send tx, Example: npx hardhat send 0x... transfer(address,uint256) 0x... 1000000000000000000 --privateKey ...")
     .addVariadicPositionalParam("params", "send tx params", undefined, string, true)
-    .addParam(NONCE_FLAG, "nonce", undefined, string, true)
-    .addParam(GAS_PRICE_FLAG, "gas price", undefined, string, true)
-    .addParam(MAX_FEE_PER_GAS_FLAG, "max fee per gas", undefined, string, true)
-    .addParam(MAX_PRIORITY_FEE_PER_GAS_FLAG, "max priority fee per gas", undefined, string, true)
-    .addParam(GAS_LIMIT_FLAG, "gas limit", undefined, string, true)
-    .addParam(VALUE_FLAG, "value", undefined, string, true)
-    .addParam(PRIVATE_KEY_FLAG, "send tx by private key", undefined, string, true)
-    .addParam(MNEMONIC_FLAG, "send tx by mnemonic", undefined, string, true)
-    .addParam(IS_LEDGER_FLAG, "ledger to send tx", false, boolean, true)
-    .addParam(DRIVER_PATH_FLAG, "manual HD Path derivation (overrides BIP44 config)", "m/44'/60'/0'/0/0", string, true)
-    .addParam(DISABLE_CONFIRM_FLAG, "disable confirm", false, boolean, true)
     .setAction(async (taskArgs, hre) => {
         const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
         const from = await wallet.getAddress();
@@ -48,9 +30,7 @@ task("send", "send tx, Example: npx hardhat send 0x... transfer(address,uint256)
 
         if (!func) {
             await hre.run(SUB_SEND_ETH, {
-                to: to,
-                value: taskArgs.value,
-                wallet: wallet,
+                to: to, value: taskArgs.value, wallet: wallet,
                 gasPrice: taskArgs.gasPrice,
                 maxFeePerGas: taskArgs.maxFeePerGas,
                 maxPriorityFeePerGas: taskArgs.maxPriorityFeePerGas,
@@ -122,7 +102,7 @@ task("call", "call contract, Example: npx hardhat call 0x... balanceOf(address)(
                     data: data
                 }
             )
-            console.log(abiInterface.decodeFunctionResult(abi.name as string, result).toString())
+            console.log(splitByComma(abiInterface.decodeFunctionResult(abi.name as string, result).toString()))
         }
     )
 
@@ -177,3 +157,11 @@ function parseAbiItemFromSignature(signature: string): AbiItem {
 
     return data;
 }
+
+function splitByComma(str: string): string {
+    const arr = str.split(",");
+    if (arr[arr.length - 1] === "") arr.pop();
+    return arr.join("\n");
+}
+
+AddTxParam([send])

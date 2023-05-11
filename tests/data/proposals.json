@@ -7,7 +7,7 @@
       "messages": [
         {
           "@type": "/fx.evm.v1.MsgCallContract",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "contractAddress": "0xF6B6E623a7b4Ca88D8e480FD872D5a12A09b4526",
           "data": "40c10f190000000000000000000000008886a087f906c7e99353f236568de3b8ef4ec8020000000000000000000000000000000000000000000000056bc75e2d63100000"
         }
@@ -22,7 +22,7 @@
       "messages": [
         {
           "@type": "/fx.erc20.v1.MsgToggleTokenConversion",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "token": "test"
         }
       ]
@@ -36,7 +36,7 @@
       "messages": [
         {
           "@type": "/fx.erc20.v1.MsgUpdateDenomAlias",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "denom": "test",
           "alias": "tron0x0000000000000000000000000000000000000001"
         }
@@ -51,7 +51,7 @@
       "messages": [
         {
           "@type": "/fx.erc20.v1.MsgUpdateParams",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "params": {
             "enable_erc20": true,
             "enable_evm_hook": true,
@@ -69,7 +69,7 @@
       "messages": [
         {
           "@type": "/fx.erc20.v1.MsgRegisterERC20",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "erc20address": "0xF8dCc43Ab6DE0336934A7ceB25b2C04000Cb598d",
           "aliases": [
             "eth0xF2066b95093b59337E0aFc22e6C16810E268D276"
@@ -86,7 +86,7 @@
       "messages": [
         {
           "@type": "/fx.erc20.v1.MsgRegisterCoin",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "metadata": {
             "description": "Cross chain token of Function X",
             "denom_units": [
@@ -129,7 +129,7 @@
       "messages": [
         {
           "@type": "/fx.gravity.crosschain.v1.MsgUpdateParams",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "chain_name": "bsc",
           "params": {
             "gravityId": "fx-bsc-bridge",
@@ -158,7 +158,7 @@
       "messages": [
         {
           "@type": "/fx.gov.v1.MsgUpdateParams",
-          "authority": "fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3",
+          "authority": "fx10d07y265gmmuvt4z0w9aw880jnsr700jqjzsmz",
           "params": {
             "msg_type": "/fx.gov.v1.MsgUpdateParams",
             "min_deposit": [
