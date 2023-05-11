@@ -178,7 +178,7 @@ func (c *Contract) handlerTransferShares(
 	}
 
 	// add emit event
-	TransferSharesEmitEvents(ctx, valAddr, from.Bytes(), to.Bytes(), sdkmath.NewIntFromBigInt(sharesInt))
+	TransferSharesEmitEvents(ctx, valAddr, from.Bytes(), to.Bytes(), sdkmath.NewIntFromBigInt(sharesInt), token)
 
 	return token.BigInt(), toReward, nil
 }
@@ -207,7 +207,7 @@ func decrementReferenceCount(k DistrKeeper, ctx sdk.Context, valAddr sdk.ValAddr
 	}
 }
 
-func TransferSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, from, recipient sdk.AccAddress, shares sdkmath.Int) {
+func TransferSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, from, recipient sdk.AccAddress, shares, token sdkmath.Int) {
 	if shares.IsInt64() {
 		defer func() {
 			telemetry.IncrCounter(1, evmtypes.ModuleName, "transfer_shares")
@@ -226,6 +226,7 @@ func TransferSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, from, r
 			sdk.NewAttribute(fxstakingtypes.AttributeKeyFrom, from.String()),
 			sdk.NewAttribute(fxstakingtypes.AttributeKeyRecipient, recipient.String()),
 			sdk.NewAttribute(fxstakingtypes.AttributeKeyShares, shares.String()),
+			sdk.NewAttribute(fxstakingtypes.AttributeKeyAmount, token.String()),
 		),
 	})
 }

@@ -7,6 +7,7 @@ const (
 	AttributeKeyOwner     = "owner"
 	AttributeKeySpender   = "spender"
 	AttributeKeyShares    = "shares"
+	AttributeKeyAmount    = "amount"
 	AttributeKeyFrom      = "from"
 	AttributeKeyRecipient = "recipient"
 )
