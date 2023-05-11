@@ -27,6 +27,8 @@ export OUTPUT=${OUTPUT:-"json"}
 export KEYRING_BACKEND=${KEYRING_BACKEND:-"test"}
 export BROADCAST_MODE=${BROADCAST_MODE:-"block"}
 export GAS_ADJUSTMENT=${GAS_ADJUSTMENT:-1.3}
+GAS_PRICES="$(echo "4*10^12" | bc)$STAKING_DENOM"
+export GAS_PRICES
 
 export TEST_MNEMONIC=${TEST_MNEMONIC:-"test test test test test test test test test test test junk"}
 export FROM=${FROM:-"test1"}
