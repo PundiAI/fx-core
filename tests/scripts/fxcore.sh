@@ -2,24 +2,17 @@
 
 set -eo pipefail
 
+PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
+export PROJECT_DIR
+export OUT_DIR="${PROJECT_DIR}/out"
+
 readonly docker_image="ghcr.io/functionx/fx-core:4.0.0-rc1"
 
 export NODE_HOME="$OUT_DIR/.$CHAIN_NAME"
 
-function start() {
+function init() {
   [[ -d "$NODE_HOME" ]] && rm -r "$NODE_HOME"
   gen_cosmos_genesis
-
-  if docker stats --no-stream; then
-    docker run -d --name "$CHAIN_NAME" --network bridge -v "${NODE_HOME}:/root/.$CHAIN_NAME" \
-      -p "0.0.0.0:9090:9090" -p "0.0.0.0:26657:26657" -p "0.0.0.0:1317:1317" \
-      "$docker_image" start
-  else
-    $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:26657" --home "$NODE_HOME"
-    nohup "$DAEMON" start --home "$NODE_HOME" >"$NODE_HOME/$CHAIN_NAME.log" &
-  fi
-  node_catching_up "$NODE_RPC"
-
   cat >"$OUT_DIR/$CHAIN_NAME.json" <<EOF
 {
   "chain_id": "$CHAIN_ID",
@@ -31,6 +24,19 @@ function start() {
   "bech32_prefix": "$BECH32_PREFIX"
 }
 EOF
+}
+
+function start() {
+  if docker stats --no-stream; then
+    docker run -d --name "$CHAIN_NAME" --network bridge -v "${NODE_HOME}:/root/.$CHAIN_NAME" \
+      -p "0.0.0.0:9090:9090" -p "0.0.0.0:26657:26657" -p "0.0.0.0:1317:1317" \
+      "$docker_image" start
+  else
+    $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:26657" --home "$NODE_HOME"
+    nohup "$DAEMON" start --home "$NODE_HOME" >"$NODE_HOME/$CHAIN_NAME.log" &
+  fi
+  node_catching_up "$NODE_RPC"
+
 }
 
 function stop() {

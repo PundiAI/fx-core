@@ -2,7 +2,11 @@
 
 set -eo pipefail
 
-solidity_dir="${PROJECT_DIR}/solidity"
+PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
+export PROJECT_DIR
+export OUT_DIR="${PROJECT_DIR}/out"
+
+readonly solidity_dir="${PROJECT_DIR}/solidity"
 readonly bridge_config_file="${PROJECT_DIR}/tests/data/bridge.json"
 readonly bridge_config_out_file="${PROJECT_DIR}/out/bridge_contract.json"
 

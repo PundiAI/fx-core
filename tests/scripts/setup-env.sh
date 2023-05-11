@@ -156,11 +156,6 @@ function cosmos_reset() {
   curl -s "$REST_RPC/$*" | jq -r '.result'
 }
 
-PROJECT_DIR="$(git rev-parse --show-toplevel)"
-export PROJECT_DIR
-export OUT_DIR="${PROJECT_DIR}/out"
-export SCRIPT_DIR="${PROJECT_DIR}/tests/scripts"
-
 export DAEMON=${DAEMON:-"fxcored"}
 export CHAIN_ID=${CHAIN_ID:-"fxcore"}
 export CHAIN_NAME=${CHAIN_NAME:-"fxcore"}

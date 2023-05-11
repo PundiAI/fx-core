@@ -2,6 +2,10 @@
 
 set -eo pipefail
 
+PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
+export PROJECT_DIR
+export OUT_DIR="${PROJECT_DIR}/out"
+
 readonly proposals_file="${PROJECT_DIR}/tests/data/proposals.json"
 
 ## ARGS: <title> <summary>

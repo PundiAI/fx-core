@@ -2,18 +2,23 @@
 
 set -eo pipefail
 
+PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
+export PROJECT_DIR
+export OUT_DIR="${PROJECT_DIR}/out"
+
 readonly a_chain_name="fxcore"
 readonly b_chain_name="pundix"
 readonly docker_image_ibc="functionx/ibc-relay:1.4.8"
-readonly ibc_from="ibc-$FROM"
+readonly ibc_from="ibc-test1"
 readonly ibc_home_dir="$OUT_DIR/.ibcrelayer"
+readonly script_dir="${PROJECT_DIR}/tests/scripts"
 
 function transfer() {
   for chain_name in $a_chain_name $b_chain_name; do
     (
-      "${SCRIPT_DIR}/$chain_name.sh" add_key "$ibc_from" 1
+      "${script_dir}/$chain_name.sh" add_key "$ibc_from" 1
 
-      "${SCRIPT_DIR}/$chain_name.sh" cosmos_transfer "$ibc_from" 200
+      "${script_dir}/$chain_name.sh" cosmos_transfer "$ibc_from" 200
     )
   done
 }
@@ -25,9 +30,8 @@ function docker_run() {
     "${args[@]}" --home=/root/.relayer
 }
 
-function gen_config() {
-  #  [[ ! -d "${ibc_home_dir}" ]] && rm -rf "${ibc_home_dir}"
-  #  mkdir -p "${ibc_home_dir}"
+function init() {
+    [[ ! -d "${ibc_home_dir}" ]] && rm -rf "${ibc_home_dir}"
 
   a_chain_id=$(jq -r '.chain_id' "$OUT_DIR/$a_chain_name.json")
   b_chain_id=$(jq -r '.chain_id' "$OUT_DIR/$b_chain_name.json")
@@ -88,8 +92,6 @@ EOF
 }
 
 function start() {
-  transfer
-  gen_config
   docker_run -itd start transfer --time-threshold=19m --notify.enable=false --debug=true
 }
 

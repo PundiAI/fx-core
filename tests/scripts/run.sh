@@ -2,26 +2,34 @@
 
 set -eo pipefail
 
-function start() {
-  "${SCRIPT_DIR}/fxcore.sh" start
+PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
+export PROJECT_DIR
+export OUT_DIR="${PROJECT_DIR}/out"
+
+readonly script_dir="${PROJECT_DIR}/tests/scripts"
+
+function run() {
+  "${script_dir}/fxcore.sh" init
+  "${script_dir}/fxcore.sh" start
 
   export IBC_CHANNEL="channel-0"
   export PURSE_ADDRESS="0x0000000000000000000000000000000000000000"
   export PUNDIX_ADDRESS="0x0000000000000000000000000000000000000000"
-  "${SCRIPT_DIR}/pundix.sh" start
+  "${script_dir}/pundix.sh" init
+  "${script_dir}/pundix.sh" start
 
-  "${SCRIPT_DIR}/ibcrelayer.sh" start
+  "${script_dir}/ibcrelayer.sh" transfer
+  "${script_dir}/ibcrelayer.sh" init
+  "${script_dir}/ibcrelayer.sh" start
 }
 
-function stop() {
-  "${SCRIPT_DIR}/fxcore.sh" stop
-  "${SCRIPT_DIR}/pundix.sh" stop
-  "${SCRIPT_DIR}/ibcrelayer.sh" stop
+function close() {
+  "${script_dir}/fxcore.sh" stop
+  "${script_dir}/pundix.sh" stop
+  "${script_dir}/ibcrelayer.sh" stop
   rm -rf "${PROJECT_DIR}/out"
 }
 
-#trap stop EXIT
+#trap close EXIT
 
-start
-
-sleep 100
+run
