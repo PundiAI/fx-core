@@ -36,8 +36,9 @@ function deploy_bridge_contract() {
 
 function deploy_staking_contract() {
   (
-    cd "$project_dir/solidity" || exit 1
-    yarn install
+    cd "$solidity_dir" || exit 1
+    yarn install >/dev/null
+
     npx hardhat run scripts/deploy_staking.ts
   )
 }

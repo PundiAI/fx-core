@@ -6,7 +6,7 @@ async function main() {
     const staking_factory = await ethers.getContractFactory("StakingTest");
     const staking = await staking_factory.deploy()
     await staking.deployed();
-    console.log(` staking test deployed to: ${staking.address}`);
+    console.log(staking.address);
 }
 
 main().catch((error) => {
