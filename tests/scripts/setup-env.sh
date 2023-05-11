@@ -231,7 +231,7 @@ function create_docker_network() {
   # check docker is running
   if docker stats --no-stream >/dev/null; then
     # check docker network exists
-    if ! docker network ls -f "name=$network" | grep $network >/dev/null; then
+    if ! docker network ls -f "name=$network" | grep "$network" >/dev/null; then
       docker network create "$network"
     fi
   fi

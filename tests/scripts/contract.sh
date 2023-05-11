@@ -53,8 +53,9 @@ function init_bridge_contract() {
   )
 }
 
+## ARGS: <account-index> <to> <function> [<params>] Example: send 0 0x.... transfer(address,uint256) 0x.... 1
 function send() {
-  index=${1:-"0"}
+  index=${1}
   shift
   (
     cd "$solidity_dir" || exit 1
@@ -64,6 +65,20 @@ function send() {
   )
 }
 
+## ARGS: <account-index> <bridge-contract> <bridge-token> <amount> <destination> <target-ibc>
+function send_to_fx() {
+  local index=${1} bridge_contract=${2} bridge_token=${3} amount=${4} destination=${5} target_ibc=${6:-""}
+
+  shift
+  (
+    cd "$solidity_dir" || exit 1
+    yarn install >/dev/null 2>&1
+
+    npx hardhat send-to-fx --bridge-contract "$bridge_contract" --bridge-token "$bridge_token" --amount "$amount" --destination "$destination" --target-ibc "$target_ibc" --mnemonic "$MNEMONIC" --index "$index" --disable-confirm true
+  )
+}
+
+## ARGS: <contract> <function> <params> Example: call 0x.... balanceOf(address) 0x....
 function call() {
   (
     cd "$solidity_dir" || exit 1

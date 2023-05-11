@@ -46,7 +46,12 @@ function query_min_deposit() {
 function vote() {
   local option=$1 proposal_id=${2:-""}
 
-  [[ "$(cosmos_query gov proposal "${proposal_id}" jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]] &&
+  if [[ -z "$proposal_id" ]]; then
+    proposal_id="$(cosmos_query gov proposals --status=voting_period | jq -r '.proposals[0].id')"
+    [[ -z "$proposal_id" ]] && proposal_id="$(cosmos_query gov proposals --status=voting_period | jq -r '.proposals[0].PROPOSAL_ID')"
+  fi
+
+  [[ "$(cosmos_query gov proposal "${proposal_id}" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]] &&
     echo "proposal is not in voting period" && return
 
   cosmos_tx gov vote "${proposal_id}" "$option" --from "$FROM"
