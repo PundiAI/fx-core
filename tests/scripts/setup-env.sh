@@ -93,7 +93,7 @@ function echo_error() {
 }
 
 function cosmos_tx() {
-  $DAEMON tx "$@" --gas-prices="$GAS_PRICES" --gas=auto --gas-adjustment="$GAS_ADJUSTMENT" --home="$NODE_HOME" -y
+  $DAEMON tx "$@" --gas-prices="$GAS_PRICES" --gas=auto --gas-adjustment="$GAS_ADJUSTMENT" --node="$NODE_RPC" --home="$NODE_HOME" -y
 }
 
 ## ARGS: <to> <amount> [<denom>]
@@ -104,7 +104,7 @@ function cosmos_transfer() {
 }
 
 function cosmos_query() {
-  $DAEMON query "$@" --home="$NODE_HOME"
+  $DAEMON query "$@" --node="$NODE_RPC" --home="$NODE_HOME"
 }
 
 function to_18() {
@@ -120,6 +120,9 @@ function gen_cosmos_genesis() {
 
   $DAEMON config app.toml grpc-web.enable false --home "$NODE_HOME"
   $DAEMON config app.toml api.enable true --home "$NODE_HOME"
+
+  $DAEMON config app.toml json-rpc.address "0.0.0.0:8545" --home "$NODE_HOME"
+  $DAEMON config app.toml json-rpc.ws-address "0.0.0.0:8546" --home "$NODE_HOME"
 
   $DAEMON config config.toml consensus.timeout_commit 1s --home "$NODE_HOME"
   $DAEMON config config.toml rpc.pprof_laddr "" --home "$NODE_HOME"
@@ -173,6 +176,10 @@ function show_address() {
   shift
   local flags=("$@")
   $DAEMON keys show "$from" "${flags[@]}" --home "$NODE_HOME"
+}
+
+function validators_list() {
+  cosmos_query staking validators --home "$NODE_HOME" --output json | jq -r ['.validators[] | select(.status == "BOND_STATUS_BONDED") | .operator_address']
 }
 
 function add_key() {
