@@ -2,9 +2,8 @@
 
 set -eo pipefail
 
-PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
-export PROJECT_DIR
-export OUT_DIR="${PROJECT_DIR}/out"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
 
 readonly bridger_start_index=2
 readonly bridger_oracle_number=3
@@ -41,6 +40,7 @@ function create_oracles() {
     done
   done
 }
+
 
 function update_crosschain_oracles() {
   local chain_name=("$@")
@@ -138,4 +138,5 @@ function end_test() {
   "$PROJECT_DIR"/tests/scripts/contract.sh stop
 }
 
-. "${PROJECT_DIR}/tests/scripts/setup-env.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/footer.sh"

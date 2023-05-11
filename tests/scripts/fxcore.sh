@@ -2,21 +2,32 @@
 
 set -eo pipefail
 
-PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
-export PROJECT_DIR
-export OUT_DIR="${PROJECT_DIR}/out"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
 
-readonly docker_image="ghcr.io/functionx/fx-core:4.0.0-rc1"
-
+export CHAIN_NAME="fxcore"
 export NODE_HOME="$OUT_DIR/.$CHAIN_NAME"
 
+export DOCKER_IMAGE=${DOCKER_IMAGE:-"ghcr.io/functionx/fx-core:4.0.0-rc1"}
+export DAEMON="docker run --rm -i --network $DOCKER_NETWORK -v $NODE_HOME:$NODE_HOME $DOCKER_IMAGE"
+
+export NODE_RPC="http://$CHAIN_NAME:26657"
+export NODE_GRPC="$CHAIN_NAME:9090"
+export REST_RPC="http://$CHAIN_NAME:1317"
+
+GAS_PRICES="$(echo "4*10^12" | bc)$STAKING_DENOM"
+export GAS_PRICES
+
 function init() {
-  [[ -d "$NODE_HOME" ]] && rm -r "$NODE_HOME"
+  [[ -d "$NODE_HOME" ]] && docker_stop && rm -r "$NODE_HOME"
   gen_cosmos_genesis
+
   cat >"$OUT_DIR/$CHAIN_NAME.json" <<EOF
 {
   "chain_id": "$CHAIN_ID",
   "node_rpc": "$NODE_RPC",
+  "node_grpc": "$NODE_GRPC",
+  "rest_rpc": "$REST_RPC",
   "node_home": "$NODE_HOME",
   "mint_denom": "$MINT_DENOM",
   "staking_denom": "$STAKING_DENOM",
@@ -27,26 +38,9 @@ EOF
 }
 
 function start() {
-  if docker stats --no-stream; then
-    docker run -d --name "$CHAIN_NAME" --network bridge -v "${NODE_HOME}:/root/.$CHAIN_NAME" \
-      -p "0.0.0.0:9090:9090" -p "0.0.0.0:26657:26657" -p "0.0.0.0:1317:1317" \
-      "$docker_image" start
-  else
-    $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:26657" --home "$NODE_HOME"
-    nohup "$DAEMON" start --home "$NODE_HOME" >"$NODE_HOME/$CHAIN_NAME.log" &
-  fi
-  node_catching_up "$NODE_RPC"
-
-}
-
-function stop() {
-  if docker stats --no-stream; then
-    docker stop "$CHAIN_NAME"
-    docker rm "$CHAIN_NAME"
-  else
-    pkill -f "$DAEMON"
-  fi
+  docker_run "-d -p 0.0.0.0:9090:9090 -p 0.0.0.0:26657:26657 -p 0.0.0.0:1317:1317" start
+  node_catching_up "http://127.0.0.1:26657"
 }
 
 # shellcheck source=/dev/null
-. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/footer.sh"

@@ -2,13 +2,11 @@
 
 set -eo pipefail
 
-PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
-export PROJECT_DIR
-export OUT_DIR="${PROJECT_DIR}/out"
-
-readonly script_dir="${PROJECT_DIR}/tests/scripts"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 function run() {
+  "${script_dir}/setup-env.sh" create_docker_network
+
   "${script_dir}/fxcore.sh" init
   "${script_dir}/fxcore.sh" start
 
@@ -18,18 +16,18 @@ function run() {
   "${script_dir}/pundix.sh" init
   "${script_dir}/pundix.sh" start
 
-  "${script_dir}/ibcrelayer.sh" transfer
-  "${script_dir}/ibcrelayer.sh" init
-  "${script_dir}/ibcrelayer.sh" start
+#  "${script_dir}/ibcrelayer.sh" transfer
+#  "${script_dir}/ibcrelayer.sh" init
+#  "${script_dir}/ibcrelayer.sh" start
 }
 
-function close() {
-  "${script_dir}/fxcore.sh" stop
-  "${script_dir}/pundix.sh" stop
-  "${script_dir}/ibcrelayer.sh" stop
-  rm -rf "${PROJECT_DIR}/out"
-}
-
-#trap close EXIT
+#function close() {
+#  "${script_dir}/fxcore.sh" docker_stop
+#  "${script_dir}/pundix.sh" docker_stop
+#  "${script_dir}/ibcrelayer.sh" stop
+#  rm -rf "${PROJECT_DIR}/out"
+#}
+#
+#trap close EXIT SIGINT SIGTERM
 
 run

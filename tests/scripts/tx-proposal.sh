@@ -2,9 +2,8 @@
 
 set -eo pipefail
 
-PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
-export PROJECT_DIR
-export OUT_DIR="${PROJECT_DIR}/out"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
 
 readonly proposals_file="${PROJECT_DIR}/tests/data/proposals.json"
 
@@ -47,17 +46,13 @@ function query_min_deposit() {
 function vote() {
   local option=$1 proposal_id=${2:-""}
 
-  messages=$(cosmos_query gov proposal "${proposal_id}")
-  if [[ "$(echo "${messages}" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
-    return
-  fi
+  [[ "$(cosmos_query gov proposal "${proposal_id}" jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]] &&
+    echo "proposal is not in voting period" && return
 
   cosmos_tx gov vote "${proposal_id}" "$option" --from "$FROM"
 
   while true; do
-    if [ "$($DAEMON query gov proposal "$proposal_id" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]; then
-      break
-    fi
+    [[ "$($DAEMON query gov proposal "$proposal_id" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]] && break
     echo "wait for voting period"
     sleep 1
   done
@@ -88,4 +83,4 @@ function submit_proposal() {
 }
 
 # shellcheck source=/dev/null
-. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/footer.sh"

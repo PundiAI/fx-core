@@ -5,6 +5,34 @@ set -eo pipefail
 export DEBUG=${DEBUG:-"false"}
 [[ "$DEBUG" == "true" ]] && set -x
 
+PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
+export PROJECT_DIR
+export OUT_DIR="${PROJECT_DIR}/out"
+
+export DAEMON=${DAEMON:-"fxcored"}
+export CHAIN_ID=${CHAIN_ID:-"fxcore"}
+export CHAIN_NAME=${CHAIN_NAME:-"fxcore"}
+export NODE_RPC=${NODE_RPC:-"http://127.0.0.1:26657"}
+export REST_RPC=${REST_RPC:-"http://127.0.0.1:1317"}
+export NODE_GRPC=${NODE_GRPC:-"127.0.0.1:9090"}
+export NODE_HOME=${NODE_HOME:-"$HOME/.$CHAIN_NAME"}
+export BECH32_PREFIX="fx"
+
+export DENOM=${DENOM:-"FX"}
+export DECIMALS=${DECIMALS:-"18"}
+export STAKING_DENOM=${STAKING_DENOM:-"$DENOM"}
+export MINT_DENOM=${MINT_DENOM:-"$STAKING_DENOM"}
+
+export OUTPUT=${OUTPUT:-"json"}
+export KEYRING_BACKEND=${KEYRING_BACKEND:-"test"}
+export BROADCAST_MODE=${BROADCAST_MODE:-"block"}
+export GAS_ADJUSTMENT=${GAS_ADJUSTMENT:-1.3}
+
+export TEST_MNEMONIC=${TEST_MNEMONIC:-"test test test test test test test test test test test junk"}
+export FROM=${FROM:-"test1"}
+
+export DOCKER_NETWORK=${DOCKER_NETWORK:-"test-net"}
+
 function check_command() {
   commands=("$@")
   for cmd in "${commands[@]}"; do
@@ -65,18 +93,18 @@ function echo_error() {
 }
 
 function cosmos_tx() {
-  $DAEMON tx "$@" "${tx_flags_ary[@]}" || (echo "failed: $DAEMON tx $*" && exit 1)
+  $DAEMON tx "$@" --gas-prices="$GAS_PRICES" --gas=auto --gas-adjustment="$GAS_ADJUSTMENT" --home="$NODE_HOME" -y
 }
 
 ## ARGS: <to> <amount> [<denom>]
 function cosmos_transfer() {
   local to=$1 amount=$2 denom=${3:-$STAKING_DENOM}
-  node_catching_up "$NODE_RPC"
-  cosmos_tx bank send "$FROM" "$($DAEMON keys show "$to" --home "$NODE_HOME" -a)" "$(to_18 "$amount")$denom" --from "$FROM"
+  to_address=$($DAEMON keys show "$to" --home "$NODE_HOME" -a)
+  cosmos_tx bank send "$FROM" "$to_address" "$(to_18 "$amount")$denom" --from "$FROM"
 }
 
 function cosmos_query() {
-  $DAEMON query "$@" "${query_flags_ary[@]}" || (echo "failed: $DAEMON query $*" && exit 1)
+  $DAEMON query "$@" --home="$NODE_HOME"
 }
 
 function to_18() {
@@ -128,14 +156,16 @@ function gen_cosmos_genesis() {
 
 function node_catching_up() {
   local node_url=${1:-"$REST_RPC"}
-  while true; do
+  local timeout=${2:-"10"}
+  for i in $(seq "$timeout"); do
     sync_state=$(curl -s "$node_url/status" | jq -r '.result.sync_info.catching_up')
     if [ "$sync_state" != "false" ]; then
-      sleep 1
-      echo "Node is syncing..." && continue
+      sleep 1 && echo "Node is syncing... $i" && continue
     fi
-    break
+    return 0
   done
+  echo "Timeout: Node is not catching up"
+  return 1
 }
 
 function show_address() {
@@ -150,6 +180,7 @@ function show_val_address() {
 
 function add_key() {
   local name=$1 index=$2
+  $DAEMON keys show "$name" --home "$NODE_HOME" >/dev/null 2>&1 && return 0
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$name" --index "$index" --home "$NODE_HOME" --recover
 }
 
@@ -161,42 +192,41 @@ function cosmos_reset() {
   curl -s "$REST_RPC/$*" | jq -r '.result'
 }
 
-export DAEMON=${DAEMON:-"fxcored"}
-export CHAIN_ID=${CHAIN_ID:-"fxcore"}
-export CHAIN_NAME=${CHAIN_NAME:-"fxcore"}
-export NODE_RPC=${NODE_RPC:-"http://127.0.0.1:26657"}
-export REST_RPC=${REST_RPC:-"http://127.0.0.1:1317"}
-export NODE_GRPC=${NODE_GRPC:-"127.0.0.1:9090"}
-export NODE_HOME=${NODE_HOME:-"$HOME/.$CHAIN_NAME"}
+function sha256sum() {
+  echo -n "$1" | shasum -a 256 | awk '{print $1}'
+}
 
-export DENOM=${DENOM:-"FX"}
-export DECIMALS=${DECIMALS:-"18"}
-export STAKING_DENOM=${STAKING_DENOM:-"$DENOM"}
-export MINT_DENOM=${MINT_DENOM:-"$STAKING_DENOM"}
+function convert_ibc_denom() {
+  echo "ibc/$(sha256sum "$1" | tr '[:lower:]' '[:upper:]')"
+}
 
-export OUTPUT=${OUTPUT:-"json"}
-export KEYRING_BACKEND=${KEYRING_BACKEND:-"test"}
-export BROADCAST_MODE=${BROADCAST_MODE:-"block"}
-export GAS_ADJUSTMENT=${GAS_ADJUSTMENT:-1.3}
-export GAS_PRICES=${GAS_PRICES:-"$(echo "4*10^12" | bc)$STAKING_DENOM"}
+function docker_run() {
+  local opts=$1
+  shift
+  local args=("$@")
+  local name=$CHAIN_NAME
+  [[ "$opts" == "--rm" ]] && name="$name-tmp"
+  IFS=' ' read -r -a opts_ary <<<"$opts"
+  docker run "${opts_ary[@]}" --name "$name" --network "$DOCKER_NETWORK" -v "$NODE_HOME:$NODE_HOME" \
+    "$DOCKER_IMAGE" "${args[@]}" --home "$NODE_HOME"
+}
 
-export TEST_MNEMONIC=${TEST_MNEMONIC:-"test test test test test test test test test test test junk"}
-export FROM=${FROM:-"test1"}
+function docker_stop() {
+  local container=${1:-"$CHAIN_NAME"}
+  if docker ps -a | grep "$container" >/dev/null; then
+    docker stop "$container" && docker rm "$container" && sleep 1
+  fi
+}
 
-export QUERY_FLAGS=${QUERY_FLAGS:-"--node=$NODE_RPC --output=$OUTPUT"}
-IFS=' ' read -r -a query_flags_ary <<<"$QUERY_FLAGS"
+function create_docker_network() {
+  local network=${1:-"$DOCKER_NETWORK"}
+  [[ "$network" != "$DOCKER_NETWORK" ]] && export DOCKER_NETWORK=$network
 
-export TX_FLAGS=${TX_FLAGS:-"--keyring-backend=$KEYRING_BACKEND --gas-prices=$GAS_PRICES --gas=auto --gas-adjustment=$GAS_ADJUSTMENT --broadcast-mode=$BROADCAST_MODE --output=$OUTPUT --node=$NODE_RPC --chain-id=$CHAIN_ID --home=$NODE_HOME -y"}
-IFS=' ' read -r -a tx_flags_ary <<<"$TX_FLAGS"
-
-if [[ "$1" == "help" || "$#" -eq 0 ]]; then
-  help && exit 0
-fi
-
-if [[ "$#" -gt 0 && "$(type -t "$1")" != "function" ]]; then
-  echo "invalid command: $1" && help && exit 1
-fi
-
-if ! "$@"; then
-  echo "failed: $0" "$@" && exit 1
-fi
+  # check docker is running
+  if docker stats --no-stream >/dev/null; then
+    # check docker network exists
+    if ! docker network ls -f "name=$network" | grep $network >/dev/null; then
+      docker network create "$network"
+    fi
+  fi
+}

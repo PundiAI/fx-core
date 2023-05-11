@@ -2,9 +2,8 @@
 
 set -eo pipefail
 
-PROJECT_DIR="${PROJECT_DIR:-"$(git rev-parse --show-toplevel)"}"
-export PROJECT_DIR
-export OUT_DIR="${PROJECT_DIR}/out"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
 
 readonly solidity_dir="${PROJECT_DIR}/solidity"
 readonly bridge_config_file="${PROJECT_DIR}/tests/data/bridge.json"
@@ -69,4 +68,5 @@ function stop() {
   pkill -f node
 }
 
-. "${PROJECT_DIR}/tests/scripts/setup-env.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/footer.sh"
