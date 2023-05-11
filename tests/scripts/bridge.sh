@@ -5,25 +5,21 @@ set -eo pipefail
 readonly bridger_start_index=2
 readonly bridger_oracle_number=3
 
-project_dir="$(git rev-parse --show-toplevel)"
-readonly project_dir
-readonly out_dir="${project_dir}/out"
-
-export NODE_HOME="$out_dir/.fxcore"
+export NODE_HOME="$OUT_DIR/.fxcore"
 
 function create_oracles() {
   local chain_name=("$@")
-  index=${bridger_start_index}
+  local index=${bridger_start_index}
 
   for chain in "${chain_name[@]}"; do
-    local oracle_file="$out_dir/$chain-bridge-oracle.json"
-
     oracles=$($DAEMON query "$chain" oracles | jq -r '.oracles[]')
     if [ ${#oracles} -gt 0 ]; then
+      echo "oracles already exist"
       continue
     fi
-    echo "[]" >"$oracle_file"
 
+    local oracle_file="$OUT_DIR/$chain-bridge-oracle.json"
+    echo "[]" >"$oracle_file"
     for ((i = 0; i < "$bridger_oracle_number"; i++)); do
       oracle_address=$(add_key "$chain-oracle-$i" "$index" | jq -r ".address")
       bridger_address=$(add_key "$chain-bridger-$i" "$((index + 1))" | jq -r ".address")
@@ -37,4 +33,4 @@ function create_oracles() {
   done
 }
 
-. "${project_dir}/tests/scripts/setup-env.sh"
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"

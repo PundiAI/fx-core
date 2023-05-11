@@ -2,10 +2,7 @@
 
 set -eo pipefail
 
-project_dir="$(git rev-parse --show-toplevel)"
-readonly project_dir
-readonly out_dir="${project_dir}/out"
-readonly proposals_file="${project_dir}/tests/data/proposals.json"
+readonly proposals_file="${PROJECT_DIR}/tests/data/proposals.json"
 
 ## ARGS: <title> <summary>
 ## DESC: base64 encode metadata
@@ -17,10 +14,10 @@ function base64_metadata() {
 ## DESC: get proposal template
 function get_proposal_template() {
   local msg_type=$1
-  jq -r --arg msg_type "$msg_type" '.[]|select(.msg_type == $msg_type)' "$proposals_file" >"$out_dir/${msg_type##*.}.json"
+  jq -r --arg msg_type "$msg_type" '.[]|select(.msg_type == $msg_type)' "$proposals_file" >"$OUT_DIR/${msg_type##*.}.json"
 }
 
-## ARGS: <msg_type> <amount>
+## ARGS: <msg_type> [<amount>]
 ## DESC: query min deposit
 function query_min_deposit() {
   local msg_type=$1 amount=$2
@@ -41,28 +38,28 @@ function query_min_deposit() {
   echo "${base_deposit}${STAKING_DENOM}"
 }
 
-## ARGS: <proposal_id> <option>
+## ARGS:  <option> [<proposal_id>]
 ## DESC: vote proposal
 function vote() {
-  local proposal_id=$1 option=$2
+  local option=$1 proposal_id=${2:-""}
 
   for proposal_id in $(cosmos_query gov proposals | jq -r '.proposals[].id'); do
     messages=$(cosmos_query gov proposal "${proposal_id}")
-    if [[ "$(echo "${messages}" | jq -r '.messages[].metadata')" == "$metadata" &&
-    "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    if [[ "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
       break
     fi
   done
 
-  cosmos_tx gov vote "${proposal_id}" "$option" --from fx1 -y
+  cosmos_tx gov vote "${proposal_id}" "$option" --from "$FROM"
 
-  voting_period=$(cosmos_query gov params | jq -r '.params.voting_period')
+  #  voting_period=$(cosmos_query gov params | jq -r '.params.voting_period')
   while true; do
-    if [ "$($DAEMON query gov proposal "$proposal_id" | jq -r '.status')" == "PROPOSAL_STATUS_PASSED" ]; then
+    if [ "$($DAEMON query gov proposal "$proposal_id" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]; then
       break
     fi
     echo "wait for voting period"
-    sleep "${voting_period%?}"
+    sleep 1
+    #    sleep "${voting_period%?}"
   done
 }
 
@@ -76,7 +73,7 @@ function submit_proposal() {
     deposit=$(query_min_deposit "$msg_type" "$(jq -r '.amount' "$proposal_file")")
     json_processor "$proposal_file" '.deposit = "'"$deposit"'"'
 
-    cosmos_tx gov submit-legacy-proposal community-pool-spend "$proposal_file" --from "$FROM" -y
+    cosmos_tx gov submit-legacy-proposal community-pool-spend "$proposal_file" --from "$FROM"
   else
     title=$(jq -r '.title' "$proposal_file")
     summary=$(jq -r '.summary' "$proposal_file")
@@ -86,9 +83,9 @@ function submit_proposal() {
     deposit=$(query_min_deposit "$msg_type")
     json_processor "$proposal_file" '.deposit = "'"$deposit"'"'
 
-    cosmos_tx gov submit-proposal "$proposal_file" --from "$FROM" -y
+    cosmos_tx gov submit-proposal "$proposal_file" --from "$FROM"
   fi
 }
 
 # shellcheck source=/dev/null
-. "${project_dir}/tests/scripts/setup-env.sh"
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"

@@ -68,6 +68,13 @@ function cosmos_tx() {
   $DAEMON tx "$@" "${tx_flags_ary[@]}" || (echo "failed: $DAEMON tx $*" && exit 1)
 }
 
+## ARGS: <to> <amount> [<denom>]
+function cosmos_transfer() {
+  local to=$1 amount=$2 denom=${3:-$STAKING_DENOM}
+  node_catching_up "$NODE_RPC"
+  cosmos_tx bank send "$FROM" "$($DAEMON keys show "$to" --home "$NODE_HOME" -a)" "$(to_18 "$amount")$denom" --from "$FROM"
+}
+
 function cosmos_query() {
   $DAEMON query "$@" "${query_flags_ary[@]}" || (echo "failed: $DAEMON query $*" && exit 1)
 }
@@ -88,6 +95,7 @@ function gen_cosmos_genesis() {
 
   $DAEMON config config.toml consensus.timeout_commit 1s --home "$NODE_HOME"
   $DAEMON config config.toml rpc.pprof_laddr "" --home "$NODE_HOME"
+  $DAEMON config config.toml rpc.laddr "tcp://0.0.0.0:26657" --home "$NODE_HOME"
 
   $DAEMON config chain-id "$CHAIN_ID" --home "$NODE_HOME"
   $DAEMON config keyring-backend "$KEYRING_BACKEND" --home "$NODE_HOME"
@@ -148,6 +156,11 @@ function cosmos_reset() {
   curl -s "$REST_RPC/$*" | jq -r '.result'
 }
 
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+export PROJECT_DIR
+export OUT_DIR="${PROJECT_DIR}/out"
+export SCRIPT_DIR="${PROJECT_DIR}/tests/scripts"
+
 export DAEMON=${DAEMON:-"fxcored"}
 export CHAIN_ID=${CHAIN_ID:-"fxcore"}
 export CHAIN_NAME=${CHAIN_NAME:-"fxcore"}
@@ -173,7 +186,7 @@ export FROM=${FROM:-"test1"}
 export QUERY_FLAGS=${QUERY_FLAGS:-"--node=$NODE_RPC --output=$OUTPUT"}
 IFS=' ' read -r -a query_flags_ary <<<"$QUERY_FLAGS"
 
-export TX_FLAGS=${TX_FLAGS:-"--keyring-backend=$KEYRING_BACKEND --gas-prices=$GAS_PRICES --gas=auto --gas-adjustment=$GAS_ADJUSTMENT --broadcast-mode=$BROADCAST_MODE --output=$OUTPUT --node=$NODE_RPC --chain-id=$CHAIN_ID"}
+export TX_FLAGS=${TX_FLAGS:-"--keyring-backend=$KEYRING_BACKEND --gas-prices=$GAS_PRICES --gas=auto --gas-adjustment=$GAS_ADJUSTMENT --broadcast-mode=$BROADCAST_MODE --output=$OUTPUT --node=$NODE_RPC --chain-id=$CHAIN_ID --home=$NODE_HOME -y"}
 IFS=' ' read -r -a tx_flags_ary <<<"$TX_FLAGS"
 
 if [[ "$1" == "help" || "$#" -eq 0 ]]; then
