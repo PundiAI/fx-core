@@ -17,6 +17,7 @@ export const SUB_SEND_ETH: string = "sub:send-eth";
 export const DISABLE_CONFIRM_FLAG: string = "disableConfirm";
 export const PRIVATE_KEY_FLAG = "privateKey";
 export const MNEMONIC_FLAG = "mnemonic";
+export const INDEX_FLAG = "index";
 export const IS_LEDGER_FLAG = "isLedger";
 export const DRIVER_PATH_FLAG = "driverPath";
 export const NONCE_FLAG = "nonce";
@@ -150,13 +151,17 @@ subtask(SUB_PRIVATE_KEY_WALLET, "private key wallet account").setAction(
 
 subtask(SUB_MNEMONIC_WALLET, "mnemonic wallet account").setAction(
     async (taskArgs, hre) => {
-        const {mnemonic, driverPath} = taskArgs;
-
+        const {mnemonic, driverPath, index} = taskArgs;
         const nodeUrl = await hre.run(SUB_GET_NODE_URL);
         const provider = await new hre.ethers.providers.JsonRpcProvider(nodeUrl);
 
-        const _path = driverPath ? driverPath : DEFAULT_DRIVE_PATH;
-
+        let _path = DEFAULT_DRIVE_PATH
+        if (driverPath) {
+            _path = driverPath
+        }
+        if (index) {
+            _path = `m/44'/60'/0'/0/${index}`
+        }
         const wallet = hre.ethers.Wallet.fromMnemonic(mnemonic, _path).connect(provider);
         return {provider, wallet};
     }

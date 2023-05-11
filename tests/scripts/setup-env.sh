@@ -143,6 +143,11 @@ function show_address() {
   $DAEMON keys show "$from" "$opt" --home "$NODE_HOME"
 }
 
+function show_val_address() {
+  local from=${1:-"$FROM"} opt=${2:-""}
+  $DAEMON keys show "$from" "$opt" --bech val --home "$NODE_HOME"
+}
+
 function add_key() {
   local name=$1 index=$2
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$name" --index "$index" --home "$NODE_HOME" --recover

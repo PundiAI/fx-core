@@ -26,10 +26,10 @@ function get_proposal_template() {
 function query_min_deposit() {
   local msg_type=$1 amount=$2
   if [[ -z "$msg_type" ]]; then
-    echo "$(cosmos_query gov params | jq -r '.params.min_deposit|select(.denom=="'"$STAKING_DENOM"'")|.amount')$STAKING_DENOM" && return
+    echo "$(cosmos_query gov params | jq -r '.params.min_deposit[]|select(.denom=="'"$STAKING_DENOM"'")|.amount')$STAKING_DENOM" && return
   fi
 
-  base_deposit="$(cosmos_query gov params --msg-type="$msg_type" | jq -r '.params.min_deposit|select(.denom=="'"$STAKING_DENOM"'")|.amount')"
+  base_deposit="$(cosmos_query gov params --msg-type="$msg_type" | jq -r '.params.min_deposit[]|select(.denom=="'"$STAKING_DENOM"'")|.amount')"
   if [[ "$msg_type" == "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal" && -n "$amount" ]]; then
     deposit_threshold=$(cosmos_query gov egf-params | jq -r '.params.egf_deposit_threshold.amount')
     claim_ratio=$(cosmos_query gov egf-params | jq -r '.params.claim_ratio')
@@ -47,23 +47,19 @@ function query_min_deposit() {
 function vote() {
   local option=$1 proposal_id=${2:-""}
 
-  for proposal_id in $(cosmos_query gov proposals | jq -r '.proposals[].id'); do
-    messages=$(cosmos_query gov proposal "${proposal_id}")
-    if [[ "$(echo "${messages}" | jq -r '.status')" == "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
-      break
-    fi
-  done
+  messages=$(cosmos_query gov proposal "${proposal_id}")
+  if [[ "$(echo "${messages}" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]]; then
+    return
+  fi
 
   cosmos_tx gov vote "${proposal_id}" "$option" --from "$FROM"
 
-  #  voting_period=$(cosmos_query gov params | jq -r '.params.voting_period')
   while true; do
     if [ "$($DAEMON query gov proposal "$proposal_id" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]; then
       break
     fi
     echo "wait for voting period"
     sleep 1
-    #    sleep "${voting_period%?}"
   done
 }
 
