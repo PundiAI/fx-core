@@ -169,13 +169,10 @@ function node_catching_up() {
 }
 
 function show_address() {
-  local from=${1:-"$FROM"} opt=${2:-""}
-  $DAEMON keys show "$from" "$opt" --home "$NODE_HOME"
-}
-
-function show_val_address() {
-  local from=${1:-"$FROM"} opt=${2:-""}
-  $DAEMON keys show "$from" "$opt" --bech val --home "$NODE_HOME"
+  local from=${1:-"$FROM"}
+  shift
+  local flags=("$@")
+  $DAEMON keys show "$from" "${flags[@]}" --home "$NODE_HOME"
 }
 
 function add_key() {

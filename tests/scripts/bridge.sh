@@ -73,7 +73,7 @@ function create_oracle_bridger() {
       continue
     fi
     min_deposit=$("${PROJECT_DIR}/tests/scripts/tx-proposal.sh" query_min_deposit)
-    validator_address=$(show_val_address "$FROM" -a)
+    validator_address=$(show_address "$FROM" -a --bech val)
 
     while read -r oracle_address oracle_name bridge_address external_address; do
       cosmos_tx "$chain" create-oracle-bridger "$validator_address" "$bridge_address" "$external_address" "$min_deposit" --from "$oracle_name" --home "$NODE_HOME" -y

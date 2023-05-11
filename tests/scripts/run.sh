@@ -10,15 +10,18 @@ function run() {
   "${script_dir}/fxcore.sh" init
   "${script_dir}/fxcore.sh" start
 
-  export IBC_CHANNEL="channel-0"
-  export PURSE_ADDRESS="0x0000000000000000000000000000000000000000"
-  export PUNDIX_ADDRESS="0x0000000000000000000000000000000000000000"
-  "${script_dir}/pundix.sh" init
-  "${script_dir}/pundix.sh" start
+  (
+    export IBC_CHANNEL="channel-0"
+    export PURSE_ADDRESS="0x0000000000000000000000000000000000000000"
+    export PUNDIX_ADDRESS="0x0000000000000000000000000000000000000000"
+    "${script_dir}/pundix.sh" init
+    "${script_dir}/pundix.sh" start
 
-#  "${script_dir}/ibcrelayer.sh" transfer
-#  "${script_dir}/ibcrelayer.sh" init
-#  "${script_dir}/ibcrelayer.sh" start
+    "${script_dir}/ibcrelayer.sh" transfer
+    "${script_dir}/ibcrelayer.sh" init
+    "${script_dir}/ibcrelayer.sh" start
+  )
+
 }
 
 #function close() {
