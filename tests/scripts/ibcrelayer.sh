@@ -14,7 +14,7 @@ readonly docker_name="ibc-relay"
 readonly ibc_home_dir="$OUT_DIR/.hermes"
 
 export SCRIPT_DIR=${SCRIPT_DIR:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
-export IBC_DOCKER_IMAGE=${IBC_DOCKER_IMAGE:-"ghcr.io/informalsystems/hermes:1.4.1"}
+export IBC_DOCKER_IMAGE=${IBC_DOCKER_IMAGE:-"ghcr.io/informalsystems/hermes:1.3.0"}
 
 function transfer() {
   for chain_name in $a_chain_name $b_chain_name; do
@@ -101,7 +101,7 @@ grpc_addr = 'http://$(jq -r ".node_grpc" "$OUT_DIR/$a_chain_name.json")'
 websocket_addr = '$a_websocket_addr'
 rpc_timeout = '10s'
 account_prefix = '$(jq -r ".bech32_prefix" "$OUT_DIR/$a_chain_name.json")'
-key_name = "testkey"
+key_name = "$ibc_from"
 address_type = { derivation = 'ethermint', proto_type = { pk_type = '/ethermint.crypto.v1.ethsecp256k1.PubKey' } }
 store_prefix = 'ibc'
 default_gas = 100000
@@ -128,7 +128,7 @@ grpc_addr = 'http://$(jq -r ".node_grpc" "$OUT_DIR/$b_chain_name.json")'
 websocket_addr = '$b_websocket_addr'
 rpc_timeout = '10s'
 account_prefix = '$(jq -r ".bech32_prefix" "$OUT_DIR/$b_chain_name.json")'
-key_name = "testkey"
+key_name = "$ibc_from"
 address_type = { derivation = 'cosmos' }
 store_prefix = 'ibc'
 default_gas = 100000
@@ -150,7 +150,7 @@ list = [
 EOF
 
   import_key "${a_chain_id}" "${ibc_from}" "m/44'/60'/0'/0/${account_index}"
-  import_key "${b_chain_id}" "${ibc_from}" "m/118'/60'/0'/0/${account_index}"
+  import_key "${b_chain_id}" "${ibc_from}" "m/44'/118'/0'/0/${account_index}"
 
   config_check
 
@@ -168,8 +168,7 @@ function import_key() {
 }
 
 function create_channel() {
-  echo -e "y" | docker run --rm -i --name "$docker_name-tmp" --network "$DOCKER_NETWORK" -v "${ibc_home_dir}":/home/hermes/.hermes "$IBC_DOCKER_IMAGE" \
-    create channel --a-chain "${a_chain_id}" --b-chain "${b_chain_id}" --a-port transfer --b-port transfer --new-client-connection
+  docker_run --rm create channel --a-chain "${a_chain_id}" --b-chain "${b_chain_id}" --a-port transfer --b-port transfer --new-client-connection --yes
 }
 
 function config_check() {
