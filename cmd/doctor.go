@@ -26,6 +26,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
+	tmversion "github.com/tendermint/tendermint/version"
 
 	"github.com/functionx/fx-core/v4/client/grpc"
 	"github.com/functionx/fx-core/v4/server"
@@ -124,6 +125,7 @@ func printSelfInfo() {
 	fmt.Printf("%sBuild Tags: %s\n", SPACE, info.BuildTags)
 	fmt.Printf("%sGo Version: %s\n", SPACE, runtime.Version())
 	fmt.Printf("%sCosmos SDK Version: %s\n", SPACE, info.CosmosSdkVersion)
+	fmt.Printf("%sTendermint Version: %s\n", SPACE, tmversion.TMCoreSemVer)
 }
 
 func checkGenesis(genesisFile string) (string, error) {
