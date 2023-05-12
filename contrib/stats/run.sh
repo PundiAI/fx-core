@@ -91,6 +91,21 @@ function show_module_account() {
   done < <(curl -s "$REST_RPC/cosmos/auth/v1beta1/module_accounts" | jq -r '.accounts[]|"\(.name) \(.base_account.address) \(.permissions)"')
 }
 
+function avg_block_time_interval() {
+  local block_interval=20000
+  # get latest block header
+  latest_block_header=$(curl -s "$REST_RPC/cosmos/base/tendermint/v1beta1/blocks/latest" | jq -r '.block.header')
+  # get latest block time
+  latest_block_time=$(echo "$latest_block_header" | jq -r '.time')
+  # get latest block height
+  latest_block=$(echo "$latest_block_header" | jq -r '.height')
+  # get block time of latest_block - block_interval
+  block_time=$(curl -s "$REST_RPC/cosmos/base/tendermint/v1beta1/blocks/$((latest_block - block_interval))" | jq -r '.block.header.time')
+  # calculate avg block time interval
+  block_time_interval=$(python3 -c "from datetime import datetime; print((datetime.strptime('${latest_block_time%.*}', '%Y-%m-%dT%H:%M:%S')-datetime.strptime('${block_time%.*}', '%Y-%m-%dT%H:%M:%S')).total_seconds())")
+  python3 -c "print($block_time_interval/$block_interval)"
+}
+
 function show_mint_info() {
   local after_days=${1:-"365"}
 
@@ -140,7 +155,7 @@ function show_mint_info() {
   printf "current staking bonded tokens:\t\t%s\n" "$(echo "scale=2;$bonded_tokens/10^18" | bc)"
 
   # bonded ratio = bonded_tokens / staking_total_supply
-  bonded_ratio=$(printf "%.8f" "$(echo "scale=8;$bonded_tokens/$staking_total_supply" | bc)")
+  bonded_ratio=$(printf "%.18f" "$(echo "scale=18;$bonded_tokens/$staking_total_supply" | bc)")
   printf "current staking bonded ratio:\t\t%s\n" "$(printf "%.6f" "$(echo "scale=6;$bonded_ratio*100/1" | bc)")%"
   printf "    |-> bonded_ratio = bonded_tokens / staking_total_supply\n"
   printf "\n"
@@ -154,7 +169,7 @@ function show_mint_info() {
   fi
 
   # inflation_per_block = (1 - bonded_ratio/goal_bonded) * inflation_rate_change / blocks_per_year
-  inflation_per_block=$(printf "%.8f" "$(echo "scale=8;(1 - $bonded_ratio/$goal_bonded) * $inflation_rate_change / $blocks_per_year" | bc)")
+  inflation_per_block=$(printf "%.18f" "$(echo "scale=18;(1 - $bonded_ratio/$goal_bonded) * $inflation_rate_change / $blocks_per_year" | bc)")
   printf "current mint inflation per block:\t%s\n" "$(printf "%.6f" "$(echo "scale=6;$inflation_per_block*100/1" | bc)")%"
   printf "    |-> inflation_per_block = (1 - bonded_ratio/goal_bonded) * inflation_rate_change / blocks_per_year\n"
 
@@ -171,28 +186,44 @@ function show_mint_info() {
   # average inflation per block = annual_provisions / blocks_per_year
   average_inflation_per_block=$(echo "scale=2;$annual_provisions/$blocks_per_year" | bc)
   printf "average inflation per block:\t\t%s\n" "$(echo "scale=2;$average_inflation_per_block/10^18" | bc)"
+  printf "    |-> average_inflation_per_block = annual_provisions / blocks_per_year\n"
   printf "\n"
 
   check_command python3
   printf "expected after %s days: (only for reference, not accurate)\n" "$after_days"
-  # blocks_per_day = blocks_per_year / 365
-  blocks_per_day=$(echo "$blocks_per_year/365" | bc)
-  # inflation_after_days = inflation * (1 + inflation_per_block) ^ (after_days * blocks_per_day)
-  # inflation_after_days=$(echo "scale=8;$inflation * ((1+$inflation_per_block)^($after_days*$blocks_per_day))" | bc)
-  inflation_after_days=$(python3 -c "print ($inflation * ((1+$inflation_per_block)**($after_days*$blocks_per_day)))")
-  printf "    inflation:\t\t\t\t%s\n" "$(echo "scale=6;$inflation_after_days*100/1" | bc)%"
-  # if inflation_after_days < min inflation or inflation_after_days > max inflation, then print warning
-  if [[ "$(echo "$inflation_after_days < $min_inflation_rate" | bc)" -eq 1 ]]; then
-    printf "        |-> ⚠️ in blockchain, inflation will not decrease after inflation < min_inflation_rate\n"
-  fi
-  if [[ "$(echo "$inflation_after_days > $max_inflation_rate" | bc)" -eq 1 ]]; then
-    printf "        |-> ⚠️ in blockchain, inflation will not increase after inflation > max_inflation_rate\n"
-  fi
+  real_avg_block_time=$(avg_block_time_interval)
+  python3 <<EOF
+inflation = $inflation
+inflation_per_block = $inflation_per_block
+total_supply = $total_supply
+real_avg_block_per_day = int(24*3600/$real_avg_block_time)
+inflation_history = []
+total_supply_history = []
+per=1
+if ($after_days >= 30) : per=10
+if ($after_days >= 180) : per=30
+print("\t\t\ttotal supply \t\tinflation")
 
-  # calculate mint denom total supply after days
-  # total_supply_after_days=$(echo "scale=2;$total_supply * ((1+$inflation_per_block)^($after_days*$blocks_per_day))" | bc)
-  total_supply_after_days=$(python3 -c "print ($total_supply/10**18 * ((1+$inflation_per_block)**($after_days*$blocks_per_day)))")
-  printf "    mint token total supply:\t\t%s\n" "$total_supply_after_days"
+for i in range($after_days*real_avg_block_per_day+1):
+    inflation = inflation + inflation_per_block
+    annual_provisions = inflation * $staking_total_supply
+    total_supply = total_supply + (annual_provisions/(365*real_avg_block_per_day))
+    if i != 0 and (i/real_avg_block_per_day) % per == 0:
+        inflation_history.append(inflation)
+        total_supply_history.append(total_supply)
+        continue
+    if $after_days*real_avg_block_per_day == i:
+        inflation_history.append(inflation)
+        total_supply_history.append(total_supply)
+
+last = len(total_supply_history)-1
+for i in range(last):
+    print("    after %3d days\t%.6f\t%.2f%%" % ((i+1)*per, total_supply_history[i]/10**18, inflation_history[i]*100))
+
+print("    after %3d days\t%.6f\t%.2f%%" % ($after_days, total_supply_history[last]/10**18, inflation_history[last]*100))
+EOF
+  printf "    |-> ⚠️ in blockchain, inflation will not decrease after inflation < min_inflation_rate\n"
+  printf "    |-> ⚠️ in blockchain, inflation will not increase after inflation > max_inflation_rate\n"
 }
 
 function help() {
