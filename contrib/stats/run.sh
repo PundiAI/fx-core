@@ -24,6 +24,55 @@ if [ -z "$MINT_DENOM" ]; then
   MINT_DENOM=$(curl -s "$REST_RPC/cosmos/mint/v1beta1/params" | jq -r '.params.mint_denom') || echo "failed to get mint_denom"
 fi
 
+function datetime_since() {
+  python3 -c "import time; print((time.mktime(time.strptime('${1%.*}', '%Y-%m-%dT%H:%M:%S'))-time.mktime(time.strptime('${2%.*}', '%Y-%m-%dT%H:%M:%S'))))"
+}
+
+function datetime_add() {
+  second=$(echo "${2:-0}" | bc)
+  python3 -c "import time; print(time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(time.mktime(time.strptime('${1%.*}', '%Y-%m-%dT%H:%M:%S'))+$second)))"
+}
+
+function get_latest_block_and_time() {
+  # get latest block header
+  latest_block_header=$(curl -s "$REST_RPC/cosmos/base/tendermint/v1beta1/blocks/latest" | jq -r '.block.header')
+  # get latest block time
+  latest_block_time=$(echo "$latest_block_header" | jq -r '.time')
+  # get latest block height
+  latest_block_height=$(echo "$latest_block_header" | jq -r '.height')
+  echo "$latest_block_height $latest_block_time"
+}
+
+function avg_block_time_interval() {
+  local block_interval=20000
+  read -r latest_block_height latest_block_time < <(get_latest_block_and_time)
+  # get block time of latest_block - block_interval
+  block_time=$(curl -s "$REST_RPC/cosmos/base/tendermint/v1beta1/blocks/$((latest_block_height - block_interval))" | jq -r '.block.header.time')
+  # calculate avg block time interval
+  block_time_interval=$(datetime_since "$latest_block_time" "$block_time")
+  python3 -c "print($block_time_interval/$block_interval)"
+}
+
+function calc_upgrade_height() {
+  local upgrade_time=${1:-$(datetime_add "$(date -u +%FT%T)" "14*3600")}
+  real_block_time_interval=$(avg_block_time_interval)
+  echo "real_block_time_interval: $real_block_time_interval"
+  read -r latest_block_height latest_block_time < <(get_latest_block_and_time)
+  echo "latest_block_height: $latest_block_height, latest_block_time: $latest_block_time"
+  block_time_interval=$(datetime_since "$upgrade_time" "$latest_block_time")
+  echo "upgrade height: $(echo "$latest_block_height+($block_time_interval)/$real_block_time_interval" | bc)"
+}
+
+function calc_upgrade_time() {
+  local upgrade_height=${1:-$(curl -s "$REST_RPC/cosmos/base/tendermint/v1beta1/status" | jq -r '.sync_info.latest_block_height')}
+  real_block_time_interval=$(avg_block_time_interval)
+  echo "real_block_time_interval: $real_block_time_interval"
+  read -r latest_block_height latest_block_time < <(get_latest_block_and_time)
+  echo "latest_block_height: $latest_block_height, latest_block_time: $latest_block_time"
+  block_time_interval=$(echo "$upgrade_height-$latest_block_height" | bc)
+  echo "upgrade time: $(datetime_add "$latest_block_time" "$block_time_interval*$real_block_time_interval")"
+}
+
 function show_validator_reward() {
   local decimals=18
   {
@@ -89,21 +138,6 @@ function show_module_account() {
     balance=$(echo "${balance:-0} / 10^$decimals" | bc)
     printf "%-25s %-45s %-20s %s\n" "$name" "$address" "$permissions" "$balance$denom"
   done < <(curl -s "$REST_RPC/cosmos/auth/v1beta1/module_accounts" | jq -r '.accounts[]|"\(.name) \(.base_account.address) \(.permissions)"')
-}
-
-function avg_block_time_interval() {
-  local block_interval=20000
-  # get latest block header
-  latest_block_header=$(curl -s "$REST_RPC/cosmos/base/tendermint/v1beta1/blocks/latest" | jq -r '.block.header')
-  # get latest block time
-  latest_block_time=$(echo "$latest_block_header" | jq -r '.time')
-  # get latest block height
-  latest_block=$(echo "$latest_block_header" | jq -r '.height')
-  # get block time of latest_block - block_interval
-  block_time=$(curl -s "$REST_RPC/cosmos/base/tendermint/v1beta1/blocks/$((latest_block - block_interval))" | jq -r '.block.header.time')
-  # calculate avg block time interval
-  block_time_interval=$(python3 -c "from datetime import datetime; print((datetime.strptime('${latest_block_time%.*}', '%Y-%m-%dT%H:%M:%S')-datetime.strptime('${block_time%.*}', '%Y-%m-%dT%H:%M:%S')).total_seconds())")
-  python3 -c "print($block_time_interval/$block_interval)"
 }
 
 function show_mint_info() {
@@ -191,12 +225,12 @@ function show_mint_info() {
 
   check_command python3
   printf "expected after %s days: (only for reference, not accurate)\n" "$after_days"
-  real_avg_block_time=$(avg_block_time_interval)
+  real_block_time_interval=$(avg_block_time_interval)
   python3 <<EOF
 inflation = $inflation
 inflation_per_block = $inflation_per_block
 total_supply = $total_supply
-real_avg_block_per_day = int(24*3600/$real_avg_block_time)
+real_avg_block_per_day = int(24*3600/$real_block_time_interval)
 inflation_history = []
 total_supply_history = []
 per=1
