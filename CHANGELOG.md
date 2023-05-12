@@ -35,6 +35,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v4.1.x]
+
+### Bug Fixes
+
+* Fix: WFX Token contract code
+* Fix: can not transfer shares when redelegate
+* Fix: add gravity module to ibc router
+
+---
+
 ## [v4.0.0]
 
 ### Features
