@@ -19,8 +19,8 @@ const prefixFlag = "prefix"
 
 func ParseAddressCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "parse [address or name]",
-		Short: "Parse address from hex to bech32 and vice versa",
+		Use:   "decode [address or name]",
+		Short: "Decode address from hex to bech32 and vice versa",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
