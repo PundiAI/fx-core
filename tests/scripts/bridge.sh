@@ -137,6 +137,21 @@ function send_to_fx() {
   done < <(jq -c '.[]' "$bridge_contract_file")
 }
 
+function request_batch() {
+  local chain_name=("$@")
+  for chain in "${chain_name[@]}"; do
+    length=$(cosmos_query "$chain" batch-fees | jq '.batch_fees | length')
+    if [ "$length" -eq 0 ]; then
+      continue
+    fi
+
+    while read -r token_contract; do
+      denom=$(cosmos_query "$chain" denom "$token_contract" | jq -r '.denom')
+      cosmos_tx "$chain" build-batch "$denom" "1" "1" "$(show_address "$FROM" -e)" --from "$FROM"
+    done < <(jq -r '.[] | "\(.token_contract)"' "$(cosmos_query "$chain" batch-fees)")
+  done
+}
+
 function run_test() {
   "$PROJECT_DIR"/tests/scripts/fxcore.sh init
 
