@@ -179,7 +179,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockch
 	newClient := grpc.NewClient(cliCtx)
 	_, err := newClient.GetBlockHeight()
 	if err == nil {
-		fmt.Printf("%sRemote Node: %s %s\n", SPACE, serverCtx.Viper.GetString(flags.FlagNode), grpcAddr)
+		fmt.Printf("%sRemote Node: %s %s\n", SPACE, cliCtx.NodeURI, grpcAddr)
 		return newClient, nil
 	}
 	if len(grpcAddr) > 0 {
@@ -294,9 +294,11 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 			fmt.Printf("%sVersion: V2\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV4 {
 			fmt.Printf("%sVersion: V3\n", SPACE)
+		} else if blockHeight < fxtypes.TestnetBlockHeightV41 {
+			fmt.Printf("%sVersion: V4\n", SPACE)
 		}
 	}
-	return plan != nil && syncing, nil
+	return plan != nil, nil
 }
 
 func checkAppConfig(viper *viper.Viper) error {
@@ -371,9 +373,6 @@ func checkCosmovisor(rootPath string, bc blockchain) error {
 		}
 		v := string(bytes.Trim(output, "\n"))
 		fmt.Printf("%s%sfxcored version: %s\n", SPACE, SPACE, v)
-		if dir == "current" && !strings.HasPrefix(v, "release/v3.1.x") {
-			fmt.Printf("%s%sWarning: current fxcored version is not v3.1.x\n", SPACE, SPACE)
-		}
 	}
 
 	upgradesPath := filepath.Join(cosmovisorPath, "upgrades")
@@ -403,7 +402,7 @@ func checkCosmovisor(rootPath string, bc blockchain) error {
 		}
 		v := string(bytes.Trim(output, "\n"))
 		fmt.Printf("%s%s%sfxcored version: %s\n", SPACE, SPACE, SPACE, v)
-		if !strings.HasPrefix(v, "release/v"+entry.Name()[len(entry.Name())-1:]) {
+		if !(strings.HasPrefix(v, "release/v"+entry.Name()[len(entry.Name())-1:]) || strings.HasPrefix(v, "release/"+entry.Name())) {
 			fmt.Printf("%s%s%sWarning: fxcored version is not match upgrade plan\n", SPACE, SPACE, SPACE)
 		}
 		upgradeInfoFile := filepath.Join(upgradesPath, entry.Name(), upgradetypes.UpgradeInfoFilename)
