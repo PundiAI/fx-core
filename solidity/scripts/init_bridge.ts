@@ -14,16 +14,16 @@ async function main() {
         console.error("BRIDGE_CONFIG_FILE or REST_RPC is not set")
         return
     }
+    const bridge_info: BridgeInfo = JSON.parse(fs.readFileSync(config_file, 'utf8'))
 
-    const bridge_info: BridgeInfo[] = JSON.parse(fs.readFileSync(config_file, 'utf8'))
 
-    for (let i = 0; i < bridge_info.length; i++) {
-        const bridge_logic_factory = await ethers.getContractFactory(bridge_info[i].bridge_contract)
+    for (const externalChain of bridge_info.external_chain_list) {
+        const bridge_logic_factory = await ethers.getContractFactory(externalChain.bridge_contract)
+        const proxy = await ethers.getContractAt("ITransparentUpgradeableProxy", externalChain.bridge_contract_address as string)
 
-        const proxy = await ethers.getContractAt("ITransparentUpgradeableProxy", bridge_info[i].bridge_contract_address as string)
 
-        const oracle_set = await GetOracleSet(rest_rpc, bridge_info[i].chain_name)
-        const gravity_id_str = await GetGravityId(rest_rpc, bridge_info[i].chain_name)
+        const oracle_set = await GetOracleSet(rest_rpc, externalChain.chain_name)
+        const gravity_id_str = await GetGravityId(rest_rpc, externalChain.chain_name)
         const gravity_id = ethers.utils.formatBytes32String(gravity_id_str);
 
         const external_addresses = [];
@@ -36,6 +36,7 @@ async function main() {
             powers_sum += oracle_set.members[i].power;
         }
 
+
         if (powers_sum < vote_power) {
             console.error("Incorrect power! Please inspect the oracle set")
             console.log(`Current oracle set:\n${oracle_set}`)
@@ -45,20 +46,26 @@ async function main() {
         const init_data = bridge_logic_factory.interface.encodeFunctionData('init', [
             gravity_id, vote_power, external_addresses, powers
         ])
-
-        await proxy.upgradeToAndCall(bridge_info[i].bridge_logic_address, init_data)
+        
+        await proxy.upgradeToAndCall(externalChain.bridge_logic_address, init_data)
         await proxy.changeAdmin(signers[signers.length - 1].address)
 
-        console.log(`init ${bridge_info[i].chain_name} bridge done`)
+        const bridge_contract = await ethers.getContractAt(externalChain.bridge_contract, externalChain.bridge_contract_address as string)
 
-        const bridge_contract = await ethers.getContractAt(bridge_info[i].bridge_contract, bridge_info[i].bridge_contract_address as string)
-
-        for (let j = 0; j < bridge_info[i].bridge_token.length; j++) {
-            const ibc = ethers.utils.formatBytes32String(bridge_info[i].bridge_token[j].target_ibc || "")
-            bridge_contract.addBridgeToken(bridge_info[i].bridge_token[j].address, ibc, bridge_info[i].bridge_token[j].is_original)
+        for (const oneToOne of bridge_info.bridge_token_list.one_to_one) {
+            if (oneToOne.chain_name == externalChain.chain_name) {
+                const ibc = ethers.utils.formatBytes32String(oneToOne.target_ibc || "")
+                bridge_contract.addBridgeToken(oneToOne.address, ibc, oneToOne.is_original)
+            }
         }
-
-        console.log(`${bridge_info[i].chain_name} add bridge token done`)
+        for (const oneToMany of bridge_info.bridge_token_list.one_to_many) {
+            for (const chain of oneToMany.chain_list) {
+                if (chain.chain_name == externalChain.chain_name) {
+                    const ibc = ethers.utils.formatBytes32String(chain.target_ibc || "")
+                    bridge_contract.addBridgeToken(chain.address, ibc, chain.is_original)
+                }
+            }
+        }
     }
 }
 

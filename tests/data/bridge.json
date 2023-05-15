@@ -1,9 +1,18 @@
-[
-  {
-    "chain_name": "eth",
-    "bridge_contract": "FxBridgeLogicETH",
-    "bridge_token": [
+{
+  "external_chain_list": [
+    {
+      "chain_name": "eth",
+      "bridge_contract": "FxBridgeLogicETH"
+    },
+    {
+      "chain_name": "bsc",
+      "bridge_contract": "FxBridgeLogicBSC"
+    }
+  ],
+  "bridge_token_list": {
+    "one_to_one": [
       {
+        "chain_name": "eth",
         "name": "Function X",
         "symbol": "FX",
         "decimals": 18,
@@ -11,19 +20,15 @@
         "is_original": true
       },
       {
-        "name": "Pundi X",
+        "chain_name": "eth",
+        "name": "Pundi X Token",
         "symbol": "PUNDIX",
         "decimals": 18,
         "total_supply": "258498693019069996455928086",
         "is_original": false
-      }
-    ]
-  },
-  {
-    "chain_name": "bsc",
-    "bridge_contract": "FxBridgeLogicBSC",
-    "bridge_token": [
+      },
       {
+        "chain_name": "bsc",
         "name": "PURSE TOKEN",
         "symbol": "PURSE",
         "decimals": 18,
@@ -31,6 +36,26 @@
         "is_original": true,
         "target_ibc": "transfer/channel-0"
       }
+    ],
+    "one_to_many": [
+      {
+        "name": "Tether USD",
+        "symbol": "USDT",
+        "base_denom": "usdt",
+        "decimals": 6,
+        "chain_list": [
+          {
+            "chain_name": "eth",
+            "total_supply": "1000000000000",
+            "is_original": false
+          },
+          {
+            "chain_name": "bsc",
+            "total_supply": "1000000000000",
+            "is_original": false
+          }
+        ]
+      }
     ]
   }
-]
+}

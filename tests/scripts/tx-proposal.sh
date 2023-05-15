@@ -25,6 +25,9 @@ function get_proposal_template() {
 function query_min_deposit() {
   local msg_type=$1 amount=$2
   if [[ -z "$msg_type" ]]; then
+    if [[ "$(cosmos_version | grep "v3")" != "" ]]; then
+      echo "$(cosmos_query gov params | jq -r '.deposit_params.min_deposit[]|select(.denom=="'"$STAKING_DENOM"'")|.amount')$STAKING_DENOM" && return
+    fi
     echo "$(cosmos_query gov params | jq -r '.params.min_deposit[]|select(.denom=="'"$STAKING_DENOM"'")|.amount')$STAKING_DENOM" && return
   fi
 
@@ -47,8 +50,8 @@ function vote() {
   local option=$1 proposal_id=${2:-""}
 
   if [[ -z "$proposal_id" ]]; then
-    proposal_id="$(cosmos_query gov proposals --status=voting_period | jq -r '.proposals[0].id')"
-    [[ -z "$proposal_id" ]] && proposal_id="$(cosmos_query gov proposals --status=voting_period | jq -r '.proposals[0].PROPOSAL_ID')"
+    proposal_id="$(cosmos_query gov proposals --status=voting_period | jq -r '.proposals[0].proposal_id')"
+    [[ -z "$proposal_id" ]] && proposal_id="$(cosmos_query gov proposals --status=voting_period | jq -r '.proposals[0].id')"
   fi
 
   [[ "$(cosmos_query gov proposal "${proposal_id}" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]] &&

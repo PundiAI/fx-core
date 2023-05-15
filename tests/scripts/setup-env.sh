@@ -35,6 +35,8 @@ export FROM=${FROM:-"test1"}
 
 export DOCKER_NETWORK=${DOCKER_NETWORK:-"test-net"}
 
+mkdir -p "${OUT_DIR}"
+
 function check_command() {
   commands=("$@")
   for cmd in "${commands[@]}"; do
@@ -109,6 +111,10 @@ function cosmos_query() {
   $DAEMON query "$@" --node="$NODE_RPC" --home="$NODE_HOME"
 }
 
+function cosmos_version() {
+  $DAEMON version
+}
+
 function to_18() {
   echo "$1 * 10^18" | bc
 }
@@ -138,7 +144,7 @@ function gen_cosmos_genesis() {
 
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$FROM" --recover --home "$NODE_HOME"
   genesis_amount="$(to_18 "10^5")${STAKING_DENOM}"
-  [[ -n "$MINT_DENOM" && "$STAKING_DENOM" != "$MINT_DENOM" ]] && genesis_amount="$genesis_amount,$(to_18 "10^5")${MINT_DENOM}"
+  [[ -n "$MINT_DENOM" && "$STAKING_DENOM" != "$MINT_DENOM" ]] && genesis_amount="$genesis_amount,$(to_18 "10^6")${MINT_DENOM}"
   $DAEMON add-genesis-account "$FROM" "$genesis_amount" --home "$NODE_HOME"
 
   set +e && supply="$($DAEMON validate-genesis --home "$NODE_HOME" 2>&1 | grep "expected .*$STAKING_DENOM" | cut -d " " -f 14)" && set -e
@@ -186,7 +192,7 @@ function validators_list() {
 
 function add_key() {
   local name=$1 index=$2
-  $DAEMON keys show "$name" --home "$NODE_HOME" >/dev/null 2>&1 && return 0
+  $DAEMON keys delete "$name" --home "$NODE_HOME" -y >/dev/null 2>&1
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$name" --index "$index" --home "$NODE_HOME" --recover
 }
 

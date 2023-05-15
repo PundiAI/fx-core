@@ -7,8 +7,10 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 function run() {
   "${script_dir}/setup-env.sh" create_docker_network
 
-  "${script_dir}/fxcore.sh" init
-  "${script_dir}/fxcore.sh" start
+  (
+    "${script_dir}/fxcore.sh" init
+    "${script_dir}/fxcore.sh" start
+  )
 
   (
     export IBC_CHANNEL="channel-0"

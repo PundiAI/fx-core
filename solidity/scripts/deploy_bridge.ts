@@ -2,22 +2,48 @@ import {ethers} from "hardhat";
 
 const fs = require('fs')
 
-export type BridgeToken = {
+export type BridgeTokenList = {
+    one_to_one: OneToOne[]
+    one_to_many: OneToMany[]
+}
+
+export type OneToOne = {
+    chain_name: string
     name: string
     symbol: string
     decimals: number
+    total_supply: string
+    is_original: boolean
+    target_ibc: string
+    address?: string
+}
+
+export type OneToManyChain = {
+    chain_name: string
     total_supply: string
     is_original: boolean
     target_ibc?: string
     address?: string
 }
 
-export type BridgeInfo = {
+export type OneToMany = {
+    name: string
+    symbol: string
+    decimals: number
+    base_denom: string
+    chain_list: OneToManyChain[]
+}
+
+export type ExternalChain = {
     chain_name: string
     bridge_contract: string
     bridge_logic_address?: string
     bridge_contract_address?: string
-    bridge_token: BridgeToken[]
+}
+
+export type BridgeInfo = {
+    external_chain_list: ExternalChain[]
+    bridge_token_list: BridgeTokenList
 }
 
 async function main() {
@@ -31,38 +57,46 @@ async function main() {
         return
     }
 
-    const bridge_info: BridgeInfo[] = JSON.parse(fs.readFileSync(config_file, 'utf8'))
+    const bridge_info: BridgeInfo = JSON.parse(fs.readFileSync(config_file, 'utf8'))
 
-    for (let i = 0; i < bridge_info.length; i++) {
-        for (let j = 0; j < bridge_info[i].bridge_token.length; j++) {
-            const erc20_factory = await ethers.getContractFactory("ERC20TokenTest");
-
-            const erc20 = await erc20_factory.deploy(
-                bridge_info[i].bridge_token[j].name,
-                bridge_info[i].bridge_token[j].symbol,
-                bridge_info[i].bridge_token[j].decimals,
-                bridge_info[i].bridge_token[j].total_supply
-            );
-            await erc20.deployed();
-            console.log(`${bridge_info[i].bridge_token[j].symbol} deployed to: ${erc20.address}`);
-
-            bridge_info[i].bridge_token[j].address = erc20.address
-        }
-
-        const bridge_logic_factory = await ethers.getContractFactory(bridge_info[i].bridge_contract)
+    for (let i = 0; i < bridge_info.external_chain_list.length; i++) {
+        const bridge_logic_factory = await ethers.getContractFactory(bridge_info.external_chain_list[i].bridge_contract)
         const bridge_logic = await bridge_logic_factory.deploy();
         await bridge_logic.deployed();
-        bridge_info[i].bridge_logic_address = bridge_logic.address
+        bridge_info.external_chain_list[i].bridge_logic_address = bridge_logic.address
 
         const proxy_factory = await ethers.getContractFactory("TransparentUpgradeableProxy");
         const proxy = await proxy_factory.deploy(bridge_logic.address, signers[0].address, "0x");
         await proxy.deployed();
-
-        console.log("Bridge logic deployed to:", bridge_logic.address);
-        console.log("Bridge proxy deployed to:", proxy.address);
-        bridge_info[i].bridge_contract_address = proxy.address
+        bridge_info.external_chain_list[i].bridge_contract_address = proxy.address
     }
 
+    const erc20_factory = await ethers.getContractFactory("ERC20TokenTest");
+
+    for (let i = 0; i < bridge_info.bridge_token_list.one_to_one.length; i++) {
+        const erc20 = await erc20_factory.deploy(
+            bridge_info.bridge_token_list.one_to_one[i].name,
+            bridge_info.bridge_token_list.one_to_one[i].symbol,
+            bridge_info.bridge_token_list.one_to_one[i].decimals,
+            bridge_info.bridge_token_list.one_to_one[i].total_supply
+        );
+        await erc20.deployed();
+        bridge_info.bridge_token_list.one_to_one[i].address = erc20.address
+    }
+
+    for (let i = 0; i < bridge_info.bridge_token_list.one_to_many.length; i++) {
+        for (let j = 0; j < bridge_info.bridge_token_list.one_to_many[i].chain_list.length; j++) {
+            const erc20 = await erc20_factory.deploy(
+                bridge_info.bridge_token_list.one_to_many[i].name,
+                bridge_info.bridge_token_list.one_to_many[i].symbol,
+                bridge_info.bridge_token_list.one_to_many[i].decimals,
+                bridge_info.bridge_token_list.one_to_many[i].chain_list[j].total_supply
+            );
+            await erc20.deployed();
+            bridge_info.bridge_token_list.one_to_many[i].chain_list[j].address = erc20.address
+        }
+    }
+    console.log(JSON.stringify(bridge_info, null, 2))
     fs.writeFile(out_file, JSON.stringify(bridge_info, null, 2), function (err: any) {
         if (err) return console.error(err);
     });
