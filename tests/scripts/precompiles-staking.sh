@@ -185,9 +185,17 @@ function get_allowance_shares() {
   evm_command call "$contract" "allowanceShares(string,address,address)(uint256)" "$validator_address" "$owner" "$spender"
 }
 
+# Import assertion file
+function assert() {
+  "${script_dir}/assert.sh" "$@"
+}
+
 # use contract <true|false>
 # DESC: address or contract for delegation
 function staking_delegate_test() {
+
+  assert log_header "Test assert : staking_delegate_test"
+
   local use_contract="$1"
 
   validate_input "$use_contract"
@@ -198,6 +206,9 @@ function staking_delegate_test() {
   validator_address=$(echo "${validators_list}" | jq -r '.[0]')
   local del_address
   del_address=$(show_address "${FROM}" "-e")
+  local delegate_amount
+  delegate_amount=$(to_18 "10^2")
+
   local contract
   if [[ "$use_contract" == "true" ]]; then
     echo "use contract delegate"
@@ -207,22 +218,30 @@ function staking_delegate_test() {
     contract="$contract_address"
   fi
 
-  send_delegate "$contract" "$validator_address" "$(to_18 "10^2")"
+  assert assert_not_empty "$(send_delegate "$contract" "$validator_address" "$delegate_amount")" "send delegate not empty"
 
-  get_delegation_info "$contract" "$validator_address" "$del_address"
+  delegation_info=$(get_delegation_info "$contract" "$validator_address" "$del_address")
+  assert assert_ge "$(awk 'NR==1' <(echo "$delegation_info"))" "$delegate_amount" "delegation amount greater than or equal to delegate amount"
 
-  get_delegation_rewards "$contract_address" "$validator_address" "$del_address"
+  rewards_amount="$(get_delegation_rewards "$contract_address" "$validator_address" "$del_address")"
+  assert assert_gt "${rewards_amount}" 0 "delegation reward is greater than 0"
 
-  send_withdraw "$contract" "$validator_address"
+  assert assert_not_empty "$(send_withdraw "$contract" "$validator_address")" "send withdraw not empty"
 
-  send_undelegate "$contract" "$validator_address" "$(to_18 "10^2")"
+  assert assert_not_empty "$(send_undelegate "$contract" "$validator_address" "$delegate_amount")" "send undelegate not empty"
 
-  get_delegation_info "$contract" "$validator_address" "$del_address"
+  undelegate_delegation_info=$(get_delegation_info "$contract" "$validator_address" "$del_address")
+  undelegate_amount=$(echo "$(awk 'NR==1' <(echo "$delegation_info"))" - "$(awk 'NR==1' <(echo "$undelegate_delegation_info"))" | bc)
+
+  assert assert_eq "$delegate_amount" "$undelegate_amount" "unbound amount is equal"
 }
 
 # use contract <true|false>
 # DESC: Address or contract for delegated transfer shares
 function staking_shares_test() {
+
+  assert log_header "Test assert : staking_shares_test"
+
   local use_contract="$1"
 
   validate_input "$use_contract"
@@ -234,6 +253,10 @@ function staking_shares_test() {
   validator_address=$(echo "${validators_list}" | jq -r '.[0]')
   local del_address
   del_address=$(show_address "$FROM" "-e")
+
+  local delegate_amount
+  delegate_amount=$(to_18 "10^2")
+
   local contract
   local receipt_address
   if [[ "$use_contract" == "true" ]]; then
@@ -249,17 +272,38 @@ function staking_shares_test() {
     receipt_address=$(show_address "$receipt_name" "-e")
     cosmos_transfer "$receipt_name" 10
   fi
-  send_delegate "$contract" "$validator_address" "$(to_18 "200")"
-  get_delegation_info "$contract" "$validator_address" "$del_address"
-  send_transfer_shares "$contract" "$validator_address" "$receipt_address" "$(to_18 "200")"
-  get_delegation_info "$contract" "$validator_address" "$del_address"
-  get_delegation_info "$contract" "$validator_address" "$receipt_address"
-  send_approve_shares "$contract_address" "$validator_address" "$del_address" "$(to_18 "200")" "$path_index"
-  get_allowance_shares "$contract_address" "$validator_address" "$receipt_address" "$del_address"
-  send_transfer_from_shares "$contract" "$validator_address" "$receipt_address" "$del_address" "$(to_18 "200")"
-  get_delegation_info "$contract" "$validator_address" "$del_address"
-  get_delegation_info "$contract" "$validator_address" "$receipt_address"
-  get_allowance_shares "$contract_address" "$validator_address" "$receipt_address" "$del_address"
+
+  assert assert_not_empty "$(send_delegate "$contract" "$validator_address" "$delegate_amount")" "send delegate not empty"
+
+  delegate_info_by_del_address=$(get_delegation_info "$contract" "$validator_address" "$del_address")
+  assert assert_ge "$(awk 'NR==1' <(echo "$delegate_info_by_del_address"))" "$delegate_amount" "$del_address delegation amount greater than or equal to $delegate_amount"
+
+  assert assert_not_empty "$(send_transfer_shares "$contract" "$validator_address" "$receipt_address" "$(awk 'NR==2' <(echo "$delegate_info_by_del_address"))")" "send transfer shares not empty"
+
+  delegate_info_by_del_address_after_transfer_shares=$(get_delegation_info "$contract" "$validator_address" "$del_address")
+  assert assert_eq "$(awk 'NR==1' <(echo "$delegate_info_by_del_address_after_transfer_shares"))" 0 "$del_address transfer shares after amount is zero"
+
+  delegate_info_by_receipt_address_after_transfer_shares=$(get_delegation_info "$contract" "$validator_address" "$receipt_address")
+  assert assert_ge "$(awk 'NR==1' <(echo "$delegate_info_by_receipt_address_after_transfer_shares"))" "$(awk 'NR==1' <(echo "$delegate_info_by_del_address"))" "$receipt_address delegation amount greater than or equal to $delegate_amount"
+
+  assert assert_not_empty "$(send_approve_shares "$contract_address" "$validator_address" "$del_address" "$delegate_amount" "$path_index")" "$receipt_address approve shares not empty"
+
+  allowance_shares=$(get_allowance_shares "$contract_address" "$validator_address" "$receipt_address" "$del_address")
+  assert assert_gt "$allowance_shares" 0 "allowance shares greater than 0"
+
+  assert assert_not_empty "$(send_transfer_from_shares "$contract" "$validator_address" "$receipt_address" "$del_address" "$delegate_amount")" "send transfer from shares not empty"
+
+  allowance_shares=$(get_allowance_shares "$contract_address" "$validator_address" "$receipt_address" "$del_address")
+  assert assert_eq "$allowance_shares" 0 "allowance shares equal to 0"
+
+  delegate_info_by_del_address_after_transfer_from_shares=$(get_delegation_info "$contract" "$validator_address" "$del_address")
+  delegate_info_by_del_address=$(echo "$(awk 'NR==1' <(echo "$delegate_info_by_del_address_after_transfer_from_shares"))" - "$(awk 'NR==1' <(echo "$delegate_info_by_del_address_after_transfer_shares"))" | bc)
+
+  delegate_info_by_receipt_address_after_transfer_from_shares=$(get_delegation_info "$contract" "$validator_address" "$receipt_address")
+  delegate_info_by_receipt_address=$(echo "$(awk 'NR==1' <(echo "$delegate_info_by_receipt_address_after_transfer_shares"))" - "$(awk 'NR==1' <(echo "$delegate_info_by_receipt_address_after_transfer_from_shares"))" | bc)
+
+  assert assert_eq "$delegate_info_by_del_address" "$delegate_info_by_receipt_address" "transfer from shares amount successfully"
+  assert assert_eq "$delegate_info_by_del_address" "$delegate_amount" "transfer from shares amount is equal to delegate amount"
 }
 
 # DESC: Start node
