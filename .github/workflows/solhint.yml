@@ -8,6 +8,13 @@ on:
     paths:
       - "solidity/contracts/**"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
 jobs:
   solhint:
     name: runner solhint
@@ -15,4 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          check-latest: false
+          cache: "yarn"
+          cache-dependency-path: solidity/yarn.lock
       - run: cd solidity && yarn install && yarn lint:sol

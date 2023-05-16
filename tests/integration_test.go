@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -19,6 +20,10 @@ type IntegrationTest struct {
 }
 
 func TestIntegrationTest(t *testing.T) {
+	if os.Getenv("TEST_INTEGRATION") != "true" {
+		t.Skip("skip integration test")
+	}
+
 	testSuite := NewTestSuite()
 	suite.Run(t, &IntegrationTest{
 		TestSuite: testSuite,

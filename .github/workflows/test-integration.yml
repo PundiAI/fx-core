@@ -1,12 +1,8 @@
-name: Tests
+name: TestIntegration
 
 on:
-  push:
-    tags:
-      - v*
-    branches:
-      - main
-  pull_request:
+  schedule:
+    - cron: "0 0 * * 1,3,5"
 
 permissions:
   contents: read
@@ -16,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
+  test-integration:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,8 +23,8 @@ jobs:
       - name: Run go mod
         run: make go.sum
 
-      - name: Run make build
-        run: make build
+      - name: Run TestIntegrationTest
+        run: go test -mod=readonly -v -run TestIntegrationTest ./tests
+        env:
+          TEST_INTEGRATION: true
 
-      - name: Run make test
-        run: make test
