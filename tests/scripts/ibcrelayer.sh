@@ -5,9 +5,9 @@ set -eo pipefail
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
 
-readonly a_chain_name="fxcore"
-readonly b_chain_name="pundix"
-readonly account_index=1
+a_chain_name=${IBC_A_CHAIN_NAME:-"fxcore"}
+b_chain_name=${IBC_B_CHAIN_NAME:-"pundix"}
+account_index=${IBC_ACCOUNT_INDEX:-"1"}
 readonly ibc_from="ibc-$FROM"
 
 readonly docker_name="ibc-relay"
@@ -46,16 +46,26 @@ function init() {
   b_chain_id=$(jq -r '.chain_id' "$OUT_DIR/$b_chain_name.json")
 
   a_gas_price=$(jq -r '.gas_prices' "$OUT_DIR/$a_chain_name.json")
-  a_staking_denom=$(jq -r '.staking_denom' "$OUT_DIR/$a_chain_name.json")
-  a_gas_price=${a_gas_price%"${a_staking_denom}"}
+  a_fee_denom=$(jq -r '.fee_denom' "$OUT_DIR/$a_chain_name.json")
+  [[ -z "$a_fee_denom" || "$a_fee_denom" == "null" ]] && a_fee_denom=$(jq -r '.staking_denom' "$OUT_DIR/$a_chain_name.json")
+  a_gas_price=${a_gas_price%"${a_fee_denom}"}
   b_gas_price=$(jq -r '.gas_prices' "$OUT_DIR/$b_chain_name.json")
-  b_staking_denom=$(jq -r '.staking_denom' "$OUT_DIR/$b_chain_name.json")
-  b_gas_price=${b_gas_price%"${b_staking_denom}"}
+  b_fee_denom=$(jq -r '.fee_denom' "$OUT_DIR/$b_chain_name.json")
+  [[ -z "$b_fee_denom" || "$b_fee_denom" == "null" ]] && b_fee_denom=$(jq -r '.staking_denom' "$OUT_DIR/$b_chain_name.json")
+  b_gas_price=${b_gas_price%"${b_fee_denom}"}
 
   a_rpc_addr=$(jq -r ".node_rpc" "$OUT_DIR/$a_chain_name.json")
   a_websocket_addr=${a_rpc_addr/http/ws}/websocket
   b_rpc_addr=$(jq -r ".node_rpc" "$OUT_DIR/$b_chain_name.json")
   b_websocket_addr=${b_rpc_addr/http/ws}/websocket
+
+  a_grpc_addr=$(jq -r ".node_grpc" "$OUT_DIR/$a_chain_name.json")
+  b_grpc_addr=$(jq -r ".node_grpc" "$OUT_DIR/$b_chain_name.json")
+
+  a_trusting_period=$(jq -r ".trusting_period" "$OUT_DIR/$a_chain_name.json")
+  b_trusting_period=$(jq -r ".trusting_period" "$OUT_DIR/$b_chain_name.json")
+  [[ -z "$a_trusting_period" || "$a_trusting_period" == "null" ]] && a_trusting_period="20days"
+  [[ -z "$b_trusting_period" || "$b_trusting_period" == "null" ]] && b_trusting_period="20days"
 
   # config: https://hermes.informal.systems/documentation/configuration/description.html
   cat >"${ibc_home_dir}"/config.toml <<EOF
@@ -97,7 +107,7 @@ port = 3001
 # Specify the chain ID. Required
 id = '$a_chain_id'
 rpc_addr = '$a_rpc_addr'
-grpc_addr = 'http://$(jq -r ".node_grpc" "$OUT_DIR/$a_chain_name.json")'
+grpc_addr = '$a_grpc_addr'
 websocket_addr = '$a_websocket_addr'
 rpc_timeout = '10s'
 account_prefix = '$(jq -r ".bech32_prefix" "$OUT_DIR/$a_chain_name.json")'
@@ -106,13 +116,13 @@ address_type = { derivation = 'ethermint', proto_type = { pk_type = '/ethermint.
 store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 800000
-gas_price = { price = ${a_gas_price}, denom = '$(jq -r ".staking_denom" "$OUT_DIR/$a_chain_name.json")' }
+gas_price = { price = ${a_gas_price}, denom = '$a_fee_denom' }
 gas_multiplier = 1.1
 max_msg_num = 30
-max_tx_size = 2097152
+max_tx_size = 1048576
 clock_drift = '5s'
 max_block_time = '30s'
-trusting_period = '20days'
+trusting_period = '$a_trusting_period'
 trust_threshold = { numerator = '2', denominator = '3' }
 memo_prefix = ''
 [chains.packet_filter]
@@ -124,7 +134,7 @@ list = [
 [[chains]]
 id = '$b_chain_id'
 rpc_addr = '$b_rpc_addr'
-grpc_addr = 'http://$(jq -r ".node_grpc" "$OUT_DIR/$b_chain_name.json")'
+grpc_addr = '$b_grpc_addr'
 websocket_addr = '$b_websocket_addr'
 rpc_timeout = '10s'
 account_prefix = '$(jq -r ".bech32_prefix" "$OUT_DIR/$b_chain_name.json")'
@@ -133,13 +143,13 @@ address_type = { derivation = 'cosmos' }
 store_prefix = 'ibc'
 default_gas = 100000
 max_gas = 400000
-gas_price = { price = ${b_gas_price}, denom = '$(jq -r ".staking_denom" "$OUT_DIR/$b_chain_name.json")' }
+gas_price = { price = ${b_gas_price}, denom = '$b_fee_denom' }
 gas_multiplier = 1.1
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'
 max_block_time = '30s'
-trusting_period = '20days'
+trusting_period = '$b_trusting_period'
 trust_threshold = { numerator = '2', denominator = '3' }
 [chains.packet_filter]
 policy = 'allow'
@@ -154,7 +164,14 @@ EOF
 
   config_check
 
-  create_channel
+  a_chain_account=$(jq -r ".account" "$OUT_DIR/.hermes/keys/$a_chain_id/keyring-test/$ibc_from.json")
+  b_chain_account=$(jq -r ".account" "$OUT_DIR/.hermes/keys/$b_chain_id/keyring-test/$ibc_from.json")
+
+  echo -e "\n====================== ibc relay account ======================"
+  echo -e "$a_chain_id \t $a_chain_account"
+  echo -e "$b_chain_id \t $b_chain_account"
+  echo -e "====================== ibc relay account ======================\n"
+  echo "please ensure the above addresses have tokens before running the create channel and start"
 }
 
 function import_key() {
@@ -168,6 +185,8 @@ function import_key() {
 }
 
 function create_channel() {
+  a_chain_id=$(jq -r '.chain_id' "$OUT_DIR/$a_chain_name.json")
+  b_chain_id=$(jq -r '.chain_id' "$OUT_DIR/$b_chain_name.json")
   docker_run --rm create channel --a-chain "${a_chain_id}" --b-chain "${b_chain_id}" --a-port transfer --b-port transfer --new-client-connection --yes
 }
 

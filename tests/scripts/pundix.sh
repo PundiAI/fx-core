@@ -48,7 +48,7 @@ function init() {
 {
   "chain_id": "$CHAIN_ID",
   "node_rpc": "$NODE_RPC",
-  "node_grpc": "$NODE_GRPC",
+  "node_grpc": "http://${NODE_GRPC}",
   "rest_rpc": "$REST_RPC",
   "node_home": "$NODE_HOME",
   "mint_denom": "$MINT_DENOM",

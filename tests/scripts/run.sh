@@ -5,7 +5,10 @@ set -eo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 function run() {
-  "${script_dir}/setup-env.sh" create_docker_network
+  (
+    . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
+    create_docker_network
+  )
 
   (
     "${script_dir}/fxcore.sh" init
@@ -21,6 +24,7 @@ function run() {
 
     "${script_dir}/ibcrelayer.sh" transfer
     "${script_dir}/ibcrelayer.sh" init
+    "${script_dir}/ibcrelayer.sh" create_channel
     "${script_dir}/ibcrelayer.sh" start
   )
 
