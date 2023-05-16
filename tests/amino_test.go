@@ -252,6 +252,17 @@ func TestAminoEncode(t *testing.T) {
 				Metadata:       "",
 			},
 		},
+		{
+			name:     "gov-v1-MsgVote",
+			expected: `{"type":"cosmos-sdk/v1/MsgVote","value":{"metadata":"foo","option":1,"proposal_id":"1","voter":"foo"}}`,
+			amino:    govv1.ModuleCdc.LegacyAmino,
+			msg: govv1.MsgVote{
+				ProposalId: 1,
+				Voter:      "foo",
+				Option:     1,
+				Metadata:   "foo",
+			},
+		},
 	}
 
 	for _, testcase := range testcases {
