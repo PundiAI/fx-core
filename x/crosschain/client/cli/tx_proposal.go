@@ -2,7 +2,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -18,7 +17,7 @@ import (
 func CmdUpdateChainOraclesProposal(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-crosschain-oracles [oracles]",
-		Short: fmt.Sprintf("update %s oracles", chainName),
+		Short: "Submit a update cross chain oracles proposal",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
