@@ -20,7 +20,7 @@ function get_proposal_template() {
   jq -r --arg msg_type "$msg_type" '.[]|select(.msg_type == $msg_type)' "$proposals_file" >"$OUT_DIR/${msg_type##*.}.json"
 }
 
-## ARGS: <msg_type> [<amount>]
+## ARGS: [<msg_type>] [<amount>]
 ## DESC: query min deposit
 function query_min_deposit() {
   local msg_type=$1 amount=$2
@@ -44,7 +44,13 @@ function query_min_deposit() {
   echo "${base_deposit}${STAKING_DENOM}"
 }
 
-## ARGS:  <option> [<proposal_id>]
+## ARGS: <proposal_id> <deposit_amount>
+function deposit() {
+  local proposal_id=$1 deposit_amount=$2
+  cosmos_tx gov deposit "$proposal_id" "$(to_18 "$deposit_amount")$STAKING_DENOM" --from "$FROM"
+}
+
+## ARGS: <option> [<proposal_id>]
 ## DESC: vote proposal
 function vote() {
   local option=$1 proposal_id=${2:-""}
@@ -64,6 +70,27 @@ function vote() {
     echo "wait for voting period"
     sleep 1
   done
+}
+
+## ARGS: <subspace> <key> <value>
+function param_change() {
+  local subspace=$1 key=$2 value=$3
+
+  min_deposit=$(query_min_deposit)
+  cosmos_tx gov submit-proposal param-change <(
+    cat <<EOF
+{
+  "title":"Change Genesis Params",
+    "description": "test",
+    "changes": [{
+      "subspace": "$subspace",
+      "key": "$key",
+      "value": "$value"
+    }],
+  "deposit": "$min_deposit"
+}
+EOF
+  ) --from "$FROM"
 }
 
 ## ARGS: <proposal_file>
