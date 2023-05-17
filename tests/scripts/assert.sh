@@ -35,9 +35,10 @@ function assert_eq() {
 
   if [ "$expected" == "$actual" ]; then
     log_success "PASS: $msg"
+    return 0
   else
     log_failure "FAIL: Expected '$expected' but got '$actual'. $msg"
-    exit 1
+    return 1
   fi
 }
 
@@ -48,9 +49,10 @@ function assert_not_eq() {
 
   if [ ! "$expected" == "$actual" ]; then
     log_success "PASS: $msg"
+    return 0
   else
     log_failure "FAIL: Expected not '$expected' but got '$actual'. $msg"
-    exit 1
+    return 1
   fi
 }
 
@@ -86,16 +88,53 @@ function assert_not_empty() {
   return "$?"
 }
 
+function assert_contain() {
+  local haystack="$1"
+  local needle="${2-}"
+  local msg="${3-}"
+
+  if [ -z "${needle:+x}" ]; then
+    return 0
+  fi
+
+  if [ -z "${haystack##*"${needle}"*}" ]; then
+    log_success "PASS: $msg"
+    return 0
+  else
+    log_failure "$haystack doesn't contain $needle. $msg"
+    return 1
+  fi
+}
+
+function assert_not_contain() {
+  local haystack="$1"
+  local needle="${2-}"
+  local msg="${3-}"
+
+  if [ -z "${needle:+x}" ]; then
+    return 0
+  fi
+
+  if [ "${haystack##*"${needle}"*}" ]; then
+    log_success "PASS: $msg"
+    return 0
+  else
+    log_failure "$haystack contains $needle. $msg"
+    return 1
+  fi
+}
+
 function assert_gt() {
   local first="$1"
   local second="$2"
   local msg="${3-}"
 
-  if [[ "$(echo "$first - $second" | bc)" -gt 0 ]]; then
+  if [[ $(echo "$first > $second" | bc) -eq 1 ]]; then
     log_success "PASS: $msg"
+    return 0
   else
     log_failure "$first > $second. $msg"
-    exit 1
+    return 1
   fi
 }
 
@@ -104,11 +143,12 @@ function assert_ge() {
   local second="$2"
   local msg="${3-}"
 
-  if [[ "$(echo "$first - $second" | bc)" -ge 0 ]]; then
+  if [[ $(echo "$first >= $second" | bc) -eq 1 ]]; then
     log_success "PASS: $msg"
+    return 0
   else
     log_failure "$first >= $second. $msg"
-    exit 1
+    return 1
   fi
 }
 
@@ -117,11 +157,12 @@ function assert_lt() {
   local second="$2"
   local msg="${3-}"
 
-  if [[ "$(echo "$first - $second" | bc)" -lt 0 ]]; then
+  if [[ $(echo "$first < $second" | bc) -eq 1 ]]; then
     log_success "PASS: $msg"
+    return 0
   else
     log_failure "$first < $second. $msg"
-    exit 1
+    return 1
   fi
 }
 
@@ -130,11 +171,12 @@ function assert_le() {
   local second="$2"
   local msg="${3-}"
 
-  if [[ "$(echo "$first - $second" | bc)" -le 0 ]]; then
+  if [[ $(echo "$first <= $second" | bc) -eq 1 ]]; then
     log_success "PASS: $msg"
+    return 0
   else
     log_failure "$first <= $second. $msg"
-    exit 1
+    return 1
   fi
 }
 
