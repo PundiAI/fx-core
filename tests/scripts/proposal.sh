@@ -76,17 +76,40 @@ function param_change() {
   local subspace=$1 key=$2 value=$3
 
   min_deposit=$(query_min_deposit)
-  cosmos_tx gov submit-proposal param-change <(
+  cosmos_tx gov submit-legacy-proposal param-change <(
     cat <<EOF
 {
   "title":"Change Genesis Params",
-    "description": "test",
-    "changes": [{
+  "description": "test",
+  "changes": [
+    {
       "subspace": "$subspace",
       "key": "$key",
       "value": "$value"
-    }],
-  "deposit": "$min_deposit"
+    }
+  ],
+  "deposit": "$min_deposit$STAKING_DENOM"
+}
+EOF
+  ) --from "$FROM"
+}
+
+## ARGS: <receive_address> <spend_amount> [<denom>]
+function spend_community_pool_proposal() {
+  local receive_address=$1 spend_amount=$2 denom=${3:-$STAKING_DENOM}
+
+  current_community_pool_balance=$(cosmos_query distribution community-pool | jq -r ".pool[]|select(.denom == \"$denom\")|.amount")
+  echo "the community pool balance is: $(from_18 "$current_community_pool_balance")$denom"
+
+  min_deposit=$(query_min_deposit)
+  cosmos_tx gov submit-legacy-proposal community-pool-spend <(
+  cat <<EOF
+{
+  "title":"Spend Community Pool",
+  "description": "test",
+  "recipient": "$receive_address",
+  "amount": "$spend_amount$denom
+  "deposit": "$min_deposit$STAKING_DENOM"
 }
 EOF
   ) --from "$FROM"
