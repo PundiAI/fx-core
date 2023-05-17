@@ -14,7 +14,7 @@ export NODE_HOME="$OUT_DIR/.fxcore"
 export LOCAL_PORT=${LOCAL_PORT:-"8545"}
 
 function proposal() {
-  "${PROJECT_DIR}/tests/scripts/tx-proposal.sh" "$@"
+  "${PROJECT_DIR}/tests/scripts/proposal.sh" "$@"
 }
 
 function proposal_register_coin() {
@@ -36,7 +36,20 @@ function create_oracles() {
       bridger_address=$(add_key "$chain-bridger-$i" "$((index + 1))" | jq -r ".address")
       external_address=$(show_address "$chain-bridger-$i" -e)
 
-      jq -cs add "$oracle_file" <(echo "[{\"oracle_name\":\"$chain-oracle-$i\",\"oracle_address\":\"$oracle_address\",\"bridge_name\":\"$chain-bridger-$i\",\"bridge_address\":\"$bridger_address\",\"external_address\":\"$external_address\",\"oracle_index\":\"$index\",\"bridge_index\":\"$((index + 1))\"}]") >"$oracle_file.tmp" &&
+      cat >"$oracle_file.new" <<EOF
+[
+  {
+    "oracle_name": "$chain-oracle-$i",
+    "oracle_address": "$oracle_address",
+    "bridge_name": "$chain-bridger-$i",
+    "bridge_address": "$bridger_address",
+    "external_address": "$external_address",
+    "oracle_index": "$index",
+    "bridge_index": "$((index + 1))"
+  }
+]
+EOF
+      jq -cs add "$oracle_file" "$oracle_file.new" >"$oracle_file.tmp" &&
         mv "$oracle_file.tmp" "$oracle_file"
       index=$((index + 2))
     done
@@ -47,7 +60,10 @@ function update_crosschain_oracles() {
   local chain_name=("$@")
   for chain in "${chain_name[@]}"; do
     local oracle_file="$OUT_DIR/$chain-bridge-oracle.json"
-    [ ! -f "$oracle_file" ] && continue
+    [[ ! -f "$oracle_file" ]] && continue
+
+    # todo: get oracle address list from oracle_file using jq join
+    # oracles_list=$(jq -r '.[].oracle_address | join(",")' "$oracle_file")
     oracles=()
     while read -r oracle_address; do
       oracles+=("$oracle_address")
@@ -72,7 +88,7 @@ function create_oracle_bridger() {
   local chain_name=("$@")
   for chain in "${chain_name[@]}"; do
     local oracle_file="$OUT_DIR/$chain-bridge-oracle.json"
-    [ ! -f "$oracle_file" ] && continue
+    [[ ! -f "$oracle_file" ]] && continue
 
     min_deposit=$(proposal query_min_deposit)
     validator_address=$(show_address "$FROM" -a --bech val)
@@ -228,9 +244,7 @@ function request_batch() {
       length=$(cosmos_query "$chain" batch-fees | jq '.batch_fees | length')
     fi
 
-    if [ "$length" -eq 0 ]; then
-      continue
-    fi
+    [[ "$length" -eq 0 ]] && continue
 
     while read -r token_contract; do
 

@@ -6,6 +6,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 function run() {
   (
+    # shellcheck source=/dev/null
     . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
     create_docker_network
   )

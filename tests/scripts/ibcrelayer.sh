@@ -27,8 +27,7 @@ function transfer() {
 }
 
 function docker_run() {
-  local opts=$1
-  shift
+  local opts=$1 && shift
   local args=("$@")
   local name=$docker_name
 

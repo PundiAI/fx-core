@@ -73,8 +73,7 @@ function help() {
 
 ## ARGS: <json_file> <jq_opt...>
 function json_processor() {
-  local json_file=$1
-  shift
+  local json_file=$1 && shift
   local jq_opt=("$@")
 
   jq "${jq_opt[@]}" "$json_file" >"$json_file.tmp" &&
@@ -96,6 +95,7 @@ function echo_error() {
   echo -e "\\033[31m$*\\033[m"
 }
 
+## ARGS: <args...>
 function cosmos_tx() {
   $DAEMON tx "$@" --gas-prices="$GAS_PRICES" --gas=auto --gas-adjustment="$GAS_ADJUSTMENT" --node="$NODE_RPC" --home="$NODE_HOME" -y
 }
@@ -107,6 +107,7 @@ function cosmos_transfer() {
   cosmos_tx bank send "$FROM" "$to_address" "$(to_18 "$amount")$denom" --from "$FROM"
 }
 
+## ARGS: <args...>
 function cosmos_query() {
   $DAEMON query "$@" --node="$NODE_RPC" --home="$NODE_HOME"
 }
@@ -148,7 +149,7 @@ function gen_cosmos_genesis() {
   $DAEMON add-genesis-account "$FROM" "$genesis_amount" --home "$NODE_HOME"
 
   set +e && supply="$($DAEMON validate-genesis --home "$NODE_HOME" 2>&1 | grep "expected .*$STAKING_DENOM" | cut -d " " -f 14)" && set -e
-  if [ -n "$supply" ]; then
+  if [[ -n "$supply" ]]; then
     json_processor "$NODE_HOME/config/genesis.json" ".app_state.bank.supply[0].amount = \"${supply%%"$STAKING_DENOM"}\""
   fi
 
@@ -180,8 +181,7 @@ function node_catching_up() {
 }
 
 function show_address() {
-  local from=${1:-"$FROM"}
-  shift
+  local from=${1:-"$FROM"} && shift
   local flags=("$@")
   $DAEMON keys show "$from" "${flags[@]}" --home "$NODE_HOME"
 }
@@ -213,8 +213,7 @@ function convert_ibc_denom() {
 }
 
 function docker_run() {
-  local opts=$1
-  shift
+  local opts=$1 && shift
   local args=("$@")
   local name=$CHAIN_NAME
   [[ "$opts" == "--rm" ]] && name="$name-tmp"

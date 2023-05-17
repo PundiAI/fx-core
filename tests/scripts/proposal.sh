@@ -99,7 +99,7 @@ function submit_proposal() {
   local proposal_file=$1
   msg_type=$(jq -r '.msg_type' "$proposal_file")
 
-  if [ "$msg_type" == "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal" ]; then
+  if [[ "$msg_type" == "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal" ]]; then
     deposit=$(query_min_deposit "$msg_type" "$(jq -r '.amount' "$proposal_file")")
     json_processor "$proposal_file" '.deposit = "'"$deposit"'"'
 
