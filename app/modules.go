@@ -50,6 +50,7 @@ import (
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	"github.com/functionx/fx-core/v3/x/bsc"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	crosschainclient "github.com/functionx/fx-core/v3/x/crosschain/client"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/erc20"
 	erc20client "github.com/functionx/fx-core/v3/x/erc20/client"
@@ -118,6 +119,7 @@ var ModuleBasics = module.NewBasicManager(
 		erc20client.RegisterERC20ProposalHandler,
 		erc20client.ToggleTokenConversionProposalHandler,
 		erc20client.UpdateDenomAliasProposalHandler,
+		crosschainclient.UpdateChainOraclesProposalHandler,
 	}...),
 	params.AppModuleBasic{},
 	crisis.AppModuleBasic{},

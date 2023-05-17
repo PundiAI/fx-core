@@ -4,123 +4,122 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-const (
-	flagChannelIBC = "channelIBC"
-)
-
-func GetQueryCmd() *cobra.Command {
+func GetQueryCmd(subCmd ...*cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands from cross chain",
+		Short:                      "Querying commands for the crosschain module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-
-	cmd.AddCommand([]*cobra.Command{
-		// query module params
-		CmdGetParams(),
-
-		// query Oracle
-		CmdGetOracles(),
-		CmdGetOracleReward(),
-		CmdGetOracleDelegateAddr(),
-		CmdGetProposalOracles(),
-		CmdGetOracleByAddr(),
-		CmdGetOracleByBridgerAddr(),
-		CmdGetOracleByExternalAddr(),
-
-		// query oracle set
-		CmdGetCurrentOracleSet(),
-		CmdGetOracleSetRequest(),
-
-		// need oracle consensus sign
-		// 1. oracle set change confirm
-		CmdGetLastOracleSetRequests(),
-		CmdGetPendingOracleSetRequest(),
-		CmdGetOracleSetConfirm(),
-		CmdGetOracleSetConfirms(),
-
-		// 2. request batch confirm
-		CmdGetPendingOutgoingTXBatchRequest(),
-		CmdBatchConfirm(),
-		CmdBatchConfirms(),
-
-		// send to external
-		CmdBatchRequestByNonce(),
-		CmdGetPendingSendToExternal(),
-		CmdOutgoingTxBatches(),
-		CmdGetBatchFees(),
-
-		CmdGetLastObservedBlockHeight(),
-		CmdProjectedBatchTimeoutHeight(),
-
-		// denom <-> external token
-		CmdGetDenomToExternalToken(),
-		CmdGetExternalTokenToDenom(),
-		CmdGetBridgeTokens(),
-
-		// 1. oracle event nonce
-		CmdGetOracleEventNonce(),
-		// 2. event nonce block height
-		CmdGetOracleEventBlockHeight(),
-
-		// help cmd.
-		CmdCovertBridgeToken(),
-	}...)
-
-	for _, command := range cmd.Commands() {
-		flags.AddQueryFlagsToCmd(command)
-	}
+	cmd.AddCommand(subCmd...)
 	return cmd
 }
 
-func CmdGetParams() *cobra.Command {
+func GetQuerySubCmds(chainName string) []*cobra.Command {
+	cmds := []*cobra.Command{
+		// query module params
+		CmdGetParams(chainName),
+
+		// query Oracle
+		CmdGetOracles(chainName),
+		CmdGetOracleReward(chainName),
+		CmdGetOracleDelegateAddr(chainName),
+		CmdGetProposalOracles(chainName),
+		CmdGetOracleByAddr(chainName),
+		CmdGetOracleByBridgerAddr(chainName),
+		CmdGetOracleByExternalAddr(chainName),
+
+		// query oracle set
+		CmdGetCurrentOracleSet(chainName),
+		CmdGetOracleSetRequest(chainName),
+
+		// need oracle consensus sign
+		// 1. oracle set change confirm
+		CmdGetLastOracleSetRequests(chainName),
+		CmdGetPendingOracleSetRequest(chainName),
+		CmdGetOracleSetConfirm(chainName),
+		CmdGetOracleSetConfirms(chainName),
+
+		// 2. request batch confirm
+		CmdGetPendingOutgoingTXBatchRequest(chainName),
+		CmdBatchConfirm(chainName),
+		CmdBatchConfirms(chainName),
+
+		// send to external
+		CmdBatchRequestByNonce(chainName),
+		CmdGetPendingSendToExternal(chainName),
+		CmdOutgoingTxBatches(chainName),
+		CmdGetBatchFees(chainName),
+
+		CmdGetLastObservedBlockHeight(chainName),
+		CmdProjectedBatchTimeoutHeight(chainName),
+
+		// denom <-> external token
+		CmdGetDenomToExternalToken(chainName),
+		CmdGetExternalTokenToDenom(chainName),
+		CmdGetBridgeTokens(chainName),
+
+		// 1. oracle event nonce
+		CmdGetOracleEventNonce(chainName),
+		// 2. event nonce block height
+		CmdGetOracleEventBlockHeight(chainName),
+
+		// help cmd.
+		CmdCovertBridgeToken(chainName),
+	}
+
+	for _, command := range cmds {
+		flags.AddQueryFlagsToCmd(command)
+	}
+	return cmds
+}
+
+func CmdGetParams(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "params [chain-name]",
+		Use:   "params",
 		Short: "Query the current parameters information",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
-			chainName := args[0]
-			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{ChainName: chainName})
+
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{
+				ChainName: chainName,
+			})
 			if err != nil {
 				return err
 			}
 			return clientCtx.PrintProto(&res.Params)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracles() *cobra.Command {
+func CmdGetOracles(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracles [chain-name]",
-		Short: "Query oracles",
-		Args:  cobra.ExactArgs(1),
+		Use:   "oracles",
+		Short: "Query current oracles",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
+
 			res, err := queryClient.Oracles(cmd.Context(), &types.QueryOraclesRequest{
-				ChainName: args[0],
+				ChainName: chainName,
 			})
 			if err != nil {
 				return err
@@ -128,26 +127,24 @@ func CmdGetOracles() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetProposalOracles() *cobra.Command {
+func CmdGetProposalOracles(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "proposal-oracles [chain-name]",
-		Short: "Query active oracles address",
-		Args:  cobra.ExactArgs(1),
+		Use:   "proposal-oracles",
+		Short: "Query proposal oracles address",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			req := abcitype.RequestQuery{
+
+			abciResp, err := clientCtx.QueryABCI(abcitype.RequestQuery{
 				Data: types.ProposalOracleKey,
-				Path: fmt.Sprintf("/store/%s/key", args[0]),
-			}
-			abciResp, err := clientCtx.QueryABCI(req)
+				Path: fmt.Sprintf("/store/%s/key", chainName),
+			})
 			if err != nil {
 				return err
 			}
-
 			var proposalOracle types.ProposalOracle
 			if err := clientCtx.LegacyAmino.Unmarshal(abciResp.Value, &proposalOracle); err != nil {
 				return err
@@ -155,282 +152,337 @@ func CmdGetProposalOracles() *cobra.Command {
 			return clientCtx.PrintProto(&proposalOracle)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracleReward() *cobra.Command {
+func CmdGetOracleReward(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reward [chain-name] [oracle-address]",
+		Use:   "reward [oracle-address]",
 		Short: "Query oracle reward",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := distrtypes.NewQueryClient(clientCtx)
 
-			oracleAddr, err := sdk.AccAddressFromBech32(args[1])
+			oracleAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-
-			data := append(oracleAddr.Bytes(), []byte(args[0])...)
-			queryClient := distrtypes.NewQueryClient(clientCtx)
+			data := append(oracleAddr.Bytes(), []byte(chainName)...)
 			rewards, err := queryClient.DelegationTotalRewards(cmd.Context(), &distrtypes.QueryDelegationTotalRewardsRequest{
 				DelegatorAddress: sdk.AccAddress(crypto.Keccak256(data)[12:]).String(),
 			})
 			if err != nil {
 				return err
 			}
-			if err != nil {
-				return err
-			}
 			return clientCtx.PrintProto(rewards)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracleDelegateAddr() *cobra.Command {
+func CmdGetOracleDelegateAddr(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "oracle-delegate [chain-name] [oracle-address]",
+		Use:    "oracle-delegate [oracle-address]",
 		Short:  "Query oracle delegate address",
 		Hidden: true,
-		Args:   cobra.ExactArgs(2),
+		Args:   cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			oracleAddr, err := sdk.AccAddressFromBech32(args[1])
+			oracleAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-			data := append(oracleAddr.Bytes(), []byte(args[0])...)
+			data := append(oracleAddr.Bytes(), []byte(chainName)...)
 			cmd.Println(sdk.AccAddress(crypto.Keccak256(data)[12:]).String())
 			return nil
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracleByAddr() *cobra.Command {
+func CmdGetOracleByAddr(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracle-by-addr [chain-name] [oracle-address]",
-		Short: "Query Oracle for a given oracle address",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			oracleAddress, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			req := &types.QueryOracleByAddrRequest{
-				OracleAddress: oracleAddress.String(),
-				ChainName:     args[0],
-			}
-			res, err := queryClient.GetOracleByAddr(cmd.Context(), req)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	return cmd
-}
-
-func CmdGetOracleByBridgerAddr() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "oracle-by-bridger [chain-name] [bridger-address]",
-		Short: "Query Oracle for a given bridger address",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			req := &types.QueryOracleByBridgerAddrRequest{
-				BridgerAddress: bridgerAddr.String(),
-				ChainName:      args[0],
-			}
-			res, err := queryClient.GetOracleByBridgerAddr(cmd.Context(), req)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	return cmd
-}
-
-func CmdGetOracleByExternalAddr() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "oracle-key-by-external-addr [chain-name] [external-address]",
-		Short: "Query Oracle by external address",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			externalAddress := args[1]
-			if strings.HasPrefix(externalAddress, "0x") {
-				if !gethcommon.IsHexAddress(externalAddress) {
-					return fmt.Errorf("target address is invalid!address: [%s]", externalAddress)
-				}
-				externalAddress = gethcommon.HexToAddress(externalAddress).Hex()
-			}
-
-			res, err := queryClient.GetOracleByExternalAddr(cmd.Context(), &types.QueryOracleByExternalAddrRequest{
-				ExternalAddress: externalAddress,
-				ChainName:       args[0],
-			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-	return cmd
-}
-
-func CmdGetCurrentOracleSet() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "current-oracle-set [chain-name]",
-		Short: "Query current oracle-set",
+		Use:   "oracle-by-addr [oracle-address]",
+		Short: "Query oracle for a given oracle address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.CurrentOracleSet(cmd.Context(), &types.QueryCurrentOracleSetRequest{
-				ChainName: args[0],
-			})
+			oracleAddress, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
+			res, err := queryClient.GetOracleByAddr(cmd.Context(), &types.QueryOracleByAddrRequest{
+				OracleAddress: oracleAddress.String(),
+				ChainName:     chainName,
+			})
+			if err != nil {
+				return err
+			}
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracleSetRequest() *cobra.Command {
+func CmdGetOracleByBridgerAddr(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracle-set-request [chain-name] [nonce]",
+		Use:   "oracle-by-bridger [bridger-address]",
+		Short: "Query oracle for a given bridger address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.GetOracleByBridgerAddr(cmd.Context(), &types.QueryOracleByBridgerAddrRequest{
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      chainName,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetOracleByExternalAddr(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "oracle-key-by-external-addr [external-address]",
+		Short: "Query oracle by external address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			externalAddress, err := getContractAddr(args[0])
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.GetOracleByExternalAddr(cmd.Context(), &types.QueryOracleByExternalAddrRequest{
+				ExternalAddress: externalAddress,
+				ChainName:       chainName,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetCurrentOracleSet(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "current-oracle-set",
+		Short: "Query current oracle-set",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.CurrentOracleSet(cmd.Context(), &types.QueryCurrentOracleSetRequest{
+				ChainName: chainName,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetOracleSetRequest(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "oracle-set-request [nonce]",
 		Short: "Query requested oracle-set with a particular nonce",
-		Args:  cobra.RangeArgs(1, 2),
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			var nonce uint64
-			if len(args) == 1 {
+			if len(args) == 0 {
 				queryAbciResp, err := clientCtx.QueryABCI(abcitype.RequestQuery{
-					Path: fmt.Sprintf("store/%s/key", args[0]),
+					Path: fmt.Sprintf("store/%s/key", chainName),
 					Data: types.LatestOracleSetNonce,
 				})
 				if err != nil {
 					return err
 				}
 				nonce = sdk.BigEndianToUint64(queryAbciResp.Value)
-				if err = clientCtx.PrintString(fmt.Sprintf("latest oracle-set nonce:[%d]\n", nonce)); err != nil {
-					return err
-				}
 			} else {
 				var err error
-				nonce, err = strconv.ParseUint(args[1], 10, 64)
+				nonce, err = strconv.ParseUint(args[0], 10, 64)
 				if err != nil {
 					return err
 				}
 			}
 			res, err := queryClient.OracleSetRequest(cmd.Context(), &types.QueryOracleSetRequestRequest{
-				ChainName: args[0],
+				ChainName: chainName,
 				Nonce:     nonce,
 			})
 			if err != nil {
 				return err
 			}
-
 			return clientCtx.PrintProto(res)
 		},
 	}
 	return cmd
 }
 
-func CmdGetLastOracleSetRequests() *cobra.Command {
+func CmdGetLastOracleSetRequests(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "last-oracle-set-requests [chain-name]",
+		Use:   "last-oracle-set-requests",
 		Short: "Query last oracle set requests",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.LastOracleSetRequests(cmd.Context(), &types.QueryLastOracleSetRequestsRequest{
+				ChainName: chainName,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetPendingOracleSetRequest(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-oracle-set-request [bridger]",
+		Short: "Query the latest oracle-set request which has not been signed by a particular oracle bridger",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			req := &types.QueryLastOracleSetRequestsRequest{
-				ChainName: args[0],
-			}
-
-			res, err := queryClient.LastOracleSetRequests(cmd.Context(), req)
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-
+			res, err := queryClient.LastPendingOracleSetRequestByAddr(cmd.Context(), &types.QueryLastPendingOracleSetRequestByAddrRequest{
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      chainName,
+			})
+			if err != nil {
+				return err
+			}
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetPendingOracleSetRequest() *cobra.Command {
+func CmdGetOracleSetConfirm(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-oracle-set-request [chain-name] [bridger]",
-		Short: "Query the latest oracle-set request which has not been signed by a particular oracle bridger",
+		Use:   "oracle-set-confirm [nonce] [bridger-address]",
+		Short: "Query oracle-set confirmation with a particular nonce from a particular oracle bridger",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
+			nonce, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
 			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
-
-			req := &types.QueryLastPendingOracleSetRequestByAddrRequest{
+			res, err := queryClient.OracleSetConfirm(cmd.Context(), &types.QueryOracleSetConfirmRequest{
+				Nonce:          nonce,
 				BridgerAddress: bridgerAddr.String(),
-				ChainName:      args[0],
-			}
-
-			res, err := queryClient.LastPendingOracleSetRequestByAddr(cmd.Context(), req)
+				ChainName:      chainName,
+			})
 			if err != nil {
 				return err
 			}
-
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracleSetConfirm() *cobra.Command {
+func CmdGetOracleSetConfirms(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracle-set-confirm [chain-name] [nonce] [bridger-address]",
-		Short: "Query oracle-set confirmation with a particular nonce from a particular oracle bridger",
+		Use:   "oracle-set-confirms [nonce]",
+		Short: "Query oracle-set confirmations with a particular nonce",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			nonce, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.OracleSetConfirmsByNonce(cmd.Context(), &types.QueryOracleSetConfirmsByNonceRequest{
+				Nonce:     nonce,
+				ChainName: chainName,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetPendingOutgoingTXBatchRequest(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-batch-request [bridger-address]",
+		Short: "Query the latest outgoing TX batch request which has not been signed by a particular oracle bridger address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.LastPendingBatchRequestByAddr(cmd.Context(), &types.QueryLastPendingBatchRequestByAddrRequest{
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      chainName,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdBatchConfirm(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "batch-confirm [token-contract] [nonce] [bridger-address]",
+		Short: "Query outgoing tx batches confirm by oracle bridger address",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
+			tokenContract, err := getContractAddr(args[0])
+			if err != nil {
+				return err
+			}
 			nonce, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
@@ -439,104 +491,8 @@ func CmdGetOracleSetConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.OracleSetConfirm(cmd.Context(), &types.QueryOracleSetConfirmRequest{
-				Nonce:          nonce,
-				BridgerAddress: bridgerAddr.String(),
-				ChainName:      args[0],
-			})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-	return cmd
-}
-
-func CmdGetOracleSetConfirms() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "oracle-set-confirms [chain-name] [nonce]",
-		Short: "Query oracle-set confirmations with a particular nonce",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			nonce, err := strconv.ParseUint(args[1], 10, 64)
-			if err != nil {
-				return err
-			}
-			res, err := queryClient.OracleSetConfirmsByNonce(cmd.Context(), &types.QueryOracleSetConfirmsByNonceRequest{
-				Nonce:     nonce,
-				ChainName: args[0],
-			})
-			if err != nil {
-				return err
-			}
-			if err = clientCtx.PrintString(fmt.Sprintf("confirm size:[%d]\n", len(res.Confirms))); err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-	return cmd
-}
-
-func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pending-batch-request [chain-name] [bridger-address]",
-		Short: "Query the latest outgoing TX batch request which has not been signed by a particular oracle bridger address",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.LastPendingBatchRequestByAddr(cmd.Context(), &types.QueryLastPendingBatchRequestByAddrRequest{
-				BridgerAddress: bridgerAddr.String(),
-				ChainName:      args[0],
-			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-	return cmd
-}
-
-func CmdBatchConfirm() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "batch-confirm [chain-name] [token-contract] [nonce] [bridger-address]",
-		Short: "Query outgoing tx batches confirm by oracle bridger address",
-		Args:  cobra.ExactArgs(4),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			tokenContract := args[1]
-			if strings.HasPrefix(tokenContract, "0x") {
-				if !gethcommon.IsHexAddress(tokenContract) {
-					return fmt.Errorf("contract address is invalid!address:[%s]", tokenContract)
-				}
-				tokenContract = gethcommon.HexToAddress(tokenContract).Hex()
-			}
-
-			nonce, err := strconv.ParseUint(args[2], 10, 64)
-			if err != nil {
-				return err
-			}
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[3])
-			if err != nil {
-				return err
-			}
 			res, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
-				ChainName:      args[0],
+				ChainName:      chainName,
 				TokenContract:  tokenContract,
 				Nonce:          nonce,
 				BridgerAddress: bridgerAddr.String(),
@@ -550,35 +506,29 @@ func CmdBatchConfirm() *cobra.Command {
 	return cmd
 }
 
-func CmdBatchConfirms() *cobra.Command {
+func CmdBatchConfirms(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "batch-confirms [chain-name] [token-contract] [nonce]",
+		Use:   "batch-confirms [token-contract] [nonce]",
 		Short: "Query outgoing tx batches confirms",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			tokenContract := args[1]
-			if strings.HasPrefix(tokenContract, "0x") {
-				if !gethcommon.IsHexAddress(tokenContract) {
-					return fmt.Errorf("contract address is invalid!address:[%s]", tokenContract)
-				}
-				tokenContract = gethcommon.HexToAddress(tokenContract).Hex()
+			tokenContract, err := getContractAddr(args[0])
+			if err != nil {
+				return err
 			}
-			nonce, err := strconv.Atoi(args[2])
+			nonce, err := strconv.Atoi(args[1])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.BatchConfirms(cmd.Context(), &types.QueryBatchConfirmsRequest{
 				TokenContract: tokenContract,
 				Nonce:         uint64(nonce),
-				ChainName:     args[0],
+				ChainName:     chainName,
 			})
 			if err != nil {
-				return err
-			}
-			if err = clientCtx.PrintString(fmt.Sprintf("confirm size:[%d]\n", len(res.Confirms))); err != nil {
 				return err
 			}
 			return clientCtx.PrintProto(res)
@@ -587,54 +537,53 @@ func CmdBatchConfirms() *cobra.Command {
 	return cmd
 }
 
-func CmdBatchRequestByNonce() *cobra.Command {
+func CmdBatchRequestByNonce(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "batch-request [chain-name] [token-contract] [nonce]",
+		Use:   "batch-request [token-contract] [nonce]",
 		Short: "Query outgoing tx batches",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			nonce, err := strconv.ParseUint(args[2], 10, 64)
+			tokenContract, err := getContractAddr(args[0])
 			if err != nil {
 				return err
 			}
-
+			nonce, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
 			res, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
-				ChainName:     args[0],
-				TokenContract: args[1],
+				ChainName:     chainName,
+				TokenContract: tokenContract,
 				Nonce:         nonce,
 			})
 			if err != nil {
 				return err
 			}
-
 			return clientCtx.PrintProto(res)
 		},
 	}
 	return cmd
 }
 
-func CmdGetPendingSendToExternal() *cobra.Command {
+func CmdGetPendingSendToExternal(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-send-to-external [chain-name] [address]",
+		Use:   "pending-send-to-external [address]",
 		Short: "Query pending send to external txs",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
-			chainName := args[0]
-			if err := types.ValidateModuleName(chainName); err != nil {
-				return err
-			}
-			fxAddr := args[1]
-			if _, err := sdk.AccAddressFromBech32(fxAddr); err != nil {
+
+			addr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
 				return nil
 			}
 			res, err := queryClient.GetPendingSendToExternal(cmd.Context(), &types.QueryPendingSendToExternalRequest{
 				ChainName:     chainName,
-				SenderAddress: fxAddr,
+				SenderAddress: addr.String(),
 			})
 			if err != nil {
 				return err
@@ -645,39 +594,38 @@ func CmdGetPendingSendToExternal() *cobra.Command {
 	return cmd
 }
 
-func CmdOutgoingTxBatches() *cobra.Command {
+func CmdOutgoingTxBatches(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "outgoing-tx-batches [chain-name]",
+		Use:   "outgoing-tx-batches",
 		Short: "Query outgoing tx batches",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.OutgoingTxBatches(cmd.Context(), &types.QueryOutgoingTxBatchesRequest{
-				ChainName: args[0],
+				ChainName: chainName,
 			})
 			if err != nil {
 				return err
 			}
-
 			return clientCtx.PrintProto(res)
 		},
 	}
 	return cmd
 }
 
-func CmdGetBatchFees() *cobra.Command {
+func CmdGetBatchFees(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "batch-fees [chain-name]",
+		Use:   "batch-fees",
 		Short: "Query a list of send to external transaction fees to be processed",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.BatchFees(cmd.Context(), &types.QueryBatchFeeRequest{
-				ChainName: args[0],
+				ChainName: chainName,
 			})
 			if err != nil {
 				return err
@@ -685,21 +633,20 @@ func CmdGetBatchFees() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetLastObservedBlockHeight() *cobra.Command {
+func CmdGetLastObservedBlockHeight(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "last-observed-block-height [chain-name]",
+		Use:   "last-observed-block-height",
 		Short: "Query last observed block height",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.LastObservedBlockHeight(cmd.Context(), &types.QueryLastObservedBlockHeightRequest{
-				ChainName: args[0],
+				ChainName: chainName,
 			})
 			if err != nil {
 				return err
@@ -710,17 +657,17 @@ func CmdGetLastObservedBlockHeight() *cobra.Command {
 	return cmd
 }
 
-func CmdProjectedBatchTimeoutHeight() *cobra.Command {
+func CmdProjectedBatchTimeoutHeight(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "projected-batch-timeout-height [chain-name]",
+		Use:   "projected-batch-timeout-height",
 		Short: "Query projected batch timeout height",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.ProjectedBatchTimeoutHeight(cmd.Context(), &types.QueryProjectedBatchTimeoutHeightRequest{
-				ChainName: args[0],
+				ChainName: chainName,
 			})
 			if err != nil {
 				return err
@@ -731,160 +678,144 @@ func CmdProjectedBatchTimeoutHeight() *cobra.Command {
 	return cmd
 }
 
-func CmdGetDenomToExternalToken() *cobra.Command {
+func CmdGetDenomToExternalToken(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "token [chain-name] [denom]",
+		Use:   "token [denom]",
 		Short: "Query contract address from denom",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			res, err := queryClient.DenomToToken(cmd.Context(), &types.QueryDenomToTokenRequest{
-				ChainName: args[0],
-				Denom:     args[1],
-			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	return cmd
-}
-
-func CmdGetExternalTokenToDenom() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "denom [chain-name] [token-contract]",
-		Short: "Query denom from contract address",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			tokenAddress := args[1]
-			if strings.HasPrefix(tokenAddress, "0x") {
-				if !gethcommon.IsHexAddress(tokenAddress) {
-					return fmt.Errorf("invalid contract address:%s", tokenAddress)
-				}
-				tokenAddress = gethcommon.HexToAddress(tokenAddress).Hex()
-			}
-
-			res, err := queryClient.TokenToDenom(cmd.Context(), &types.QueryTokenToDenomRequest{
-				ChainName: args[0],
-				Token:     tokenAddress,
-			})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	return cmd
-}
-
-func CmdGetBridgeTokens() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "bridge-tokens [chain-name]",
-		Short: "Query bridge token list",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.BridgeTokens(cmd.Context(), &types.QueryBridgeTokensRequest{
-				ChainName: args[0],
+			denom := args[0]
+			if err := sdk.ValidateDenom(denom); err != nil {
+				return err
+			}
+			res, err := queryClient.DenomToToken(cmd.Context(), &types.QueryDenomToTokenRequest{
+				ChainName: chainName,
+				Denom:     denom,
 			})
 			if err != nil {
 				return err
 			}
-
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracleEventNonce() *cobra.Command {
+func CmdGetExternalTokenToDenom(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "event-nonce [chain-name] [bridger-address]",
-		Short: "Query last event nonce by oracle bridger address",
-		Args:  cobra.ExactArgs(2),
+		Use:   "denom [token-contract]",
+		Short: "Query denom from contract address",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
+			tokenAddress, err := getContractAddr(args[0])
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.TokenToDenom(cmd.Context(), &types.QueryTokenToDenomRequest{
+				ChainName: chainName,
+				Token:     tokenAddress,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetBridgeTokens(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bridge-tokens",
+		Short: "Query bridge token list",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.BridgeTokens(cmd.Context(), &types.QueryBridgeTokensRequest{
+				ChainName: chainName,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetOracleEventNonce(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "event-nonce [bridger-address]",
+		Short: "Query last event nonce by bridger address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastEventNonceByAddr(cmd.Context(), &types.QueryLastEventNonceByAddrRequest{
-				ChainName:      args[0],
+				ChainName:      chainName,
 				BridgerAddress: bridgerAddr.String(),
 			})
 			if err != nil {
 				return err
 			}
-
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	return cmd
 }
 
-func CmdGetOracleEventBlockHeight() *cobra.Command {
+func CmdGetOracleEventBlockHeight(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "event-block-height [chain-name] [bridger-address]",
-		Short: "Query last event block height by oracle bridger address",
-		Args:  cobra.ExactArgs(2),
+		Use:   "event-block-height [bridger-address]",
+		Short: "Query last event block height by bridger address",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastEventBlockHeightByAddr(cmd.Context(), &types.QueryLastEventBlockHeightByAddrRequest{
 				BridgerAddress: bridgerAddr.String(),
-				ChainName:      args[0],
+				ChainName:      chainName,
 			})
 			if err != nil {
 				return err
 			}
-
 			return clientCtx.PrintProto(res)
 		},
 	}
 	return cmd
 }
 
-func CmdCovertBridgeToken() *cobra.Command {
+func CmdCovertBridgeToken(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "covert-bridge-token [chain-name] [token-contract]",
-		Short:   "Covert bridge claim token name",
-		Example: "fxcored q crosschain covert-bridge-token bsc 0x3f6795b8ABE0775a88973469909adE1405f7ac09 --channelIBC=transfer/channel-0",
-		Args:    cobra.ExactArgs(2),
+		Use:   "covert-bridge-token [token-contract] [channel ibc]",
+		Short: "Covert bridge claim token name",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			chainName := args[0]
-			if err := types.ValidateModuleName(chainName); err != nil {
-				return err
-			}
-			tokenContract := args[1]
-			if err := fxtypes.ValidateEthereumAddress(tokenContract); err != nil {
-				return err
-			}
-			channelIbc, err := cmd.Flags().GetString(flagChannelIBC)
+			tokenContract, err := getContractAddr(args[0])
 			if err != nil {
 				return err
 			}
+			channelIbc := args[1]
 			coinName := fmt.Sprintf("%s%s", chainName, tokenContract)
 			if len(channelIbc) > 0 {
 				coinName = tranfsertypes.DenomTrace{
@@ -892,17 +823,11 @@ func CmdCovertBridgeToken() *cobra.Command {
 					BaseDenom: coinName,
 				}.IBCDenom()
 			}
-			type output struct {
-				ChainName     string
-				TokenContract string
-				ChannelIbc    string
-				CoinName      string
-			}
-			indent, err := json.MarshalIndent(output{
-				ChainName:     chainName,
-				TokenContract: tokenContract,
-				ChannelIbc:    channelIbc,
-				CoinName:      coinName,
+			indent, err := json.MarshalIndent(map[string]interface{}{
+				"chain_name":     chainName,
+				"token_contract": tokenContract,
+				"channel_ibc":    channelIbc,
+				"coin_name":      coinName,
 			}, "", "  ")
 			if err != nil {
 				return err
@@ -910,6 +835,5 @@ func CmdCovertBridgeToken() *cobra.Command {
 			return clientCtx.PrintBytes(indent)
 		},
 	}
-	cmd.Flags().String(flagChannelIBC, "", "bridge bind channel: transfer/channel-0")
 	return cmd
 }

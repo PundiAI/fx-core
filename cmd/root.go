@@ -37,7 +37,12 @@ import (
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	avalanchecli "github.com/functionx/fx-core/v3/x/avalanche/client/cli"
+	bsccli "github.com/functionx/fx-core/v3/x/bsc/client/cli"
 	crosschaincli "github.com/functionx/fx-core/v3/x/crosschain/client/cli"
+	ethcli "github.com/functionx/fx-core/v3/x/eth/client/cli"
+	polygoncli "github.com/functionx/fx-core/v3/x/polygon/client/cli"
+	troncli "github.com/functionx/fx-core/v3/x/tron/client/cli"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -157,7 +162,13 @@ func queryCommand() *cobra.Command {
 		cli.QueryValidatorByConsAddr(),
 		cli.QueryBlockResultsCmd(),
 		gasprice.QueryCmd(),
-		crosschaincli.GetQueryCmd(),
+		crosschaincli.GetQueryCmd(
+			avalanchecli.GetQueryCmd(),
+			bsccli.GetQueryCmd(),
+			ethcli.GetQueryCmd(),
+			polygoncli.GetQueryCmd(),
+			troncli.GetQueryCmd(),
+		),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
@@ -184,7 +195,13 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		crosschaincli.GetTxCmd(),
+		crosschaincli.GetTxCmd(
+			avalanchecli.GetTxCmd(),
+			bsccli.GetTxCmd(),
+			ethcli.GetTxCmd(),
+			polygoncli.GetTxCmd(),
+			troncli.GetTxCmd(),
+		),
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)
