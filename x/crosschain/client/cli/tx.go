@@ -224,7 +224,7 @@ func CmdRequestBatch(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "build-batch [token-denom] [minimum-fee] [base-fee] [external-fee-receive]",
 		Short: "Build a new batch on the fx side for pooled withdrawal transactions",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
