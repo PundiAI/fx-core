@@ -65,7 +65,7 @@ function send_delegate() {
   validate_input "$validator_address"
   validate_input "$delegation_value"
 
-  evm_command send "$contract" "delegate(string)" "$validator_address" --value "$delegation_value" --index "$path_index" --disable-confirm true
+  evm_command send "$contract" "delegate(string)" "$validator_address" --value "$delegation_value" --index "$path_index"
 }
 
 # ARGS: [<contract_address>] [<validator_address>] [<path-index>]
@@ -77,7 +77,7 @@ function send_withdraw() {
 
   validate_input "$validator_address"
 
-  evm_command send "$contract" "withdraw(string)" "$validator_address" --index "$path_index" --disable-confirm true
+  evm_command send "$contract" "withdraw(string)" "$validator_address" --index "$path_index"
 }
 
 # ARGS: [<contract_address>] [<validator_address>] [<shares>] <path-index>
@@ -91,7 +91,7 @@ function send_undelegate() {
   validate_input "$validator_address"
   validate_input "$shares"
 
-  evm_command send "$contract" "undelegate(string,uint256)" "$validator_address" "$shares" --index "$path_index" --disable-confirm true
+  evm_command send "$contract" "undelegate(string,uint256)" "$validator_address" "$shares" --index "$path_index"
 }
 
 # ARGS: [<contract_address>] [<validator_address>] [<receipt_address>] [<shares>] <path-index>
@@ -107,7 +107,7 @@ function send_transfer_shares() {
   validate_input "$receipt_address"
   validate_input "$shares"
 
-  evm_command send "$contract" "transferShares(string,address,uint256)" "$validator_address" "$receipt_address" "$shares" --index "$path_index" --disable-confirm true
+  evm_command send "$contract" "transferShares(string,address,uint256)" "$validator_address" "$receipt_address" "$shares" --index "$path_index"
 }
 
 # ARGS: [<contract_address>] [<validator_address>] [<owner>] [<spender>] [<shares>] <path-index>
@@ -123,7 +123,7 @@ function send_approve_shares() {
   validate_input "$spender"
   validate_input "$shares"
 
-  evm_command send "$contract" "approveShares(string,address,uint256)" "$validator_address" "$spender" "$shares" --index "$path_index" --disable-confirm true
+  evm_command send "$contract" "approveShares(string,address,uint256)" "$validator_address" "$spender" "$shares" --index "$path_index"
 }
 
 # ARGS: [<contract_address>] [<validator_address>] [<owner>] [<spender>] [<shares>] <path-index>
@@ -141,7 +141,7 @@ function send_transfer_from_shares() {
   validate_input "$spender"
   validate_input "$shares"
 
-  evm_command send "$contract" "transferFromShares(string,address,address,uint256)" "$validator_address" "$owner" "$spender" "$shares" --index "$path_index" --disable-confirm true
+  evm_command send "$contract" "transferFromShares(string,address,address,uint256)" "$validator_address" "$owner" "$spender" "$shares" --index "$path_index"
 }
 
 # ARGS: [<contract_address>] [<validator_address>] [<delegate_address>]
@@ -212,7 +212,7 @@ function staking_delegate_test() {
   local contract
   if [[ "$use_contract" == "true" ]]; then
     echo "use contract delegate"
-    contract=$(evm_interact deploy_staking_contract)
+    contract=$(evm_interact deploy_contract StakingTest)
     del_address="$contract"
   else
     contract="$contract_address"
@@ -261,7 +261,7 @@ function staking_shares_test() {
   local receipt_address
   if [[ "$use_contract" == "true" ]]; then
     echo "use contract delegate"
-    contract=$(evm_interact deploy_staking_contract)
+    contract=$(evm_interact deploy_contract StakingTest)
     receipt_address="$del_address"
     del_address="$contract"
     path_index=0

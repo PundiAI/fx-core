@@ -17,13 +17,6 @@ function proposal() {
   "${PROJECT_DIR}/tests/scripts/proposal.sh" "$@"
 }
 
-function proposal_register_coin() {
-  local proposal_file="$1"
-  min_deposit=$(proposal query_min_deposit)
-  cosmos_tx gov submit-proposal register-coin "$proposal_file" --title="Register Coin" --description="Register Coin" --deposit="$min_deposit" --from "$FROM"
-  proposal vote yes
-}
-
 function create_oracles() {
   local chain_name=("$@")
   local index=${bridger_start_index}
@@ -32,8 +25,11 @@ function create_oracles() {
     local oracle_file="$OUT_DIR/$chain-bridge-oracle.json"
     echo "[]" >"$oracle_file"
     for ((i = 0; i < "$bridger_oracle_number"; i++)); do
-      oracle_address=$(add_key "$chain-oracle-$i" "$index" | jq -r ".address")
-      bridger_address=$(add_key "$chain-bridger-$i" "$((index + 1))" | jq -r ".address")
+      add_key "$chain-oracle-$i" "$index"
+      add_key "$chain-bridger-$i" "$((index + 1))"
+
+      oracle_address=$(show_address "$chain-oracle-$i" -a)
+      bridger_address=$(show_address "$chain-bridger-$i" -a)
       external_address=$(show_address "$chain-bridger-$i" -e)
 
       cat >"$oracle_file.new" <<EOF
@@ -53,6 +49,7 @@ EOF
         mv "$oracle_file.tmp" "$oracle_file"
       index=$((index + 2))
     done
+    rm -r "$oracle_file.new"
   done
 }
 
@@ -62,24 +59,10 @@ function update_crosschain_oracles() {
     local oracle_file="$OUT_DIR/$chain-bridge-oracle.json"
     [[ ! -f "$oracle_file" ]] && continue
 
-    # todo: get oracle address list from oracle_file using jq join
-    # oracles_list=$(jq -r '.[].oracle_address | join(",")' "$oracle_file")
-    oracles=()
-    while read -r oracle_address; do
-      oracles+=("$oracle_address")
-    done < <(jq -r '.[] | "\(.oracle_address)"' "$oracle_file")
+    oracles_list=$(jq -r '. | map(.oracle_address) | join(",")' "$oracle_file")
 
-    oracles_list=$(
-      IFS=,
-      echo "${oracles[*]}"
-    )
     min_deposit=$(proposal query_min_deposit)
-
-    if [[ "$(cosmos_version | grep "v3")" != "" ]]; then
-      cosmos_tx crosschain update-crosschain-oracles "$chain" "$min_deposit" --oracles "$oracles_list" --title="Update $chain chain oracles" --desc="oracles description" --from "$FROM"
-    else
-      cosmos_tx "$chain" update-crosschain-oracles "$oracles_list" --deposit="$min_deposit" --title="Update $chain chain oracles" --description="oracles description" --from "$FROM"
-    fi
+    cosmos_tx "$chain" update-crosschain-oracles "$oracles_list" --deposit="$min_deposit" --title="Update $chain chain oracles" --description="oracles description" --from "$FROM"
     proposal vote yes
   done
 }
@@ -101,11 +84,7 @@ function create_oracle_bridger() {
       cosmos_transfer "$oracle_name" 100
       cosmos_transfer "$bridge_name" 500
 
-      if [[ "$(cosmos_version | grep "v3")" != "" ]]; then
-        cosmos_tx crosschain create-oracle-bridger "$chain" "$validator_address" "$bridge_address" "$external_address" "$min_deposit" --from "$oracle_name"
-      else
-        cosmos_tx "$chain" create-oracle-bridger "$validator_address" "$bridge_address" "$external_address" "$min_deposit" --from "$oracle_name"
-      fi
+      cosmos_tx "$chain" create-oracle-bridger "$validator_address" "$bridge_address" "$external_address" "$min_deposit" --from "$oracle_name"
     done < <(jq -r '.[] | "\(.oracle_name) \(.oracle_address) \(.oracle_index) \(.bridge_name) \(.bridge_address) \(.bridge_index) \(.external_address)"' "$oracle_file")
   done
 }
@@ -146,117 +125,22 @@ networks:
 EOF
 }
 
-function register_coin() {
-  while read -r chain_name address decimals symbol target_ibc name; do
-    if [[ "$symbol" == "FX" ]]; then
-      cat >"$OUT_DIR/coin.json" <<EOF
-{
-      "description": "The native staking token of the Function X",
-      "denom_units": [
-        {
-          "denom": "FX",
-          "exponent": 0,
-          "aliases": []
-        }
-      ],
-      "base": "FX",
-      "display": "FX",
-      "name": "Function X",
-      "symbol": "FX"
-}
-EOF
-    else
-      DENOM="${chain_name}${address}"
-      if [ "$target_ibc" != "null" ]; then
-        DENOM="$(convert_ibc_denom "${target_ibc}/${chain_name}${address}")"
-      fi
-      cat >"$OUT_DIR/coin.json" <<EOF
-{
-      "description": "The cross chain token of the Function X",
-      "denom_units": [
-        {
-          "denom": "$DENOM",
-          "exponent": 0,
-          "aliases": []
-        },
-        {
-          "denom": "$symbol",
-          "exponent": $decimals,
-          "aliases": []
-        }
-      ],
-      "base": "$DENOM",
-      "display": "$DENOM",
-      "name": "$name",
-      "symbol": "$symbol"
-}
-EOF
-    fi
-    proposal_register_coin "$OUT_DIR/coin.json"
-  done < <(jq -r '.bridge_token_list.one_to_one[] | "\(.chain_name) \(.address) \(.decimals) \(.symbol) \(.target_ibc) \(.name)"' "$bridge_contract_file")
-
-  while read -r chain_list base_denom symbol decimals name; do
-    aliases=()
-
-    while read -r chain_name address target_ibc; do
-      denom="${chain_name}${address}"
-      denom="${chain_name}${address}"
-      if [ "$target_ibc" != "null" ]; then
-        denom="$(convert_ibc_denom "${target_ibc}/${chain_name}${address}")"
-      fi
-      aliases+=("\"$denom\"")
-    done < <(echo "$chain_list" | jq -r '.[] | "\(.chain_name) \(.address) \(.target_ibc)"')
-
-    IFS=,
-    alias_str="${aliases[*]}"
-
-    cat >"$OUT_DIR/coin.json" <<EOF
- {
-      "description": "The cross chain token of the Function X",
-      "denom_units": [
-        {
-          "denom": "$base_denom",
-          "exponent": 0,
-          "aliases": [$alias_str]
-        },
-        {
-          "denom": "$symbol",
-          "exponent": "$decimals",
-          "aliases": []
-        }
-      ],
-      "base": "$base_denom",
-      "display": "$base_denom",
-      "name": "$name",
-      "symbol": "$symbol"
-    },
-EOF
-    proposal_register_coin "$OUT_DIR/coin.json"
-  done < <(jq -r '.bridge_token_list.one_to_many[] | "\(.chain_list) \(.base_denom) \(.symbol) \(.decimals) \(.name)"' "$bridge_contract_file")
-}
-
 function request_batch() {
   local chain_name=("$@")
   for chain in "${chain_name[@]}"; do
-    if [[ "$(cosmos_version | grep "v3")" != "" ]]; then
-      length=$(cosmos_query crosschain batch-fees "$chain" | jq '.batch_fees | length')
-    else
-      length=$(cosmos_query "$chain" batch-fees | jq '.batch_fees | length')
-    fi
+    local oracle_file="$OUT_DIR/$chain-bridge-oracle.json"
+    [[ ! -f "$oracle_file" ]] && continue
 
+    length=$(cosmos_query "$chain" batch-fees | jq '.batch_fees | length')
     [[ "$length" -eq 0 ]] && continue
 
+    bridge_index=$(jq -r '.[0].bridge_index' "$oracle_file")
+    add_key "$chain-bridger-0" "$bridge_index"
+
     while read -r token_contract; do
-
-      if [[ "$(cosmos_version | grep "v3")" != "" ]]; then
-        denom=$(cosmos_query crosschain denom "$chain" "$token_contract" | jq -r '.denom')
-        cosmos_tx crosschain build-batch "$chain" "$denom" "1" "$(show_address "$FROM" -e)" --from "eth-bridger-0"
-      else
-        denom=$(cosmos_query "$chain" denom "$token_contract" | jq -r '.denom')
-        cosmos_tx "$chain" build-batch "$denom" "1" "1" "$(show_address "$FROM" -e)" --from "$FROM"
-      fi
-
-    done < <(cosmos_query crosschain batch-fees "$chain" | jq -r '.batch_fees[] | "\(.token_contract)"')
+      denom=$(cosmos_query "$chain" denom "$token_contract" | jq -r '.denom')
+      cosmos_tx "$chain" build-batch "$denom" "1" "1" "$(show_address "$chain-bridger-0" -e)" --from "$chain-bridger-0"
+    done < <(cosmos_query "$chain" batch-fees | jq -r '.batch_fees[] | "\(.token_contract)"')
   done
 }
 

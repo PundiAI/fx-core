@@ -1,0 +1,45 @@
+[
+  {
+    "name": "Function X",
+    "symbol": "FX",
+    "decimals": 18,
+    "total_supply": "378604525462891000000000000",
+    "is_original": true,
+    "bridge_chains": [
+      "eth"
+    ]
+  },
+  {
+    "name": "Pundi X Token",
+    "symbol": "PUNDIX",
+    "decimals": 18,
+    "total_supply": "258498693019069996455928086",
+    "is_original": false,
+    "bridge_chains": [
+      "eth"
+    ]
+  },
+  {
+    "name": "PURSE TOKEN",
+    "symbol": "PURSE",
+    "decimals": 18,
+    "total_supply": "64000000000000000000000000000",
+    "is_original": true,
+    "target_ibc": "transfer/channel-0",
+    "bridge_chains": [
+      "bsc"
+    ]
+  },
+  {
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "base_denom": "usdt",
+    "decimals": 6,
+    "total_supply": "1000000000000",
+    "is_original": false,
+    "bridge_chains": [
+      "eth",
+      "bsc"
+    ]
+  }
+]

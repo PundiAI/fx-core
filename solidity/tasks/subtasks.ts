@@ -1,6 +1,9 @@
 import {subtask} from "hardhat/config";
 import {LedgerSigner} from "@ethersproject/hardware-wallets";
 import {BigNumber} from "ethers";
+import axios from "axios";
+import {ConfigurableTaskDefinition} from "hardhat/types";
+import {boolean, string} from "hardhat/internal/core/params/argumentTypes";
 
 const inquirer = require('inquirer')
 
@@ -13,6 +16,8 @@ export const SUB_CREATE_TRANSACTION: string = "sub:create-transaction";
 export const SUB_CONFIRM_TRANSACTION: string = "sub:confirm-transaction";
 export const SUB_MNEMONIC_WALLET: string = "sub:mnemonic-wallet";
 export const SUB_SEND_ETH: string = "sub:send-eth";
+export const SUB_GET_CONTRACT_ADDR: string = "sub:get-contract-addr";
+
 // public flag
 export const DISABLE_CONFIRM_FLAG: string = "disableConfirm";
 export const PRIVATE_KEY_FLAG = "privateKey";
@@ -29,7 +34,6 @@ export const VALUE_FLAG = "value";
 
 export const DEFAULT_DRIVE_PATH = "m/44'/60'/0'/0/0";
 export const DEFAULT_PRIORITY_FEE = "1500000000";
-
 
 subtask(SUB_SEND_ETH, "send eth").setAction(
     async (taskArgs, hre) => {
@@ -105,6 +109,20 @@ subtask(SUB_CREATE_TRANSACTION, "create transaction").setAction(
         return transaction;
     }
 );
+
+subtask(SUB_GET_CONTRACT_ADDR, "get contract address").setAction(
+    async (taskArgs, hre) => {
+        const {from} = taskArgs;
+
+        const nodeUrl = await hre.run(SUB_GET_NODE_URL);
+        const provider = await new hre.ethers.providers.JsonRpcProvider(nodeUrl);
+        const nonce = await provider.getTransactionCount(from);
+
+        return hre.ethers.utils.getContractAddress({
+            from: from,
+            nonce: nonce,
+        });
+    });
 
 subtask(SUB_CHECK_PRIVATE_KEY, "check the method of getting private key").setAction(
     async (taskArgs, hre) => {
@@ -217,4 +235,44 @@ export function TransactionToJson(transaction: Transaction): string {
         gasLimit: transaction.gasLimit ? transaction.gasLimit.toString() : undefined,
         chainId: transaction.chainId
     }, null, 2);
+}
+
+export const vote_power = 2834678415
+
+type Oracle = {
+    power: number;
+    external_address: string
+};
+type OracleSet = {
+    members: Oracle[];
+    nonce: number;
+};
+
+export async function GetOracleSet(restRpc: string, chainName: string): Promise<OracleSet> {
+    const request_string = restRpc + `/fx/crosschain/v1/oracle_set/current?chain_name=${chainName}`
+    const response = await axios.get(request_string);
+    return response.data.oracle_set;
+}
+
+export async function GetGravityId(restRpc: string, chainName: string): Promise<string> {
+    const request_string = restRpc + `/fx/crosschain/v1/params?chain_name=${chainName}`
+    const response = await axios.get(request_string);
+    return response.data.params.gravity_id;
+}
+
+export function AddTxParam(tasks: ConfigurableTaskDefinition[]) {
+    tasks.forEach((task) => {
+        task.addParam(NONCE_FLAG, "nonce", undefined, string, true)
+            .addParam(GAS_PRICE_FLAG, "gas price", undefined, string, true)
+            .addParam(MAX_FEE_PER_GAS_FLAG, "max fee per gas", undefined, string, true)
+            .addParam(MAX_PRIORITY_FEE_PER_GAS_FLAG, "max priority fee per gas", undefined, string, true)
+            .addParam(GAS_LIMIT_FLAG, "gas limit", undefined, string, true)
+            .addParam(VALUE_FLAG, "value", undefined, string, true)
+            .addParam(PRIVATE_KEY_FLAG, "send tx by private key", undefined, string, true)
+            .addParam(MNEMONIC_FLAG, "send tx by mnemonic", undefined, string, true)
+            .addParam(INDEX_FLAG, "mnemonic index", undefined, string, true)
+            .addParam(IS_LEDGER_FLAG, "ledger to send tx", false, boolean, true)
+            .addParam(DRIVER_PATH_FLAG, "manual HD Path derivation (overrides BIP44 config)", "m/44'/60'/0'/0/0", string, true)
+            .addParam(DISABLE_CONFIRM_FLAG, "disable confirm", false, boolean, true)
+    })
 }
