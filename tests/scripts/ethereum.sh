@@ -7,9 +7,9 @@ set -eo pipefail
 
 readonly solidity_dir="${PROJECT_DIR}/solidity"
 readonly bridge_contracts_file="${PROJECT_DIR}/tests/data/bridge_contracts.json"
-readonly bridge_contracts_out_file="${PROJECT_DIR}/tests/data/bridge_contracts_out.json"
+readonly bridge_contracts_out_file="${OUT_DIR}/bridge_contracts_out.json"
 readonly bridge_tokens_file="${PROJECT_DIR}/tests/data/bridge_tokens.json"
-readonly bridge_tokens_out_file="${PROJECT_DIR}/tests/data/bridge_tokens_out.json"
+readonly bridge_tokens_out_file="${OUT_DIR}/bridge_tokens_out.json"
 
 export LOCAL_PORT=${LOCAL_PORT:-"8545"}
 export LOCAL_URL=${LOCAL_URL:-"http://127.0.0.1:$LOCAL_PORT"}
