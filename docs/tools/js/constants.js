@@ -1,13 +1,13 @@
 const BRIDGES_INFO = [
     {
         name: "Ethereum",
-        explorer: "https://etherscan.io/",
+        explorer: "https://etherscan.io",
         denom_prefix: "eth",
         bridge_address: "0x6f1D09Fed11115d65E1071CD2109eDb300D80A27",
     },
     {
         name: "Binance Smart Chain",
-        explorer: "https://bscscan.com/",
+        explorer: "https://bscscan.com",
         denom_prefix: "bsc",
         bridge_address: "0x84238c00c8313920826D798e3cF6793Ef4F610ad"
     },
@@ -31,13 +31,13 @@ const BRIDGES_INFO = [
     },
     {
         name: "Arbitrum",
-        explorer: "https://arbiscan.io/",
+        explorer: "https://arbiscan.io",
         denom_prefix: "arbitrum",
         bridge_address: ""
     },
     {
         name: "Optimism",
-        explorer: "https://optimistic.etherscan.io/",
+        explorer: "https://optimistic.etherscan.io",
         denom_prefix: "optimism",
         bridge_address: ""
     }
