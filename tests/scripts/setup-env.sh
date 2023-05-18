@@ -144,7 +144,7 @@ function gen_cosmos_genesis() {
   $DAEMON config node "$NODE_RPC" --home "$NODE_HOME"
 
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$FROM" --recover --home "$NODE_HOME"
-  genesis_amount="$(to_18 "10^5")${STAKING_DENOM}"
+  genesis_amount="$(to_18 "10^6")${STAKING_DENOM}"
   [[ -n "$MINT_DENOM" && "$STAKING_DENOM" != "$MINT_DENOM" ]] && genesis_amount="$genesis_amount,$(to_18 "10^6")${MINT_DENOM}"
   $DAEMON add-genesis-account "$FROM" "$genesis_amount" --home "$NODE_HOME"
 
