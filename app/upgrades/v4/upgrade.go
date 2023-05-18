@@ -24,7 +24,7 @@ import (
 	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
-func createUpgradeHandler(
+func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	app *keepers.AppKeepers,

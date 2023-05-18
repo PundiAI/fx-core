@@ -30,9 +30,10 @@ var (
 	}
 )
 
+// Deprecated: Please use v4.1.x
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          "fxv4",
-	CreateUpgradeHandler: createUpgradeHandler,
+	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: func() *storetypes.StoreUpgrades {
 		return &storetypes.StoreUpgrades{
 			Added: []string{
