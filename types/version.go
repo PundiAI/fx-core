@@ -16,6 +16,7 @@ const (
 	MainnetGenesisHash   = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
 	MainnetBlockHeightV2 = 5_713_000
 	MainnetBlockHeightV3 = 8_756_000
+	MainnetBlockHeightV4 = 10_477_500
 )
 
 // testnet
@@ -28,6 +29,7 @@ const (
 	TestnetBlockHeightV4 = 8088000
 
 	TestnetBlockHeightV41 = 8376000
+	TestnetBlockHeightV42 = 8481000
 )
 
 var (
