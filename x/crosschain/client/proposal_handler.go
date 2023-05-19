@@ -7,9 +7,7 @@ import (
 	"github.com/functionx/fx-core/v4/x/crosschain/client/cli"
 )
 
-var (
-	LegacyUpdateChainOraclesProposalHandler = govclient.NewProposalHandler(NewLegacyUpdateChainOraclesProposalCmd)
-)
+var LegacyUpdateChainOraclesProposalHandler = govclient.NewProposalHandler(NewLegacyUpdateChainOraclesProposalCmd)
 
 func NewLegacyUpdateChainOraclesProposalCmd() *cobra.Command {
 	var chainName string
