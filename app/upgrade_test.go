@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -166,6 +168,14 @@ func Test_MainnetUpgradeV4_2(t *testing.T) {
 	// check fxgovparams
 	checkFXGovParams(t, ctx, myApp, true)
 
+	usdtToken, found := myApp.Erc20Keeper.GetTokenPair(ctx, "usdt")
+	require.True(t, found)
+
+	beforeRefundBalance := make(map[common.Address]*big.Int, len(v4_2.PolygonUSDTRefunds))
+	for _, r := range v4_2.PolygonUSDTRefunds {
+		beforeRefundBalance[r.Address] = getTokenBalanceOf(t, ctx, myApp, usdtToken.GetERC20Contract(), r.Address)
+	}
+
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			checkVersionMap(t, ctx, myApp, getConsensusVersion(testCase.fromVersion))
@@ -175,6 +185,16 @@ func Test_MainnetUpgradeV4_2(t *testing.T) {
 
 			checkVersionMap(t, ctx, myApp, getConsensusVersion(testCase.toVersion))
 		})
+	}
+
+	// check refund denom
+	checkRefundDenom(t, ctx, myApp)
+
+	// check refund
+	for _, r := range v4_2.PolygonUSDTRefunds {
+		beforeBalance := beforeRefundBalance[r.Address]
+		balance := getTokenBalanceOf(t, ctx, myApp, usdtToken.GetERC20Contract(), r.Address)
+		require.Equal(t, balance, big.NewInt(0).Add(beforeBalance, r.Coins.AmountOf(v4_2.PolygonUSDTDenom).BigInt()))
 	}
 
 	// UpgradeAfter
@@ -496,6 +516,19 @@ func checkCrossChainMigrateParamStore(t *testing.T, ctx sdk.Context, myApp *app.
 	}
 }
 
+func checkRefundDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	usdtMD, found := myApp.BankKeeper.GetDenomMetaData(ctx, "usdt")
+	require.True(t, found)
+	exist := false
+	for _, alias := range usdtMD.DenomUnits[0].Aliases {
+		if alias == v4_2.PolygonUSDTDenom {
+			exist = true
+			break
+		}
+	}
+	require.True(t, exist)
+}
+
 func contain[T int | int64 | string](a []T, b T) bool {
 	for i := range a {
 		if a[i] == b {
@@ -563,4 +596,13 @@ func getConsensusVersion(appVersion int) (versionMap module.VersionMap) {
 		}
 	}
 	return versionMap
+}
+
+func getTokenBalanceOf(t *testing.T, ctx sdk.Context, myApp *app.App, token common.Address, addr common.Address) *big.Int {
+	var res struct {
+		Value *big.Int
+	}
+	err := myApp.EvmKeeper.QueryContract(ctx, addr, token, fxtypes.GetFIP20().ABI, "balanceOf", &res, addr)
+	require.NoError(t, err)
+	return res.Value
 }
