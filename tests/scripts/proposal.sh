@@ -130,10 +130,10 @@ function submit_proposal() {
     title=$(jq -r '.title' "$proposal_file")
     summary=$(jq -r '.summary' "$proposal_file")
     metadata=$(base64_metadata "$title" "$summary")
-    json_processor "$proposal_file" 'proposal.metadata = "'"$metadata"'"'
+    json_processor "$proposal_file" '.proposal.metadata = "'"$metadata"'"'
 
     deposit=$(query_min_deposit "$msg_type")
-    json_processor "$proposal_file" 'proposal.deposit = "'"$deposit"'"'
+    json_processor "$proposal_file" '.proposal.deposit = "'"$deposit"'"'
     json_processor "$proposal_file" -r '.proposal'
     cosmos_tx gov submit-proposal "$proposal_file" --from "$FROM"
   fi
