@@ -284,6 +284,55 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			},
 		},
 		{
+			name: "pass - normal - receive address is 0xAddress, metadata alias",
+			malleate: func(packet *channeltypes.Packet) {
+				packetData := transfertypes.FungibleTokenPacketData{}
+				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+				packetData.Receiver = common.BytesToAddress(receiveAddr.Bytes()).String()
+				packet.Data = packetData.GetBytes()
+				meta := banktypes.Metadata{
+					// token -> contracts
+					Base:    strings.ToLower(baseDenom),
+					Display: strings.ToLower(baseDenom),
+					// evm token: name
+					Name: ibcDenomTrace.GetFullDenomPath(),
+					// evm token: symbol
+					Symbol: strings.ToUpper(baseDenom),
+					// evm token decimal - denomunits.denom == symbol
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    strings.ToLower(baseDenom),
+							Exponent: 0,
+							Aliases: []string{
+								ibcDenomTrace.IBCDenom(),
+							},
+						},
+						{
+							Denom:    strings.ToUpper(baseDenom),
+							Exponent: uint32(rand.Int31n(18)),
+						},
+					},
+				}
+				_, err := suite.GetApp(suite.chainA.App).Erc20Keeper.RegisterNativeCoin(suite.chainA.GetContext(), meta)
+				suite.Require().NoError(err)
+			},
+			expPass:       true,
+			checkBalance:  true,
+			checkCoinAddr: receiveAddr,
+			expCoins:      sdk.NewCoins(),
+			afterFn: func(packetData transfertypes.FungibleTokenPacketData) {
+				expectBalance, ok := sdkmath.NewIntFromString(packetData.Amount)
+				suite.Require().True(ok)
+				erc20TokenAddr, found := suite.GetApp(suite.chainA.App).Erc20Keeper.GetTokenPair(suite.chainA.GetContext(), ibcDenomTrace.IBCDenom())
+				suite.Require().True(found)
+				toAddress := common.HexToAddress(packetData.Receiver)
+				var balanceRes struct{ Value *big.Int }
+				err := suite.GetApp(suite.chainA.App).EvmKeeper.QueryContract(suite.chainA.GetContext(), common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), fxtypes.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
+				suite.Require().NoError(err)
+				suite.Require().EqualValues(expectBalance.String(), sdk.NewIntFromBigInt(balanceRes.Value).String())
+			},
+		},
+		{
 			name: "pass - normal - sender is 0xAddress router is bsc",
 			malleate: func(packet *channeltypes.Packet) {
 				bscKeeper := suite.GetApp(suite.chainA.App).BscKeeper

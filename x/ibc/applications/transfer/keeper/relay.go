@@ -159,6 +159,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if data.Router == "" || k.router == nil {
 		// try to send to evm module
 		if receiveCoin.GetDenom() != fxtypes.DefaultDenom && isEvmAddr {
+			// convert to base denom
+			receiveCoin, err = k.erc20Keeper.ConvertDenomToTarget(onRecvPacketCtxWithNewEvent, receiver, receiveCoin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+			if err != nil {
+				return err
+			}
+			// convert to erc20 token
 			_, err = k.erc20Keeper.ConvertCoin(sdk.WrapSDKContext(onRecvPacketCtxWithNewEvent), &erc20types.MsgConvertCoin{
 				Coin:     receiveCoin,
 				Receiver: common.BytesToAddress(receiver).String(),
