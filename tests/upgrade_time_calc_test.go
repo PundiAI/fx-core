@@ -11,11 +11,18 @@ import (
 	"github.com/stretchr/testify/require"
 	clienthttp "github.com/tendermint/tendermint/rpc/client/http"
 	jsonrpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
+
+	"github.com/functionx/fx-core/v4/testutil/helpers"
 )
 
-func TestHeight(t *testing.T) {
-	t.SkipNow()
-	upgradeTime := "2023-05-30T08:00:00Z"
+func TestCalculateUpgradeHeight(t *testing.T) {
+	helpers.SkipTest(t)
+	blockInterval := 20000
+
+	upgradeTime := os.Getenv("UPGRADE_TIME")
+	if len(upgradeTime) <= 0 {
+		upgradeTime = time.Now().AddDate(0, 0, 14).Format(time.RFC3339)
+	}
 	expectTime, err := time.Parse(time.RFC3339, upgradeTime)
 	require.NoError(t, err)
 	t.Logf("Expected upgrade time:%s", expectTime)
@@ -39,13 +46,13 @@ func TestHeight(t *testing.T) {
 
 	require.Truef(t, expectTime.After(latestTime), "The upgrade time has expired\nExpect:%s\nCurrent:%s", expectTime, latestTime)
 
-	beforeHeight := latestHeight - 20000
+	beforeHeight := latestHeight - int64(blockInterval)
 	beforeBlock, err := rpcClient.Block(ctx, &beforeHeight)
 	require.NoError(t, err)
-	blockInterval := float64(latestTime.Unix()-beforeBlock.Block.Time.Unix()) / float64(20000)
-	t.Logf("Avg blcok time:%.4f", blockInterval)
+	blockTime := float64(latestTime.Unix()-beforeBlock.Block.Time.Unix()) / float64(blockInterval)
+	t.Logf("Avg blcok time:%.4f", blockTime)
 
-	blockCount := int64(float64(expectTime.Unix()-latestTime.Unix()) / blockInterval)
+	blockCount := int64(float64(expectTime.Unix()-latestTime.Unix()) / blockTime)
 	t.Logf("Remaining Blocks:%d", blockCount)
 	t.Logf("Expected Blcok:%d", latestHeight+blockCount)
 }
