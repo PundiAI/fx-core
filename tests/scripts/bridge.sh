@@ -7,7 +7,7 @@ set -eo pipefail
 
 readonly bridger_start_index=100
 readonly bridger_oracle_number=3
-readonly bridge_image="functionx/fx-bridge-golang:3.1.0"
+readonly bridge_image="functionx/fx-bridge-golang:latest"
 readonly bridge_tokens_file="${PROJECT_DIR}/tests/data/bridge_tokens.json"
 
 export NODE_HOME="$OUT_DIR/.fxcore"
@@ -124,6 +124,8 @@ networks:
   $DOCKER_NETWORK:
     external: true
 EOF
+
+  docker-compose -f "$OUT_DIR/bridge-docker-compose.yml" up -d
 }
 
 function request_batch() {

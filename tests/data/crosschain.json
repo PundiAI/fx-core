@@ -1,0 +1,61 @@
+[
+  {
+    "a-chain": "eth",
+    "b-chain": "fxcore",
+    "a2b": {
+      "method": "send_to_fx",
+      "target": [
+        "",
+        "module/evm",
+        "erc20",
+        "fx/transfer/channel-0",
+        "ibc/0/fx"
+      ]
+    },
+    "b2a": {
+      "method": "send_to_external",
+      "target": [
+        "gravity",
+        "eth"
+      ]
+    }
+  },
+  {
+    "a-chain": "bsc",
+    "b-chain": "fxcore",
+    "a2b": {
+      "method": "send_to_fx",
+      "target": [
+        "",
+        "module/evm",
+        "erc20",
+        "fx/transfer/channel-0",
+        "ibc/0/fx"
+      ]
+    },
+    "b2a": {
+      "method": "send_to_external",
+      "target": [
+        "bsc"
+      ]
+    }
+  },
+  {
+    "a-chain": "eth",
+    "b-chain": "pundix",
+    "a2b": {
+      "method": "send_to_fx",
+      "target": [
+        "fx/transfer/channel-0",
+        "ibc/0/fx"
+      ]
+    },
+    "b2a": {
+      "method": "fx_ibc_transfer",
+      "target": [
+        "gravity",
+        "eth"
+      ]
+    }
+  }
+]

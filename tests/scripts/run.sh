@@ -38,6 +38,9 @@ function run() {
     "${script_dir}/ibcrelayer.sh" start
   )
 
+  (
+    "${script_dir}/bridge.sh" register_coin
+  )
 }
 
 #function close() {

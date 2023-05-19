@@ -124,6 +124,24 @@ function from_18() {
   echo "$1 / 10^18" | bc
 }
 
+function from_ascii() {
+  [[ $1 ]] || set -- "$(cat)"
+  printf %s "$*" | from_bin
+}
+
+function to_bytes32() {
+  [[ $1 ]] || set -- "$(cat)"
+  printf "0x%-64s\\n" "${1#0x}" | tr ' ' 0
+}
+
+function from_bin() {
+  hexdump=$(od -vt x1)
+  # shellcheck disable=SC2001
+  nibbles=$(sed "s/^[0-9]*//" <<<"$hexdump")
+  hex_data=$(tr -d " \\n" <<<"$nibbles")
+  echo "0x$hex_data"
+}
+
 function gen_cosmos_genesis() {
   $DAEMON init --chain-id="$CHAIN_ID" local-test --home "$NODE_HOME"
 

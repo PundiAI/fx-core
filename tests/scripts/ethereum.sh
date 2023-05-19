@@ -13,6 +13,7 @@ export LOCAL_PORT=${LOCAL_PORT:-"8545"}
 export LOCAL_URL=${LOCAL_URL:-"http://127.0.0.1:$LOCAL_PORT"}
 export REST_RPC=${REST_RPC:-"http://127.0.0.1:1317"}
 export MNEMONIC=${MNEMONIC:-"test test test test test test test test test test test junk"}
+export PRECOMPILE_CROSS_CHAIN_ADDRESS="0x0000000000000000000000000000000000001004"
 
 export BRIDGE_TOKENS_OUT_DIR=${BRIDGE_TOKEN_OUT_DIR:-"${OUT_DIR}/bridge_tokens_out.json"}
 export BRIDGE_CONTRACTS_OUT_DIR=${BRIDGE_CONTRACTS_OUT_DIR:-"${OUT_DIR}/bridge_contracts_out.json"}
@@ -70,6 +71,17 @@ function send() {
 ## ARGS: <contract> <function> [params...] Example: call 0x.... balanceOf(address) 0x....
 function call() {
   hardhat_task call "$@"
+}
+
+## ARGS: <token-address> <receipt> <amount> <fee> <target> <memo>
+function cross_chain() {
+  send "$PRECOMPILE_CROSS_CHAIN_ADDRESS" "crossChain(address,string,uint256,uint256,bytes32,string)(bool)" "$@"
+}
+
+## ARGS: <token-address> <receipt> <amount> <fee> <target>
+function transfer_cross_chain() {
+  token_contract=${1} && shift
+  send "$token_contract" "transferCrossChain(string,uint256,uint256,bytes32)" "$@"
 }
 
 ## ARGS: <bridge-contract> <bridge-token> <amount> <destination> <target-ibc> [opts...]
