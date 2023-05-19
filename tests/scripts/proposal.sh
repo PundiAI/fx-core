@@ -103,12 +103,12 @@ function spend_community_pool_proposal() {
 
   min_deposit=$(query_min_deposit)
   cosmos_tx gov submit-legacy-proposal community-pool-spend <(
-  cat <<EOF
+    cat <<EOF
 {
   "title":"Spend Community Pool",
   "description": "test",
   "recipient": "$receive_address",
-  "amount": "$spend_amount$denom
+  "amount": "$spend_amount$denom",
   "deposit": "$min_deposit$STAKING_DENOM"
 }
 EOF
@@ -139,7 +139,8 @@ function submit_proposal() {
   fi
 }
 
-## ARGS: <base_denom> <name> <symbol> <decimals> <aliases...>
+## ARGS: <base_denom> <name> <symbol> <decimals> [aliases...]
+## DESC: register coin
 function register_coin() {
   local base_denom=$1 name=$2 symbol=$3 decimals=$4 && shift 4
   aliases=$(printf '"%s",' "$@")
