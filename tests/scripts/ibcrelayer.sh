@@ -38,7 +38,7 @@ function docker_run() {
 }
 
 function init() {
-  [[ ! -d "${ibc_home_dir}" ]] && docker_stop "$docker_name" && rm -rf "${ibc_home_dir}"
+  [[ -d "${ibc_home_dir}" ]] && stop && rm -rf "${ibc_home_dir}"
   mkdir -p "$OUT_DIR/.hermes/keys"
 
   a_chain_id=$(jq -r '.chain_id' "$OUT_DIR/$a_chain_name.json")

@@ -8,10 +8,13 @@ set -eo pipefail
 readonly bridger_start_index=100
 readonly bridger_oracle_number=3
 readonly bridge_image="functionx/fx-bridge-golang:3.1.0"
-readonly bridge_contract_file="${OUT_DIR}/bridge_contract.json"
+readonly bridge_tokens_file="${PROJECT_DIR}/tests/data/bridge_tokens.json"
 
 export NODE_HOME="$OUT_DIR/.fxcore"
 export LOCAL_PORT=${LOCAL_PORT:-"8545"}
+
+export BRIDGE_CONTRACTS_OUT_DIR=${BRIDGE_CONTRACTS_OUT_DIR:-"${OUT_DIR}/bridge_contracts_out.json"}
+export BRIDGE_TOKENS_OUT_DIR=${BRIDGE_TOKENS_OUT_DIR:-"${OUT_DIR}/bridge_tokens_out.json"}
 
 function proposal() {
   "${PROJECT_DIR}/tests/scripts/proposal.sh" "$@"
@@ -60,7 +63,6 @@ function update_crosschain_oracles() {
     [[ ! -f "$oracle_file" ]] && continue
 
     oracles_list=$(jq -r '. | map(.oracle_address) | join(",")' "$oracle_file")
-
     min_deposit=$(proposal query_min_deposit)
     cosmos_tx "$chain" update-crosschain-oracles "$oracles_list" --deposit="$min_deposit" --title="Update $chain chain oracles" --description="oracles description" --from "$FROM"
     proposal vote yes
@@ -101,8 +103,7 @@ EOF
 
   for chain in "${chain_name[@]}"; do
     local oracle_file="$OUT_DIR/$chain-bridge-oracle.json"
-
-    bridge_contract_address=$(jq --arg chain_name "$chain" -r '.external_chain_list[]|select(.chain_name==$chain_name).bridge_contract_address' "$bridge_contract_file")
+    bridge_contract_address=$(jq --arg chain_name "$chain" -r '.[] | select(.chain_name=="'"$chain"'") | .bridge_proxy_address' "$BRIDGE_CONTRACTS_OUT_DIR")
 
     while read -r bridge_index bridge_name; do
       cat >>"$OUT_DIR/bridge-docker-compose.yml" <<EOF
@@ -142,6 +143,28 @@ function request_batch() {
       cosmos_tx "$chain" build-batch "$denom" "1" "1" "$(show_address "$chain-bridger-0" -e)" --from "$chain-bridger-0"
     done < <(cosmos_query "$chain" batch-fees | jq -r '.batch_fees[] | "\(.token_contract)"')
   done
+}
+
+function register_coin() {
+  while read -r bridge_chains symbol decimals base_denom target_ibc name; do
+    [[ "$symbol" == FX ]] && continue
+    for bridge_chain in "${bridge_chains[@]}"; do
+      local alias_list=()
+      for chain_name in $(echo "$bridge_chain" | jq -r '.[]'); do
+        token_address=$(jq -r '.[] | select(.chain_name=="'"$chain_name"'") | select(.symbol=="'"$symbol"'") |.bridge_token_address' "$BRIDGE_TOKENS_OUT_DIR")
+        denom="${chain_name}${token_address}"
+
+        [[ "$target_ibc" != "null" ]] && denom=$(convert_ibc_denom "${target_ibc}/${denom}")
+
+        if [[ "$base_denom" == "null" ]]; then
+          base_denom="$denom"
+          break
+        fi
+        alias_list+=("\"$denom\"")
+      done
+      proposal register_coin "$base_denom" "$name" "$symbol" "$decimals" "${alias_list[@]}"
+    done
+  done < <(jq -r '.[] | "\(.bridge_chains) \(.symbol) \(.decimals) \(.base_denom) \(.target_ibc) \(.name)"' "$bridge_tokens_file")
 }
 
 # shellcheck source=/dev/null

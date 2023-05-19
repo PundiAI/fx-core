@@ -15,6 +15,7 @@ function run() {
     export LOCAL_PORT=8535
     "${script_dir}/ethereum.sh" start
     "${script_dir}/ethereum.sh" deploy_bridge_token
+    "${script_dir}/ethereum.sh" deploy_bridge_contract
   )
 
   (

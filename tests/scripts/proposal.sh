@@ -143,8 +143,7 @@ function submit_proposal() {
 ## DESC: register coin
 function register_coin() {
   local base_denom=$1 name=$2 symbol=$3 decimals=$4 && shift 4
-  aliases=$(printf '"%s",' "$@")
-  aliases=${aliases%,}
+  aliases=$(IFS=$',' && echo "$*")
 
   get_proposal_template "/fx.erc20.v1.MsgRegisterCoin"
   register_file="$OUT_DIR/MsgRegisterCoin.json"
