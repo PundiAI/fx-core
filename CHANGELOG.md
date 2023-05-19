@@ -35,7 +35,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
-## [v4.1.x]
+## [v4.2.0]
+
+### Bug Fixes
+
+* Fix: IBC transfer to evm
+
+## [v4.1.0]
 
 ### Bug Fixes
 
