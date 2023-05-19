@@ -206,5 +206,60 @@ function stop() {
   docker rm -f $docker_name
 }
 
+## ARGS: <chain-id> <name> <channel-id> <dst-address> <amount>
+function ibc_transfer(){
+  local chain_id=$1
+  local account=$2
+  shift 2
+  daemon=$(jq -r '.daemon' "$OUT_DIR/$chain_id.json")
+  [[ -z "$daemon" || "$daemon" == "null" ]] && daemon=$DAEMON
+
+  chain_name=$(jq -r '.chain_name' "$OUT_DIR/$chain_id.json")
+  node_rpc=$(jq -r '.node_rpc' "$OUT_DIR/$chain_id.json")
+  gas_prices=$(jq -r '.gas_prices' "$OUT_DIR/$chain_id.json")
+
+  if [[ "$account" == "default" ]]; then
+    default_mnemonic=$TEST_MNEMONIC
+    [[ -z "$default_mnemonic" || "$default_mnemonic" == "null" ]] && default_mnemonic=$(jq -r '.mnemonic' "$OUT_DIR/$chain_id.json")
+    rm -rf "$OUT_DIR/.$chain_name-ibc-tmp"
+    echo "$default_mnemonic" | $daemon keys add default --recover --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp"
+    account="default"
+  fi
+
+  $daemon tx ibc-transfer transfer transfer "$@" --from $account \
+    --chain-id "$chain_id" --node "$node_rpc" --gas auto --gas-prices "$gas_prices" --gas-adjustment 1.5 \
+    --packet-timeout-timestamp 43200000000000 --packet-timeout-height 0-0 \
+    --yes --keyring-backend test  --home "$OUT_DIR/.$chain_name-ibc-tmp" >/dev/null 2>&1
+}
+
+## ARGS: <account-number> <round> <speed> <chain-id> <channel-id> <dst-address> <amount>
+function batch_ibc_transfer(){
+  local number=$1
+  local round=$2
+  local speed=$3
+  local chain_id=$4
+  shift 4
+
+  count=1
+  account_index=0
+  while [[ "$round" -gt 0 ]]; do
+    speed_index=0
+    while [[ "$speed_index" -lt "$speed" ]]; do
+      echo "transaction-count $count ===> index $speed_index account $account_index"
+      next_account_index=$((account_index+1))
+      if [[ "$next_account_index" -eq "$number" ]]; then
+        ibc_transfer "$chain_id" "batch-$account_index" "$@" --broadcast-mode block
+      else
+        ibc_transfer "$chain_id" "batch-$account_index" "$@" &
+      fi
+      speed_index=$((speed_index+1))
+      account_index=$((next_account_index%number))
+      count=$((count+1))
+    done
+    sleep 1
+    round=$((round-1))
+  done
+}
+
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/footer.sh"

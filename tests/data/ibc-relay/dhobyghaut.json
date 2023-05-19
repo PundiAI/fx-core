@@ -1,0 +1,12 @@
+{
+  "chain_name": "fxcore",
+  "chain_id": "dhobyghaut",
+  "daemon": "fxcored",
+  "node_rpc": "https://testnet-fx-json.functionx.io:26657",
+  "node_grpc": "https://testnet-fx-grpc.functionx.io:9090",
+  "rest_rpc": "https://testnet-fx-rest.functionx.io:1317",
+  "fee_denom": "FX",
+  "gas_prices": "4000000000000FX",
+  "bech32_prefix": "fx",
+  "trusting_period": "480h"
+}

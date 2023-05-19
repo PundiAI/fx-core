@@ -24,6 +24,7 @@ function init() {
 
   cat >"$OUT_DIR/$CHAIN_NAME.json" <<EOF
 {
+  "chain_name": "$CHAIN_NAME",
   "chain_id": "$CHAIN_ID",
   "node_rpc": "$NODE_RPC",
   "node_grpc": "http://${NODE_GRPC}",

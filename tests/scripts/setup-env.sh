@@ -107,6 +107,99 @@ function cosmos_transfer() {
   cosmos_tx bank send "$FROM" "$to_address" "$(to_18 "$amount")$denom" --from "$FROM"
 }
 
+## ARGS: <chain-id> <number>
+function batch_new_account() {
+  local chain_id=$1
+  local number=$2
+
+  chain_name=$(jq -r '.chain_name' "$OUT_DIR/$chain_id.json")
+  gas_prices=$(jq -r '.gas_prices' "$OUT_DIR/$chain_id.json")
+
+  default_mnemonic=$(jq -r '.mnemonic' "$OUT_DIR/$chain_id.json")
+  [[ -z "$default_mnemonic" || "$default_mnemonic" == "null" ]] && default_mnemonic=$TEST_MNEMONIC
+  daemon=$(jq -r '.daemon' "$OUT_DIR/$chain_id.json")
+  [[ -z "$daemon" || "$daemon" == "null" ]] && daemon=$DAEMON
+
+  rm -rf "$OUT_DIR/.$chain_name-ibc-tmp"
+  echo "$default_mnemonic" | $daemon keys add default --recover --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp" >/dev/null 2>&1
+  echo "default account: $($daemon keys show default -a --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp")"
+
+  local index=0
+  while [[ "$index" -lt "$number" ]]; do
+    echo "$default_mnemonic" | $daemon keys add "batch-$index" --recover --index "$index" --account 1 --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp" > /dev/null 2>&1
+    new_address=$($daemon keys show "batch-$index" -a --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp")
+    echo "$index new address: $new_address"
+    index=$((index + 1))
+  done
+}
+
+## ARGS: <chain-id> <start> <end> <amounts>
+function batch_transfer() {
+  local chain_id=$1
+  local start=$2
+  local end=$3
+  local amounts=$4
+  [[ "$start" -gt "$end" ]] && echo_error "start must be less than end" && exit 1
+
+  default_mnemonic=$(jq -r '.mnemonic' "$OUT_DIR/$chain_id.json")
+  [[ -z "$default_mnemonic" || "$default_mnemonic" == "null" ]] && default_mnemonic=$TEST_MNEMONIC
+  daemon=$(jq -r '.daemon' "$OUT_DIR/$chain_id.json")
+  [[ -z "$daemon" || "$daemon" == "null" ]] && daemon=$DAEMON
+
+  chain_name=$(jq -r '.chain_name' "$OUT_DIR/$chain_id.json")
+  node_rpc=$(jq -r '.node_rpc' "$OUT_DIR/$chain_id.json")
+  gas_prices=$(jq -r '.gas_prices' "$OUT_DIR/$chain_id.json")
+
+  # concurrency must be used on one node, not load balancing node
+  #account=$($daemon q auth account "$($daemon keys show default -a --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp")" --node "$node_rpc" --chain-id "$chain_id" -o json)
+  #sequence=$(echo "$account" | jq -r .sequence)
+  #account_number=$(echo "$account" | jq -r .account_number)
+  #local pids=()
+  while [[ "$start" -le "$end" ]]; do
+    new_address=$($daemon keys show "batch-$start" -a --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp")
+    echo "send $amounts to $start new address: $new_address"
+
+    $daemon tx bank send default "$new_address" "$amounts" --from default \
+      --chain-id "$chain_id" --node "$node_rpc" --gas auto --gas-prices "$gas_prices" --gas-adjustment 1.5 \
+      --yes --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp" \
+      --broadcast-mode block -o json > /dev/null
+      #--account-number "$account_number" --sequence "$sequence" \
+      #--broadcast-mode block -o json > /dev/null 2>&1 &
+
+    #pids+=("$!")
+    #sequence=$((sequence + 1))
+    start=$((start + 1))
+  done
+  #wait "${pids[@]}"
+}
+
+## ARGS: <chain-id> <start> <end> <denom>
+function batch_balance() {
+  local chain_id=$1
+  local start=$2
+  local end=$3
+  local denom=$4
+  [[ "$start" -gt "$end" ]] && echo_error "start must be less than end" && exit 1
+
+  default_mnemonic=$(jq -r '.mnemonic' "$OUT_DIR/$chain_id.json")
+  [[ -z "$default_mnemonic" || "$default_mnemonic" == "null" ]] && default_mnemonic=$TEST_MNEMONIC
+  daemon=$(jq -r '.daemon' "$OUT_DIR/$chain_id.json")
+  [[ -z "$daemon" || "$daemon" == "null" ]] && daemon=$DAEMON
+
+  chain_name=$(jq -r '.chain_name' "$OUT_DIR/$chain_id.json")
+  node_rpc=$(jq -r '.node_rpc' "$OUT_DIR/$chain_id.json")
+  gas_prices=$(jq -r '.gas_prices' "$OUT_DIR/$chain_id.json")
+
+  local pids=()
+  while [[ "$start" -le "$end" ]]; do
+    new_address=$($daemon keys show "batch-$start" -a --keyring-backend test --home "$OUT_DIR/.$chain_name-ibc-tmp")
+    echo "$start addr $new_address balance of $denom: $($daemon q bank balances "$new_address" --denom "$denom" --node "$node_rpc" -o json | jq -r '.amount')" &
+    pids+=("$!")
+    start=$((start + 1))
+  done
+  wait "${pids[@]}"
+}
+
 ## ARGS: <args...>
 function cosmos_query() {
   $DAEMON query "$@" --node="$NODE_RPC" --home="$NODE_HOME"

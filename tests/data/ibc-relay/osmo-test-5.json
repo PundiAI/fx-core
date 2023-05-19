@@ -1,0 +1,12 @@
+{
+  "chain_name": "osmosis",
+  "chain_id": "osmo-test-5",
+  "daemon": "osmosisd",
+  "node_rpc": "https://rpc.osmotest5.osmosis.zone",
+  "node_grpc": "https://grpc.osmotest5.osmosis.zone",
+  "rest_rpc": "https://lcd.osmotest5.osmosis.zone",
+  "fee_denom": "uosmo",
+  "gas_prices": "0.0025uosmo",
+  "bech32_prefix": "osmo",
+  "trusting_period": "23h59m59s"
+}

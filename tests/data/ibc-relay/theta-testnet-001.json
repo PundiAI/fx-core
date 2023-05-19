@@ -1,0 +1,12 @@
+{
+  "chain_name": "cosmos",
+  "chain_id": "theta-testnet-001",
+  "daemon": "gaiad",
+  "node_rpc": "https://rpc.sentry-01.theta-testnet.polypore.xyz",
+  "node_grpc": "https://grpc.sentry-01.theta-testnet.polypore.xyz",
+  "rest_rpc": "https://rest.sentry-01.theta-testnet.polypore.xyz",
+  "fee_denom": "uatom",
+  "gas_prices": "0.025uatom",
+  "bech32_prefix": "cosmos",
+  "trusting_period": "47h59m59s"
+}
