@@ -139,5 +139,42 @@ function submit_proposal() {
   fi
 }
 
+## ARGS: <base_denom> <name> <symbol> <decimals> <aliases...>
+function register_coin() {
+  local base_denom=$1 name=$2 symbol=$3 decimals=$4 && shift 4
+  aliases=$(printf '"%s",' "$@")
+  aliases=${aliases%,}
+
+  get_proposal_template "/fx.erc20.v1.MsgRegisterCoin"
+  register_file="$OUT_DIR/MsgRegisterCoin.json"
+
+  cat >"$OUT_DIR/coin.json" <<EOF
+{
+      "description": "The cross chain token of the Function X",
+      "denom_units": [
+        {
+          "denom": "$base_denom",
+          "exponent": 0,
+          "aliases": [$aliases]
+        },
+        {
+          "denom": "$symbol",
+          "exponent": $decimals,
+          "aliases": []
+        }
+      ],
+      "base": "$base_denom",
+      "display": "$base_denom",
+      "name": "$name",
+      "symbol": "$symbol"
+}
+EOF
+  metadata=$(jq -r -c . "$OUT_DIR/coin.json")
+  json_processor "$register_file" ".proposal.messages[0].metadata = $metadata"
+
+  submit_proposal "$register_file"
+  vote yes
+}
+
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/footer.sh"

@@ -12,14 +12,22 @@ function run() {
   )
 
   (
+    export LOCAL_PORT=8535
+    "${script_dir}/ethereum.sh" start
+    "${script_dir}/ethereum.sh" deploy_bridge_token
+  )
+
+  (
     "${script_dir}/fxcore.sh" init
     "${script_dir}/fxcore.sh" start
   )
 
   (
     export IBC_CHANNEL="channel-0"
-    export PURSE_ADDRESS="0x0000000000000000000000000000000000000000"
-    export PUNDIX_ADDRESS="0x0000000000000000000000000000000000000000"
+    PURSE_ADDRESS="$("${script_dir}/ethereum.sh" get_token_address bsc PURSE)"
+    export PURSE_ADDRESS
+    PUNDIX_ADDRESS="$("${script_dir}/ethereum.sh" get_token_address eth PUNDIX)"
+    export PUNDIX_ADDRESS
     "${script_dir}/pundix.sh" init
     "${script_dir}/pundix.sh" start
 
