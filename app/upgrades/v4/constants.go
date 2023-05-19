@@ -30,6 +30,7 @@ var (
 	}
 )
 
+// Upgrade for fxv4
 // Deprecated: Please use v4.1.x
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          "fxv4",

@@ -6,11 +6,11 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v4/app/upgrades"
-	"github.com/functionx/fx-core/v4/app/upgrades/v4_1"
+	"github.com/functionx/fx-core/v4/app/upgrades/v4_2"
 )
 
 func (app *App) GetUpgrade() upgrades.Upgrade {
-	return v4_1.Upgrade()
+	return v4_2.Upgrade()
 }
 
 // configure store loader that checks if version == upgradeHeight and applies store upgrades

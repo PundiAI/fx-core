@@ -23,7 +23,7 @@ import (
 
 	"github.com/functionx/fx-core/v4/app"
 	v4 "github.com/functionx/fx-core/v4/app/upgrades/v4"
-	"github.com/functionx/fx-core/v4/app/upgrades/v4_1"
+	"github.com/functionx/fx-core/v4/app/upgrades/v4_2"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
 	arbitrumtypes "github.com/functionx/fx-core/v4/x/arbitrum/types"
@@ -40,7 +40,7 @@ import (
 	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
-func Test_TestnetUpgradeV4_1(t *testing.T) {
+func Test_TestnetUpgradeV4_2(t *testing.T) {
 	helpers.SkipTest(t, "Skipping local test: ", t.Name())
 
 	fxtypes.SetConfig(true)
@@ -54,12 +54,12 @@ func Test_TestnetUpgradeV4_1(t *testing.T) {
 		plan                  upgradetypes.Plan
 	}{
 		{
-			name:        "upgrade v4.1",
+			name:        "upgrade v4.2",
 			fromVersion: 3,
 			toVersion:   4,
 			plan: upgradetypes.Plan{
-				Name: v4_1.Upgrade().UpgradeName,
-				Info: "local test upgrade v4.1",
+				Name: v4_2.Upgrade().UpgradeName,
+				Info: "local test upgrade v4.2",
 			},
 		},
 	}
@@ -78,7 +78,7 @@ func Test_TestnetUpgradeV4_1(t *testing.T) {
 		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		makeEncodingConfig, app.EmptyAppOptions{})
 	// todo default DefaultStoreLoader  New module verification failed
-	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4_1.Upgrade().StoreUpgrades()))
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4_2.Upgrade().StoreUpgrades()))
 	err = myApp.LoadLatestVersion()
 	require.NoError(t, err)
 
@@ -108,7 +108,7 @@ func Test_TestnetUpgradeV4_1(t *testing.T) {
 	myApp.AvalancheKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 }
 
-func Test_MainnetUpgradeV4_1(t *testing.T) {
+func Test_MainnetUpgradeV4_2(t *testing.T) {
 	helpers.SkipTest(t, "Skipping local test: ", t.Name())
 
 	fxtypes.SetConfig(true)
@@ -122,12 +122,12 @@ func Test_MainnetUpgradeV4_1(t *testing.T) {
 		plan                  upgradetypes.Plan
 	}{
 		{
-			name:        "upgrade v4.1",
+			name:        "upgrade v4.2",
 			fromVersion: 3,
 			toVersion:   4,
 			plan: upgradetypes.Plan{
-				Name: v4_1.Upgrade().UpgradeName,
-				Info: "local test upgrade v4.1",
+				Name: v4_2.Upgrade().UpgradeName,
+				Info: "local test upgrade v4.2",
 			},
 		},
 	}
@@ -146,7 +146,7 @@ func Test_MainnetUpgradeV4_1(t *testing.T) {
 		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		makeEncodingConfig, app.EmptyAppOptions{})
 	// todo default DefaultStoreLoader  New module verification failed
-	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4_1.Upgrade().StoreUpgrades()))
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v4_2.Upgrade().StoreUpgrades()))
 	err = myApp.LoadLatestVersion()
 	require.NoError(t, err)
 
