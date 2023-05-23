@@ -1,5 +1,5 @@
 import {subtask} from "hardhat/config";
-import {LedgerSigner} from "@ethersproject/hardware-wallets";
+import {LedgerSigner} from "@anders-t/ethers-ledger";
 import {BigNumber} from "ethers";
 import axios from "axios";
 import {ConfigurableTaskDefinition} from "hardhat/types";
@@ -154,7 +154,7 @@ subtask(SUB_CREATE_LEDGER_WALLET, "create ledger wallet").setAction(
 
         const _path = driverPath ? driverPath : DEFAULT_DRIVE_PATH;
 
-        const wallet = new LedgerSigner(provider, "hid", _path);
+        const wallet = new LedgerSigner(provider, _path);
         return {wallet};
     });
 

@@ -2,8 +2,10 @@ import {task} from "hardhat/config";
 import {string} from "hardhat/internal/core/params/argumentTypes";
 import {
     AddTxParam,
+    DRIVER_PATH_FLAG,
     SUB_CHECK_PRIVATE_KEY,
     SUB_CONFIRM_TRANSACTION,
+    SUB_CREATE_LEDGER_WALLET,
     SUB_CREATE_TRANSACTION,
     SUB_GET_NODE_URL,
     SUB_SEND_ETH,
@@ -105,6 +107,14 @@ task("call", "call contract, Example: npx hardhat call 0x... balanceOf(address)(
             console.log(splitByComma(abiInterface.decodeFunctionResult(abi.name as string, result).toString()))
         }
     )
+
+task("ledger-acc", "get ledger account address from HD Path")
+    .addParam(DRIVER_PATH_FLAG, "manual HD Path derivation (overrides BIP44 config)", "m/44'/60'/0'/0/0", string, true)
+    .setAction(async (taskArgs, hre) => {
+        const {wallet} = await hre.run(SUB_CREATE_LEDGER_WALLET, taskArgs);
+        console.log((await wallet.getAddress()).toString());
+    });
+
 
 interface AbiItem {
     name?: string;

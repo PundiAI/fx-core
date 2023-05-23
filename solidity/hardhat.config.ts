@@ -1,6 +1,7 @@
 import {HardhatUserConfig} from "hardhat/config"
 import "hardhat-dependency-compiler"
 import "@nomiclabs/hardhat-ethers"
+import "@nomicfoundation/hardhat-verify";
 
 import './tasks/task'
 
@@ -46,6 +47,9 @@ const config: HardhatUserConfig = {
                 }
             },
         ]
+    },
+    etherscan: {
+        apiKey: process.env.ETHERSCAN_API_KEY
     },
     dependencyCompiler: {
         paths: [

@@ -153,7 +153,7 @@ function init_bridge() {
   done < <(jq -r '.[] | "\(.chain_name) \(.bridge_logic_address) \(.bridge_proxy_address)"' "$BRIDGE_CONTRACTS_OUT_DIR")
 }
 
-function add_bridge_token() {
+function add_bridge_tokens() {
   while read -r chain_name bridge_proxy_address; do
     while read -r bridge_token_address is_original target_ibc; do
       if [ "$target_ibc" == "null" ]; then

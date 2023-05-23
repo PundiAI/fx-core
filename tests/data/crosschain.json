@@ -1,61 +1,91 @@
 [
   {
-    "a-chain": "eth",
-    "b-chain": "fxcore",
-    "a2b": {
-      "method": "send_to_fx",
-      "target": [
-        "",
-        "module/evm",
-        "erc20",
-        "fx/transfer/channel-0",
-        "ibc/0/fx"
-      ]
-    },
-    "b2a": {
-      "method": "send_to_external",
-      "target": [
-        "gravity",
-        "eth"
-      ]
-    }
+    "chain_name": "eth",
+    "crosschain_list": [
+      {
+        "method": "send_to_fx",
+        "targets": [
+          "erc20",
+          "module/evm",
+          "px/transfer/channel-0",
+          "ibc/0/px"
+        ]
+      }
+    ]
   },
   {
-    "a-chain": "bsc",
-    "b-chain": "fxcore",
-    "a2b": {
-      "method": "send_to_fx",
-      "target": [
-        "",
-        "module/evm",
-        "erc20",
-        "fx/transfer/channel-0",
-        "ibc/0/fx"
-      ]
-    },
-    "b2a": {
-      "method": "send_to_external",
-      "target": [
-        "bsc"
-      ]
-    }
+    "chain_name": "bsc",
+    "crosschain": [
+      {
+        "method": "send_to_fx",
+        "targets": [
+          "erc20",
+          "module/evm",
+          "px/transfer/channel-0",
+          "ibc/0/px"
+        ]
+      }
+    ]
   },
   {
-    "a-chain": "eth",
-    "b-chain": "pundix",
-    "a2b": {
-      "method": "send_to_fx",
-      "target": [
-        "fx/transfer/channel-0",
-        "ibc/0/fx"
-      ]
-    },
-    "b2a": {
-      "method": "fx_ibc_transfer",
-      "target": [
-        "gravity",
-        "eth"
-      ]
-    }
+    "chain_name": "fxcore",
+    "crosschain": [
+      {
+        "method": "fx_ibc_transfer",
+        "targets": [
+        ]
+      },
+      {
+        "method": "ibc_transfer",
+        "targets": [
+        ]
+      },
+      {
+        "method": "send_to_external",
+        "targets": [
+          "eth",
+          "bsc"
+        ]
+      },
+      {
+        "method": "convert_coin"
+      },
+      {
+        "method": "convert_erc20"
+      },
+      {
+        "method": "convert_denom"
+      }
+    ]
+  },
+  {
+    "chain_name": "pundix",
+    "crosschain": [
+      {
+        "method": "fx_ibc_transfer",
+        "targets": [
+        ]
+      },
+      {
+        "method": "ibc_transfer",
+        "targets": [
+        ]
+      }
+    ]
+  },
+  {
+    "chain_name": "fxevm",
+    "crosschain": [
+      {
+        "method": "cross_chain",
+        "targets": [
+        ]
+      },
+      {
+        "method": "fip20_cross_chain",
+        "targets": [
+        ]
+      }
+    ]
   }
 ]
