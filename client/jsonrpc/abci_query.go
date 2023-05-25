@@ -22,7 +22,7 @@ func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
 		return nil, err
 	}
 	var account authtypes.AccountI
-	if err = legacy.Cdc.UnmarshalJSON(result.Response.Value, &account); err != nil {
+	if err = authtypes.ModuleCdc.UnmarshalInterfaceJSON(result.Response.Value, &account); err != nil {
 		account = new(etherminttypes.EthAccount)
 		if err1 := legacy.Cdc.UnmarshalJSON(result.Response.Value, account); err1 != nil {
 			return nil, fmt.Errorf("%s: %s", err.Error(), err1.Error())

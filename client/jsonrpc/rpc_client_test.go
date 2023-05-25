@@ -26,3 +26,12 @@ func TestNewWsClient(t *testing.T) {
 		t.Log(resp.Error, resp.JSONRPC, resp.ID, string(resp.Result))
 	}
 }
+
+func TestQueryAccount(t *testing.T) {
+	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewClient("http://localhost:26657"))
+	account, err := rpc.QueryAccount("fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(account.GetSequence())
+}
