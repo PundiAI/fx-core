@@ -126,6 +126,32 @@ func CmdAddOracleDelegate(chainName string) *cobra.Command {
 	return cmd
 }
 
+func CmdReDelegate(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "re-delegate [validator-address]",
+		Short: "Allows oracle re delegate.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			msg := types.MsgReDelegate{
+				OracleAddress:    cliCtx.GetFromAddress().String(),
+				ValidatorAddress: valAddress.String(),
+				ChainName:        chainName,
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
+		},
+	}
+	return cmd
+}
+
 func CmdSendToExternal(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send-to-external [external-dest] [amount] [bridge-fee]",
