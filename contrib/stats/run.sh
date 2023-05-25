@@ -99,7 +99,7 @@ function show_validator_reward() {
       self_delegated=${self_delegated:-0}
       party_delegated=$(echo "$tokens-$self_delegated" | bc)
 
-      commission_rate=$(echo "scale=2;($commission_rate * 100)/1" | bc -l)
+      commission_rate=$(printf "%.2f" "$(echo "scale=2;($commission_rate * 100)/1" | bc -l)")
       self_delegated=$(echo "$self_delegated / 10^$decimals" | bc)
       party_delegated=$(echo "$party_delegated / 10^$decimals" | bc)
       block_reward=$(echo "$block_reward / 10^$decimals" | bc)
