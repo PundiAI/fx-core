@@ -28,6 +28,8 @@ func TestNewWsClient(t *testing.T) {
 }
 
 func TestQueryAccount(t *testing.T) {
+	helpers.SkipTest(t, "Skipping local test:", t.Name())
+
 	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewClient("http://localhost:26657"))
 	account, err := rpc.QueryAccount("fx17w0adeg64ky0daxwd2ugyuneellmjgnxed28x3")
 	if err != nil {
