@@ -72,24 +72,37 @@ func TestNewAppKeeper(t *testing.T) {
 	assert.NotNil(t, keeper)
 	typeOf := reflect.TypeOf(keeper)
 	valueOf := reflect.ValueOf(keeper)
-	checkStructField(t, valueOf, typeOf)
+	checkStructField(t, valueOf, typeOf.Name())
 }
 
-func checkStructField(t *testing.T, valueOf reflect.Value, typeOf reflect.Type) {
+func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
 	valueOf = reflect.Indirect(valueOf)
-	if typeOf.Kind() == reflect.Pointer {
-		typeOf = typeOf.Elem()
+	if valueOf.Kind() != reflect.Struct ||
+		valueOf.Type().String() == "baseapp.MsgServiceRouter" {
+		return
 	}
-	t.Log("-> struct: ", valueOf.String(), typeOf.Name())
+
 	numberField := valueOf.NumField()
 	for i := 0; i < numberField; i++ {
-		valueOfField := reflect.Indirect(valueOf.Field(i))
-		structField := typeOf.Field(i)
-		t.Log("--> field: ", valueOfField.String(), structField.Name)
-		if structField.Name == "storeKey" {
-			assert.False(t, valueOfField.IsNil())
-		} else if valueOfField.Kind() == reflect.Struct {
-			checkStructField(t, valueOfField, structField.Type)
+		valueOfField := valueOf.Field(i)
+		typeOfField := valueOf.Type().Field(i)
+		switch typeOfField.Name {
+		case "storeKey":
+			assert.False(t, valueOfField.IsNil(), typeOfField.Name)
+		case "hooks":
+			t.Log("-> hooks: ", valueOfField.Type(), valueOfField.Kind())
+			assert.False(t, valueOfField.IsNil(), typeOfField.Name)
 		}
+
+		switch valueOfField.Kind() {
+		case reflect.Pointer, reflect.Interface:
+			if typeOfField.Name == "QueryServer" ||
+				(name == "EvidenceKeeper" && typeOfField.Name == "router") {
+				return
+			}
+			assert.False(t, valueOfField.IsNil(), typeOfField.Name)
+		}
+		t.Log("-> struct: ", valueOf.Type(), typeOfField.Name)
+		checkStructField(t, valueOfField, typeOfField.Name)
 	}
 }

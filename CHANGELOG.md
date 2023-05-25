@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * Fix: IBC transfer to evm
+* Fix: fail to withdraw reward after validator is slashed
 
 ## [v4.1.0]
 
@@ -48,8 +49,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * Fix: WFX Token contract code
 * Fix: can not transfer shares when redelegate
 * Fix: add gravity module to ibc router
-
----
 
 ## [v4.0.0]
 
