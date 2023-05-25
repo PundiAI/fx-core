@@ -40,10 +40,10 @@ func GetTxSubCmds(chainName string) []*cobra.Command {
 	cmds := []*cobra.Command{
 		CmdUpdateChainOraclesProposal(chainName),
 
-		// set bridger address
-		CmdCreateOracleBridger(chainName),
-		// add oracle stake
-		CmdAddOracleDelegate(chainName),
+		CmdBoundedOracle(chainName),
+		CmdReDelegate(chainName),
+		CmdAddDelegate(chainName),
+
 		// send to external chain
 		CmdSendToExternal(chainName),
 		CmdCancelSendToExternal(chainName),
@@ -60,9 +60,9 @@ func GetTxSubCmds(chainName string) []*cobra.Command {
 	return cmds
 }
 
-func CmdCreateOracleBridger(chainName string) *cobra.Command {
+func CmdBoundedOracle(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-oracle-bridger [validator-address] [bridger-address] [external-address] [delegate-amount]",
+		Use:   "bounded-oracle [validator-address] [bridger-address] [external-address] [delegate-amount]",
 		Short: "Allows oracle to delegate their voting responsibilities to a given key.",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -100,9 +100,9 @@ func CmdCreateOracleBridger(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdAddOracleDelegate(chainName string) *cobra.Command {
+func CmdAddDelegate(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-oracle-delegate [delegate-amount]",
+		Use:   "add-delegate [delegate-amount]",
 		Short: "Allows oracle add delegate.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
