@@ -11,9 +11,11 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
+	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/x/evm/client/cli"
 	"github.com/functionx/fx-core/v4/x/evm/keeper"
 	fxevmtypes "github.com/functionx/fx-core/v4/x/evm/types"
 )
@@ -47,6 +49,16 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 	fxevmtypes.RegisterInterfaces(registry)
+}
+
+// GetTxCmd returns the root tx command for the evm module.
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
+}
+
+// GetQueryCmd returns no root query command for the evm module.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
 // AppModule implements an application module for the evm module.
