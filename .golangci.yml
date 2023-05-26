@@ -11,3 +11,17 @@ run:
   # Mainly related to generics support since go1.19.
   # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.19
   go: '1.19'
+
+linters:
+  enable:
+    - gofumpt
+    - unconvert
+    - unparam
+    - stylecheck
+    - gocyclo
+
+linters-settings:
+  stylecheck:
+    checks: ["all", "-ST1003"]
+  gocyclo:
+    min-complexity: 15
