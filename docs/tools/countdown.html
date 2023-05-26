@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="60">
+    <!--    <meta http-equiv="refresh" content="60">-->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>f(x)Core upgrade countdown</title>
     <style>
@@ -149,10 +149,11 @@
 
 <script src="./js/index.js"></script>
 <script type="text/javascript">
-    const network = getQueryVariable("network")
+    let network = getQueryVariable("network")
+    network = network ? network : "mainnet"
 
     let plan = getCurrentPlan()
-    plan = plan? plan : {name: "unknown", height: 0}
+    plan = plan ? plan : {name: "unknown", height: 0}
     const upgradeBlockHeight = plan.height;
     document.getElementById("version").innerHTML = ` upgrade ${network}-${plan.name} countdown`;
 
@@ -162,11 +163,7 @@
         if (leftTime < 0 || intervalBlock < 0) {
             window.clearInterval(myInterval)
             window.alert("The countdown has ended and the page will jump to the block browser.")
-            if (network === "testnet") {
-                window.location.replace("https://testnet.starscan.io");
-            } else {
-                window.location.replace("https://starscan.io");
-            }
+            window.location.replace(getStarscanUrl())
             return;
         }
         document.getElementById("block").innerHTML = intervalBlock.toString();
@@ -183,11 +180,10 @@
         document.getElementById("seconds").innerHTML = second.toString();
     }
 
-    const intervalTimeout = 1000;
-    const block = httpGetJson(getFxJsonrpcUrl() + "/block");
-    const blockTime = new Date(block.block.header.time);
+    const block = getBlock();
+    const blockTime = new Date(block.header.time);
     const avgBlockTime = getAverageBlockTime(block);
-    const startBlockHeight = Number(block.block.header.height);
+    const startBlockHeight = Number(block.header.height);
     let leftTime = (upgradeBlockHeight - startBlockHeight) * avgBlockTime
     ShowCountDown(leftTime, upgradeBlockHeight - startBlockHeight);
 
@@ -195,7 +191,7 @@
         leftTime = leftTime - 1000
         const curBlockHeight = startBlockHeight + Math.ceil(((new Date().getTime()) - blockTime.getTime()) / avgBlockTime)
         ShowCountDown(leftTime, upgradeBlockHeight - curBlockHeight);
-    }, intervalTimeout);
+    }, 1000 * avgBlockTime);
 </script>
 </body>
 </html>

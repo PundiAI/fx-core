@@ -19,10 +19,9 @@
             <thead>
             <tr>
                 <th scope="col">#</th>
-                <th scope="col">Validator</th>
-                <th scope="col">Public IP</th>
-                <th scope="col">Version</th>
-                <th scope="col">p2p ID</th>
+                <th scope="col" style="text-align: left">Validator</th>
+                <th scope="col" style="text-align: left">Tendermint Version</th>
+                <th scope="col" style="text-align: left">Peer</th>
             </tr>
             </thead>
             <tbody id="peer">
@@ -35,15 +34,8 @@
 <script src="./js/index.js"></script>
 <script type="text/javascript">
 
-    function desensitization(ip) {
-        const split = ip.split(".")
-        return `${split[0]} . * . * . ${split[3]}`
-    }
-
     let peers = []
     let lastLen = peers.length
-
-    const network = getQueryVariable("network")
 
     function updatePeers() {
         getPeers().forEach((peer) => {
@@ -53,7 +45,7 @@
         })
     }
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
         updatePeers()
     }
 
@@ -74,10 +66,9 @@
             let para = document.createElement('tr');
             para.innerHTML = `
                 <th scope="row">${index + 1}</th>
-                <td>${peer.node_info.moniker}</td>
-                <td>${desensitization(peer.remote_ip)}</td>
-                <td ><a target="_blank" href="https://github.com/FunctionX/fx-core/tree/${version}">${version}</a></td>
-                <td>${peer.node_info.id.substring(0, 20)} *</td>`
+                <td style="text-align: left">${peer.node_info.moniker}</td>
+                <td style="text-align: left">${version}</td>
+                <td style="text-align: left">${peer.node_info.id}@${peer.remote_ip}</td>`
             peerBody.appendChild(para)
         }
     }

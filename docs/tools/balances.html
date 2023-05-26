@@ -56,8 +56,13 @@
 <script src="./js/constants.js"></script>
 <script type="text/javascript">
     let module = getQueryVariable("module")
-    // erc20 module address
-    let moduleAddress = "fx1glht96kr2rseywuvhhay894qw7ekuc4qs5z0yh"
+    let moduleAddress = ""
+    if (module === "total") {
+        document.title = "f(x)Core Total Supply"
+    } else {
+        moduleAddress = "fx1glht96kr2rseywuvhhay894qw7ekuc4qs5z0yh"
+        document.title = "f(x)Core ERC20 Module Balances"
+    }
 
     function getRandomRGBColor() {
         const r = Math.floor(Math.random() * 255)
@@ -124,7 +129,7 @@
         }
         return balances
     }
-    let balances = module === "total" ? getTotalSupply() : getBalances(moduleAddress)
+    let balances = getBalances(moduleAddress)
     balances = balancesSymbol(balances);
 
     let results = []

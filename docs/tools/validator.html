@@ -15,11 +15,11 @@
             <thead>
             <tr>
                 <th scope="col">#</th>
-                <th scope="col">Validator</th>
-                <th scope="col">Bonded Tokens</th>
-                <th scope="col">Status</th>
-                <th scope="col">Commission Rates</th>
-                <th scope="col">Missed Blocks</th>
+                <th scope="col" style="text-align: left">Validator</th>
+                <th scope="col" style="text-align: left">Bonded Tokens</th>
+                <th scope="col" style="text-align: left">Status</th>
+                <th scope="col" style="text-align: left">Commission Rates</th>
+                <th scope="col" style="text-align: left">Missed Blocks</th>
             </tr>
             </thead>
             <tbody id="isSign">
@@ -79,11 +79,11 @@
             let para = document.createElement('tr');
             para.innerHTML = `
                 <th scope="row">${index + 1}</th>
-                <td><a target="_blank" href="${website}">${validator.description.moniker}</a></td>
-                <td>${(tokens / 100).toLocaleString()} FX</td>
-                <td>${validator.status === "BOND_STATUS_BONDED" ? "✅" : "❌"} ${validator.jailed ? "(jailed)" : ""}</td>
-                <td>${(validator.commission.commission_rates.rate * 100).toFixed(2)}%</td>
-                <td><a target="_blank" href="https://explorer.functionx.io/fxcore/validator/${validator.operator_address}"><span class="${color}">${signInfo?.missed_blocks_counter}</span></a></td>`
+                <td style="text-align: left"><a target="_blank" href="${website}">${validator.description.moniker}</a></td>
+                <td style="text-align: left">${(tokens / 100).toLocaleString()} FX</td>
+                <td style="text-align: left">${validator.status === "BOND_STATUS_BONDED" ? "✅" : "❌"} ${validator.jailed ? "(jailed)" : ""}</td>
+                <td style="text-align: left">${(validator.commission.commission_rates.rate * 100).toFixed(2)}%</td>
+                <td style="text-align: left"><a target="_blank" href="${getStarscanUrl()}/fxcore/validator/${validator.operator_address}"><span class="${color}">${signInfo?.missed_blocks_counter}</span></a></td>`
             signBody.appendChild(para)
         })
     }
