@@ -25,7 +25,7 @@ import (
 	fxcfg "github.com/functionx/fx-core/v4/server/config"
 )
 
-var cancelledInPreRun = errors.New("cancelled in prerun")
+var errCancelledInPreRun = errors.New("cancelled in prerun")
 
 // Used in each test to run the function under test via Cobra
 // but to always halt the command
@@ -35,7 +35,7 @@ func preRunETestImpl(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	return cancelledInPreRun
+	return errCancelledInPreRun
 }
 
 func TestInterceptConfigsPreRunHandlerCreatesConfigFilesWhenMissing(t *testing.T) {
@@ -49,7 +49,7 @@ func TestInterceptConfigsPreRunHandlerCreatesConfigFilesWhenMissing(t *testing.T
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
-	if err := cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -126,7 +126,7 @@ func TestInterceptConfigsPreRunHandlerReadsConfigToml(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -163,7 +163,7 @@ func TestInterceptConfigsPreRunHandlerReadsAppToml(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -191,7 +191,7 @@ func TestInterceptConfigsPreRunHandlerReadsFlags(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -226,7 +226,7 @@ func TestInterceptConfigsPreRunHandlerReadsEnvVars(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -330,7 +330,7 @@ func TestInterceptConfigsPreRunHandlerPrecedenceFlag(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -346,7 +346,7 @@ func TestInterceptConfigsPreRunHandlerPrecedenceEnvVar(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -362,7 +362,7 @@ func TestInterceptConfigsPreRunHandlerPrecedenceConfigFile(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -378,11 +378,11 @@ func TestInterceptConfigsPreRunHandlerPrecedenceConfigDefault(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != cancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
-	if "tcp://127.0.0.1:26657" != serverCtx.Config.RPC.ListenAddress {
+	if serverCtx.Config.RPC.ListenAddress != "tcp://127.0.0.1:26657" {
 		t.Error("RPCListenAddress is not using default")
 	}
 }

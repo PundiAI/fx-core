@@ -144,7 +144,7 @@ func (suite *ProposalTestSuite) TestRegisterCoinProposal() {
 		{msg: "Register token pair - valid pair dissabled", title: "test", description: "test desc", metadata: validMetadata, expectPass: true},
 
 		// Invalid Regex (denom)
-		{msg: "Register token pair - invalid starts with number", title: "test", description: "test desc", metadata: createMetadata("1test", "test"), expectPass: false},
+		{msg: "Register token pair - invalid starts with number", title: "test", description: "test desc", metadata: createMetadata("1test", "TEST"), expectPass: false},
 		{msg: "Register token pair - invalid char '('", title: "test", description: "test desc", metadata: createMetadata("(test", "test"), expectPass: false},
 		{msg: "Register token pair - invalid char '^'", title: "test", description: "test desc", metadata: createMetadata("^test", "test"), expectPass: false},
 		// Invalid length

@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) newAddress() sdk.AccAddress {
 }
 
 func (suite *KeeperTestSuite) TestDeposits() {
-	initCoins, err, testProposalMsg := suite.getTextProposal()
+	initCoins, testProposalMsg, err := suite.getTextProposal()
 	suite.NoError(err)
 	proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
 	suite.NoError(err)
@@ -131,14 +131,14 @@ func (suite *KeeperTestSuite) TestDeposits() {
 	suite.True(initCoins.Add(firstCoins...).Add(secondCoins...).IsAllGTE(minDeposit))
 }
 
-func (suite *KeeperTestSuite) getTextProposal() (sdk.Coins, error, *govv1.MsgSubmitProposal) {
+func (suite *KeeperTestSuite) getTextProposal() (sdk.Coins, *govv1.MsgSubmitProposal, error) {
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1e3).MulRaw(1e18)}}
 	content := govv1beta1.NewTextProposal("Test", "description")
 	msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAcct)
 	suite.NoError(err)
 	testProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
 		types.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
-	return initCoins, err, testProposalMsg
+	return initCoins, testProposalMsg, err
 }
 
 func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {

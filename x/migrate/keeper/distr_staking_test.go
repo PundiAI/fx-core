@@ -11,7 +11,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -231,9 +230,9 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 
 func GetDelegateRewards(ctx sdk.Context, app *app.App, delegate []byte, validator sdk.ValAddress) (sdk.DecCoins, error) {
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.DistrKeeper)
-	queryClient := types.NewQueryClient(queryHelper)
-	rewards, err := queryClient.DelegationRewards(context.Background(), &types.QueryDelegationRewardsRequest{
+	distritypes.RegisterQueryServer(queryHelper, app.DistrKeeper)
+	queryClient := distritypes.NewQueryClient(queryHelper)
+	rewards, err := queryClient.DelegationRewards(context.Background(), &distritypes.QueryDelegationRewardsRequest{
 		DelegatorAddress: sdk.AccAddress(delegate).String(),
 		ValidatorAddress: validator.String(),
 	})

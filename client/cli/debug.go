@@ -22,9 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/ethereum/go-ethereum/common"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gogo/protobuf/proto"
@@ -110,7 +108,7 @@ func ModuleAddressCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.Println("Deprecated: please use `fxcored query auth module-account`")
-			cmd.Println(types.NewModuleAddress(args[0]).String())
+			cmd.Println(authtypes.NewModuleAddress(args[0]).String())
 			return nil
 		},
 	}
@@ -321,7 +319,7 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 				}, "", "  ")
 			case "eth_secp256k1":
 				data, err = json.MarshalIndent(map[string]interface{}{
-					"eip55_address":  common.BytesToAddress(pubkey.Address()).String(),
+					"eip55_address":  gethcommon.BytesToAddress(pubkey.Address()).String(),
 					"acc_address":    sdk.AccAddress(pubkey.Address().Bytes()).String(),
 					"val_address":    sdk.ValAddress(pubkey.Address().Bytes()).String(),
 					"pub_key_hex":    hex.EncodeToString(pubkey.Bytes()),

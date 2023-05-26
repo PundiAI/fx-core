@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/server"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,7 +30,7 @@ func ExportSateCmd(appExporter types.AppExporter, defaultNodeHome string) *cobra
 		Use:   "export",
 		Short: "Export state to JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
+			serverCtx := sdkserver.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
 			homeDir, _ := cmd.Flags().GetString(flags.FlagHome)

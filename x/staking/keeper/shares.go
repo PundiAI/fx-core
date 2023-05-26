@@ -35,11 +35,11 @@ func (k Keeper) IterateAllAllowance(ctx sdk.Context, handler func(valAddr sdk.Va
 
 	for ; iter.Valid(); iter.Next() {
 		key := bytes.TrimPrefix(iter.Key(), types.AllowanceKey)
-		valAddrLen := uint8(key[0])
+		valAddrLen := key[0]
 		valAddr := sdk.ValAddress(key[1 : 1+valAddrLen])
-		ownerAddrLen := uint8(key[1+valAddrLen])
+		ownerAddrLen := key[1+valAddrLen]
 		owner := sdk.AccAddress(key[2+valAddrLen : 2+valAddrLen+ownerAddrLen])
-		spenderAddrLen := uint8(key[2+valAddrLen+ownerAddrLen])
+		spenderAddrLen := key[2+valAddrLen+ownerAddrLen]
 		spender := sdk.AccAddress(key[3+valAddrLen+ownerAddrLen : 3+valAddrLen+ownerAddrLen+spenderAddrLen])
 		shares := big.NewInt(0).SetBytes(iter.Value())
 		if handler(valAddr, owner, spender, shares) {

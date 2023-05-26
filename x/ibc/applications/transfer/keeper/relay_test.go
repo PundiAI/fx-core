@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 	"math/big"
-	"math/rand"
 	"strings"
 	"testing"
 
@@ -11,11 +10,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibcgotesting "github.com/cosmos/ibc-go/v6/testing"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
@@ -62,14 +59,14 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer with IBC token",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				coin = transfertypes.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
 			}, true,
 		},
 		{
 			"successful transfer with IBC token and memo",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				coin = transfertypes.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
 				memo = "memo"
 			}, true,
 		},
@@ -83,7 +80,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"transfer failed - sender account is blocked",
 			func() {
-				sender = suite.GetApp(suite.chainA.App).AccountKeeper.GetModuleAddress(types.ModuleName)
+				sender = suite.GetApp(suite.chainA.App).AccountKeeper.GetModuleAddress(transfertypes.ModuleName)
 			}, false,
 		},
 		{
@@ -95,13 +92,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failed to parse coin denom",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
+				coin = transfertypes.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
 			}, false,
 		},
 		{
 			"send from module account failed, insufficient balance",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdk.NewInt(1)))
+				coin = transfertypes.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdk.NewInt(1)))
 			}, false,
 		},
 		{
@@ -135,7 +132,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			timeoutHeight = suite.chainB.GetTimeoutHeight()
 
 			// create IBC token on chainA
-			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coin, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, "")
+			transferMsg := transfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coin, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, "")
 			result, err := suite.chainB.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
@@ -147,7 +144,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			tc.malleate()
 
-			msg := types.NewMsgTransfer(
+			msg := transfertypes.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				coin, sender.String(), suite.chainB.SenderAccount.GetAddress().String(),
@@ -218,10 +215,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				protID := "transfer"
 				channelID := "channel-0"
 				coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, transferAmount))
-				err := suite.GetApp(suite.chainA.App).BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, coins)
+				err := suite.GetApp(suite.chainA.App).BankKeeper.MintCoins(suite.chainA.GetContext(), transfertypes.ModuleName, coins)
 				suite.Require().NoError(err)
 				portChannelAddr := transfertypes.GetEscrowAddress(protID, channelID)
-				err = suite.GetApp(suite.chainA.App).BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, portChannelAddr, coins)
+				err = suite.GetApp(suite.chainA.App).BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), transfertypes.ModuleName, portChannelAddr, coins)
 				suite.Require().NoError(err)
 
 				packetData := transfertypes.FungibleTokenPacketData{}
@@ -260,7 +257,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 						},
 						{
 							Denom:    strings.ToUpper(baseDenom),
-							Exponent: uint32(rand.Int31n(19)),
+							Exponent: uint32(tmrand.Int31n(19)),
 						},
 					},
 				}
@@ -309,7 +306,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 						},
 						{
 							Denom:    strings.ToUpper(baseDenom),
-							Exponent: uint32(rand.Int31n(18)),
+							Exponent: uint32(tmrand.Int31n(18)),
 						},
 					},
 				}
@@ -405,7 +402,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
-			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
+			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibctesting.TransferPort, "channel-0", ibctesting.TransferPort, "channel-0", clienttypes.Height{
 				RevisionNumber: 100,
 				RevisionHeight: 100000,
 			}, 0)
@@ -500,7 +497,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
-			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
+			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibctesting.TransferPort, "channel-0", ibctesting.TransferPort, "channel-0", clienttypes.Height{
 				RevisionNumber: 100,
 				RevisionHeight: 100000,
 			}, 0)
@@ -649,7 +646,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
-			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
+			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibctesting.TransferPort, "channel-0", ibctesting.TransferPort, "channel-0", clienttypes.Height{
 				RevisionNumber: 100,
 				RevisionHeight: 100000,
 			}, 0)
