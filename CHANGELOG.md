@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * Fix: IBC transfer to evm
 * Fix: fail to withdraw reward after validator is slashed
+* Fix(ibc): Properly handle ordered channels in UnreceivedPackets query
 
 ## [v4.1.0]
 
