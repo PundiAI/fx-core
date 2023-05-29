@@ -31,7 +31,7 @@ func RosettaCommand(ir codectypes.InterfaceRegistry, cdc codec.Codec) *cobra.Com
 
 			protoCodec, ok := cdc.(*codec.ProtoCodec)
 			if !ok {
-				return fmt.Errorf("exoected *codec.ProtoMarshaler, got: %T", cdc)
+				return fmt.Errorf("exoected *codec.ProtoCodec, got: %T", cdc)
 			}
 			conf.WithCodec(ir, protoCodec)
 

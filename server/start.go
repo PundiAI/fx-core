@@ -89,17 +89,6 @@ which accepts a path for the resulting pprof file.
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
-			if zeroLog, ok := serverCtx.Logger.(server.ZeroLogWrapper); ok {
-				if strings.ToLower(serverCtx.Viper.GetString(flags.FlagLogFormat)) == tmcfg.LogFormatPlain {
-					zeroLog.Logger = zeroLog.Logger.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "03:04:05PM"})
-					serverCtx.Logger = zeroLog
-				}
-				filterLogTypes := serverCtx.Viper.GetStringSlice(FlagLogFilter)
-				if len(filterLogTypes) > 0 {
-					serverCtx.Logger = NewFxZeroLogWrapper(zeroLog.Logger, filterLogTypes)
-				}
-			}
-
 			if _, err := server.GetPruningOptionsFromFlags(serverCtx.Viper); err != nil {
 				return err
 			}
@@ -126,6 +115,13 @@ which accepts a path for the resulting pprof file.
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
+			filterLogTypes := serverCtx.Viper.GetStringSlice(FlagLogFilter)
+			zeroLog := serverCtx.Logger.(server.ZeroLogWrapper).Logger
+			if strings.ToLower(serverCtx.Viper.GetString(flags.FlagLogFormat)) == tmcfg.LogFormatPlain {
+				zeroLog = zeroLog.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "03:04:05PM"})
+			}
+			serverCtx.Logger = NewFxZeroLogWrapper(zeroLog, filterLogTypes)
+
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			if len(clientCtx.ChainID) <= 0 {
 				clientCtx.ChainID = fxtypes.ChainId()
@@ -276,12 +272,9 @@ func startStandAlone(svrCtx *server.Context, appCreator types.AppCreator) error 
 //
 //gocyclo:ignore
 func startInProcess(svrCtx *server.Context, clientCtx client.Context, appCreator types.AppCreator) error {
-	cfg := svrCtx.Config
-	logger := svrCtx.Logger
-
-	db, err := openDB(AppDBName, server.GetAppDBBackend(svrCtx.Viper), cfg.RootDir)
+	db, err := openDB(AppDBName, server.GetAppDBBackend(svrCtx.Viper), svrCtx.Config.RootDir)
 	if err != nil {
-		logger.Error("failed to open DB", "error", err.Error())
+		svrCtx.Logger.Error("failed to open DB", "error", err.Error())
 		return err
 	}
 
@@ -293,26 +286,26 @@ func startInProcess(svrCtx *server.Context, clientCtx client.Context, appCreator
 
 	traceWriter, err := openTraceWriter(svrCtx.Viper.GetString(srvflags.TraceStore))
 	if err != nil {
-		logger.Error("failed to open trace writer", "error", err.Error())
+		svrCtx.Logger.Error("failed to open trace writer", "error", err.Error())
 		return err
 	}
 
 	config, err := fxcfg.GetConfig(svrCtx.Viper)
 	if err != nil {
-		logger.Error("failed to get server config", "error", err.Error())
+		svrCtx.Logger.Error("failed to get server config", "error", err.Error())
 		return err
 	}
 
 	if err = config.ValidateBasic(); err != nil {
-		logger.Error("invalid server config", "error", err.Error())
+		svrCtx.Logger.Error("invalid server config", "error", err.Error())
 		return err
 	}
 
 	app := appCreator(svrCtx.Logger, db, traceWriter, svrCtx.Viper)
 
-	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
+	nodeKey, err := p2p.LoadOrGenNodeKey(svrCtx.Config.NodeKeyFile())
 	if err != nil {
-		logger.Error("failed load or gen node key", "error", err.Error())
+		svrCtx.Logger.Error("failed load or gen node key", "error", err.Error())
 		return err
 	}
 
@@ -322,30 +315,30 @@ func startInProcess(svrCtx *server.Context, clientCtx client.Context, appCreator
 	)
 
 	if gRPCOnly {
-		logger.Info("starting node in query only mode; Tendermint is disabled")
+		svrCtx.Logger.Info("starting node in query only mode; Tendermint is disabled")
 		config.GRPC.Enable = true
 		config.JSONRPC.EnableIndexer = false
 	} else {
-		logger.Info("starting node with ABCI Tendermint in-process")
+		svrCtx.Logger.Info("starting node with ABCI Tendermint in-process")
 
-		genDocProvider := node.DefaultGenesisDocProviderFunc(cfg)
+		genDocProvider := node.DefaultGenesisDocProviderFunc(svrCtx.Config)
 		tmNode, err = node.NewNode(
-			cfg,
-			pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
+			svrCtx.Config,
+			pvm.LoadOrGenFilePV(svrCtx.Config.PrivValidatorKeyFile(), svrCtx.Config.PrivValidatorStateFile()),
 			nodeKey,
 			proxy.NewLocalClientCreator(app),
 			genDocProvider,
 			node.DefaultDBProvider,
-			node.DefaultMetricsProvider(cfg.Instrumentation),
+			node.DefaultMetricsProvider(svrCtx.Config.Instrumentation),
 			svrCtx.Logger.With("module", "node"),
 		)
 		if err != nil {
-			logger.Error("failed init node", "error", err.Error())
+			svrCtx.Logger.Error("failed init node", "error", err.Error())
 			return err
 		}
 
 		if err = tmNode.Start(); err != nil {
-			logger.Error("failed start tendermint server", "error", err.Error())
+			svrCtx.Logger.Error("failed start tendermint server", "error", err.Error())
 			return err
 		}
 
@@ -356,7 +349,7 @@ func startInProcess(svrCtx *server.Context, clientCtx client.Context, appCreator
 			if traceWriter != nil {
 				_ = traceWriter.Close()
 			}
-			logger.Info("exiting...")
+			svrCtx.Logger.Info("exiting...")
 		}()
 	}
 
@@ -448,7 +441,7 @@ func startInProcess(svrCtx *server.Context, clientCtx client.Context, appCreator
 	if config.JSONRPC.EnableIndexer {
 		idxDB, err := ethermintserver.OpenIndexerDB(clientCtx.HomeDir, server.GetAppDBBackend(svrCtx.Viper))
 		if err != nil {
-			logger.Error("failed to open evm indexer DB", "error", err.Error())
+			svrCtx.Logger.Error("failed to open evm indexer DB", "error", err.Error())
 			return err
 		}
 
@@ -491,8 +484,8 @@ func startInProcess(svrCtx *server.Context, clientCtx client.Context, appCreator
 
 	if config.JSONRPC.Enable {
 		ethClientCtx := clientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
-		tmRPCAddr := cfg.RPC.ListenAddress
-		if len(cfg.RPC.TLSKeyFile) > 0 && len(cfg.RPC.TLSCertFile) > 0 {
+		tmRPCAddr := svrCtx.Config.RPC.ListenAddress
+		if len(svrCtx.Config.RPC.TLSKeyFile) > 0 && len(svrCtx.Config.RPC.TLSCertFile) > 0 {
 			apiURL, err := url.Parse(tmRPCAddr)
 			if err != nil {
 				return err
@@ -608,11 +601,11 @@ func wrapCPUProfile(ctx *server.Context, callback func() error) error {
 	}
 
 	err := callback()
+	time.Sleep(100 * time.Millisecond)
 	errCode, ok := err.(server.ErrorCode)
 	if !ok {
 		return err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return errCode
 }
 
@@ -639,7 +632,9 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 	if err != nil {
 		return err
 	}
-	defer blockStoreDB.Close()
+	defer func() {
+		_ = blockStoreDB.Close()
+	}()
 	blockStore := store.NewBlockStore(blockStoreDB)
 	if genesisDoc.GenesisTime.Equal(genesisTime) {
 		genesisBytes, _ := tmjson.Marshal(genesisDoc)

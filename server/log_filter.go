@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/rs/zerolog"
@@ -73,26 +74,30 @@ func (z FxZeroLogWrapper) With(keyVals ...interface{}) tmlog.Logger {
 	return FxZeroLogWrapper{logger, z.filterMsg, z.filterModule}
 }
 
-func (z FxZeroLogWrapper) getLogFields(keyVals ...interface{}) (fields map[string]interface{}, logLevel zerolog.Level) {
-	logLevel = z.GetLevel()
+func (z FxZeroLogWrapper) getLogFields(keyVals ...interface{}) ([]interface{}, zerolog.Level) {
+	logLevel := z.GetLevel()
 	if len(keyVals)%2 != 0 {
-		return nil, logLevel
+		return keyVals, logLevel
 	}
 
-	fields = make(map[string]interface{})
 	for i := 0; i < len(keyVals); i += 2 {
-		key, ok := keyVals[i].(string)
-		if !ok {
-			continue
-		}
-		if key == "module" {
-			v, _ := keyVals[i+1].(string)
-			if level, ok := z.filterModule[v]; ok && level != zerolog.NoLevel {
-				logLevel = level
+		switch key := keyVals[i].(type) {
+		case string:
+			if key == "module" {
+				v, _ := keyVals[i+1].(string)
+				if level, ok := z.filterModule[v]; ok && level != zerolog.NoLevel {
+					logLevel = level
+				}
 			}
+		case fmt.Stringer:
+			keyVals[i] = key.String()
 		}
-		fields[key] = keyVals[i+1]
+		switch value := keyVals[i+1].(type) {
+		case *tmlog.LazySprintf:
+			keyVals[i+1] = value.String()
+		case *tmlog.LazyBlockHash:
+			keyVals[i+1] = value.String()
+		}
 	}
-
-	return fields, logLevel
+	return keyVals, logLevel
 }

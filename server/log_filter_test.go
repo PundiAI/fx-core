@@ -58,6 +58,14 @@ func TestFxZeroLogWrapper(t *testing.T) {
 			},
 			output: "{\"level\":\"info\",\"message\":\"msg\"}\n",
 		},
+		{
+			name:  "log Stringer value",
+			level: zerolog.InfoLevel,
+			call: func(logger tmlog.Logger) {
+				logger.Info("msg", "msg", tmlog.NewLazySprintf("Starting %v service", "abc"))
+			},
+			output: "{\"level\":\"info\",\"msg\":\"Starting abc service\",\"message\":\"msg\"}\n",
+		},
 	}
 
 	for _, testcase := range testcases {
