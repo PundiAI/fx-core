@@ -2,12 +2,14 @@
 
 set -eo pipefail
 
+export FX_HOME=${FX_HOME:-"/tmp/fxcore"}
+
 if [[ "$1" == "init" ]]; then
-  if [ -d ~/.fxcore ]; then
-    echo "node home '~/.fxcore' already exists"
+  if [ -d "$FX_HOME" ]; then
+    echo "node home '$FX_HOME' already exists"
     read -rp "Are you sure you want to delete all the data and start over? [y/N] " input
     [[ "$input" != "y" && "$input" != "Y" ]] && exit 1
-    rm -r ~/.fxcore
+    rm -r "$FX_HOME"
   fi
 
   # Initialize private validator, p2p, genesis, and application configuration files
@@ -38,12 +40,12 @@ if [[ "$1" == "init" ]]; then
   echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
   if [ -n "${2:-""}" ]; then
     fxcored add-genesis-account fx1 10004000000000000000000000FX
-    genesis_tmp=~/.fxcore/config/genesis.json.tmp
+    genesis_tmp="$FX_HOME/config/genesis.json.tmp"
     # update genesis total supply
-    jq '.app_state.bank.supply[0].amount = "388604525462891000000000000"' ~/.fxcore/config/genesis.json >"$genesis_tmp" &&
-      mv "$genesis_tmp" ~/.fxcore/config/genesis.json
-    jq '.app_state.gov.voting_params.voting_period = "15s"' ~/.fxcore/config/genesis.json >"$genesis_tmp" &&
-      mv "$genesis_tmp" ~/.fxcore/config/genesis.json
+    jq '.app_state.bank.supply[0].amount = "388604525462891000000000000"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
+      mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
+    jq '.app_state.gov.voting_params.voting_period = "15s"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
+      mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
   else
     fxcored add-genesis-account fx1 4000000000000000000000FX
   fi
