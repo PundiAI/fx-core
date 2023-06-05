@@ -276,7 +276,7 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 		fmt.Printf("%s%sName: %s\n", SPACE, SPACE, plan.Name)
 		fmt.Printf("%s%sHeight: %d\n", SPACE, SPACE, plan.Height)
 	}
-	if chainId != genesisId {
+	if len(chainId) > 0 && chainId != genesisId {
 		fmt.Printf("%s%sWarning: The remote node chainId(%s) does not match the local genesis chainId(%s)\n", SPACE, SPACE, chainId, genesisId)
 		return false, nil
 	}
