@@ -1,20 +1,9 @@
 #!/usr/bin/make -f
 
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-COMMIT := $(shell git log -1 --format='%H')
-
-# don't override user values
-ifeq (,$(VERSION))
-  ifeq ($(OS),Windows_NT)
-	VERSION := $(shell git describe --exact-match 2>$null)
-  else
-	VERSION := $(shell git describe --exact-match 2>/dev/null)
-  endif
-  # if VERSION is empty, then populate it with branch's name and raw commit hash
-  ifeq (,$(VERSION))
-    VERSION := $(BRANCH)-$(COMMIT)
-  endif
-endif
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
+GIT_TAGS := $(shell git describe --tags --always 2>/dev/null || echo 'unknown')
+VERSION := $(GIT_BRANCH)-$(GIT_TAGS)
+COMMIT := $(shell git log -1 --format='%H' 2>/dev/null || echo 'unknown')
 
 LEDGER_ENABLED ?= true
 BUILDDIR ?= $(CURDIR)/build
@@ -74,9 +63,9 @@ BUILD_TAGS_COMMA_SEP := $(subst $(whitespace),$(comma),$(build_tags))
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(BUILD_TAGS_COMMA_SEP)" \
+		  -X github.com/cosmos/cosmos-sdk/version.BuildTags=$(BUILD_TAGS_COMMA_SEP) \
 		  -X github.com/cosmos/cosmos-sdk/version.Name=fxcore \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored
 
 ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
   ldflags += -w -s
