@@ -266,9 +266,9 @@ function help() {
   printf "    %s <command> [args]\n" "$0"
   printf "The commands are:\n"
   {
-    printf "    show_validator_rewards # # show validator rewards\n"
-    printf "    show_validator_votes # # show validator votes\n"
-    printf "    show_module_account # # show all module accounts\n"
+    printf "    show_validator_reward # # show validator reward\n"
+    printf "    show_validator_vote # # show validator vote\n"
+    printf "    show_module_account # # show all module account\n"
     printf "    show_mint_info # [<after_days>] # show mint module info\n"
     printf "    help # # show this help message\n"
     printf "\nVersion: Alpha\n"
