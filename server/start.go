@@ -56,6 +56,8 @@ import (
 	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
+const FlagApplicationDatabaseDir = "application-db-dir"
+
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // Tendermint.
 //
@@ -200,6 +202,8 @@ which accepts a path for the resulting pprof file.
 
 	cmd.Flags().Bool(server.FlagDisableIAVLFastNode, true, "Disable fast node for IAVL tree")
 
+	cmd.Flags().String(FlagApplicationDatabaseDir, "", "Specify the application database directory")
+
 	// add support for all Tendermint-specific command line options
 	tcmd.AddNodeFlags(cmd)
 	crisis.AddModuleInitFlags(cmd)
@@ -268,11 +272,14 @@ func startStandAlone(svrCtx *server.Context, appCreator types.AppCreator) error 
 	return server.WaitForQuitSignals()
 }
 
-// legacyAminoCdc is used for the legacy REST API
-//
 //gocyclo:ignore
 func startInProcess(svrCtx *server.Context, clientCtx client.Context, appCreator types.AppCreator) error {
-	db, err := openDB(AppDBName, server.GetAppDBBackend(svrCtx.Viper), svrCtx.Config.RootDir)
+	applicationDatabaseHome := svrCtx.Config.RootDir
+	if appDir := svrCtx.Viper.GetString(FlagApplicationDatabaseDir); appDir != "" {
+		applicationDatabaseHome = appDir
+		svrCtx.Logger.Info("application database directory configured", "dir", applicationDatabaseHome)
+	}
+	db, err := openDB(AppDBName, server.GetAppDBBackend(svrCtx.Viper), applicationDatabaseHome)
 	if err != nil {
 		svrCtx.Logger.Error("failed to open DB", "error", err.Error())
 		return err
