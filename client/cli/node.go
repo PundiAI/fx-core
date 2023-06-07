@@ -22,7 +22,7 @@ func QueryGasPricesCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := node.NewQueryServer(clientCtx)
+			queryClient := node.NewServiceClient(clientCtx)
 			res, err := queryClient.Config(context.Background(), &node.ConfigRequest{})
 			if err != nil {
 				return err
