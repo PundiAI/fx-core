@@ -3,9 +3,8 @@ package cli
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/evmos/ethermint/x/evm/client/cli"
-	"github.com/spf13/cobra"
-
 	"github.com/evmos/ethermint/x/evm/types"
+	"github.com/spf13/cobra"
 )
 
 func GetTxCmd() *cobra.Command {

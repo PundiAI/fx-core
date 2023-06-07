@@ -1,11 +1,10 @@
 package cli
 
 import (
-	"github.com/evmos/ethermint/x/evm/client/cli"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/evmos/ethermint/x/evm/client/cli"
 	"github.com/evmos/ethermint/x/evm/types"
+	"github.com/spf13/cobra"
 )
 
 func GetQueryCmd() *cobra.Command {
