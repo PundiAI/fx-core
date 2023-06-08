@@ -5,10 +5,6 @@ RUN apk add --no-cache git build-base linux-headers
 
 WORKDIR /app
 
-# download and cache go mod
-COPY ./go.* ./
-RUN go env -w GO111MODULE=on && go mod download
-
 COPY . .
 
 RUN make build

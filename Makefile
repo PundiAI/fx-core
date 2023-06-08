@@ -119,6 +119,10 @@ $(INSTALL_DIR):
 	@echo "Folder $(INSTALL_DIR) does not exist"
 	mkdir -p $@
 
+docker:
+	@echo "--> Building fxcore docker image"
+	docker build --progress plain -t ghcr.io/functionx/fx-core:latest .
+
 run-local: install
 	@./local-node.sh init
 
