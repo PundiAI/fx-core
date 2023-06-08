@@ -8,6 +8,7 @@ COMMIT := $(shell git log -1 --format='%H' 2>/dev/null || echo 'unknown')
 LEDGER_ENABLED ?= true
 BUILDDIR ?= $(CURDIR)/build
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
+GOPATH ?= '$(HOME)/go'
 STATIK = $(GOPATH)/bin/statik
 
 export GO111MODULE = on
@@ -44,26 +45,27 @@ ifeq ($(LEDGER_ENABLED),true)
   endif
 endif
 
-ifeq (badgerdb,$(findstring badgerdb,$(FX_BUILD_OPTIONS)))
-  build_tags += badgerdb
-endif
+#ifeq (badgerdb,$(findstring badgerdb,$(FX_BUILD_OPTIONS)))
+#  build_tags += badgerdb
+#endif
 
 #ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
 #  build_tags += gcc cleveldb muslc
 #endif
+
 build_tags += $(BUILD_TAGS)
 build_tags := $(strip $(build_tags))
 
-whitespace :=
-whitespace += $(whitespace)
-comma := ,
-BUILD_TAGS_COMMA_SEP := $(subst $(whitespace),$(comma),$(build_tags))
+comma:= ,
+empty:=
+space:= $(empty) $(empty)
+build_tags_comma_sep := $(subst $(space),$(comma),$(build_tags))
 
 # process linker flags
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X github.com/cosmos/cosmos-sdk/version.BuildTags=$(BUILD_TAGS_COMMA_SEP) \
+		  -X github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep) \
 		  -X github.com/cosmos/cosmos-sdk/version.Name=fxcore \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored
 
@@ -74,7 +76,7 @@ endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
-BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
+BUILD_FLAGS := -tags '$(build_tags)' -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
@@ -118,7 +120,7 @@ $(INSTALL_DIR):
 	mkdir -p $@
 
 run-local: install
-	@./contrib/run-fxcore.sh init
+	@./local-node.sh init
 
 .PHONY: build build-win install docker go.sum run-local
 
@@ -234,7 +236,6 @@ contract-publish:
 
 PACKAGE_NAME:=github.com/functionx/fx-core/v4
 GOLANG_CROSS_VERSION  = v1.19
-GOPATH ?= '$(HOME)/go'
 release-dry-run:
 	docker run --rm --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \
