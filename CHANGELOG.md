@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v4.2.1]
+
+### Bug Fixes
+
+* Apply ClawbackVestingAccount Barberry patch & Bump SDK to v0.46.13
+
 ## [v4.2.0]
 
 ### Bug Fixes
