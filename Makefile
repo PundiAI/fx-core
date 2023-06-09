@@ -238,8 +238,8 @@ contract-publish:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/functionx/fx-core/v4
-GOLANG_CROSS_VERSION  = v1.19
+PACKAGE_NAME := github.com/functionx/fx-core/v4
+GOLANG_CROSS_VERSION := v1.19
 release-dry-run:
 	docker run --rm --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \
