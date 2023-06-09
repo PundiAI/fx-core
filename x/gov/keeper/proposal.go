@@ -76,7 +76,7 @@ func (keeper Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, fxMetad
 				if errors.Is(types.ErrNoProposalHandlerExists, err) {
 					return v1.Proposal{}, err
 				}
-				return v1.Proposal{}, errorsmod.Wrap(types.ErrInvalidProposalContent, err.Error())
+				return v1.Proposal{}, errorsmod.Wrap(types.ErrNoProposalHandlerExists, err.Error())
 			}
 		}
 	}
