@@ -20,9 +20,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v4/x/gov/client/cli"
-	"github.com/functionx/fx-core/v4/x/gov/keeper"
-	"github.com/functionx/fx-core/v4/x/gov/types"
+	"github.com/functionx/fx-core/v5/x/gov/client/cli"
+	"github.com/functionx/fx-core/v5/x/gov/keeper"
+	"github.com/functionx/fx-core/v5/x/gov/types"
 )
 
 var (

@@ -12,8 +12,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v4/x/staking/keeper"
-	"github.com/functionx/fx-core/v4/x/staking/types"
+	"github.com/functionx/fx-core/v5/x/staking/keeper"
+	"github.com/functionx/fx-core/v5/x/staking/types"
 )
 
 var (

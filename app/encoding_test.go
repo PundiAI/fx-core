@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v5/app"
 )
 
 func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {

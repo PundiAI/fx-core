@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 func TestFIP20Code(t *testing.T) {

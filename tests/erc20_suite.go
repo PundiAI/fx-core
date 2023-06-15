@@ -12,10 +12,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/v4/client"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
-	precompilescrosschain "github.com/functionx/fx-core/v4/x/evm/precompiles/crosschain"
+	"github.com/functionx/fx-core/v5/client"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
+	precompilescrosschain "github.com/functionx/fx-core/v5/x/evm/precompiles/crosschain"
 )
 
 type Erc20TestSuite struct {

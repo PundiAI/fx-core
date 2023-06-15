@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
-	"github.com/functionx/fx-core/v4/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	ethtypes "github.com/functionx/fx-core/v5/x/eth/types"
+	"github.com/functionx/fx-core/v5/x/evm/types"
 )
 
 func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {

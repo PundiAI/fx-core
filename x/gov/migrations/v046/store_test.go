@@ -13,8 +13,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/require"
 
-	fxv046 "github.com/functionx/fx-core/v4/x/gov/migrations/v046"
-	fxgovtypes "github.com/functionx/fx-core/v4/x/gov/types"
+	fxv046 "github.com/functionx/fx-core/v5/x/gov/migrations/v046"
+	fxgovtypes "github.com/functionx/fx-core/v5/x/gov/types"
 )
 
 var voter = sdk.MustAccAddressFromBech32("cosmos1fl48vsnmsdzcv85q5d2q4z5ajdha8yu34mf0eh")

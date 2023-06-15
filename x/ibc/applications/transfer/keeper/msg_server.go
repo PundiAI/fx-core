@@ -8,7 +8,7 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
-	"github.com/functionx/fx-core/v4/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v5/x/ibc/applications/transfer/types"
 )
 
 var (

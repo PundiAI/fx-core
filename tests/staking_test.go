@@ -7,9 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/functionx/fx-core/v4/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	precompilesstaking "github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	precompilesstaking "github.com/functionx/fx-core/v5/x/evm/precompiles/staking"
 )
 
 func (suite *IntegrationTest) StakingTest() {

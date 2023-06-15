@@ -3,11 +3,11 @@
 **fxcore** is a blockchain built using Cosmos SDK and Tendermint and created with [Starport](https://github.com/tendermint/starport).
 
 [![Version](https://img.shields.io/github/v/release/functionx/fx-core.svg)](https://github.com/functionx/fx-core/releases/latest)
-[![API Reference](https://pkg.go.dev/badge/github.com/functionx/fx-core.svg)](https://pkg.go.dev/github.com/functionx/fx-core/v4)
+[![API Reference](https://pkg.go.dev/badge/github.com/functionx/fx-core.svg)](https://pkg.go.dev/github.com/functionx/fx-core/v5)
 [![License](https://img.shields.io/github/license/functionx/fx-core.svg)](https://github.com/functionx/fx-core/blob/main/LICENSE)
 [![Tests](https://github.com/functionx/fx-core/actions/workflows/test.yml/badge.svg)](https://github.com/functionx/fx-core/actions/workflows/test.yml)
 [![Lint](https://github.com/functionx/fx-core/actions/workflows/lint.yml/badge.svg)](https://github.com/functionx/fx-core/actions/workflows/lint.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/functionx/fx-core/v4)](https://goreportcard.com/report/github.com/functionx/fx-core/v4)
+[![Go Report Card](https://goreportcard.com/badge/github.com/functionx/fx-core/v5)](https://goreportcard.com/report/github.com/functionx/fx-core/v5)
 
 **Note**: Requires [Go 1.19+](https://go.dev/dl)
 

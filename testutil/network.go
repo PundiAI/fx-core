@@ -31,11 +31,11 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v4/app"
-	fxcfg "github.com/functionx/fx-core/v4/server/config"
-	"github.com/functionx/fx-core/v4/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	"github.com/functionx/fx-core/v5/app"
+	fxcfg "github.com/functionx/fx-core/v5/server/config"
+	"github.com/functionx/fx-core/v5/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	ethtypes "github.com/functionx/fx-core/v5/x/eth/types"
 )
 
 // DefaultNetworkConfig returns a sane default configuration suitable for nearly all

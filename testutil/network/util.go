@@ -28,9 +28,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/functionx/fx-core/v4/app"
-	"github.com/functionx/fx-core/v4/server"
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v5/app"
+	"github.com/functionx/fx-core/v5/server"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 //gocyclo:ignore

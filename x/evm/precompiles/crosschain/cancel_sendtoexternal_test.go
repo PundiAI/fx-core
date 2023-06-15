@@ -15,13 +15,13 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v4/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
-	"github.com/functionx/fx-core/v4/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
-	"github.com/functionx/fx-core/v4/x/evm/precompiles/crosschain"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	bsctypes "github.com/functionx/fx-core/v5/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
+	"github.com/functionx/fx-core/v5/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v5/x/eth/types"
+	"github.com/functionx/fx-core/v5/x/evm/precompiles/crosschain"
 )
 
 func TestCancelSendToExternalABI(t *testing.T) {

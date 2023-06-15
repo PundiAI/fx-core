@@ -13,9 +13,9 @@ import (
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	fxserverconfig "github.com/functionx/fx-core/v4/server/config"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	fxevmtypes "github.com/functionx/fx-core/v4/x/evm/types"
+	fxserverconfig "github.com/functionx/fx-core/v5/server/config"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	fxevmtypes "github.com/functionx/fx-core/v5/x/evm/types"
 )
 
 type Keeper struct {

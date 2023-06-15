@@ -19,14 +19,14 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v4/app"
-	"github.com/functionx/fx-core/v4/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/v4/x/evm/types"
-	"github.com/functionx/fx-core/v4/x/gov/keeper"
-	"github.com/functionx/fx-core/v4/x/gov/types"
+	"github.com/functionx/fx-core/v5/app"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
+	evmtypes "github.com/functionx/fx-core/v5/x/evm/types"
+	"github.com/functionx/fx-core/v5/x/gov/keeper"
+	"github.com/functionx/fx-core/v5/x/gov/types"
 )
 
 type KeeperTestSuite struct {

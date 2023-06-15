@@ -12,8 +12,8 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v4/app"
-	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	"github.com/functionx/fx-core/v5/app"
+	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
 )
 
 func Benchmark_Subspace(b *testing.B) {

@@ -20,10 +20,10 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v4/app"
-	"github.com/functionx/fx-core/v4/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	migratetypes "github.com/functionx/fx-core/v4/x/migrate/types"
+	"github.com/functionx/fx-core/v5/app"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	migratetypes "github.com/functionx/fx-core/v5/x/migrate/types"
 )
 
 type KeeperTestSuite struct {

@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v4/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	"github.com/functionx/fx-core/v4/x/erc20/types"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v5/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestGetTokenPair() {

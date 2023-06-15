@@ -4,7 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethermint "github.com/evmos/ethermint/types"
 
-	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_SetAccount() {

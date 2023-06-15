@@ -5,8 +5,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
-	"github.com/functionx/fx-core/v4/x/migrate/types"
+	bsctypes "github.com/functionx/fx-core/v5/x/bsc/types"
+	"github.com/functionx/fx-core/v5/x/migrate/types"
 )
 
 func (suite *KeeperTestSuite) TestMigrateAccount() {

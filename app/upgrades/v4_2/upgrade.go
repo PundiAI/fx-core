@@ -6,11 +6,11 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v4/app/keepers"
-	v4 "github.com/functionx/fx-core/v4/app/upgrades/v4"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	crosschainkeeper "github.com/functionx/fx-core/v4/x/crosschain/keeper"
-	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	"github.com/functionx/fx-core/v5/app/keepers"
+	v4 "github.com/functionx/fx-core/v5/app/upgrades/v4"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	crosschainkeeper "github.com/functionx/fx-core/v5/x/crosschain/keeper"
+	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
 )
 
 func createUpgradeHandler(

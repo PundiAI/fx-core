@@ -28,10 +28,10 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/version"
 
-	"github.com/functionx/fx-core/v4/client/grpc"
-	"github.com/functionx/fx-core/v4/server"
-	fxcfg "github.com/functionx/fx-core/v4/server/config"
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v5/client/grpc"
+	"github.com/functionx/fx-core/v5/server"
+	fxcfg "github.com/functionx/fx-core/v5/server/config"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 const SPACE = "  "
