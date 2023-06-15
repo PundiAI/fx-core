@@ -12,7 +12,7 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 // --- ERC20Token --- //

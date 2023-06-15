@@ -11,7 +11,7 @@ import (
 	"github.com/evmos/ethermint/x/evm/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 // InitGenesis initializes genesis state based on exported genesis

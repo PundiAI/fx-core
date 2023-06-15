@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	"github.com/functionx/fx-core/v4/x/gravity/types"
+	"github.com/functionx/fx-core/v5/x/gravity/types"
 )
 
 // RegisterGRPCGatewayRoutes

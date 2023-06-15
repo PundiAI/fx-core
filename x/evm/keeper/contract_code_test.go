@@ -10,8 +10,8 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v4/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_CreateContractWithCode() {

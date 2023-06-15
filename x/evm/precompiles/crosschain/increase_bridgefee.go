@@ -10,8 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	"github.com/functionx/fx-core/v4/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v5/x/evm/types"
 )
 
 // IncreaseBridgeFee add bridge fee to unbatched tx

@@ -3,11 +3,11 @@ package v4
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
-	"github.com/functionx/fx-core/v4/app/upgrades"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	arbitrumtypes "github.com/functionx/fx-core/v4/x/arbitrum/types"
-	gravitytypes "github.com/functionx/fx-core/v4/x/gravity/types"
-	optimismtypes "github.com/functionx/fx-core/v4/x/optimism/types"
+	"github.com/functionx/fx-core/v5/app/upgrades"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	arbitrumtypes "github.com/functionx/fx-core/v5/x/arbitrum/types"
+	gravitytypes "github.com/functionx/fx-core/v5/x/gravity/types"
+	optimismtypes "github.com/functionx/fx-core/v5/x/optimism/types"
 )
 
 var (

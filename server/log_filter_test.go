@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 
-	fxserver "github.com/functionx/fx-core/v4/server"
+	fxserver "github.com/functionx/fx-core/v5/server"
 )
 
 func TestFxZeroLogWrapper(t *testing.T) {

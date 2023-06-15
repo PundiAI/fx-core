@@ -13,9 +13,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
-	"github.com/functionx/fx-core/v4/x/migrate/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
+	"github.com/functionx/fx-core/v5/x/migrate/types"
 )
 
 func GetTxCmd() *cobra.Command {

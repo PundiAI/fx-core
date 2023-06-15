@@ -21,7 +21,7 @@ import (
 	troncommon "github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	"github.com/functionx/fx-core/v5/x/crosschain/types"
 )
 
 func GetTxCmd(subCmd ...*cobra.Command) *cobra.Command {

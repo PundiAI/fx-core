@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/functionx/fx-core/v4/cmd"
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v5/cmd"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 func main() {

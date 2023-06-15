@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v4/x/gov/client/cli"
+	"github.com/functionx/fx-core/v5/x/gov/client/cli"
 )
 
 func TestCmdParams(t *testing.T) {

@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	"github.com/functionx/fx-core/v4/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v5/x/erc20/types"
 )
 
 // GetAllTokenPairs - get all registered token tokenPairs

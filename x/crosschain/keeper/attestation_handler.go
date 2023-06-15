@@ -6,8 +6,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v5/x/crosschain/types"
 )
 
 // AttestationHandler Handle is the entry point for Attestation processing.

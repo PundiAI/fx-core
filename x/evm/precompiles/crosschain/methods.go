@@ -7,8 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
-	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
-	"github.com/functionx/fx-core/v4/x/evm/types"
+	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
+	"github.com/functionx/fx-core/v5/x/evm/types"
 )
 
 // BridgeCoinAmountMethod query the amount of bridge coin

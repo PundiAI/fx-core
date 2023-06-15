@@ -7,7 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	"github.com/functionx/fx-core/v5/x/crosschain/types"
 )
 
 // --- ORACLE SET REQUESTS --- //

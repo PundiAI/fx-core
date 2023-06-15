@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v4/app/upgrades"
-	v4 "github.com/functionx/fx-core/v4/app/upgrades/v4"
-	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v5/app/upgrades"
+	v4 "github.com/functionx/fx-core/v5/app/upgrades/v4"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
 type Refund struct {

@@ -16,10 +16,10 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v4/client"
-	testscontract "github.com/functionx/fx-core/v4/tests/contract"
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	precompilesstaking "github.com/functionx/fx-core/v4/x/evm/precompiles/staking"
+	"github.com/functionx/fx-core/v5/client"
+	testscontract "github.com/functionx/fx-core/v5/tests/contract"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	precompilesstaking "github.com/functionx/fx-core/v5/x/evm/precompiles/staking"
 )
 
 type StakingSuite struct {

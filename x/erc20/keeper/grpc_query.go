@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	"github.com/functionx/fx-core/v4/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v5/x/erc20/types"
 )
 
 var _ types.QueryServer = Keeper{}

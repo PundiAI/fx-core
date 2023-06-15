@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
 )
 
 type RefundHook interface {

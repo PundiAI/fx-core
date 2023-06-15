@@ -8,10 +8,10 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v4/types"
-	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
-	fxgovtypes "github.com/functionx/fx-core/v4/x/gov/types"
-	migratekeeper "github.com/functionx/fx-core/v4/x/migrate/keeper"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+	bsctypes "github.com/functionx/fx-core/v5/x/bsc/types"
+	fxgovtypes "github.com/functionx/fx-core/v5/x/gov/types"
+	migratekeeper "github.com/functionx/fx-core/v5/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateGovInactive() {

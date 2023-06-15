@@ -20,7 +20,7 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
 
-	"github.com/functionx/fx-core/v4/client"
+	"github.com/functionx/fx-core/v5/client"
 )
 
 type jsonRPCCaller interface {
