@@ -1,4 +1,4 @@
-package v4_1
+package v5
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -6,29 +6,29 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v5/app/keepers"
-	v4 "github.com/functionx/fx-core/v5/app/upgrades/v4"
 	fxtypes "github.com/functionx/fx-core/v5/types"
 )
 
-func createUpgradeHandler(
+func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	app *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		// testnet upgrade
-		if ctx.ChainID() == fxtypes.TestnetChainId {
-			cacheCtx, commit := ctx.CacheContext()
+		cacheCtx, commit := ctx.CacheContext()
 
-			// update logic code
-			v4.UpdateLogicCode(cacheCtx, app.EvmKeeper)
-
-			commit()
-			ctx.Logger().Info("Upgrade complete")
-			return fromVM, nil
+		if ctx.ChainID() == fxtypes.TestnetChainId { // nolint:staticcheck
+			// todo repair validator
 		}
 
-		// mainnet upgrade
-		return v4.CreateUpgradeHandler(mm, configurator, app)(ctx, plan, fromVM)
+		ctx.Logger().Info("start to run v5 migrations...", "module", "upgrade")
+		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
+		if err != nil {
+			return fromVM, err
+		}
+
+		commit()
+		ctx.Logger().Info("Upgrade complete")
+		return toVM, nil
 	}
 }
