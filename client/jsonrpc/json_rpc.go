@@ -149,6 +149,24 @@ func (c *NodeRPC) GetStakeValidators(status stakingtypes.BondStatus) (stakingtyp
 	return validators, err
 }
 
+func (c *NodeRPC) GetValAddressByCons(consAddrStr string) (sdk.ValAddress, error) {
+	consAddr, err := sdk.ConsAddressFromBech32(consAddrStr)
+	if err != nil {
+		consAddr, err = hex.DecodeString(consAddrStr)
+		if err != nil {
+			return nil, errors.New("expected hex or bech32 address")
+		}
+	}
+	result, err := c.ABCIQueryIsOk("/store/staking/key", stakingtypes.GetValidatorByConsAddrKey(consAddr))
+	if err != nil {
+		return nil, err
+	}
+	if result.Response.Value == nil {
+		return nil, fmt.Errorf("not found validator by consAddress: %s", consAddr.String())
+	}
+	return result.Response.Value, nil
+}
+
 func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
 	return client.BuildTx(c, privKey, msgs)
 }
@@ -485,6 +503,16 @@ func (c *NodeRPC) TxSearch(query string, page, perPage int, orderBy string) (
 	err := c.caller.Call(c.ctx, "tx_search", params, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "TxSearch")
+	}
+	return result, nil
+}
+
+func (c *NodeRPC) BlockSearch(query string, page, perPage int, orderBy string) (*ctypes.ResultBlockSearch, error) {
+	result := new(ctypes.ResultBlockSearch)
+	params := map[string]interface{}{"query": query, "prove": false, "page": strconv.Itoa(page), "per_page": strconv.Itoa(perPage), "order_by": orderBy}
+	err := c.caller.Call(c.ctx, "block_search", params, result)
+	if err != nil {
+		return nil, errors.Wrap(err, "BlockSearch")
 	}
 	return result, nil
 }
