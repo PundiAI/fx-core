@@ -17,8 +17,9 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
-		if ctx.ChainID() == fxtypes.TestnetChainId { // nolint:staticcheck
-			// todo repair validator
+		if ctx.ChainID() == fxtypes.TestnetChainId {
+			RepairSlashPeriod(ctx, app.StakingKeeper, app.DistrKeeper)
+			// todo repair register coin amount
 		}
 
 		ctx.Logger().Info("start to run v5 migrations...", "module", "upgrade")

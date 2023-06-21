@@ -1,13 +1,17 @@
 package app_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,6 +21,7 @@ import (
 
 	"github.com/functionx/fx-core/v5/app"
 	v5 "github.com/functionx/fx-core/v5/app/upgrades/v5"
+	"github.com/functionx/fx-core/v5/client/jsonrpc"
 	"github.com/functionx/fx-core/v5/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v5/types"
 )
@@ -63,10 +68,10 @@ func Test_TestnetUpgrade(t *testing.T) {
 			testCase.plan.Height = ctx.BlockHeight()
 
 			myApp.UpgradeKeeper.ApplyUpgrade(ctx, testCase.plan)
-
-			checkVersionMap(t, ctx, myApp, getConsensusVersion(testCase.toVersion))
 		})
 	}
+
+	checkSlashPeriod(t, ctx, myApp)
 
 	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.BscKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
@@ -92,62 +97,93 @@ func newContext(t *testing.T, myApp *app.App) sdk.Context {
 	return ctx
 }
 
-func checkVersionMap(t *testing.T, ctx sdk.Context, myApp *app.App, versionMap module.VersionMap) {
-	vm := myApp.UpgradeKeeper.GetModuleVersionMap(ctx)
-	for k, v := range vm {
-		require.Equal(t, versionMap[k], v, k)
+func checkSlashPeriod(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	for val := range v5.ValidatorSlashHeightTestnetFXV4 {
+		valAddr, err := sdk.ValAddressFromBech32(val)
+		require.NoError(t, err)
+		delegations := myApp.StakingKeeper.GetValidatorDelegations(ctx, valAddr)
+
+		for _, del := range delegations {
+			cacheCtx, _ := ctx.CacheContext()
+			_, err := myApp.DistrKeeper.DelegationRewards(sdk.WrapSDKContext(cacheCtx), &distributiontypes.QueryDelegationRewardsRequest{
+				DelegatorAddress: del.DelegatorAddress,
+				ValidatorAddress: del.ValidatorAddress,
+			})
+			assert.NoError(t, err)
+		}
+
+		// withdraw
+		for _, del := range delegations {
+			cacheCtx, _ := ctx.CacheContext()
+			_, err := myApp.DistrKeeper.WithdrawDelegationRewards(cacheCtx, del.GetDelegatorAddr(), del.GetValidatorAddr())
+			assert.NoError(t, err)
+		}
+
+		// undelegate
+		for _, del := range delegations {
+			cacheCtx, _ := ctx.CacheContext()
+			_, err := myApp.StakingKeeper.Undelegate(cacheCtx, del.GetDelegatorAddr(), del.GetValidatorAddr(), del.GetShares())
+			assert.NoError(t, err)
+		}
+
+		// delegate
+		count := 0
+		for _, del := range delegations {
+			cacheCtx, _ := ctx.CacheContext()
+			fxBalance := myApp.BankKeeper.GetBalance(ctx, del.GetDelegatorAddr(), fxtypes.DefaultDenom)
+			if fxBalance.Amount.IsZero() {
+				continue
+			}
+			validator, found := myApp.StakingKeeper.GetValidator(ctx, del.GetValidatorAddr())
+			require.True(t, found)
+			_, err := myApp.StakingKeeper.Delegate(cacheCtx, del.GetDelegatorAddr(), fxBalance.Amount, stakingtypes.Unbonded, validator, true)
+			assert.NoError(t, err)
+			count++
+		}
+		assert.True(t, count > 0)
 	}
 }
 
-func getConsensusVersion(appVersion int) (versionMap module.VersionMap) {
-	// moduleName: v1,v2,v3
-	historyVersions := map[string][]uint64{
-		"auth":         {0, 1, 2, 3},
-		"authz":        {0, 0, 1, 2},
-		"avalanche":    {0, 0, 1, 2, 3},
-		"bank":         {0, 1, 2, 3},
-		"bsc":          {1, 2, 3, 4},
-		"capability":   {1},
-		"crisis":       {1},
-		"crosschain":   {1},
-		"distribution": {1, 2},
-		"erc20":        {0, 1, 2, 3},
-		"evidence":     {1},
-		"evm":          {0, 0, 3, 5},
-		"eth":          {0, 0, 1, 2, 3},
-		"feegrant":     {0, 0, 1, 2},
-		"feemarket":    {0, 0, 3, 4},
-		"genutil":      {1},
-		"gov":          {0, 1, 2, 3},
-		"gravity":      {1, 1, 2},
-		"ibc":          {1, 2},
-		"migrate":      {0, 1},
-		"mint":         {1},
-		"other":        {1},
-		"params":       {1},
-		"polygon":      {1, 2, 3, 4},
-		"slashing":     {1, 2},
-		"staking":      {0, 1, 2, 3},
-		"transfer":     {1, 1, 2}, // ibc-transfer
-		"fxtransfer":   {0, 0, 1}, // fx-ibc-transfer
-		"tron":         {1, 2, 3, 4},
-		"upgrade":      {0, 0, 1, 2},
-		"vesting":      {1},
-		"arbitrum":     {0, 0, 0, 1},
-		"optimism":     {0, 0, 0, 1},
-	}
-	versionMap = make(map[string]uint64)
-	for key, versions := range historyVersions {
-		if len(versions) <= appVersion-1 {
-			// If not exist, select the last one
-			versionMap[key] = versions[len(versions)-1]
-		} else {
-			versionMap[key] = versions[appVersion-1]
-		}
-		// If the value is zero, the current version does not exist
-		if versionMap[key] == 0 {
-			delete(versionMap, key)
+func TestSlashPeriodTestnetFXV4(t *testing.T) {
+	helpers.SkipTest(t, "Skipping local test:", t.Name())
+
+	fxtypes.SetConfig(true)
+	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewClient("https://testnet-fx-json.functionx.io:26657"))
+	query := fmt.Sprintf("block.height > %d AND slash.reason = 'missing_signature'", fxtypes.TestnetBlockHeightV4)
+
+	blockSearch, err := rpc.BlockSearch(query, 1, 100, "")
+	require.NoError(t, err)
+
+	slashedFXV4 := make(map[string][]int64, len(v5.ValidatorSlashHeightTestnetFXV4))
+	for _, block := range blockSearch.Blocks {
+		results, err := rpc.BlockResults(block.Block.Height)
+		require.NoError(t, err)
+		for _, result := range results.BeginBlockEvents {
+			if result.Type != slashingtypes.EventTypeLiveness {
+				continue
+			}
+			for _, attr := range result.Attributes {
+				if string(attr.Key) != slashingtypes.AttributeKeyAddress {
+					continue
+				}
+				valAddr, err := rpc.GetValAddressByCons(string(attr.Value))
+				assert.NoError(t, err)
+				if _, ok := slashedFXV4[valAddr.String()]; ok {
+					slashedFXV4[valAddr.String()] = append(slashedFXV4[valAddr.String()], block.Block.Height)
+				} else {
+					slashedFXV4[valAddr.String()] = []int64{block.Block.Height}
+				}
+			}
 		}
 	}
-	return versionMap
+	assert.Equal(t, len(v5.ValidatorSlashHeightTestnetFXV4), len(slashedFXV4))
+
+	for val, h1 := range slashedFXV4 {
+		h2, ok := v5.ValidatorSlashHeightTestnetFXV4[val]
+		assert.True(t, ok, "val: %s", val)
+		sort.SliceStable(h1, func(i, j int) bool {
+			return h1[i] < h1[j]
+		})
+		assert.Equal(t, h1, h2, "val: %s", val)
+	}
 }
