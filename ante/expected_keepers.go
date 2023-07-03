@@ -62,3 +62,7 @@ type FeeMarketKeeper interface {
 type protoTxProvider interface {
 	GetProtoTx() *tx.Tx
 }
+
+type StakingKeeper interface {
+	HasValidatorOperator(ctx sdk.Context, val sdk.ValAddress) bool
+}

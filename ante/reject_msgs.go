@@ -32,3 +32,32 @@ func (r RejectExtensionOptionsDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, 
 	}
 	return next(ctx, tx, simulate)
 }
+
+// RejectValidatorGrantedDecorator is an AnteDecorator that rejects all transactions from validator granted
+type RejectValidatorGrantedDecorator struct {
+	sk StakingKeeper
+}
+
+func NewRejectValidatorGrantedDecorator(sk StakingKeeper) RejectValidatorGrantedDecorator {
+	return RejectValidatorGrantedDecorator{
+		sk: sk,
+	}
+}
+
+func (r RejectValidatorGrantedDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if ctx.IsReCheckTx() {
+		return next(ctx, tx, simulate)
+	}
+
+	msgs := tx.GetMsgs()
+	for _, msg := range msgs {
+		signers := msg.GetSigners()
+		for _, signer := range signers {
+			if r.sk.HasValidatorOperator(ctx, signer.Bytes()) {
+				return ctx, errorsmod.Wrap(errortypes.ErrInvalidAddress, "validator granted")
+			}
+		}
+	}
+
+	return next(ctx, tx, simulate)
+}

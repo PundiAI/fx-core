@@ -19,6 +19,7 @@ type HandlerOptions struct {
 	FeegrantKeeper             FeegrantKeeper
 	EvmKeeper                  EVMKeeper
 	FeeMarketKeeper            FeeMarketKeeper
+	StakingKeeper              StakingKeeper
 	IbcKeeper                  *ibckeeper.Keeper
 	SignModeHandler            authsigning.SignModeHandler
 	SigGasConsumer             ante.SignatureVerificationGasConsumer
@@ -45,6 +46,9 @@ func (options HandlerOptions) Validate() error {
 	if options.EvmKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "evm keeper is required for AnteHandler")
 	}
+	if options.StakingKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "staking keeper is required for AnteHandler")
+	}
 	return nil
 }
 
@@ -57,6 +61,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		NewEthValidateBasicDecorator(options.EvmKeeper),
 		NewEthSigVerificationDecorator(options.EvmKeeper),
 		NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
+		NewRejectValidatorGrantedDecorator(options.StakingKeeper), // check if validator is granted, after account verification
 		NewCanTransferDecorator(options.EvmKeeper),
 		NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
 		NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.
@@ -78,6 +83,7 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		NewRejectValidatorGrantedDecorator(options.StakingKeeper), // check if validator is granted, after sig verification
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IbcKeeper),
 	)

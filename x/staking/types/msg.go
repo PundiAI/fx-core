@@ -1,0 +1,122 @@
+package types
+
+import (
+	"bytes"
+	"encoding/hex"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+)
+
+const TypeMsgGrantPrivilege = "grant_privilege"
+
+var (
+	_ sdk.Msg                            = &MsgGrantPrivilege{}
+	_ codectypes.UnpackInterfacesMessage = (*MsgGrantPrivilege)(nil)
+)
+
+func NewMsgGrantPrivilege(val sdk.ValAddress, from sdk.AccAddress, pubKey cryptotypes.PubKey, signature string) (*MsgGrantPrivilege, error) {
+	var pkAny *codectypes.Any
+	if pubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
+			return nil, err
+		}
+	}
+	return &MsgGrantPrivilege{
+		ValidatorAddress: val.String(),
+		FromAddress:      from.String(),
+		ToPubkey:         pkAny,
+		Signature:        signature,
+	}, nil
+}
+
+func (m *MsgGrantPrivilege) Route() string { return stakingtypes.RouterKey }
+
+func (m *MsgGrantPrivilege) Type() string { return TypeMsgGrantPrivilege }
+
+func (m *MsgGrantPrivilege) ValidateBasic() error {
+	valAddr, err := sdk.ValAddressFromBech32(m.ValidatorAddress)
+	if err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
+	}
+	fromAddress, err := sdk.AccAddressFromBech32(m.FromAddress)
+	if err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid from address: %s", err)
+	}
+
+	pk, err := ProtoAnyToAccountPubKey(m.ToPubkey)
+	if err != nil {
+		return err
+	}
+	toAddress := sdk.AccAddress(pk.Address())
+
+	// check same account
+	if bytes.Equal(fromAddress.Bytes(), toAddress.Bytes()) {
+		return errortypes.ErrInvalidRequest.Wrap("same account")
+	}
+	// check signature
+	if len(m.Signature) == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("empty signature")
+	}
+	sig, err := hex.DecodeString(m.Signature)
+	if err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
+	}
+	if !pk.VerifySignature(GrantPrivilegeSignatureData(valAddr, fromAddress, toAddress), sig) {
+		return errortypes.ErrInvalidRequest.Wrap("sig to pub key error")
+	}
+	return nil
+}
+
+func (m *MsgGrantPrivilege) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+func (m *MsgGrantPrivilege) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.FromAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m *MsgGrantPrivilege) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.ToPubkey, &pubKey)
+}
+
+func ProtoAnyToAccountPubKey(any *codectypes.Any) (cryptotypes.PubKey, error) {
+	if any == nil {
+		return nil, errortypes.ErrInvalidPubKey.Wrap("empty pubkey")
+	}
+	pk, ok := any.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return nil, errortypes.ErrInvalidPubKey.Wrapf("expecting cryptotypes.PubKey, got %T", any.GetCachedValue())
+	}
+	_, ok1 := pk.(*secp256k1.PubKey)
+	_, ok2 := pk.(*ethsecp256k1.PubKey)
+	if !ok1 && !ok2 {
+		return nil, errortypes.ErrInvalidPubKey.Wrapf("expecting *secp256k1.PubKey or *ethsecp256k1.PubKey, got %T", pk)
+	}
+	return pk, nil
+}
+
+func GrantPrivilegeSignatureData(val, from, to []byte) []byte {
+	prefixLen := len(GrantPrivilegeSignaturePrefix)
+	valLen := len(val)
+	fromLen := len(from)
+	toLen := len(to)
+	data := make([]byte, prefixLen+valLen+fromLen+toLen)
+	copy(data[:prefixLen], GrantPrivilegeSignaturePrefix)
+	copy(data[prefixLen:prefixLen+valLen], val)
+	copy(data[prefixLen+valLen:prefixLen+valLen+fromLen], from)
+	copy(data[prefixLen+valLen+fromLen:], to)
+	return data
+}

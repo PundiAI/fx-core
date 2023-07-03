@@ -4,7 +4,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var AllowanceKey = []byte{0x90}
+const GrantPrivilegeSignaturePrefix = "GrantPrivilege:"
+
+var (
+	AllowanceKey         = []byte{0x90}
+	ValidatorOperatorKey = []byte{0x91}
+)
 
 func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []byte {
 	// key is of the form AllowanceKey || valAddrLen (1 byte) || valAddr || ownerAddrLen (1 byte) || ownerAddr || spenderAddrLen (1 byte) || spenderAddr
@@ -19,4 +24,8 @@ func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []by
 	copy(key[offset+3+len(valAddr)+len(owner):], spender.Bytes())
 
 	return key
+}
+
+func GetValidatorOperatorKey(addr []byte) []byte {
+	return append(ValidatorOperatorKey, addr...)
 }
