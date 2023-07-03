@@ -250,6 +250,10 @@ func NewAppKeeper(
 		bApp.MsgServiceRouter(),
 		appKeepers.AccountKeeper,
 	)
+
+	// grant privileges
+	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetAuthzKeeper(appKeepers.AuthzKeeper)
+
 	appKeepers.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
 		appKeepers.keys[upgradetypes.StoreKey],

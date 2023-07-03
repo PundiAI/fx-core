@@ -6,14 +6,17 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	fxstakingcli "github.com/functionx/fx-core/v5/x/staking/client/cli"
 	"github.com/functionx/fx-core/v5/x/staking/keeper"
-	"github.com/functionx/fx-core/v5/x/staking/types"
+	fxstakingtypes "github.com/functionx/fx-core/v5/x/staking/types"
 )
 
 var (
@@ -28,17 +31,32 @@ type AppModuleBasic struct {
 // DefaultGenesis returns default genesis state as raw bytes for the staking
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return cdc.MustMarshalJSON(fxstakingtypes.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the staking module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
-	var data types.GenesisState
+	var data fxstakingtypes.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", stakingtypes.ModuleName, err)
 	}
 
-	return types.ValidateGenesis(&data)
+	return fxstakingtypes.ValidateGenesis(&data)
+}
+
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	stakingtypes.RegisterLegacyAminoCodec(cdc)
+	fxstakingtypes.RegisterLegacyAminoCodec(cdc)
+}
+
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	stakingtypes.RegisterInterfaces(registry)
+	fxstakingtypes.RegisterInterfaces(registry)
+}
+
+// GetTxCmd returns the root tx command for the staking module.
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return fxstakingcli.NewTxCmd()
 }
 
 type AppModule struct {
@@ -57,10 +75,15 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak stakingtypes.Account
 	}
 }
 
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	fxstakingtypes.RegisterMsgServer(cfg.MsgServer(), am.Keeper)
+	am.AppModule.RegisterServices(cfg)
+}
+
 // InitGenesis performs genesis initialization for the staking module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState fxstakingtypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	return am.Keeper.InitGenesis(ctx, &genesisState)
