@@ -24,11 +24,11 @@ require (
 	github.com/rakyll/statik v0.1.7
 	github.com/rs/cors v1.8.3
 	github.com/rs/zerolog v1.29.1
-	github.com/shirou/gopsutil/v3 v3.23.3
+	github.com/shirou/gopsutil/v3 v3.23.6
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	github.com/tendermint/tendermint v0.34.28
 	github.com/tendermint/tm-db v0.6.7
@@ -178,14 +178,14 @@ require (
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
-	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	github.com/zondax/hid v0.9.1 // indirect
 	github.com/zondax/ledger-go v0.14.1 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/oauth2 v0.5.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
