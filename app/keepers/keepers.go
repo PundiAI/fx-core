@@ -202,7 +202,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.GetSubspace(stakingtypes.ModuleName),
-	), appKeepers.keys[stakingtypes.StoreKey])
+	), appKeepers.keys[stakingtypes.StoreKey], appCodec)
 
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
@@ -228,6 +228,8 @@ func NewAppKeeper(
 		&appKeepers.StakingKeeper,
 		appKeepers.GetSubspace(slashingtypes.ModuleName),
 	)
+	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetSlashingKeeper(appKeepers.SlashingKeeper)
+
 	appKeepers.CrisisKeeper = crisiskeeper.NewKeeper(
 		appKeepers.GetSubspace(crisistypes.ModuleName),
 		invCheckPeriod,

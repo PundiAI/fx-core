@@ -134,38 +134,140 @@ func (m *MsgGrantPrivilegeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgGrantPrivilegeResponse proto.InternalMessageInfo
 
+type MsgEditConsensusPubKey struct {
+	ValidatorAddress string     `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+	From             string     `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
+	Pubkey           *types.Any `protobuf:"bytes,3,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
+}
+
+func (m *MsgEditConsensusPubKey) Reset()         { *m = MsgEditConsensusPubKey{} }
+func (m *MsgEditConsensusPubKey) String() string { return proto.CompactTextString(m) }
+func (*MsgEditConsensusPubKey) ProtoMessage()    {}
+func (*MsgEditConsensusPubKey) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1c6db236fc9c571c, []int{2}
+}
+func (m *MsgEditConsensusPubKey) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEditConsensusPubKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEditConsensusPubKey.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEditConsensusPubKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEditConsensusPubKey.Merge(m, src)
+}
+func (m *MsgEditConsensusPubKey) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEditConsensusPubKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEditConsensusPubKey.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEditConsensusPubKey proto.InternalMessageInfo
+
+func (m *MsgEditConsensusPubKey) GetValidatorAddress() string {
+	if m != nil {
+		return m.ValidatorAddress
+	}
+	return ""
+}
+
+func (m *MsgEditConsensusPubKey) GetFrom() string {
+	if m != nil {
+		return m.From
+	}
+	return ""
+}
+
+func (m *MsgEditConsensusPubKey) GetPubkey() *types.Any {
+	if m != nil {
+		return m.Pubkey
+	}
+	return nil
+}
+
+type MsgEditConsensusPubKeyResponse struct {
+}
+
+func (m *MsgEditConsensusPubKeyResponse) Reset()         { *m = MsgEditConsensusPubKeyResponse{} }
+func (m *MsgEditConsensusPubKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgEditConsensusPubKeyResponse) ProtoMessage()    {}
+func (*MsgEditConsensusPubKeyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1c6db236fc9c571c, []int{3}
+}
+func (m *MsgEditConsensusPubKeyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEditConsensusPubKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEditConsensusPubKeyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEditConsensusPubKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEditConsensusPubKeyResponse.Merge(m, src)
+}
+func (m *MsgEditConsensusPubKeyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEditConsensusPubKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEditConsensusPubKeyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEditConsensusPubKeyResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgGrantPrivilege)(nil), "fx.staking.v1.MsgGrantPrivilege")
 	proto.RegisterType((*MsgGrantPrivilegeResponse)(nil), "fx.staking.v1.MsgGrantPrivilegeResponse")
+	proto.RegisterType((*MsgEditConsensusPubKey)(nil), "fx.staking.v1.MsgEditConsensusPubKey")
+	proto.RegisterType((*MsgEditConsensusPubKeyResponse)(nil), "fx.staking.v1.MsgEditConsensusPubKeyResponse")
 }
 
 func init() { proto.RegisterFile("fx/staking/v1beta1/tx.proto", fileDescriptor_1c6db236fc9c571c) }
 
 var fileDescriptor_1c6db236fc9c571c = []byte{
-	// 353 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x91, 0xcf, 0x4e, 0xea, 0x40,
-	0x14, 0xc6, 0xe9, 0xe5, 0xe6, 0xe6, 0x32, 0xa8, 0x91, 0x86, 0x45, 0x01, 0xd3, 0x20, 0x2b, 0x12,
-	0x65, 0x26, 0xe0, 0x13, 0xc0, 0x42, 0x17, 0x84, 0x84, 0xb0, 0x34, 0x26, 0x64, 0x5a, 0xa6, 0xe3,
-	0x04, 0x98, 0xd3, 0xcc, 0x4c, 0x9b, 0xf6, 0x2d, 0x7c, 0x18, 0x1f, 0xc2, 0xb8, 0x30, 0x2c, 0x5d,
-	0x1a, 0x78, 0x11, 0x63, 0xcb, 0x9f, 0x28, 0x0b, 0x97, 0xe7, 0xfb, 0x7e, 0x33, 0xe7, 0x3b, 0xe7,
-	0xa0, 0x46, 0x90, 0x10, 0x6d, 0xe8, 0x5c, 0x48, 0x4e, 0xe2, 0xae, 0xc7, 0x0c, 0xed, 0x12, 0x93,
-	0xe0, 0x50, 0x81, 0x01, 0xfb, 0x34, 0x48, 0xf0, 0xd6, 0xc4, 0x71, 0xb7, 0x5e, 0xe3, 0x00, 0x7c,
-	0xc1, 0x48, 0x66, 0x7a, 0x51, 0x40, 0xa8, 0x4c, 0x73, 0xb2, 0x5e, 0xf3, 0x41, 0x2f, 0x41, 0x4f,
-	0xb3, 0x8a, 0xe4, 0x45, 0x6e, 0xb5, 0xde, 0x2c, 0x54, 0x19, 0x69, 0x7e, 0xa7, 0xa8, 0x34, 0x63,
-	0x25, 0x62, 0xb1, 0x60, 0x9c, 0xd9, 0x57, 0xa8, 0x12, 0xd3, 0x85, 0x98, 0x51, 0x03, 0x6a, 0x4a,
-	0x67, 0x33, 0xc5, 0xb4, 0x76, 0xac, 0xa6, 0xd5, 0x2e, 0x4d, 0xce, 0xf7, 0x46, 0x3f, 0xd7, 0xed,
-	0x4b, 0x74, 0x12, 0x28, 0x58, 0xee, 0xb9, 0x3f, 0x19, 0x57, 0xfe, 0xd2, 0x76, 0xc8, 0x10, 0x95,
-	0x0c, 0x4c, 0xc3, 0xc8, 0x9b, 0xb3, 0xd4, 0x29, 0x36, 0xad, 0x76, 0xb9, 0x57, 0xc5, 0x79, 0x5e,
-	0xbc, 0xcb, 0x8b, 0xfb, 0x32, 0x1d, 0x38, 0xaf, 0xcf, 0x9d, 0xea, 0x36, 0xa0, 0xaf, 0xd2, 0xd0,
-	0x00, 0x1e, 0x47, 0xde, 0x90, 0xa5, 0x93, 0xff, 0x06, 0xc6, 0xd9, 0x7b, 0xfb, 0x02, 0x95, 0xb4,
-	0xe0, 0x92, 0x9a, 0x48, 0x31, 0xe7, 0x6f, 0xd6, 0xec, 0x20, 0xb4, 0x1a, 0xa8, 0x76, 0x34, 0xcf,
-	0x84, 0xe9, 0x10, 0xa4, 0x66, 0x3d, 0x1f, 0x15, 0x47, 0x9a, 0xdb, 0x0f, 0xe8, 0xec, 0xc7, 0xc0,
-	0x4d, 0xfc, 0x6d, 0x99, 0xf8, 0xe8, 0x8b, 0x7a, 0xfb, 0x37, 0x62, 0xd7, 0x64, 0x70, 0xfb, 0xb2,
-	0x76, 0xad, 0xd5, 0xda, 0xb5, 0x3e, 0xd6, 0xae, 0xf5, 0xb4, 0x71, 0x0b, 0xab, 0x8d, 0x5b, 0x78,
-	0xdf, 0xb8, 0x85, 0xfb, 0x6b, 0x2e, 0xcc, 0x63, 0xe4, 0x61, 0x1f, 0x96, 0x24, 0x88, 0xa4, 0x6f,
-	0x04, 0xc8, 0x84, 0x04, 0x49, 0xc7, 0x07, 0xc5, 0xc8, 0xe1, 0xd4, 0x26, 0x0d, 0x99, 0xf6, 0xfe,
-	0x65, 0x9b, 0xb9, 0xf9, 0x0c, 0x00, 0x00, 0xff, 0xff, 0x1c, 0xc7, 0x5f, 0xe7, 0x05, 0x02, 0x00,
-	0x00,
+	// 423 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0xdd, 0x8a, 0xd3, 0x40,
+	0x14, 0xee, 0xb8, 0xcb, 0x62, 0x67, 0x55, 0xdc, 0x71, 0x91, 0x34, 0x2b, 0x21, 0x06, 0x84, 0x82,
+	0x76, 0x86, 0xae, 0x4f, 0xb0, 0x2b, 0xae, 0x17, 0x4b, 0xa1, 0xf4, 0x52, 0x84, 0x32, 0x49, 0x26,
+	0xe3, 0xd0, 0x76, 0x26, 0xcc, 0x4c, 0x42, 0xf2, 0x16, 0xbe, 0x82, 0xef, 0xe0, 0x43, 0x88, 0x17,
+	0xd2, 0x4b, 0x2f, 0xa5, 0x7d, 0x11, 0x69, 0x7e, 0x5a, 0xb4, 0x05, 0x95, 0xbd, 0xcb, 0xf9, 0xbe,
+	0xef, 0x9c, 0xf3, 0x7d, 0x27, 0x09, 0xbc, 0x48, 0x0a, 0x62, 0x2c, 0x9d, 0x09, 0xc9, 0x49, 0x3e,
+	0x0c, 0x99, 0xa5, 0x43, 0x62, 0x0b, 0x9c, 0x6a, 0x65, 0x15, 0x7a, 0x98, 0x14, 0xb8, 0x21, 0x71,
+	0x3e, 0x74, 0x7b, 0x5c, 0x29, 0x3e, 0x67, 0xa4, 0x22, 0xc3, 0x2c, 0x21, 0x54, 0x96, 0xb5, 0xd2,
+	0xed, 0x45, 0xca, 0x2c, 0x94, 0x99, 0x56, 0x15, 0xa9, 0x8b, 0x9a, 0x0a, 0xbe, 0x03, 0x78, 0x36,
+	0x32, 0xfc, 0x9d, 0xa6, 0xd2, 0x8e, 0xb5, 0xc8, 0xc5, 0x9c, 0x71, 0x86, 0x5e, 0xc2, 0xb3, 0x9c,
+	0xce, 0x45, 0x4c, 0xad, 0xd2, 0x53, 0x1a, 0xc7, 0x9a, 0x19, 0xe3, 0x00, 0x1f, 0xf4, 0xbb, 0x93,
+	0xc7, 0x5b, 0xe2, 0xaa, 0xc6, 0xd1, 0x73, 0xf8, 0x20, 0xd1, 0x6a, 0xb1, 0xd5, 0xdd, 0xab, 0x74,
+	0xa7, 0x1b, 0xac, 0x95, 0xdc, 0xc2, 0xae, 0x55, 0xd3, 0x34, 0x0b, 0x67, 0xac, 0x74, 0x8e, 0x7c,
+	0xd0, 0x3f, 0xbd, 0x3c, 0xc7, 0xb5, 0x5f, 0xdc, 0xfa, 0xc5, 0x57, 0xb2, 0xbc, 0x76, 0xbe, 0x7d,
+	0x19, 0x9c, 0x37, 0x06, 0x23, 0x5d, 0xa6, 0x56, 0xe1, 0x71, 0x16, 0xde, 0xb2, 0x72, 0x72, 0xdf,
+	0xaa, 0x71, 0xd5, 0x8f, 0x9e, 0xc1, 0xae, 0x11, 0x5c, 0x52, 0x9b, 0x69, 0xe6, 0x1c, 0x57, 0xcb,
+	0x76, 0x40, 0x70, 0x01, 0x7b, 0x7b, 0x79, 0x26, 0xcc, 0xa4, 0x4a, 0x1a, 0x16, 0x7c, 0x06, 0xf0,
+	0xe9, 0xc8, 0xf0, 0xb7, 0xb1, 0xb0, 0x6f, 0x36, 0x80, 0x34, 0x99, 0xa9, 0xe7, 0xff, 0x5f, 0x64,
+	0x04, 0x8f, 0x37, 0xf1, 0x9a, 0xa8, 0xd5, 0x33, 0xba, 0x81, 0x27, 0x77, 0x0a, 0xd8, 0x74, 0x07,
+	0x3e, 0xf4, 0x0e, 0x5b, 0x6c, 0x53, 0x5c, 0x2e, 0x01, 0x3c, 0x1a, 0x19, 0x8e, 0x3e, 0xc0, 0x47,
+	0x7f, 0xbc, 0x37, 0x1f, 0xff, 0xf6, 0x4d, 0xe0, 0xbd, 0x4b, 0xb8, 0xfd, 0xbf, 0x29, 0xda, 0x2d,
+	0x68, 0x06, 0x9f, 0x1c, 0xba, 0xd3, 0x8b, 0xfd, 0x01, 0x07, 0x64, 0xee, 0xe0, 0x9f, 0x64, 0xed,
+	0xb2, 0xeb, 0x9b, 0xaf, 0x2b, 0x0f, 0x2c, 0x57, 0x1e, 0xf8, 0xb9, 0xf2, 0xc0, 0xa7, 0xb5, 0xd7,
+	0x59, 0xae, 0xbd, 0xce, 0x8f, 0xb5, 0xd7, 0x79, 0xff, 0x8a, 0x0b, 0xfb, 0x31, 0x0b, 0x71, 0xa4,
+	0x16, 0x24, 0xc9, 0x64, 0x64, 0x85, 0x92, 0x05, 0x49, 0x8a, 0x41, 0xa4, 0x34, 0x23, 0xbb, 0xdf,
+	0xc3, 0x96, 0x29, 0x33, 0xe1, 0x49, 0x75, 0xec, 0xd7, 0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0x48,
+	0x74, 0x03, 0x05, 0x39, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -182,6 +284,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// GrantPrivilege defines a method for granting privilege to a validator.
 	GrantPrivilege(ctx context.Context, in *MsgGrantPrivilege, opts ...grpc.CallOption) (*MsgGrantPrivilegeResponse, error)
+	// EditConsensusKey defines a method for editing consensus pubkey of a validator.
+	EditConsensusPubKey(ctx context.Context, in *MsgEditConsensusPubKey, opts ...grpc.CallOption) (*MsgEditConsensusPubKeyResponse, error)
 }
 
 type msgClient struct {
@@ -201,10 +305,21 @@ func (c *msgClient) GrantPrivilege(ctx context.Context, in *MsgGrantPrivilege, o
 	return out, nil
 }
 
+func (c *msgClient) EditConsensusPubKey(ctx context.Context, in *MsgEditConsensusPubKey, opts ...grpc.CallOption) (*MsgEditConsensusPubKeyResponse, error) {
+	out := new(MsgEditConsensusPubKeyResponse)
+	err := c.cc.Invoke(ctx, "/fx.staking.v1.Msg/EditConsensusPubKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// GrantPrivilege defines a method for granting privilege to a validator.
 	GrantPrivilege(context.Context, *MsgGrantPrivilege) (*MsgGrantPrivilegeResponse, error)
+	// EditConsensusKey defines a method for editing consensus pubkey of a validator.
+	EditConsensusPubKey(context.Context, *MsgEditConsensusPubKey) (*MsgEditConsensusPubKeyResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -213,6 +328,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) GrantPrivilege(ctx context.Context, req *MsgGrantPrivilege) (*MsgGrantPrivilegeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrantPrivilege not implemented")
+}
+func (*UnimplementedMsgServer) EditConsensusPubKey(ctx context.Context, req *MsgEditConsensusPubKey) (*MsgEditConsensusPubKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EditConsensusPubKey not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -237,6 +355,24 @@ func _Msg_GrantPrivilege_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_EditConsensusPubKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgEditConsensusPubKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).EditConsensusPubKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.staking.v1.Msg/EditConsensusPubKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).EditConsensusPubKey(ctx, req.(*MsgEditConsensusPubKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "fx.staking.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -244,6 +380,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GrantPrivilege",
 			Handler:    _Msg_GrantPrivilege_Handler,
+		},
+		{
+			MethodName: "EditConsensusPubKey",
+			Handler:    _Msg_EditConsensusPubKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -329,6 +469,78 @@ func (m *MsgGrantPrivilegeResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgEditConsensusPubKey) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEditConsensusPubKey) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEditConsensusPubKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pubkey != nil {
+		{
+			size, err := m.Pubkey.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.From) > 0 {
+		i -= len(m.From)
+		copy(dAtA[i:], m.From)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.From)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ValidatorAddress) > 0 {
+		i -= len(m.ValidatorAddress)
+		copy(dAtA[i:], m.ValidatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ValidatorAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgEditConsensusPubKeyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEditConsensusPubKeyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEditConsensusPubKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -366,6 +578,36 @@ func (m *MsgGrantPrivilege) Size() (n int) {
 }
 
 func (m *MsgGrantPrivilegeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgEditConsensusPubKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ValidatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.From)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Pubkey != nil {
+		l = m.Pubkey.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgEditConsensusPubKeyResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -589,6 +831,206 @@ func (m *MsgGrantPrivilegeResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgGrantPrivilegeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEditConsensusPubKey) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEditConsensusPubKey: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEditConsensusPubKey: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.From = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pubkey == nil {
+				m.Pubkey = &types.Any{}
+			}
+			if err := m.Pubkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEditConsensusPubKeyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEditConsensusPubKeyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEditConsensusPubKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

@@ -7,12 +7,14 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v5/app"
 	"github.com/functionx/fx-core/v5/testutil/helpers"
 	"github.com/functionx/fx-core/v5/x/staking/types"
 )
@@ -118,6 +120,108 @@ func TestMsgGrantPrivilegeGetSigners(t *testing.T) {
 	msg, err := types.NewMsgGrantPrivilege(sdk.ValAddress{}, []byte("input111111111111111"), toKey.PubKey(), "")
 	require.NoError(t, err)
 
+	res := msg.GetSigners()
+	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
+}
+
+func consPubKey() cryptotypes.PubKey {
+	var pk cryptotypes.PubKey
+	pkStr := `{"@type":"/cosmos.crypto.ed25519.PubKey","key":"ua9OcG6txvyZ2wSxeVR1+NDzUqO8TzZdoYxCyA48qAM="}`
+	if err := app.MakeEncodingConfig().Codec.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+		panic(err)
+	}
+	return pk
+}
+
+func TestMsgEditConsensusKey_Route(t *testing.T) {
+	val := sdk.ValAddress("val")
+	from := sdk.AccAddress("from")
+	pubKey := consPubKey()
+
+	msg, err := types.NewMsgEditConsensusPubKey(val, from, pubKey)
+	require.NoError(t, err)
+	require.Equal(t, msg.Route(), stakingtypes.RouterKey)
+	require.Equal(t, msg.Type(), "edit_consensus_pubkey")
+}
+
+func TestMsgEditConsensusKeyValidation(t *testing.T) {
+	key := helpers.NewPriKey()
+	val := sdk.ValAddress(key.PubKey().Address().Bytes())
+	from := sdk.AccAddress(key.PubKey().Address().Bytes())
+
+	testCase := []struct {
+		name        string
+		msg         func() *types.MsgEditConsensusPubKey
+		expectError string
+	}{
+		{
+			name: "valid",
+			msg: func() *types.MsgEditConsensusPubKey {
+				msg, err := types.NewMsgEditConsensusPubKey(val, from, consPubKey())
+				require.NoError(t, err)
+				return msg
+			},
+		},
+		{
+			name: "invalid validator address",
+			msg: func() *types.MsgEditConsensusPubKey {
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: "",
+					From:             from.String(),
+					Pubkey:           nil,
+				}
+			},
+			expectError: "invalid validator address: empty address string is not allowed: invalid address",
+		},
+		{
+			name: "invalid from address",
+			msg: func() *types.MsgEditConsensusPubKey {
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             "",
+					Pubkey:           nil,
+				}
+			},
+			expectError: "invalid from address: empty address string is not allowed: invalid address",
+		},
+		{
+			name: "invalid pubkey",
+			msg: func() *types.MsgEditConsensusPubKey {
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             from.String(),
+					Pubkey:           nil,
+				}
+			},
+			expectError: "empty validator public key",
+		},
+	}
+	for _, tc := range testCase {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg().ValidateBasic()
+			if len(tc.expectError) == 0 {
+				require.NoError(t, err)
+			} else {
+				require.EqualError(t, err, tc.expectError)
+			}
+		})
+	}
+}
+
+func TestMsgEditConsensusKeyGetSignBytes(t *testing.T) {
+	val := sdk.ValAddress("val")
+	from := sdk.AccAddress("from")
+	msg, err := types.NewMsgEditConsensusPubKey(val, from, consPubKey())
+	require.NoError(t, err)
+	res := msg.GetSignBytes()
+
+	expected := `{"type":"staking/MsgEditConsensusPubKey","value":{"from":"cosmos1veex7mgzt83cu","pubkey":"ua9OcG6txvyZ2wSxeVR1+NDzUqO8TzZdoYxCyA48qAM=","validator_address":"cosmosvaloper1weskc8rudzy"}}`
+	require.Equal(t, expected, string(res))
+}
+
+func TestMsgEditConsensusKeyGetSigners(t *testing.T) {
+	msg, err := types.NewMsgEditConsensusPubKey(sdk.ValAddress{}, []byte("input111111111111111"), consPubKey())
+	require.NoError(t, err)
 	res := msg.GetSigners()
 	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
 }

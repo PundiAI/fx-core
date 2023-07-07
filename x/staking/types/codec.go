@@ -24,6 +24,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgGrantPrivilege{},
+		&MsgEditConsensusPubKey{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
@@ -32,4 +33,5 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // RegisterLegacyAminoCodec registers concrete types on the Amino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgGrantPrivilege{}, "staking/MsgGrantPrivilege", nil)
+	cdc.RegisterConcrete(&MsgEditConsensusPubKey{}, "staking/MsgEditConsensusPubKey", nil)
 }

@@ -1,9 +1,10 @@
 package types
 
 const (
-	EventTypeApproveShares  = "approve_shares"
-	EventTypeTransferShares = "transfer_shares"
-	EventTypeGrantPrivilege = "grant_privilege"
+	EventTypeApproveShares       = "approve_shares"
+	EventTypeTransferShares      = "transfer_shares"
+	EventTypeGrantPrivilege      = "grant_privilege"
+	EventTypeEditConsensusPubKey = "edit_consensus_pubkey"
 
 	AttributeKeyOwner     = "owner"
 	AttributeKeySpender   = "spender"
@@ -12,4 +13,5 @@ const (
 	AttributeKeyFrom      = "from"
 	AttributeKeyRecipient = "recipient"
 	AttributeKeyTo        = "to"
+	AttributeKeyPubKey    = "pubkey"
 )

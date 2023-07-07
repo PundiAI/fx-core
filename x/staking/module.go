@@ -80,6 +80,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.AppModule.RegisterServices(cfg)
 }
 
+// EndBlock returns the end blocker for the staking module. It returns no validator
+// updates.
+func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return am.Keeper.EndBlock(ctx)
+}
+
 // InitGenesis performs genesis initialization for the staking module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
