@@ -13,11 +13,16 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 )
 
-const TypeMsgGrantPrivilege = "grant_privilege"
+const (
+	TypeMsgGrantPrivilege      = "grant_privilege"
+	TypeMsgEditConsensusPubKey = "edit_consensus_pubkey"
+)
 
 var (
 	_ sdk.Msg                            = &MsgGrantPrivilege{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgGrantPrivilege)(nil)
+	_ sdk.Msg                            = &MsgEditConsensusPubKey{}
+	_ codectypes.UnpackInterfacesMessage = (*MsgEditConsensusPubKey)(nil)
 )
 
 func NewMsgGrantPrivilege(val sdk.ValAddress, from sdk.AccAddress, pubKey cryptotypes.PubKey, signature string) (*MsgGrantPrivilege, error) {
@@ -119,4 +124,54 @@ func GrantPrivilegeSignatureData(val, from, to []byte) []byte {
 	copy(data[prefixLen+valLen:prefixLen+valLen+fromLen], from)
 	copy(data[prefixLen+valLen+fromLen:], to)
 	return data
+}
+
+func NewMsgEditConsensusPubKey(val sdk.ValAddress, from sdk.AccAddress, pubKey cryptotypes.PubKey) (*MsgEditConsensusPubKey, error) {
+	var pkAny *codectypes.Any
+	if pubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
+			return nil, err
+		}
+	}
+	return &MsgEditConsensusPubKey{
+		ValidatorAddress: val.String(),
+		From:             from.String(),
+		Pubkey:           pkAny,
+	}, nil
+}
+
+func (m *MsgEditConsensusPubKey) Route() string { return stakingtypes.RouterKey }
+
+func (m *MsgEditConsensusPubKey) Type() string { return TypeMsgEditConsensusPubKey }
+
+func (m *MsgEditConsensusPubKey) ValidateBasic() error {
+	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
+	}
+	if _, err := sdk.AccAddressFromBech32(m.From); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid from address: %s", err)
+	}
+	if m.Pubkey == nil {
+		return stakingtypes.ErrEmptyValidatorPubKey
+	}
+	return nil
+}
+
+func (m *MsgEditConsensusPubKey) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+func (m *MsgEditConsensusPubKey) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.From)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m *MsgEditConsensusPubKey) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(m.Pubkey, &pubKey)
 }

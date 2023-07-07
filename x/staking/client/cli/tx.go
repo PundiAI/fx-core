@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
@@ -35,6 +36,7 @@ func NewTxCmd() *cobra.Command {
 		cli.NewUnbondCmd(),
 		cli.NewCancelUnbondingDelegation(),
 		NewGrantPrivilegeCmd(),
+		NewEditConsensusPubKeyCmd(),
 	)
 
 	return stakingTxCmd
@@ -49,8 +51,7 @@ func NewGrantPrivilegeCmd() *cobra.Command {
 
 Examples:
  $ %s tx %s grant-privilege fxvaloper1.. fx1.. --from=fx1..
-	`, version.AppName, stakingtypes.ModuleName),
-		),
+	`, version.AppName, stakingtypes.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -82,6 +83,46 @@ Examples:
 				Signature:        hex.EncodeToString(sign),
 			}
 			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func NewEditConsensusPubKeyCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "edit-consensus-pubkey [validator-address] [pubkey]",
+		Short: "Edit an existing validator consensus public key",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`edit an existing validator consensus public key:
+
+Examples:
+ $ %s tx %s edit-consensus-pubkey fxvaloper1.. '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"...."}' --from=fx1..
+	`, version.AppName, stakingtypes.ModuleName)),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			valAddr, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			fromAddr := clientCtx.GetFromAddress()
+			var pk cryptotypes.PubKey
+			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[1]), &pk); err != nil {
+				return err
+			}
+
+			msg, err := types.NewMsgEditConsensusPubKey(valAddr, fromAddr, pk)
+			if err != nil {
+				return err
+			}
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

@@ -43,16 +43,16 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) SetupSubTest() {
-	valNumber := tmrand.Intn(10) + 1
+	valNumber := tmrand.Intn(10) + 2
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
-	suite.valAccounts = valAccounts
-
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		ChainID:         fxtypes.MainnetChainId,
 		Height:          suite.app.LastBlockHeight() + 1,
 		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
+	suite.ctx = suite.ctx.WithConsensusParams(helpers.ABCIConsensusParams)
+	suite.valAccounts = valAccounts
 
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).MulRaw(1e18))))

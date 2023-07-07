@@ -2,13 +2,17 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/kv"
 )
 
 const GrantPrivilegeSignaturePrefix = "GrantPrivilege:"
 
 var (
-	AllowanceKey         = []byte{0x90}
-	ValidatorOperatorKey = []byte{0x91}
+	AllowanceKey                 = []byte{0x90}
+	ValidatorOperatorKey         = []byte{0x91}
+	ValidatorNewConsensusPubKey  = []byte{0x92}
+	ValidatorOldConsensusAddrKey = []byte{0x93}
+	ValidatorDelConsensusAddrKey = []byte{0x94}
 )
 
 func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []byte {
@@ -28,4 +32,31 @@ func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []by
 
 func GetValidatorOperatorKey(addr []byte) []byte {
 	return append(ValidatorOperatorKey, addr...)
+}
+
+func GetValidatorNewConsensusPubKey(addr sdk.ValAddress) []byte {
+	return append(ValidatorNewConsensusPubKey, addr...)
+}
+
+func GetValidatorOldConsensusAddrKey(addr sdk.ValAddress) []byte {
+	return append(ValidatorOldConsensusAddrKey, addr...)
+}
+
+func GetValidatorDelConsensusAddrKey(addr sdk.ValAddress) []byte {
+	return append(ValidatorDelConsensusAddrKey, addr...)
+}
+
+func AddressFromValidatorNewConsensusPubKey(key []byte) []byte {
+	kv.AssertKeyAtLeastLength(key, 3)
+	return key[1:] // remove prefix bytes and address length
+}
+
+func AddressFromValidatorNewConsensusAddrKey(key []byte) []byte {
+	kv.AssertKeyAtLeastLength(key, 3)
+	return key[1:] // remove prefix bytes and address length
+}
+
+func AddressFromValidatorDelConsensusAddrKey(key []byte) []byte {
+	kv.AssertKeyAtLeastLength(key, 3)
+	return key[1:] // remove prefix bytes and address length
 }

@@ -237,3 +237,136 @@ func (suite *KeeperTestSuite) TestGrantAccount() {
 	suite.Require().True(found)
 	suite.Require().Equal(operator.String(), addr4.String())
 }
+
+func (suite *KeeperTestSuite) TestEditConsensusPubKey() {
+	unKnownAddr := helpers.NewPriKey().PubKey().Address()
+	_, tmAny := suite.GenerateConsKey()
+	testCase := []struct {
+		name       string
+		malleate   func(val sdk.ValAddress, from sdk.AccAddress) *types.MsgEditConsensusPubKey
+		expectPass bool
+		errMsg     string
+	}{
+		{
+			name: "success",
+			malleate: func(val sdk.ValAddress, from sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             from.String(),
+					Pubkey:           tmAny,
+				}
+			},
+			expectPass: true,
+		},
+		{
+			name: "success - granted",
+			malleate: func(val sdk.ValAddress, _ sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				newFrom := helpers.NewEthPrivKey()
+				suite.app.StakingKeeper.UpdateValidatorOperator(suite.ctx, val, newFrom.PubKey().Address().Bytes())
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             sdk.AccAddress(newFrom.PubKey().Address()).String(),
+					Pubkey:           tmAny,
+				}
+			},
+			expectPass: true,
+		},
+		{
+			name: "fail - invalid validator",
+			malleate: func(_ sdk.ValAddress, from sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: "",
+					From:             from.String(),
+					Pubkey:           tmAny,
+				}
+			},
+			expectPass: false,
+			errMsg:     "empty address string is not allowed: invalid address",
+		},
+		{
+			name: "fail - validator not found",
+			malleate: func(_ sdk.ValAddress, from sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: sdk.ValAddress(unKnownAddr).String(),
+					From:             from.String(),
+					Pubkey:           tmAny,
+				}
+			},
+			expectPass: false,
+			errMsg:     fmt.Sprintf("validator %s not found: unknown address", sdk.ValAddress(unKnownAddr).String()),
+		},
+		{
+			name: "fail - from not authorized",
+			malleate: func(val sdk.ValAddress, _ sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             sdk.AccAddress(helpers.NewPriKey().PubKey().Address()).String(),
+					Pubkey:           tmAny,
+				}
+			},
+			expectPass: false,
+			errMsg:     "from address not authorized: unauthorized",
+		},
+		{
+			name: "fail - invalid pubkey",
+			malleate: func(val sdk.ValAddress, from sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				pkAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{})
+				if err != nil {
+					panic(err)
+				}
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             from.String(),
+					Pubkey:           pkAny,
+				}
+			},
+			expectPass: false,
+			errMsg:     "Expecting cryptotypes.PubKey, got *types.MsgSend: invalid type",
+		},
+		{
+			name: "fail - pubkey exist",
+			malleate: func(val sdk.ValAddress, from sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				addr := suite.valAccounts[1].GetAddress()
+				validator, found := suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(addr))
+				suite.Require().True(found)
+
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             from.String(),
+					Pubkey:           validator.ConsensusPubkey,
+				}
+			},
+			expectPass: false,
+			errMsg:     "validator already exist for this pubkey; must use new validator pubkey",
+		},
+		{
+			name: "fail - invalid pubkey type",
+			malleate: func(val sdk.ValAddress, from sdk.AccAddress) *types.MsgEditConsensusPubKey {
+				pkAny, err := codectypes.NewAnyWithValue(helpers.NewEthPrivKey().PubKey())
+				if err != nil {
+					panic(err)
+				}
+				return &types.MsgEditConsensusPubKey{
+					ValidatorAddress: val.String(),
+					From:             from.String(),
+					Pubkey:           pkAny,
+				}
+			},
+			expectPass: false,
+			errMsg:     "got: eth_secp256k1, expected: [ed25519]: validator pubkey type is not supported",
+		},
+	}
+	for _, tc := range testCase {
+		suite.Run(tc.name, func() {
+			from := suite.valAccounts[0].GetAddress()
+			msg := tc.malleate(sdk.ValAddress(from), from)
+			_, err := suite.app.StakingKeeper.EditConsensusPubKey(sdk.WrapSDKContext(suite.ctx), msg)
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Equal(tc.errMsg, err.Error())
+			}
+		})
+	}
+}
