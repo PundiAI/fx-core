@@ -100,11 +100,9 @@ func (k Keeper) SetValidatorOperatorByConsAddr(ctx sdk.Context, newConsAddr sdk.
 	store.Set(stakingtypes.GetValidatorByConsAddrKey(newConsAddr), valOperator)
 }
 
-func (k Keeper) RemoveValidatorOperatorByConsAddr(ctx sdk.Context, consAddrs ...sdk.ConsAddress) {
+func (k Keeper) RemoveValidatorOperatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	store := ctx.KVStore(k.storeKey)
-	for _, addr := range consAddrs {
-		store.Delete(stakingtypes.GetValidatorByConsAddrKey(addr))
-	}
+	store.Delete(stakingtypes.GetValidatorByConsAddrKey(consAddr))
 }
 
 func (k Keeper) SetValidatorOldConsensusAddr(ctx sdk.Context, valAddr sdk.ValAddress, newConsAddr sdk.ConsAddress) {
@@ -138,11 +136,9 @@ func (k Keeper) SetValidatorDelConsensusAddr(ctx sdk.Context, valAddr sdk.ValAdd
 	store.Set(types.GetValidatorDelConsensusAddrKey(valAddr), consAddr)
 }
 
-func (k Keeper) RemoveValidatorDelConsensusAddr(ctx sdk.Context, valAddrs ...sdk.ValAddress) {
+func (k Keeper) RemoveValidatorDelConsensusAddr(ctx sdk.Context, valAddr sdk.ValAddress) {
 	store := ctx.KVStore(k.storeKey)
-	for _, addr := range valAddrs {
-		store.Delete(types.GetValidatorDelConsensusAddrKey(addr))
-	}
+	store.Delete(types.GetValidatorDelConsensusAddrKey(valAddr))
 }
 
 func (k Keeper) IteratorValidatorDelConsensusAddr(ctx sdk.Context, handler func(valAddr sdk.ValAddress, address sdk.ConsAddress) (stop bool)) {
