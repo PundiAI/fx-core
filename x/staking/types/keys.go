@@ -7,12 +7,18 @@ import (
 
 const GrantPrivilegeSignaturePrefix = "GrantPrivilege:"
 
+type CProcess []byte
+
 var (
-	AllowanceKey                 = []byte{0x90}
-	ValidatorOperatorKey         = []byte{0x91}
-	ValidatorNewConsensusPubKey  = []byte{0x92}
-	ValidatorOldConsensusAddrKey = []byte{0x93}
-	ValidatorDelConsensusAddrKey = []byte{0x94}
+	ProcessStart CProcess = []byte{0x1}
+	ProcessEnd   CProcess = []byte{0x2}
+)
+
+var (
+	AllowanceKey         = []byte{0x90}
+	ValidatorOperatorKey = []byte{0x91}
+	ConsensusPubKey      = []byte{0x92}
+	ConsensusProcessKey  = []byte{0x93}
 )
 
 func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []byte {
@@ -34,29 +40,20 @@ func GetValidatorOperatorKey(addr []byte) []byte {
 	return append(ValidatorOperatorKey, addr...)
 }
 
-func GetValidatorNewConsensusPubKey(addr sdk.ValAddress) []byte {
-	return append(ValidatorNewConsensusPubKey, addr...)
+func GetConsensusPubKey(addr sdk.ValAddress) []byte {
+	return append(ConsensusPubKey, addr...)
 }
 
-func GetValidatorOldConsensusAddrKey(addr sdk.ValAddress) []byte {
-	return append(ValidatorOldConsensusAddrKey, addr...)
+func GetConsensusProcessKey(process CProcess, addr sdk.ValAddress) []byte {
+	return append(ConsensusProcessKey, append(process, addr...)...)
 }
 
-func GetValidatorDelConsensusAddrKey(addr sdk.ValAddress) []byte {
-	return append(ValidatorDelConsensusAddrKey, addr...)
-}
-
-func AddressFromValidatorNewConsensusPubKey(key []byte) []byte {
-	kv.AssertKeyAtLeastLength(key, 3)
+func AddressFromConsensusPubKey(key []byte) []byte {
+	kv.AssertKeyAtLeastLength(key, 2)
 	return key[1:] // remove prefix bytes and address length
 }
 
-func AddressFromValidatorNewConsensusAddrKey(key []byte) []byte {
+func AddressFromConsensusProcessKey(key []byte) []byte {
 	kv.AssertKeyAtLeastLength(key, 3)
-	return key[1:] // remove prefix bytes and address length
-}
-
-func AddressFromValidatorDelConsensusAddrKey(key []byte) []byte {
-	kv.AssertKeyAtLeastLength(key, 3)
-	return key[1:] // remove prefix bytes and address length
+	return key[2:] // remove prefix bytes and address length
 }

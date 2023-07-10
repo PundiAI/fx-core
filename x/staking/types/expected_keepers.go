@@ -18,8 +18,8 @@ type AuthzKeeper interface {
 
 type SlashingKeeper interface {
 	AddPubkey(ctx sdk.Context, pubkey cryptotypes.PubKey) error
-	// todo DeletePubkey(ctx sdk.Context, pubkey sdk.ConsAddress)
-	GetValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress) (info slashingtypes.ValidatorSigningInfo, found bool)
-	SetValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo)
-	// todo DeleteValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress)
+	DeleteConsensusPubKey(ctx sdk.Context, consAddr sdk.ConsAddress)
+	GetValidatorSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress) (info slashingtypes.ValidatorSigningInfo, found bool)
+	SetValidatorSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo)
+	DeleteValidatorSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress)
 }

@@ -90,10 +90,9 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 
 	// update validator less than 1/3 total power
 	updatePower := math.NewInt(validator.ConsensusPower(k.PowerReduction(ctx)))
-	k.IteratorValidatorNewConsensusPubKey(ctx, func(addr sdk.ValAddress, _ cryptotypes.PubKey) bool {
+	k.IteratorConsensusPubKey(ctx, func(addr sdk.ValAddress, _ cryptotypes.PubKey) {
 		power := k.GetLastValidatorPower(ctx, addr)
 		updatePower = updatePower.Add(math.NewInt(power))
-		return false
 	})
 	totalPowerOneThird := k.GetLastTotalPower(ctx).QuoRaw(3)
 	if updatePower.GTE(totalPowerOneThird) {
@@ -107,11 +106,11 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 	}
 
 	// set validator new consensus pubkey
-	if err = k.SetValidatorNewConsensusPubKey(ctx, valAddr, newPubKey); err != nil {
+	if err = k.SetConsensusPubKey(ctx, valAddr, newPubKey); err != nil {
 		return nil, err
 	}
 
-	// todo the update process(2 block) can be delegate/undelegate/redelegate?
+	// todo can delegate/undelegate/redelegate when process update(complete in 3 block)?
 
 	emitEditConsensusPubKeyEvents(ctx, valAddr, fromAddr, newPubKey)
 
@@ -152,36 +151,36 @@ func (k Keeper) validateAnyPubKey(ctx sdk.Context, pubkey *codectypes.Any) (cryp
 
 func (k Keeper) updateValidatorPubKey(ctx sdk.Context, validator stakingtypes.Validator, newPubKey cryptotypes.PubKey) error {
 	newConsAddr := sdk.ConsAddress(newPubKey.Address())
-	// remove old cons address
-	consAddr, err := validator.GetConsAddr()
+	oldConsAddr, err := validator.GetConsAddr()
 	if err != nil {
 		return err
 	}
-	k.RemoveValidatorOperatorByConsAddr(ctx, consAddr)
-
-	// update new cons address
-	pkAny, _ := codectypes.NewAnyWithValue(newPubKey)
-	validator.ConsensusPubkey = pkAny
-	if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
-		return err
+	//  add new pubkey
+	if err := k.slashingKeeper.AddPubkey(ctx, newPubKey); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
 	}
+	// remove old pubkey
+	k.slashingKeeper.DeleteConsensusPubKey(ctx, oldConsAddr)
+
 	// add new sign info
-	info, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
+	info, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, oldConsAddr)
 	if !found {
 		return errorsmod.Wrap(sdkerrors.ErrUnknownAddress, "validator signing info not found")
 	}
 	info.Address = newConsAddr.String()
 	k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, info)
 
-	// todo delete old sign info
+	// remove old sign info
+	k.slashingKeeper.DeleteValidatorSigningInfo(ctx, oldConsAddr)
 
-	//  add new pubkey
-	if err := k.slashingKeeper.AddPubkey(ctx, newPubKey); err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
-	}
+	// remove old cons address
+	k.RemoveValidatorConsAddr(ctx, oldConsAddr)
 
-	// todo remove old pubkey
-
+	// update new cons address
+	pkAny, _ := codectypes.NewAnyWithValue(newPubKey)
+	validator.ConsensusPubkey = pkAny
+	k.SetValidator(ctx, validator)
+	k.SetValidatorConsAddr(ctx, newConsAddr, validator.GetOperator())
 	return nil
 }
 
