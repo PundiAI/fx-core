@@ -75,6 +75,7 @@ import (
 	migratetypes "github.com/functionx/fx-core/v5/x/migrate/types"
 	optimismtypes "github.com/functionx/fx-core/v5/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v5/x/polygon/types"
+	fxslashingkeeper "github.com/functionx/fx-core/v5/x/slashing/keeper"
 	fxstakingkeeper "github.com/functionx/fx-core/v5/x/staking/keeper"
 	tronkeeper "github.com/functionx/fx-core/v5/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v5/x/tron/types"
@@ -104,7 +105,7 @@ type AppKeepers struct {
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	StakingKeeper    fxstakingkeeper.Keeper
-	SlashingKeeper   slashingkeeper.Keeper
+	SlashingKeeper   fxslashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
 	DistrKeeper      distrkeeper.Keeper
 	GovKeeper        fxgovkeeper.Keeper
@@ -222,11 +223,13 @@ func NewAppKeeper(
 		&appKeepers.StakingKeeper,
 		authtypes.FeeCollectorName,
 	)
-	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
-		appCodec,
-		appKeepers.keys[slashingtypes.StoreKey],
-		&appKeepers.StakingKeeper,
-		appKeepers.GetSubspace(slashingtypes.ModuleName),
+	appKeepers.SlashingKeeper = fxslashingkeeper.NewKeeper(
+		slashingkeeper.NewKeeper(
+			appCodec,
+			appKeepers.keys[slashingtypes.StoreKey],
+			&appKeepers.StakingKeeper,
+			appKeepers.GetSubspace(slashingtypes.ModuleName),
+		), appKeepers.keys[slashingtypes.StoreKey],
 	)
 	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetSlashingKeeper(appKeepers.SlashingKeeper)
 
