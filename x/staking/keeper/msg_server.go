@@ -4,6 +4,8 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -66,23 +68,68 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	fromAddr := sdk.MustAccAddressFromBech32(msg.From)
-
-	if _, found := k.GetValidator(ctx, valAddr); !found {
+	validator, found := k.GetValidator(ctx, valAddr)
+	if !found {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "validator %s not found", msg.ValidatorAddress)
 	}
+
+	// pubkey and address
+	newPubKey, err := k.validateAnyPubKey(ctx, msg.Pubkey)
+	if err != nil {
+		return nil, err
+	}
+
+	// validator jailed/inactive, update pubkey
+	if validator.IsJailed() || validator.IsUnbonding() || validator.IsUnbonded() {
+		if err := k.updateValidatorPubKey(ctx, validator, newPubKey); err != nil {
+			return nil, err
+		}
+		emitEditConsensusPubKeyEvents(ctx, valAddr, fromAddr, newPubKey)
+		return &types.MsgEditConsensusPubKeyResponse{}, nil
+	}
+
+	// update validator less than 1/3 total power
+	updatePower := math.NewInt(validator.ConsensusPower(k.PowerReduction(ctx)))
+	k.IteratorValidatorNewConsensusPubKey(ctx, func(addr sdk.ValAddress, _ cryptotypes.PubKey) bool {
+		power := k.GetLastValidatorPower(ctx, addr)
+		updatePower = updatePower.Add(math.NewInt(power))
+		return false
+	})
+	totalPowerOneThird := k.GetLastTotalPower(ctx).QuoRaw(3)
+	if updatePower.GTE(totalPowerOneThird) {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
+			"update power %s more than 1/3 total power %s", updatePower.String(), totalPowerOneThird.String())
+	}
+
+	// from authorized
 	if !k.HasValidatorGrant(ctx, fromAddr, valAddr) {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "from address not authorized")
 	}
 
-	pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", msg.Pubkey.GetCachedValue())
+	// set validator new consensus pubkey
+	if err = k.SetValidatorNewConsensusPubKey(ctx, valAddr, newPubKey); err != nil {
+		return nil, err
 	}
+
+	// todo the update process(2 block) can be delegate/undelegate/redelegate?
+
+	emitEditConsensusPubKeyEvents(ctx, valAddr, fromAddr, newPubKey)
+
+	return &types.MsgEditConsensusPubKeyResponse{}, err
+}
+
+func (k Keeper) validateAnyPubKey(ctx sdk.Context, pubkey *codectypes.Any) (cryptotypes.PubKey, error) {
+	// pubkey type
+	pk, ok := pubkey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pubkey.GetCachedValue())
+	}
+	// pubkey exist
 	newConsAddr := sdk.GetConsAddress(pk)
 	if _, found := k.GetValidatorByConsAddr(ctx, newConsAddr); found {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
 	}
-
+	// pubkey type supported
 	cp := ctx.ConsensusParams()
 	if cp != nil && cp.Validator != nil {
 		pkType := pk.Type()
@@ -100,23 +147,49 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 			)
 		}
 	}
+	return pk, nil
+}
 
-	// todo validator jailed/inactive, can update consensus pubkey?
-	// todo one block can not update more than 1/3
+func (k Keeper) updateValidatorPubKey(ctx sdk.Context, validator stakingtypes.Validator, newPubKey cryptotypes.PubKey) error {
+	newConsAddr := sdk.ConsAddress(newPubKey.Address())
+	// remove old cons address
+	consAddr, err := validator.GetConsAddr()
+	if err != nil {
+		return err
+	}
+	k.RemoveValidatorOperatorByConsAddr(ctx, consAddr)
 
-	// set validator new consensus pubkey
-	if err = k.SetValidatorNewConsensusPubKey(ctx, valAddr, pk); err != nil {
-		return nil, err
+	// update new cons address
+	pkAny, _ := codectypes.NewAnyWithValue(newPubKey)
+	validator.ConsensusPubkey = pkAny
+	if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+		return err
+	}
+	// add new sign info
+	info, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
+	if !found {
+		return errorsmod.Wrap(sdkerrors.ErrUnknownAddress, "validator signing info not found")
+	}
+	info.Address = newConsAddr.String()
+	k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, info)
+
+	// todo delete old sign info
+
+	//  add new pubkey
+	if err := k.slashingKeeper.AddPubkey(ctx, newPubKey); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
 	}
 
-	// todo the update process(2 block) can be delegate(undelegate,redelegate)?
+	// todo remove old pubkey
 
+	return nil
+}
+
+func emitEditConsensusPubKeyEvents(ctx sdk.Context, val sdk.ValAddress, from sdk.AccAddress, newPubKey cryptotypes.PubKey) {
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeEditConsensusPubKey,
-		sdk.NewAttribute(stakingtypes.AttributeKeyValidator, msg.ValidatorAddress),
-		sdk.NewAttribute(types.AttributeKeyFrom, msg.From),
-		sdk.NewAttribute(types.AttributeKeyPubKey, newConsAddr.String()),
+		sdk.NewAttribute(stakingtypes.AttributeKeyValidator, val.String()),
+		sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
+		sdk.NewAttribute(types.AttributeKeyPubKey, newPubKey.String()),
 	))
-
-	return &types.MsgEditConsensusPubKeyResponse{}, err
 }

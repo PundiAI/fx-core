@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) SetupSubTest() {
-	valNumber := tmrand.Intn(10) + 2
+	valNumber := tmrand.Intn(5) + 6
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
