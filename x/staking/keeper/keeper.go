@@ -43,6 +43,8 @@ func (k *Keeper) SetAuthzKeeper(authzKeeper types.AuthzKeeper) *Keeper {
 	return k
 }
 
+// ValidatorGrant related functions
+
 func (k Keeper) HasValidatorGrant(ctx sdk.Context, grantee sdk.AccAddress, granter sdk.ValAddress) bool {
 	operator, found := k.GetValidatorOperator(ctx, granter)
 	if !found {
@@ -73,6 +75,8 @@ func (k Keeper) GrantAuthorization(ctx sdk.Context, grantee, granter sdk.AccAddr
 	return nil
 }
 
+// ValidatorOperator related functions
+
 func (k Keeper) HasValidatorOperator(ctx sdk.Context, val sdk.ValAddress) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetValidatorOperatorKey(val))
@@ -95,70 +99,23 @@ func (k Keeper) UpdateValidatorOperator(ctx sdk.Context, val sdk.ValAddress, fro
 	store.Set(types.GetValidatorOperatorKey(val), from.Bytes())
 }
 
-func (k Keeper) SetValidatorOperatorByConsAddr(ctx sdk.Context, newConsAddr sdk.ConsAddress, valOperator sdk.ValAddress) {
+// ValidatorConsAddr related functions
+
+func (k Keeper) SetValidatorConsAddr(ctx sdk.Context, newConsAddr sdk.ConsAddress, valOperator sdk.ValAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(stakingtypes.GetValidatorByConsAddrKey(newConsAddr), valOperator)
 }
 
-func (k Keeper) RemoveValidatorOperatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
+func (k Keeper) RemoveValidatorConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(stakingtypes.GetValidatorByConsAddrKey(consAddr))
 }
 
-func (k Keeper) SetValidatorOldConsensusAddr(ctx sdk.Context, valAddr sdk.ValAddress, newConsAddr sdk.ConsAddress) {
+// ConsensusPubKey related functions
+
+func (k Keeper) GetConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress) (cryptotypes.PubKey, bool) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetValidatorOldConsensusAddrKey(valAddr), newConsAddr)
-}
-
-func (k Keeper) RemoveValidatorOldConsensusAddr(ctx sdk.Context, valAddrs sdk.ValAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetValidatorOldConsensusAddrKey(valAddrs))
-}
-
-func (k Keeper) IteratorValidatorOldConsensusAddr(ctx sdk.Context, handler func(valAddr sdk.ValAddress, consAddr sdk.ConsAddress) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-
-	iter := sdk.KVStorePrefixIterator(store, types.ValidatorOldConsensusAddrKey)
-	defer iter.Close()
-
-	for ; iter.Valid(); iter.Next() {
-		valAddr := sdk.ValAddress(types.AddressFromValidatorNewConsensusAddrKey(iter.Key()))
-		consAddr := sdk.ConsAddress(iter.Value())
-
-		if handler(valAddr, consAddr) {
-			break
-		}
-	}
-}
-
-func (k Keeper) SetValidatorDelConsensusAddr(ctx sdk.Context, valAddr sdk.ValAddress, consAddr sdk.ConsAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetValidatorDelConsensusAddrKey(valAddr), consAddr)
-}
-
-func (k Keeper) RemoveValidatorDelConsensusAddr(ctx sdk.Context, valAddr sdk.ValAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetValidatorDelConsensusAddrKey(valAddr))
-}
-
-func (k Keeper) IteratorValidatorDelConsensusAddr(ctx sdk.Context, handler func(valAddr sdk.ValAddress, address sdk.ConsAddress) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-
-	iter := sdk.KVStorePrefixIterator(store, types.ValidatorDelConsensusAddrKey)
-	defer iter.Close()
-
-	for ; iter.Valid(); iter.Next() {
-		valAddr := sdk.ValAddress(types.AddressFromValidatorDelConsensusAddrKey(iter.Key()))
-		consAddr := sdk.ConsAddress(iter.Value())
-		if handler(valAddr, consAddr) {
-			break
-		}
-	}
-}
-
-func (k Keeper) GetValidatorNewConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress) (cryptotypes.PubKey, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetValidatorNewConsensusPubKey(valAddr))
+	bz := store.Get(types.GetConsensusPubKey(valAddr))
 	if bz == nil {
 		return nil, false
 	}
@@ -169,37 +126,74 @@ func (k Keeper) GetValidatorNewConsensusPubKey(ctx sdk.Context, valAddr sdk.ValA
 	return pubKey, true
 }
 
-func (k Keeper) SetValidatorNewConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress, pubKey cryptotypes.PubKey) error {
+func (k Keeper) SetConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress, pubKey cryptotypes.PubKey) error {
 	bz, err := k.cdc.MarshalInterfaceJSON(pubKey)
 	if err != nil {
 		return sdkerrors.ErrJSONMarshal.Wrapf("failed to marshal pubkey: %s", err.Error())
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetValidatorNewConsensusPubKey(valAddr), bz)
+	store.Set(types.GetConsensusPubKey(valAddr), bz)
 	return nil
 }
 
-func (k Keeper) RemoveValidatorNewConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress) {
+func (k Keeper) RemoveConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetValidatorNewConsensusPubKey(valAddr))
+	store.Delete(types.GetConsensusPubKey(valAddr))
 }
 
-func (k Keeper) IteratorValidatorNewConsensusPubKey(ctx sdk.Context, handler func(valAddr sdk.ValAddress, pubKey cryptotypes.PubKey) (stop bool)) {
+func (k Keeper) IteratorConsensusPubKey(ctx sdk.Context, h func(valAddr sdk.ValAddress, pubKey cryptotypes.PubKey)) {
 	store := ctx.KVStore(k.storeKey)
-
-	iter := sdk.KVStorePrefixIterator(store, types.ValidatorNewConsensusPubKey)
+	iter := sdk.KVStorePrefixIterator(store, types.ConsensusPubKey)
 	defer iter.Close()
-
 	for ; iter.Valid(); iter.Next() {
-		valAddr := sdk.ValAddress(types.AddressFromValidatorNewConsensusPubKey(iter.Key()))
+		valAddr := sdk.ValAddress(types.AddressFromConsensusPubKey(iter.Key()))
 
 		var pk cryptotypes.PubKey
 		if err := k.cdc.UnmarshalInterfaceJSON(iter.Value(), &pk); err != nil {
 			k.Logger(ctx).Error("failed to unmarshal pubKey", "validator", valAddr.String(), "err", err.Error())
+			// if we can't unmarshal the pubkey, delete it
+			store.Delete(iter.Key())
 			continue
 		}
-		if handler(valAddr, pk) {
-			break
-		}
+
+		h(valAddr, pk)
+	}
+}
+
+// ConsensusProcess related functions
+
+func (k Keeper) GetConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, process types.CProcess) (sdk.ConsAddress, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetConsensusProcessKey(process, valAddr))
+	if bz == nil {
+		return nil, false
+	}
+	return sdk.ConsAddress(bz), true
+}
+
+func (k Keeper) HasConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetConsensusProcessKey(types.ProcessStart, valAddr)) ||
+		store.Has(types.GetConsensusProcessKey(types.ProcessEnd, valAddr))
+}
+
+func (k Keeper) SetConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, consAddr sdk.ConsAddress, process types.CProcess) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetConsensusProcessKey(process, valAddr), consAddr)
+}
+
+func (k Keeper) DeleteConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, process types.CProcess) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetConsensusProcessKey(process, valAddr))
+}
+
+func (k Keeper) IteratorConsensusProcess(ctx sdk.Context, process types.CProcess, h func(valAddr sdk.ValAddress, consAddr sdk.ConsAddress)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, append(types.ConsensusProcessKey, process...))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		valAddr := sdk.ValAddress(types.AddressFromConsensusProcessKey(iter.Key()))
+		consAddr := sdk.ConsAddress(iter.Value())
+		h(valAddr, consAddr)
 	}
 }
