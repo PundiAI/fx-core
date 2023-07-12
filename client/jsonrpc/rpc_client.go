@@ -337,7 +337,16 @@ func (cli *Client) SetTimeout(t time.Duration) {
 }
 
 func (cli *Client) Call(ctx context.Context, method string, params map[string]interface{}, result interface{}) (err error) {
-	payload, err := json.Marshal(params)
+	paramsMap := make(map[string]json.RawMessage, len(params))
+	for name, value := range params {
+		valueJSON, err := tmjson.Marshal(value)
+		if err != nil {
+			return err
+		}
+		paramsMap[name] = valueJSON
+	}
+
+	payload, err := json.Marshal(paramsMap)
 	if err != nil {
 		return
 	}

@@ -463,7 +463,7 @@ func (c *NodeRPC) Commit(height int64) (*ctypes.ResultCommit, error) {
 	result := new(ctypes.ResultCommit)
 	params := map[string]interface{}{}
 	if height > 0 {
-		params = map[string]interface{}{"height": height}
+		params = map[string]interface{}{"height": strconv.FormatInt(height, 10)}
 	}
 	err := c.caller.Call(c.ctx, "commit", params, result)
 	if err != nil {
@@ -476,7 +476,7 @@ func (c *NodeRPC) Validators(height int64, page, perPage int) (*ctypes.ResultVal
 	result := new(ctypes.ResultValidators)
 	params := map[string]interface{}{}
 	if height > 0 {
-		params = map[string]interface{}{"height": height, "page": page, "per_page": perPage}
+		params = map[string]interface{}{"height": strconv.FormatInt(height, 10), "page": strconv.Itoa(page), "per_page": strconv.Itoa(perPage)}
 	}
 	err := c.caller.Call(c.ctx, "validators", params, result)
 	if err != nil {
