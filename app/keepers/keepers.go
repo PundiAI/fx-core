@@ -55,6 +55,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v5/types"
 	arbitrumtypes "github.com/functionx/fx-core/v5/x/arbitrum/types"
+	fxauthzkeeper "github.com/functionx/fx-core/v5/x/authz/keeper"
 	avalanchetypes "github.com/functionx/fx-core/v5/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v5/x/bsc/types"
 	"github.com/functionx/fx-core/v5/x/crosschain"
@@ -119,7 +120,7 @@ type AppKeepers struct {
 	FxTransferKeeper  fxtransferkeeper.Keeper
 	IBCTransferKeeper ibctransferkeeper.Keeper
 	FeeGrantKeeper    feegrantkeeper.Keeper
-	AuthzKeeper       authzkeeper.Keeper
+	AuthzKeeper       fxauthzkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -249,12 +250,12 @@ func NewAppKeeper(
 		),
 	)
 
-	appKeepers.AuthzKeeper = authzkeeper.NewKeeper(
+	appKeepers.AuthzKeeper = fxauthzkeeper.NewKeeper(authzkeeper.NewKeeper(
 		appKeepers.keys[authzkeeper.StoreKey],
 		appCodec,
 		bApp.MsgServiceRouter(),
 		appKeepers.AccountKeeper,
-	)
+	), appKeepers.keys[authzkeeper.StoreKey], appCodec)
 
 	// grant privileges
 	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetAuthzKeeper(appKeepers.AuthzKeeper)
