@@ -126,6 +126,11 @@ func (k Keeper) GetConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress) (cry
 	return pubKey, true
 }
 
+func (k Keeper) HasConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetConsensusPubKey(valAddr))
+}
+
 func (k Keeper) SetConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress, pubKey cryptotypes.PubKey) error {
 	bz, err := k.cdc.MarshalInterfaceJSON(pubKey)
 	if err != nil {
