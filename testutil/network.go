@@ -18,6 +18,7 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
@@ -170,6 +171,26 @@ func BankGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesi
 	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e8).Mul(sdkmath.NewInt(1e18))))
 	bankState.Balances = append(bankState.Balances, banktypes.Balance{Address: authtypes.NewModuleAddress(ethtypes.ModuleName).String(), Coins: coins})
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
+	return genesisState
+}
+
+func GovGenesisState(cdc codec.Codec, genesisState app.GenesisState, votingPeriod time.Duration) app.GenesisState {
+	var govGenState govv1beta1.GenesisState
+	cdc.MustUnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState)
+	govGenState.VotingParams.VotingPeriod = votingPeriod
+
+	genesisState[govtypes.ModuleName] = cdc.MustMarshalJSON(&govGenState)
+	return genesisState
+}
+
+func SlashingGenesisState(cdc codec.Codec, genesisState app.GenesisState, signedBlocksWindow int64, minSignedPerWindow sdk.Dec, downtimeJailDuration time.Duration) app.GenesisState {
+	var slashingState slashingtypes.GenesisState
+	cdc.MustUnmarshalJSON(genesisState[slashingtypes.ModuleName], &slashingState)
+	slashingState.Params.SignedBlocksWindow = signedBlocksWindow
+	slashingState.Params.MinSignedPerWindow = minSignedPerWindow
+	slashingState.Params.DowntimeJailDuration = downtimeJailDuration
+
+	genesisState[slashingtypes.ModuleName] = cdc.MustMarshalJSON(&slashingState)
 	return genesisState
 }
 

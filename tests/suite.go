@@ -40,6 +40,8 @@ type TestSuite struct {
 	network         *network.Network
 	ctx             context.Context
 	proposalId      uint64
+	numValidator    int
+	timeoutCommit   time.Duration
 }
 
 func NewTestSuite() *TestSuite {
@@ -48,6 +50,7 @@ func NewTestSuite() *TestSuite {
 		useLocalNetwork: false,
 		proposalId:      0,
 		ctx:             context.Background(),
+		numValidator:    1,
 	}
 	if os.Getenv("USE_LOCAL_NETWORK") == "true" {
 		testSuite.useLocalNetwork = true
@@ -71,20 +74,46 @@ func (suite *TestSuite) SetupSuite() {
 	}
 	suite.T().Log("setting up integration test suite")
 
+	numValidators := suite.numValidator
+	timeoutCommit := time.Millisecond
+	if numValidators > 1 {
+		timeoutCommit = 500 * time.Millisecond
+	}
+	suite.timeoutCommit = timeoutCommit
+
 	ibcGenesisOpt := func(config *network.Config) {
 		config.GenesisState = testutil.IbcGenesisState(encCfg.Codec, config.GenesisState)
 	}
 	bankGenesisOpt := func(config *network.Config) {
 		config.GenesisState = testutil.BankGenesisState(encCfg.Codec, config.GenesisState)
 	}
-	cfg := testutil.DefaultNetworkConfig(encCfg, ibcGenesisOpt, bankGenesisOpt)
-	cfg.TimeoutCommit = time.Millisecond
-	cfg.NumValidators = 1
+	govGenesisOpt := func(config *network.Config) {
+		votingPeriod := time.Millisecond
+		if numValidators > 1 {
+			votingPeriod = time.Duration(numValidators*5) * timeoutCommit
+		}
+		config.GenesisState = testutil.GovGenesisState(encCfg.Codec, config.GenesisState, votingPeriod)
+	}
+	slashingGenesisOpt := func(config *network.Config) {
+		signedBlocksWindow := int64(10)
+		minSignedPerWindow := sdk.NewDecWithPrec(2, 1)
+		downtimeJailDuration := 5 * time.Second
+		config.GenesisState = testutil.SlashingGenesisState(encCfg.Codec, config.GenesisState, signedBlocksWindow, minSignedPerWindow, downtimeJailDuration)
+	}
+
+	cfg := testutil.DefaultNetworkConfig(encCfg, ibcGenesisOpt, bankGenesisOpt, govGenesisOpt, slashingGenesisOpt)
+	cfg.TimeoutCommit = timeoutCommit
+	cfg.NumValidators = numValidators
 	// cfg.EnableTMLogging = true
 
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
+
+	time.Sleep(timeoutCommit * 10)
+	for suite.BlockNumber() <= 3 {
+		time.Sleep(timeoutCommit * 2)
+	}
 	suite.Require().NoError(err)
 }
 
@@ -120,6 +149,10 @@ func (suite *TestSuite) GetFirstValidator() *network.Validator {
 	return suite.network.Validators[0]
 }
 
+func (suite *TestSuite) GetAllValidators() []*network.Validator {
+	return suite.network.Validators
+}
+
 func (suite *TestSuite) GetFirstValPrivKey() cryptotypes.PrivKey {
 	if suite.IsUseLocalNetwork() {
 		k, err := keyring.New(suite.T().Name(), keyring.BackendTest, suite.network.BaseDir, os.Stdin, suite.network.Config.Codec)
@@ -131,6 +164,30 @@ func (suite *TestSuite) GetFirstValPrivKey() cryptotypes.PrivKey {
 	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], hd.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	return privKey
+}
+
+func (suite *TestSuite) GetAllValPrivKeys() []cryptotypes.PrivKey {
+	if suite.IsUseLocalNetwork() {
+		return []cryptotypes.PrivKey{suite.GetFirstValPrivKey()}
+	}
+	var privKeys []cryptotypes.PrivKey
+	for _, mnemonics := range suite.network.Config.Mnemonics {
+		privKey, err := helpers.PrivKeyFromMnemonic(mnemonics, hd.Secp256k1Type, 0, 0)
+		suite.NoError(err)
+		privKeys = append(privKeys, privKey)
+	}
+	return privKeys
+}
+
+func (suite *TestSuite) GetValidatorPrivKeys(addr sdk.AccAddress) cryptotypes.PrivKey {
+	for _, mnemonics := range suite.network.Config.Mnemonics {
+		privKey, err := helpers.PrivKeyFromMnemonic(mnemonics, hd.Secp256k1Type, 0, 0)
+		suite.NoError(err)
+		if addr.Equals(sdk.AccAddress(privKey.PubKey().Address())) {
+			return privKey
+		}
+	}
+	return nil
 }
 
 func (suite *TestSuite) GRPCClient() *grpc.Client {
@@ -174,7 +231,7 @@ func (suite *TestSuite) GetMetadata(denom string) banktypes.Metadata {
 
 func (suite *TestSuite) BlockNumber() int64 {
 	height, err := suite.GRPCClient().GetBlockHeight()
-	suite.Error(err)
+	suite.NoError(err)
 	return height
 }
 
@@ -216,6 +273,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	// txResponse might be nil, but error is also nil
 	suite.NotNil(txResponse)
 	suite.T().Log("broadcast tx", "msg:", sdk.MsgTypeURL(msgList[0]), "txHash:", txResponse.TxHash)
+	suite.NoError(suite.network.WaitForNextBlock())
 	return txResponse
 }
 
@@ -475,4 +533,22 @@ func (suite *TestSuite) CheckProposal(proposalId uint64, _ govv1.ProposalStatus)
 type unsafeExporter interface {
 	// ExportPrivateKeyObject returns a private key in unarmored format.
 	ExportPrivateKeyObject(uid string) (cryptotypes.PrivKey, error)
+}
+
+type TestSuiteMultiNode struct {
+	*TestSuite
+}
+
+func NewTestSuiteMultiNode() *TestSuiteMultiNode {
+	testSuite := &TestSuite{
+		Suite:           suite.Suite{},
+		useLocalNetwork: false,
+		proposalId:      0,
+		ctx:             context.Background(),
+		numValidator:    4,
+	}
+	if os.Getenv("USE_LOCAL_NETWORK") == "true" {
+		testSuite.useLocalNetwork = true
+	}
+	return &TestSuiteMultiNode{TestSuite: testSuite}
 }
