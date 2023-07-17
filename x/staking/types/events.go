@@ -1,12 +1,12 @@
 package types
 
 const (
-	EventTypeApproveShares            = "approve_shares"
-	EventTypeTransferShares           = "transfer_shares"
-	EventTypeGrantPrivilege           = "grant_privilege"
-	EventTypeEditConsensusPubKey      = "edit_consensus_pubkey"
-	EventTypeStartEditConsensusPubKey = "start_edit_consensus_pubkey"
-	EventTypeEndEditConsensusPubKey   = "end_edit_consensus_pubkey"
+	EventTypeApproveShares          = "approve_shares"
+	EventTypeTransferShares         = "transfer_shares"
+	EventTypeGrantPrivilege         = "grant_privilege"
+	EventTypeEditConsensusPubKey    = "edit_consensus_pubkey"
+	EventTypeEditingConsensusPubKey = "editing_consensus_pubkey"
+	EventTypeEditedConsensusPubKey  = "edited_consensus_pubkey"
 
 	AttributeKeyOwner     = "owner"
 	AttributeKeySpender   = "spender"

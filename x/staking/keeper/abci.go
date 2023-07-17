@@ -37,7 +37,7 @@ func (k Keeper) ConsensusProcess(ctx sdk.Context) {
 		k.slashingKeeper.DeleteValidatorSigningInfo(ctx, oldConsAddr)
 
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeEndEditConsensusPubKey,
+			types.EventTypeEditedConsensusPubKey,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, valAddr.String()),
 		))
 	})
@@ -60,11 +60,13 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpda
 	k.IteratorConsensusPubKey(ctx, func(valAddr sdk.ValAddress, newPubKey cryptotypes.PubKey) {
 		validator, found := k.GetValidator(ctx, valAddr)
 		if !found {
+			k.Logger(ctx).Error("validator not found", "address", valAddr.String())
 			k.RemoveConsensusPubKey(ctx, valAddr)
 			return
 		}
 		oldPubKey, err := validator.ConsPubKey()
 		if err != nil {
+			k.Logger(ctx).Error("invalid consensus pubkey", "address", valAddr.String(), "error", err.Error())
 			k.RemoveConsensusPubKey(ctx, valAddr)
 			return
 		}
@@ -104,7 +106,7 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpda
 			"oldConsAddr", oldConsAddr.String(), "newConsAddr", sdk.ConsAddress(newPubKey.Address()).String())
 
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeStartEditConsensusPubKey,
+			types.EventTypeEditingConsensusPubKey,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, valAddr.String()),
 			sdk.NewAttribute(types.AttributeOldConsAddr, oldConsAddr.String()),
 			sdk.NewAttribute(types.AttributeNewConsAddr, sdk.ConsAddress(newPubKey.Address()).String()),
@@ -113,6 +115,10 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpda
 		// commit cache context
 		commit()
 	})
+	// no validator update consensus pubkey
+	if len(pkUpdate) == 0 {
+		return valUpdates
+	}
 	// joint pkPower and pkUpdate
 	newValUpdates := make([]abci.ValidatorUpdate, 0, len(pkPower)+len(pkUpdate))
 	for tmPk, power := range pkPower {
@@ -145,7 +151,7 @@ func (k Keeper) updateSlashing(ctx sdk.Context, newPubKey cryptotypes.PubKey, ol
 	// add signing info
 	signingInfo, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, oldConsAddr)
 	if !found {
-		return errors.New("expected signing info to be found")
+		return errors.New("expected signing info not found")
 	}
 	signingInfo.Address = newConsAddr.String()
 	k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, signingInfo)

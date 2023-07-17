@@ -73,6 +73,16 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 		return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "validator %s not found", msg.ValidatorAddress)
 	}
 
+	// authorized from address
+	if !k.HasValidatorGrant(ctx, fromAddr, valAddr) {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "from address not authorized")
+	}
+
+	// check validator is updating consensus pubkey
+	if k.HasConsensusPubKey(ctx, valAddr) || k.HasConsensusProcess(ctx, valAddr) {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "validator %s is updating consensus pubkey", msg.ValidatorAddress)
+	}
+
 	// pubkey and address
 	newPubKey, err := k.validateAnyPubKey(ctx, msg.Pubkey)
 	if err != nil {
@@ -100,17 +110,10 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 			"update power %s more than 1/3 total power %s", updatePower.String(), totalPowerOneThird.String())
 	}
 
-	// from authorized
-	if !k.HasValidatorGrant(ctx, fromAddr, valAddr) {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "from address not authorized")
-	}
-
 	// set validator new consensus pubkey
 	if err = k.SetConsensusPubKey(ctx, valAddr, newPubKey); err != nil {
 		return nil, err
 	}
-
-	// todo can delegate/undelegate/redelegate when process update(complete in 3 block)?
 
 	emitEditConsensusPubKeyEvents(ctx, valAddr, fromAddr, newPubKey)
 
