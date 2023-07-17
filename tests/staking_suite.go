@@ -7,7 +7,9 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -18,19 +20,23 @@ import (
 
 	"github.com/functionx/fx-core/v5/client"
 	testscontract "github.com/functionx/fx-core/v5/tests/contract"
+	"github.com/functionx/fx-core/v5/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v5/types"
 	precompilesstaking "github.com/functionx/fx-core/v5/x/evm/precompiles/staking"
 )
 
 type StakingSuite struct {
 	Erc20TestSuite
-	abi abi.ABI
+	abi      abi.ABI
+	grantKey cryptotypes.PrivKey
 }
 
 func NewStakingSuite(ts *TestSuite) StakingSuite {
+	key := helpers.NewEthPrivKey()
 	return StakingSuite{
 		Erc20TestSuite: NewErc20TestSuite(ts),
 		abi:            precompilesstaking.GetABI(),
+		grantKey:       key,
 	}
 }
 
@@ -40,6 +46,14 @@ func (suite *StakingSuite) AccAddress() sdk.AccAddress {
 
 func (suite *StakingSuite) Address() common.Address {
 	return common.BytesToAddress(suite.privKey.PubKey().Address())
+}
+
+func (suite *StakingSuite) GrantPrivKey() cryptotypes.PrivKey {
+	return suite.grantKey
+}
+
+func (suite *StakingSuite) GrantAddress() sdk.AccAddress {
+	return sdk.AccAddress(suite.grantKey.PubKey().Address())
 }
 
 func (suite *StakingSuite) StakingQuery() stakingtypes.QueryClient {
@@ -277,4 +291,28 @@ func (suite *StakingSuite) LogReward(logs []*ethtypes.Log, valAddr string, addr 
 		}
 	}
 	return big.NewInt(0)
+}
+
+type AuthzSuite struct {
+	*TestSuite
+}
+
+func NewAuthzSuite(ts *TestSuite) AuthzSuite {
+	return AuthzSuite{TestSuite: ts}
+}
+
+func (suite *AuthzSuite) AuthzQuery() authz.QueryClient {
+	return suite.GRPCClient().AuthzQuery()
+}
+
+type SlashingSuite struct {
+	*TestSuite
+}
+
+func NewSlashingSuite(ts *TestSuite) SlashingSuite {
+	return SlashingSuite{TestSuite: ts}
+}
+
+func (suite *SlashingSuite) SlashingQuery() slashingtypes.QueryClient {
+	return suite.GRPCClient().SlashingQuery()
 }

@@ -1,15 +1,24 @@
 package tests
 
 import (
+	"encoding/hex"
 	"math/big"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/functionx/fx-core/v5/app"
 	"github.com/functionx/fx-core/v5/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v5/types"
 	precompilesstaking "github.com/functionx/fx-core/v5/x/evm/precompiles/staking"
+	fxstakingtypes "github.com/functionx/fx-core/v5/x/staking/types"
 )
 
 func (suite *IntegrationTest) StakingTest() {
@@ -420,4 +429,186 @@ func (suite *IntegrationTest) StakingSharesContractTest() {
 	contractBal = suite.QueryBalances(contract.Bytes())
 	totalReward = sdkmath.NewIntFromBigInt(reward3).Add(sdkmath.NewIntFromBigInt(reward4).Add(sdkmath.NewIntFromBigInt(reward6)))
 	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), totalReward.String())
+}
+
+func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
+	initBalance := sdkmath.NewInt(2000).MulRaw(1e18)
+	suite.Send(suite.staking.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
+
+	valResp, err := suite.staking.StakingQuery().Validators(suite.ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.BondStatusBonded})
+	suite.Require().NoError(err)
+	valAddr := valResp.Validators[0].GetOperator()
+	from := sdk.AccAddress(valAddr)
+	to := sdk.AccAddress(suite.staking.privKey.PubKey().Address())
+
+	to2 := suite.staking.GrantAddress()
+	suite.Send(to2, sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
+
+	// check val with to grants
+	grantResp, err := suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
+	suite.Require().NoError(err)
+	suite.Require().Equal(0, len(grantResp.Grants))
+
+	// grant privilege val with to address
+	sign, err := suite.staking.privKey.Sign(fxstakingtypes.GrantPrivilegeSignatureData(valAddr, from, to))
+	suite.Require().NoError(err)
+	msg, err := fxstakingtypes.NewMsgGrantPrivilege(valAddr, sdk.AccAddress(valAddr), suite.staking.privKey.PubKey(), hex.EncodeToString(sign))
+	suite.Require().NoError(err)
+	suite.BroadcastTx(suite.GetValidatorPrivKeys(from), msg)
+
+	// check val with to grants
+	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
+	suite.Require().NoError(err)
+	suite.Require().Equal(1, len(grantResp.Grants))
+
+	// val send coins error, not have privilege
+	msgSend := banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))))
+	_, err = suite.GRPCClient().BuildTxV1(suite.GetValidatorPrivKeys(from), []sdk.Msg{msgSend}, 500000, "", 0)
+	suite.Require().Error(err)
+
+	// grant MsgSend privilege with to address
+	exp := time.Now().Add(time.Hour)
+	msgGrant, err := authz.NewMsgGrant(from, to, authz.NewGenericAuthorization(sdk.MsgTypeURL(&banktypes.MsgSend{})), &exp)
+	suite.Require().NoError(err)
+	msgExec := authz.NewMsgExec(to, []sdk.Msg{msgGrant, msgSend})
+
+	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{&msgExec}, 500000, "", 0)
+	suite.Require().NoError(err)
+	tx := suite.BroadcastTx(suite.staking.privKey, &msgExec)
+	suite.Require().Equal(uint32(0), tx.Code)
+
+	// check val with to grants
+	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
+	suite.Require().NoError(err)
+	suite.Require().Equal(2, len(grantResp.Grants))
+
+	// val grant to to2 address error, val not have privilege
+	sign, err = suite.staking.GrantPrivKey().Sign(fxstakingtypes.GrantPrivilegeSignatureData(valAddr, from, to2))
+	suite.Require().NoError(err)
+	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, from, suite.staking.GrantPrivKey().PubKey(), hex.EncodeToString(sign))
+	suite.Require().NoError(err)
+	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{msg}, 500000, "", 0)
+	suite.Require().Error(err)
+
+	// to grant to to2 address
+	sign, err = suite.staking.GrantPrivKey().Sign(fxstakingtypes.GrantPrivilegeSignatureData(valAddr, to, to2))
+	suite.Require().NoError(err)
+	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, to, suite.staking.GrantPrivKey().PubKey(), hex.EncodeToString(sign))
+	suite.Require().NoError(err)
+	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{msg}, 500000, "", 0)
+	suite.NoError(err)
+	suite.BroadcastTx(suite.staking.privKey, msg)
+
+	// check val with to grants
+	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
+	suite.Require().NoError(err)
+	suite.Require().Equal(0, len(grantResp.Grants))
+
+	// check to with to2 grants
+	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to2.String()})
+	suite.Require().NoError(err)
+	suite.Require().Equal(1, len(grantResp.Grants))
+
+	//  grant privilege edit consenus pubkey
+	msgGrant, err = authz.NewMsgGrant(from, suite.staking.GrantAddress(), authz.NewGenericAuthorization(sdk.MsgTypeURL(&fxstakingtypes.MsgEditConsensusPubKey{})), &exp)
+	suite.Require().NoError(err)
+
+	// edit consenus pubkey
+	newPriKey := ed25519.GenPrivKey()
+	msgEdit, err := fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, suite.staking.GrantAddress(), newPriKey.PubKey())
+	suite.Require().NoError(err)
+
+	msgExec = authz.NewMsgExec(suite.staking.GrantAddress(), []sdk.Msg{msgGrant, msgEdit})
+	tx = suite.BroadcastTx(suite.staking.GrantPrivKey(), &msgExec)
+	suite.Require().Equal(uint32(0), tx.Code)
+}
+
+func (suite *IntegrationMultiNodeTest) StakingEditConsensusPubKey() {
+	if suite.QueryBalances(suite.staking.AccAddress()).IsZero() {
+		suite.Send(suite.staking.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(2000).MulRaw(1e18)))
+	}
+
+	// query all validator
+	valsResp, err := suite.staking.StakingQuery().Validators(suite.ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.BondStatusBonded})
+	suite.Require().NoError(err)
+	//	val addr
+	valAddr := valsResp.Validators[2].GetOperator()
+	// val consensus pubkey
+	var oldPubKey cryptotypes.PubKey
+	err = app.MakeEncodingConfig().InterfaceRegistry.UnpackAny(valsResp.Validators[2].ConsensusPubkey, &oldPubKey)
+	suite.Require().NoError(err)
+	valFrom := sdk.AccAddress(valAddr)
+	// new consenus pubkey
+	newPriKey := ed25519.GenPrivKey()
+
+	// check signing info
+	infos, err := suite.slasing.SlashingQuery().SigningInfos(suite.ctx, &slashingtypes.QuerySigningInfosRequest{})
+	suite.Require().NoError(err)
+	for _, info := range infos.Info {
+		suite.True(info.MissedBlocksCounter == 0)
+	}
+
+	// edit consensus pubkey to new consenus pubkey
+	msg, err := fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, valFrom, newPriKey.PubKey())
+	suite.Require().NoError(err)
+	suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), msg)
+
+	// wait 15 block
+	_, err = suite.network.WaitForHeightWithTimeout(suite.BlockNumber()+15, 30*time.Second)
+	suite.Require().NoError(err)
+
+	// check signing info
+	infos, err = suite.slasing.SlashingQuery().SigningInfos(suite.ctx, &slashingtypes.QuerySigningInfosRequest{})
+	suite.Require().NoError(err)
+	for _, info := range infos.Info {
+		if info.Address == sdk.ConsAddress(newPriKey.PubKey().Address()).String() {
+			suite.True(info.MissedBlocksCounter > 0)
+			continue
+		}
+		suite.True(info.MissedBlocksCounter == 0)
+	}
+
+	// validator jailed
+	valResp, err := suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
+	suite.Require().NoError(err)
+	suite.Require().True(valResp.Validator.Jailed)
+
+	// edit consensus pubkey to old consenus pubkey
+	msg, err = fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, valFrom, oldPubKey)
+	suite.Require().NoError(err)
+	suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), msg)
+
+	// check signing info
+	infos, err = suite.slasing.SlashingQuery().SigningInfos(suite.ctx, &slashingtypes.QuerySigningInfosRequest{})
+	suite.Require().NoError(err)
+	for _, info := range infos.Info {
+		if info.Address == sdk.ConsAddress(oldPubKey.Address()).String() {
+			suite.True(info.MissedBlocksCounter > 0)
+			continue
+		}
+		suite.True(info.MissedBlocksCounter == 0)
+	}
+
+	// unjail validator
+	msgUnjail := slashingtypes.NewMsgUnjail(valAddr)
+	suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), msgUnjail)
+
+	// check validator unjailed
+	valResp, err = suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
+	suite.Require().NoError(err)
+	suite.Require().False(valResp.Validator.Jailed)
+
+	// check signing info
+	infoResp, err := suite.slasing.SlashingQuery().SigningInfo(suite.ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: sdk.ConsAddress(oldPubKey.Address()).String()})
+	suite.Require().NoError(err)
+	missBlock := infoResp.ValSigningInfo.MissedBlocksCounter
+
+	// wait 15 block
+	_, err = suite.network.WaitForHeightWithTimeout(suite.BlockNumber()+15, 30*time.Second)
+	suite.Require().NoError(err)
+
+	// check signing info
+	infoResp, err = suite.slasing.SlashingQuery().SigningInfo(suite.ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: sdk.ConsAddress(oldPubKey.Address()).String()})
+	suite.Require().NoError(err)
+	suite.Require().Equal(missBlock, infoResp.ValSigningInfo.MissedBlocksCounter)
 }
