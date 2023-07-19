@@ -6,13 +6,15 @@ import (
 	"testing"
 	"time"
 
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
+	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/proto/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -39,44 +41,61 @@ func (suite *KeeperTestSuite) TestValidatorUpdate() {
 	found = suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, valAddr)
 	suite.Require().False(found)
 
+	pkPowerUpdate := make(map[crypto.PublicKey]int64)
+	lastVote := make(map[string]bool)
+
+	validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 100)
+	for _, val := range validators {
+		pubKey, err := val.ConsPubKey()
+		suite.Require().NoError(err)
+		tmProtoPk, err := cryptocodec.ToTmProtoPublicKey(pubKey)
+		suite.Require().NoError(err)
+		tmPk, err := cryptoenc.PubKeyFromProto(tmProtoPk)
+		suite.Require().NoError(err)
+		lastVote[string(tmPk.Address())] = true
+	}
+
 	// validator update(process start)
-	updates := suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, []abci.ValidatorUpdate{})
+	updates := suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, pkPowerUpdate, lastVote)
 	suite.Require().Len(updates, 2)
-	updates = suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, []abci.ValidatorUpdate{})
+	updates = suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, pkPowerUpdate, lastVote)
 	suite.Require().Len(updates, 0)
 
 	_, found = suite.app.StakingKeeper.GetConsensusPubKey(suite.ctx, valAddr)
 	suite.Require().False(found)
 
-	oldConsAddr, found := suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessStart)
-	suite.Require().True(found)
-	suite.Require().Equal(consAddr, oldConsAddr)
-	_, found = suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessEnd)
-	suite.Require().False(found)
+	oldPk, err := suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessStart)
+	suite.Require().NoError(err)
+	suite.Require().Equal(consAddr, sdk.ConsAddress(oldPk.Address()))
+	nilPk, err := suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessEnd)
+	suite.Require().NoError(err)
+	suite.Require().Nil(nilPk)
 
 	// consensus process(process end)
-	suite.app.StakingKeeper.ConsensusProcess(suite.ctx)
+	suite.app.StakingKeeper.ConsensusProcess(suite.ctx, pkPowerUpdate, lastVote)
 
-	_, found = suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessStart)
-	suite.Require().False(found)
-	oldConsAddr, found = suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessEnd)
-	suite.Require().True(found)
-	suite.Require().Equal(consAddr, oldConsAddr)
-
-	_, err = suite.app.SlashingKeeper.GetPubkey(suite.ctx, oldConsAddr.Bytes())
+	nilPk, err = suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessStart)
 	suite.Require().NoError(err)
-	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().Nil(nilPk)
+
+	oldPk, err = suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessEnd)
+	suite.Require().NoError(err)
+	suite.Require().Equal(consAddr, sdk.ConsAddress(oldPk.Address()))
+
+	_, err = suite.app.SlashingKeeper.GetPubkey(suite.ctx, oldPk.Address())
+	suite.Require().NoError(err)
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(oldPk.Address()))
 	suite.Require().True(found)
 
 	// consensus process(process delete)
-	suite.app.StakingKeeper.ConsensusProcess(suite.ctx)
+	suite.app.StakingKeeper.ConsensusProcess(suite.ctx, pkPowerUpdate, lastVote)
 
 	_, found = suite.app.StakingKeeper.GetConsensusPubKey(suite.ctx, valAddr)
 	suite.Require().False(found)
 
-	_, err = suite.app.SlashingKeeper.GetPubkey(suite.ctx, oldConsAddr.Bytes())
-	suite.Require().ErrorContains(err, fmt.Sprintf("address %s not found", oldConsAddr.String()))
-	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	_, err = suite.app.SlashingKeeper.GetPubkey(suite.ctx, oldPk.Address())
+	suite.Require().ErrorContains(err, fmt.Sprintf("address %s not found", sdk.ConsAddress(oldPk.Address()).String()))
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(oldPk.Address()))
 	suite.Require().False(found)
 }
 

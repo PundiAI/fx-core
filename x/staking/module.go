@@ -62,7 +62,7 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 type AppModule struct {
 	staking.AppModule
 	AppModuleBasic AppModuleBasic
-	Keeper         keeper.Keeper
+	Keeper         *keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -71,13 +71,18 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak stakingtypes.Account
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{AppModuleBasic: stakingAppModule.AppModuleBasic},
 		AppModule:      stakingAppModule,
-		Keeper:         keeper,
+		Keeper:         &keeper,
 	}
 }
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	fxstakingtypes.RegisterMsgServer(cfg.MsgServer(), am.Keeper)
 	am.AppModule.RegisterServices(cfg)
+}
+
+// BeginBlock returns the begin blocker for the staking module.
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	am.Keeper.BeginBlock(ctx, req)
 }
 
 // EndBlock returns the end blocker for the staking module. It returns no validator

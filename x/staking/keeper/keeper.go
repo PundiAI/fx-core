@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/v5/x/staking/types"
 )
@@ -22,6 +23,8 @@ type Keeper struct {
 
 	authzKeeper    types.AuthzKeeper
 	slashingKeeper types.SlashingKeeper
+
+	lastCommit []abci.VoteInfo
 }
 
 // NewKeeper creates a new staking Keeper instance
@@ -146,34 +149,31 @@ func (k Keeper) RemoveConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress) {
 	store.Delete(types.GetConsensusPubKey(valAddr))
 }
 
-func (k Keeper) IteratorConsensusPubKey(ctx sdk.Context, h func(valAddr sdk.ValAddress, pubKey cryptotypes.PubKey)) {
+func (k Keeper) IteratorConsensusPubKey(ctx sdk.Context, h func(valAddr sdk.ValAddress, pkBytes []byte) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.ConsensusPubKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		valAddr := sdk.ValAddress(types.AddressFromConsensusPubKey(iter.Key()))
-
-		var pk cryptotypes.PubKey
-		if err := k.cdc.UnmarshalInterfaceJSON(iter.Value(), &pk); err != nil {
-			k.Logger(ctx).Error("failed to unmarshal pubKey", "validator", valAddr.String(), "err", err.Error())
-			// if we can't unmarshal the pubkey, delete it
-			store.Delete(iter.Key())
-			continue
+		if h(valAddr, iter.Value()) {
+			break
 		}
-
-		h(valAddr, pk)
 	}
 }
 
 // ConsensusProcess related functions
 
-func (k Keeper) GetConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, process types.CProcess) (sdk.ConsAddress, bool) {
+func (k Keeper) GetConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, process types.CProcess) (cryptotypes.PubKey, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetConsensusProcessKey(process, valAddr))
 	if bz == nil {
-		return nil, false
+		return nil, nil
 	}
-	return sdk.ConsAddress(bz), true
+	var pubKey cryptotypes.PubKey
+	if err := k.cdc.UnmarshalInterfaceJSON(bz, &pubKey); err != nil {
+		return nil, err
+	}
+	return pubKey, nil
 }
 
 func (k Keeper) HasConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress) bool {
@@ -182,9 +182,14 @@ func (k Keeper) HasConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress) boo
 		store.Has(types.GetConsensusProcessKey(types.ProcessEnd, valAddr))
 }
 
-func (k Keeper) SetConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, consAddr sdk.ConsAddress, process types.CProcess) {
+func (k Keeper) SetConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, pubKey cryptotypes.PubKey, process types.CProcess) error {
+	bz, err := k.cdc.MarshalInterfaceJSON(pubKey)
+	if err != nil {
+		return sdkerrors.ErrJSONMarshal.Wrapf("failed to marshal pubkey: %s", err.Error())
+	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetConsensusProcessKey(process, valAddr), consAddr)
+	store.Set(types.GetConsensusProcessKey(process, valAddr), bz)
+	return nil
 }
 
 func (k Keeper) DeleteConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, process types.CProcess) {
@@ -192,13 +197,12 @@ func (k Keeper) DeleteConsensusProcess(ctx sdk.Context, valAddr sdk.ValAddress, 
 	store.Delete(types.GetConsensusProcessKey(process, valAddr))
 }
 
-func (k Keeper) IteratorConsensusProcess(ctx sdk.Context, process types.CProcess, h func(valAddr sdk.ValAddress, consAddr sdk.ConsAddress)) {
+func (k Keeper) IteratorConsensusProcess(ctx sdk.Context, process types.CProcess, h func(valAddr sdk.ValAddress, pkBytes []byte)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, append(types.ConsensusProcessKey, process...))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		valAddr := sdk.ValAddress(types.AddressFromConsensusProcessKey(iter.Key()))
-		consAddr := sdk.ConsAddress(iter.Value())
-		h(valAddr, consAddr)
+		h(valAddr, iter.Value())
 	}
 }
