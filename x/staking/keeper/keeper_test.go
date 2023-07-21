@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -11,8 +12,11 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
+	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -29,7 +33,9 @@ type KeeperTestSuite struct {
 	app    *app.App
 	signer *helpers.Signer
 
-	valAccounts []authtypes.GenesisAccount
+	valAccounts     []authtypes.GenesisAccount
+	currentVoteInfo []abci.VoteInfo
+	nextVoteInfo    []abci.VoteInfo
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -54,6 +60,28 @@ func (suite *KeeperTestSuite) SetupSubTest() {
 	suite.ctx = suite.ctx.WithConsensusParams(helpers.ABCIConsensusParams)
 	suite.valAccounts = valAccounts
 
+	for _, validator := range valSet.Validators {
+		signingInfo := slashingtypes.NewValidatorSigningInfo(
+			validator.Address.Bytes(),
+			suite.ctx.BlockHeight(),
+			100,
+			time.Unix(0, 0),
+			false,
+			0,
+		)
+		suite.app.SlashingKeeper.SetValidatorSigningInfo(suite.ctx, validator.Address.Bytes(), signingInfo)
+	}
+
+	vals := suite.app.StakingKeeper.GetAllValidators(suite.ctx)
+	infos := make([]abci.VoteInfo, 0, len(vals))
+	for _, val := range vals {
+		addr, err := val.GetConsAddr()
+		suite.Require().NoError(err)
+		infos = append(infos, abci.VoteInfo{Validator: abci.Validator{Address: addr, Power: 100}})
+	}
+	suite.currentVoteInfo = infos
+	suite.nextVoteInfo = infos
+
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).MulRaw(1e18))))
 }
@@ -68,6 +96,92 @@ func (suite *KeeperTestSuite) GenerateConsKey() (cryptotypes.PrivKey, *codectype
 	priKey := ed25519.GenPrivKey()
 	pkAny, _ := codectypes.NewAnyWithValue(priKey.PubKey())
 	return priKey, pkAny
+}
+
+func (suite *KeeperTestSuite) SetSigningInfo(pk cryptotypes.PubKey, jailed ...bool) {
+	consAddr := sdk.ConsAddress(pk.Address())
+	jailedUntil := time.Unix(0, 0)
+	if len(jailed) > 0 && jailed[0] {
+		jailedUntil = suite.ctx.BlockHeader().Time.Add(time.Second)
+	}
+	signingInfo := slashingtypes.NewValidatorSigningInfo(consAddr, 0, 0, jailedUntil, false, 0)
+	suite.app.SlashingKeeper.SetValidatorSigningInfo(suite.ctx, consAddr, signingInfo)
+
+	err := suite.app.SlashingKeeper.AddPubkey(suite.ctx, pk)
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) CommitEndBlock() []abci.ValidatorUpdate {
+	header := suite.ctx.BlockHeader()
+	res := suite.app.EndBlock(abci.RequestEndBlock{Height: header.Height})
+	suite.app.Commit()
+	return res.ValidatorUpdates
+}
+
+func (suite *KeeperTestSuite) CommitBeginBlock(valUpdate []abci.ValidatorUpdate) {
+	header := suite.ctx.BlockHeader()
+
+	// begin block
+	header.Time = time.Now().UTC()
+	header.Height += 1
+
+	suite.app.BeginBlock(abci.RequestBeginBlock{
+		Header: header,
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: suite.currentVoteInfo,
+		},
+	})
+	suite.ctx = suite.app.NewContext(false, header)
+
+	pkUpdate := make(map[string]int64, len(valUpdate))
+	for _, pk := range valUpdate {
+		tmPk, err := cryptoenc.PubKeyFromProto(pk.PubKey)
+		suite.Require().NoError(err)
+		pkUpdate[sdk.ConsAddress(tmPk.Address()).String()] = pk.Power
+	}
+
+	newVoteInfo := make([]abci.VoteInfo, 0, len(suite.currentVoteInfo))
+	for _, info := range suite.nextVoteInfo {
+		consAddr := sdk.ConsAddress(info.Validator.Address)
+		power, ok := pkUpdate[consAddr.String()]
+		if ok && power == 0 {
+			delete(pkUpdate, consAddr.String())
+			continue
+		}
+		newVoteInfo = append(newVoteInfo, info)
+	}
+	for addr, power := range pkUpdate {
+		consAddr, err := sdk.ConsAddressFromBech32(addr)
+		suite.Require().NoError(err)
+		newVoteInfo = append(newVoteInfo, abci.VoteInfo{Validator: abci.Validator{Address: consAddr, Power: power}})
+	}
+
+	suite.currentVoteInfo, suite.nextVoteInfo = suite.nextVoteInfo, newVoteInfo
+}
+
+func (suite *KeeperTestSuite) CurrentVoteFound(pk cryptotypes.PubKey) bool {
+	consAddr := sdk.ConsAddress(pk.Address())
+	for _, info := range suite.currentVoteInfo {
+		if consAddr.Equals(sdk.ConsAddress(info.Validator.Address)) {
+			return true
+		}
+	}
+	return false
+}
+
+func (suite *KeeperTestSuite) NextVoteFound(pk cryptotypes.PubKey) bool {
+	consAddr := sdk.ConsAddress(pk.Address())
+	for _, info := range suite.nextVoteInfo {
+		if consAddr.Equals(sdk.ConsAddress(info.Validator.Address)) {
+			return true
+		}
+	}
+	return false
+}
+
+func (suite *KeeperTestSuite) Commit() {
+	valUpdates := suite.CommitEndBlock()
+	suite.CommitBeginBlock(valUpdates)
 }
 
 func (suite *KeeperTestSuite) TestHasValidatorGrant() {

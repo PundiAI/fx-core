@@ -35,9 +35,9 @@ func (k *Keeper) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
 	defer func() { k.lastCommit = make([]abci.VoteInfo, 0) }()
 
 	// convert valUpdate and lastCommit to map
-	pkPowerUpdate := make(map[crypto.PublicKey]int64, len(valUpdates))
+	pkPowerUpdate := make(map[string]int64, len(valUpdates))
 	for _, valUpdate := range valUpdates {
-		pkPowerUpdate[valUpdate.PubKey] = valUpdate.Power
+		pkPowerUpdate[valUpdate.PubKey.String()] = valUpdate.Power
 	}
 	lastVote := make(map[string]bool, len(k.lastCommit))
 	for _, voteInfo := range k.lastCommit {
@@ -48,26 +48,26 @@ func (k *Keeper) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
 	k.ConsensusProcess(ctx, pkPowerUpdate, lastVote)
 
 	// update validator consensus pubkey
-	return k.ValidatorUpdate(ctx, pkPowerUpdate, lastVote)
+	return k.ValidatorUpdate(ctx, valUpdates, pkPowerUpdate, lastVote)
 }
 
-func (k Keeper) ConsensusProcess(ctx sdk.Context, pkPowerUpdate map[crypto.PublicKey]int64, lastVote map[string]bool) {
+func (k Keeper) ConsensusProcess(ctx sdk.Context, pkPowerUpdate map[string]int64, lastVote map[string]bool) {
 	k.IteratorConsensusProcess(ctx, types.ProcessEnd, func(valAddr sdk.ValAddress, pkBytes []byte) {
-		err := k.processEnd(ctx, lastVote, valAddr, pkBytes)
+		err := k.consesnsusProcessEnd(ctx, lastVote, valAddr, pkBytes)
 		if err != nil {
 			panic(err)
 		}
 	})
 
 	k.IteratorConsensusProcess(ctx, types.ProcessStart, func(valAddr sdk.ValAddress, pkBytes []byte) {
-		err := k.processStart(ctx, pkPowerUpdate, lastVote, valAddr, pkBytes)
+		err := k.consensusProcessStart(ctx, pkPowerUpdate, lastVote, valAddr, pkBytes)
 		if err != nil {
 			panic(err)
 		}
 	})
 }
 
-func (k Keeper) processEnd(ctx sdk.Context, lastVote map[string]bool, valAddr sdk.ValAddress, pkBytes []byte) error {
+func (k Keeper) consesnsusProcessEnd(ctx sdk.Context, lastVote map[string]bool, valAddr sdk.ValAddress, pkBytes []byte) error {
 	k.DeleteConsensusProcess(ctx, valAddr, types.ProcessEnd)
 
 	_, _, newConsAddr, err := k.getValidatorKey(ctx, valAddr)
@@ -109,9 +109,9 @@ func (k Keeper) processEnd(ctx sdk.Context, lastVote map[string]bool, valAddr sd
 	return nil
 }
 
-func (k Keeper) processStart(
+func (k Keeper) consensusProcessStart(
 	ctx sdk.Context,
-	pkPowerUpdate map[crypto.PublicKey]int64,
+	pkPowerUpdate map[string]int64,
 	lastVote map[string]bool,
 	valAddr sdk.ValAddress,
 	pkBytes []byte,
@@ -132,7 +132,7 @@ func (k Keeper) processStart(
 		return err
 	}
 
-	power, ok := pkPowerUpdate[newTmProtoPk] // only new pk, validator consensus pk update previous block
+	power, ok := pkPowerUpdate[newTmProtoPk.String()] // only new pk, validator consensus pk update previous block
 	if !ok {
 		power = validator.ConsensusPower(k.PowerReduction(ctx))
 	}
@@ -142,8 +142,14 @@ func (k Keeper) processStart(
 		return k.updateSigningInfo(ctx, oldConsAddr, newConsAddr)
 	}
 
+	lastVoted := lastVote[string(oldTmPk.Address())] // only old pk, validator new pk vote in next block
+
 	// case2: validator jailed previous block
 	if power == 0 && validator.Jailed {
+		// jailed last-1 or last block
+		if lastVoted {
+			return k.updateSigningInfo(ctx, oldConsAddr, newConsAddr)
+		}
 		return nil
 	}
 
@@ -151,12 +157,11 @@ func (k Keeper) processStart(
 	// power !=0 && validator unjailed
 
 	// case3: validator jailed previous block, unjailed current block
-	lastVoted := lastVote[string(oldTmPk.Address())] // only old pk, validator new pk vote in next block
 	if !lastVoted && !validator.Jailed {
 		return nil
 	}
 
-	// case4: validator already online
+	// case4: validator always online or jailed(low power) last block, unjailed current block
 	// maybe miss block current height, update signing info
 	return k.updateSigningInfo(ctx, oldConsAddr, newConsAddr)
 }
@@ -220,8 +225,7 @@ func (k Keeper) updateSigningInfo(ctx sdk.Context, oldConsAddr, newConsAddr sdk.
 	return nil
 }
 
-func (k Keeper) ValidatorUpdate(ctx sdk.Context, pkPowerUpdate map[crypto.PublicKey]int64, lastVote map[string]bool) []abci.ValidatorUpdate {
-	proposer := sdk.ConsAddress(ctx.BlockHeader().ProposerAddress)
+func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpdate, pkPowerUpdate map[string]int64, lastVote map[string]bool) []abci.ValidatorUpdate {
 	pkUpdate := make([]abci.ValidatorUpdate, 0, 50)
 
 	k.IteratorConsensusPubKey(ctx, func(valAddr sdk.ValAddress, pkBytes []byte) bool {
@@ -238,11 +242,6 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, pkPowerUpdate map[crypto.Public
 			return false
 		}
 		oldConsAddr := sdk.ConsAddress(oldPubKey.Address())
-		// if validator is proposer, skip this block
-		if oldConsAddr.Equals(proposer) {
-			k.Logger(ctx).Info("validator is proposer, skip update", "address", valAddr.String())
-			return false
-		}
 
 		// no matter what happens next, clear new consensus pubkey
 		k.RemoveConsensusPubKey(ctx, valAddr)
@@ -292,8 +291,10 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, pkPowerUpdate map[crypto.Public
 	})
 	// joint pkPowerUpdate and pkUpdate
 	newValUpdates := make([]abci.ValidatorUpdate, 0, len(pkPowerUpdate)+len(pkUpdate))
-	for tmPk, power := range pkPowerUpdate {
-		newValUpdates = append(newValUpdates, abci.ValidatorUpdate{PubKey: tmPk, Power: power})
+	for _, vu := range valUpdates {
+		if power, ok := pkPowerUpdate[vu.PubKey.String()]; ok {
+			newValUpdates = append(newValUpdates, abci.ValidatorUpdate{PubKey: vu.PubKey, Power: power})
+		}
 	}
 	newValUpdates = append(newValUpdates, pkUpdate...)
 	return newValUpdates
@@ -317,7 +318,6 @@ func (k Keeper) updateSlashing(ctx sdk.Context, newPubKey cryptotypes.PubKey, ol
 	if err := k.slashingKeeper.AddPubkey(ctx, newPubKey); err != nil {
 		return err
 	}
-
 	newConsAddr := sdk.ConsAddress(newPubKey.Address())
 	// add signing info
 	signingInfo, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, oldConsAddr)
@@ -326,13 +326,12 @@ func (k Keeper) updateSlashing(ctx sdk.Context, newPubKey cryptotypes.PubKey, ol
 	}
 	signingInfo.Address = newConsAddr.String()
 	k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, signingInfo)
-
 	return nil
 }
 
 func (k Keeper) updateABICValidator(
 	ctx sdk.Context,
-	pkPower map[crypto.PublicKey]int64,
+	pkPower map[string]int64,
 	lastVote map[string]bool,
 	validator stakingtypes.Validator,
 	newPubKey, oldPubKey cryptotypes.PubKey,
@@ -349,14 +348,13 @@ func (k Keeper) updateABICValidator(
 	if err != nil {
 		return nil, err
 	}
-
-	power, ok := pkPower[oldTmProtoPk]
+	power, ok := pkPower[oldTmProtoPk.String()]
 	// if power not found, validator not update current block, cal validator power
 	if !ok {
 		power = validator.ConsensusPower(k.PowerReduction(ctx))
 	} else {
 		// remove old pk power
-		delete(pkPower, oldTmProtoPk)
+		delete(pkPower, oldTmProtoPk.String())
 	}
 	// set old pk power to 0
 	oldPkUpdate := abci.ValidatorUpdate{PubKey: oldTmProtoPk, Power: 0}

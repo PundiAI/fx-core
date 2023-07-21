@@ -84,6 +84,7 @@ func TestIntegrationMultiNodeTest(t *testing.T) {
 }
 
 func (suite *IntegrationMultiNodeTest) TestRun() {
-	suite.StakingEditConsensusPubKey()
+	suite.StakingEditPubKey()
 	suite.StakingGrantPrivilege()
+	suite.StakingEditPubKeyJailBlock()
 }
