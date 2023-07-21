@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/functionx/fx-core/v5/x/staking/types"
@@ -72,6 +73,14 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 	if !found {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "validator %s not found", msg.ValidatorAddress)
 	}
+
+	// jailed by double sign, can't update consensus pubkey
+	if validator.IsJailed() {
+		if err := k.validateDoubleSign(ctx, validator); err != nil {
+			return nil, err
+		}
+	}
+
 	// authorized from address
 	if !k.HasValidatorGrant(ctx, fromAddr, valAddr) {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "from address not authorized")
@@ -156,4 +165,19 @@ func (k Keeper) validateAnyPubKey(ctx sdk.Context, pubkey *codectypes.Any) (cryp
 		}
 	}
 	return pk, nil
+}
+
+func (k Keeper) validateDoubleSign(ctx sdk.Context, validator stakingtypes.Validator) error {
+	consAddr, err := validator.GetConsAddr()
+	if err != nil {
+		return err
+	}
+	info, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
+	if !found {
+		return sdkerrors.ErrUnknownAddress.Wrapf("consensus %s not found", consAddr.String())
+	}
+	if info.JailedUntil.Equal(evidencetypes.DoubleSignJailEndTime) {
+		return sdkerrors.ErrInvalidRequest.Wrapf("validator %s is jailed for double sign", validator.OperatorAddress)
+	}
+	return nil
 }

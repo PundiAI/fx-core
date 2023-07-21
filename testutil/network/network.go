@@ -496,6 +496,14 @@ func (n *Network) WaitForHeight(h int64) (int64, error) {
 	return n.WaitForHeightWithTimeout(h, 10*time.Second)
 }
 
+func (n *Network) WaitNumberBlock(number int64) (int64, error) {
+	lastBlock, err := n.LatestHeight()
+	if err != nil {
+		return 0, err
+	}
+	return n.WaitForHeightWithTimeout(lastBlock+number, time.Duration(3*number)*n.Config.TimeoutCommit)
+}
+
 // WaitForHeightWithTimeout is the same as WaitForHeight except the caller can
 // provide a custom timeout.
 func (n *Network) WaitForHeightWithTimeout(h int64, t time.Duration) (int64, error) {

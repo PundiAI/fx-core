@@ -42,6 +42,7 @@ type TestSuite struct {
 	proposalId      uint64
 	numValidator    int
 	timeoutCommit   time.Duration
+	enableTMLogging bool
 }
 
 func NewTestSuite() *TestSuite {
@@ -104,7 +105,9 @@ func (suite *TestSuite) SetupSuite() {
 	cfg := testutil.DefaultNetworkConfig(encCfg, ibcGenesisOpt, bankGenesisOpt, govGenesisOpt, slashingGenesisOpt)
 	cfg.TimeoutCommit = timeoutCommit
 	cfg.NumValidators = numValidators
-	// cfg.EnableTMLogging = true
+	if suite.enableTMLogging {
+		cfg.EnableTMLogging = true
+	}
 
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)
@@ -272,7 +275,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	suite.NoError(err)
 	// txResponse might be nil, but error is also nil
 	suite.NotNil(txResponse)
-	suite.T().Log("broadcast tx", "msg:", sdk.MsgTypeURL(msgList[0]), "txHash:", txResponse.TxHash)
+	suite.T().Log("broadcast tx", "msg:", sdk.MsgTypeURL(msgList[0]), "height:", txResponse.Height, "txHash:", txResponse.TxHash)
 	suite.NoError(suite.network.WaitForNextBlock())
 	return txResponse
 }
@@ -545,10 +548,17 @@ func NewTestSuiteMultiNode() *TestSuiteMultiNode {
 		useLocalNetwork: false,
 		proposalId:      0,
 		ctx:             context.Background(),
-		numValidator:    4,
+		numValidator:    7,
+		// enableTMLogging: true,
 	}
 	if os.Getenv("USE_LOCAL_NETWORK") == "true" {
 		testSuite.useLocalNetwork = true
 	}
 	return &TestSuiteMultiNode{TestSuite: testSuite}
+}
+
+func (suite *TestSuiteMultiNode) PrintBlock() {
+	height, err := suite.network.LatestHeight()
+	suite.NoError(err)
+	suite.T().Log("current block height:", height)
 }
