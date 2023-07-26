@@ -95,32 +95,10 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 	if err != nil {
 		return nil, err
 	}
-	newConsAddr := sdk.ConsAddress(newPubKey.Address())
 
-	newPkFound := false
-	totalUpdatePower := math.NewInt(validator.ConsensusPower(k.PowerReduction(ctx)))
-	k.IteratorConsensusPubKey(ctx, func(addr sdk.ValAddress, pkBytes []byte) bool {
-		var pk cryptotypes.PubKey
-		if err := k.cdc.UnmarshalInterfaceJSON(pkBytes, &pk); err != nil {
-			k.Logger(ctx).Error("failed to unmarshal pubKey", "validator", valAddr.String(), "err", err.Error())
-			return false
-		}
-		if newConsAddr.Equals(sdk.ConsAddress(pk.Address())) {
-			newPkFound = true
-			return true
-		}
-		power := k.GetLastValidatorPower(ctx, addr)
-		totalUpdatePower = totalUpdatePower.Add(math.NewInt(power))
-		return false
-	})
-
-	if newPkFound { // new pk already exists
-		return nil, stakingtypes.ErrValidatorPubKeyExists.Wrapf("new consensus pubkey %s already exists", newConsAddr.String())
-	}
-	totalPowerOneThird := k.GetLastTotalPower(ctx).QuoRaw(3) // less than 1/3 total power
-	if totalUpdatePower.GTE(totalPowerOneThird) {
-		return nil, sdkerrors.ErrInvalidRequest.Wrapf("total update power %s more than 1/3 total power %s",
-			totalUpdatePower.String(), totalPowerOneThird.String())
+	// iterator edit validator with new pubkey
+	if err := k.iteratorEditValidator(ctx, validator, newPubKey); err != nil {
+		return nil, err
 	}
 
 	// set validator new consensus pubkey
@@ -135,7 +113,7 @@ func (k Keeper) EditConsensusPubKey(goCtx context.Context, msg *types.MsgEditCon
 		sdk.NewAttribute(types.AttributeKeyPubKey, newPubKey.String()),
 	))
 
-	return &types.MsgEditConsensusPubKeyResponse{}, err
+	return &types.MsgEditConsensusPubKeyResponse{}, nil
 }
 
 func (k Keeper) validateAnyPubKey(ctx sdk.Context, pubkey *codectypes.Any) (cryptotypes.PubKey, error) {
@@ -178,6 +156,51 @@ func (k Keeper) validateDoubleSign(ctx sdk.Context, validator stakingtypes.Valid
 	}
 	if info.JailedUntil.Equal(evidencetypes.DoubleSignJailEndTime) {
 		return sdkerrors.ErrInvalidRequest.Wrapf("validator %s is jailed for double sign", validator.OperatorAddress)
+	}
+	return nil
+}
+
+func (k Keeper) iteratorEditValidator(ctx sdk.Context, validator stakingtypes.Validator, newPk cryptotypes.PubKey) error {
+	newConsAddr := sdk.ConsAddress(newPk.Address())
+
+	newPkFound := false
+	totalUpdatePower := math.NewInt(validator.ConsensusPower(k.PowerReduction(ctx)))
+	k.IteratorConsensusPubKey(ctx, func(valAddr sdk.ValAddress, pkBytes []byte) bool {
+		var pk cryptotypes.PubKey
+		if err := k.cdc.UnmarshalInterfaceJSON(pkBytes, &pk); err != nil {
+			k.Logger(ctx).Error("failed to unmarshal pubKey", "validator", valAddr.String(), "err", err.Error())
+			return false
+		}
+		if newConsAddr.Equals(sdk.ConsAddress(pk.Address())) {
+			newPkFound = true
+			return true
+		}
+		power := k.GetLastValidatorPower(ctx, valAddr)
+		totalUpdatePower = totalUpdatePower.Add(math.NewInt(power))
+		return false
+	})
+	if newPkFound { // new pk already exists
+		return stakingtypes.ErrValidatorPubKeyExists.Wrapf("new consensus pubkey %s already exists", newConsAddr.String())
+	}
+
+	// iterate validator consensus process start
+	k.IteratorConsensusProcess(ctx, types.ProcessStart, func(valAddr sdk.ValAddress, _ []byte) {
+		// NOTE: not need check pk, already update validator consensus pubkey
+		power := k.GetLastValidatorPower(ctx, valAddr)
+		totalUpdatePower = totalUpdatePower.Add(math.NewInt(power))
+	})
+
+	// iterate validator consensus process end
+	k.IteratorConsensusProcess(ctx, types.ProcessEnd, func(valAddr sdk.ValAddress, _ []byte) {
+		// NOTE: not need check pk, already update validator consensus pubkey
+		power := k.GetLastValidatorPower(ctx, valAddr)
+		totalUpdatePower = totalUpdatePower.Add(math.NewInt(power))
+	})
+
+	totalPowerOneThird := k.GetLastTotalPower(ctx).QuoRaw(3) // less than 1/3 total power
+	if totalUpdatePower.GTE(totalPowerOneThird) {
+		return sdkerrors.ErrInvalidRequest.Wrapf("total update power %s more than 1/3 total power %s",
+			totalUpdatePower.String(), totalPowerOneThird.String())
 	}
 	return nil
 }
