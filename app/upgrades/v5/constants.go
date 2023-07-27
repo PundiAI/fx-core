@@ -16,9 +16,11 @@ type SlashPeriod struct {
 // ValidatorSlashHeightTestnetFXV4 is a map of testnet validator address to slash height
 // todo check before testnet v5 release
 var ValidatorSlashHeightTestnetFXV4 = map[string][]int64{
-	"fxvaloper16d0jly49xgwm9tyf7lpf0splnfhrnttdejkz9h": {8787488, 8885841},
-	"fxvaloper1xdqas5ak98us9eljqj5ppj5mhmku4slh2664l8": {8806427},
 	"fxvaloper14lpap6mwytqtnrx6q9cnje2sen5a5wcctuwnsh": {8224664, 8457967, 8552303},
+	"fxvaloper1695tvr34jdrmajtc0t6kzumaxxwhulfl7h6mq2": {9469704},
+	"fxvaloper16d0jly49xgwm9tyf7lpf0splnfhrnttdejkz9h": {8787488, 8885841, 9416069},
+	"fxvaloper1c863577qlc4sq64v5dsfunf5drykz7fnqkgdha": {9128756},
+	"fxvaloper1xdqas5ak98us9eljqj5ppj5mhmku4slh2664l8": {8806427},
 }
 
 var Upgrade = upgrades.Upgrade{

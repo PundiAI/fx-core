@@ -155,6 +155,7 @@ func TestSlashPeriodTestnetFXV4(t *testing.T) {
 	require.NoError(t, err)
 
 	slashedFXV4 := make(map[string][]int64, len(v5.ValidatorSlashHeightTestnetFXV4))
+	slashedValFXV4 := make([]string, 0, len(v5.ValidatorSlashHeightTestnetFXV4))
 	for _, block := range blockSearch.Blocks {
 		results, err := rpc.BlockResults(block.Block.Height)
 		require.NoError(t, err)
@@ -172,18 +173,37 @@ func TestSlashPeriodTestnetFXV4(t *testing.T) {
 					slashedFXV4[valAddr.String()] = append(slashedFXV4[valAddr.String()], block.Block.Height)
 				} else {
 					slashedFXV4[valAddr.String()] = []int64{block.Block.Height}
+					slashedValFXV4 = append(slashedValFXV4, valAddr.String())
 				}
 			}
 		}
 	}
-	assert.Equal(t, len(v5.ValidatorSlashHeightTestnetFXV4), len(slashedFXV4))
+	eq := len(v5.ValidatorSlashHeightTestnetFXV4) == len(slashedFXV4)
+	assert.True(t, eq)
 
-	for val, h1 := range slashedFXV4 {
-		h2, ok := v5.ValidatorSlashHeightTestnetFXV4[val]
-		assert.True(t, ok, "val: %s", val)
-		sort.SliceStable(h1, func(i, j int) bool {
-			return h1[i] < h1[j]
+	if eq {
+		for val, h1 := range slashedFXV4 {
+			h2, ok := v5.ValidatorSlashHeightTestnetFXV4[val]
+			assert.True(t, ok, "val: %s", val)
+			sort.SliceStable(h1, func(i, j int) bool {
+				return h1[i] < h1[j]
+			})
+			eq = assert.ObjectsAreEqual(h1, h2)
+			assert.True(t, eq, "val: %s", val)
+		}
+	}
+
+	// print
+	if !eq {
+		sort.SliceStable(slashedValFXV4, func(i, j int) bool {
+			return slashedValFXV4[i] < slashedValFXV4[j]
 		})
-		assert.Equal(t, h1, h2, "val: %s", val)
+		for _, addr := range slashedValFXV4 {
+			heights := slashedFXV4[addr]
+			sort.SliceStable(heights, func(i, j int) bool {
+				return heights[i] < heights[j]
+			})
+			t.Log("val:", addr, "heights:", heights)
+		}
 	}
 }
