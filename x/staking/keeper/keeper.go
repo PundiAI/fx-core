@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/v5/x/staking/types"
 )
@@ -23,8 +22,6 @@ type Keeper struct {
 
 	authzKeeper    types.AuthzKeeper
 	slashingKeeper types.SlashingKeeper
-
-	lastCommit []abci.VoteInfo
 }
 
 // NewKeeper creates a new staking Keeper instance

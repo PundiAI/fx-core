@@ -80,11 +80,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.AppModule.RegisterServices(cfg)
 }
 
-// BeginBlock returns the begin blocker for the staking module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	am.Keeper.BeginBlock(ctx, req)
-}
-
 // EndBlock returns the end blocker for the staking module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
