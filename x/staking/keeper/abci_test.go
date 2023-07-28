@@ -43,9 +43,9 @@ func (suite *KeeperTestSuite) TestValidatorUpdate() {
 	}
 
 	// validator update(process start)
-	updates := suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, valUpdates, pkPowerUpdate, lastVote)
+	updates := suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, valUpdates, pkPowerUpdate)
 	suite.Require().Len(updates, 2)
-	updates = suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, valUpdates, pkPowerUpdate, lastVote)
+	updates = suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, valUpdates, pkPowerUpdate)
 	suite.Require().Len(updates, 0)
 
 	_, found = suite.app.StakingKeeper.GetConsensusPubKey(suite.ctx, valAddr)
@@ -59,7 +59,7 @@ func (suite *KeeperTestSuite) TestValidatorUpdate() {
 	suite.Require().Nil(nilPk)
 
 	// consensus process(process end)
-	suite.app.StakingKeeper.ConsensusProcess(suite.ctx, pkPowerUpdate, lastVote)
+	suite.app.StakingKeeper.ConsensusProcess(suite.ctx)
 
 	nilPk, err = suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessStart)
 	suite.Require().NoError(err)
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestValidatorUpdate() {
 	suite.Require().True(found)
 
 	// consensus process(process delete)
-	suite.app.StakingKeeper.ConsensusProcess(suite.ctx, pkPowerUpdate, lastVote)
+	suite.app.StakingKeeper.ConsensusProcess(suite.ctx)
 
 	_, found = suite.app.StakingKeeper.GetConsensusPubKey(suite.ctx, valAddr)
 	suite.Require().False(found)
