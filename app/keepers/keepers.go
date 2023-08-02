@@ -321,7 +321,6 @@ func NewAppKeeper(
 		),
 		appKeepers.AccountKeeper,
 	)
-	appKeepers.EvmKeeper = appKeepers.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks())
 
 	appKeepers.Erc20Keeper = erc20keeper.NewKeeper(
 		appKeepers.keys[erc20types.StoreKey],
