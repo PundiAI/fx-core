@@ -13,6 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -55,6 +57,7 @@ func (suite *KeeperTestSuite) SetupSubTest() {
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		ChainID:         fxtypes.MainnetChainId,
 		Height:          suite.app.LastBlockHeight() + 1,
+		Time:            time.Now().UTC(),
 		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
 	suite.ctx = suite.ctx.WithConsensusParams(helpers.ABCIConsensusParams)
@@ -81,6 +84,11 @@ func (suite *KeeperTestSuite) SetupSubTest() {
 	}
 	suite.currentVoteInfo = infos
 	suite.nextVoteInfo = infos
+
+	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
+	stakingParams.UnbondingTime = time.Second
+	stakingParams.MaxValidators = 150
+	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
 
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).MulRaw(1e18))))
@@ -122,7 +130,7 @@ func (suite *KeeperTestSuite) CommitBeginBlock(valUpdate []abci.ValidatorUpdate)
 	header := suite.ctx.BlockHeader()
 
 	// begin block
-	header.Time = time.Now().UTC()
+	header.Time = header.Time.Add(5 * time.Second)
 	header.Height += 1
 
 	suite.app.BeginBlock(abci.RequestBeginBlock{
@@ -179,9 +187,64 @@ func (suite *KeeperTestSuite) NextVoteFound(pk cryptotypes.PubKey) bool {
 	return false
 }
 
-func (suite *KeeperTestSuite) Commit() {
+func (suite *KeeperTestSuite) Commit(count ...int) {
+	number := 1
+	if len(count) > 0 && count[0] > 0 {
+		number = count[0]
+	}
+	for i := 0; i < number; i++ {
+		valUpdates := suite.CommitEndBlock()
+		suite.CommitBeginBlock(valUpdates)
+	}
+}
+
+func (suite *KeeperTestSuite) CreateValidatorJailed() ([]abci.ValidatorUpdate, sdk.AccAddress, sdk.ConsAddress) {
+	accAddr := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	initBalance := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
+	helpers.AddTestAddr(suite.app, suite.ctx, accAddr, initBalance)
+
+	activeMinSelfDelegateCoin := sdkmath.NewInt(99).Mul(sdkmath.NewInt(1e18))
+	activeSelfDelegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).Mul(sdkmath.NewInt(1e18)))
+	des := stakingtypes.Description{Moniker: "test-node"}
+	rates := stakingtypes.CommissionRates{
+		Rate:          sdk.NewDecWithPrec(1, 2),
+		MaxRate:       sdk.NewDecWithPrec(5, 2),
+		MaxChangeRate: sdk.NewDecWithPrec(1, 2),
+	}
+
+	consPubKey := ed25519.GenPrivKey().PubKey()
+	newValMsg, err := stakingtypes.NewMsgCreateValidator(sdk.ValAddress(accAddr), consPubKey, activeSelfDelegateCoin, des, rates, activeMinSelfDelegateCoin)
+	suite.Require().NoError(err)
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).CreateValidator(suite.ctx, newValMsg)
+	suite.Require().NoError(err)
+
+	suite.Commit(3)
 	valUpdates := suite.CommitEndBlock()
+
+	// validator not jailed
+	validator, found := suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().True(found)
+	suite.Require().False(validator.IsJailed())
+
 	suite.CommitBeginBlock(valUpdates)
+	// jailed validator
+	undelMsg2 := stakingtypes.NewMsgUndelegate(accAddr, sdk.ValAddress(accAddr), activeSelfDelegateCoin.SubAmount(sdkmath.NewInt(1e18).Mul(sdkmath.NewInt(10))))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Undelegate(suite.ctx, undelMsg2)
+	suite.Require().NoError(err)
+	suite.Commit(3)
+	valUpdates = suite.CommitEndBlock()
+
+	// validator jailed
+	validator, found = suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().True(found)
+	suite.Require().True(validator.IsJailed())
+	consAddr, err := validator.GetConsAddr()
+	suite.Require().NoError(err)
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, consAddr)
+	suite.Require().True(found)
+	// if not found, validator maybe not bounded
+
+	return valUpdates, accAddr, consAddr
 }
 
 func (suite *KeeperTestSuite) TestHasValidatorGrant() {

@@ -70,8 +70,9 @@ func (k Keeper) consesnsusProcessEnd(ctx sdk.Context, valAddr sdk.ValAddress, pk
 	// update validator new pk signing info
 	validator, found := k.GetValidator(ctx, valAddr)
 	if !found {
-		// NOTE: validator not found
-		// unbonded and undelegate all, will delete validator
+		// NOTE: validator not found, because it deleted in below case
+		// 1. validator unbonded and undelegate all (tx)
+		// 2. unbonding to unbonded and validator share is zero (end block)
 		// remove old consensus pubkey and return
 		k.Logger(ctx).Info("validator not found", "address", valAddr.String(), "process", "end")
 		return nil
@@ -109,8 +110,9 @@ func (k Keeper) consensusProcessStart(ctx sdk.Context, valAddr sdk.ValAddress, p
 	// update validator new pk signing info
 	validator, found := k.GetValidator(ctx, valAddr)
 	if !found {
-		// NOTE: validator not found
-		// unbonded and undelegate all, will delete validator
+		// NOTE: validator not found, because it deleted in below case
+		// 1. validator unbonded and undelegate all (tx)
+		// 2. unbonding to unbonded and validator share is zero (end block)
 		// return nil and delete old consensus pubkey in end process
 		k.Logger(ctx).Info("validator not found", "address", valAddr.String(), "process", "start")
 		return nil
@@ -148,9 +150,15 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpda
 	pkUpdate := make([]abci.ValidatorUpdate, 0, 50)
 
 	k.IteratorConsensusPubKey(ctx, func(valAddr sdk.ValAddress, pkBytes []byte) bool {
+		// no matter what happens, clear new consensus pubkey
+		k.RemoveConsensusPubKey(ctx, valAddr)
+
+		// check validator exist
 		validator, found := k.GetValidator(ctx, valAddr)
 		if !found {
-			// NOTE: unbonded and undelegate all, will delete validator
+			// NOTE: validator not found, because it deleted in below case
+			// 1. validator unbonded and undelegate all (tx)
+			// 2. unbonding to unbonded and validator share is zero (end block)
 			k.Logger(ctx).Error("validator not found", "address", valAddr.String(), "process", "update")
 			k.RemoveConsensusPubKey(ctx, valAddr)
 			return false
@@ -162,9 +170,6 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpda
 			return false
 		}
 		oldConsAddr := sdk.ConsAddress(oldPubKey.Address())
-
-		// no matter what happens next, clear new consensus pubkey
-		k.RemoveConsensusPubKey(ctx, valAddr)
 
 		// unmarshal failed, remove new consensus pubkey
 		var newPubKey cryptotypes.PubKey
