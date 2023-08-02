@@ -90,6 +90,10 @@ func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
 		case "storeKey":
 			assert.False(t, valueOfField.IsNil(), typeOfField.Name)
 		case "hooks":
+			// evm hooks deprecated
+			if valueOfField.Type().String() == "types.EvmHooks" {
+				continue
+			}
 			t.Log("-> hooks: ", valueOfField.Type(), valueOfField.Kind())
 			assert.False(t, valueOfField.IsNil(), typeOfField.Name)
 		}

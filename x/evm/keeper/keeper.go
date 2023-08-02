@@ -23,11 +23,7 @@ type Keeper struct {
 
 	// access to account state
 	accountKeeper fxevmtypes.AccountKeeper
-
-	// has evm hooks
-	hasHooks bool
-
-	module common.Address
+	module        common.Address
 }
 
 func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
@@ -42,17 +38,6 @@ func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
 		accountKeeper: ak,
 		module:        common.BytesToAddress(addr),
 	}
-}
-
-// SetHooks sets the hooks for the EVM module
-// It should be called only once during initialization, it panic if called more than once.
-func (k *Keeper) SetHooks(eh types.EvmHooks) *Keeper {
-	if eh == nil {
-		panic("cannot to set nil evm hook")
-	}
-	k.Keeper.SetHooks(eh)
-	k.hasHooks = true
-	return k
 }
 
 // CallEVMWithoutGas performs a smart contract method call using contract data without gas
