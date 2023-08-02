@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -17,6 +20,7 @@ import (
 
 	"github.com/functionx/fx-core/v5/client/jsonrpc"
 	"github.com/functionx/fx-core/v5/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v5/types"
 	"github.com/functionx/fx-core/v5/x/staking/types"
 )
 
@@ -102,8 +106,10 @@ func (suite *KeeperTestSuite) TestEditPubKeyJail() {
 
 	suite.Commit()
 
-	// undelegate all and edit validator
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares())
+	// undelegate smaller min self delegate, and edit validator, can not undelegate all, it will be delete in end block
+	shares, err := validator.SharesFromTokensTruncated(validator.MinSelfDelegation.Sub(sdkmath.NewInt(1)))
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares().Sub(shares))
 	suite.Require().NoError(err)
 	err = suite.app.StakingKeeper.SetConsensusPubKey(suite.ctx, valAddr, newPk)
 	suite.Require().NoError(err)
@@ -276,7 +282,10 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailNextBlock() {
 
 	// next block begin
 	suite.CommitBeginBlock(valUpdates)
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares())
+	// undelegate smaller min self delegate, can not undelegate all, it will be delete in end block
+	shares, err := validator.SharesFromTokensTruncated(validator.MinSelfDelegation.Sub(sdkmath.NewInt(1)))
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares().Sub(shares))
 	suite.Require().NoError(err)
 	valUpdates = suite.CommitEndBlock()
 
@@ -332,10 +341,12 @@ func (suite *KeeperTestSuite) TestEditPubKeyUnjailAndJailNextBlock() {
 	newPriv, _ := suite.GenerateConsKey()
 	newPk := newPriv.PubKey()
 
-	suite.Commit()
+	suite.Commit(2)
 
-	// jailed by undelegate all
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, delShares)
+	// undelegate smaller min self delegate, can not undelegate all, it will be delete in end block
+	shares, err := validator.SharesFromTokensTruncated(validator.MinSelfDelegation.Sub(sdkmath.NewInt(1)))
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares().Sub(shares))
 	suite.Require().NoError(err)
 
 	// validator jailed
@@ -343,8 +354,7 @@ func (suite *KeeperTestSuite) TestEditPubKeyUnjailAndJailNextBlock() {
 	suite.Require().True(found)
 	suite.Require().True(validator.IsJailed())
 
-	suite.Commit()
-	suite.Commit()
+	suite.Commit(3)
 	valUpdates := suite.CommitEndBlock()
 
 	suite.False(suite.CurrentVoteFound(oldPk))
@@ -401,8 +411,10 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailedPrevBlock() {
 
 	suite.Commit()
 
-	// jailed by undelegate all
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares())
+	// undelegate smaller min self delegate, can not undelegate all, it will be delete in end block
+	shares, err := validator.SharesFromTokensTruncated(validator.MinSelfDelegation.Sub(sdkmath.NewInt(1)))
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares().Sub(shares))
 	suite.Require().NoError(err)
 
 	valUpdates := suite.CommitEndBlock()
@@ -469,16 +481,16 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailedPrevBlockAndUnjail() {
 	suite.Require().True(found)
 
 	delAmt := validator.GetTokens()
-	delShares := validator.GetDelegatorShares()
-
 	// new consensus pubkey
 	newPriv, _ := suite.GenerateConsKey()
 	newPk := newPriv.PubKey()
 
 	suite.Commit()
 
-	// jailed by undelegate all
-	_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, delShares)
+	// undelegate smaller min self delegate, can not undelegate all, it will be delete in end block
+	shares, err := validator.SharesFromTokensTruncated(validator.MinSelfDelegation.Sub(sdkmath.NewInt(1)))
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares().Sub(shares))
 	suite.Require().NoError(err)
 	valUpdates := suite.CommitEndBlock()
 
@@ -516,6 +528,207 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailedPrevBlockAndUnjail() {
 
 	suite.False(suite.CurrentVoteFound(newPk))
 	suite.True(suite.NextVoteFound(newPk))
+}
+
+func (suite *KeeperTestSuite) TestEditPubKeyUnboundValidator() {
+	newPriKey := helpers.NewEthPrivKey()
+	accAddr := sdk.AccAddress(newPriKey.PubKey().Address())
+	newConsPriKey := ed25519.GenPrivKey()
+	newConsPubKey := newConsPriKey.PubKey()
+
+	helpers.AddTestAddr(suite.app, suite.ctx, accAddr, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10000).Mul(sdk.NewInt(1e18)))))
+
+	// create validator
+	valAddr := sdk.ValAddress(accAddr)
+	selfDelegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e17))
+	des := stakingtypes.Description{Moniker: "test-node"}
+	rates := stakingtypes.CommissionRates{
+		Rate:          sdk.NewDecWithPrec(1, 2),
+		MaxRate:       sdk.NewDecWithPrec(5, 2),
+		MaxChangeRate: sdk.NewDecWithPrec(1, 2),
+	}
+	newValMsg, err := stakingtypes.NewMsgCreateValidator(valAddr, newConsPubKey, selfDelegateCoin, des, rates, sdk.OneInt())
+	suite.Require().NoError(err)
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).CreateValidator(suite.ctx, newValMsg)
+	suite.Require().NoError(err)
+
+	suite.Commit(3)
+
+	// check validator
+	validator, found := suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
+	suite.Require().True(found)
+	suite.Require().Equal(stakingtypes.Unbonded, validator.GetStatus())
+
+	// edit validator consensus pubkey
+	editConsPubKey := ed25519.GenPrivKey().PubKey()
+	editPubKeyMsg, err := types.NewMsgEditConsensusPubKey(valAddr, accAddr, editConsPubKey)
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.EditConsensusPubKey(suite.ctx, editPubKeyMsg)
+	suite.Require().NoError(err)
+
+	suite.Commit(3)
+
+	// check validator
+	editValidator, found := suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
+	suite.Require().True(found)
+	suite.Require().Equal(validator, editValidator)
+}
+
+func (suite *KeeperTestSuite) TestEditPubKeyDeleteWithoutSigningInfo() {
+	initBalance := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
+	accAddr1 := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	helpers.AddTestAddr(suite.app, suite.ctx, accAddr1, initBalance)
+
+	selfDelegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e17))
+	des := stakingtypes.Description{Moniker: "test-node"}
+	rates := stakingtypes.CommissionRates{
+		Rate:          sdk.NewDecWithPrec(1, 2),
+		MaxRate:       sdk.NewDecWithPrec(5, 2),
+		MaxChangeRate: sdk.NewDecWithPrec(1, 2),
+	}
+	oldPubKey := ed25519.GenPrivKey().PubKey()
+
+	// create validator
+	newValMsg1, err := stakingtypes.NewMsgCreateValidator(sdk.ValAddress(accAddr1), oldPubKey, selfDelegateCoin, des, rates, sdkmath.OneInt())
+	suite.Require().NoError(err)
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).CreateValidator(suite.ctx, newValMsg1)
+	suite.Require().NoError(err)
+
+	suite.Commit(3)
+
+	editConsPubKey := ed25519.GenPrivKey().PubKey()
+	// 1. edit and delete validator
+	editPubKeyMsg, err := types.NewMsgEditConsensusPubKey(sdk.ValAddress(accAddr1), accAddr1, editConsPubKey)
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.EditConsensusPubKey(suite.ctx, editPubKeyMsg)
+	suite.Require().NoError(err)
+	undelMsg1 := stakingtypes.NewMsgUndelegate(accAddr1, sdk.ValAddress(accAddr1), selfDelegateCoin)
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Undelegate(suite.ctx, undelMsg1)
+	suite.Require().NoError(err)
+	suite.CommitEndBlock()
+
+	// block +1, validator delete, process not exist, new signing info not exist, old signing info not exist
+	_, found := suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(accAddr1))
+	suite.Require().False(found)
+	process := suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, sdk.ValAddress(accAddr1))
+	suite.Require().False(process)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, sdk.ConsAddress(editConsPubKey.Address()))
+	suite.Require().False(found)
+	oldConsAddr := sdk.ConsAddress(oldPubKey.Address())
+	suite.Require().NoError(err)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().False(found)
+}
+
+func (suite *KeeperTestSuite) TestEditPubKeyDelete() {
+	valUpdates, accAddr, oldConsAddr := suite.CreateValidatorJailed()
+	editConsPubKey := ed25519.GenPrivKey().PubKey()
+
+	suite.CommitBeginBlock(valUpdates)
+	// edit and delete validator
+	editPubKeyMsg, err := types.NewMsgEditConsensusPubKey(sdk.ValAddress(accAddr), accAddr, editConsPubKey)
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.EditConsensusPubKey(suite.ctx, editPubKeyMsg)
+	suite.Require().NoError(err)
+	undelMsg1 := stakingtypes.NewMsgUndelegate(accAddr, sdk.ValAddress(accAddr), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e18).Mul(sdkmath.NewInt(10))))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Undelegate(suite.ctx, undelMsg1)
+	suite.Require().NoError(err)
+	_ = suite.CommitEndBlock()
+
+	// validator delete, new signing info not exist, old signing info exist
+	_, found := suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().False(found)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, sdk.ConsAddress(editConsPubKey.Address()))
+	suite.Require().False(found)
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().True(found)
+}
+
+func (suite *KeeperTestSuite) TestEditPubKeyDeleteNextBlock() {
+	valUpdates, accAddr, oldConsAddr := suite.CreateValidatorJailed()
+	editConsPubKey := ed25519.GenPrivKey().PubKey()
+
+	// edit pubkey
+	suite.CommitBeginBlock(valUpdates)
+	editPubKeyMsg, err := types.NewMsgEditConsensusPubKey(sdk.ValAddress(accAddr), accAddr, editConsPubKey)
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.EditConsensusPubKey(suite.ctx, editPubKeyMsg)
+	suite.Require().NoError(err)
+	valUpdates = suite.CommitEndBlock()
+
+	process := suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().True(process)
+
+	// next block, validator delete
+	suite.CommitBeginBlock(valUpdates)
+	undelMsg := stakingtypes.NewMsgUndelegate(accAddr, sdk.ValAddress(accAddr), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e18).Mul(sdkmath.NewInt(10))))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Undelegate(suite.ctx, undelMsg)
+	suite.Require().NoError(err)
+	valUpdates = suite.CommitEndBlock()
+
+	// validator delete and old and new signing info exist
+	_, found := suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().False(found)
+	process = suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().True(process)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, sdk.ConsAddress(editConsPubKey.Address()))
+	suite.Require().True(found)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().True(found)
+
+	// block +1, old signing info deleted
+	suite.CommitBeginBlock(valUpdates)
+	_ = suite.CommitEndBlock()
+
+	// old signing info deleted, process not exist
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().False(found)
+	process = suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().False(process)
+}
+
+func (suite *KeeperTestSuite) TestEditPubKeyDeleteNextNextBlock() {
+	valUpdates, accAddr, oldConsAddr := suite.CreateValidatorJailed()
+	editConsPubKey := ed25519.GenPrivKey().PubKey()
+
+	// edit pubkey
+	suite.CommitBeginBlock(valUpdates)
+	editPubKeyMsg, err := types.NewMsgEditConsensusPubKey(sdk.ValAddress(accAddr), accAddr, editConsPubKey)
+	suite.Require().NoError(err)
+	_, err = suite.app.StakingKeeper.EditConsensusPubKey(suite.ctx, editPubKeyMsg)
+	suite.Require().NoError(err)
+	valUpdates = suite.CommitEndBlock()
+
+	process := suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().True(process)
+
+	suite.CommitBeginBlock(valUpdates)
+	valUpdates = suite.CommitEndBlock()
+
+	process = suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().True(process)
+	// validator exist, old and new signing info exist, new signing info exit
+	_, found := suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().True(found)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, sdk.ConsAddress(editConsPubKey.Address()))
+	suite.Require().True(found)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().True(found)
+
+	suite.CommitBeginBlock(valUpdates)
+	// validator delete
+	undelMsg := stakingtypes.NewMsgUndelegate(accAddr, sdk.ValAddress(accAddr), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e18).Mul(sdkmath.NewInt(10))))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Undelegate(suite.ctx, undelMsg)
+	suite.Require().NoError(err)
+	_ = suite.CommitEndBlock()
+
+	// validator delete, new signing info exist, old signing info not exist
+	_, found = suite.app.StakingKeeper.GetValidator(suite.ctx, sdk.ValAddress(accAddr))
+	suite.Require().False(found)
+	found = suite.app.SlashingKeeper.HasValidatorSigningInfo(suite.ctx, sdk.ConsAddress(editConsPubKey.Address()))
+	suite.Require().True(found)
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().False(found)
 }
 
 func TestValidatorUpdateEvidence(t *testing.T) {
