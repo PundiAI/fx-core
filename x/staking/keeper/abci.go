@@ -160,13 +160,10 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpda
 			// 1. validator unbonded and undelegate all (tx)
 			// 2. unbonding to unbonded and validator share is zero (end block)
 			k.Logger(ctx).Error("validator not found", "address", valAddr.String(), "process", "update")
-			k.RemoveConsensusPubKey(ctx, valAddr)
 			return false
 		}
 		oldPubKey, err := validator.ConsPubKey()
 		if err != nil {
-			k.Logger(ctx).Error("invalid consensus pubkey", "address", valAddr.String(), "error", err.Error())
-			k.RemoveConsensusPubKey(ctx, valAddr)
 			return false
 		}
 		oldConsAddr := sdk.ConsAddress(oldPubKey.Address())
@@ -174,14 +171,12 @@ func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpda
 		// unmarshal failed, remove new consensus pubkey
 		var newPubKey cryptotypes.PubKey
 		if err = k.cdc.UnmarshalInterfaceJSON(pkBytes, &newPubKey); err != nil {
-			k.Logger(ctx).Error("unmarshal new consensus pubkey", "validator", valAddr.String(), "err", err.Error())
 			return false
 		}
 
 		cacheCtx, commit := ctx.CacheContext()
 		// update validator pubkey
 		if err = k.updateValidator(cacheCtx, validator, newPubKey); err != nil {
-			k.Logger(ctx).Error("update validator", "address", valAddr.String(), "error", err.Error())
 			return false
 		}
 		// slash update
@@ -300,12 +295,14 @@ func (k Keeper) updateABICValidator(ctx sdk.Context, pkUpdate map[string]int64, 
 		f1: 1-unblock-(unjailed/active) 2-unblock 3-block-edit 4-block						------ oldpk-0,newpk-power
 		f2: 1-unblock-(unjailed/active) 2-unblock 3-block-(edit|jailed) 4-block 5-unblock	------ oldpk-0
 
+		g1: 1-block 2-block-(delegate|edit) 3-block 4-block		------ oldpk-0,newpk-power
+
 
 		// validator status
 		ok=true,power==0,jailed=true	// jailed current block
 		ok=true,power==0,jailed=false	// impossible
 		ok=true,power!=0,jailed=true	// impossible
-		ok=true,power!=0,jailed=false	// unjailed/active current block
+		ok=true,power!=0,jailed=false	// unjailed/active current block or delegate/undelegate/redelegate
 		ok=false,power==0,jailed=true	// jailed previous block
 		ok=false,power==0,jailed=false	// inactive validator
 		ok=false,power!=0,jailed=true	// impossible
@@ -316,8 +313,24 @@ func (k Keeper) updateABICValidator(ctx sdk.Context, pkUpdate map[string]int64, 
 	if ok && power == 0 && val.Jailed {
 		return []abci.ValidatorUpdate{oldPkUpdate}, nil
 	}
-	// validator unjailed/active current block // b3,c2,e2
+	// validator unjailed/active/delegate current block
 	if ok && power != 0 && !val.Jailed {
+		hi, found := k.GetHistoricalInfo(ctx, ctx.BlockHeight())
+		if !found {
+			return nil, fmt.Errorf("current height historical info not found")
+		}
+		lastVote := false
+		for _, lastVal := range hi.Valset {
+			if lastVal.OperatorAddress == val.OperatorAddress {
+				lastVote = true
+				break
+			}
+		}
+		// validator delegate/undelegate/redelegate current block // g1
+		if lastVote {
+			return []abci.ValidatorUpdate{oldPkUpdate, newPkUpdate}, nil
+		}
+		// validator unjailed/active current block // b3,c2,e2
 		return []abci.ValidatorUpdate{newPkUpdate}, nil
 	}
 	// validator jailed previous block // b1,c1,e1
