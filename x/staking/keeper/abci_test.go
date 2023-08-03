@@ -12,7 +12,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/privval"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -39,17 +38,10 @@ func (suite *KeeperTestSuite) TestValidatorUpdate() {
 	err = suite.app.StakingKeeper.SetConsensusPubKey(suite.ctx, valAddr, pk)
 	suite.Require().NoError(err)
 
-	valUpdates := make([]abci.ValidatorUpdate, 0)
-	pkPowerUpdate := make(map[string]int64)
-	lastVote := make(map[string]bool)
-	for _, info := range suite.currentVoteInfo {
-		lastVote[string(info.Validator.Address)] = true
-	}
-
 	// validator update(process start)
-	updates := suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, valUpdates, pkPowerUpdate)
+	updates := suite.app.StakingKeeper.ConsensusPubKeyUpdate(suite.ctx)
 	suite.Require().Len(updates, 2)
-	updates = suite.app.StakingKeeper.ValidatorUpdate(suite.ctx, valUpdates, pkPowerUpdate)
+	updates = suite.app.StakingKeeper.ConsensusPubKeyUpdate(suite.ctx)
 	suite.Require().Len(updates, 0)
 
 	_, found = suite.app.StakingKeeper.GetConsensusPubKey(suite.ctx, valAddr)

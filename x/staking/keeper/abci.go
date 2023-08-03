@@ -3,12 +3,12 @@ package keeper
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -17,37 +17,39 @@ import (
 	fxstakingtypes "github.com/functionx/fx-core/v5/x/staking/types"
 )
 
-func (k *Keeper) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
+func (k Keeper) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
 	// staking EndBlocker
 	valUpdates := staking.EndBlocker(ctx, k.Keeper)
-	// convert valUpdate and lastCommit to map
-	pkPowerUpdate := make(map[string]int64, len(valUpdates))
-	for _, valUpdate := range valUpdates {
-		pkPowerUpdate[valUpdate.PubKey.String()] = valUpdate.Power
-	}
 
-	// consensus process start and end
+	// process pk update previous block
 	k.ConsensusProcess(ctx)
 
+	// validators update current block, delayed next block
+	if len(valUpdates) > 0 {
+		return valUpdates
+	}
+
 	// update validator consensus pubkey
-	return k.ValidatorUpdate(ctx, valUpdates, pkPowerUpdate)
+	return k.ConsensusPubKeyUpdate(ctx)
 }
 
 func (k Keeper) ConsensusProcess(ctx sdk.Context) {
 	k.IteratorConsensusProcess(ctx, fxstakingtypes.ProcessEnd, func(valAddr sdk.ValAddress, pkBytes []byte) {
-		if err := k.consesnsusProcessEnd(ctx, valAddr, pkBytes); err != nil {
+		// update signing info and remove old consensus pubkey
+		if err := k.processEnd(ctx, valAddr, pkBytes); err != nil {
 			panic(err)
 		}
 	})
 
 	k.IteratorConsensusProcess(ctx, fxstakingtypes.ProcessStart, func(valAddr sdk.ValAddress, pkBytes []byte) {
-		if err := k.consensusProcessStart(ctx, valAddr, pkBytes); err != nil {
+		// update signing info
+		if err := k.processStart(ctx, valAddr, pkBytes); err != nil {
 			panic(err)
 		}
 	})
 }
 
-func (k Keeper) consesnsusProcessEnd(ctx sdk.Context, valAddr sdk.ValAddress, pkBytes []byte) error {
+func (k Keeper) processEnd(ctx sdk.Context, valAddr sdk.ValAddress, pkBytes []byte) error {
 	k.DeleteConsensusProcess(ctx, valAddr, fxstakingtypes.ProcessEnd)
 
 	var oldPubKey cryptotypes.PubKey
@@ -73,8 +75,7 @@ func (k Keeper) consesnsusProcessEnd(ctx sdk.Context, valAddr sdk.ValAddress, pk
 		// NOTE: validator not found, because it deleted in below case
 		// 1. validator unbonded and undelegate all (tx)
 		// 2. unbonding to unbonded and validator share is zero (end block)
-		// remove old consensus pubkey and return
-		k.Logger(ctx).Info("validator not found", "address", valAddr.String(), "process", "end")
+		k.slashingKeeper.DeleteConsensusPubKey(ctx, oldConsAddr)
 		return nil
 	}
 	newConsAddr, err := validator.GetConsAddr()
@@ -94,7 +95,9 @@ func (k Keeper) consesnsusProcessEnd(ctx sdk.Context, valAddr sdk.ValAddress, pk
 	return nil
 }
 
-func (k Keeper) consensusProcessStart(ctx sdk.Context, valAddr sdk.ValAddress, pkBytes []byte) error {
+func (k Keeper) processStart(ctx sdk.Context, valAddr sdk.ValAddress, pkBytes []byte) error {
+	k.DeleteConsensusProcess(ctx, valAddr, fxstakingtypes.ProcessStart)
+
 	var oldPubKey cryptotypes.PubKey
 	if err := k.cdc.UnmarshalInterfaceJSON(pkBytes, &oldPubKey); err != nil {
 		return fmt.Errorf("invalid pubkey")
@@ -105,7 +108,6 @@ func (k Keeper) consensusProcessStart(ctx sdk.Context, valAddr sdk.ValAddress, p
 	if err := k.SetConsensusProcess(ctx, valAddr, oldPubKey, fxstakingtypes.ProcessEnd); err != nil {
 		return err
 	}
-	k.DeleteConsensusProcess(ctx, valAddr, fxstakingtypes.ProcessStart)
 
 	// update validator new pk signing info
 	validator, found := k.GetValidator(ctx, valAddr)
@@ -113,8 +115,6 @@ func (k Keeper) consensusProcessStart(ctx sdk.Context, valAddr sdk.ValAddress, p
 		// NOTE: validator not found, because it deleted in below case
 		// 1. validator unbonded and undelegate all (tx)
 		// 2. unbonding to unbonded and validator share is zero (end block)
-		// return nil and delete old consensus pubkey in end process
-		k.Logger(ctx).Info("validator not found", "address", valAddr.String(), "process", "start")
 		return nil
 	}
 
@@ -135,7 +135,7 @@ func (k Keeper) updateSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress, sig
 		return fmt.Errorf("validator %s not found signing info", consAddr.String())
 	}
 	// double sign
-	if newSigningInfo.JailedUntil == evidencetypes.DoubleSignJailEndTime {
+	if newSigningInfo.Tombstoned {
 		newSigningInfo.IndexOffset = signingInfo.IndexOffset
 		newSigningInfo.MissedBlocksCounter = signingInfo.MissedBlocksCounter
 	} else {
@@ -146,80 +146,73 @@ func (k Keeper) updateSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress, sig
 	return nil
 }
 
-func (k Keeper) ValidatorUpdate(ctx sdk.Context, valUpdates []abci.ValidatorUpdate, pkPowerUpdate map[string]int64) []abci.ValidatorUpdate {
-	pkUpdate := make([]abci.ValidatorUpdate, 0, 50)
-
+func (k Keeper) ConsensusPubKeyUpdate(ctx sdk.Context) []abci.ValidatorUpdate {
+	valUpdates := make([]abci.ValidatorUpdate, 0, 50)
 	k.IteratorConsensusPubKey(ctx, func(valAddr sdk.ValAddress, pkBytes []byte) bool {
 		// no matter what happens, clear new consensus pubkey
 		k.RemoveConsensusPubKey(ctx, valAddr)
 
-		// check validator exist
-		validator, found := k.GetValidator(ctx, valAddr)
-		if !found {
-			// NOTE: validator not found, because it deleted in below case
-			// 1. validator unbonded and undelegate all (tx)
-			// 2. unbonding to unbonded and validator share is zero (end block)
-			k.Logger(ctx).Error("validator not found", "address", valAddr.String(), "process", "update")
-			return false
-		}
-		oldPubKey, err := validator.ConsPubKey()
-		if err != nil {
-			return false
-		}
-		oldConsAddr := sdk.ConsAddress(oldPubKey.Address())
-
-		// unmarshal failed, remove new consensus pubkey
-		var newPubKey cryptotypes.PubKey
-		if err = k.cdc.UnmarshalInterfaceJSON(pkBytes, &newPubKey); err != nil {
-			return false
-		}
-
 		cacheCtx, commit := ctx.CacheContext()
-		// update validator pubkey
-		if err = k.updateValidator(cacheCtx, validator, newPubKey); err != nil {
-			return false
+		pkUpdates, err := k.updateConsensusPubKey(cacheCtx, valAddr, pkBytes)
+		if err == nil {
+			valUpdates = append(valUpdates, pkUpdates...)
+			commit()
 		}
-		// slash update
-		if err = k.updateSlashing(cacheCtx, newPubKey, oldConsAddr); err != nil {
-			k.Logger(ctx).Error("update slashing", "address", valAddr.String(), "error", err.Error())
-			return false
-		}
-		// new validator updates
-		newValUpdates, err := k.updateABICValidator(cacheCtx, pkPowerUpdate, validator, newPubKey, oldPubKey)
-		if err != nil {
-			k.Logger(ctx).Error("update abci validator", "address", valAddr.String(), "error", err.Error())
-			return false
-		}
-		// set consensus process start
-		if err := k.SetConsensusProcess(ctx, valAddr, oldPubKey, fxstakingtypes.ProcessStart); err != nil {
-			return false
-		}
-
-		k.Logger(ctx).Info("update consensus pubkey", "address", valAddr.String(),
-			"oldConsAddr", oldConsAddr.String(), "newConsAddr", sdk.ConsAddress(newPubKey.Address()).String())
 
 		// event
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			fxstakingtypes.EventTypeEditingConsensusPubKey,
 			sdk.NewAttribute(types.AttributeKeyValidator, valAddr.String()),
-			sdk.NewAttribute(fxstakingtypes.AttributeOldConsAddr, oldConsAddr.String()),
-			sdk.NewAttribute(fxstakingtypes.AttributeNewConsAddr, sdk.ConsAddress(newPubKey.Address()).String()),
+			sdk.NewAttribute(fxstakingtypes.AttributeResult, strconv.FormatBool(err == nil)),
 		))
-		// commit cache context
-		commit()
-
-		pkUpdate = append(pkUpdate, newValUpdates...)
 		return false
 	})
-	// joint pkPowerUpdate and pkUpdate
-	newValUpdates := make([]abci.ValidatorUpdate, 0, len(pkPowerUpdate)+len(pkUpdate))
-	for _, vu := range valUpdates {
-		if power, ok := pkPowerUpdate[vu.PubKey.String()]; ok {
-			newValUpdates = append(newValUpdates, abci.ValidatorUpdate{PubKey: vu.PubKey, Power: power})
+	return valUpdates
+}
+
+func (k Keeper) updateConsensusPubKey(ctx sdk.Context, valAddr sdk.ValAddress, pkBytes []byte) ([]abci.ValidatorUpdate, error) {
+	validator, found := k.GetValidator(ctx, valAddr)
+	if !found {
+		// NOTE: validator not found, because it deleted in below case
+		// 1. validator unbonded and undelegate all (tx)
+		// 2. unbonding to unbonded and validator share is zero (end block)
+		return nil, errors.New("validator not found")
+	}
+	oldPubKey, err := validator.ConsPubKey()
+	if err != nil {
+		return nil, fmt.Errorf("invalid old consensus pubkey")
+	}
+	oldConsAddr := sdk.ConsAddress(oldPubKey.Address())
+
+	var newPubKey cryptotypes.PubKey
+	if err = k.cdc.UnmarshalInterfaceJSON(pkBytes, &newPubKey); err != nil {
+		return nil, err
+	}
+
+	// validator pubkey and consaddr
+	if err = k.updateValidator(ctx, validator, newPubKey); err != nil {
+		return nil, err
+	}
+	// pubkey and signing info
+	if err = k.updateSlashing(ctx, newPubKey, oldConsAddr); err != nil {
+		return nil, err
+	}
+
+	// validator unjailed and bonded
+	var valUpdates []abci.ValidatorUpdate
+	if validator.IsBonded() {
+		// new validator updates
+		valUpdates, err = k.updateABCIValidator(ctx, validator, newPubKey, oldPubKey)
+		if err != nil {
+			return nil, err
 		}
 	}
-	newValUpdates = append(newValUpdates, pkUpdate...)
-	return newValUpdates
+
+	// set consensus process, next 2 block will delete old consensus pubkey
+	if err = k.SetConsensusProcess(ctx, valAddr, oldPubKey, fxstakingtypes.ProcessStart); err != nil {
+		return nil, err
+	}
+	return valUpdates, nil
 }
 
 func (k Keeper) updateValidator(ctx sdk.Context, validator types.Validator, newPubKey cryptotypes.PubKey) error {
@@ -245,15 +238,14 @@ func (k Keeper) updateSlashing(ctx sdk.Context, newPubKey cryptotypes.PubKey, ol
 	signingInfo, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, oldConsAddr)
 	if !found {
 		// NOTE: validator create but not bonded enough token
-		return fmt.Errorf("validator %s not found signing info", oldConsAddr.String())
+		return fmt.Errorf("consensus address %s not found signing info", oldConsAddr.String())
 	}
 	signingInfo.Address = newConsAddr.String()
 	k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, signingInfo)
 	return nil
 }
 
-//gocyclo:ignore
-func (k Keeper) updateABICValidator(ctx sdk.Context, pkUpdate map[string]int64, val types.Validator, newPk, oldPk cryptotypes.PubKey) ([]abci.ValidatorUpdate, error) {
+func (k Keeper) updateABCIValidator(ctx sdk.Context, val types.Validator, newPk, oldPk cryptotypes.PubKey) ([]abci.ValidatorUpdate, error) {
 	oldTmProtoPk, err := cryptocodec.ToTmProtoPublicKey(oldPk)
 	if err != nil {
 		return nil, err
@@ -262,88 +254,11 @@ func (k Keeper) updateABICValidator(ctx sdk.Context, pkUpdate map[string]int64, 
 	if err != nil {
 		return nil, err
 	}
-	power, ok := pkUpdate[oldTmProtoPk.String()]
-	// if power not found, validator not update current block, cal validator power
-	if !ok {
-		power = val.ConsensusPower(k.PowerReduction(ctx))
-	} else {
-		// remove old pk power
-		delete(pkUpdate, oldTmProtoPk.String())
-	}
+	valPower := val.ConsensusPower(k.PowerReduction(ctx))
 	// set old pk power to 0
 	oldPkUpdate := abci.ValidatorUpdate{PubKey: oldTmProtoPk, Power: 0}
 	// add new pk with power
-	newPkUpdate := abci.ValidatorUpdate{PubKey: newTmProtoPk, Power: power}
+	newPkUpdate := abci.ValidatorUpdate{PubKey: newTmProtoPk, Power: valPower}
 
-	/*
-		a1: 1-block 2-block-edit 3-block					------ oldpk-0,newpk-power
-		a2: 1-block 2-block-(jailed|edit) 3-block 4-unblock	------ oldpk-0
-
-		b1: 1-unblock(jailed) 2-unblock-edit 3-unblock						------ nil
-		b2: 1-unblock(inactive) 2-unblock-edit 3-unblock					------ nil
-		b3: 1-unblock 2-unblock-(edit|(unjailed/active)) 3-unblock 4-block	------ newpk-power
-
-		c1: 1-block-jailed 2-block-edit 3-unblock						------ nil
-		c2: 1-block-jailed 2-block-(edit|unjailed) 3-unblock 4-block	------ newpk-power
-
-		d1: 1-unblock-(unjailed/active) 2-unblock-edit 3-block						------ oldpk-0,newpk-power
-		d2: 1-unblock-(unjailed/active) 2-unblock-(edit|jailed) 3-block 4-unblock	------ oldpk-0
-
-		e1: 1-block-jailed 2-block 3-unblock-edit 4-unblock						------ nil
-		e2: 1-block-jailed 2-block 3-unblock-(edit|unjailed) 4-unblock 5-block	------ newpk-power
-
-		f1: 1-unblock-(unjailed/active) 2-unblock 3-block-edit 4-block						------ oldpk-0,newpk-power
-		f2: 1-unblock-(unjailed/active) 2-unblock 3-block-(edit|jailed) 4-block 5-unblock	------ oldpk-0
-
-		g1: 1-block 2-block-(delegate|edit) 3-block 4-block		------ oldpk-0,newpk-power
-
-
-		// validator status
-		ok=true,power==0,jailed=true	// jailed current block
-		ok=true,power==0,jailed=false	// impossible
-		ok=true,power!=0,jailed=true	// impossible
-		ok=true,power!=0,jailed=false	// unjailed/active current block or delegate/undelegate/redelegate
-		ok=false,power==0,jailed=true	// jailed previous block
-		ok=false,power==0,jailed=false	// inactive validator
-		ok=false,power!=0,jailed=true	// impossible
-		ok=false,power!=0,jailed=false	// online validator
-	*/
-
-	// validator jailed current block // a2,d2,f2
-	if ok && power == 0 && val.Jailed {
-		return []abci.ValidatorUpdate{oldPkUpdate}, nil
-	}
-	// validator unjailed/active/delegate current block
-	if ok && power != 0 && !val.Jailed {
-		hi, found := k.GetHistoricalInfo(ctx, ctx.BlockHeight())
-		if !found {
-			return nil, fmt.Errorf("current height historical info not found")
-		}
-		lastVote := false
-		for _, lastVal := range hi.Valset {
-			if lastVal.OperatorAddress == val.OperatorAddress {
-				lastVote = true
-				break
-			}
-		}
-		// validator delegate/undelegate/redelegate current block // g1
-		if lastVote {
-			return []abci.ValidatorUpdate{oldPkUpdate, newPkUpdate}, nil
-		}
-		// validator unjailed/active current block // b3,c2,e2
-		return []abci.ValidatorUpdate{newPkUpdate}, nil
-	}
-	// validator jailed previous block // b1,c1,e1
-	if !ok && power == 0 && val.Jailed {
-		return []abci.ValidatorUpdate{}, nil
-	}
-	// validator inactive // b2
-	if !ok && power == 0 && !val.Jailed {
-		return []abci.ValidatorUpdate{}, nil
-	}
-	// validator online // a1,d1,f1
-	if !ok && power != 0 && !val.Jailed {
-		return []abci.ValidatorUpdate{oldPkUpdate, newPkUpdate}, nil
-	}
-	return nil, errors.New("impossible case")
+	return []abci.ValidatorUpdate{oldPkUpdate, newPkUpdate}, nil
 }
