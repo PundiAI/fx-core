@@ -132,7 +132,7 @@ func (suite *KeeperTestSuite) TestKeeper_CallContract() {
 	_, err = suite.app.EvmKeeper.CallContract(sdk.WrapSDKContext(suite.ctx), failMsg)
 	suite.Require().Error(err)
 	// transferOwnership
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "transferOwnership", common.BytesToAddress(suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)))
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, erc20.ABI, "transferOwnership", common.BytesToAddress(suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)))
 	suite.Require().NoError(err)
 	// CallContract
 	msg := &fxevmtypes.MsgCallContract{

@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) DeployContract(from common.Address) (common.Addres
 	contract, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
 
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contract, fxtypes.GetFIP20().ABI, "transferOwnership", from)
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contract, nil, fxtypes.GetFIP20().ABI, "transferOwnership", from)
 	suite.Require().NoError(err)
 	return contract, nil
 }
@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) MintERC20Token(signer *helpers.Signer, contractAdd
 
 func (suite *KeeperTestSuite) ModuleMintERC20Token(contractAddr, to common.Address, amount *big.Int) {
 	erc20 := fxtypes.GetFIP20()
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, erc20.ABI, "mint", to, amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, nil, erc20.ABI, "mint", to, amount)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 }
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TransferERC20TokenToModule(signer *helpers.Signer,
 func (suite *KeeperTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr, from common.Address, amount *big.Int) {
 	erc20 := fxtypes.GetFIP20()
 	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
-	_, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, from, contractAddr, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
+	_, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, from, contractAddr, nil, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)
 }
 

@@ -149,8 +149,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			evmDenom := suite.app.EvmKeeper.GetParams(suite.ctx).EvmDenom
 
 			pack, errArgs := tc.malleate(val0.GetOperator(), delAddr)
-			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &stakingContract, pack, false)
-
+			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &stakingContract, nil, pack, false)
 			if tc.result {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)

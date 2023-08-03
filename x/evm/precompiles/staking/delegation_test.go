@@ -164,7 +164,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			suite.Commit()
 
 			pack, errArgs := tc.malleate(val0.GetOperator(), delAddr)
-			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &stakingContract, pack, false)
+			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &stakingContract, nil, pack, false)
 
 			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, sdk.AccAddress(delAddr.Bytes()), val0.GetOperator())
 			suite.Require().True(found)
