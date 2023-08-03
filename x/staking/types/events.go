@@ -16,6 +16,5 @@ const (
 	AttributeKeyRecipient = "recipient"
 	AttributeKeyTo        = "to"
 	AttributeKeyPubKey    = "pubkey"
-	AttributeOldConsAddr  = "old_cons_addr"
-	AttributeNewConsAddr  = "new_cons_addr"
+	AttributeResult       = "result"
 )
