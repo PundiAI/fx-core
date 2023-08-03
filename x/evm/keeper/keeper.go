@@ -45,6 +45,7 @@ func (k *Keeper) CallEVMWithoutGas(
 	ctx sdk.Context,
 	from common.Address,
 	contract *common.Address,
+	value *big.Int,
 	data []byte,
 	commit bool,
 ) (*types.MsgEthereumTxResponse, error) {
@@ -62,11 +63,14 @@ func (k *Keeper) CallEVMWithoutGas(
 		gasLimit = uint64(params.Block.MaxGas)
 	}
 
+	if value == nil {
+		value = big.NewInt(0)
+	}
 	msg := ethtypes.NewMessage(
 		from,
 		contract,
 		nonce,
-		big.NewInt(0), // amount
+		value,         // amount
 		gasLimit,      // gasLimit
 		big.NewInt(0), // gasFeeCap
 		big.NewInt(0), // gasTipCap

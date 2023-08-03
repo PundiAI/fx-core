@@ -139,7 +139,7 @@ func (k *Keeper) CallContract(goCtx context.Context, msg *fxevmtypes.MsgCallCont
 	if account == nil || !account.IsContract() {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidProposalMsg, "contract %s not found", contract.Hex())
 	}
-	_, err := k.CallEVMWithoutGas(ctx, k.module, &contract, common.Hex2Bytes(msg.Data), true)
+	_, err := k.CallEVMWithoutGas(ctx, k.module, &contract, nil, common.Hex2Bytes(msg.Data), true)
 	if err != nil {
 		return nil, err
 	}

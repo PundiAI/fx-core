@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -81,7 +82,7 @@ func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.AB
 		return common.Address{}, err
 	}
 
-	_, err = k.CallEVMWithoutGas(ctx, from, nil, data, true)
+	_, err = k.CallEVMWithoutGas(ctx, from, nil, nil, data, true)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -103,7 +104,7 @@ func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Ad
 
 	// initialize contract
 	if initializeAbi != nil {
-		_, err = k.ApplyContract(ctx, from, proxyContract, *initializeAbi, "initialize", initializeArgs...)
+		_, err = k.ApplyContract(ctx, from, proxyContract, nil, *initializeAbi, "initialize", initializeArgs...)
 		if err != nil {
 			return common.Address{}, err
 		}
@@ -117,7 +118,7 @@ func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, a
 	if err != nil {
 		return errorsmod.Wrap(types.ErrABIPack, err.Error())
 	}
-	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, args, false)
+	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, nil, args, false)
 	if err != nil {
 		return err
 	}
@@ -128,12 +129,12 @@ func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, a
 }
 
 // ApplyContract apply contract with args
-func (k *Keeper) ApplyContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
+func (k *Keeper) ApplyContract(ctx sdk.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
 	args, err := abi.Pack(method, constructorData...)
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrABIPack, err.Error())
 	}
-	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, args, true)
+	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, value, args, true)
 	if err != nil {
 		return nil, err
 	}

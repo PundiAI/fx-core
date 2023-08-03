@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestKeeper_ApplyContract() {
 	suite.NoError(err)
 
 	mintAmt := int64(tmrand.Uint32())
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "mint", suite.signer.Address(), big.NewInt(mintAmt))
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, erc20.ABI, "mint", suite.signer.Address(), big.NewInt(mintAmt))
 	suite.NoError(err)
 
 	var balanceRes struct{ Value *big.Int }

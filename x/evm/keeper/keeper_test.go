@@ -207,38 +207,38 @@ func (suite *KeeperTestSuite) Module(contract common.Address) common.Address {
 }
 
 func (suite *KeeperTestSuite) Approve(contract, spender common.Address, amount *big.Int) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, spender, contract, fxtypes.GetFIP20().ABI, "approve", suite.signer.Address(), amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, spender, contract, nil, fxtypes.GetFIP20().ABI, "approve", suite.signer.Address(), amount)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
 
 // function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
 func (suite *KeeperTestSuite) Transfer(contract, recipient common.Address, amount *big.Int) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "transfer", recipient, amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, fxtypes.GetFIP20().ABI, "transfer", recipient, amount)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
 
 func (suite *KeeperTestSuite) TransferFrom(contract, sender, recipient common.Address, amount *big.Int) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "transferFrom", sender, recipient, amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, fxtypes.GetFIP20().ABI, "transferFrom", sender, recipient, amount)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
 
 func (suite *KeeperTestSuite) Mint(contract, to common.Address, amount *big.Int) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "mint", to, amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, fxtypes.GetFIP20().ABI, "mint", to, amount)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
 
 func (suite *KeeperTestSuite) Burn(contract, from common.Address, amount *big.Int) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "burn", from, amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, fxtypes.GetFIP20().ABI, "burn", from, amount)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
 
 func (suite *KeeperTestSuite) TransferOwnership(contract, newOwner common.Address) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetFIP20().ABI, "transferOwnership", newOwner)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, fxtypes.GetFIP20().ABI, "transferOwnership", newOwner)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
@@ -268,7 +268,7 @@ func (suite *KeeperTestSuite) Deposit(contract common.Address, amount *big.Int) 
 }
 
 func (suite *KeeperTestSuite) Withdraw(contract common.Address, amount *big.Int) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, fxtypes.GetWFX().ABI, "withdraw", suite.signer.Address(), amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, nil, fxtypes.GetWFX().ABI, "withdraw", suite.signer.Address(), amount)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
