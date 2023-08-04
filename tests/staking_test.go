@@ -656,7 +656,7 @@ func (suite *IntegrationMultiNodeTest) StakingEditPubKeyJailBlock() {
 	suite.Require().NoError(err)
 	suite.Require().True(valResp.Validator.Jailed)
 
-	height := txResp.Height
+	height := txResp.Height + 1 // val update, edit skip to next block
 
 	// block tx process
 	ctx := metadata.AppendToOutgoingContext(suite.ctx, grpctypes.GRPCBlockHeightHeader, fmt.Sprintf("%d", height))
@@ -682,7 +682,7 @@ func (suite *IntegrationMultiNodeTest) StakingEditPubKeyJailBlock() {
 	suite.Error(err)
 	info2, err = suite.slasing.SlashingQuery().SigningInfo(ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: newConsAddr.String()})
 	suite.NoError(err)
-	suite.Equal(info1.ValSigningInfo.IndexOffset+1, info2.ValSigningInfo.IndexOffset)
+	suite.Equal(info1.ValSigningInfo.IndexOffset, info2.ValSigningInfo.IndexOffset)
 
 	// delegate and unjail
 	delegateMsg := stakingtypes.NewMsgDelegate(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(fxtypes.DefaultDenom, validator.Tokens))
