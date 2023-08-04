@@ -75,7 +75,7 @@ func Setup(isCheckTx bool, isShowLog bool) *app.App {
 	}
 
 	myApp := app.New(logger, dbm.NewMemDB(),
-		traceStore, true, map[int64]bool{}, os.TempDir(), 5,
+		traceStore, true, map[int64]bool{}, os.TempDir(), 1,
 		app.MakeEncodingConfig(), app.EmptyAppOptions{},
 	)
 	if !isCheckTx {
@@ -170,7 +170,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
 			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdkmath.OneInt().Mul(sdk.NewInt(10)),
+			MinSelfDelegation: sdkmath.OneInt().Mul(sdkmath.NewInt(10)),
 		}
 		validators = append(validators, validator)
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[i].GetAddress(), validator.GetOperator(), sdk.NewDecFromInt(bondAmt)))

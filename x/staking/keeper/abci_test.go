@@ -113,6 +113,7 @@ func (suite *KeeperTestSuite) TestEditPubKeyJail() {
 	suite.Require().NoError(err)
 	suite.Require().Nil(process)
 	// next block
+	suite.Commit(1) // val update, edit skip to next block
 	valUpdates := suite.CommitEndBlock()
 
 	// validator jailed
@@ -138,29 +139,28 @@ func (suite *KeeperTestSuite) TestEditPubKeyJail() {
 	suite.CommitBeginBlock(valUpdates)
 	valUpdates = suite.CommitEndBlock()
 
-	suite.True(suite.CurrentVoteFound(oldPk))
-	suite.False(suite.NextVoteFound(newPk))
-
 	// check
 	oldSigningInfo, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
 	suite.Require().True(found)
 	newSigningInfo, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, newConsAddr)
 	suite.Require().True(found)
 	suite.Require().Equal(oldSigningInfo.IndexOffset, newSigningInfo.IndexOffset)
+	process, err = suite.app.StakingKeeper.GetConsensusProcess(suite.ctx, valAddr, types.ProcessEnd)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(process)
 
 	// next block
 	suite.CommitBeginBlock(valUpdates)
 	_ = suite.CommitEndBlock()
-
-	suite.False(suite.CurrentVoteFound(oldPk))
-	suite.False(suite.NextVoteFound(newPk))
 
 	// check
 	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
 	suite.Require().False(found)
 	newSigningInfo, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, newConsAddr)
 	suite.Require().True(found)
-	suite.Require().Equal(oldSigningInfo.IndexOffset+1, newSigningInfo.IndexOffset)
+	suite.Require().Equal(oldSigningInfo.IndexOffset, newSigningInfo.IndexOffset)
+	found = suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, valAddr)
+	suite.Require().False(found)
 }
 
 func (suite *KeeperTestSuite) TestEditPubKeyJailAndUnjail() {
@@ -171,8 +171,9 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailAndUnjail() {
 	oldPK, err := validator.ConsPubKey()
 	suite.Require().NoError(err)
 
-	delAmt := validator.GetTokens()
-	delShares := validator.GetDelegatorShares()
+	delAmt := validator.GetTokens().Sub(sdkmath.NewInt(5)) // min self delegate: 10
+	delShares, err := validator.SharesFromTokens(delAmt)
+	suite.Require().NoError(err)
 
 	// new consensus pubkey
 	newPriv, _ := suite.GenerateConsKey()
@@ -186,8 +187,8 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailAndUnjail() {
 	err = suite.app.StakingKeeper.SetConsensusPubKey(suite.ctx, valAddr, newPk)
 	suite.Require().NoError(err)
 
-	// end block
-	valUpdates := suite.CommitEndBlock()
+	suite.Commit()
+	valUpdates := suite.CommitEndBlock() // edit
 
 	// validator jailed
 	validator, found = suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
@@ -197,9 +198,6 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailAndUnjail() {
 	// next block
 	suite.CommitBeginBlock(valUpdates)
 
-	suite.True(suite.CurrentVoteFound(oldPK))
-	suite.False(suite.NextVoteFound(newPk))
-
 	// unjail
 	_, err = suite.app.StakingKeeper.Delegate(suite.ctx, sdk.AccAddress(valAddr), delAmt, stakingtypes.Unbonded, validator, true)
 	suite.Require().NoError(err)
@@ -207,11 +205,7 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailAndUnjail() {
 	suite.Require().NoError(err)
 
 	// end block
-	valUpdates = suite.CommitEndBlock()
-
-	suite.True(suite.CurrentVoteFound(oldPK))
-	suite.False(suite.CurrentVoteFound(newPk))
-	suite.False(suite.NextVoteFound(newPk))
+	valUpdates = suite.CommitEndBlock() // process start
 
 	// validator unjailed
 	validator, found = suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
@@ -224,10 +218,7 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailAndUnjail() {
 
 	// next block
 	suite.CommitBeginBlock(valUpdates)
-	_ = suite.CommitEndBlock()
-
-	suite.False(suite.CurrentVoteFound(newPk))
-	suite.True(suite.NextVoteFound(newPk))
+	_ = suite.CommitEndBlock() // process end
 
 	// old signing info deleted
 	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(oldPK.Address()))
@@ -325,20 +316,20 @@ func (suite *KeeperTestSuite) TestEditPubKeyUnjailAndJailNextBlock() {
 	suite.Require().True(found)
 	oldPk, err := validator.ConsPubKey()
 	suite.Require().NoError(err)
+	oldConsAddr := sdk.ConsAddress(oldPk.Address())
 
-	delAmt := validator.GetTokens()
-	delShares := validator.GetDelegatorShares()
+	delAmt := validator.Tokens.Sub(validator.MinSelfDelegation.Sub(sdkmath.NewInt(1)))
+	delShares, err := validator.SharesFromTokens(delAmt)
+	suite.Require().NoError(err)
 
 	// new consensus pubkey
 	newPriv, _ := suite.GenerateConsKey()
 	newPk := newPriv.PubKey()
-
 	suite.Commit(2)
 
 	// undelegate smaller min self delegate, can not undelegate all, it will be delete in end block
-	shares, err := validator.SharesFromTokensTruncated(validator.MinSelfDelegation.Sub(sdkmath.NewInt(1)))
 	suite.Require().NoError(err)
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares().Sub(shares))
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, delShares)
 	suite.Require().NoError(err)
 
 	// validator jailed
@@ -349,20 +340,19 @@ func (suite *KeeperTestSuite) TestEditPubKeyUnjailAndJailNextBlock() {
 	suite.Commit(3)
 	valUpdates := suite.CommitEndBlock()
 
-	suite.False(suite.CurrentVoteFound(oldPk))
-	suite.False(suite.NextVoteFound(oldPk))
-
 	suite.CommitBeginBlock(valUpdates)
 	// edit validator
 	err = suite.app.StakingKeeper.SetConsensusPubKey(suite.ctx, valAddr, newPk)
 	suite.Require().NoError(err)
 	// unjail validator
+	validator, _ = suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
 	_, err = suite.app.StakingKeeper.Delegate(suite.ctx, sdk.AccAddress(valAddr), delAmt, stakingtypes.Unbonded, validator, true)
 	suite.Require().NoError(err)
 	err = suite.app.SlashingKeeper.Unjail(suite.ctx, valAddr)
 	suite.Require().NoError(err)
 	// end block
-	valUpdates = suite.CommitEndBlock()
+	suite.Commit()
+	valUpdates = suite.CommitEndBlock() // edit
 
 	// validator unjailed
 	validator, found = suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
@@ -373,18 +363,37 @@ func (suite *KeeperTestSuite) TestEditPubKeyUnjailAndJailNextBlock() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(consAddr, sdk.ConsAddress(newPk.Address()))
 
+	// signing info equal
+	oldSigningInfo, found := suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().True(found)
+	newSigningInfo, found := suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(newPk.Address()))
+	suite.Require().True(found)
+	suite.Require().Equal(oldSigningInfo.IndexOffset, newSigningInfo.IndexOffset)
+
 	suite.CommitBeginBlock(valUpdates)
-	// validator jailed
 	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, delShares)
 	suite.Require().NoError(err)
-	_ = suite.CommitEndBlock()
-
-	suite.True(suite.NextVoteFound(newPk))
+	valUpdates = suite.CommitEndBlock() // process start
 
 	// validator jailed
 	validator, found = suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
 	suite.Require().True(found)
 	suite.Require().True(validator.IsJailed())
+
+	// signing info equal
+	oldSigningInfo, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().True(found)
+	newSigningInfo, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(newPk.Address()))
+	suite.Require().True(found)
+	suite.Require().Equal(oldSigningInfo.IndexOffset, newSigningInfo.IndexOffset)
+	suite.Require().Equal(oldSigningInfo.JailedUntil, newSigningInfo.JailedUntil)
+
+	// next block
+	suite.CommitBeginBlock(valUpdates)
+	_ = suite.CommitEndBlock() // process end
+
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, oldConsAddr)
+	suite.Require().False(found)
 }
 
 func (suite *KeeperTestSuite) TestEditPubKeyJailedPrevBlock() {
@@ -484,12 +493,8 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailedPrevBlockAndUnjail() {
 	suite.Require().NoError(err)
 	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, sdk.AccAddress(valAddr), valAddr, validator.GetDelegatorShares().Sub(shares))
 	suite.Require().NoError(err)
+	suite.Commit(2)
 	valUpdates := suite.CommitEndBlock()
-
-	suite.CommitBeginBlock(valUpdates)
-	valUpdates = suite.CommitEndBlock()
-	suite.CommitBeginBlock(valUpdates)
-	valUpdates = suite.CommitEndBlock()
 
 	// check validator jailed
 	validator, found = suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
@@ -505,21 +510,32 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailedPrevBlockAndUnjail() {
 	suite.Require().NoError(err)
 	err = suite.app.SlashingKeeper.Unjail(suite.ctx, valAddr)
 	suite.Require().NoError(err)
-	valUpdates = suite.CommitEndBlock()
+	suite.Commit()
+	valUpdates = suite.CommitEndBlock() // edit
 
 	// validator unjailed
 	validator, found = suite.app.StakingKeeper.GetValidator(suite.ctx, valAddr)
 	suite.Require().True(found)
 	suite.Require().False(validator.IsJailed())
 
-	suite.False(suite.CurrentVoteFound(newPk))
-	suite.False(suite.NextVoteFound(newPk))
+	suite.CommitBeginBlock(valUpdates)
+	valUpdates = suite.CommitEndBlock() // process start
+
+	// signing info equal
+	oldSigningInfo, found := suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(newPk.Address()))
+	suite.Require().True(found)
+	newSigningInfo, found := suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(newPk.Address()))
+	suite.Require().True(found)
+	suite.Require().Equal(oldSigningInfo.IndexOffset, newSigningInfo.IndexOffset)
 
 	suite.CommitBeginBlock(valUpdates)
-	_ = suite.CommitEndBlock()
+	_ = suite.CommitEndBlock() // process end
 
-	suite.False(suite.CurrentVoteFound(newPk))
-	suite.True(suite.NextVoteFound(newPk))
+	_, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(newPk.Address()))
+	suite.Require().True(found)
+	newSigningInfo, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, sdk.ConsAddress(newPk.Address()))
+	suite.Require().True(found)
+	suite.Require().Equal(oldSigningInfo.IndexOffset+1, newSigningInfo.IndexOffset)
 }
 
 func (suite *KeeperTestSuite) TestEditPubKeyUnboundValidator() {
