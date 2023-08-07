@@ -335,7 +335,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		},
 	}
 
-	dec := ante.NewEthGasConsumeDecorator(suite.app.EvmKeeper, config.DefaultMaxTxGasWanted)
+	dec := ante.NewEthGasConsumeDecorator(suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.EvmKeeper, config.DefaultMaxTxGasWanted)
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {

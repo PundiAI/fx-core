@@ -5,6 +5,7 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 )
@@ -22,4 +23,9 @@ type SlashingKeeper interface {
 	GetValidatorSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress) (info slashingtypes.ValidatorSigningInfo, found bool)
 	SetValidatorSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo)
 	DeleteValidatorSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress)
+}
+
+type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
 }

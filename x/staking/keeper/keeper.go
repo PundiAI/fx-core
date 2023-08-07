@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/v5/x/staking/types"
 )
@@ -20,16 +22,18 @@ type Keeper struct {
 	storeKey storetypes.StoreKey
 	cdc      codec.Codec
 
+	accountKeeper  types.AccountKeeper
 	authzKeeper    types.AuthzKeeper
 	slashingKeeper types.SlashingKeeper
 }
 
 // NewKeeper creates a new staking Keeper instance
-func NewKeeper(k stakingkeeper.Keeper, storeKey storetypes.StoreKey, cdc codec.Codec) Keeper {
+func NewKeeper(k stakingkeeper.Keeper, storeKey storetypes.StoreKey, cdc codec.Codec, ak types.AccountKeeper) Keeper {
 	return Keeper{
-		Keeper:   k,
-		storeKey: storeKey,
-		cdc:      cdc,
+		Keeper:        k,
+		storeKey:      storeKey,
+		cdc:           cdc,
+		accountKeeper: ak,
 	}
 }
 
@@ -97,6 +101,24 @@ func (k Keeper) UpdateValidatorOperator(ctx sdk.Context, val sdk.ValAddress, fro
 	store.Delete(types.GetValidatorOperatorKey(val))
 	// add new operator
 	store.Set(types.GetValidatorOperatorKey(val), from.Bytes())
+}
+
+func (k Keeper) DisableValidatorAddress(ctx sdk.Context, val sdk.ValAddress) error {
+	account := k.accountKeeper.GetAccount(ctx, sdk.AccAddress(val))
+	if account == nil || account.GetPubKey() == nil {
+		return sdkerrors.ErrInvalidAddress.Wrap("invalid account")
+	}
+	pk := account.GetPubKey()
+	var disablePK cryptotypes.PubKey
+	disablePK = &ethsecp256k1.PubKey{Key: types.DisablePKBytes[:]}
+	if pk.Type() == (&secp256k1.PubKey{}).Type() {
+		disablePK = &secp256k1.PubKey{Key: types.DisablePKBytes[:]}
+	}
+	if err := account.SetPubKey(disablePK); err != nil {
+		return err
+	}
+	k.accountKeeper.SetAccount(ctx, account)
+	return nil
 }
 
 // ValidatorConsAddr related functions

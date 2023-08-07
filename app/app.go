@@ -155,7 +155,6 @@ func New(
 		EvmKeeper:                  myApp.EvmKeeper,
 		FeeMarketKeeper:            myApp.FeeMarketKeeper,
 		IbcKeeper:                  myApp.IBCKeeper,
-		StakingKeeper:              myApp.StakingKeeper,
 		SignModeHandler:            encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:             fxante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:             maxGasWanted,

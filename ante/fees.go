@@ -1,6 +1,7 @@
 package ante
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"math/big"
@@ -10,9 +11,12 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
+
+	fxstakingtypes "github.com/functionx/fx-core/v5/x/staking/types"
 )
 
 // DeductFeeDecorator deducts fees from the first signer of the tx
@@ -275,4 +279,23 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	}
 
 	return next(ctx, tx, simulate)
+}
+
+func DeductTxCostsFromUserBalance(ctx sdk.Context, ak AccountKeeper, bk types.BankKeeper, fees sdk.Coins, from common.Address) error {
+	// fetch sender account
+	signerAcc, err := ante.GetSignerAcc(ctx, ak, from.Bytes())
+	if err != nil {
+		return errorsmod.Wrapf(err, "account not found for sender %s", from)
+	}
+
+	// check if the account is disabled
+	if signerAcc.GetPubKey() != nil && bytes.Equal(signerAcc.GetPubKey().Bytes(), fxstakingtypes.DisablePKBytes[:]) {
+		return errorsmod.Wrap(errortypes.ErrInvalidAddress, "account disabled")
+	}
+
+	// deduct the full gas cost from the user balance
+	if err := ante.DeductFees(bk, ctx, signerAcc, fees); err != nil {
+		return errorsmod.Wrapf(err, "failed to deduct full gas cost %s from the user %s balance", fees, from)
+	}
+	return nil
 }
