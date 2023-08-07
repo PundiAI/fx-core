@@ -36,7 +36,7 @@ func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []by
 	return key
 }
 
-func GetValidatorOperatorKey(addr []byte) []byte {
+func GetValidatorOperatorKey(addr sdk.ValAddress) []byte {
 	return append(ValidatorOperatorKey, addr...)
 }
 
@@ -50,10 +50,10 @@ func GetConsensusProcessKey(process CProcess, addr sdk.ValAddress) []byte {
 
 func AddressFromConsensusPubKey(key []byte) []byte {
 	kv.AssertKeyAtLeastLength(key, 2)
-	return key[1:] // remove prefix bytes and address length
+	return key[1:] // remove prefix bytes
 }
 
 func AddressFromConsensusProcessKey(key []byte) []byte {
 	kv.AssertKeyAtLeastLength(key, 3)
-	return key[2:] // remove prefix bytes and address length
+	return key[2:] // remove prefix bytes and process bytes
 }
