@@ -52,6 +52,11 @@ func (k Keeper) GrantPrivilege(goCtx context.Context, msg *types.MsgGrantPrivile
 	// 5. update validator operator
 	k.UpdateValidatorOperator(ctx, valAddr, toAddress)
 
+	// 6. disable validator address
+	if err = k.DisableValidatorAddress(ctx, valAddr); err != nil {
+		return nil, err
+	}
+
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeGrantPrivilege,
 		sdk.NewAttribute(stakingtypes.AttributeKeyValidator, msg.ValidatorAddress),

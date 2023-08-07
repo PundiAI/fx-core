@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethermint "github.com/evmos/ethermint/types"
@@ -140,18 +141,24 @@ func (avd EthAccountVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx
 // EthGasConsumeDecorator validates enough intrinsic gas for the transaction and
 // gas consumption.
 type EthGasConsumeDecorator struct {
-	evmKeeper    EVMKeeper
-	maxGasWanted uint64
+	accountKeeper AccountKeeper
+	bankKeeper    types.BankKeeper
+	evmKeeper     EVMKeeper
+	maxGasWanted  uint64
 }
 
 // NewEthGasConsumeDecorator creates a new EthGasConsumeDecorator
 func NewEthGasConsumeDecorator(
+	accountKeeper AccountKeeper,
+	bankKeeper types.BankKeeper,
 	evmKeeper EVMKeeper,
 	maxGasWanted uint64,
 ) EthGasConsumeDecorator {
 	return EthGasConsumeDecorator{
-		evmKeeper,
-		maxGasWanted,
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
+		evmKeeper:     evmKeeper,
+		maxGasWanted:  maxGasWanted,
 	}
 }
 
@@ -227,7 +234,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			return ctx, errorsmod.Wrapf(err, "failed to verify the fees")
 		}
 
-		err = egcd.evmKeeper.DeductTxCostsFromUserBalance(ctx, fees, common.HexToAddress(msgEthTx.From))
+		err = DeductTxCostsFromUserBalance(ctx, egcd.accountKeeper, egcd.bankKeeper, fees, common.HexToAddress(msgEthTx.From))
 		if err != nil {
 			return ctx, errorsmod.Wrapf(err, "failed to deduct transaction costs from user balance")
 		}
