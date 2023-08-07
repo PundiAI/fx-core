@@ -129,18 +129,19 @@ func (k Keeper) validateAnyPubKey(ctx sdk.Context, pubkey *codectypes.Any) (cryp
 	}
 	// pubkey type supported
 	cp := ctx.ConsensusParams()
-	if cp != nil && cp.Validator != nil {
-		pkType := pk.Type()
-		hasKeyType := false
-		for _, keyType := range cp.Validator.PubKeyTypes {
-			if pkType == keyType {
-				hasKeyType = true
-				break
-			}
+	if cp == nil || cp.Validator == nil {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("invalid consensus params")
+	}
+	pkType := pk.Type()
+	hasKeyType := false
+	for _, keyType := range cp.Validator.PubKeyTypes {
+		if pkType == keyType {
+			hasKeyType = true
+			break
 		}
-		if !hasKeyType {
-			return nil, stakingtypes.ErrValidatorPubKeyTypeNotSupported.Wrapf("got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes)
-		}
+	}
+	if !hasKeyType {
+		return nil, stakingtypes.ErrValidatorPubKeyTypeNotSupported.Wrapf("got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes)
 	}
 	return pk, nil
 }

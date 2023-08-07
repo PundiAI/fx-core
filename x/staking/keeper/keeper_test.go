@@ -140,6 +140,7 @@ func (suite *KeeperTestSuite) CommitBeginBlock(valUpdate []abci.ValidatorUpdate)
 		},
 	})
 	suite.ctx = suite.app.NewContext(false, header)
+	suite.ctx = suite.ctx.WithConsensusParams(helpers.ABCIConsensusParams)
 
 	pkUpdate := make(map[string]int64, len(valUpdate))
 	for _, pk := range valUpdate {
