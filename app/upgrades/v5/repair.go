@@ -60,13 +60,13 @@ func fixSlashPeriodTestnetFXV4(ctx sdk.Context, dk distrkeeper.Keeper, val sdk.V
 				referenceCount += 1
 			}
 			logger.Info("add slash period", "validator", val, "height", p.Height, "period", p.Period, "referenceCount", referenceCount)
-			lastHistoricalRewards := periodHistoricalRewards[periods[idx-1].Period] // todo
+			lastHistoricalRewards := periodHistoricalRewards[periods[idx-1].Period]
 			historicalRewards := distrtypes.NewValidatorHistoricalRewards(lastHistoricalRewards.CumulativeRewardRatio, referenceCount)
 			dk.SetValidatorHistoricalRewards(ctx, val, p.Period, historicalRewards)
 			periodHistoricalRewards[p.Period] = historicalRewards
 
 			// add slash period
-			fraction, _ := sdk.NewDecFromStr("0.001") // todo
+			fraction, _ := sdk.NewDecFromStr("0.001")
 			slashEvent := distrtypes.NewValidatorSlashEvent(p.Period, fraction)
 			dk.SetValidatorSlashEvent(ctx, val, p.Height, p.Period, slashEvent)
 			slashBefore = true
