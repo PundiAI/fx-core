@@ -14,7 +14,6 @@ type SlashPeriod struct {
 }
 
 // ValidatorSlashHeightTestnetFXV4 is a map of testnet validator address to slash height
-// todo check before testnet v5 release
 var ValidatorSlashHeightTestnetFXV4 = map[string][]int64{
 	"fxvaloper14lpap6mwytqtnrx6q9cnje2sen5a5wcctuwnsh": {8224664, 8457967, 8552303},
 	"fxvaloper1695tvr34jdrmajtc0t6kzumaxxwhulfl7h6mq2": {9469704},

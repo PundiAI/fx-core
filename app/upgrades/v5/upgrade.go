@@ -19,7 +19,6 @@ func CreateUpgradeHandler(
 
 		if ctx.ChainID() == fxtypes.TestnetChainId {
 			RepairSlashPeriod(ctx, app.StakingKeeper, app.DistrKeeper)
-			// todo repair register coin amount
 		}
 
 		ctx.Logger().Info("start to run v5 migrations...", "module", "upgrade")

@@ -21,15 +21,15 @@ const (
 
 // testnet
 const (
-	TestnetChainId       = "dhobyghaut"
-	testnetEvmChainID    = 90001
-	TestnetGenesisHash   = "06D0A9659E1EC5B0E57E8E2E5F1B1266094808BC9B4081E1A55011FEF4586ACE"
-	TestnetBlockHeightV2 = 3418880
-	TestnetBlockHeightV3 = 6578000
-	TestnetBlockHeightV4 = 8088000
-
+	TestnetChainId        = "dhobyghaut"
+	testnetEvmChainID     = 90001
+	TestnetGenesisHash    = "06D0A9659E1EC5B0E57E8E2E5F1B1266094808BC9B4081E1A55011FEF4586ACE"
+	TestnetBlockHeightV2  = 3418880
+	TestnetBlockHeightV3  = 6578000
+	TestnetBlockHeightV4  = 8088000
 	TestnetBlockHeightV41 = 8376000
 	TestnetBlockHeightV42 = 8481000
+	TestnetBlockHeightV5  = 9773000
 )
 
 var (

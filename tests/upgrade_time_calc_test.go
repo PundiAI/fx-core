@@ -19,6 +19,7 @@ func TestCalculateUpgradeHeight(t *testing.T) {
 	helpers.SkipTest(t)
 	blockInterval := 20000
 
+	// example: UPGRADE_TIME=2023-08-10T08:00:00Z
 	upgradeTime := os.Getenv("UPGRADE_TIME")
 	if len(upgradeTime) <= 0 {
 		upgradeTime = time.Now().AddDate(0, 0, 14).Format(time.RFC3339)
