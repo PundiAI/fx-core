@@ -35,6 +35,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v5.0.0-rc0]
+
+### Features
+
+* Transfer validator permissions
+* Edit consensus public key
+
+### Bug Fixes
+
+* Repair testnet slash period
+
 ## [v4.2.1]
 
 ### Bug Fixes
