@@ -27,6 +27,7 @@ import (
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -114,7 +115,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(encodingConfig),
 		configCmd(),
-		pruning.PruningCmd(myAppCreator.newApp),
+		pruningCommand(myAppCreator.newApp, defaultNodeHome),
 	)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -207,6 +208,15 @@ func txCommand() *cobra.Command {
 	return cmd
 }
 
+func pruningCommand(appCreator servertypes.AppCreator, nodeHome string) *cobra.Command {
+	pruningCmd := pruning.PruningCmd(appCreator)
+	overwriteFlagDefaults(pruningCmd, map[string]string{
+		flags.FlagHome:           nodeHome,
+		pruning.FlagAppDBBackend: string(dbm.GoLevelDBBackend),
+	})
+	return pruningCmd
+}
+
 type appCreator struct {
 	encCfg app.EncodingConfig
 }
@@ -294,4 +304,22 @@ func (a appCreator) appExport(
 	}
 
 	return anApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+}
+
+func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
+	set := func(s *pflag.FlagSet, key, val string) {
+		if f := s.Lookup(key); f != nil {
+			f.DefValue = val
+			if err := f.Value.Set(val); err != nil {
+				panic(err)
+			}
+		}
+	}
+	for key, val := range defaults {
+		set(c.Flags(), key, val)
+		set(c.PersistentFlags(), key, val)
+	}
+	for _, c := range c.Commands() {
+		overwriteFlagDefaults(c, defaults)
+	}
 }

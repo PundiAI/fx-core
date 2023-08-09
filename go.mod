@@ -27,6 +27,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.23.3
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.7.0
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
@@ -165,7 +166,6 @@ require (
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/status-im/keycard-go v0.2.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
