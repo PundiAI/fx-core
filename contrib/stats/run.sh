@@ -75,8 +75,13 @@ function calc_upgrade_time() {
 
 function show_validator_reward() {
   local decimals=18
+  staking_token_denom=$(curl -s "$REST_RPC/cosmos/staking/v1beta1/params" | jq -r '.params.bond_denom')
   {
-    echo "moniker#operator_address#jailed#status#commission_rate#self_delegated#3rd_party_delegated#block_reward#tx_fee_reward"
+    if [ "$staking_token_denom" == "$MINT_DENOM" ]; then
+      echo "operator_address#jailed#status#commission_rate#self_delegated#3rd_party_delegated#block_reward#moniker"
+    else
+      echo "operator_address#jailed#status#commission_rate#self_delegated#3rd_party_delegated#block_reward#tx_fee_reward#moniker"
+    fi
     while read -r operator_address jailed status tokens commission_rate moniker; do
       acc_address=$(curl -s "$REST_RPC/fx/auth/v1/bech32/$operator_address?prefix=${BECH32_PREFIX}" | jq -r '.address')
       self_delegated=$(curl -s "$REST_RPC/cosmos/staking/v1beta1/delegations/$acc_address" | jq -r '.delegation_responses[]|select(.delegation.validator_address == "'"$operator_address"'")|.balance.amount')
@@ -100,12 +105,16 @@ function show_validator_reward() {
       party_delegated=$(echo "$tokens-$self_delegated" | bc)
 
       commission_rate=$(printf "%.2f" "$(echo "scale=2;($commission_rate * 100)/1" | bc -l)")
-      self_delegated=$(echo "$self_delegated / 10^$decimals" | bc)
-      party_delegated=$(echo "$party_delegated / 10^$decimals" | bc)
-      block_reward=$(echo "$block_reward / 10^$decimals" | bc)
-      echo "$moniker#$operator_address#$jailed#$status#$commission_rate%#$self_delegated#$party_delegated#$block_reward#$tx_fee_reward"
+      self_delegated=$(echo "scale=2;$self_delegated / 10^$decimals" | bc)
+      party_delegated=$(echo "scale=2;$party_delegated / 10^$decimals" | bc)
+      block_reward=$(echo "scale=2;$block_reward / 10^$decimals" | bc)
+      if [ "$staking_token_denom" == "$MINT_DENOM" ]; then
+        echo "$operator_address#$jailed#$status#$commission_rate%#$self_delegated#$party_delegated#$block_reward#$moniker"
+      else
+        echo "$operator_address#$jailed#$status#$commission_rate%#$self_delegated#$party_delegated#$block_reward#$tx_fee_reward#$moniker"
+      fi
     done < <(curl -s "$REST_RPC/cosmos/staking/v1beta1/validators" | jq -r '.validators[]|"\(.operator_address) \(.jailed) \(.status) \(.tokens) \(.commission.commission_rates.rate) \(.description.moniker)"')
-  } | column -t -s"#"
+  } | column -t -R -s"#"
 }
 
 function show_validator_vote() {
