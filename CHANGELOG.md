@@ -35,7 +35,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
-## [v5.0.0-rc0]
+## [v5.0.0]
 
 ### Features
 
