@@ -5,7 +5,6 @@ import (
 	"io"
 	"math/big"
 	"os"
-	"strconv"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -142,13 +141,6 @@ func TestExportDataToLayer2Genesis(t *testing.T) {
 	for addr, amount := range userDelegateAmountMap {
 		accAddr := sdk.MustAccAddressFromBech32(addr)
 		ethAddress := common.BytesToAddress(accAddr)
-		sequence, err := myApp.AccountKeeper.GetSequence(ctx, accAddr)
-		require.NoErrorf(t, err, "get sequence error: %s", addr)
-		l2GenesisData.Genesis = append(l2GenesisData.Genesis, genesisAccountFromJSON{
-			Balance: "0",
-			Nonce:   strconv.Itoa(int(sequence)),
-			Address: ethAddress.String(),
-		})
 		storage[ethAddress.String()] = "0x" + common.Bytes2Hex(amount.BigInt().Bytes())
 	}
 
