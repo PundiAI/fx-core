@@ -1,21 +1,39 @@
 package app_test
 
 import (
-	"encoding/hex"
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
 	"io"
+	"math/big"
 	"os"
 	"strconv"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	ethermint "github.com/evmos/ethermint/types"
-	"github.com/functionx/fx-core/v5/app"
-	fxtypes "github.com/functionx/fx-core/v5/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+
+	"github.com/functionx/fx-core/v5/app"
+	fxtypes "github.com/functionx/fx-core/v5/types"
+)
+
+const (
+	// todo
+	l2StakingContractAddr = "0x"
+	// todo
+	l2StakingContractByteCode = "0x"
+)
+
+var (
+	ethPublicKeyType = new(ethsecp256k1.PubKey).Type()
+
+	coinOne = sdk.NewDecFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+	_       = coinOne
 )
 
 // GenesisFromJSON is the config file for network_custom
@@ -60,11 +78,91 @@ type genesisAccountFromJSON struct {
 }
 
 func TestExportDataToLayer2Genesis(t *testing.T) {
-
 	t.SkipNow()
 
 	// export FX_DATA_DIR=${HOME}/.fxcore/data L2_GENESIS_FILE=${HOME}/.l2/config/genesis.json
 
+	myApp, ctx, l2GenesisData := buildAppContext(t)
+
+	addrCanMigrateMap := make(map[string]bool)
+	valMap := make(map[string]stakingtypes.Validator)
+	burnBondedAmount := sdk.ZeroInt()
+	burnNotBondedAmount := sdk.ZeroInt()
+	userDelegateAmountMap := make(map[string]sdkmath.Int)
+
+	myApp.StakingKeeper.IterateAllDelegations(ctx, func(delegation stakingtypes.Delegation) (stop bool) {
+		delegateAddr := delegation.GetDelegatorAddr().String()
+		can, found := addrCanMigrateMap[delegateAddr]
+		if !found {
+			can = canMigrate(t, ctx, myApp, delegation.GetDelegatorAddr())
+			addrCanMigrateMap[delegateAddr] = can
+		}
+		if !can {
+			return false
+		}
+
+		valAddrStr := delegation.GetValidatorAddr().String()
+		val, foundVal := valMap[valAddrStr]
+		if !foundVal {
+			val, foundVal = myApp.StakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
+			require.Truef(t, foundVal, "validator not found: %s", valAddrStr)
+			valMap[valAddrStr] = val
+		}
+
+		unBondAmount, err := myApp.StakingKeeper.Unbond(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr(), delegation.GetShares())
+		require.NoError(t, err)
+
+		mapDelegateAmount, found := userDelegateAmountMap[delegateAddr]
+		if !found {
+			userDelegateAmountMap[delegateAddr] = unBondAmount
+		} else {
+			userDelegateAmountMap[delegateAddr] = mapDelegateAmount.Add(unBondAmount)
+		}
+
+		if val.IsBonded() {
+			burnBondedAmount = burnBondedAmount.Add(unBondAmount)
+		} else {
+			burnNotBondedAmount = burnNotBondedAmount.Add(unBondAmount)
+		}
+		return false
+	})
+
+	t.Logf("totalDelegateAddr: %d", len(userDelegateAmountMap))
+	if !burnBondedAmount.IsZero() {
+		err := myApp.BankKeeper.BurnCoins(ctx, stakingtypes.BondedPoolName, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, burnBondedAmount)))
+		require.NoError(t, err)
+	}
+
+	if !burnNotBondedAmount.IsZero() {
+		err := myApp.BankKeeper.BurnCoins(ctx, stakingtypes.NotBondedPoolName, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, burnNotBondedAmount)))
+		require.NoError(t, err)
+	}
+
+	storage := make(map[string]string)
+	for addr, amount := range userDelegateAmountMap {
+		accAddr := sdk.MustAccAddressFromBech32(addr)
+		ethAddress := common.BytesToAddress(accAddr)
+		sequence, err := myApp.AccountKeeper.GetSequence(ctx, accAddr)
+		require.NoErrorf(t, err, "get sequence error: %s", addr)
+		l2GenesisData.Genesis = append(l2GenesisData.Genesis, genesisAccountFromJSON{
+			Balance: "0",
+			Nonce:   strconv.Itoa(int(sequence)),
+			Address: ethAddress.String(),
+		})
+		storage[ethAddress.String()] = "0x" + common.Bytes2Hex(amount.BigInt().Bytes())
+	}
+
+	l2GenesisData.Genesis = append(l2GenesisData.Genesis, genesisAccountFromJSON{
+		Balance:      "0",
+		Nonce:        "0",
+		Address:      l2StakingContractAddr,
+		Bytecode:     l2StakingContractByteCode,
+		Storage:      storage,
+		ContractName: "L2 Staking Contract",
+	})
+}
+
+func buildAppContext(t *testing.T) (*app.App, sdk.Context, *genesisFromJSON) {
 	fxtypes.SetConfig(false)
 	fxDataDir := os.Getenv("FX_DATA_DIR")
 	require.NotEmptyf(t, fxDataDir, "env var FX_DATA_DIR is empty")
@@ -92,40 +190,21 @@ func TestExportDataToLayer2Genesis(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := newContext(t, myApp)
+	return myApp, ctx, l2GenesisData
+}
 
-	var ethAccountCount int
-	myApp.AccountKeeper.IterateAccounts(ctx, func(account types.AccountI) bool {
-		ethAccount, ok := account.(ethermint.EthAccountI)
-		if !ok {
-			return false
-		}
-		ethAccountCount++
-
-		bytecode := myApp.EvmKeeper.GetCode(ctx, ethAccount.GetCodeHash())
-
-		ethAddress := ethAccount.EthAddress()
-		balance := myApp.BankKeeper.GetBalance(ctx, ethAddress.Bytes(), fxtypes.DefaultDenom)
-		t.Logf("address: %s, balance: %s", ethAccount.EthAddress().String(), balance.String())
-		storage := make(map[string]string)
-		myApp.EvmKeeper.ForEachStorage(ctx, ethAccount.EthAddress(), func(key, value common.Hash) bool {
-			storage[key.String()] = value.String()
-			return true
-		})
-		l2GenesisData.Genesis = append(l2GenesisData.Genesis, genesisAccountFromJSON{
-			Balance:      "0",
-			Nonce:        strconv.Itoa(int(ethAccount.GetSequence())),
-			Address:      ethAddress.String(),
-			Bytecode:     "0x" + hex.EncodeToString(bytecode),
-			Storage:      storage,
-			ContractName: "",
-		})
+func canMigrate(t *testing.T, ctx sdk.Context, myApp *app.App, addr sdk.AccAddress) bool {
+	accountI := myApp.AccountKeeper.GetAccount(ctx, addr)
+	require.NotNilf(t, accountI, "account not found: %s", addr.String())
+	_, ok := accountI.(*ethermint.EthAccount)
+	if ok {
 		return false
-	})
+	}
 
-	// update the genesis file
-	l2GenesisBytes, err = json.MarshalIndent(l2GenesisData, "", " ")
-	require.NoError(t, err)
-	err = os.WriteFile(os.ExpandEnv(l2GenesisFile), l2GenesisBytes, 0644)
-	require.NoError(t, err)
-	t.Logf("ethAccountCount: %d", ethAccountCount)
+	pubKey := accountI.GetPubKey()
+	if pubKey == nil {
+		return accountI.GetSequence() > 0
+	}
+
+	return pubKey.Type() == ethPublicKeyType
 }
