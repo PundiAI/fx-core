@@ -7,9 +7,9 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v5/x/tron/types"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {

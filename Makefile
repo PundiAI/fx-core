@@ -134,7 +134,7 @@ run-local: install
 
 lint:
 	@echo "--> Running linter"
-	@which golangci-lint > /dev/null || echo "\033[91m install golangci-lint ...\033[0m" && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	golangci-lint run -v --go=1.19 --out-format=tab
 
 format: format-goimports
@@ -238,7 +238,7 @@ contract-publish:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME := github.com/functionx/fx-core/v5
+PACKAGE_NAME := github.com/functionx/fx-core/v6
 GOLANG_CROSS_VERSION := v1.19
 release-dry-run:
 	docker run --rm --privileged -e CGO_ENABLED=1 \

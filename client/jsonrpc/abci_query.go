@@ -13,7 +13,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	gravitytypes "github.com/functionx/fx-core/v5/x/gravity/types"
+	gravitytypes "github.com/functionx/fx-core/v6/x/gravity/types"
 )
 
 func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {

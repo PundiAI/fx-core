@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v5/client/cli"
+	"github.com/functionx/fx-core/v6/client/cli"
 )
 
 func TestToStringCmd(t *testing.T) {

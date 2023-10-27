@@ -14,10 +14,10 @@ import (
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	"github.com/functionx/fx-core/v5/app"
-	"github.com/functionx/fx-core/v5/testutil"
-	"github.com/functionx/fx-core/v5/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v6/app"
+	"github.com/functionx/fx-core/v6/testutil"
+	"github.com/functionx/fx-core/v6/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 const (

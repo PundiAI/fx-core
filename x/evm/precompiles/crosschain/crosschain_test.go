@@ -17,14 +17,14 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	testcontract "github.com/functionx/fx-core/v5/tests/contract"
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	bsctypes "github.com/functionx/fx-core/v5/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
-	"github.com/functionx/fx-core/v5/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v5/x/eth/types"
-	"github.com/functionx/fx-core/v5/x/evm/precompiles/crosschain"
+	testcontract "github.com/functionx/fx-core/v6/tests/contract"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v6/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
+	"github.com/functionx/fx-core/v6/x/evm/precompiles/crosschain"
 )
 
 func TestCrossChainABI(t *testing.T) {

@@ -17,11 +17,11 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v5/client"
-	"github.com/functionx/fx-core/v5/contract"
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	"github.com/functionx/fx-core/v5/types"
-	fxevmtypes "github.com/functionx/fx-core/v5/x/evm/types"
+	"github.com/functionx/fx-core/v6/client"
+	"github.com/functionx/fx-core/v6/contract"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v6/types"
+	fxevmtypes "github.com/functionx/fx-core/v6/x/evm/types"
 )
 
 func (suite *IntegrationTest) WFXTest() {

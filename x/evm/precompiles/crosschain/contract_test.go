@@ -38,13 +38,13 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v5/app"
-	fxserverconfig "github.com/functionx/fx-core/v5/server/config"
-	testscontract "github.com/functionx/fx-core/v5/tests/contract"
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
-	"github.com/functionx/fx-core/v5/x/erc20/types"
+	"github.com/functionx/fx-core/v6/app"
+	fxserverconfig "github.com/functionx/fx-core/v6/server/config"
+	testscontract "github.com/functionx/fx-core/v6/tests/contract"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v6/x/erc20/types"
 )
 
 type PrecompileTestSuite struct {

@@ -7,8 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 func TestIsEmptyHash(t *testing.T) {

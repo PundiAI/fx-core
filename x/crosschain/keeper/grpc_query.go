@@ -9,15 +9,15 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	arbitrumtypes "github.com/functionx/fx-core/v5/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v5/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v5/x/bsc/types"
-	"github.com/functionx/fx-core/v5/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v5/x/eth/types"
-	optimismtypes "github.com/functionx/fx-core/v5/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v5/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v5/x/tron/types"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	arbitrumtypes "github.com/functionx/fx-core/v6/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v6/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
+	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
+	optimismtypes "github.com/functionx/fx-core/v6/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v6/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
 )
 
 var _ types.QueryServer = Keeper{}

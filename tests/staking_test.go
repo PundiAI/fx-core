@@ -17,11 +17,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/functionx/fx-core/v5/app"
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	precompilesstaking "github.com/functionx/fx-core/v5/x/evm/precompiles/staking"
-	fxstakingtypes "github.com/functionx/fx-core/v5/x/staking/types"
+	"github.com/functionx/fx-core/v6/app"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	precompilesstaking "github.com/functionx/fx-core/v6/x/evm/precompiles/staking"
+	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
 )
 
 func (suite *IntegrationTest) StakingTest() {

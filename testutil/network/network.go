@@ -41,8 +41,8 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
-	fxcfg "github.com/functionx/fx-core/v5/server/config"
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	fxcfg "github.com/functionx/fx-core/v6/server/config"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 // package-wide network lock to only allow one test network at a time

@@ -13,9 +13,9 @@ import (
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	"github.com/functionx/fx-core/v5/x/staking/types"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v6/x/staking/types"
 )
 
 func (suite *KeeperTestSuite) TestGrantPrivilege() {

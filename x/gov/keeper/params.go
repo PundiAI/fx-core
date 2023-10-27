@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	"github.com/functionx/fx-core/v5/x/gov/types"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v6/x/gov/types"
 )
 
 // GetParams gets the gov module's parameters.

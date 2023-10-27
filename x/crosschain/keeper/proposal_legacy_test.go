@@ -5,8 +5,8 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	"github.com/functionx/fx-core/v5/x/crosschain/types"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v6/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
