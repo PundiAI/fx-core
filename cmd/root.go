@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -27,7 +28,6 @@ import (
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -210,10 +210,13 @@ func txCommand() *cobra.Command {
 
 func pruningCommand(appCreator servertypes.AppCreator, nodeHome string) *cobra.Command {
 	pruningCmd := pruning.PruningCmd(appCreator)
-	overwriteFlagDefaults(pruningCmd, map[string]string{
-		flags.FlagHome:           nodeHome,
-		pruning.FlagAppDBBackend: string(dbm.GoLevelDBBackend),
-	})
+	homeFlag := pruningCmd.Flag(flags.FlagHome)
+	homeFlag.DefValue = nodeHome
+	_ = homeFlag.Value.Set(nodeHome)
+	dbBackend := pruningCmd.Flag(pruning.FlagAppDBBackend)
+	dbBackend.DefValue = string(dbm.GoLevelDBBackend)
+	_ = dbBackend.Value.Set(string(dbm.GoLevelDBBackend))
+	pruningCmd.Example = fmt.Sprintf(`$ %s prune --pruning custom --pruning-keep-recent 100`, fxtypes.Name)
 	return pruningCmd
 }
 
@@ -304,22 +307,4 @@ func (a appCreator) appExport(
 	}
 
 	return anApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
-}
-
-func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
-	set := func(s *pflag.FlagSet, key, val string) {
-		if f := s.Lookup(key); f != nil {
-			f.DefValue = val
-			if err := f.Value.Set(val); err != nil {
-				panic(err)
-			}
-		}
-	}
-	for key, val := range defaults {
-		set(c.Flags(), key, val)
-		set(c.PersistentFlags(), key, val)
-	}
-	for _, c := range c.Commands() {
-		overwriteFlagDefaults(c, defaults)
-	}
 }
