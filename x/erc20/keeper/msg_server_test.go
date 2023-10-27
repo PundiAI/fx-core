@@ -1059,7 +1059,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 			}
 
 			coinBalance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), coin.Denom)
-			addr, _ := sdk.AccAddressFromBech32(msg.Receiver)
+			addr := sdk.MustAccAddressFromBech32(msg.Receiver)
 
 			expCoinBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, expCoin.Denom)
 			_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &msg)

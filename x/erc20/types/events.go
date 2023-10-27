@@ -6,7 +6,7 @@ const (
 	EventTypeConvertDenom            = "convert_denom"
 	EventTypeRegisterCoin            = "register_coin"
 	EventTypeRegisterERC20           = "register_erc20"
-	EventTypeToggleTokenRelay        = "toggle_token_relay"
+	EventTypeToggleTokenRelay        = "toggle_token_relay" //nolint:gosec
 	EventTypeERC20Processing         = "erc20_processing"
 	EventTypeRelayTransfer           = "relay_transfer"
 	EventTypeRelayTransferCrossChain = "relay_transfer_cross_chain"

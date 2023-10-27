@@ -84,7 +84,8 @@ func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockR
 		txsResults = append(txsResults, TxResultToMap(cdc, txResult))
 	}
 	var validatorUpdates []json.RawMessage
-	for _, valUp := range blockResults.ValidatorUpdates {
+	for i := 0; i < len(blockResults.ValidatorUpdates); i++ {
+		valUp := blockResults.ValidatorUpdates[i]
 		valUpData, err := cdc.MarshalJSON(&valUp)
 		if err != nil {
 			return nil, err

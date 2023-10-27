@@ -33,7 +33,7 @@ const (
 
 	TypeMsgRegisterCoin          = "register_coin"
 	TypeMsgRegisterERC20         = "register_erc20"
-	TypeMsgToggleTokenConversion = "toggle_token_conversion"
+	TypeMsgToggleTokenConversion = "toggle_token_conversion" //nolint:gosec
 	TypeMsgUpdateDenomAlias      = "update_denom_alias"
 )
 
@@ -180,7 +180,7 @@ func (m *MsgUpdateParams) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	addr := sdk.MustAccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{addr}
 }
 
@@ -224,7 +224,7 @@ func (m *MsgRegisterCoin) ValidateBasic() error {
 }
 
 func (m *MsgRegisterCoin) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	addr := sdk.MustAccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{addr}
 }
 
@@ -265,7 +265,7 @@ func (m *MsgRegisterERC20) ValidateBasic() error {
 }
 
 func (m *MsgRegisterERC20) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	addr := sdk.MustAccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{addr}
 }
 
@@ -295,7 +295,7 @@ func (m *MsgToggleTokenConversion) ValidateBasic() error {
 }
 
 func (m *MsgToggleTokenConversion) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	addr := sdk.MustAccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{addr}
 }
 
@@ -326,6 +326,6 @@ func (m *MsgUpdateDenomAlias) ValidateBasic() error {
 }
 
 func (m *MsgUpdateDenomAlias) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	addr := sdk.MustAccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{addr}
 }

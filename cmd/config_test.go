@@ -33,11 +33,11 @@ func Test_updateCfgCmd(t *testing.T) {
 	for _, entry := range publicDir {
 		appConfig, err := os.ReadFile(fmt.Sprintf("../public/%s/app.toml", entry.Name()))
 		assert.NoError(t, err)
-		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/app.toml"), appConfig, 0o700))
+		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/app.toml"), appConfig, 0o600))
 
 		tmConfig, err := os.ReadFile(fmt.Sprintf("../public/%s/config.toml", entry.Name()))
 		assert.NoError(t, err)
-		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/config.toml"), tmConfig, 0o700))
+		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/config.toml"), tmConfig, 0o600))
 
 		rootCmd.SetArgs([]string{"config", "update"})
 		assert.NoError(t, rootCmd.Execute())
