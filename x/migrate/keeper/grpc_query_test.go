@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	fxgovtypes "github.com/functionx/fx-core/v5/x/gov/types"
-	"github.com/functionx/fx-core/v5/x/migrate/types"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	"github.com/functionx/fx-core/v6/x/migrate/types"
 )
 
 func (suite *KeeperTestSuite) TestMigrateRecord() {

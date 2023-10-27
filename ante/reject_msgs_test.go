@@ -13,10 +13,10 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/server/config"
 
-	"github.com/functionx/fx-core/v5/ante"
-	"github.com/functionx/fx-core/v5/app"
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	"github.com/functionx/fx-core/v6/ante"
+	"github.com/functionx/fx-core/v6/app"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 func (suite *AnteTestSuite) TestRejectValidatorGranted() {

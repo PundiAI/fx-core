@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxserverconfig "github.com/functionx/fx-core/v5/server/config"
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	fxserverconfig "github.com/functionx/fx-core/v6/server/config"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 type CallerRef struct {

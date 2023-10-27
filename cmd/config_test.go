@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	fxcfg "github.com/functionx/fx-core/v5/server/config"
+	fxcfg "github.com/functionx/fx-core/v6/server/config"
 )
 
 func Test_updateCfgCmd(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	ethtypes "github.com/functionx/fx-core/v5/x/eth/types"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_Outgoing() {

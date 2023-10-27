@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	testscontract "github.com/functionx/fx-core/v5/tests/contract"
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	"github.com/functionx/fx-core/v5/x/evm/precompiles/staking"
-	fxstakingtypes "github.com/functionx/fx-core/v5/x/staking/types"
+	testscontract "github.com/functionx/fx-core/v6/tests/contract"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v6/x/evm/precompiles/staking"
+	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
 )
 
 func TestStakingApproveSharesABI(t *testing.T) {

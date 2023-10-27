@@ -6,9 +6,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	"github.com/functionx/fx-core/v5/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v5/x/tron/types"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_BatchFees() {

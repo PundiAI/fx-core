@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 func TestParseTargetIBC(t *testing.T) {

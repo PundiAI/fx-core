@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v5/x/erc20/types"
+	"github.com/functionx/fx-core/v6/x/erc20/types"
 )
 
 // NewLegacyRegisterCoinProposalCmd implements the command to submit a register-coin proposal

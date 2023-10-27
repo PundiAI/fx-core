@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/rosetta"
 	"github.com/spf13/cobra"
 
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 // RosettaCommand builds the rosetta root command given

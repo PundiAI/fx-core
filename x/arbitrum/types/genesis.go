@@ -1,7 +1,7 @@
 package types
 
 import (
-	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
 )
 
 func DefaultGenesisState() *crosschaintypes.GenesisState {

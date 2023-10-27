@@ -24,14 +24,14 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v5/app"
-	"github.com/functionx/fx-core/v5/client/grpc"
-	"github.com/functionx/fx-core/v5/client/jsonrpc"
-	"github.com/functionx/fx-core/v5/testutil"
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	"github.com/functionx/fx-core/v5/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	fxgovtypes "github.com/functionx/fx-core/v5/x/gov/types"
+	"github.com/functionx/fx-core/v6/app"
+	"github.com/functionx/fx-core/v6/client/grpc"
+	"github.com/functionx/fx-core/v6/client/jsonrpc"
+	"github.com/functionx/fx-core/v6/testutil"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v6/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
 )
 
 type TestSuite struct {
