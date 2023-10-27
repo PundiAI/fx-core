@@ -132,7 +132,7 @@ run-local: install
 ###                                Linting                                  ###
 ###############################################################################
 
-lint:
+lint: format
 	@echo "--> Running linter"
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	golangci-lint run -v --go=1.19 --out-format=tab

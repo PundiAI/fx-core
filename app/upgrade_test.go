@@ -8,7 +8,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	v6 "github.com/functionx/fx-core/v6/app/upgrades/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
@@ -16,6 +15,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v6/app"
+	v6 "github.com/functionx/fx-core/v6/app/upgrades/v6"
 	"github.com/functionx/fx-core/v6/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v6/types"
 )

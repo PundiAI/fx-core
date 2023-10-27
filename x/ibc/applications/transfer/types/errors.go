@@ -1,6 +1,8 @@
 package types
 
-import errorsmod "cosmossdk.io/errors"
+import (
+	errorsmod "cosmossdk.io/errors"
+)
 
 var (
 	ErrFeeDenomNotMatchTokenDenom = errorsmod.Register(ModuleName, 100, "invalid fee denom, must match token denom")

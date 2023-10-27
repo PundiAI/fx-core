@@ -1,6 +1,8 @@
 package types
 
-import errorsmod "cosmossdk.io/errors"
+import (
+	errorsmod "cosmossdk.io/errors"
+)
 
 var (
 	ErrInvalid                 = errorsmod.Register(ModuleName, 2, "invalid")
