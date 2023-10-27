@@ -1,6 +1,8 @@
 package types
 
-import errorsmod "cosmossdk.io/errors"
+import (
+	errorsmod "cosmossdk.io/errors"
+)
 
 var (
 	ErrERC20Disabled          = errorsmod.Register(ModuleName, 2, "erc20 module is disabled")

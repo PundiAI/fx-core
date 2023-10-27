@@ -133,7 +133,7 @@ run-local: install
 ###############################################################################
 
 golangci_lint_cmd=golangci-lint
-golangci_version=v1.54.0
+golangci_version=v1.54.2
 
 lint-install:
 	@echo "--> Installing golangci-lint $(golangci_version)"
@@ -244,7 +244,7 @@ contract-publish:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME := github.com/functionx/fx-core/v5
+PACKAGE_NAME := github.com/functionx/fx-core/v6
 GOLANG_CROSS_VERSION := v1.19
 release-dry-run:
 	docker run --rm --privileged -e CGO_ENABLED=1 \

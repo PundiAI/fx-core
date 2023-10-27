@@ -15,7 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
 )
 
 func TestSwaggerConfig(t *testing.T) {

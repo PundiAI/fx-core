@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
 
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 func Test_output(t *testing.T) {

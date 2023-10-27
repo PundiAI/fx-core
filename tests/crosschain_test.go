@@ -10,10 +10,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	bsctypes "github.com/functionx/fx-core/v5/x/bsc/types"
-	ethtypes "github.com/functionx/fx-core/v5/x/eth/types"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 )
 
 func (suite *IntegrationTest) CrossChainTest() {

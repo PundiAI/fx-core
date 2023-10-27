@@ -52,8 +52,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	fxcfg "github.com/functionx/fx-core/v5/server/config"
-	fxtypes "github.com/functionx/fx-core/v5/types"
+	fxcfg "github.com/functionx/fx-core/v6/server/config"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
 const FlagApplicationDatabaseDir = "application-db-dir"
@@ -664,6 +664,7 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 			return errors.New("invalid version: The current block height is less than the v5.0.0 upgrade height(11_601_700)," +
 				" please use the v4.x.x version to synchronize the block or download the latest snapshot")
 		}
+		return errors.New("invalid version: The current version is not released, please use the corresponding version")
 	}
 	return nil
 }

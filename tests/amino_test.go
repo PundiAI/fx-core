@@ -17,12 +17,12 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v5/app"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	crosschaintypes "github.com/functionx/fx-core/v5/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
-	fxgovtypes "github.com/functionx/fx-core/v5/x/gov/types"
-	ibctransfertypes "github.com/functionx/fx-core/v5/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v6/app"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
+	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	ibctransfertypes "github.com/functionx/fx-core/v6/x/ibc/applications/transfer/types"
 )
 
 func TestAminoEncode(t *testing.T) {

@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v5/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v5/types"
-	erc20types "github.com/functionx/fx-core/v5/x/erc20/types"
-	"github.com/functionx/fx-core/v5/x/evm/precompiles/crosschain"
+	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
+	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
+	"github.com/functionx/fx-core/v6/x/evm/precompiles/crosschain"
 )
 
 func TestBridgeCoinAmountABI(t *testing.T) {
