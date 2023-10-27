@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -114,7 +115,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(encodingConfig),
 		configCmd(),
-		pruning.PruningCmd(myAppCreator.newApp),
+		pruningCommand(myAppCreator.newApp, defaultNodeHome),
 	)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -205,6 +206,22 @@ func txCommand() *cobra.Command {
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
+}
+
+func pruningCommand(appCreator servertypes.AppCreator, nodeHome string) *cobra.Command {
+	pruningCmd := pruning.PruningCmd(appCreator)
+	homeFlag := pruningCmd.Flag(flags.FlagHome)
+	homeFlag.DefValue = nodeHome
+	if err := homeFlag.Value.Set(nodeHome); err != nil {
+		panic(err)
+	}
+	dbBackend := pruningCmd.Flag(pruning.FlagAppDBBackend)
+	dbBackend.DefValue = string(dbm.GoLevelDBBackend)
+	if err := dbBackend.Value.Set(string(dbm.GoLevelDBBackend)); err != nil {
+		panic(err)
+	}
+	pruningCmd.Example = fmt.Sprintf(`$ %s prune --pruning custom --pruning-keep-recent 100`, fxtypes.Name)
+	return pruningCmd
 }
 
 type appCreator struct {
