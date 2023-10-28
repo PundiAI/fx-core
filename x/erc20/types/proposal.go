@@ -17,7 +17,7 @@ import (
 const (
 	ProposalTypeRegisterCoin          string = "RegisterCoin"
 	ProposalTypeRegisterERC20         string = "RegisterERC20"
-	ProposalTypeToggleTokenConversion string = "ToggleTokenConversion" // #nosec
+	ProposalTypeToggleTokenConversion string = "ToggleTokenConversion" // #nosec G101
 	ProposalTypeUpdateDenomAlias      string = "UpdateDenomAlias"
 )
 

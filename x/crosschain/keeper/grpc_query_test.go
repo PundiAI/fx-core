@@ -614,7 +614,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 		{
 			name: "batch fee mul normal",
 			malleate: func() {
-				bridgeTokenList := make([]*types.BridgeToken, 0)
+				bridgeTokenList := make([]*types.BridgeToken, 2)
 
 				externalKey, _ := ethsecp256k1.GenerateKey()
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
@@ -629,7 +629,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 					})
 					suite.Require().NoError(err)
 					denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token)
-					bridgeTokenList = append(bridgeTokenList, denom)
+					bridgeTokenList[i] = denom
 					initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
 					err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
 					suite.Require().NoError(err)

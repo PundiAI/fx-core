@@ -143,9 +143,9 @@ lint:
 	echo "--> Running linter"
 	$(MAKE) lint-install
 	$(golangci_lint_cmd) run --build-tags=$(GO_BUILD) --fix --out-format=tab
-	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint' | wc -l) -ne 32 ]; then \
+	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 41 ]; then \
 		echo "--> increase or decrease nolint, please recheck them"; \
-		echo "--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint'\`"; exit 1;\
+		echo "--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`"; exit 1;\
 	fi
 
 format: lint
