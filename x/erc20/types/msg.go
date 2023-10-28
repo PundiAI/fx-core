@@ -33,7 +33,7 @@ const (
 
 	TypeMsgRegisterCoin          = "register_coin"
 	TypeMsgRegisterERC20         = "register_erc20"
-	TypeMsgToggleTokenConversion = "toggle_token_conversion" //nolint:gosec
+	TypeMsgToggleTokenConversion = "toggle_token_conversion" //nolint:gosec #nosec G101
 	TypeMsgUpdateDenomAlias      = "update_denom_alias"
 )
 
