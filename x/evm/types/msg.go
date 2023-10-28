@@ -18,8 +18,7 @@ func (m *MsgCallContract) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (m *MsgCallContract) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }
 
 // ValidateBasic does a sanity check on the provided data.
