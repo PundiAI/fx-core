@@ -863,6 +863,5 @@ func (m *MsgUpdateChainOracles) ValidateBasic() error {
 }
 
 func (m *MsgUpdateChainOracles) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }
