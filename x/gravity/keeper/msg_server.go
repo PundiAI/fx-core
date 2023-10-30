@@ -11,7 +11,7 @@ import (
 )
 
 type msgServer struct {
-	crosschainkeeper.MsgServer
+	crosschaintypes.MsgServer
 }
 
 func NewMsgServerImpl(keeper crosschainkeeper.Keeper) types.MsgServer {
