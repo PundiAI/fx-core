@@ -132,17 +132,23 @@ run-local: install
 ###                                Linting                                  ###
 ###############################################################################
 
-lint: format
-	@echo "--> Running linter"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	golangci-lint run -v --go=1.19 --out-format=tab
+golangci_lint_cmd=golangci-lint
+golangci_version=v1.54.2
 
-format: format-goimports
-	golangci-lint run --fix --out-format=tab --issues-exit-code=0
+lint-install:
+	@echo "--> Installing golangci-lint $(golangci_version)"
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
 
-format-goimports:
-	@go install github.com/incu6us/goimports-reviser/v3@latest
-	@find . -name '*.go' -type f -not -path './build*' -not -name 'statik.go' -not -name '*.pb.go' -not -name '*.pb.gw.go' -exec goimports-reviser -use-cache -rm-unused {} \;
+lint:
+	echo "--> Running linter"
+	$(MAKE) lint-install
+	$(golangci_lint_cmd) run --build-tags=$(GO_BUILD) --fix --out-format=tab
+	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 41 ]; then \
+		echo "--> increase or decrease nolint, please recheck them"; \
+		echo "--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`"; exit 1;\
+	fi
+
+format: lint
 
 lint-shell:
 	# install shellcheck > https://github.com/koalaman/shellcheck

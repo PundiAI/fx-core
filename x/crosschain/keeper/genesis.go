@@ -43,7 +43,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	k.CommonSetOracleTotalPower(ctx)
 
 	latestOracleSetNonce := uint64(0)
-	for _, set := range state.OracleSets {
+	for i := 0; i < len(state.OracleSets); i++ {
+		set := state.OracleSets[i]
 		// 0x15 0x29
 		if set.Nonce > latestOracleSetNonce {
 			latestOracleSetNonce = set.Nonce
@@ -56,7 +57,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		// 0x26 0x27
 		k.AddBridgeToken(ctx, bridgeToken.Token, bridgeToken.Denom)
 	}
-	for _, confirm := range state.BatchConfirms {
+	for i := 0; i < len(state.BatchConfirms); i++ {
+		confirm := state.BatchConfirms[i]
 		for _, oracle := range state.Oracles {
 			if confirm.BridgerAddress == oracle.BridgerAddress {
 				// 0x22
@@ -64,7 +66,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 			}
 		}
 	}
-	for _, confirm := range state.OracleSetConfirms {
+	for i := 0; i < len(state.OracleSetConfirms); i++ {
+		confirm := state.OracleSetConfirms[i]
 		for _, oracle := range state.Oracles {
 			if confirm.BridgerAddress == oracle.BridgerAddress {
 				// 0x16
@@ -73,14 +76,16 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		}
 	}
 
-	for _, transfer := range state.UnbatchedTransfers {
+	for i := 0; i < len(state.UnbatchedTransfers); i++ {
+		transfer := state.UnbatchedTransfers[i]
 		// 0x18
 		if err := k.AddUnbatchedTx(ctx, &transfer); err != nil {
 			panic(err)
 		}
 	}
 
-	for _, batch := range state.Batches {
+	for i := 0; i < len(state.Batches); i++ {
+		batch := state.Batches[i]
 		// 0x20 0x21
 		if err := k.StoreBatch(ctx, &batch); err != nil {
 			panic(err)
@@ -88,7 +93,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	}
 
 	// reset attestations in state
-	for _, att := range state.Attestations {
+	for i := 0; i < len(state.Attestations); i++ {
+		att := state.Attestations[i]
 		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 		if err != nil {
 			panic("couldn't cast to claim")
@@ -100,7 +106,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 
 	// reset attestation state of specific validators
 	// this must be done after the above to be correct
-	for _, att := range state.Attestations {
+	for i := 0; i < len(state.Attestations); i++ {
+
+		att := state.Attestations[i]
 		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 		if err != nil {
 			panic("couldn't cast to claim")

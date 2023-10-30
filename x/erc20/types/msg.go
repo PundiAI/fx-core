@@ -33,7 +33,7 @@ const (
 
 	TypeMsgRegisterCoin          = "register_coin"
 	TypeMsgRegisterERC20         = "register_erc20"
-	TypeMsgToggleTokenConversion = "toggle_token_conversion"
+	TypeMsgToggleTokenConversion = "toggle_token_conversion" // #nosec G101
 	TypeMsgUpdateDenomAlias      = "update_denom_alias"
 )
 
@@ -180,8 +180,7 @@ func (m *MsgUpdateParams) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }
 
 func (m *MsgUpdateParams) ValidateBasic() error {
@@ -224,8 +223,7 @@ func (m *MsgRegisterCoin) ValidateBasic() error {
 }
 
 func (m *MsgRegisterCoin) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }
 
 // Route returns the MsgRegisterERC20 message route.
@@ -265,8 +263,7 @@ func (m *MsgRegisterERC20) ValidateBasic() error {
 }
 
 func (m *MsgRegisterERC20) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }
 
 // Route returns the MsgToggleTokenConversion message route.
@@ -295,8 +292,7 @@ func (m *MsgToggleTokenConversion) ValidateBasic() error {
 }
 
 func (m *MsgToggleTokenConversion) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }
 
 // Route returns the MsgUpdateDenomAlias message route.
@@ -326,6 +322,5 @@ func (m *MsgUpdateDenomAlias) ValidateBasic() error {
 }
 
 func (m *MsgUpdateDenomAlias) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }

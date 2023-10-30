@@ -19,9 +19,22 @@ linters:
     - unparam
     - stylecheck
     - gocyclo
+    - gci
+    - dogsled
+    - gosec
+    - errcheck
 
 linters-settings:
   stylecheck:
     checks: ["all", "-ST1003"]
   gocyclo:
     min-complexity: 15
+  gci:
+    custom-order: true
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - prefix(github.com/functionx/fx-core)
+  errcheck:
+    check-type-assertions: false
+    check-blank: false

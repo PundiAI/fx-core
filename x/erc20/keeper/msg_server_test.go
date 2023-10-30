@@ -636,7 +636,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
 				base := helpers.NewRandDenom()
-				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom
+				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom // #nosec G602
 			},
 		},
 		{
@@ -651,7 +651,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
 				base := helpers.NewRandDenom()
-				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), aliases[0]
+				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), aliases[0] // #nosec G602
 			},
 		},
 		{
@@ -676,7 +676,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					i++
 				}
 				base := helpers.NewRandDenom()
-				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), idxDenom
+				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), idxDenom // #nosec G602
 			},
 		},
 		{
@@ -701,7 +701,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					i++
 				}
 				base := helpers.NewRandDenom()
-				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), aliases[0]
+				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), aliases[0] // #nosec G602
 			},
 		},
 	}
@@ -1059,7 +1059,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 			}
 
 			coinBalance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), coin.Denom)
-			addr, _ := sdk.AccAddressFromBech32(msg.Receiver)
+			addr := sdk.MustAccAddressFromBech32(msg.Receiver)
 
 			expCoinBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, expCoin.Denom)
 			_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &msg)
