@@ -16,7 +16,6 @@ import (
 
 	_ "github.com/functionx/fx-core/v6/app"
 	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
 	avalanchetypes "github.com/functionx/fx-core/v6/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
 	"github.com/functionx/fx-core/v6/x/crosschain/types"
@@ -163,7 +162,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				OracleAddress:   normalOracleAddress,
 				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
-				DelegateAmount:  sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)),
+				DelegateAmount:  types.NewDelegateAmount(sdkmath.NewInt(1)),
 			},
 			expectPass: true,
 			err:        nil,
@@ -225,7 +224,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			msg: &types.MsgAddDelegate{
 				ChainName:     moduleName,
 				OracleAddress: "",
-				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1)},
+				Amount:        types.NewDelegateAmount(sdkmath.NewInt(1)),
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidAddress,
@@ -236,7 +235,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			msg: &types.MsgAddDelegate{
 				ChainName:     moduleName,
 				OracleAddress: errPrefixAddress,
-				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1)},
+				Amount:        types.NewDelegateAmount(sdkmath.NewInt(1)),
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidAddress,
@@ -247,7 +246,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			msg: &types.MsgAddDelegate{
 				ChainName:     moduleName,
 				OracleAddress: normalOracleAddress,
-				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(0)},
+				Amount:        types.NewDelegateAmount(sdkmath.NewInt(0)),
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
@@ -258,7 +257,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			msg: &types.MsgAddDelegate{
 				ChainName:     moduleName,
 				OracleAddress: normalOracleAddress,
-				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(-1)},
+				Amount:        types.NewDelegateAmount(sdkmath.NewInt(-1)),
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
@@ -269,7 +268,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			msg: &types.MsgAddDelegate{
 				ChainName:     moduleName,
 				OracleAddress: normalOracleAddress,
-				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1)},
+				Amount:        types.NewDelegateAmount(sdkmath.NewInt(1)),
 			},
 			expectPass: true,
 			err:        nil,
@@ -1298,7 +1297,7 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 				ChainName:     moduleName,
 				Sender:        normalFxAddress,
 				TransactionId: 1,
-				AddBridgeFee:  sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)),
+				AddBridgeFee:  sdk.NewCoin(tmrand.Str(2), sdkmath.NewInt(1)),
 			},
 			expectPass: true,
 		},

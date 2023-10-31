@@ -8,7 +8,7 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v6/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 )
 
@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
 	sender := helpers.GenerateAddress().Bytes()
 	bridgeToken := helpers.GenerateAddress().Hex()
-	denom := fxtypes.DefaultDenom
+	denom := types.NativeDenom
 	supply := suite.app.BankKeeper.GetSupply(suite.ctx, denom)
 
 	sendAmount := sdk.NewCoin(denom, sdkmath.NewInt(int64(tmrand.Uint32()*2)))
