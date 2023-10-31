@@ -181,7 +181,7 @@ func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]CrossChainKeepe
 		cck := value.Field(i).Interface().(CrossChainKeeper)
 		if chainName == "bridge-eth" {
 			// keepers["gravity"] = cck
-			//keepers["eth"] = cck
+			// keepers["eth"] = cck
 		} else {
 			keepers[chainName] = cck
 		}
