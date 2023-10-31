@@ -541,7 +541,7 @@ func CmdGetPendingSendToExternal(chainName string) *cobra.Command {
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
-				return nil
+				return err
 			}
 			res, err := queryClient.GetPendingSendToExternal(cmd.Context(), &types.QueryPendingSendToExternalRequest{
 				ChainName:     chainName,

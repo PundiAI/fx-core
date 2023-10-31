@@ -74,11 +74,7 @@ func (m *MsgMigrateAccount) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgMigrateAccount) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.From)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.From)}
 }
 
 func MigrateAccountSignatureHash(from, to []byte) []byte {

@@ -166,11 +166,7 @@ func (m *MsgBondedOracle) GetSignBytes() []byte {
 }
 
 func (m *MsgBondedOracle) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
 // MsgAddDelegate
@@ -197,11 +193,7 @@ func (m *MsgAddDelegate) GetSignBytes() []byte {
 }
 
 func (m *MsgAddDelegate) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
 // MsgReDelegate
@@ -228,11 +220,7 @@ func (m *MsgReDelegate) GetSignBytes() []byte {
 }
 
 func (m *MsgReDelegate) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
 // MsgEditBridger
@@ -257,11 +245,7 @@ func (m *MsgEditBridger) GetSignBytes() []byte {
 }
 
 func (m *MsgEditBridger) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
 // MsgWithdrawReward
@@ -286,11 +270,7 @@ func (m *MsgWithdrawReward) GetSignBytes() []byte {
 }
 
 func (m *MsgWithdrawReward) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
 // MsgUnbondedOracle
@@ -315,11 +295,7 @@ func (m *MsgUnbondedOracle) GetSignBytes() []byte {
 }
 
 func (m *MsgUnbondedOracle) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
 // MsgOracleSetConfirm
@@ -349,11 +325,7 @@ func (m *MsgOracleSetConfirm) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgOracleSetConfirm) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 // MsgSendToExternal
@@ -384,11 +356,7 @@ func (m *MsgSendToExternal) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgSendToExternal) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // MsgRequestBatch
@@ -418,11 +386,7 @@ func (m *MsgRequestBatch) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgRequestBatch) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // MsgConfirmBatch
@@ -452,11 +416,7 @@ func (m *MsgConfirmBatch) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgConfirmBatch) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 // MsgCancelSendToExternal
@@ -486,11 +446,7 @@ func (m *MsgCancelSendToExternal) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgCancelSendToExternal) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // MsgIncreaseBridgeFee
@@ -520,11 +476,7 @@ func (m *MsgIncreaseBridgeFee) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgIncreaseBridgeFee) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // ExternalClaim represents a claim on ethereum state
@@ -588,20 +540,12 @@ func (m *MsgSendToFxClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgSendToFxClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgSendToFxClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 // Type should return the action
@@ -647,20 +591,12 @@ func (m *MsgSendToExternalClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(fmt.Sprintf("invalid address %s", m.BridgerAddress))
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 // Route should return the name of the module
@@ -691,19 +627,11 @@ func (m *MsgBridgeTokenClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 func (m *MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(fmt.Sprintf("invalid address %s", m.BridgerAddress))
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
 func (m *MsgBridgeTokenClaim) GetType() ClaimType {
@@ -740,20 +668,12 @@ func (m *MsgOracleSetUpdatedClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgOracleSetUpdatedClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(fmt.Sprintf("invalid address %s", m.BridgerAddress))
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgOracleSetUpdatedClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 // Type should return the action
@@ -773,11 +693,7 @@ func (m *MsgSetOrchestratorAddress) ValidateBasic() (err error) {
 }
 
 func (m *MsgSetOrchestratorAddress) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 func (m *MsgAddOracleDeposit) ValidateBasic() (err error) {
@@ -785,11 +701,7 @@ func (m *MsgAddOracleDeposit) ValidateBasic() (err error) {
 }
 
 func (m *MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
 // Route returns the MsgUpdateParams message route.

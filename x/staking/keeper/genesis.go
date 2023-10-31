@@ -18,14 +18,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []ab
 		if err != nil {
 			panic(err)
 		}
-		ownerAddr, err := sdk.AccAddressFromBech32(allowance.OwnerAddress)
-		if err != nil {
-			panic(err)
-		}
-		spenderAddr, err := sdk.AccAddressFromBech32(allowance.SpenderAddress)
-		if err != nil {
-			panic(err)
-		}
+		ownerAddr := sdk.MustAccAddressFromBech32(allowance.OwnerAddress)
+		spenderAddr := sdk.MustAccAddressFromBech32(allowance.SpenderAddress)
 		if allowance.Allowance.IsNegative() {
 			panic("allowance must be positive")
 		}
