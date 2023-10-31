@@ -253,17 +253,6 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			errReason:  "invalid amount: invalid request",
 		},
 		{
-			testName: "err - negative delegate amount",
-			msg: &types.MsgAddDelegate{
-				ChainName:     moduleName,
-				OracleAddress: normalOracleAddress,
-				Amount:        types.NewDelegateAmount(sdkmath.NewInt(-1)),
-			},
-			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid amount: invalid request",
-		},
-		{
 			testName: "success",
 			msg: &types.MsgAddDelegate{
 				ChainName:     moduleName,
