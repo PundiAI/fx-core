@@ -24,7 +24,6 @@ import (
 
 	"github.com/functionx/fx-core/v6/app"
 	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
 	arbitrumtypes "github.com/functionx/fx-core/v6/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v6/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
@@ -67,8 +66,8 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
+	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(types.NativeDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
 }
 

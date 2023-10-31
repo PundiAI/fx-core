@@ -15,6 +15,10 @@ import (
 	fxtypes "github.com/functionx/fx-core/v6/types"
 )
 
+func NewDelegateAmount(amount sdkmath.Int) sdk.Coin {
+	return sdk.NewCoin(OracleDelegateDenom, amount)
+}
+
 // --- ERC20Token --- //
 
 func NewERC20Token(amount sdkmath.Int, contract string) ERC20Token {
