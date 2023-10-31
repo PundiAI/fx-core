@@ -69,10 +69,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	attestationPower := sdkmath.NewInt(0)
 
 	for _, oracleStr := range att.Votes {
-		oracleAddr, err := sdk.AccAddressFromBech32(oracleStr)
-		if err != nil {
-			panic(fmt.Errorf("invalid oracle address %s", err.Error()))
-		}
+		oracleAddr := sdk.MustAccAddressFromBech32(oracleStr)
 		oracle, found := k.GetOracle(ctx, oracleAddr)
 		if !found {
 			k.Logger(ctx).Error("TryAttestation", "not found oracle", oracleAddr.String(), "claimEventNonce",
@@ -99,7 +96,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		att.Observed = true
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-		err = k.processAttestation(ctx, claim)
+		err := k.processAttestation(ctx, claim)
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),

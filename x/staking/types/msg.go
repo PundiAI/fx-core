@@ -84,11 +84,7 @@ func (m *MsgGrantPrivilege) GetSignBytes() []byte {
 }
 
 func (m *MsgGrantPrivilege) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.FromAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.FromAddress)}
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
@@ -163,11 +159,7 @@ func (m *MsgEditConsensusPubKey) GetSignBytes() []byte {
 }
 
 func (m *MsgEditConsensusPubKey) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.From)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.From)}
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces

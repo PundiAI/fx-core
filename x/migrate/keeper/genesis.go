@@ -11,11 +11,8 @@ import (
 // InitGenesis import module genesis
 func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, record := range state.MigrateRecords {
-		fromAddr, err := sdk.AccAddressFromBech32(record.From)
-		if err != nil {
-			panic(err)
-		}
-		if err = fxtypes.ValidateEthereumAddress(record.To); err != nil {
+		fromAddr := sdk.MustAccAddressFromBech32(record.From)
+		if err := fxtypes.ValidateEthereumAddress(record.To); err != nil {
 			panic(err)
 		}
 		k.SetMigrateRecord(ctx, fromAddr, common.HexToAddress(record.To))

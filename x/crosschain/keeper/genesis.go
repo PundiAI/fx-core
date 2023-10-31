@@ -123,10 +123,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		// while all attestations have already been cleaned up we can do this instead and
 		// not carry around every validators event nonce counter forever.
 		for _, vote := range att.Votes {
-			oracle, err := sdk.AccAddressFromBech32(vote)
-			if err != nil {
-				panic(err)
-			}
+			oracle := sdk.MustAccAddressFromBech32(vote)
 			last := k.GetLastEventNonceByOracle(ctx, oracle)
 			if claim.GetEventNonce() > last {
 				// 0x23

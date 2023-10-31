@@ -183,10 +183,7 @@ func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Ora
 }
 
 func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddrStr string) {
-	oracleAddr, err := sdk.AccAddressFromBech32(oracleAddrStr)
-	if err != nil {
-		panic(err)
-	}
+	oracleAddr := sdk.MustAccAddressFromBech32(oracleAddrStr)
 	oracle, found := k.GetOracle(ctx, oracleAddr)
 	if !found {
 		panic(types.ErrNoFoundOracle)

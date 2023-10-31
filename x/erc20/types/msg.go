@@ -77,8 +77,7 @@ func (m *MsgConvertCoin) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgConvertCoin) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // NewMsgConvertERC20 creates a new instance of MsgConvertERC20
@@ -121,8 +120,7 @@ func (m *MsgConvertERC20) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgConvertERC20) GetSigners() []sdk.AccAddress {
-	addr := common.HexToAddress(m.Sender)
-	return []sdk.AccAddress{addr.Bytes()}
+	return []sdk.AccAddress{common.HexToAddress(m.Sender).Bytes()}
 }
 
 func NewMsgConvertDenom(sender, receiver sdk.AccAddress, coin sdk.Coin, target string) *MsgConvertDenom {
@@ -161,8 +159,7 @@ func (m *MsgConvertDenom) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgConvertDenom) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{addr}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // Route returns the MsgUpdateParams message route.

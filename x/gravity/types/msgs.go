@@ -105,11 +105,7 @@ func (m *MsgValsetConfirm) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgValsetConfirm) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Orchestrator)}
 }
 
 // Route should return the name of the module
@@ -146,11 +142,7 @@ func (m *MsgSendToEth) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgSendToEth) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // Route should return the name of the module
@@ -186,11 +178,7 @@ func (m *MsgRequestBatch) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgRequestBatch) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // Route should return the name of the module
@@ -226,11 +214,7 @@ func (m *MsgConfirmBatch) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgConfirmBatch) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Orchestrator)}
 }
 
 // Route should return the name of the module
@@ -257,11 +241,7 @@ func (m *MsgCancelSendToEth) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgCancelSendToEth) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // Deprecated: EthereumClaim represents a claim on ethereum state
@@ -339,20 +319,12 @@ func (m *MsgDepositClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgDepositClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.Orchestrator)
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgDepositClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Orchestrator)}
 }
 
 // Type should return the action
@@ -404,20 +376,12 @@ func (m *MsgWithdrawClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgWithdrawClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.Orchestrator)
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgWithdrawClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Orchestrator)}
 }
 
 // Route should return the name of the module
@@ -459,19 +423,11 @@ func (m *MsgFxOriginatedTokenClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgFxOriginatedTokenClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Orchestrator)}
 }
 
 func (m *MsgFxOriginatedTokenClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.Orchestrator)
 }
 
 func (m *MsgFxOriginatedTokenClaim) GetType() ClaimType {
@@ -519,20 +475,12 @@ func (m *MsgValsetUpdatedClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgValsetUpdatedClaim) GetClaimer() sdk.AccAddress {
-	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return val
+	return sdk.MustAccAddressFromBech32(m.Orchestrator)
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Orchestrator)}
 }
 
 // Type should return the action

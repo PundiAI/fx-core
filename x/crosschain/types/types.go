@@ -321,20 +321,11 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 // --- Oracle(S) --- //
 
 func (m *Oracle) GetOracle() sdk.AccAddress {
-	// oracle address can't be empty
-	addr, err := sdk.AccAddressFromBech32(m.OracleAddress)
-	if err != nil {
-		panic(err)
-	}
-	return addr
+	return sdk.MustAccAddressFromBech32(m.OracleAddress)
 }
 
 func (m *Oracle) GetBridger() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(m.BridgerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return addr
+	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
 func (m *Oracle) GetValidator() sdk.ValAddress {
