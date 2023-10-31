@@ -22,7 +22,6 @@ import (
 	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
 	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
 	"github.com/functionx/fx-core/v6/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 	"github.com/functionx/fx-core/v6/x/evm/precompiles/crosschain"
 )
 
@@ -79,7 +78,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 
-				moduleName := ethtypes.ModuleName
+				moduleName := bsctypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 
 				fee := big.NewInt(1)
@@ -711,7 +710,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 
-				moduleName := ethtypes.ModuleName
+				moduleName := bsctypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 
 				fee := big.NewInt(1)
