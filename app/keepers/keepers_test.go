@@ -24,6 +24,7 @@ import (
 	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
+	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 	optimismtypes "github.com/functionx/fx-core/v6/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v6/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
@@ -54,6 +55,7 @@ func TestNewAppKeeper(t *testing.T) {
 		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 		arbitrumtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		optimismtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		layer2types.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
 	}

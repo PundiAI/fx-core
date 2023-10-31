@@ -31,6 +31,7 @@ import (
 	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 	precompilescrosschain "github.com/functionx/fx-core/v6/x/evm/precompiles/crosschain"
 	precompilesstaking "github.com/functionx/fx-core/v6/x/evm/precompiles/staking"
+	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 	migratetypes "github.com/functionx/fx-core/v6/x/migrate/types"
 	optimismtypes "github.com/functionx/fx-core/v6/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v6/x/polygon/types"
@@ -47,7 +48,7 @@ func (appKeepers *AppKeepers) generateKeys() {
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey,
 		bsctypes.StoreKey, polygontypes.StoreKey, avalanchetypes.StoreKey, ethtypes.StoreKey, trontypes.StoreKey,
-		arbitrumtypes.ModuleName, optimismtypes.ModuleName,
+		arbitrumtypes.ModuleName, optimismtypes.ModuleName, layer2types.ModuleName,
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		erc20types.StoreKey, migratetypes.StoreKey,
 	)
@@ -94,7 +95,8 @@ func (appKeepers *AppKeepers) EvmPrecompiled() {
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
 		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
-		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper)
+		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
+		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper)
 	precompiled[precompilescrosschain.GetAddress()] = func(ctx sdk.Context) vm.PrecompiledContract {
 		return precompilescrosschain.NewPrecompiledContract(
 			ctx,
