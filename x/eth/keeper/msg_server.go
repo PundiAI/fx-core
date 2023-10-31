@@ -22,6 +22,6 @@ func NewMsgServerImpl(keeper crosschainkeeper.Keeper) crosschaintypes.MsgServer 
 	}
 }
 
-func (s MsgServer) SendToExternal(c context.Context, msg *crosschaintypes.MsgSendToExternal) (*crosschaintypes.MsgSendToExternalResponse, error) {
+func (s MsgServer) SendToExternal(_ context.Context, _ *crosschaintypes.MsgSendToExternal) (*crosschaintypes.MsgSendToExternalResponse, error) {
 	return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "not supported")
 }
