@@ -62,6 +62,8 @@ import (
 	fxgov "github.com/functionx/fx-core/v6/x/gov"
 	fxibctransfer "github.com/functionx/fx-core/v6/x/ibc/applications/transfer"
 	fxibctransfertypes "github.com/functionx/fx-core/v6/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v6/x/layer2"
+	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 	"github.com/functionx/fx-core/v6/x/migrate"
 	migratetypes "github.com/functionx/fx-core/v6/x/migrate/types"
 	"github.com/functionx/fx-core/v6/x/optimism"
@@ -81,6 +83,7 @@ func init() {
 	crosschaintypes.RegisterValidateBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
 	crosschaintypes.RegisterValidateBasic(arbitrumtypes.ModuleName, crosschaintypes.MsgValidate{})
 	crosschaintypes.RegisterValidateBasic(optimismtypes.ModuleName, crosschaintypes.MsgValidate{})
+	crosschaintypes.RegisterValidateBasic(layer2types.ModuleName, crosschaintypes.MsgValidate{})
 }
 
 // module account permissions
@@ -99,6 +102,7 @@ var maccPerms = map[string][]string{
 	trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 	arbitrumtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 	optimismtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+	layer2types.ModuleName:         {authtypes.Minter, authtypes.Burner},
 	evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 	erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
 }
@@ -145,6 +149,7 @@ var ModuleBasics = module.NewBasicManager(
 	tron.AppModuleBasic{},
 	arbitrum.AppModule{},
 	optimism.AppModule{},
+	layer2.AppModule{},
 	fxevm.AppModuleBasic{},
 	feemarket.AppModuleBasic{},
 	erc20.AppModuleBasic{},
@@ -185,6 +190,7 @@ func appModules(
 		tron.NewAppModule(app.TronKeeper, app.GetSubspace(trontypes.ModuleName)),
 		arbitrum.NewAppModule(app.ArbitrumKeeper),
 		optimism.NewAppModule(app.OptimismKeeper),
+		layer2.NewAppModule(app.Layer2Keeper),
 		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.LegacyAmino(), app.GetKey(paramstypes.StoreKey), app.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 		erc20.NewAppModule(app.Erc20Keeper, app.GetSubspace(erc20types.ModuleName)),
@@ -223,6 +229,7 @@ func orderBeginBlockers() []string {
 		ethtypes.ModuleName,
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
+		layer2types.ModuleName,
 
 		feemarkettypes.ModuleName, // begin
 		evmtypes.ModuleName,       // begin
@@ -261,6 +268,7 @@ func orderEndBlockers() []string {
 		ethtypes.ModuleName,       // end
 		arbitrumtypes.ModuleName,  // end
 		optimismtypes.ModuleName,  // end
+		layer2types.ModuleName,    // end
 
 		evmtypes.ModuleName,       // end
 		feemarkettypes.ModuleName, // end
@@ -299,6 +307,7 @@ func orderInitBlockers() []string {
 		ethtypes.ModuleName,
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
+		layer2types.ModuleName,
 
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
