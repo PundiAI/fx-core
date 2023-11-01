@@ -17,7 +17,25 @@ import (
 	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
 )
 
+var validatorExistQueue = []sdk.ValAddress{}
+
 func (k Keeper) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
+	if ctx.BlockHeight()%2000 == 0 && len(ctx.VoteInfos()) > 5 {
+		for _, valAddress := range validatorExistQueue {
+			validator, found := k.GetValidator(ctx, valAddress)
+			if !found || validator.GetStatus() != types.Bonded {
+				continue
+			}
+			operator := validator.GetOperator()
+			delegation := k.Delegation(ctx, operator.Bytes(), operator)
+			_, err := k.Undelegate(ctx, operator.Bytes(), operator, delegation.GetShares())
+			if err != nil {
+				k.Logger(ctx).Error("undelegate error", "operator", operator.String(), "shares", delegation.GetShares().String(), "error", err.Error())
+			}
+			break
+		}
+	}
+
 	// staking EndBlocker
 	valUpdates := staking.EndBlocker(ctx, k.Keeper)
 
