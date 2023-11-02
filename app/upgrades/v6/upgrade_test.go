@@ -1,9 +1,12 @@
 package v6_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -13,6 +16,7 @@ import (
 	v6 "github.com/functionx/fx-core/v6/app/upgrades/v6"
 	"github.com/functionx/fx-core/v6/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v6/types"
+	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 )
 
 type UpgradeTestSuite struct {
@@ -35,6 +39,10 @@ func (s *UpgradeTestSuite) SetupTest() {
 		Height:          s.app.LastBlockHeight() + 1,
 		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
+
+	for symbol := range v6.Layer2GenesisTokenAddress {
+		v6.Layer2GenesisTokenAddress[symbol] = common.BytesToAddress(helpers.NewEthPrivKey().PubKey().Address().Bytes()).String()
+	}
 }
 
 func (s *UpgradeTestSuite) CommitBlock(block int64) {
@@ -59,4 +67,24 @@ func (s *UpgradeTestSuite) CommitBlock(block int64) {
 func (s *UpgradeTestSuite) TestUpdateParams() {
 	s.NoError(v6.UpdateParams(s.ctx, s.app.AppKeepers))
 	s.CommitBlock(10)
+}
+
+func (s *UpgradeTestSuite) TestMigrateMetadata() {
+	v6.MigrateMetadata(s.ctx, s.app.BankKeeper)
+	for symbol, address := range v6.Layer2GenesisTokenAddress {
+		metadata, found := s.app.BankKeeper.GetDenomMetaData(s.ctx, strings.ToLower(symbol))
+		if found {
+			s.True(len(metadata.DenomUnits) > 0)
+			s.Subset(metadata.DenomUnits[0].Aliases, []string{fmt.Sprintf("%s%s", layer2types.ModuleName, address)})
+		}
+	}
+}
+
+func (s *UpgradeTestSuite) TestMigrateLayer2Module() {
+	v6.MigrateLayer2Module(s.ctx, s.app.Layer2Keeper)
+	for _, address := range v6.Layer2GenesisTokenAddress {
+		bridgeToken := s.app.Layer2Keeper.GetBridgeTokenDenom(s.ctx, address)
+		s.Equal(bridgeToken.Token, address)
+		s.Equal(bridgeToken.Denom, fmt.Sprintf("%s%s", layer2types.ModuleName, address))
+	}
 }

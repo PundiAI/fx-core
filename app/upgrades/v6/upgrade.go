@@ -27,6 +27,9 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		MigrateMetadata(cacheCtx, app.BankKeeper)
+		MigrateLayer2Module(cacheCtx, app.Layer2Keeper)
+
 		ctx.Logger().Info("start to run v6 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
@@ -99,7 +102,7 @@ func MigrateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
 	})
 }
 
-func MigrateLayer2Module(ctx sdk.Context, bankKeeper bankkeeper.Keeper, layer2CrossChainKeeper crosschainkeeper.Keeper) {
+func MigrateLayer2Module(ctx sdk.Context, layer2CrossChainKeeper crosschainkeeper.Keeper) {
 	for _, address := range Layer2GenesisTokenAddress {
 		fxTokenDenom := fmt.Sprintf("%s%s", layer2types.ModuleName, address)
 		layer2CrossChainKeeper.AddBridgeToken(ctx, address, fxTokenDenom)
