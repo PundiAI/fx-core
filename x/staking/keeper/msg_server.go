@@ -220,8 +220,11 @@ func NewMsgServerImpl(keeper Keeper) stakingtypes.MsgServer {
 	return &msgServer{MsgServer: stakingkeeper.NewMsgServerImpl(keeper.Keeper)}
 }
 
-func (k msgServer) CreateValidator(_ context.Context, _ *stakingtypes.MsgCreateValidator) (*stakingtypes.MsgCreateValidatorResponse, error) {
-	return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unsupported method")
+func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgCreateValidator) (*stakingtypes.MsgCreateValidatorResponse, error) {
+	if sdk.UnwrapSDKContext(goCtx).BlockHeight() > 1e7 {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unsupported method")
+	}
+	return k.MsgServer.CreateValidator(goCtx, msg)
 }
 
 func (k msgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
@@ -242,6 +245,9 @@ func (k msgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 	return k.MsgServer.Delegate(goCtx, msg)
 }
 
-func (k msgServer) BeginRedelegate(_ context.Context, _ *stakingtypes.MsgBeginRedelegate) (*stakingtypes.MsgBeginRedelegateResponse, error) {
-	return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unsupported method")
+func (k msgServer) BeginRedelegate(goCtx context.Context, msg *stakingtypes.MsgBeginRedelegate) (*stakingtypes.MsgBeginRedelegateResponse, error) {
+	if sdk.UnwrapSDKContext(goCtx).BlockHeight() > 1e7 {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unsupported method")
+	}
+	return k.MsgServer.BeginRedelegate(goCtx, msg)
 }
