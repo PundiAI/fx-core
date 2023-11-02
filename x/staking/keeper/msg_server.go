@@ -11,6 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/functionx/fx-core/v6/x/staking/types"
@@ -209,4 +210,38 @@ func (k Keeper) iteratorEditValidator(ctx sdk.Context, validator stakingtypes.Va
 			totalUpdatePower.String(), totalPowerOneThird.String())
 	}
 	return nil
+}
+
+type msgServer struct {
+	stakingtypes.MsgServer
+}
+
+func NewMsgServerImpl(keeper Keeper) stakingtypes.MsgServer {
+	return &msgServer{MsgServer: stakingkeeper.NewMsgServerImpl(keeper.Keeper)}
+}
+
+func (k msgServer) CreateValidator(_ context.Context, _ *stakingtypes.MsgCreateValidator) (*stakingtypes.MsgCreateValidatorResponse, error) {
+	return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unsupported method")
+}
+
+func (k msgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
+	delegatorAddress, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	valAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	if !delegatorAddress.Equals(valAddress) {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "only support self delegation")
+	}
+
+	return k.MsgServer.Delegate(goCtx, msg)
+}
+
+func (k msgServer) BeginRedelegate(_ context.Context, _ *stakingtypes.MsgBeginRedelegate) (*stakingtypes.MsgBeginRedelegateResponse, error) {
+	return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unsupported method")
 }
