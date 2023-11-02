@@ -3,7 +3,6 @@ package v6
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -11,6 +10,7 @@ import (
 	"github.com/functionx/fx-core/v6/app/keepers"
 	govtypes "github.com/functionx/fx-core/v6/x/gov/types"
 	migratekeeper "github.com/functionx/fx-core/v6/x/migrate/keeper"
+	fxstakingkeeper "github.com/functionx/fx-core/v6/x/staking/keeper"
 )
 
 func CreateUpgradeHandler(
@@ -83,8 +83,7 @@ func UpdateParams(cacheCtx sdk.Context, app *keepers.AppKeepers) error {
 	return nil
 }
 
-
-func AutoUndelegate(ctx sdk.Context, stakingKeeper stakingkeeper.Keeper) []stakingtypes.Delegation {
+func AutoUndelegate(ctx sdk.Context, stakingKeeper fxstakingkeeper.Keeper) []stakingtypes.Delegation {
 	var delegations []stakingtypes.Delegation
 	stakingKeeper.IterateAllDelegations(ctx, func(delegation stakingtypes.Delegation) (stop bool) {
 		delegations = append(delegations, delegation)
@@ -104,7 +103,7 @@ func AutoUndelegate(ctx sdk.Context, stakingKeeper stakingkeeper.Keeper) []staki
 	return delegations
 }
 
-func ExportDelegate(ctx sdk.Context, delegations []stakingtypes.Delegation, migrateKeeper migratekeeper.Keeper) []stakingtypes.Delegation {
+func ExportDelegate(ctx sdk.Context, migrateKeeper migratekeeper.Keeper, delegations []stakingtypes.Delegation) []stakingtypes.Delegation {
 	for i := 0; i < len(delegations); i++ {
 		delegation := delegations[i]
 		delegator := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
