@@ -93,8 +93,11 @@ func UpdateParams(cacheCtx sdk.Context, app *keepers.AppKeepers) error {
 }
 
 func ExportCommunityPool(ctx sdk.Context, distrKeeper distrkeeper.Keeper, bankKeeper bankkeeper.Keeper) sdk.Coins {
-	communityPool := distrKeeper.GetFeePoolCommunityCoins(ctx)
-	truncatedCoins, _ := communityPool.TruncateDecimal()
+	feePool := distrKeeper.GetFeePool(ctx)
+	truncatedCoins, changeCoins := feePool.CommunityPool.TruncateDecimal()
+	feePool.CommunityPool = changeCoins
+	distrKeeper.SetFeePool(ctx, feePool)
+
 	if err := bankKeeper.SendCoinsFromModuleToModule(ctx, distrtypes.ModuleName, govtypes.ModuleName, truncatedCoins); err != nil {
 		panic(err)
 	}
