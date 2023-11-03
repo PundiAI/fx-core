@@ -7,11 +7,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v6/app/keepers"
 	crosschainkeeper "github.com/functionx/fx-core/v6/x/crosschain/keeper"
-	govtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
 	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 )
 
@@ -29,6 +32,7 @@ func CreateUpgradeHandler(
 
 		MigrateMetadata(cacheCtx, app.BankKeeper)
 		MigrateLayer2Module(cacheCtx, app.Layer2Keeper)
+		ExportCommunityPool(cacheCtx, app.DistrKeeper, app.BankKeeper)
 
 		ctx.Logger().Info("start to run v6 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
@@ -73,7 +77,7 @@ func UpdateParams(cacheCtx sdk.Context, app *keepers.AppKeepers) error {
 	govTallyParams.VetoThreshold = sdk.OneDec().String() // 100%
 	app.GovKeeper.SetTallyParams(cacheCtx, govTallyParams)
 
-	app.GovKeeper.IterateParams(cacheCtx, func(param *govtypes.Params) (stop bool) {
+	app.GovKeeper.IterateParams(cacheCtx, func(param *fxgovtypes.Params) (stop bool) {
 		param.Quorum = sdk.OneDec().String()        // 100%
 		param.Threshold = sdk.OneDec().String()     // 100%
 		param.VetoThreshold = sdk.OneDec().String() // 100%
@@ -86,6 +90,19 @@ func UpdateParams(cacheCtx sdk.Context, app *keepers.AppKeepers) error {
 		return false
 	})
 	return nil
+}
+
+func ExportCommunityPool(ctx sdk.Context, distrKeeper distrkeeper.Keeper, bankKeeper bankkeeper.Keeper) sdk.Coins {
+	communityPool := distrKeeper.GetFeePoolCommunityCoins(ctx)
+	truncatedCoins, _ := communityPool.TruncateDecimal()
+	if err := bankKeeper.SendCoinsFromModuleToModule(ctx, distrtypes.ModuleName, govtypes.ModuleName, truncatedCoins); err != nil {
+		panic(err)
+	}
+	if err := bankKeeper.BurnCoins(ctx, govtypes.ModuleName, truncatedCoins); err != nil {
+		panic(err)
+	}
+	ctx.Logger().Info("export community pool", "coins", truncatedCoins.String())
+	return truncatedCoins
 }
 
 func MigrateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
