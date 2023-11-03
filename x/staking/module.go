@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -77,7 +78,8 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak stakingtypes.Account
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	fxstakingtypes.RegisterMsgServer(cfg.MsgServer(), am.Keeper)
-	am.AppModule.RegisterServices(cfg)
+	stakingtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.Keeper))
+	stakingtypes.RegisterQueryServer(cfg.QueryServer(), stakingkeeper.Querier{Keeper: am.Keeper.Keeper})
 }
 
 // EndBlock returns the end blocker for the staking module. It returns no validator
