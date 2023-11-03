@@ -70,13 +70,21 @@ func (s *UpgradeTestSuite) TestUpdateParams() {
 }
 
 func (s *UpgradeTestSuite) TestMigrateMetadata() {
+	for symbol := range v6.Layer2GenesisTokenAddress {
+		hasDenomMetaData := s.app.BankKeeper.HasDenomMetaData(s.ctx, strings.ToLower(symbol))
+		s.False(hasDenomMetaData)
+
+		metadata := fxtypes.GetCrossChainMetadata(symbol, symbol, 18)
+		s.app.BankKeeper.SetDenomMetaData(s.ctx, metadata)
+	}
+
 	v6.MigrateMetadata(s.ctx, s.app.BankKeeper)
+
 	for symbol, address := range v6.Layer2GenesisTokenAddress {
 		metadata, found := s.app.BankKeeper.GetDenomMetaData(s.ctx, strings.ToLower(symbol))
-		if found {
-			s.True(len(metadata.DenomUnits) > 0)
-			s.Subset(metadata.DenomUnits[0].Aliases, []string{fmt.Sprintf("%s%s", layer2types.ModuleName, address)})
-		}
+		s.True(found)
+		s.True(len(metadata.DenomUnits) > 0)
+		s.Subset(metadata.DenomUnits[0].Aliases, []string{fmt.Sprintf("%s%s", layer2types.ModuleName, address)})
 	}
 }
 

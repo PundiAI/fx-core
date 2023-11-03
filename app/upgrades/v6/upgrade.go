@@ -97,6 +97,7 @@ func MigrateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
 		if len(metadata.DenomUnits) > 0 {
 			metadata.DenomUnits[0].Aliases = append(metadata.DenomUnits[0].Aliases,
 				fmt.Sprintf("%s%s", layer2types.ModuleName, address))
+			bankKeeper.SetDenomMetaData(ctx, metadata)
 		}
 		return false
 	})
