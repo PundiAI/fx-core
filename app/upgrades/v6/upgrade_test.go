@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -18,8 +17,8 @@ import (
 	v6 "github.com/functionx/fx-core/v6/app/upgrades/v6"
 	"github.com/functionx/fx-core/v6/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v6/types"
-	migratetypes "github.com/functionx/fx-core/v6/x/migrate/types"
 	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
+	migratetypes "github.com/functionx/fx-core/v6/x/migrate/types"
 )
 
 type UpgradeTestSuite struct {
@@ -57,7 +56,6 @@ func (s *UpgradeTestSuite) TestUpdateParams() {
 	s.NoError(v6.UpdateParams(s.ctx, s.app.AppKeepers))
 	s.CommitBlock(10)
 }
-
 
 func (s *UpgradeTestSuite) TestMigrateMetadata() {
 	for symbol := range v6.Layer2GenesisTokenAddress {

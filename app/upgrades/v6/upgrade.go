@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -113,7 +113,6 @@ func MigrateLayer2Module(ctx sdk.Context, layer2CrossChainKeeper crosschainkeepe
 		layer2CrossChainKeeper.AddBridgeToken(ctx, address, fxTokenDenom)
 	}
 }
-
 
 func AutoUndelegate(ctx sdk.Context, stakingKeeper fxstakingkeeper.Keeper) []stakingtypes.Delegation {
 	var delegations []stakingtypes.Delegation
