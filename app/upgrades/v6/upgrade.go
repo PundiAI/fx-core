@@ -1,18 +1,12 @@
 package v6
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v6/app/keepers"
-	crosschainkeeper "github.com/functionx/fx-core/v6/x/crosschain/keeper"
 	govtypes "github.com/functionx/fx-core/v6/x/gov/types"
-	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 )
 
 func CreateUpgradeHandler(
@@ -26,9 +20,6 @@ func CreateUpgradeHandler(
 		if err := UpdateParams(cacheCtx, app); err != nil {
 			return nil, err
 		}
-
-		MigrateMetadata(cacheCtx, app.BankKeeper)
-		MigrateLayer2Module(cacheCtx, app.Layer2Keeper)
 
 		ctx.Logger().Info("start to run v6 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
@@ -86,26 +77,4 @@ func UpdateParams(cacheCtx sdk.Context, app *keepers.AppKeepers) error {
 		return false
 	})
 	return nil
-}
-
-func MigrateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
-	bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
-		address, ok := Layer2GenesisTokenAddress[metadata.Symbol]
-		if !ok {
-			return false
-		}
-		if len(metadata.DenomUnits) > 0 {
-			metadata.DenomUnits[0].Aliases = append(metadata.DenomUnits[0].Aliases,
-				fmt.Sprintf("%s%s", layer2types.ModuleName, address))
-			bankKeeper.SetDenomMetaData(ctx, metadata)
-		}
-		return false
-	})
-}
-
-func MigrateLayer2Module(ctx sdk.Context, layer2CrossChainKeeper crosschainkeeper.Keeper) {
-	for _, address := range Layer2GenesisTokenAddress {
-		fxTokenDenom := fmt.Sprintf("%s%s", layer2types.ModuleName, address)
-		layer2CrossChainKeeper.AddBridgeToken(ctx, address, fxTokenDenom)
-	}
 }

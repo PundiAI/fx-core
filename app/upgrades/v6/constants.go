@@ -7,16 +7,6 @@ import (
 	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 )
 
-var Layer2GenesisTokenAddress = map[string]string{
-	"FX":     "",
-	"PUNDIX": "",
-	"USDT":   "",
-	"WETH":   "",
-	"LINK":   "",
-	"WBTC":   "",
-	"USDC":   "",
-}
-
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          "v6.0.x",
 	CreateUpgradeHandler: CreateUpgradeHandler,
