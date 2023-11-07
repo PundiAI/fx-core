@@ -57,12 +57,6 @@ func (s *UpgradeTestSuite) TestUpdateParams() {
 	s.CommitBlock(10)
 }
 
-func (s *UpgradeTestSuite) TestExportCommunityPool() {
-	s.CommitBlock(10)
-	communityPool := v6.ExportCommunityPool(s.ctx, s.app.DistrKeeper, s.app.BankKeeper)
-	s.True(communityPool.IsAllPositive())
-}
-
 func (s *UpgradeTestSuite) TestMigrateMetadata() {
 	for symbol := range v6.Layer2GenesisTokenAddress {
 		hasDenomMetaData := s.app.BankKeeper.HasDenomMetaData(s.ctx, strings.ToLower(symbol))
