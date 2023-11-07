@@ -115,6 +115,111 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			result: true,
 		},
 		{
+			name: "ok - address - origin token",
+			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
+				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(),
+					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))))
+
+				balance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), fxtypes.DefaultDenom)
+				suite.Require().Equal(randMint.String(), balance.Amount.BigInt().String())
+				moduleName := ethtypes.ModuleName
+
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+
+				data, err := crosschain.GetABI().Pack(
+					"crossChain",
+					common.HexToAddress(fxtypes.EmptyEvmAddress),
+					helpers.GenerateAddressByModule(moduleName),
+					randMint,
+					big.NewInt(0),
+					fxtypes.MustStrToByte32(moduleName),
+					"",
+				)
+				suite.Require().NoError(err)
+
+				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				suite.Require().True(found)
+
+				return data, &pair, randMint, moduleName, nil
+			},
+			result: true,
+		},
+		{
+			name: "ok - address - origin erc20 token",
+			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
+				moduleName := ethtypes.ModuleName
+				denomAddr := helpers.GenerateAddress().String()
+				alias := fmt.Sprintf("%s%s", moduleName, denomAddr)
+
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, denomAddr, alias)
+
+				token, err := suite.DeployContract(signer.Address())
+				suite.Require().NoError(err)
+
+				suite.MintERC20Token(signer, token, signer.Address(), randMint)
+				balOf := suite.BalanceOf(token, signer.Address())
+				suite.Require().Equal(randMint.String(), balOf.String())
+
+				pair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, token, alias)
+				suite.Require().NoError(err)
+
+				suite.ERC20Approve(signer, token, crosschain.GetAddress(), randMint)
+
+				data, err := crosschain.GetABI().Pack(
+					"crossChain",
+					pair.GetERC20Contract(),
+					helpers.GenerateAddressByModule(moduleName),
+					randMint,
+					big.NewInt(0),
+					fxtypes.MustStrToByte32(moduleName),
+					"",
+				)
+				suite.Require().NoError(err)
+
+				return data, pair, big.NewInt(0), moduleName, nil
+			},
+			result: true,
+		},
+		{
+			name: "ok - address - wrapper origin token",
+			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
+				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				suite.Require().True(found)
+
+				moduleName := ethtypes.ModuleName
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+
+				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
+				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
+
+				balance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), fxtypes.DefaultDenom)
+				suite.Require().Equal(randMint.String(), balance.Amount.BigInt().String())
+
+				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+					Coin:     coin,
+					Receiver: signer.Address().Hex(),
+					Sender:   signer.AccAddress().String(),
+				})
+				suite.Require().NoError(err)
+
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+
+				data, err := crosschain.GetABI().Pack(
+					"crossChain",
+					pair.GetERC20Contract(),
+					helpers.GenerateAddressByModule(moduleName),
+					randMint,
+					big.NewInt(0),
+					fxtypes.MustStrToByte32(moduleName),
+					"",
+				)
+				suite.Require().NoError(err)
+
+				return data, &pair, big.NewInt(0), moduleName, nil
+			},
+			result: true,
+		},
+		{
 			name: "ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
@@ -174,7 +279,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(),
 					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))))
 
-				moduleName := bsctypes.ModuleName
+				moduleName := ethtypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
@@ -327,6 +432,72 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			result: true,
 		},
 		{
+			name: "contract - ok - origin token",
+			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
+				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(),
+					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))))
+
+				moduleName := ethtypes.ModuleName
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+
+				data, err := fxtypes.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
+					"crossChain",
+					common.HexToAddress(fxtypes.EmptyEvmAddress),
+					helpers.GenerateAddressByModule(moduleName),
+					randMint,
+					big.NewInt(0),
+					fxtypes.MustStrToByte32(moduleName),
+					"",
+				)
+				suite.Require().NoError(err)
+
+				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				suite.Require().True(found)
+
+				return data, &pair, randMint, moduleName, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - ok - address - wrapper origin token",
+			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
+				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				suite.Require().True(found)
+
+				moduleName := ethtypes.ModuleName
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+
+				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
+				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
+
+				balance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), fxtypes.DefaultDenom)
+				suite.Require().Equal(randMint.String(), balance.Amount.BigInt().String())
+
+				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+					Coin:     coin,
+					Receiver: signer.Address().Hex(),
+					Sender:   signer.AccAddress().String(),
+				})
+				suite.Require().NoError(err)
+
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), suite.crosschain, randMint)
+
+				data, err := fxtypes.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
+					"crossChain",
+					pair.GetERC20Contract(),
+					helpers.GenerateAddressByModule(moduleName),
+					randMint,
+					big.NewInt(0),
+					fxtypes.MustStrToByte32(moduleName),
+					"",
+				)
+				suite.Require().NoError(err)
+
+				return data, &pair, big.NewInt(0), moduleName, nil
+			},
+			result: true,
+		},
+		{
 			name: "contract - ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
@@ -386,7 +557,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(),
 					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))))
 
-				moduleName := bsctypes.ModuleName
+				moduleName := ethtypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 				data, err := fxtypes.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",

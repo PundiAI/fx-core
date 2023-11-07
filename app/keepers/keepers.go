@@ -64,7 +64,6 @@ import (
 	"github.com/functionx/fx-core/v6/x/erc20"
 	erc20keeper "github.com/functionx/fx-core/v6/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
-	ethkeeper "github.com/functionx/fx-core/v6/x/eth/keeper"
 	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 	fxevmkeeper "github.com/functionx/fx-core/v6/x/evm/keeper"
 	fxgovkeeper "github.com/functionx/fx-core/v6/x/gov/keeper"
@@ -447,7 +446,7 @@ func NewAppKeeper(
 		AddRoute(bsctypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.BscKeeper)).
 		AddRoute(polygontypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.PolygonKeeper)).
 		AddRoute(avalanchetypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.AvalancheKeeper)).
-		AddRoute(ethtypes.ModuleName, ethkeeper.NewModuleHandler(appKeepers.EthKeeper)).
+		AddRoute(ethtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.EthKeeper)).
 		AddRoute(arbitrumtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.ArbitrumKeeper)).
 		AddRoute(optimismtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.OptimismKeeper)).
 		AddRoute(layer2types.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.Layer2Keeper)).
@@ -494,8 +493,8 @@ func NewAppKeeper(
 	)
 
 	ibcTransferRouter := fxtypes.NewRouter().
-		AddRoute(gravitytypes.ModuleName, appKeepers.Layer2Keeper).
-		AddRoute(ethtypes.ModuleName, appKeepers.Layer2Keeper).
+		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper).
+		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
