@@ -7,16 +7,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v6/app/keepers"
 	crosschainkeeper "github.com/functionx/fx-core/v6/x/crosschain/keeper"
 	govtypes "github.com/functionx/fx-core/v6/x/gov/types"
 	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
-	migratekeeper "github.com/functionx/fx-core/v6/x/migrate/keeper"
-	fxstakingkeeper "github.com/functionx/fx-core/v6/x/staking/keeper"
 )
 
 func CreateUpgradeHandler(
@@ -112,37 +108,4 @@ func MigrateLayer2Module(ctx sdk.Context, layer2CrossChainKeeper crosschainkeepe
 		fxTokenDenom := fmt.Sprintf("%s%s", layer2types.ModuleName, address)
 		layer2CrossChainKeeper.AddBridgeToken(ctx, address, fxTokenDenom)
 	}
-}
-
-func AutoUndelegate(ctx sdk.Context, stakingKeeper fxstakingkeeper.Keeper) []stakingtypes.Delegation {
-	var delegations []stakingtypes.Delegation
-	stakingKeeper.IterateAllDelegations(ctx, func(delegation stakingtypes.Delegation) (stop bool) {
-		delegations = append(delegations, delegation)
-		delegator := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
-		valAddress, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
-		if err != nil {
-			panic(err)
-		}
-		if delegator.Equals(valAddress) {
-			return false
-		}
-		if _, err := stakingKeeper.Undelegate(ctx, delegator, valAddress, delegation.Shares); err != nil {
-			panic(err)
-		}
-		return false
-	})
-	return delegations
-}
-
-func ExportDelegate(ctx sdk.Context, migrateKeeper migratekeeper.Keeper, delegations []stakingtypes.Delegation) []stakingtypes.Delegation {
-	for i := 0; i < len(delegations); i++ {
-		delegation := delegations[i]
-		delegator := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
-		if !migrateKeeper.HasMigratedDirectionTo(ctx, common.BytesToAddress(delegator.Bytes())) {
-			delegations = append(delegations[:i], delegations[i+1:]...)
-			i--
-			continue
-		}
-	}
-	return delegations
 }
