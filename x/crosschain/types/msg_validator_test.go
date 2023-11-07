@@ -1286,7 +1286,7 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 				ChainName:     moduleName,
 				Sender:        normalFxAddress,
 				TransactionId: 1,
-				AddBridgeFee:  sdk.NewCoin(helpers.NewRandDenom(), sdkmath.NewInt(1)),
+				AddBridgeFee:  sdk.NewCoin(tmrand.Str(2), sdkmath.NewInt(1)),
 			},
 			expectPass: true,
 		},
