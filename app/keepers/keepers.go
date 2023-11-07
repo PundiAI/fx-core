@@ -72,7 +72,6 @@ import (
 	fxtransfer "github.com/functionx/fx-core/v6/x/ibc/applications/transfer"
 	fxtransferkeeper "github.com/functionx/fx-core/v6/x/ibc/applications/transfer/keeper"
 	"github.com/functionx/fx-core/v6/x/ibc/ibcrouter"
-	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
 	migratekeeper "github.com/functionx/fx-core/v6/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v6/x/migrate/types"
 	optimismtypes "github.com/functionx/fx-core/v6/x/optimism/types"
@@ -91,7 +90,6 @@ type CrossChainKeepers struct {
 	TronKeeper      tronkeeper.Keeper
 	ArbitrumKeeper  crosschainkeeper.Keeper
 	OptimismKeeper  crosschainkeeper.Keeper
-	Layer2Keeper    crosschainkeeper.Keeper
 }
 
 type AppKeepers struct {
@@ -413,19 +411,6 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	appKeepers.Layer2Keeper = crosschainkeeper.NewKeeper(
-		appCodec,
-		layer2types.ModuleName,
-		appKeepers.keys[layer2types.StoreKey],
-		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
-		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
-		appKeepers.BankKeeper,
-		appKeepers.IBCTransferKeeper,
-		appKeepers.Erc20Keeper,
-		appKeepers.AccountKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec,
 		trontypes.ModuleName,
@@ -449,7 +434,6 @@ func NewAppKeeper(
 		AddRoute(ethtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.EthKeeper)).
 		AddRoute(arbitrumtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.ArbitrumKeeper)).
 		AddRoute(optimismtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.OptimismKeeper)).
-		AddRoute(layer2types.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.Layer2Keeper)).
 		AddRoute(trontypes.ModuleName, tronkeeper.NewModuleHandler(appKeepers.TronKeeper))
 
 	appKeepers.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
@@ -501,7 +485,6 @@ func NewAppKeeper(
 		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
 		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
-		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper).
 		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(*ibcTransferRouter)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
