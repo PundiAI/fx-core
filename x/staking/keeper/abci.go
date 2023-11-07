@@ -18,14 +18,6 @@ import (
 )
 
 func (k Keeper) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
-	if ctx.BlockHeight()%2000 == 0 && len(ctx.VoteInfos()) > 5 {
-		params := k.GetParams(ctx)
-		params.MaxValidators = params.MaxValidators - 1
-		if params.MaxValidators >= 5 {
-			k.SetParams(ctx, params)
-		}
-	}
-
 	// staking EndBlocker
 	valUpdates := staking.EndBlocker(ctx, k.Keeper)
 
