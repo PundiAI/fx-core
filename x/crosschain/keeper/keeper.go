@@ -11,6 +11,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/tendermint/tendermint/libs/log"
 
+	fxtypes "github.com/functionx/fx-core/v6/types"
 	"github.com/functionx/fx-core/v6/x/crosschain/types"
 )
 
@@ -161,7 +162,7 @@ func (k Keeper) UnbondedOracleFromProposal(ctx sdk.Context, oracle types.Oracle)
 	if err != nil {
 		return err
 	}
-	msgUndelegate := stakingtypes.NewMsgUndelegate(delegateAddr, valAddr, types.NewDelegateAmount(getOracleDelegateToken))
+	msgUndelegate := stakingtypes.NewMsgUndelegate(delegateAddr, valAddr, sdk.NewCoin(fxtypes.DefaultDenom, getOracleDelegateToken))
 	if _, err = k.stakingMsgServer.Undelegate(sdk.WrapSDKContext(ctx), msgUndelegate); err != nil {
 		return err
 	}

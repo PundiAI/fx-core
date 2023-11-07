@@ -62,7 +62,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token is exist")
 		}
 		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc)
-		if claim.Symbol == types.NativeDenom {
+		if claim.Symbol == fxtypes.DefaultDenom {
 			// Check if denom exists
 			metadata, found := k.bankKeeper.GetDenomMetaData(ctx, claim.Symbol)
 			if !found {

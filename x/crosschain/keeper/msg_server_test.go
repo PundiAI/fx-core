@@ -19,6 +19,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v6/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v6/types"
 	"github.com/functionx/fx-core/v6/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
@@ -107,8 +108,11 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
 				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[oracleIndex].PublicKey),
 				ValidatorAddress: suite.valAddrs[oracleIndex].String(),
-				DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(3) + 1) * 10_000).MulRaw(1e18)),
-				ChainName:        suite.chainName,
+				DelegateAmount: sdk.Coin{
+					Denom:  fxtypes.DefaultDenom,
+					Amount: sdkmath.NewInt((tmrand.Int63n(3) + 1) * 10_000).MulRaw(1e18),
+				},
+				ChainName: suite.chainName,
 			}
 
 			testCase.preRun(msg)
@@ -282,8 +286,11 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
 				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[oracleIndex].PublicKey),
 				ValidatorAddress: suite.valAddrs[oracleIndex].String(),
-				DelegateAmount:   types.NewDelegateAmount(initDelegateAmount),
-				ChainName:        suite.chainName,
+				DelegateAmount: sdk.Coin{
+					Denom:  fxtypes.DefaultDenom,
+					Amount: initDelegateAmount,
+				},
+				ChainName: suite.chainName,
 			})
 			require.NoError(t, err)
 
@@ -293,8 +300,8 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			msg := &types.MsgAddDelegate{
 				ChainName:     suite.chainName,
 				OracleAddress: suite.oracleAddrs[oracleIndex].String(),
-				Amount: types.NewDelegateAmount(sdkmath.NewInt(
-					tmrand.Int63n(maxDelegateAmount.QuoRaw(1e18).Int64()) + 1,
+				Amount: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(
+					tmrand.Int63n(maxDelegateAmount.QuoRaw(1e18).Int64())+1,
 				).
 					MulRaw(1e18).
 					Sub(sdkmath.NewInt(1))),
@@ -348,8 +355,11 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
-			DelegateAmount:   types.NewDelegateAmount(delegateAmount),
-			ChainName:        suite.chainName,
+			DelegateAmount: sdk.Coin{
+				Denom:  fxtypes.DefaultDenom,
+				Amount: delegateAmount,
+			},
+			ChainName: suite.chainName,
 		}
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), bondedMsg)
 		suite.NoError(err)
@@ -426,8 +436,11 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.valAddrs[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-		ChainName:        suite.chainName,
+		DelegateAmount: sdk.Coin{
+			Denom:  fxtypes.DefaultDenom,
+			Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+		},
+		ChainName: suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
@@ -549,8 +562,11 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.valAddrs[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-		ChainName:        suite.chainName,
+		DelegateAmount: sdk.Coin{
+			Denom:  fxtypes.DefaultDenom,
+			Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+		},
+		ChainName: suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
@@ -747,8 +763,11 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				BridgerAddress:   suite.bridgerAddrs[i].String(),
 				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 				ValidatorAddress: suite.valAddrs[0].String(),
-				DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-				ChainName:        suite.chainName,
+				DelegateAmount: sdk.Coin{
+					Denom:  fxtypes.DefaultDenom,
+					Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+				},
+				ChainName: suite.chainName,
 			}
 			_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msg)
 			require.NoError(suite.T(), err)
@@ -769,8 +788,11 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.valAddrs[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-		ChainName:        suite.chainName,
+		DelegateAmount: sdk.Coin{
+			Denom:  fxtypes.DefaultDenom,
+			Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+		},
+		ChainName: suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
@@ -890,8 +912,11 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[0].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-			ChainName:        suite.chainName,
+			DelegateAmount: sdk.Coin{
+				Denom:  fxtypes.DefaultDenom,
+				Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			},
+			ChainName: suite.chainName,
 		}
 		if len(suite.valAddrs) > i {
 			normalMsg.ValidatorAddress = suite.valAddrs[i].String()

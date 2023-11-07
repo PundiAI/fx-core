@@ -122,7 +122,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	totalToRefund.Amount = totalToRefund.Amount.Add(tx.Fee.Amount)
 	totalToRefundCoins := sdk.NewCoins(totalToRefund)
 
-	if bridgeToken.Denom == types.NativeDenom {
+	if bridgeToken.Denom == fxtypes.DefaultDenom {
 		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
 			return sdk.Coin{}, err
 		}
@@ -175,7 +175,7 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
 	// If there is, lock the coins.
-	if addBridgeFee.Denom == types.NativeDenom {
+	if addBridgeFee.Denom == fxtypes.DefaultDenom {
 		// lock coins in module
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
 			return err

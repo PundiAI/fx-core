@@ -122,12 +122,12 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
 
-	slashAmount := types.NewDelegateAmount(oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
+	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() && msg.Amount.Amount.LT(slashAmount.Amount) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "not sufficient slash amount")
 	}
 
-	delegateCoin := types.NewDelegateAmount(msg.Amount.Amount.Sub(slashAmount.Amount))
+	delegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, msg.Amount.Amount.Sub(slashAmount.Amount))
 
 	oracle.DelegateAmount = oracle.DelegateAmount.Add(delegateCoin.Amount)
 	if oracle.DelegateAmount.Sub(threshold.Amount).IsNegative() {
@@ -203,7 +203,7 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 	if err != nil {
 		return nil, err
 	}
-	msgBeginRedelegate := stakingtypes.NewMsgBeginRedelegate(delegateAddr, valSrcAddress, valDstAddress, types.NewDelegateAmount(delegateToken))
+	msgBeginRedelegate := stakingtypes.NewMsgBeginRedelegate(delegateAddr, valSrcAddress, valDstAddress, sdk.NewCoin(fxtypes.DefaultDenom, delegateToken))
 	if _, err = s.stakingMsgServer.BeginRedelegate(c, msgBeginRedelegate); err != nil {
 		return nil, err
 	}
@@ -302,9 +302,9 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 		return nil, errorsmod.Wrap(types.ErrInvalid, "exist unbonding delegation")
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
-	slashAmount := types.NewDelegateAmount(oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
+	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() {
-		if balances.AmountOf(slashAmount.Denom).LT(slashAmount.Amount) {
+		if balances.AmountOf(fxtypes.DefaultDenom).LT(slashAmount.Amount) {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "not sufficient slash amount")
 		}
 		if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, delegateAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {

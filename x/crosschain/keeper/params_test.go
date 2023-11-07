@@ -4,6 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	fxtypes "github.com/functionx/fx-core/v6/types"
 	"github.com/functionx/fx-core/v6/x/crosschain/types"
 )
 
@@ -25,7 +26,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
-				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
 				Oracles:                           nil,
 			},
@@ -43,7 +44,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
-				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
 				Oracles:                           nil,
 			},
@@ -61,7 +62,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
-				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
 				Oracles:                           nil,
 			},
@@ -79,7 +80,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
-				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
 				Oracles:                           nil,
 			},
@@ -115,7 +116,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          1,
-				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
 				Oracles:                           nil,
 			},
@@ -133,7 +134,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 				OracleSetUpdatePowerChangePercent: sdk.NewDec(2),            // 10%
 				IbcTransferTimeoutHeight:          20_000,
-				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
 				Oracles:                           nil,
 			},
@@ -151,7 +152,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				SlashFraction:                     sdk.NewDec(2),            // 80%
 				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
-				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
 				Oracles:                           nil,
 			},
