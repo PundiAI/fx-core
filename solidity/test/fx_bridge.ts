@@ -2,8 +2,8 @@ import {ethers, network} from "hardhat";
 import {TransactionRequest} from "@ethersproject/abstract-provider/src.ts";
 import {expect} from "chai";
 
-describe("fork ethereum", function () {
-    it("update-bridge-contract", async function () {
+describe("fx bridge test", function () {
+    it("update bridge contract", async function () {
         const adminAddress = "0x0F413055AdEF9b61e9507928c6856F438d690882"
         const ownerAddress = "0xE77A7EA2F1DC25968b5941a456d99D37b80E98B5"
         const bridgeContractAddress = "0x6f1D09Fed11115d65E1071CD2109eDb300D80A27"
@@ -66,6 +66,5 @@ describe("fork ethereum", function () {
             expect(status.isActive).to.equal(true)
             expect(status.isExist).to.equal(true)
         }
-
     });
 });
