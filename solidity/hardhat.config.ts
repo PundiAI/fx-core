@@ -9,7 +9,7 @@ const config: HardhatUserConfig = {
     networks: {
         hardhat: {
             forking: {
-                url: `${process.env.MAINNET_URL} || "https://mainnet.infura.io/v3/your-infura-key"`,
+                url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
             }
         },
         localhost: {
