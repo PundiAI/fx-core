@@ -3,7 +3,8 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	crosschainkeeper "github.com/functionx/fx-core/v6/x/crosschain/keeper"
@@ -22,6 +23,9 @@ func NewMsgServerImpl(keeper crosschainkeeper.Keeper) crosschaintypes.MsgServer 
 	}
 }
 
-func (s MsgServer) SendToExternal(_ context.Context, _ *crosschaintypes.MsgSendToExternal) (*crosschaintypes.MsgSendToExternalResponse, error) {
-	return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "not supported")
+func (s MsgServer) SendToExternal(goCtx context.Context, msg *crosschaintypes.MsgSendToExternal) (*crosschaintypes.MsgSendToExternalResponse, error) {
+	if sdk.UnwrapSDKContext(goCtx).BlockHeight() > 1e7 {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unsupported method")
+	}
+	return s.MsgServer.SendToExternal(goCtx, msg)
 }
