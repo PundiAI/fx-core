@@ -31,6 +31,7 @@ describe("fx bridge test", function () {
         const bridgeContract = await bridgeFactory.deploy()
         await bridgeContract.deployed()
 
+        // 0x3659cfe6 is the signature of the upgradeTo(address) function
         const data = ethers.utils.hexConcat([
             '0x3659cfe6',
             ethers.utils.defaultAbiCoder.encode(['address'], [bridgeContract.address])
