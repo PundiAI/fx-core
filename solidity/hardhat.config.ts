@@ -8,8 +8,8 @@ const config: HardhatUserConfig = {
     defaultNetwork: "localhost",
     networks: {
         hardhat: {
-            mining: {
-                interval: 1000
+            forking: {
+                url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
             }
         },
         localhost: {
