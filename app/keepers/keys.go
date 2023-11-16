@@ -89,7 +89,7 @@ func (appKeepers *AppKeepers) EvmPrecompiled() {
 
 	// cross chain precompile
 	transferRouter := fxtypes.NewRouter().
-		// AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
+		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).

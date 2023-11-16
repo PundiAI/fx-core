@@ -9,19 +9,6 @@ import (
 	"github.com/functionx/fx-core/v6/x/gov/types"
 )
 
-func (keeper Keeper) IterateParams(ctx sdk.Context, cb func(param *types.Params) (stop bool)) {
-	store := ctx.KVStore(keeper.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.FxBaseParamsKeyPrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		var param types.Params
-		keeper.cdc.MustUnmarshal(iter.Value(), &param)
-		if cb(&param) {
-			break
-		}
-	}
-}
-
 // GetParams gets the gov module's parameters.
 func (keeper Keeper) GetParams(ctx sdk.Context, msgType string) (params types.Params) {
 	store := ctx.KVStore(keeper.storeKey)
