@@ -143,7 +143,7 @@ lint:
 	echo "--> Running linter"
 	$(MAKE) lint-install
 	$(golangci_lint_cmd) run --build-tags=$(GO_BUILD) --fix --out-format=tab
-	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 41 ]; then \
+	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 42 ]; then \
 		echo "--> increase or decrease nolint, please recheck them"; \
 		echo "--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`"; exit 1;\
 	fi
@@ -245,7 +245,7 @@ contract-publish:
 ###############################################################################
 
 PACKAGE_NAME := github.com/functionx/fx-core/v6
-GOLANG_CROSS_VERSION := v1.19
+GOLANG_CROSS_VERSION := v1.21
 release-dry-run:
 	docker run --rm --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \
