@@ -4,9 +4,11 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v6/types"
+	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
 	"github.com/functionx/fx-core/v6/x/erc20/types"
 )
 
@@ -156,7 +158,7 @@ func (k Keeper) IsAliasDenomRegistered(ctx sdk.Context, alias string) bool {
 // origin: FX, fxUSD(fxevm-ERC20)
 // cross: PUNDIX, PURSE, Other(usdt,usdc)
 func (k Keeper) IsOriginDenom(ctx sdk.Context, denom string) bool {
-	// exclude FX
+	// exclude ethereum FX
 	if strings.EqualFold(denom, fxtypes.DefaultDenom) {
 		return true
 	}
@@ -177,6 +179,11 @@ func (k Keeper) IsOriginDenom(ctx sdk.Context, denom string) bool {
 		return false
 	}
 
+	// exclude other chain FX token
+	if strings.EqualFold(baseDenom, fxtypes.DefaultDenom) {
+		return false
+	}
+
 	tokenPair, found := k.GetTokenPair(ctx, baseDenom)
 	if !found {
 		ctx.Logger().Info("alias register, but denom token pair not found", "alias", denom, "denom", baseDenom)
@@ -184,4 +191,49 @@ func (k Keeper) IsOriginDenom(ctx sdk.Context, denom string) bool {
 	}
 
 	return tokenPair.IsNativeERC20()
+}
+
+func (k Keeper) IsConvertedAlias(ctx sdk.Context, denom string) bool {
+	// exclude ethereum FX
+	if strings.EqualFold(denom, fxtypes.DefaultDenom) {
+		return false
+	}
+
+	// exclude PUNDIX|PURSE
+	if k.IsDenomRegistered(ctx, denom) {
+		return false
+	}
+
+	// exclude denom not register (may be add bridge token, but not register)
+	baseDenom, found := k.GetAliasDenom(ctx, denom)
+	if !found {
+		return false
+	}
+	return k.checkConvertedDenom(baseDenom)
+}
+
+func (k Keeper) IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool {
+	if k.IsOriginDenom(ctx, denom) {
+		return true
+	}
+	return k.IsConvertedAlias(ctx, denom)
+}
+
+func (k Keeper) checkConvertedDenom(baseDenom string) bool {
+	if baseDenom == fxtypes.DefaultDenom {
+		return true
+	}
+	if strings.HasPrefix(baseDenom, ibctransfertypes.DenomPrefix+"/") {
+		return true
+	}
+
+	for _, chainName := range k.chainsName {
+		v := crosschaintypes.MustGetMsgValidateBasic(chainName)
+		if len(baseDenom) > len(chainName) &&
+			strings.HasPrefix(baseDenom, chainName) &&
+			v.ValidateAddress(strings.TrimPrefix(baseDenom, chainName)) == nil {
+			return true
+		}
+	}
+	return false
 }

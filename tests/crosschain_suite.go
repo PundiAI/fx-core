@@ -5,11 +5,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
@@ -47,9 +49,9 @@ func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestS
 }
 
 func (suite *CrosschainTestSuite) Init() {
-	suite.Send(suite.OracleAddr(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
-	suite.Send(suite.BridgerAddr(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
-	suite.Send(suite.AccAddress(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
+	suite.TestSuite.Send(suite.OracleAddr(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
+	suite.TestSuite.Send(suite.BridgerAddr(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
+	suite.TestSuite.Send(suite.AccAddress(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
 	suite.params = suite.QueryParams()
 }
 
@@ -74,6 +76,14 @@ func (suite *CrosschainTestSuite) AccAddress() sdk.AccAddress {
 
 func (suite *CrosschainTestSuite) HexAddress() gethcommon.Address {
 	return gethcommon.BytesToAddress(suite.privKey.PubKey().Address())
+}
+
+func (suite *CrosschainTestSuite) HexAddressString() string {
+	hexAddr := suite.HexAddress()
+	if suite.chainName == trontypes.ModuleName {
+		return trontypes.AddressFromHex(hexAddr.String())
+	}
+	return hexAddr.String()
 }
 
 func (suite *CrosschainTestSuite) CrosschainQuery() crosschaintypes.QueryClient {
@@ -174,6 +184,22 @@ func (suite *CrosschainTestSuite) GetBridgeDenomByToken(token string) (denom str
 	return response.Denom
 }
 
+func (suite *CrosschainTestSuite) GetBridgeTokenByDenom(denom string) (token string) {
+	response, err := suite.CrosschainQuery().DenomToToken(suite.ctx, &crosschaintypes.QueryDenomToTokenRequest{
+		ChainName: suite.chainName,
+		Denom:     denom,
+	})
+	suite.NoError(err)
+	suite.NotEmpty(response.Token)
+	return response.Token
+}
+
+func (suite *CrosschainTestSuite) Send(toAddress sdk.AccAddress, amount ...sdk.Coin) *sdk.TxResponse {
+	txResponse := suite.BroadcastTx(suite.privKey, banktypes.NewMsgSend(suite.privKey.PubKey().Address().Bytes(), toAddress, amount))
+	suite.True(txResponse.GasUsed < 100_000, txResponse.GasUsed)
+	return txResponse
+}
+
 func (suite *CrosschainTestSuite) BondedOracle() {
 	response, err := suite.CrosschainQuery().GetOracleByBridgerAddr(suite.ctx,
 		&crosschaintypes.QueryOracleByBridgerAddrRequest{
@@ -259,17 +285,17 @@ func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
 }
 
 func (suite *CrosschainTestSuite) SendToFxClaim(token string, amount sdkmath.Int, targetIbc string) {
-	sender := suite.HexAddress().Hex()
-	if suite.chainName == trontypes.ModuleName {
-		sender = trontypes.AddressFromHex(sender)
-	}
+	suite.SendToTxClaimWithReceiver(suite.AccAddress(), token, amount, targetIbc)
+}
+
+func (suite *CrosschainTestSuite) SendToTxClaimWithReceiver(receiver sdk.AccAddress, token string, amount sdkmath.Int, targetIbc string) {
 	suite.BroadcastTx(suite.bridgerPrivKey, &crosschaintypes.MsgSendToFxClaim{
 		EventNonce:     suite.queryFxLastEventNonce(),
 		BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
 		TokenContract:  token,
 		Amount:         amount,
-		Sender:         sender,
-		Receiver:       suite.AccAddress().String(),
+		Sender:         suite.HexAddressString(),
+		Receiver:       receiver.String(),
 		TargetIbc:      hex.EncodeToString([]byte(targetIbc)),
 		BridgerAddress: suite.BridgerAddr().String(),
 		ChainName:      suite.chainName,
@@ -280,21 +306,24 @@ func (suite *CrosschainTestSuite) SendToFxClaim(token string, amount sdkmath.Int
 	})
 	suite.NoError(err)
 	if bridgeToken.Denom == fxtypes.DefaultDenom && len(targetIbc) <= 0 {
-		balances := suite.QueryBalances(suite.AccAddress())
+		balances := suite.QueryBalances(receiver)
 		suite.True(balances.IsAllGTE(sdk.NewCoins(sdk.NewCoin(bridgeToken.Denom, amount))))
 	}
 }
 
-func (suite *CrosschainTestSuite) SendToExternal(count int, amount sdk.Coin) uint64 {
+func (suite *CrosschainTestSuite) SendToFxClaimAndCheckBalance(token string, amount sdkmath.Int, targetIbc string, addCoin sdk.Coin) {
+	balance := suite.QueryBalances(suite.AccAddress())
+	suite.SendToFxClaim(token, amount, targetIbc)
+	newBalance := suite.QueryBalances(suite.AccAddress())
+	suite.Equal(balance.Add(addCoin), newBalance)
+}
+
+func (suite *CrosschainTestSuite) SendToExternalAndResponse(count int, amount sdk.Coin) (*sdk.TxResponse, uint64) {
 	msgList := make([]sdk.Msg, 0, count)
 	for i := 0; i < count; i++ {
-		dest := suite.HexAddress().Hex()
-		if suite.chainName == trontypes.ModuleName {
-			dest = trontypes.AddressFromHex(dest)
-		}
 		msgList = append(msgList, &crosschaintypes.MsgSendToExternal{
 			Sender:    suite.AccAddress().String(),
-			Dest:      dest,
+			Dest:      suite.HexAddressString(),
 			Amount:    amount.SubAmount(sdkmath.NewInt(1)),
 			BridgeFee: sdk.NewCoin(amount.Denom, sdkmath.NewInt(1)),
 			ChainName: suite.chainName,
@@ -312,11 +341,28 @@ func (suite *CrosschainTestSuite) SendToExternal(count int, amount sdk.Coin) uin
 				}
 				txId, err := strconv.ParseUint(attribute.Value, 10, 64)
 				suite.NoError(err)
-				return txId
+				return txResponse, txId
 			}
 		}
 	}
-	return 0
+	return txResponse, 0
+}
+
+func (suite *CrosschainTestSuite) SendToExternal(count int, amount sdk.Coin) uint64 {
+	_, txId := suite.SendToExternalAndResponse(count, amount)
+	return txId
+}
+
+func (suite *CrosschainTestSuite) SendToExternalAndCheckBalance(coin sdk.Coin) {
+	balance := suite.QueryBalances(suite.AccAddress())
+	txRsp, txId1 := suite.SendToExternalAndResponse(1, coin)
+	suite.Greater(txId1, uint64(0))
+	gasPrice, err := sdk.ParseCoinNormalized(suite.network.Config.MinGasPrices)
+	suite.Require().NoError(err)
+	gasFee := gasPrice.Amount.Mul(sdkmath.NewInt(txRsp.GasWanted))
+	newBalance := suite.QueryBalances(suite.AccAddress())
+	coins := sdk.NewCoins(coin).Add(sdk.NewCoin(fxtypes.DefaultDenom, gasFee))
+	suite.Equal(balance, newBalance.Add(coins...))
 }
 
 func (suite *CrosschainTestSuite) SendToExternalAndCancel(coin sdk.Coin) {
@@ -389,15 +435,11 @@ func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
 		})
 		suite.NoError(err)
 
-		feeReceive := suite.HexAddress().String()
-		if suite.chainName == trontypes.ModuleName {
-			feeReceive = trontypes.AddressFromHex(feeReceive)
-		}
 		msgList = append(msgList, &crosschaintypes.MsgRequestBatch{
 			Sender:     suite.BridgerAddr().String(),
 			Denom:      denomResponse.Denom,
 			MinimumFee: batchToken.TotalFees,
-			FeeReceive: feeReceive,
+			FeeReceive: suite.HexAddressString(),
 			ChainName:  suite.chainName,
 		})
 	}
@@ -451,4 +493,47 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 			ChainName:      suite.chainName,
 		},
 	)
+}
+
+func (suite *CrosschainTestSuite) SendToExternalAndConfirm(coin sdk.Coin) {
+	suite.SendToExternal(1, coin)
+	suite.SendBatchRequest(1)
+	suite.SendConfirmBatch()
+}
+
+func (suite *CrosschainTestSuite) SelectTokenMetadata(basePrefix string) banktypes.Metadata {
+	resp, err := suite.GRPCClient().BankQuery().DenomsMetadata(suite.ctx, &banktypes.QueryDenomsMetadataRequest{})
+	suite.NoError(err)
+
+	for _, md := range resp.Metadatas {
+		if strings.HasPrefix(md.Base, basePrefix) {
+			return md
+		}
+	}
+	panic("no match token")
+}
+
+func (suite *CrosschainTestSuite) CancelAllSendToExternal() {
+	pendingTxs := suite.QueryPendingUnbatchedTx(suite.AccAddress())
+	for _, tx := range pendingTxs {
+		suite.SendCancelSendToExternal(tx.Id)
+	}
+}
+
+func (suite *CrosschainTestSuite) AddBridgeToken(md banktypes.Metadata) (string, crosschaintypes.BridgeToken) {
+	bridgeTokenAddr := helpers.GenerateAddressByModule(suite.chainName)
+	suite.AddBridgeTokenClaim(md.Name, md.Symbol, uint64(md.DenomUnits[1].Exponent), bridgeTokenAddr, "")
+	bridgeTokenDenom := suite.GetBridgeDenomByToken(bridgeTokenAddr)
+	return bridgeTokenDenom, crosschaintypes.BridgeToken{
+		Token: bridgeTokenAddr,
+		Denom: bridgeTokenDenom,
+	}
+}
+
+func (suite *CrosschainTestSuite) FormatAddress(address gethcommon.Address) string {
+	receive := address.String()
+	if suite.chainName == trontypes.ModuleName {
+		receive = trontypes.AddressFromHex(receive)
+	}
+	return receive
 }

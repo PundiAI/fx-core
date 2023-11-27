@@ -202,3 +202,7 @@ func (b TronMsgValidate) MsgConfirmBatchValidate(m *crosschaintypes.MsgConfirmBa
 	}
 	return nil
 }
+
+func (b TronMsgValidate) ValidateAddress(addr string) error {
+	return ValidateTronAddress(addr)
+}

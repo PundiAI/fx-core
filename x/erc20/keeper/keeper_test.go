@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	if count >= len(modules) {
 		count = len(modules) - 1
 	}
-	metadata := fxtypes.GetCrossChainMetadata("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
+	metadata := fxtypes.GetCrossChainMetadataManyToOne("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 

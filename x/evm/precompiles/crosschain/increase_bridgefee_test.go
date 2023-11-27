@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -813,7 +814,11 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 						suite.Require().Equal(coin.Amount.Add(sdkmath.NewIntFromBigInt(randBridgeFee)).String(), expect.Amount.String(), coin.Denom)
 						continue
 					}
-					suite.Require().Equal(coin.Amount.String(), totalAfter.Supply.AmountOf(coin.Denom).String())
+					if pair.IsNativeERC20() && strings.HasPrefix(coin.Denom, moduleName) {
+						suite.Equal(totalAfter.Supply.AmountOf(coin.Denom), coin.Amount.Add(sdkmath.NewIntFromBigInt(randBridgeFee)))
+						continue
+					}
+					suite.Equal(coin.Amount.String(), totalAfter.Supply.AmountOf(coin.Denom).String(), coin.Denom)
 				}
 
 				for _, log := range res.Logs {

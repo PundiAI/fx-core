@@ -45,6 +45,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v6/types"
 	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
 	"github.com/functionx/fx-core/v6/x/erc20/types"
+	crossethtypes "github.com/functionx/fx-core/v6/x/eth/types"
 )
 
 type PrecompileTestSuite struct {
@@ -79,6 +80,8 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
+
+	suite.app.EthKeeper.AddBridgeToken(suite.ctx, helpers.GenerateAddressByModule(crossethtypes.ModuleName), fxtypes.DefaultDenom)
 
 	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), fxtypes.MustABIJson(testscontract.CrossChainTestMetaData.ABI), fxtypes.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
 	suite.Require().NoError(err)
@@ -212,7 +215,7 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 	if count >= len(modules) {
 		count = len(modules) - 1
 	}
-	metadata := fxtypes.GetCrossChainMetadata("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
+	metadata := fxtypes.GetCrossChainMetadataManyToOne("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 
@@ -353,6 +356,30 @@ func (suite *PrecompileTestSuite) AddIBCToken(portID, channelID string) string {
 	return denomTrace.IBCDenom()
 }
 
+func (suite *PrecompileTestSuite) AddTokenToModule(module string, amt sdk.Coins) {
+	tmpAddr := helpers.GenerateAddress()
+	helpers.AddTestAddr(suite.app, suite.ctx, tmpAddr.Bytes(), amt)
+	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, tmpAddr.Bytes(), module, amt)
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) ConvertOneToManyToken(md banktypes.Metadata) bool {
+	emptyAlias := len(md.DenomUnits[0].Aliases) == 0
+	if md.Base == fxtypes.DefaultDenom && !emptyAlias {
+		return true
+	}
+	if strings.HasPrefix(md.Base, "ibc/") && !emptyAlias {
+		return true
+	}
+	keepers := suite.CrossChainKeepers()
+	for _, k := range keepers {
+		if strings.HasPrefix(md.Base, k.ModuleName()) && !emptyAlias {
+			return true
+		}
+	}
+	return false
+}
+
 func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr common.Address, data []byte) *evmtypes.MsgEthereumTxResponse {
 	from := signer.Address()
 
@@ -421,6 +448,7 @@ func (m Metadata) GetMetadata() banktypes.Metadata {
 }
 
 type CrossChainKeeper interface {
+	ModuleName() string
 	AddBridgeToken(ctx sdk.Context, token, denom string)
 	GetDenomBridgeToken(ctx sdk.Context, denom string) *crosschaintypes.BridgeToken
 	SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error)

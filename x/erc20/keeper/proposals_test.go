@@ -174,90 +174,85 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 	}
 }
 
+//gocyclo:ignore
 func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 	denom := fmt.Sprintf("test%s", helpers.GenerateAddress().Hex())
 	metadata := newMetadata()
 
 	testCases := []struct {
 		name     string
-		malleate func() error
+		malleate func() (*types.TokenPair, error)
 		expPass  bool
 		alias    []string
 	}{
 		{
 			name: "success - add alias",
-			malleate: func() error {
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
+				suite.NoError(err)
+
 				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "usdt", denom)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				suite.True(addAlias)
 
-				return nil
+				return pair, nil
 			},
 			expPass: true,
 			alias:   append(metadata.DenomUnits[0].Aliases, denom),
 		},
 		{
 			name: "success - delete alias",
-			malleate: func() error {
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
+				suite.NoError(err)
+
 				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "usdt", metadata.DenomUnits[0].Aliases[0])
 				if err != nil {
-					return err
+					return nil, err
 				}
 				suite.False(addAlias)
-				return nil
+				return pair, nil
 			},
 			expPass: true,
 			alias:   metadata.DenomUnits[0].Aliases[1:],
 		},
 		{
 			name: "failed - denom not equal",
-			malleate: func() error {
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
+				suite.NoError(err)
+
 				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "abc", denom)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				suite.True(addAlias)
-				return nil
+				return pair, nil
 			},
 			expPass: false,
 			alias:   []string{},
 		},
 		{
 			name: "failed - alias registered",
-			malleate: func() error {
-				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
-					Description: "The cross chain token of Function X",
-					DenomUnits: []*banktypes.DenomUnit{
-						{
-							Denom:    "abc",
-							Exponent: 0,
-							Aliases:  nil,
-						},
-					},
-					Base:    "abc",
-					Display: "abc",
-					Name:    "Token ABC",
-					Symbol:  "ABC",
-				})
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
+				suite.NoError(err)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "abc", metadata.DenomUnits[0].Aliases[0])
 				if err != nil {
-					return err
-				}
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "abc", denom)
-				if err != nil {
-					return err
+					return nil, err
 				}
 				suite.True(addAlias)
-				return nil
+				return pair, nil
 			},
 			expPass: false,
 			alias:   []string{},
 		},
 		{
-			name: "failed - metadata not support many to one",
-			malleate: func() error {
-				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
+			name: "success - empty alias",
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
 					Description: "The cross chain token of Function X",
 					DenomUnits: []*banktypes.DenomUnit{
 						{
@@ -272,42 +267,78 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 					Symbol:  "ABC",
 				})
 				if err != nil {
-					return err
+					return nil, err
 				}
 				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "abc", denom)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				suite.True(addAlias)
-				return nil
+				return pair, nil
 			},
-			expPass: false,
+			expPass: true,
+			alias:   []string{denom},
+		},
+		{
+			name: "success - remove alias empty",
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
+					Description: "The cross chain token of Function X",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "abc",
+							Exponent: 0,
+							Aliases:  []string{denom},
+						},
+					},
+					Base:    "abc",
+					Display: "abc",
+					Name:    "Token ABC",
+					Symbol:  "ABC",
+				})
+				if err != nil {
+					return nil, err
+				}
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "abc", denom)
+				if err != nil {
+					return nil, err
+				}
+				suite.False(addAlias)
+				return pair, nil
+			},
+			expPass: true,
 			alias:   []string{},
 		},
 		{
 			name: "failed - aliases can not empty",
-			malleate: func() error {
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
+				suite.NoError(err)
+
 				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "abc", denom)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				suite.True(addAlias)
-				return nil
+				return pair, nil
 			},
 			expPass: false,
 			alias:   []string{},
 		},
 		{
 			name: "failed - alias denom not equal with update denom",
-			malleate: func() error {
+			malleate: func() (*types.TokenPair, error) {
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
+				suite.NoError(err)
+
 				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "abc", denom)
 
 				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, "usdt", denom)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				suite.True(addAlias)
-				return nil
+				return pair, nil
 			},
 			expPass: false,
 			alias:   []string{},
@@ -316,15 +347,16 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
-			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
-			suite.NoError(err)
 
-			tcErr := tc.malleate()
+			pair, tcErr := tc.malleate()
 
 			if tc.expPass {
 				suite.NoError(tcErr, tc.name)
-				md, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
+				md, found := suite.app.Erc20Keeper.GetValidMetadata(suite.ctx, pair.Denom)
 				suite.True(found)
+				if len(tc.alias) == 0 && len(md.DenomUnits[0].Aliases) == 0 {
+					return // remove all alias
+				}
 				suite.Equal(md.DenomUnits[0].Aliases, tc.alias)
 				for _, alias := range tc.alias {
 					aliasRegistered := suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, alias)

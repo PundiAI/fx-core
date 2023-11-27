@@ -28,8 +28,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
 	// If there is, lock the coins.
-	isOriginDenom := k.erc20Keeper.IsOriginDenom(ctx, amount.Denom)
-	if isOriginDenom {
+	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, amount.Denom)
+	if isOriginOrConverted {
 		// lock coins in module
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, totalInVouchers); err != nil {
 			return 0, err
@@ -122,7 +122,9 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	totalToRefund.Amount = totalToRefund.Amount.Add(tx.Fee.Amount)
 	totalToRefundCoins := sdk.NewCoins(totalToRefund)
 
-	if bridgeToken.Denom == types.NativeDenom {
+	// check bridge denom is origin denom or converted alias
+	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+	if isOriginOrConverted {
 		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
 			return sdk.Coin{}, err
 		}
@@ -175,7 +177,8 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
 	// If there is, lock the coins.
-	if addBridgeFee.Denom == types.NativeDenom {
+	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+	if isOriginOrConverted {
 		// lock coins in module
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
 			return err

@@ -8,6 +8,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -20,6 +21,7 @@ import (
 	testscontract "github.com/functionx/fx-core/v6/tests/contract"
 	"github.com/functionx/fx-core/v6/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v6/types"
+	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
 )
 
 type EvmTestSuite struct {
@@ -100,6 +102,13 @@ func (suite *EvmTestSuite) Symbol(contractAddr common.Address) string {
 
 func (suite *EvmTestSuite) CheckBalanceOf(contractAddr, address common.Address, value *big.Int) bool {
 	return suite.BalanceOf(contractAddr, address).Cmp(value) == 0
+}
+
+func (suite *EvmTestSuite) HandleWithCheckBalance(contractAddr, address common.Address, addValue *big.Int, h func()) {
+	value := suite.BalanceOf(contractAddr, address)
+	h()
+	newValue := suite.BalanceOf(contractAddr, address)
+	suite.Equal(big.NewInt(0).Add(value, addValue).String(), newValue.String())
 }
 
 func (suite *EvmTestSuite) Allowance(contractAddr, owner, spender common.Address) *big.Int {
@@ -326,6 +335,15 @@ func (suite *EvmTestSuite) DeployContract(privKey cryptotypes.PrivKey, contractB
 	return receipt.ContractAddress, receipt.TxHash
 }
 
+func (suite *EvmTestSuite) DeployProxy(privateKey cryptotypes.PrivKey, logic common.Address, initData []byte) common.Address {
+	input, err := fxtypes.GetERC1967Proxy().ABI.Pack("", logic, initData)
+	suite.NoError(err)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, nil, nil, append(fxtypes.GetERC1967Proxy().Bin, input...))
+	suite.NoError(err)
+	suite.SendTransaction(tx)
+	return crypto.CreateAddress(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), tx.Nonce())
+}
+
 func (suite *EvmTestSuite) TxFee(hash common.Hash) *big.Int {
 	receipt, err := suite.EthClient().TransactionReceipt(suite.ctx, hash)
 	suite.Require().NoError(err)
@@ -342,6 +360,20 @@ func (suite *EvmTestSuite) TxFee(hash common.Hash) *big.Int {
 	suite.Require().NoError(err)
 	effectiveGasPrice := txData.EffectiveGasPrice(baseFee)
 	return big.NewInt(0).Mul(effectiveGasPrice, big.NewInt(0).SetUint64(receipt.GasUsed))
+}
+
+func (suite *EvmTestSuite) DeployERC20Contract(privKey cryptotypes.PrivKey) common.Address {
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privKey, nil, nil, fxtypes.GetFIP20().Bin)
+	suite.NoError(err)
+	suite.SendTransaction(tx)
+	logic := crypto.CreateAddress(common.BytesToAddress(privKey.PubKey().Address().Bytes()), tx.Nonce())
+	proxy := suite.DeployProxy(privKey, logic, []byte{})
+	pack, err := fxtypes.GetFIP20().ABI.Pack("initialize", "Test ERC20", helpers.NewRandSymbol(), uint8(18), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes()))
+	suite.NoError(err)
+	tx, err = client.BuildEthTransaction(suite.ctx, suite.EthClient(), privKey, &proxy, nil, pack)
+	suite.NoError(err)
+	suite.SendTransaction(tx)
+	return proxy
 }
 
 func GetERC721() fxtypes.Contract {

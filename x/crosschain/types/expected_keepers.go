@@ -59,7 +59,7 @@ type Erc20Keeper interface {
 	SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
 	HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool
 	DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
-	IsOriginDenom(ctx sdk.Context, denom string) bool
+	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 }
 

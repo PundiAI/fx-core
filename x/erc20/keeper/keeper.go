@@ -13,6 +13,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	fxtypes "github.com/functionx/fx-core/v6/types"
+	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
 	"github.com/functionx/fx-core/v6/x/erc20/types"
 )
 
@@ -27,7 +28,8 @@ type Keeper struct {
 
 	moduleAddress common.Address
 
-	authority string
+	authority  string
+	chainsName []string
 }
 
 // NewKeeper creates new instances of the erc20 Keeper
@@ -53,6 +55,7 @@ func NewKeeper(
 		ibcTransferKeeper: ibcTransferKeeper,
 		moduleAddress:     common.BytesToAddress(ak.GetModuleAddress(types.ModuleName)),
 		authority:         authority,
+		chainsName:        crosschaintypes.GetValidateChains(),
 	}
 }
 
@@ -103,6 +106,19 @@ func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata
 	}
 	// not have alias
 	if len(md.DenomUnits[0].Aliases) == 0 {
+		return banktypes.Metadata{}, false
+	}
+	return md, true
+}
+
+func (k Keeper) GetValidMetadata(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	// not register metadata
+	if !found {
+		return banktypes.Metadata{}, false
+	}
+	// not have denom units
+	if len(md.DenomUnits) == 0 {
 		return banktypes.Metadata{}, false
 	}
 	return md, true

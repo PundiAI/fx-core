@@ -270,3 +270,7 @@ func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 	}
 	return nil
 }
+
+func (b MsgValidate) ValidateAddress(addr string) error {
+	return fxtypes.ValidateEthereumAddress(addr)
+}

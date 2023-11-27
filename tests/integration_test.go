@@ -17,6 +17,7 @@ type IntegrationTest struct {
 	erc20      Erc20TestSuite
 	evm        EvmTestSuite
 	staking    StakingSuite
+	precompile PrecompileTestSuite
 }
 
 func TestIntegrationTest(t *testing.T) {
@@ -34,32 +35,54 @@ func TestIntegrationTest(t *testing.T) {
 			// NewCrosschainWithTestSuite(polygontypes.ModuleName, testSuite),
 			// NewCrosschainWithTestSuite(avalanchetypes.ModuleName, testSuite),
 		},
-		erc20:   NewErc20TestSuite(testSuite),
-		evm:     NewEvmTestSuite(testSuite),
-		staking: NewStakingSuite(testSuite),
+		erc20:      NewErc20TestSuite(testSuite),
+		evm:        NewEvmTestSuite(testSuite),
+		staking:    NewStakingSuite(testSuite),
+		precompile: NewPrecompileTestSuite(testSuite),
 	})
 }
 
 func (suite *IntegrationTest) TestRun() {
 	suite.CrossChainTest()
-	suite.ERC20Test()
+	suite.OriginalCrossChainTest()
+
+	suite.PrecompileTransferCrossChainTest()
+	suite.PrecompileCrossChainTest()
+	suite.PrecompileCancelSendToExternalTest()
+	suite.PrecompileIncreaseBridgeFeeTest()
+	suite.PrecompileCrossChainConvertedDenomTest()
+
+	suite.ERC20TokenOriginTest()
+	suite.ERC20IBCChainTokenOriginTest()
+	suite.ERC20TokenERC20Test()
+	suite.ERC20IBCChainTokenERC20Test()
+
 	suite.StakingTest()
 	suite.StakingContractTest()
 	suite.StakingSharesTest()
 	suite.StakingSharesContractTest()
-	suite.ERC20IBCChainTokenTest()
-	suite.EVMWeb3Test()
+
 	suite.MigrateTestDelegate()
 	suite.MigrateTestUnDelegate()
+
+	suite.EVMWeb3Test()
 	suite.WFXTest()
 	suite.ERC20TokenTest()
 	suite.ERC721Test()
 	suite.CallContractTest()
-	suite.OriginERC20Test()
-	suite.OriginERC20IBCChainTokenTest()
 	suite.FIP20CodeCheckTest()
 	suite.WFXCodeCheckTest()
+
 	suite.ByPassFeeTest()
+}
+
+func (suite *IntegrationTest) GetCrossChainByName(chainName string) CrosschainTestSuite {
+	for _, c := range suite.crosschain {
+		if c.chainName == chainName {
+			return c
+		}
+	}
+	panic("chain not found")
 }
 
 type IntegrationMultiNodeTest struct {
