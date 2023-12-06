@@ -35,11 +35,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
-## [Unreleased]
+## [v6.0.0-rc0]
 
 ### Features
 
-* Precompile staking redelegate
+* Supports precompile staking redelegate
+* Supports Convert one-to-one token to many-to-one
+* Supports layer2 cross-chain protocol integration
 
 ## [v5.0.0]
 
