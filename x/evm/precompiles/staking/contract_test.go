@@ -35,6 +35,7 @@ import (
 const (
 	StakingTestDelegateName           = "delegate"
 	StakingTestUndelegateName         = "undelegate"
+	StakingTestRedelegateName         = "redelegate"
 	StakingTestWithdrawName           = "withdraw"
 	StakingTestDelegationName         = "delegation"
 	StakingTestDelegationRewardsName  = "delegationRewards"
@@ -64,7 +65,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	require.NoError(suite.T(), err)
 	suite.signer = helpers.NewSigner(priv)
 
-	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+2, nil)
+	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+3, nil)
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{

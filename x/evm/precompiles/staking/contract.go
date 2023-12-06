@@ -53,6 +53,8 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return DelegateGas
 	case string(UndelegateMethod.ID):
 		return UndelegateGas
+	case string(RedelegateMethod.ID):
+		return RedelegateGas
 	case string(WithdrawMethod.ID):
 		return WithdrawGas
 	case string(DelegationMethod.ID):
@@ -86,6 +88,8 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		ret, err = c.Delegate(cacheCtx, evm, contract, readonly)
 	case string(UndelegateMethod.ID):
 		ret, err = c.Undelegate(cacheCtx, evm, contract, readonly)
+	case string(RedelegateMethod.ID):
+		ret, err = c.Redelegation(cacheCtx, evm, contract, readonly)
 	case string(WithdrawMethod.ID):
 		ret, err = c.Withdraw(cacheCtx, evm, contract, readonly)
 	case string(DelegationMethod.ID):

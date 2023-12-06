@@ -61,6 +61,8 @@ func (suite *IntegrationTest) TestRun() {
 	suite.StakingContractTest()
 	suite.StakingSharesTest()
 	suite.StakingSharesContractTest()
+	suite.StakingPrecompileRedelegateTest()
+	suite.StakingPrecompileRedelegateByContractTest()
 
 	suite.MigrateTestDelegate()
 	suite.MigrateTestUnDelegate()

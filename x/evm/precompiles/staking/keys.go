@@ -11,6 +11,7 @@ import (
 const (
 	DelegateGas           = 40_000 // 98000 - 160000 // 165000
 	UndelegateGas         = 45_000 // 94000 - 163000 // 172000
+	RedelegateGas         = 60_000 // undelegate_gas+delegate_gas+withdraw_gas*2
 	WithdrawGas           = 30_000 // 94000 // 120000
 	DelegationGas         = 30_000 // 98000
 	DelegationRewardsGas  = 30_000 // 94000
@@ -21,6 +22,7 @@ const (
 
 	DelegateMethodName           = "delegate"
 	UndelegateMethodName         = "undelegate"
+	RedelegateMethodName         = "redelegate"
 	WithdrawMethodName           = "withdraw"
 	DelegationMethodName         = "delegation"
 	DelegationRewardsMethodName  = "delegationRewards"
@@ -31,6 +33,7 @@ const (
 
 	DelegateEventName       = "Delegate"
 	UndelegateEventName     = "Undelegate"
+	RedelegateEventName     = "Redelegate"
 	WithdrawEventName       = "Withdraw"
 	TransferSharesEventName = "TransferShares"
 	ApproveSharesEventName  = "ApproveShares"
