@@ -67,4 +67,18 @@ var (
 			abi.Argument{Name: "reward", Type: types.TypeUint256, Indexed: false},
 		},
 	)
+
+	RedelegateEvent = abi.NewEvent(
+		RedelegateEventName,
+		RedelegateEventName,
+		false,
+		abi.Arguments{
+			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "valSrc", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "valDst", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "completionTime", Type: types.TypeUint256, Indexed: false},
+		},
+	)
 )

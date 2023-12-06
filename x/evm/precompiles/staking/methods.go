@@ -149,6 +149,23 @@ var (
 			abi.Argument{Name: "_reward", Type: types.TypeUint256},
 		},
 	)
+
+	// RedelegateMethod Redelegate share from src validator to dest validator
+	RedelegateMethod = abi.NewMethod(
+		RedelegateMethodName,
+		RedelegateMethodName,
+		abi.Function, "nonpayable", false, false,
+		abi.Arguments{
+			abi.Argument{Name: "_valSrc", Type: types.TypeString},
+			abi.Argument{Name: "_valDst", Type: types.TypeString},
+			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+		},
+		abi.Arguments{
+			abi.Argument{Name: "_amount", Type: types.TypeUint256},
+			abi.Argument{Name: "_reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_completionTime", Type: types.TypeUint256},
+		},
+	)
 )
 
 type AllowanceSharesArgs struct {
@@ -334,5 +351,37 @@ func (args *WithdrawArgs) Validate() error {
 // GetValidator returns the validator address, caller must ensure the validator address is valid
 func (args *WithdrawArgs) GetValidator() sdk.ValAddress {
 	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
+	return valAddr
+}
+
+type RedelegateArgs struct {
+	ValidatorSrc string   `abi:"_valSrc"`
+	ValidatorDst string   `abi:"_valDst"`
+	Shares       *big.Int `abi:"_shares"`
+}
+
+// Validate validates the args
+func (args *RedelegateArgs) Validate() error {
+	if _, err := sdk.ValAddressFromBech32(args.ValidatorSrc); err != nil {
+		return fmt.Errorf("invalid validator src address: %s", args.ValidatorSrc)
+	}
+	if _, err := sdk.ValAddressFromBech32(args.ValidatorDst); err != nil {
+		return fmt.Errorf("invalid validator dst address: %s", args.ValidatorDst)
+	}
+	if args.Shares == nil || args.Shares.Sign() <= 0 {
+		return errors.New("invalid shares")
+	}
+	return nil
+}
+
+// GetValidatorSrc returns the validator src address, caller must ensure the validator address is valid
+func (args *RedelegateArgs) GetValidatorSrc() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorSrc)
+	return valAddr
+}
+
+// GetValidatorDst returns the validator dest address, caller must ensure the validator address is valid
+func (args *RedelegateArgs) GetValidatorDst() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorDst)
 	return valAddr
 }

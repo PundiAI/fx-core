@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [Unreleased]
+
+### Features
+
+* Precompile staking redelegate
+
 ## [v5.0.0]
 
 ### Features

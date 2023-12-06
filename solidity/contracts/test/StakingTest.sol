@@ -32,6 +32,18 @@ contract StakingTest is IStaking {
         return (amount, reward, completionTime);
     }
 
+    function redelegate(
+        string memory _valSrc,
+        string memory _valDst,
+        uint256 _shares
+    ) external override returns (uint256, uint256, uint256) {
+        (uint256 amount, uint256 reward, uint256 completionTime) = StakingCall
+            .redelegate(_valSrc, _valDst, _shares);
+        validatorShares[_valSrc] -= _shares;
+        validatorShares[_valDst] += _shares;
+        return (amount, reward, completionTime);
+    }
+
     function withdraw(string memory _val) external override returns (uint256) {
         uint256 amount = StakingCall.withdraw(_val);
         return amount;

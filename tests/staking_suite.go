@@ -87,13 +87,20 @@ func (suite *StakingSuite) DelegationRewards(delAddr, valAddr string) sdk.DecCoi
 	return response.Rewards
 }
 
-func (suite *StakingSuite) SetWithdrawAddress(delAddr, withdrawAddr sdk.AccAddress) {
+func (suite *StakingSuite) SetWithdrawAddress(withdrawAddr sdk.AccAddress) {
+	suite.SetWithdrawAddressWithResponse(suite.privKey, withdrawAddr)
+}
+
+func (suite *StakingSuite) SetWithdrawAddressWithResponse(privKey cryptotypes.PrivKey, withdrawAddr sdk.AccAddress) *sdk.TxResponse {
+	delAddr := sdk.AccAddress(privKey.PubKey().Address())
 	setWithdrawAddress := distrtypes.NewMsgSetWithdrawAddress(delAddr, withdrawAddr)
-	txResponse := suite.BroadcastTx(suite.privKey, setWithdrawAddress)
+	txResponse := suite.BroadcastTx(privKey, setWithdrawAddress)
 	suite.Require().True(txResponse.Code == 0)
-	response, err := suite.GRPCClient().DistrQuery().DelegatorWithdrawAddress(suite.ctx, &distrtypes.QueryDelegatorWithdrawAddressRequest{DelegatorAddress: delAddr.String()})
+	response, err := suite.GRPCClient().DistrQuery().DelegatorWithdrawAddress(suite.ctx,
+		&distrtypes.QueryDelegatorWithdrawAddressRequest{DelegatorAddress: delAddr.String()})
 	suite.Require().NoError(err)
 	suite.Require().EqualValues(response.WithdrawAddress, withdrawAddr.String())
+	return txResponse
 }
 
 func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
@@ -101,6 +108,15 @@ func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr stri
 	pack, err := precompilesstaking.GetABI().Pack("delegate", valAddr)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, delAmount, pack)
+	suite.Require().NoError(err)
+	return suite.SendTransaction(transaction)
+}
+
+func (suite *StakingSuite) Redelegate(privateKey cryptotypes.PrivKey, valSrc, valDst string, shares *big.Int) *ethtypes.Receipt {
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack("redelegate", valSrc, valDst, shares)
+	suite.Require().NoError(err)
+	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, big.NewInt(0), pack)
 	suite.Require().NoError(err)
 	return suite.SendTransaction(transaction)
 }
@@ -147,6 +163,23 @@ func (suite *StakingSuite) UndelegateByContract(privateKey cryptotypes.PrivKey, 
 	auth := suite.TransactionOpts(privateKey)
 
 	tx, err := stakingContract.Undelegate(auth, valAddr, shares)
+	suite.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
+	defer cancel()
+	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
+	return receipt
+}
+
+func (suite *StakingSuite) RedelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valSrc, valDst string, shares *big.Int) *ethtypes.Receipt {
+	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
+	suite.Require().NoError(err)
+
+	auth := suite.TransactionOpts(privateKey)
+
+	tx, err := stakingContract.Redelegate(auth, valSrc, valDst, shares)
 	suite.Require().NoError(err)
 
 	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)

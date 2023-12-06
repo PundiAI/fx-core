@@ -20,6 +20,16 @@ library Decode {
         return (amount, reward, completionTime);
     }
 
+    function redelegate(
+        bytes memory data
+    ) internal pure returns (uint256, uint256, uint256) {
+        (uint256 amount, uint256 reward, uint256 completionTime) = abi.decode(
+            data,
+            (uint256, uint256, uint256)
+        );
+        return (amount, reward, completionTime);
+    }
+
     function withdraw(bytes memory data) internal pure returns (uint256) {
         uint256 reward = abi.decode(data, (uint256));
         return reward;
