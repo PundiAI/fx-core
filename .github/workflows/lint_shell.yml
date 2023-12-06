@@ -1,4 +1,4 @@
-name: Tests
+name: Lint Shell
 
 on:
   push:
@@ -8,9 +8,7 @@ on:
       - main
   pull_request:
     paths:
-      - '**.go'
-      - 'go.md'
-      - 'go.sum'
+      - '**.sh'
 
 permissions:
   contents: read
@@ -20,19 +18,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
+  shellcheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
-        with:
-          go-version: 1.21
-
-      - name: Run go mod
-        run: make go.sum
-
-      - name: Run make build
-        run: make build
-
-      - name: Run make test
-        run: make test
+      - name: Run shellcheck
+        run: make lint-shell
+      - name: Run shfmt
+        run: docker run --rm -v $(pwd):/mnt -w /mnt mvdan/shfmt:v3.6.0 -l -d -i 2 .
