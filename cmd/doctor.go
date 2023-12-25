@@ -289,6 +289,8 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 			fmt.Printf("%sVersion: v3\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV5 {
 			fmt.Printf("%sVersion: V4\n", SPACE)
+		} else if blockHeight < fxtypes.MainnetBlockHeightV6 {
+			fmt.Printf("%sVersion: V5\n", SPACE)
 		}
 	}
 	if chainId == fxtypes.TestnetChainId {
