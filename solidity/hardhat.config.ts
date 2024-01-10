@@ -1,6 +1,6 @@
 import {HardhatUserConfig} from "hardhat/config"
 import "hardhat-dependency-compiler"
-import "@nomiclabs/hardhat-ethers"
+import "@nomicfoundation/hardhat-ethers"
 
 import './tasks/task'
 
