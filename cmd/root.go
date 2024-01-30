@@ -123,6 +123,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		appCli.AddGenesisAccountCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
+		appCli.NewPruneCmd(app.DefaultNodeHome),
 		TestnetCmd(),
 		appCli.Debug(),
 		Network(),
