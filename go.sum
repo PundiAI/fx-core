@@ -245,8 +245,8 @@ github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/functionx/cosmos-sdk v0.42.5-0.20231218085921-2ab02165273f h1:0pvscamlBxNfK6Gl6tndIgNRTtc39/HXLVkt6LCgfOc=
 github.com/functionx/cosmos-sdk v0.42.5-0.20231218085921-2ab02165273f/go.mod h1:I1Zw1zmU4rA/NITaakTb71pXQnQrWyFBhqo3WSeg0vA=
-github.com/functionx/tendermint v0.34.10-0.20240130062512-4c03b14d6c2f h1:3xlJpMdejJC2dUeRWAa8+7p2y/qSMET4+s8hB4y8x7c=
-github.com/functionx/tendermint v0.34.10-0.20240130062512-4c03b14d6c2f/go.mod h1:kl4Z1JwGx1I+u1SXIzMDy7Z3T8LiMeCAOnzNn6AIMT4=
+github.com/functionx/tendermint v0.34.10-0.20240201061643-b400dee25499 h1:uh7swRWNe5kY0ZrpE50tmjiRrxYdRgBLLIkYhSJHODE=
+github.com/functionx/tendermint v0.34.10-0.20240201061643-b400dee25499/go.mod h1:kl4Z1JwGx1I+u1SXIzMDy7Z3T8LiMeCAOnzNn6AIMT4=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff/go.mod h1:x7DCsMOv1taUwEWCzT4cmDeAkigA5/QCwUodaVOe8Ww=
 github.com/getkin/kin-openapi v0.53.0/go.mod h1:7Yn5whZr5kJi6t+kShccXS8ae1APpYTW6yheSwk8Yi4=
 github.com/getkin/kin-openapi v0.61.0/go.mod h1:7Yn5whZr5kJi6t+kShccXS8ae1APpYTW6yheSwk8Yi4=

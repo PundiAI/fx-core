@@ -128,4 +128,4 @@ replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.
 
 replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.5-0.20231218085921-2ab02165273f
 
-replace github.com/tendermint/tendermint => github.com/functionx/tendermint v0.34.10-0.20240130062512-4c03b14d6c2f
+replace github.com/tendermint/tendermint => github.com/functionx/tendermint v0.34.10-0.20240201061643-b400dee25499
