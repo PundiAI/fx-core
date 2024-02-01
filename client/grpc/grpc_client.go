@@ -329,7 +329,7 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if len(response.GetValidators()) <= 0 {
+	if len(response.GetValidators()) == 0 {
 		return "", errors.New("no found validator")
 	}
 	prefix, _, err := bech32.DecodeAndConvert(response.GetValidators()[0].GetAddress())

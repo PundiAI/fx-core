@@ -441,7 +441,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 
 	require.True(suite.T(), sdkmath.NewInt(10*1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
 
-	var newOracleAddressList []string
+	newOracleAddressList := make([]string, 0, len(suite.oracleAddrs)-1)
 	for _, address := range suite.oracleAddrs[1:] {
 		newOracleAddressList = append(newOracleAddressList, address.String())
 	}

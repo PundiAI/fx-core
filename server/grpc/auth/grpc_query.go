@@ -24,7 +24,7 @@ func (Querier) ConvertAddress(_ context.Context, req *ConvertAddressRequest) (*C
 	if len(req.Address) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
 	}
-	if len(req.Prefix) <= 0 {
+	if len(req.Prefix) == 0 {
 		req.Prefix = fxtypes.AddressPrefix
 	}
 	address, err := ConvertBech32Prefix(req.Address, req.Prefix)
@@ -38,12 +38,12 @@ func (Querier) ConvertAddress(_ context.Context, req *ConvertAddressRequest) (*C
 func ConvertBech32Prefix(address, prefix string) (string, error) {
 	_, bz, err := bech32.DecodeAndConvert(address)
 	if err != nil {
-		return "", fmt.Errorf("cannot decode %s address: %s", address, err)
+		return "", fmt.Errorf("cannot decode %s address: %w", address, err)
 	}
 
 	convertedAddress, err := bech32.ConvertAndEncode(prefix, bz)
 	if err != nil {
-		return "", fmt.Errorf("cannot convert %s address: %s", address, err)
+		return "", fmt.Errorf("cannot convert %s address: %w", address, err)
 	}
 	return convertedAddress, nil
 }

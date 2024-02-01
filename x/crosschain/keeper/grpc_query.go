@@ -230,7 +230,7 @@ func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEven
 }
 
 func (k Keeper) DenomToToken(c context.Context, req *types.QueryDenomToTokenRequest) (*types.QueryDenomToTokenResponse, error) {
-	if len(req.GetDenom()) <= 0 {
+	if len(req.GetDenom()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
 
@@ -378,7 +378,7 @@ func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensReques
 }
 
 func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
-	if len(req.GetDenom()) <= 0 {
+	if len(req.GetDenom()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
@@ -389,7 +389,7 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 			bridgeCoinMetaData = metadata
 			return true
 		}
-		if len(metadata.GetDenomUnits()) <= 0 {
+		if len(metadata.GetDenomUnits()) == 0 {
 			return false
 		}
 		for _, alias := range metadata.GetDenomUnits()[0].GetAliases() {
@@ -400,7 +400,7 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 		}
 		return false
 	})
-	if len(bridgeCoinMetaData.GetBase()) <= 0 {
+	if len(bridgeCoinMetaData.GetBase()) == 0 {
 		return nil, status.Error(codes.NotFound, "denom")
 	}
 

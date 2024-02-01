@@ -155,11 +155,12 @@ func ImportKeyCommand() *cobra.Command {
 				}
 				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyAlgorithm)
 				var armoPrivKey string
-				if hd.PubKeyType(algoStr) == hd.Secp256k1Type {
+				switch hd.PubKeyType(algoStr) {
+				case hd.Secp256k1Type:
 					armoPrivKey = crypto.EncryptArmorPrivKey(&secp256k1.PrivKey{Key: ethcrypto.FromECDSA(priv)}, "", string(hd.Secp256k1Type))
-				} else if hd.PubKeyType(algoStr) == hd2.EthSecp256k1Type {
+				case hd2.EthSecp256k1Type:
 					armoPrivKey = crypto.EncryptArmorPrivKey(&ethsecp256k1.PrivKey{Key: ethcrypto.FromECDSA(priv)}, "", string(hd2.EthSecp256k1Type))
-				} else {
+				default:
 					return fmt.Errorf("provided algorithm %q is not supported", algoStr)
 				}
 

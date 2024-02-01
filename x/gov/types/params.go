@@ -88,7 +88,7 @@ func Erc20ProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voti
 		sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{}),
 		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
 	}
-	var baseParams []*Params
+	baseParams := make([]*Params, 0, len(erc20MsgType))
 	for _, msgType := range erc20MsgType {
 		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
 			maxDepositPeriod, threshold, vetoThreshold))
@@ -101,7 +101,7 @@ func EVMProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voting
 	evmMsgType := []string{
 		sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),
 	}
-	var baseParams []*Params
+	baseParams := make([]*Params, 0, len(evmMsgType))
 	for _, msgType := range evmMsgType {
 		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
 			maxDepositPeriod, threshold, vetoThreshold))
@@ -117,7 +117,7 @@ func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voting
 		"/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
 		// TODO v1 MsgServer MsgCommunityPoolSpend pending
 	}
-	var baseParams []*Params
+	baseParams := make([]*Params, 0, len(EGFMsgType))
 	for _, msgType := range EGFMsgType {
 		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
 			maxDepositPeriod, threshold, vetoThreshold))

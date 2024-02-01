@@ -22,8 +22,8 @@ func (suite *IntegrationTest) ERC20TokenOriginTest() {
 
 	decimals := 18
 	metadata := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), uint32(decimals))
-	var aliases []string
-	var bridgeTokens []crosschaintypes.BridgeToken
+	aliases := make([]string, 0, len(suite.crosschain))
+	bridgeTokens := make([]crosschaintypes.BridgeToken, 0, len(suite.crosschain))
 	for _, chain := range suite.crosschain {
 		denom, bridgeToken := chain.AddBridgeToken(metadata)
 		aliases = append(aliases, denom)
@@ -129,8 +129,8 @@ func (suite *IntegrationTest) ERC20TokenERC20Test() {
 	suite.True(suite.evm.CheckBalanceOf(proxy, common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18))))
 
 	metadataBrdige := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), uint32(18))
-	var aliases []string
-	var bridgeTokens []crosschaintypes.BridgeToken
+	aliases := make([]string, 0, len(suite.crosschain))
+	bridgeTokens := make([]crosschaintypes.BridgeToken, 0, len(suite.crosschain))
 	for _, chain := range suite.crosschain {
 		denom, bridgeToken := chain.AddBridgeToken(metadataBrdige)
 		aliases = append(aliases, denom)

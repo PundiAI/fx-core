@@ -42,7 +42,7 @@ func (k Keeper) isNeedOracleSetRequest(ctx sdk.Context) (*types.OracleSet, bool)
 	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentOracleSet.Members).PowerDiff(latestOracleSet.Members))
 	powerDiffDec, err := sdk.NewDecFromStr(powerDiff)
 	if err != nil {
-		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %v", powerDiff, err))
+		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %w", powerDiff, err))
 	}
 
 	oracleSetUpdatePowerChangePercent := k.GetOracleSetUpdatePowerChangePercent(ctx)

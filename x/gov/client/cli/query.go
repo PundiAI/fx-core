@@ -42,8 +42,6 @@ func GetQueryCmd() *cobra.Command {
 }
 
 // GetCmdQueryParams implements the query params command.
-//
-//nolint:staticcheck // this function contains deprecated commands that we need.
 func GetCmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",
@@ -85,8 +83,6 @@ $ %s query gov params
 }
 
 // GetCmdQueryEGFParams implements the query params command.
-//
-//nolint:staticcheck // this function contains deprecated commands that we need.
 func GetCmdQueryEGFParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "egf-params",

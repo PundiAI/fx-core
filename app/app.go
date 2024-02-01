@@ -163,7 +163,7 @@ func New(
 	}
 
 	if err := anteOptions.Validate(); err != nil {
-		panic(fmt.Errorf("failed to ante options validate: %s", err))
+		panic(fmt.Errorf("failed to ante options validate: %w", err))
 	}
 
 	myApp.SetAnteHandler(fxante.NewAnteHandler(anteOptions))

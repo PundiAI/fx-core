@@ -78,7 +78,7 @@ func checksumHex(addr []byte) []byte {
 			buf[i] -= 32
 		}
 	}
-	return buf[:]
+	return buf
 }
 
 // MkConsKeyOutput create a KeyOutput in with "cons" Bech32 prefixes.

@@ -110,7 +110,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 			govStore.Delete(govtypes.VoteKey(proposalID, from))
 			govStore.Set(govtypes.VoteKey(proposalID, to.Bytes()), cdc.MustMarshal(&fromVote))
 
-			var options govv1.WeightedVoteOptions = fromVote.Options[:]
+			var options govv1.WeightedVoteOptions = fromVote.Options
 			// add events
 			events = append(events,
 				sdk.NewEvent(

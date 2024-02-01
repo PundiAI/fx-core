@@ -1027,7 +1027,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(msg *evmtypes.MsgEthereumTx, pri
 func (suite *AnteTestSuite) CreateEmptyTestTx(txBuilder client.TxBuilder, privs []cryptotypes.PrivKey, accNums []uint64, accSeqs []uint64) (authsigning.Tx, error) {
 	cliCtx := NewClientCtx()
 	signMode := cliCtx.TxConfig.SignModeHandler().DefaultMode()
-	var sigsV2 []signing.SignatureV2
+	sigsV2 := make([]signing.SignatureV2, 0, len(privs))
 	for i, priv := range privs {
 		sigV2 := signing.SignatureV2{
 			PubKey: priv.PubKey(),

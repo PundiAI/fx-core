@@ -523,10 +523,10 @@ func (k Keeper) UpdateDenomAlias(c context.Context, req *types.MsgUpdateDenomAli
 
 func (k Keeper) ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string {
 	// erc20
-	if len(fxTarget.GetTarget()) <= 0 || fxTarget.GetTarget() == types.ModuleName {
+	if len(fxTarget.GetTarget()) == 0 || fxTarget.GetTarget() == types.ModuleName {
 		return base
 	}
-	if len(aliases) <= 0 {
+	if len(aliases) == 0 {
 		return denom
 	}
 

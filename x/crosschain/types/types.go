@@ -59,7 +59,7 @@ func (b BridgeValidators) Len() int {
 func (b BridgeValidators) Less(i, j int) bool {
 	if b[i].Power == b[j].Power {
 		// Secondary sort on eth address in case powers are equal
-		return bytes.Compare([]byte(b[i].ExternalAddress)[:], []byte(b[j].ExternalAddress)[:]) == -1
+		return bytes.Compare([]byte(b[i].ExternalAddress), []byte(b[j].ExternalAddress)) == -1
 	}
 	return b[i].Power > b[j].Power
 }
@@ -189,7 +189,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	}
 	checkpointBytes := []uint8("checkpoint")
 	var checkpoint [32]uint8
-	copy(checkpoint[:], checkpointBytes[:])
+	copy(checkpoint[:], checkpointBytes)
 
 	memberAddresses := make([]gethcommon.Address, len(m.Members))
 	convertedPowers := make([]*big.Int, len(m.Members))
@@ -284,7 +284,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// Create the methodName argument which salts the signature
 	methodNameBytes := []uint8("transactionBatch")
 	var batchMethodName [32]uint8
-	copy(batchMethodName[:], methodNameBytes[:])
+	copy(batchMethodName[:], methodNameBytes)
 
 	// Run through the elements of the batch and serialize them
 	txAmounts := make([]*big.Int, len(m.Transactions))

@@ -97,14 +97,14 @@ func (k Keeper) GetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.
 	return sdk.BigEndianToUint64(data)
 }
 
-func (k Keeper) UpdateChainOracles(ctx sdk.Context, Oracles []string) error {
-	if len(Oracles) > types.MaxOracleSize {
+func (k Keeper) UpdateChainOracles(ctx sdk.Context, oracles []string) error {
+	if len(oracles) > types.MaxOracleSize {
 		return errorsmod.Wrapf(types.ErrInvalid,
 			fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
 	}
 
-	newOracleMap := make(map[string]bool, len(Oracles))
-	for _, oracle := range Oracles {
+	newOracleMap := make(map[string]bool, len(oracles))
+	for _, oracle := range oracles {
 		newOracleMap[oracle] = true
 	}
 
@@ -113,7 +113,7 @@ func (k Keeper) UpdateChainOracles(ctx sdk.Context, Oracles []string) error {
 
 	allOracles := k.GetAllOracles(ctx, false)
 	proposalOracle, _ := k.GetProposalOracle(ctx)
-	oldOracleMap := make(map[string]bool, len(Oracles))
+	oldOracleMap := make(map[string]bool, len(oracles))
 	for _, oracle := range proposalOracle.Oracles {
 		oldOracleMap[oracle] = true
 	}
@@ -144,7 +144,7 @@ func (k Keeper) UpdateChainOracles(ctx sdk.Context, Oracles []string) error {
 	}
 
 	// update proposal oracle
-	k.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: Oracles})
+	k.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: oracles})
 
 	for _, unbondedOracle := range unbondedOracleList {
 		if err := k.UnbondedOracleFromProposal(ctx, unbondedOracle); err != nil {

@@ -52,7 +52,7 @@ Example:
 			cmd.Println(fmt.Sprintf("Successfully initialized %d node directories", networkConfig.NumValidators))
 
 			dockerImage, _ := cmd.Flags().GetString(flagDockerImage)
-			if len(dockerImage) <= 0 {
+			if len(dockerImage) == 0 {
 				return nil
 			}
 			if err = generateDockerComposeYml(validators, outputDir, dockerImage); err != nil {
@@ -86,7 +86,7 @@ func generateDockerComposeYml(validators []*network.Validator, outputDir, docker
 	data := map[string]interface{}{
 		"Subnet": fmt.Sprintf("%s/16", getSubnet(IPAddress)),
 	}
-	var persistentPeers []string
+	persistentPeers := make([]string, 0, len(validators))
 	services := make([]map[string]interface{}, 0)
 	for i, validator := range validators {
 		ip, err := getNextIP(i, IPAddress)

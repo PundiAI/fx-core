@@ -43,8 +43,7 @@ type KeeperTestSuite struct {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	compile, err := regexp.Compile("^Test")
-	require.NoError(t, err)
+	compile := regexp.MustCompile("^Test")
 	subModules := []string{
 		bsctypes.ModuleName,
 		polygontypes.ModuleName,

@@ -54,7 +54,7 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, accountKeeper types.AccountKeeper,
 	// init logic contract
 	initContract := []fxtypes.Contract{fxtypes.GetFIP20(), fxtypes.GetWFX()}
 	for _, contract := range initContract {
-		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
+		if len(contract.Code) == 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
 			panic(fmt.Sprintf("invalid contract: %s", contract.Address.String()))
 		}
 		if err := k.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {

@@ -12,7 +12,7 @@ import (
 func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.GetDenomToTokenKey(tokenContract))
-	if len(data) <= 0 {
+	if len(data) == 0 {
 		return nil
 	}
 	return &types.BridgeToken{
@@ -24,7 +24,7 @@ func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *type
 func (k Keeper) GetDenomBridgeToken(ctx sdk.Context, denom string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.GetTokenToDenomKey(denom))
-	if len(data) <= 0 {
+	if len(data) == 0 {
 		return nil
 	}
 	return &types.BridgeToken{

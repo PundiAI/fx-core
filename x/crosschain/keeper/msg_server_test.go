@@ -883,7 +883,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid validator
 	totalPower := sdkmath.ZeroInt()
-	var delegateAmounts []sdkmath.Int
+	delegateAmounts := make([]sdkmath.Int, 0, len(suite.oracleAddrs))
 	for i, oracle := range suite.oracleAddrs {
 		normalMsg := &types.MsgBondedOracle{
 			OracleAddress:    oracle.String(),

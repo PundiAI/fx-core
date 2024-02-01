@@ -176,7 +176,7 @@ func (suite *TestSuite) GetAllValPrivKeys() []cryptotypes.PrivKey {
 	if suite.IsUseLocalNetwork() {
 		return []cryptotypes.PrivKey{suite.GetFirstValPrivKey()}
 	}
-	var privKeys []cryptotypes.PrivKey
+	privKeys := make([]cryptotypes.PrivKey, 0, len(suite.network.Config.Mnemonics))
 	for _, mnemonics := range suite.network.Config.Mnemonics {
 		privKey, err := helpers.PrivKeyFromMnemonic(mnemonics, hd.Secp256k1Type, 0, 0)
 		suite.NoError(err)

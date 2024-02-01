@@ -275,7 +275,7 @@ func buildCommitVotes(t *testing.T, ctx sdk.Context, stakingKeeper stakingkeeper
 	t.Helper()
 	validators := stakingKeeper.GetAllValidators(ctx)
 
-	var result []abcitypes.VoteInfo
+	result := make([]abcitypes.VoteInfo, 0, len(validators))
 	for _, validator := range validators {
 		if !validator.IsBonded() {
 			continue

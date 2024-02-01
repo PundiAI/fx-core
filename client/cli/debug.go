@@ -275,7 +275,7 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			var pubkey cryptotypes.PubKey
-			if len(args) <= 0 {
+			if len(args) == 0 {
 				serverCtx := server.GetServerContextFromCmd(cmd)
 				serverCfg := serverCtx.Config
 				privValidator := privval.LoadFilePV(serverCfg.PrivValidatorKeyFile(), serverCfg.PrivValidatorStateFile())
