@@ -63,11 +63,11 @@ func (k Keeper) SetMigrateRecord(ctx sdk.Context, from sdk.AccAddress, to common
 
 	height := sdk.Uint64ToBigEndian(uint64(ctx.BlockHeight()))
 
-	copy(bzFrom[:], types.ValuePrefixMigrateFromFlag)
+	copy(bzFrom, types.ValuePrefixMigrateFromFlag)
 	copy(bzFrom[1:], to.Bytes())
 	copy(bzFrom[1+addressLen:], height)
 
-	copy(bzTo[:], types.ValuePrefixMigrateToFlag)
+	copy(bzTo, types.ValuePrefixMigrateToFlag)
 	copy(bzTo[1:], from.Bytes())
 	copy(bzTo[1+addressLen:], height)
 

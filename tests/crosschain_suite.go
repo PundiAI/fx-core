@@ -305,7 +305,7 @@ func (suite *CrosschainTestSuite) SendToTxClaimWithReceiver(receiver sdk.AccAddr
 		Token:     token,
 	})
 	suite.NoError(err)
-	if bridgeToken.Denom == fxtypes.DefaultDenom && len(targetIbc) <= 0 {
+	if bridgeToken.Denom == fxtypes.DefaultDenom && len(targetIbc) == 0 {
 		balances := suite.QueryBalances(receiver)
 		suite.True(balances.IsAllGTE(sdk.NewCoins(sdk.NewCoin(bridgeToken.Denom, amount))))
 	}

@@ -126,7 +126,7 @@ func (c *NodeRPC) GetAddressPrefix() (prefix string, err error) {
 	if err = json.Unmarshal(appState[authtypes.ModuleName], &authGen); err != nil {
 		return
 	}
-	if len(authGen.Accounts) <= 0 {
+	if len(authGen.Accounts) == 0 {
 		return sdk.Bech32MainPrefix, nil
 	}
 	c.addrPrefix, _, err = bech32.Decode(authGen.Accounts[0].Address)
@@ -341,7 +341,7 @@ func (c *NodeRPC) UnconfirmedTxs(limit int) (*ctypes.ResultUnconfirmedTxs, error
 	if err != nil {
 		return nil, errors.Wrap(err, "unconfirmed_txs")
 	}
-	if len(result.Txs) <= 0 {
+	if len(result.Txs) == 0 {
 		result.Txs = make([]types.Tx, 0)
 	}
 	return result, nil
@@ -362,7 +362,7 @@ func (c *NodeRPC) NetInfo() (*ctypes.ResultNetInfo, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "NetInfo")
 	}
-	if len(result.Peers) <= 0 {
+	if len(result.Peers) == 0 {
 		result.Peers = make([]ctypes.Peer, 0)
 	}
 	return result, nil
@@ -374,7 +374,7 @@ func (c *NodeRPC) DumpConsensusState() (*ctypes.ResultDumpConsensusState, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "DumpConsensusState")
 	}
-	if len(result.Peers) <= 0 {
+	if len(result.Peers) == 0 {
 		result.Peers = make([]ctypes.PeerStateInfo, 0)
 	}
 	return result, nil

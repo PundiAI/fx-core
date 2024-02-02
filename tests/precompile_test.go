@@ -161,8 +161,8 @@ func (suite *IntegrationTest) PrecompileCrossChainConvertedDenomTest() {
 
 func (suite *IntegrationTest) precompileInit() (*erc20types.TokenPair, []crosschaintypes.BridgeToken) {
 	metadata := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), uint32(18))
-	var aliases []string
-	var bridgeTokens []crosschaintypes.BridgeToken
+	aliases := make([]string, 0, len(suite.crosschain))
+	bridgeTokens := make([]crosschaintypes.BridgeToken, 0, len(suite.crosschain))
 	for _, chain := range suite.crosschain {
 		denom, bridgeToken := chain.AddBridgeToken(metadata)
 		aliases = append(aliases, denom)

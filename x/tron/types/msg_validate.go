@@ -169,7 +169,7 @@ func (b TronMsgValidate) MsgRequestBatchValidate(m *crosschaintypes.MsgRequestBa
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if len(m.Denom) <= 0 {
+	if len(m.Denom) == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("empty denom")
 	}
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {

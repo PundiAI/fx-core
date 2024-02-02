@@ -93,9 +93,7 @@ func preUpgradeCmd() *cobra.Command {
 		Use:   "pre-upgrade",
 		Short: "Called by cosmovisor, before migrations upgrade",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return updateConfig(cmd, args)
-		},
+		RunE:  updateConfig,
 	}
 	return cmd
 }

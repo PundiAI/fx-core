@@ -49,7 +49,7 @@ func TestInterceptConfigsPreRunHandlerCreatesConfigFilesWhenMissing(t *testing.T
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
-	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -126,7 +126,7 @@ func TestInterceptConfigsPreRunHandlerReadsConfigToml(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -163,7 +163,7 @@ func TestInterceptConfigsPreRunHandlerReadsAppToml(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -191,7 +191,7 @@ func TestInterceptConfigsPreRunHandlerReadsFlags(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -226,7 +226,7 @@ func TestInterceptConfigsPreRunHandlerReadsEnvVars(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -330,7 +330,7 @@ func TestInterceptConfigsPreRunHandlerPrecedenceFlag(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -346,7 +346,7 @@ func TestInterceptConfigsPreRunHandlerPrecedenceEnvVar(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -362,7 +362,7 @@ func TestInterceptConfigsPreRunHandlerPrecedenceConfigFile(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 
@@ -378,7 +378,7 @@ func TestInterceptConfigsPreRunHandlerPrecedenceConfigDefault(t *testing.T) {
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 
-	if err := testCommon.cmd.ExecuteContext(ctx); err != errCancelledInPreRun {
+	if err := testCommon.cmd.ExecuteContext(ctx); !errors.Is(err, errCancelledInPreRun) {
 		t.Fatalf("function failed with [%T] %v", err, err)
 	}
 

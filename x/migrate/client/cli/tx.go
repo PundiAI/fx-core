@@ -145,11 +145,11 @@ func getMigrateAccountMsg(cliCtx client.Context, from sdk.AccAddress, to common.
 	toInfo, _ := cliCtx.Keyring.KeyByAddress(sdk.AccAddress(to.Bytes()))
 	sign, _, err := cliCtx.Keyring.Sign(toInfo.Name, types.MigrateAccountSignatureHash(from, to.Bytes()))
 	if err != nil {
-		return nil, fmt.Errorf("sign migrate signature error %v", err)
+		return nil, fmt.Errorf("sign migrate signature error %w", err)
 	}
 	msg := types.NewMsgMigrateAccount(from, to, hex.EncodeToString(sign))
 	if err := msg.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate basic error %v", err)
+		return nil, fmt.Errorf("validate basic error %w", err)
 	}
 	return msg, nil
 }

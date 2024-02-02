@@ -185,7 +185,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockch
 	if len(grpcAddr) > 0 {
 		return nil, err
 	}
-	if len(serverCtx.Config.RootDir) <= 0 {
+	if len(serverCtx.Config.RootDir) == 0 {
 		fmt.Printf("%sWarning: Not found root dir\n", SPACE)
 		return nil, nil
 	}

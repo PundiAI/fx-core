@@ -74,7 +74,7 @@ Examples:
 			// signature
 			sign, _, err := clientCtx.Keyring.Sign(toInfo.Name, types.GrantPrivilegeSignatureData(valAddr, fromAddr, toAddr))
 			if err != nil {
-				return fmt.Errorf("sign grant privilege signature error %v", err)
+				return fmt.Errorf("sign grant privilege signature error %w", err)
 			}
 			msg := &types.MsgGrantPrivilege{
 				ValidatorAddress: valAddr.String(),
