@@ -43,8 +43,11 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 
 	// Add the oracle's vote to this attestation
 	att.Votes = append(att.Votes, oracleAddr.String())
-
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
+
+	if !att.Observed && claim.GetEventNonce() == k.GetLastObservedEventNonce(ctx)+1 {
+		k.TryAttestation(ctx, att, claim)
+	}
 
 	ctx = ctx.WithGasMeter(gasMeter)
 	k.SetLastEventNonceByOracle(ctx, oracleAddr, claim.GetEventNonce())
@@ -57,10 +60,6 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 // and has not already been marked Observed, then calls processAttestation to actually apply it to the state,
 // and then marks it Observed and emits an event.
 func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) {
-	if att.Observed {
-		// We panic here because this should never happen
-		panic("attempting to process observed attestation")
-	}
 	// If the attestation has not yet been Observed, sum up the votes and see if it is ready to apply to the state.
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
@@ -82,14 +81,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		if attestationPower.LT(requiredPower) {
 			continue
 		}
-		// If the power of all the validators that have voted on the attestation is higher or equal to the threshold,
-		// process the attestation, set Observed to true, and break
-		lastEventNonce := k.GetLastObservedEventNonce(ctx)
-		// this check is performed at the next level up so this should never panic
-		// outside of programmer error.
-		if claim.GetEventNonce() != lastEventNonce+1 {
-			panic("attempting to apply events to state out of order")
-		}
+
 		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
 		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
 
