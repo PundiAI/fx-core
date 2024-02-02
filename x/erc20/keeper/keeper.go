@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/libs/log"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 // Keeper of this module maintains collections of erc20.

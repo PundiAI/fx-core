@@ -1,11 +1,11 @@
-package v6
+package v7
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/functionx/fx-core/v6/app/keepers"
+	"github.com/functionx/fx-core/v7/app/keepers"
 )
 
 func CreateUpgradeHandler(
@@ -16,7 +16,7 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
-		ctx.Logger().Info("start to run v6 migrations...", "module", "upgrade")
+		ctx.Logger().Info("start to run v7 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
 			return fromVM, err

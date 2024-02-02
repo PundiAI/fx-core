@@ -12,7 +12,7 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func NewDelegateAmount(amount sdkmath.Int) sdk.Coin {

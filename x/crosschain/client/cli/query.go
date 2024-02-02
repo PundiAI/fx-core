@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func GetQueryCmd(subCmd ...*cobra.Command) *cobra.Command {

@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 var _ fxtypes.TransactionHook = &Keeper{}

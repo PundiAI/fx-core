@@ -4,9 +4,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
-	govtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	govtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 func (suite *KeeperTestSuite) TestGRPCQueryParams() {

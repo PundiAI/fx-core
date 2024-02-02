@@ -9,8 +9,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v6/ante"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v7/ante"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
 func (suite *AnteTestSuite) TestGasWantedDecorator() {

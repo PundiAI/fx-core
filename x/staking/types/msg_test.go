@@ -14,9 +14,9 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	"github.com/functionx/fx-core/v6/x/staking/types"
+	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func TestMsgGrantPrivilegeRoute(t *testing.T) {

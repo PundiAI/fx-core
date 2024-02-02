@@ -3,8 +3,8 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v4 "github.com/functionx/fx-core/v6/x/crosschain/migrations/v4"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	v4 "github.com/functionx/fx-core/v7/x/crosschain/migrations/v4"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.

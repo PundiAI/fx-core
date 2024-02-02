@@ -6,7 +6,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 // Tally iterates over the votes and updates the tally of a proposal based on the voting power of the

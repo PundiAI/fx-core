@@ -32,7 +32,7 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 // GenTxCmd builds the application's gentx command.

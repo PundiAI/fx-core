@@ -10,7 +10,7 @@ import (
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
-	fxcfg "github.com/functionx/fx-core/v6/server/config"
+	fxcfg "github.com/functionx/fx-core/v7/server/config"
 )
 
 const (

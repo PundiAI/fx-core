@@ -14,10 +14,10 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/evm/client/cli"
-	"github.com/functionx/fx-core/v6/x/evm/keeper"
-	fxevmtypes "github.com/functionx/fx-core/v6/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/evm/client/cli"
+	"github.com/functionx/fx-core/v7/x/evm/keeper"
+	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 var (

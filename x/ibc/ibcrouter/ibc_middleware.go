@@ -18,9 +18,9 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/tendermint/tendermint/libs/log"
 
-	fxtransfertypes "github.com/functionx/fx-core/v6/x/ibc/applications/transfer/types"
-	"github.com/functionx/fx-core/v6/x/ibc/ibcrouter/parser"
-	"github.com/functionx/fx-core/v6/x/ibc/ibcrouter/types"
+	fxtransfertypes "github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/parser"
+	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/types"
 )
 
 const (

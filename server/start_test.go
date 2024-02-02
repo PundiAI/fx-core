@@ -20,9 +20,9 @@ import (
 	"github.com/stretchr/testify/require"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	"github.com/functionx/fx-core/v6/app"
-	fxserver "github.com/functionx/fx-core/v6/server"
-	fxcfg "github.com/functionx/fx-core/v6/server/config"
+	"github.com/functionx/fx-core/v7/app"
+	fxserver "github.com/functionx/fx-core/v7/server"
+	fxcfg "github.com/functionx/fx-core/v7/server/config"
 )
 
 var errCancelledInPreRun = errors.New("cancelled in prerun")

@@ -9,8 +9,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/ibc/applications/transfer/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 )
 
 func parseIBCCoinDenom(packet channeltypes.Packet, packetDenom string) string {

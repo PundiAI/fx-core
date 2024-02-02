@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/x/evm/types"
+	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 var (

@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestMintingEnabled() {

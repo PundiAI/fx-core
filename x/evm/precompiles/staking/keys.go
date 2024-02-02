@@ -4,8 +4,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/contract"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v7/contract"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 const (

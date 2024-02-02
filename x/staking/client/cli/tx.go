@@ -15,7 +15,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v6/x/staking/types"
+	"github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/staking transaction commands.

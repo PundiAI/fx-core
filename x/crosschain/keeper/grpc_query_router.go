@@ -6,8 +6,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
 var _ types.QueryServer = RouterKeeper{}

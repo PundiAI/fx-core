@@ -9,7 +9,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.ExternalClaim) (*types.Attestation, error) {
