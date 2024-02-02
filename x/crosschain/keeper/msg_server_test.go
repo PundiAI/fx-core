@@ -725,6 +725,10 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToExternalClaim)
 				suite.True(ok)
+				suite.Require().NoError(suite.Keeper().StoreBatch(suite.ctx, &types.OutgoingTxBatch{
+					BatchNonce:    msg.BatchNonce,
+					TokenContract: msg.TokenContract,
+				}))
 				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
