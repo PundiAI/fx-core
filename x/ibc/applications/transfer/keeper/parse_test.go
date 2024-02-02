@@ -10,8 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/ibc/applications/transfer/types"
+	_ "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 )
 
 func TestParseReceiveAndAmountByPacket(t *testing.T) {

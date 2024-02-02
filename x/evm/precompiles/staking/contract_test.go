@@ -25,11 +25,11 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v6/app"
-	testscontract "github.com/functionx/fx-core/v6/tests/contract"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/evm/precompiles/staking"
+	"github.com/functionx/fx-core/v7/app"
+	testscontract "github.com/functionx/fx-core/v7/tests/contract"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
 )
 
 const (

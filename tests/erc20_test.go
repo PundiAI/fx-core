@@ -11,10 +11,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 func (suite *IntegrationTest) ERC20TokenOriginTest() {

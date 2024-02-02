@@ -18,10 +18,10 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestMsgBondedOracle() {

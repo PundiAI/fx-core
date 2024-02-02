@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v6/x/gov/types"
+	"github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 var _ types.QueryServer = Keeper{}

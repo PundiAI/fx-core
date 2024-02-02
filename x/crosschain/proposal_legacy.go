@@ -9,8 +9,8 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // NewCrosschainProposalHandler

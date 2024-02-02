@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 // EndBlocker called every block, process inflation, update validator set.

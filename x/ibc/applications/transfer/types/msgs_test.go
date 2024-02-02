@@ -10,7 +10,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v6/types"
+	_ "github.com/functionx/fx-core/v7/types"
 )
 
 // define constants used for testing

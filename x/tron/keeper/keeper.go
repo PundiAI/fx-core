@@ -4,9 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	crosschainkeeper "github.com/functionx/fx-core/v6/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	"github.com/functionx/fx-core/v6/x/tron/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type Keeper struct {

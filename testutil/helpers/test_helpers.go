@@ -43,9 +43,9 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v6/app"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	"github.com/functionx/fx-core/v7/app"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 // ABCIConsensusParams defines the default Tendermint consensus params used in fxCore testing.

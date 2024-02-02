@@ -6,8 +6,8 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/x/ibc/applications/transfer/types"
+	_ "github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 )
 
 func TestUnmarshalJSON(t *testing.T) {

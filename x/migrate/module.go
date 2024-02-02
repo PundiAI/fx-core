@@ -15,9 +15,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v6/x/migrate/client/cli"
-	"github.com/functionx/fx-core/v6/x/migrate/keeper"
-	"github.com/functionx/fx-core/v6/x/migrate/types"
+	"github.com/functionx/fx-core/v7/x/migrate/client/cli"
+	"github.com/functionx/fx-core/v7/x/migrate/keeper"
+	"github.com/functionx/fx-core/v7/x/migrate/types"
 )
 
 // type check to ensure the interface is properly implemented

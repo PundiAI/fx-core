@@ -4,10 +4,10 @@ package keeper
 import (
 	"context"
 
-	crosschainkeeper "github.com/functionx/fx-core/v6/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
-	"github.com/functionx/fx-core/v6/x/gravity/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v7/x/gravity/types"
 )
 
 type msgServer struct {

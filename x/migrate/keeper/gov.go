@@ -11,7 +11,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/x/migrate/types"
+	"github.com/functionx/fx-core/v7/x/migrate/types"
 )
 
 type GovMigrate struct {

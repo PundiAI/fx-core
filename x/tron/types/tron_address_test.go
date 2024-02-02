@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v6/x/tron/types"
+	"github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 func TestValidateTronAddress(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
 func TestOnOrderBeginBlockers(t *testing.T) {

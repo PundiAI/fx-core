@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func (k Keeper) GetOracleDelegateToken(ctx sdk.Context, delegateAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdkmath.Int, error) {

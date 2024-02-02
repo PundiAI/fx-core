@@ -14,9 +14,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxstakingcli "github.com/functionx/fx-core/v6/x/staking/client/cli"
-	"github.com/functionx/fx-core/v6/x/staking/keeper"
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	fxstakingcli "github.com/functionx/fx-core/v7/x/staking/client/cli"
+	"github.com/functionx/fx-core/v7/x/staking/keeper"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 var (

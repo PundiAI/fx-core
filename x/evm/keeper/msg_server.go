@@ -17,7 +17,7 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	fxevmtypes "github.com/functionx/fx-core/v6/x/evm/types"
+	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 var _ types.MsgServer = &Keeper{}

@@ -16,7 +16,7 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 // DeductFeeDecorator deducts fees from the first signer of the tx

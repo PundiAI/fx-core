@@ -28,10 +28,10 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	fxante "github.com/functionx/fx-core/v6/ante"
-	"github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxante "github.com/functionx/fx-core/v7/ante"
+	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 type AnteTestSuite struct {

@@ -3,8 +3,8 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v4 "github.com/functionx/fx-core/v6/x/erc20/migrations/v4"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	v4 "github.com/functionx/fx-core/v7/x/erc20/migrations/v4"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.

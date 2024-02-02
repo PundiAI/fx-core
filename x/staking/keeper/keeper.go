@@ -14,7 +14,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
-	"github.com/functionx/fx-core/v6/x/staking/types"
+	"github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 type Keeper struct {

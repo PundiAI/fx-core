@@ -12,7 +12,7 @@ import (
 	clienthttp "github.com/tendermint/tendermint/rpc/client/http"
 	jsonrpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
 func TestCalculateUpgradeHeight(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v6/x/ibc/ibcrouter/parser"
+	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/parser"
 )
 
 func TestParseReceiverDataTransfer(t *testing.T) {

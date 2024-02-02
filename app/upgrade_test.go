@@ -14,10 +14,10 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v6/app"
-	v6 "github.com/functionx/fx-core/v6/app/upgrades/v6"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v7/app"
+	v7 "github.com/functionx/fx-core/v7/app/upgrades/v7"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func Test_TestnetUpgrade(t *testing.T) {
@@ -34,12 +34,12 @@ func Test_TestnetUpgrade(t *testing.T) {
 		plan                  upgradetypes.Plan
 	}{
 		{
-			name:        "upgrade v6.0.x",
-			fromVersion: 5,
-			toVersion:   6,
+			name:        "upgrade v7.0.x",
+			fromVersion: 6,
+			toVersion:   7,
 			plan: upgradetypes.Plan{
-				Name: v6.Upgrade.UpgradeName,
-				Info: "local test upgrade v6.0.x",
+				Name: v7.Upgrade.UpgradeName,
+				Info: "local test upgrade v7.0.x",
 			},
 		},
 	}
@@ -52,7 +52,7 @@ func Test_TestnetUpgrade(t *testing.T) {
 		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		makeEncodingConfig, app.EmptyAppOptions{})
 	// todo default DefaultStoreLoader  New module verification failed
-	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v6.Upgrade.StoreUpgrades()))
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v7.Upgrade.StoreUpgrades()))
 	err = myApp.LoadLatestVersion()
 	require.NoError(t, err)
 

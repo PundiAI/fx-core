@@ -4,8 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/client/cli"
-	"github.com/functionx/fx-core/v6/x/tron/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/client/cli"
+	"github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 func GetTxCmd() *cobra.Command {
