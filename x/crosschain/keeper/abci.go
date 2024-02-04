@@ -16,7 +16,6 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	k.cleanupTimedOutBatches(ctx)
 	k.createOracleSetRequest(ctx)
 	k.pruneOracleSet(ctx, signedWindow)
-	k.pruneAttestations(ctx)
 }
 
 func (k Keeper) createOracleSetRequest(ctx sdk.Context) {
@@ -175,10 +174,22 @@ func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
 // but (A) pruning keeps the iteration small in the first place and (B) there is
 // already enough nuance in the other handler that it's best not to complicate it further
 func (k Keeper) pruneAttestations(ctx sdk.Context) {
+	lastNonce := k.GetLastObservedEventNonce(ctx)
+	if lastNonce <= types.MaxKeepEventSize {
+		return
+	}
+
+	// we delete all attestations earlier than the current event nonce
+	// minus some buffer value. This buffer value is purely to allow
+	// frontends and other UI components to view recent oracle history
+	cutoff := lastNonce - types.MaxKeepEventSize
 	claimMap := make(map[uint64][]types.ExternalClaim)
 	// We make a slice with all the event nonces that are in the attestation mapping
 	var nonces []uint64
 	k.IterateAttestationAndClaim(ctx, func(att *types.Attestation, claim types.ExternalClaim) bool {
+		if claim.GetEventNonce() > cutoff {
+			return true
+		}
 		if v, ok := claimMap[claim.GetEventNonce()]; !ok {
 			claimMap[claim.GetEventNonce()] = []types.ExternalClaim{claim}
 			nonces = append(nonces, claim.GetEventNonce())
@@ -192,15 +203,6 @@ func (k Keeper) pruneAttestations(ctx sdk.Context) {
 		return nonces[i] < nonces[j]
 	})
 
-	// we delete all attestations earlier than the current event nonce
-	// minus some buffer value. This buffer value is purely to allow
-	// frontends and other UI components to view recent oracle history
-	lastNonce := k.GetLastObservedEventNonce(ctx)
-	if lastNonce <= types.MaxKeepEventSize {
-		return
-	}
-	cutoff := lastNonce - types.MaxKeepEventSize
-
 	// This iterates over all keys (event nonces) in the attestation mapping. Each value contains
 	// a slice with one or more attestations at that event nonce. There can be multiple attestations
 	// at one event nonce when Oracles disagree about what event happened at that nonce.
@@ -209,10 +211,7 @@ func (k Keeper) pruneAttestations(ctx sdk.Context) {
 		// They are ordered by when the first attestation at the event nonce was received.
 		// This order is not important.
 		for _, claim := range claimMap[nonce] {
-			// delete all before the cutoff
-			if nonce < cutoff {
-				k.DeleteAttestation(ctx, claim)
-			}
+			k.DeleteAttestation(ctx, claim)
 		}
 	}
 }

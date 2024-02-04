@@ -98,6 +98,8 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
 			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
 		))
+
+		k.pruneAttestations(ctx)
 		break
 	}
 }
