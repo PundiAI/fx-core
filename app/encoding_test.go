@@ -37,13 +37,13 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 		count3++
 		t.Log(typeURLMap.Key())
 	}
-	assert.Equal(t, 262, count3)
+	assert.Equal(t, 264, count3)
 
 	govContent := encodingConfig.InterfaceRegistry.ListImplementations("cosmos.gov.v1beta1.Content")
 	assert.Equal(t, 14, len(govContent))
 
 	msgImplementations := encodingConfig.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName)
-	assert.Equal(t, 101, len(msgImplementations))
+	assert.Equal(t, 102, len(msgImplementations))
 
 	type govProposalMsg interface {
 		GetAuthority() string

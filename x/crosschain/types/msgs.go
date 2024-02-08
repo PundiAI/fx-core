@@ -28,7 +28,8 @@ const (
 
 	TypeMsgBridgeTokenClaim = "bridge_token_claim"
 
-	TypeMsgSendToFxClaim = "send_to_fx_claim"
+	TypeMsgSendToFxClaim   = "send_to_fx_claim"
+	TypeMsgBridgeCallClaim = "bridge_call_claim"
 
 	TypeMsgSendToExternal       = "send_to_external"
 	TypeMsgCancelSendToExternal = "cancel_send_to_external"
@@ -74,6 +75,8 @@ var (
 
 	_ sdk.Msg       = &MsgSendToFxClaim{}
 	_ CrossChainMsg = &MsgSendToFxClaim{}
+	_ sdk.Msg       = &MsgBridgeCallClaim{}
+	_ CrossChainMsg = &MsgBridgeCallClaim{}
 
 	_ sdk.Msg       = &MsgSendToExternal{}
 	_ CrossChainMsg = &MsgSendToExternal{}
@@ -110,6 +113,7 @@ type MsgValidateBasic interface {
 	MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error)
 
 	MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error)
+	MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error)
 	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
 
 	MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error)
@@ -526,6 +530,7 @@ type ExternalClaim interface {
 
 var (
 	_ ExternalClaim = &MsgSendToFxClaim{}
+	_ ExternalClaim = &MsgBridgeCallClaim{}
 	_ ExternalClaim = &MsgBridgeTokenClaim{}
 	_ ExternalClaim = &MsgSendToExternalClaim{}
 	_ ExternalClaim = &MsgOracleSetUpdatedClaim{}
@@ -579,6 +584,51 @@ func (m *MsgSendToFxClaim) Route() string { return RouterKey }
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgSendToFxClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d%s/%s/%s/%s/%s", m.BlockHeight, m.EventNonce, m.TokenContract, m.Sender, m.Amount.String(), m.Receiver, m.TargetIbc)
+	return tmhash.Sum([]byte(path))
+}
+
+// MsgBridgeCallClaim
+
+// GetType returns the type of the claim
+func (m *MsgBridgeCallClaim) GetType() ClaimType {
+	return CLAIM_TYPE_SEND_TO_FX
+}
+
+// ValidateBasic performs stateless checks
+func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
+	if err = ValidateModuleName(m.ChainName); err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("invalid chain name")
+	}
+	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	} else {
+		return router.MsgBridgeCallClaimValidate(m)
+	}
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgBridgeCallClaim) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+func (m *MsgBridgeCallClaim) GetClaimer() sdk.AccAddress {
+	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgBridgeCallClaim) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
+}
+
+// Type should return the action
+func (m *MsgBridgeCallClaim) Type() string { return TypeMsgBridgeCallClaim }
+
+// Route should return the name of the module
+func (m *MsgBridgeCallClaim) Route() string { return RouterKey }
+
+// ClaimHash Hash implements BridgeSendToExternal.Hash
+func (m *MsgBridgeCallClaim) ClaimHash() []byte {
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%s/%s/%s/%d", m.BlockHeight, m.EventNonce, m.DstChainId, m.Sender, m.Receiver, m.To, m.Asset, m.Message, m.Value.String(), m.GasLimit)
 	return tmhash.Sum([]byte(path))
 }
 

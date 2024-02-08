@@ -4,10 +4,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
@@ -64,7 +62,7 @@ func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccA
 	}
 
 	if data.Router != "" {
-		addressBytes, _, err := parsePacketAddress(data.Sender)
+		addressBytes, _, err := fxtypes.ParseAddress(data.Sender)
 		if err != nil {
 			return nil, false, sdkmath.Int{}, sdkmath.Int{}, err
 		}
@@ -76,7 +74,7 @@ func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccA
 	}
 
 	// decode the receiver address
-	receiverAddr, isEvmAddr, err := parsePacketAddress(data.Receiver)
+	receiverAddr, isEvmAddr, err := fxtypes.ParseAddress(data.Receiver)
 	return receiverAddr, isEvmAddr, transferAmount, sdkmath.ZeroInt(), err
 }
 
@@ -96,16 +94,4 @@ func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdkmath.Int,
 		feeAmount = fee
 	}
 	return transferAmount, feeAmount, nil
-}
-
-func parsePacketAddress(ibcSender string) (addr sdk.AccAddress, isEvmAddr bool, err error) {
-	_, bytes, decodeErr := bech32.DecodeAndConvert(ibcSender)
-	if decodeErr == nil {
-		return bytes, false, nil
-	}
-	ethAddrError := fxtypes.ValidateEthereumAddress(ibcSender)
-	if ethAddrError == nil {
-		return common.HexToAddress(ibcSender).Bytes(), true, nil
-	}
-	return nil, false, decodeErr
 }
