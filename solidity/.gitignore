@@ -7,3 +7,6 @@ cache
 contracts/LICENSE
 contracts/README.md
 contracts/build
+typechain-types
+artifacts
+*.log

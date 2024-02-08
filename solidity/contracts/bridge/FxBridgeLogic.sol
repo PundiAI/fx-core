@@ -13,6 +13,8 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
 
+/* solhint-disable custom-errors */
+
 contract FxBridgeLogic is
     ReentrancyGuardUpgradeable,
     OwnableUpgradeable,
@@ -273,6 +275,36 @@ contract FxBridgeLogic is
         );
     }
 
+    function bridgeCall(
+        string memory _dstChainId,
+        uint256 _gasLimit,
+        address _receiver,
+        address _to,
+        bytes calldata _message,
+        uint256 _value,
+        bytes memory _asset
+    ) external {
+        // decode and transfer asset
+        (string memory assetType, bytes memory assetData) = decodeType(_asset);
+        transferAsset(msg.sender, assetType, assetData);
+
+        // last event nonce +1
+        state_lastEventNonce = state_lastEventNonce.add(1);
+
+        // bridge call event
+        emit BridgeCallEvent(
+            _msgSender(),
+            _receiver,
+            _to,
+            state_lastEventNonce,
+            _dstChainId,
+            _gasLimit,
+            _value,
+            _message,
+            _asset
+        );
+    }
+
     function submitBatch(
         address[] memory _currentOracles,
         uint256[] memory _currentPowers,
@@ -505,6 +537,70 @@ contract FxBridgeLogic is
         return result;
     }
 
+    function decodeType(
+        bytes memory _asset
+    ) public pure returns (string memory, bytes memory) {
+        return abi.decode(_asset, (string, bytes));
+    }
+
+    function transferAsset(
+        address _sender,
+        string memory _assetType,
+        bytes memory _assetData
+    ) internal {
+        if (
+            keccak256(bytes(_assetType)) ==
+            bytes32(
+                0x8ae85d849167ff996c04040c44924fd364217285e4cad818292c7ac37c0a345b
+            )
+        ) {
+            transferERC20(_sender, _assetData);
+        } else {
+            revert("Asset type not support");
+        }
+    }
+
+    function transferERC20(address _from, bytes memory _asset) internal {
+        (address[] memory token, uint256[] memory amount) = decodeERC20(_asset);
+        for (uint256 i = 0; i < token.length; i++) {
+            require(amount[i] > 0, "amount should be greater than zero");
+            TokenStatus memory _tokenStatus = tokenStatus[token[i]];
+            require(_tokenStatus.isExist, "Unsupported token address");
+            require(_tokenStatus.isActive, "token was paused");
+
+            IERC20MetadataUpgradeable(token[i]).safeTransferFrom(
+                _from,
+                address(this),
+                amount[i]
+            );
+            if (_tokenStatus.isOriginated == true) {
+                IERC20ExtensionsUpgradeable(token[i]).burn(amount[i]);
+            }
+        }
+    }
+
+    function decodeERC20(
+        bytes memory _data
+    ) internal pure returns (address[] memory, uint256[] memory) {
+        (bytes memory tokenBytes, uint256[] memory amounts) = abi.decode(
+            _data,
+            (bytes, uint256[])
+        );
+        uint256 tokenCount = amounts.length;
+        require(tokenBytes.length == tokenCount * 20, "Token not match amount");
+        address[] memory tokens = new address[](tokenCount);
+        for (uint256 i = 0; i < tokenCount; i++) {
+            uint256 currentTokenStartingByte = 20 + i * 20;
+            address currentToken;
+            // solhint-disable-next-line no-inline-assembly
+            assembly {
+                currentToken := mload(add(tokenBytes, currentTokenStartingByte))
+            }
+            tokens[i] = currentToken;
+        }
+        return (tokens, amounts);
+    }
+
     /* =============== EVENTS =============== */
 
     event TransactionBatchExecutedEvent(
@@ -535,4 +631,16 @@ contract FxBridgeLogic is
         uint256[] _powers
     );
     event TransferOwnerEvent(address _token, address _newOwner);
+
+    event BridgeCallEvent(
+        address indexed _sender,
+        address indexed _receiver,
+        address indexed _to,
+        uint256 _eventNonce,
+        string _dstChainId,
+        uint256 _gasLimit,
+        uint256 _value,
+        bytes _message,
+        bytes _asset
+    );
 }

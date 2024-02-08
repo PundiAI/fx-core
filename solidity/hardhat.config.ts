@@ -1,19 +1,17 @@
 import {HardhatUserConfig} from "hardhat/config"
 import "hardhat-dependency-compiler"
 import "@nomicfoundation/hardhat-ethers"
+import '@typechain/hardhat'
+import "hardhat-gas-reporter"
 
 import './tasks/task'
 
 const config: HardhatUserConfig = {
-    defaultNetwork: "localhost",
+    defaultNetwork: "hardhat",
     networks: {
-        hardhat: {
-            forking: {
-                url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
-            }
-        },
+        hardhat: {},
         localhost: {
-            url: `${process.env.LOCAL_URL || "http://localhost:8545"}`,
+            url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
         },
     },
     solidity: {
@@ -52,6 +50,11 @@ const config: HardhatUserConfig = {
             "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
             "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol",
         ],
+    },
+    gasReporter: {
+        enabled: false,
+        currency: 'USD',
+        gasPrice: 30
     },
 };
 

@@ -13,6 +13,8 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
 
+/* solhint-disable custom-errors */
+
 contract FxBridgeLogicBSC is
     ReentrancyGuardUpgradeable,
     OwnableUpgradeable,
