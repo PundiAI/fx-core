@@ -1,6 +1,7 @@
-import {ethers, network} from "hardhat";
-import {TransactionRequest} from "@ethersproject/abstract-provider/src.ts";
+import {ethers} from "hardhat";
 import {expect} from "chai";
+import {FxBridgeLogicETH} from "../typechain-types";
+import {AbiCoder, TransactionRequest} from "ethers"
 
 describe("fork mainnet fx bridge test", function () {
     it.skip("update bridge contract", async function () {
@@ -9,37 +10,25 @@ describe("fork mainnet fx bridge test", function () {
         const ownerAddress = "0xE77A7EA2F1DC25968b5941a456d99D37b80E98B5"
         const bridgeContractAddress = "0x6f1D09Fed11115d65E1071CD2109eDb300D80A27"
 
-        await network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [gasAddress],
-        });
-        const gasSigner = ethers.provider.getSigner(gasAddress)
+        const gasSigner = await ethers.getImpersonatedSigner(gasAddress)
 
         await gasSigner.sendTransaction({
             to: adminAddress,
-            value: ethers.utils.parseEther("100")
+            value: ethers.parseEther("100")
         })
 
         await gasSigner.sendTransaction({
             to: ownerAddress,
-            value: ethers.utils.parseEther("100")
+            value: ethers.parseEther("100")
         })
 
-        await network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [adminAddress],
-        });
-        const adminSigner = ethers.provider.getSigner(adminAddress)
+        const adminSigner = await ethers.getImpersonatedSigner(adminAddress)
 
-        await network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [ownerAddress],
-        });
+        const ownerSigner = await ethers.getImpersonatedSigner(ownerAddress)
 
-        const ownerSigner = ethers.provider.getSigner(ownerAddress)
         const bridgeFactory = await ethers.getContractFactory("FxBridgeLogicETH")
 
-        const bridgeContractV1 = bridgeFactory.attach(bridgeContractAddress)
+        const bridgeContractV1 = bridgeFactory.attach(bridgeContractAddress) as FxBridgeLogicETH
         const oldFxBridgeId = await bridgeContractV1.state_fxBridgeId()
         const oldPowerThreshold = await bridgeContractV1.state_powerThreshold()
         const fxAddress = await bridgeContractV1.state_fxOriginatedToken()
@@ -56,12 +45,16 @@ describe("fork mainnet fx bridge test", function () {
         }
 
         const bridgeContract = await bridgeFactory.deploy()
-        await bridgeContract.deployed()
+        await bridgeContract.waitForDeployment()
+
+        const bridgeLogicContractAddress = await bridgeContract.getAddress()
 
         // 0x3659cfe6 is the signature of the upgradeTo(address) function
-        const data = ethers.utils.hexConcat([
+        const abiCode = new AbiCoder;
+
+        const data = ethers.concat([
             '0x3659cfe6',
-            ethers.utils.defaultAbiCoder.encode(['address'], [bridgeContract.address])
+            abiCode.encode(['address'], [bridgeLogicContractAddress])
         ])
 
         const transaction: TransactionRequest = {
@@ -72,8 +65,8 @@ describe("fork mainnet fx bridge test", function () {
         const upgradeTx = await adminSigner.sendTransaction(transaction)
         await upgradeTx.wait()
 
-        const migrateTx = await bridgeContractV1.connect(ownerSigner).migrate()
-        await migrateTx.wait()
+        // const migrateTx = await bridgeContractV1.connect(ownerSigner).migrate()
+        // await migrateTx.wait()
 
         const fxBridgeId = await bridgeContractV1.state_fxBridgeId()
         const powerThreshold = await bridgeContractV1.state_powerThreshold()
@@ -100,5 +93,5 @@ describe("fork mainnet fx bridge test", function () {
             const batchNonce = await bridgeContractV1.state_lastBatchNonces(bridgeToken.addr)
             expect(batchNonce.toString()).to.equal(oldBatchNonce.get(bridgeToken.addr).toString())
         }
-    });
+    }).timeout(100000);
 });
