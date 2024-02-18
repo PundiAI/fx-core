@@ -5,14 +5,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.GetDenomToTokenKey(tokenContract))
-	if len(data) <= 0 {
+	if len(data) == 0 {
 		return nil
 	}
 	return &types.BridgeToken{
@@ -24,7 +24,7 @@ func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *type
 func (k Keeper) GetDenomBridgeToken(ctx sdk.Context, denom string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.GetTokenToDenomKey(denom))
-	if len(data) <= 0 {
+	if len(data) == 0 {
 		return nil
 	}
 	return &types.BridgeToken{

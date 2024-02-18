@@ -25,14 +25,14 @@ import (
 	"github.com/stretchr/testify/suite"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/client/grpc"
-	"github.com/functionx/fx-core/v6/client/jsonrpc"
-	fxauth "github.com/functionx/fx-core/v6/server/grpc/auth"
-	"github.com/functionx/fx-core/v6/testutil"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	"github.com/functionx/fx-core/v6/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/client/grpc"
+	"github.com/functionx/fx-core/v7/client/jsonrpc"
+	fxauth "github.com/functionx/fx-core/v7/server/grpc/auth"
+	"github.com/functionx/fx-core/v7/testutil"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v7/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 type rpcTestClient interface {

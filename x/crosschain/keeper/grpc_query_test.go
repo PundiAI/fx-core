@@ -22,17 +22,17 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	arbitrumtypes "github.com/functionx/fx-core/v6/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v6/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	"github.com/functionx/fx-core/v6/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
-	optimismtypes "github.com/functionx/fx-core/v6/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v6/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
+	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type CrossChainGrpcTestSuite struct {

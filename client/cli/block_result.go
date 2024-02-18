@@ -65,21 +65,21 @@ func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockR
 	if err != nil {
 		return nil, err
 	}
-	var beginBlockEvents []map[string]interface{}
+	beginBlockEvents := make([]map[string]interface{}, 0, len(blockResults.BeginBlockEvents))
 	for _, event := range blockResults.BeginBlockEvents {
 		beginBlockEvents = append(beginBlockEvents, map[string]interface{}{
 			"type":       event.Type,
 			"attributes": AttributesToMap(event.Attributes),
 		})
 	}
-	var endBlockEvents []map[string]interface{}
+	endBlockEvents := make([]map[string]interface{}, 0, len(blockResults.EndBlockEvents))
 	for _, event := range blockResults.EndBlockEvents {
 		endBlockEvents = append(endBlockEvents, map[string]interface{}{
 			"type":       event.Type,
 			"attributes": AttributesToMap(event.Attributes),
 		})
 	}
-	var txsResults []map[string]interface{}
+	txsResults := make([]map[string]interface{}, 0, len(blockResults.TxsResults))
 	for _, txResult := range blockResults.TxsResults {
 		txsResults = append(txsResults, TxResultToMap(cdc, txResult))
 	}
@@ -106,7 +106,7 @@ func TxResponseToMap(cdc codec.JSONCodec, txResponse *sdk.TxResponse) map[string
 	if txResponse == nil {
 		return map[string]interface{}{}
 	}
-	var txResultEvents []map[string]interface{}
+	txResultEvents := make([]map[string]interface{}, 0, len(txResponse.Events))
 	for _, event := range txResponse.Events {
 		txResultEvents = append(txResultEvents, map[string]interface{}{
 			"type":       event.Type,
@@ -153,7 +153,7 @@ func TxResultToMap(cdc codec.JSONCodec, txResult *types.ResponseDeliverTx) map[s
 	if txResult == nil {
 		return map[string]interface{}{}
 	}
-	var txResultEvents []map[string]interface{}
+	txResultEvents := make([]map[string]interface{}, 0, len(txResult.Events))
 	for _, event := range txResult.Events {
 		txResultEvents = append(txResultEvents, map[string]interface{}{
 			"type":       event.Type,
@@ -183,7 +183,7 @@ func TxResultToMap(cdc codec.JSONCodec, txResult *types.ResponseDeliverTx) map[s
 }
 
 func AttributesToMap(attrs []types.EventAttribute) []map[string]interface{} {
-	var attributes []map[string]interface{}
+	attributes := make([]map[string]interface{}, 0, len(attrs))
 	for _, attribute := range attrs {
 		attributes = append(attributes, map[string]interface{}{
 			"index": attribute.Index,

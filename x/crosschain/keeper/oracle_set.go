@@ -7,7 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // --- ORACLE SET REQUESTS --- //
@@ -25,7 +25,7 @@ import (
 // implementations are involved.
 func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 	allOracles := k.GetAllOracles(ctx, true)
-	var bridgeValidators []types.BridgeValidator
+	bridgeValidators := make([]types.BridgeValidator, 0, len(allOracles))
 	var totalPower uint64
 
 	for _, oracle := range allOracles {
@@ -51,7 +51,7 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 // AddOracleSetRequest returns a new instance of the Gravity BridgeValidatorSet
 func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.OracleSet) {
 	// if currentOracleSet member is empty, not store OracleSet.
-	if len(currentOracleSet.Members) <= 0 {
+	if len(currentOracleSet.Members) == 0 {
 		return
 	}
 	k.StoreOracleSet(ctx, currentOracleSet)

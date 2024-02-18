@@ -9,7 +9,7 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 const (
@@ -156,7 +156,7 @@ func (m *MsgRequestBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if len(m.Denom) <= 0 {
+	if len(m.Denom) == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("empty denom")
 	}
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {

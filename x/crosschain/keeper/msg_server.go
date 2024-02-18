@@ -12,8 +12,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 var _ types.MsgServer = MsgServer{}
@@ -533,6 +533,14 @@ func (s MsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim)
 		return nil, err
 	}
 	return &types.MsgSendToFxClaimResponse{}, nil
+}
+
+func (s MsgServer) BridgeCallClaim(c context.Context, msg *types.MsgBridgeCallClaim) (*types.MsgBridgeCallClaimResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &types.MsgBridgeCallClaimResponse{}, nil
 }
 
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {

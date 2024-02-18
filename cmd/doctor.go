@@ -28,10 +28,10 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/version"
 
-	"github.com/functionx/fx-core/v6/client/grpc"
-	"github.com/functionx/fx-core/v6/server"
-	fxcfg "github.com/functionx/fx-core/v6/server/config"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v7/client/grpc"
+	"github.com/functionx/fx-core/v7/server"
+	fxcfg "github.com/functionx/fx-core/v7/server/config"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 const SPACE = "  "
@@ -185,7 +185,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockch
 	if len(grpcAddr) > 0 {
 		return nil, err
 	}
-	if len(serverCtx.Config.RootDir) <= 0 {
+	if len(serverCtx.Config.RootDir) == 0 {
 		fmt.Printf("%sWarning: Not found root dir\n", SPACE)
 		return nil, nil
 	}
@@ -289,6 +289,8 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 			fmt.Printf("%sVersion: v3\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV5 {
 			fmt.Printf("%sVersion: V4\n", SPACE)
+		} else if blockHeight < fxtypes.MainnetBlockHeightV6 {
+			fmt.Printf("%sVersion: V5\n", SPACE)
 		}
 	}
 	if chainId == fxtypes.TestnetChainId {

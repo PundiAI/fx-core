@@ -11,10 +11,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 func (suite *IntegrationTest) ERC20TokenOriginTest() {
@@ -22,8 +22,8 @@ func (suite *IntegrationTest) ERC20TokenOriginTest() {
 
 	decimals := 18
 	metadata := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), uint32(decimals))
-	var aliases []string
-	var bridgeTokens []crosschaintypes.BridgeToken
+	aliases := make([]string, 0, len(suite.crosschain))
+	bridgeTokens := make([]crosschaintypes.BridgeToken, 0, len(suite.crosschain))
 	for _, chain := range suite.crosschain {
 		denom, bridgeToken := chain.AddBridgeToken(metadata)
 		aliases = append(aliases, denom)
@@ -129,8 +129,8 @@ func (suite *IntegrationTest) ERC20TokenERC20Test() {
 	suite.True(suite.evm.CheckBalanceOf(proxy, common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18))))
 
 	metadataBrdige := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), uint32(18))
-	var aliases []string
-	var bridgeTokens []crosschaintypes.BridgeToken
+	aliases := make([]string, 0, len(suite.crosschain))
+	bridgeTokens := make([]crosschaintypes.BridgeToken, 0, len(suite.crosschain))
 	for _, chain := range suite.crosschain {
 		denom, bridgeToken := chain.AddBridgeToken(metadataBrdige)
 		aliases = append(aliases, denom)

@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 // GetParams returns the total set of erc20 parameters.

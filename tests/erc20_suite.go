@@ -10,7 +10,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 type Erc20TestSuite struct {

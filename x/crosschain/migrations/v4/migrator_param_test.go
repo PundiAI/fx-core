@@ -9,9 +9,9 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
 
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	v4 "github.com/functionx/fx-core/v6/x/crosschain/migrations/v4"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	v4 "github.com/functionx/fx-core/v7/x/crosschain/migrations/v4"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 type mockSubspace struct {

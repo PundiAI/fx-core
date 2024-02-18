@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func TestStrToByte32(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/functionx/fx-core/v6/client/jsonrpc"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v7/client/jsonrpc"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
 func TestNewWsClient(t *testing.T) {

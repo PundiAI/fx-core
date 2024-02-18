@@ -43,9 +43,9 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v6/app"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	"github.com/functionx/fx-core/v7/app"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 // ABCIConsensusParams defines the default Tendermint consensus params used in fxCore testing.
@@ -323,7 +323,7 @@ func CheckBalance(t *testing.T, myApp *app.App, addr sdk.AccAddress, balances sd
 func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp, header tmproto.Header,
 	msgs []sdk.Msg, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
-	var accNums, accSeqs []uint64
+	accNums, accSeqs := make([]uint64, 0, len(priv)), make([]uint64, 0, len(priv))
 	for _, key := range priv {
 		response := app.Query(abci.RequestQuery{
 			Data: legacy.Cdc.MustMarshalJSON(authtypes.QueryAccountRequest{

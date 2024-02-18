@@ -3,7 +3,6 @@ package helpers
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -34,12 +33,13 @@ func NewMnemonic() string {
 
 func PrivKeyFromMnemonic(mnemonic string, algo hd.PubKeyType, account, index uint32) (cryptotypes.PrivKey, error) {
 	var hdPath *hd.BIP44Params
-	if algo == hd.Secp256k1Type {
+	switch algo {
+	case hd.Secp256k1Type:
 		hdPath = hd.CreateHDPath(118, account, index)
-	} else if algo == hd2.EthSecp256k1Type {
+	case hd2.EthSecp256k1Type:
 		hdPath = hd.CreateHDPath(60, account, index)
-	} else {
-		return nil, fmt.Errorf("invalid algo")
+	default:
+		return nil, errortypes.ErrInvalidPubKey
 	}
 	signAlgo, err := keyring.NewSigningAlgoFromString(string(algo), hd2.SupportedAlgorithms)
 	if err != nil {

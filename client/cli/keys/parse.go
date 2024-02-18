@@ -12,7 +12,7 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v6/client/cli"
+	"github.com/functionx/fx-core/v7/client/cli"
 )
 
 const prefixFlag = "prefix"

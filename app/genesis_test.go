@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v6/app"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v7/app"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func TestNewDefaultGenesisByDenom(t *testing.T) {

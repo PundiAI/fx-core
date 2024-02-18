@@ -6,13 +6,13 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 func (suite *IntegrationTest) PrecompileTransferCrossChainTest() {
@@ -161,8 +161,8 @@ func (suite *IntegrationTest) PrecompileCrossChainConvertedDenomTest() {
 
 func (suite *IntegrationTest) precompileInit() (*erc20types.TokenPair, []crosschaintypes.BridgeToken) {
 	metadata := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), uint32(18))
-	var aliases []string
-	var bridgeTokens []crosschaintypes.BridgeToken
+	aliases := make([]string, 0, len(suite.crosschain))
+	bridgeTokens := make([]crosschaintypes.BridgeToken, 0, len(suite.crosschain))
 	for _, chain := range suite.crosschain {
 		denom, bridgeToken := chain.AddBridgeToken(metadata)
 		aliases = append(aliases, denom)

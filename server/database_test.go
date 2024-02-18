@@ -12,8 +12,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/server"
+	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/server"
 )
 
 type DatabaseTestSuite struct {

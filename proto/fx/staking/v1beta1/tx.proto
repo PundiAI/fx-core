@@ -1,8 +1,8 @@
 syntax = "proto3";
 package fx.staking.v1;
 
-import "google/protobuf/any.proto";
 import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "github.com/functionx/fx-core/x/staking/types";
 
@@ -30,4 +30,4 @@ message MsgEditConsensusPubKey {
   google.protobuf.Any pubkey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
 }
 
-message MsgEditConsensusPubKeyResponse{}
+message MsgEditConsensusPubKeyResponse {}

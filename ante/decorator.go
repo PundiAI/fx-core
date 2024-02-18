@@ -17,7 +17,7 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 var (

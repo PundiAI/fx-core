@@ -6,7 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 var _ crosschaintypes.MsgValidateBasic = &TronMsgValidate{}
@@ -146,6 +147,34 @@ func (b TronMsgValidate) MsgSendToFxClaimValidate(m *crosschaintypes.MsgSendToFx
 	return nil
 }
 
+func (b TronMsgValidate) MsgBridgeCallClaimValidate(m *crosschaintypes.MsgBridgeCallClaim) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+	}
+	if m.DstChainId == "" {
+		return errortypes.ErrInvalidRequest.Wrap("empty dst chain id")
+	}
+	if err = ValidateTronAddress(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+	}
+	if _, _, err := fxtypes.ParseAddress(m.Receiver); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	}
+	if m.Value.IsNil() || m.Value.IsNegative() {
+		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+	}
+	if m.EventNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+	}
+	if m.BlockHeight == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	return nil
+}
+
 func (b TronMsgValidate) MsgSendToExternalValidate(m *crosschaintypes.MsgSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
@@ -169,7 +198,7 @@ func (b TronMsgValidate) MsgRequestBatchValidate(m *crosschaintypes.MsgRequestBa
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if len(m.Denom) <= 0 {
+	if len(m.Denom) == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("empty denom")
 	}
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {

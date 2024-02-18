@@ -75,7 +75,7 @@ func ExportSateCmd(appExporter types.AppExporter, defaultNodeHome string) *cobra
 
 			exported, err := appExporter(serverCtx.Logger, db, traceWriter, height, forZeroHeight, jailAllowedAddrs, serverCtx.Viper)
 			if err != nil {
-				return fmt.Errorf("error exporting state: %v", err)
+				return fmt.Errorf("error exporting state: %w", err)
 			}
 
 			doc, err := tmtypes.GenesisDocFromFile(serverCtx.Config.GenesisFile())

@@ -18,11 +18,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	precompilesstaking "github.com/functionx/fx-core/v6/x/evm/precompiles/staking"
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	precompilesstaking "github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func (suite *IntegrationTest) StakingTest() {

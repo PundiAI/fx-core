@@ -10,9 +10,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/stretchr/testify/suite"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/ibc/applications/transfer/types"
-	fxibctesting "github.com/functionx/fx-core/v6/x/ibc/testing"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
+	fxibctesting "github.com/functionx/fx-core/v7/x/ibc/testing"
 )
 
 var defaultMsgRouter = ""

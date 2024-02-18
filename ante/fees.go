@@ -16,7 +16,7 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 // DeductFeeDecorator deducts fees from the first signer of the tx
@@ -32,7 +32,7 @@ type DeductFeeDecorator struct {
 	MaxBypassMinFeeMsgGasUsage uint64
 }
 
-func NewDeductFeeDecorator(ak AccountKeeper, bk types.BankKeeper, fk FeegrantKeeper, tfc ante.TxFeeChecker, bypassMsgTypes []string, MaxBypassMinFeeMsgGasUsage uint64) DeductFeeDecorator {
+func NewDeductFeeDecorator(ak AccountKeeper, bk types.BankKeeper, fk FeegrantKeeper, tfc ante.TxFeeChecker, bypassMsgTypes []string, maxBypassMinFeeMsgGasUsage uint64) DeductFeeDecorator {
 	if tfc == nil {
 		tfc = checkTxFeeWithValidatorMinGasPrices
 	}
@@ -43,7 +43,7 @@ func NewDeductFeeDecorator(ak AccountKeeper, bk types.BankKeeper, fk FeegrantKee
 		feegrantKeeper:             fk,
 		txFeeChecker:               tfc,
 		BypassMinFeeMsgTypes:       bypassMsgTypes,
-		MaxBypassMinFeeMsgGasUsage: MaxBypassMinFeeMsgGasUsage,
+		MaxBypassMinFeeMsgGasUsage: maxBypassMinFeeMsgGasUsage,
 	}
 }
 

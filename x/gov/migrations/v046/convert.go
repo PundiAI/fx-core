@@ -11,7 +11,7 @@ import (
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 func convertToNewProposal(oldProp v1beta1.Proposal) (v1.Proposal, error) {
