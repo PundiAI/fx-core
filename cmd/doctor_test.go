@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func Test_doctorCmd(t *testing.T) {

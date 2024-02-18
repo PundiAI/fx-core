@@ -69,16 +69,17 @@ func UnsafeRestPrivValidatorCmd() *cobra.Command {
 				return err
 			}
 			keyType := serverCtx.Viper.GetString(flagKeyType)
-			if keyType == "ed25519" {
+			switch keyType {
+			case "ed25519":
 				_ = os.Remove(pvKeyFile)
 				valPrivKey := privval.NewFilePV(ed25519.GenPrivKeyFromSecret([]byte(secret)), pvKeyFile, pvStateFile)
 				valPrivKey.Save()
-			} else if keyType == "secp256k1" {
+			case "secp256k1":
 				_ = os.Remove(pvKeyFile)
 				pk := secp256k1.GenPrivKeySecp256k1([]byte(secret))
 				valPrivKey := privval.NewFilePV(pk, pvKeyFile, pvStateFile)
 				valPrivKey.Save()
-			} else {
+			default:
 				return fmt.Errorf("invalid key type: %s", keyType)
 			}
 			return nil

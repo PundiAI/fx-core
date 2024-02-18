@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 var _ MsgValidateBasic = &MsgValidate{}
@@ -191,6 +191,34 @@ func (b MsgValidate) MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error) {
 	return nil
 }
 
+func (b MsgValidate) MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+	}
+	if m.DstChainId == "" {
+		return errortypes.ErrInvalidRequest.Wrap("empty dst chain id")
+	}
+	if err = fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+	}
+	if _, _, err := fxtypes.ParseAddress(m.Receiver); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	}
+	if m.Value.IsNil() || m.Value.IsNegative() {
+		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+	}
+	if m.EventNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+	}
+	if m.BlockHeight == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	return nil
+}
+
 func (b MsgValidate) MsgSendToExternalValidate(m *MsgSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
@@ -237,7 +265,7 @@ func (b MsgValidate) MsgRequestBatchValidate(m *MsgRequestBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if len(m.Denom) <= 0 {
+	if len(m.Denom) == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("empty denom")
 	}
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
@@ -269,4 +297,8 @@ func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
 	}
 	return nil
+}
+
+func (b MsgValidate) ValidateAddress(addr string) error {
+	return fxtypes.ValidateEthereumAddress(addr)
 }

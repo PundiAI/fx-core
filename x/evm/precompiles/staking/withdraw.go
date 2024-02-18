@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v6/x/evm/types"
+	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {

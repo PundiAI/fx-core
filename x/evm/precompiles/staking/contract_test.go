@@ -25,16 +25,17 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v6/app"
-	testscontract "github.com/functionx/fx-core/v6/tests/contract"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/evm/precompiles/staking"
+	"github.com/functionx/fx-core/v7/app"
+	testscontract "github.com/functionx/fx-core/v7/tests/contract"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
 )
 
 const (
 	StakingTestDelegateName           = "delegate"
 	StakingTestUndelegateName         = "undelegate"
+	StakingTestRedelegateName         = "redelegate"
 	StakingTestWithdrawName           = "withdraw"
 	StakingTestDelegationName         = "delegation"
 	StakingTestDelegationRewardsName  = "delegationRewards"
@@ -64,7 +65,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	require.NoError(suite.T(), err)
 	suite.signer = helpers.NewSigner(priv)
 
-	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+2, nil)
+	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+3, nil)
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{

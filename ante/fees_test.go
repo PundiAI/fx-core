@@ -14,8 +14,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/tests"
 
-	"github.com/functionx/fx-core/v6/ante"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	"github.com/functionx/fx-core/v7/ante"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func (suite *AnteTestSuite) TestDeductFeeDecorator() {

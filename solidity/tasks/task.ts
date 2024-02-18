@@ -40,7 +40,7 @@ const send = task("send", "send tx, Example: npx hardhat send 0x... transfer(add
             return
         }
         const abi = parseAbiItemFromSignature(func)
-        const abiInterface = new hre.ethers.utils.Interface([abi])
+        const abiInterface = new hre.ethers.Interface([abi])
 
         if (abi.inputs && (abi.inputs.length !== params.length)) {
             throw new Error(`Please provide ${abi.inputs.length} params`)
@@ -78,7 +78,7 @@ task("call", "call contract, Example: npx hardhat call 0x... balanceOf(address)(
     .addVariadicPositionalParam("params", "call contract params", undefined, string, true)
     .setAction(async (taskArgs, hre) => {
             const nodeUrl = await hre.run(SUB_GET_NODE_URL, taskArgs)
-            const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);
+            const provider = new hre.ethers.JsonRpcProvider(nodeUrl);
 
             const {from, params} = taskArgs;
             const to = params[0];
@@ -90,7 +90,7 @@ task("call", "call contract, Example: npx hardhat call 0x... balanceOf(address)(
             }
 
             const abi = parseAbiItemFromSignature(func)
-            const abiInterface = new hre.ethers.utils.Interface([abi])
+            const abiInterface = new hre.ethers.Interface([abi])
 
             if (abi.inputs && (abi.inputs.length !== params.length)) {
                 throw new Error(`Please provide ${abi.inputs.length} params`)

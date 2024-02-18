@@ -10,7 +10,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 type StakingKeeper interface {
@@ -59,7 +59,7 @@ type Erc20Keeper interface {
 	SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
 	HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool
 	DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
-	IsOriginDenom(ctx sdk.Context, denom string) bool
+	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 }
 

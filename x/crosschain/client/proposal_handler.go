@@ -4,7 +4,7 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/client/cli"
+	"github.com/functionx/fx-core/v7/x/crosschain/client/cli"
 )
 
 var LegacyUpdateChainOraclesProposalHandler = govclient.NewProposalHandler(NewLegacyUpdateChainOraclesProposalCmd)

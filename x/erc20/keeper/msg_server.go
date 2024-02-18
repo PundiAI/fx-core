@@ -15,9 +15,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
+	"golang.org/x/exp/slices"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 var _ types.MsgServer = &Keeper{}
@@ -330,9 +331,6 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 }
 
 func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error) {
-	if coin.Denom == fxtypes.DefaultDenom {
-		return coin, nil
-	}
 	var metadata banktypes.Metadata
 	if k.IsDenomRegistered(ctx, coin.Denom) {
 		// is base denom
@@ -388,32 +386,80 @@ func (k Keeper) convertDenomToContractOwner(ctx sdk.Context, targetCoin, coin sd
 	if !found {
 		return errorsmod.Wrapf(types.ErrTokenPairNotFound, "convert denom: %s", metadata.Base)
 	}
+
+	// converted metadata
+	if k.IsConvertedMetadata(metadata) {
+		return k.convertNativeAlias(ctx, targetCoin, coin, metadata)
+	}
+
+	// native coin
 	if pair.IsNativeCoin() {
-		if coin.Denom == metadata.Base {
-			// burn coin
-			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
-				return err
-			}
-		} else if targetCoin.Denom == metadata.Base {
-			// mint denom
-			if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
-				return err
-			}
-		}
-		return nil
-	} else if pair.IsNativeERC20() {
-		if coin.Denom == metadata.Base {
-			if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
-				return err
-			}
-		} else if targetCoin.Denom == metadata.Base {
-			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
-				return err
-			}
-		}
-		return nil
+		return k.convertNativeCoin(ctx, targetCoin, coin, metadata)
+	}
+
+	// native erc20
+	if pair.IsNativeERC20() {
+		return k.convertNativeERC20(ctx, targetCoin, coin, metadata)
 	}
 	return errorsmod.Wrapf(types.ErrUndefinedOwner, "convert denom:%s, pair undefined owner.", metadata.Base)
+}
+
+func (k Keeper) IsConvertedMetadata(md banktypes.Metadata) bool {
+	// one-to-one metadata
+	if len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0 {
+		return false
+	}
+	return k.checkConvertedDenom(md.Base)
+}
+
+func (k Keeper) convertNativeAlias(ctx sdk.Context, targetCoin, coin sdk.Coin, metadata banktypes.Metadata) error {
+	// targetCoin is alias, coin is base
+	// lock base, mint alias
+	if coin.Denom == metadata.Base &&
+		slices.Contains(metadata.DenomUnits[0].Aliases, targetCoin.Denom) {
+		// already lock coin
+
+		// mint alias
+		return k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
+	}
+
+	// targetCoin is base, coin is alias
+	// burn alias, unlock base
+	if targetCoin.Denom == metadata.Base &&
+		slices.Contains(metadata.DenomUnits[0].Aliases, coin.Denom) {
+		// unlock coin after burn
+
+		// burn alias
+		return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
+	}
+
+	// reset is target Coin is alias1, coin is alias2
+	// burn alias2, mint alias1
+	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+		return err
+	}
+	return k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
+}
+
+func (k Keeper) convertNativeCoin(ctx sdk.Context, targetCoin, coin sdk.Coin, metadata banktypes.Metadata) error {
+	if coin.Denom == metadata.Base {
+		return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
+	}
+	if targetCoin.Denom == metadata.Base {
+		return k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
+	}
+	// NOTE: convert alias to alias
+	return nil
+}
+
+func (k Keeper) convertNativeERC20(ctx sdk.Context, targetCoin, coin sdk.Coin, metadata banktypes.Metadata) error {
+	if coin.Denom == metadata.Base {
+		return k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
+	}
+	if targetCoin.Denom == metadata.Base {
+		return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
+	}
+	return nil
 }
 
 func (k Keeper) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
@@ -477,10 +523,10 @@ func (k Keeper) UpdateDenomAlias(c context.Context, req *types.MsgUpdateDenomAli
 
 func (k Keeper) ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string {
 	// erc20
-	if len(fxTarget.GetTarget()) <= 0 || fxTarget.GetTarget() == types.ModuleName {
+	if len(fxTarget.GetTarget()) == 0 || fxTarget.GetTarget() == types.ModuleName {
 		return base
 	}
-	if len(aliases) <= 0 {
+	if len(aliases) == 0 {
 		return denom
 	}
 
@@ -506,5 +552,7 @@ func (k Keeper) ToTargetDenom(ctx sdk.Context, denom, base string, aliases []str
 			return alias
 		}
 	}
-	return denom
+
+	// if not match any alias, return base denom
+	return base
 }

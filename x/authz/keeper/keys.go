@@ -24,6 +24,7 @@ func grantStoreKey(grantee sdk.AccAddress, granter sdk.AccAddress, msgType strin
 
 // UnsafeStrToBytes uses unsafe to convert string into byte array. Returned bytes
 // must not be altered after this function is called as it will cause a segmentation fault.
+// nolint:staticcheck
 func UnsafeStrToBytes(s string) []byte {
 	var buf []byte
 	sHdr := (*reflect.StringHeader)(unsafe.Pointer(&s))

@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -24,14 +25,16 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/client/grpc"
-	"github.com/functionx/fx-core/v6/client/jsonrpc"
-	"github.com/functionx/fx-core/v6/testutil"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	"github.com/functionx/fx-core/v6/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/client/grpc"
+	"github.com/functionx/fx-core/v7/client/jsonrpc"
+	"github.com/functionx/fx-core/v7/testutil"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v7/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 type TestSuite struct {
@@ -173,7 +176,7 @@ func (suite *TestSuite) GetAllValPrivKeys() []cryptotypes.PrivKey {
 	if suite.IsUseLocalNetwork() {
 		return []cryptotypes.PrivKey{suite.GetFirstValPrivKey()}
 	}
-	var privKeys []cryptotypes.PrivKey
+	privKeys := make([]cryptotypes.PrivKey, 0, len(suite.network.Config.Mnemonics))
 	for _, mnemonics := range suite.network.Config.Mnemonics {
 		privKey, err := helpers.PrivKeyFromMnemonic(mnemonics, hd.Secp256k1Type, 0, 0)
 		suite.NoError(err)
@@ -388,12 +391,9 @@ func (suite *TestSuite) QueryValidatorByToken() sdk.ValAddress {
 	return valAddr
 }
 
-func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount sdk.Coin) *sdk.TxResponse {
-	return suite.SendFrom(suite.GetFirstValPrivKey(), toAddress, amount)
-}
-
-func (suite *TestSuite) SendFrom(priv cryptotypes.PrivKey, toAddress sdk.AccAddress, amount sdk.Coin) *sdk.TxResponse {
-	txResponse := suite.BroadcastTx(priv, banktypes.NewMsgSend(priv.PubKey().Address().Bytes(), toAddress, sdk.NewCoins(amount)))
+func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount ...sdk.Coin) *sdk.TxResponse {
+	priv := suite.GetFirstValPrivKey()
+	txResponse := suite.BroadcastTx(priv, banktypes.NewMsgSend(priv.PubKey().Address().Bytes(), toAddress, amount))
 	suite.True(txResponse.GasUsed < 100_000, txResponse.GasUsed)
 	return txResponse
 }
@@ -529,6 +529,30 @@ func (suite *TestSuite) CheckProposal(proposalId uint64, _ govv1.ProposalStatus)
 
 	suite.Require().True(proposalResp.Proposal.Status > govv1.StatusDepositPeriod)
 	return *proposalResp.Proposal
+}
+
+func (suite *TestSuite) ChainTokens(chainName string) []banktypes.Metadata {
+	resp, err := suite.GRPCClient().BankQuery().DenomsMetadata(suite.ctx, &banktypes.QueryDenomsMetadataRequest{})
+	suite.NoError(err)
+
+	chainMetadata := make([]banktypes.Metadata, 0)
+	for _, md := range resp.Metadatas {
+		// FX or PURSE or PUNDIX
+		if md.Base == fxtypes.DefaultDenom && chainName == ethtypes.ModuleName ||
+			strings.HasPrefix(md.Base, "ibc/") && chainName == bsctypes.ModuleName ||
+			strings.HasPrefix(md.Base, chainName) {
+			chainMetadata = append(chainMetadata, md)
+			continue
+		}
+		if len(md.DenomUnits[0].Aliases) > 0 {
+			for _, alias := range md.DenomUnits[0].Aliases {
+				if strings.HasPrefix(alias, chainName) {
+					chainMetadata = append(chainMetadata, md)
+				}
+			}
+		}
+	}
+	return chainMetadata
 }
 
 // unsafeExporter is implemented by key stores that support unsafe export

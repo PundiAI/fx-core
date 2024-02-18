@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryParams() {

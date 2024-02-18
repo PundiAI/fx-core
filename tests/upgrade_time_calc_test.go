@@ -12,7 +12,7 @@ import (
 	clienthttp "github.com/tendermint/tendermint/rpc/client/http"
 	jsonrpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
 func TestCalculateUpgradeHeight(t *testing.T) {
@@ -21,7 +21,7 @@ func TestCalculateUpgradeHeight(t *testing.T) {
 
 	// example: UPGRADE_TIME=2023-08-10T08:00:00Z
 	upgradeTime := os.Getenv("UPGRADE_TIME")
-	if len(upgradeTime) <= 0 {
+	if len(upgradeTime) == 0 {
 		upgradeTime = time.Now().AddDate(0, 0, 14).Format(time.RFC3339)
 	}
 	expectTime, err := time.Parse(time.RFC3339, upgradeTime)

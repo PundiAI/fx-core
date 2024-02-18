@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
+	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 // SubmitProposal creates a new proposal given an array of messages
@@ -24,7 +24,9 @@ func (keeper Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, fxMetad
 		return v1.Proposal{}, errortypes.ErrInvalidRequest.Wrapf("invalid fx metadata content: %s", err)
 	}
 	if err := keeper.AssertFXMetadata(fxMD); err != nil {
-		return v1.Proposal{}, err
+		if err != nil {
+			return v1.Proposal{}, err
+		}
 	}
 
 	// Will hold a comma-separated string of all Msg type URLs.

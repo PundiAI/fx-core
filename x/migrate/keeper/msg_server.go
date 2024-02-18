@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/x/migrate/types"
+	"github.com/functionx/fx-core/v7/x/migrate/types"
 )
 
 var _ types.MsgServer = &Keeper{}

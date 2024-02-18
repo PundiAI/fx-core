@@ -53,35 +53,34 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	arbitrumtypes "github.com/functionx/fx-core/v6/x/arbitrum/types"
-	fxauthzkeeper "github.com/functionx/fx-core/v6/x/authz/keeper"
-	avalanchetypes "github.com/functionx/fx-core/v6/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	"github.com/functionx/fx-core/v6/x/crosschain"
-	crosschainkeeper "github.com/functionx/fx-core/v6/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	"github.com/functionx/fx-core/v6/x/erc20"
-	erc20keeper "github.com/functionx/fx-core/v6/x/erc20/keeper"
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
-	ethkeeper "github.com/functionx/fx-core/v6/x/eth/keeper"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
-	fxevmkeeper "github.com/functionx/fx-core/v6/x/evm/keeper"
-	fxgovkeeper "github.com/functionx/fx-core/v6/x/gov/keeper"
-	fxgovtypes "github.com/functionx/fx-core/v6/x/gov/types"
-	gravitytypes "github.com/functionx/fx-core/v6/x/gravity/types"
-	fxtransfer "github.com/functionx/fx-core/v6/x/ibc/applications/transfer"
-	fxtransferkeeper "github.com/functionx/fx-core/v6/x/ibc/applications/transfer/keeper"
-	"github.com/functionx/fx-core/v6/x/ibc/ibcrouter"
-	layer2types "github.com/functionx/fx-core/v6/x/layer2/types"
-	migratekeeper "github.com/functionx/fx-core/v6/x/migrate/keeper"
-	migratetypes "github.com/functionx/fx-core/v6/x/migrate/types"
-	optimismtypes "github.com/functionx/fx-core/v6/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v6/x/polygon/types"
-	fxslashingkeeper "github.com/functionx/fx-core/v6/x/slashing/keeper"
-	fxstakingkeeper "github.com/functionx/fx-core/v6/x/staking/keeper"
-	tronkeeper "github.com/functionx/fx-core/v6/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
+	fxauthzkeeper "github.com/functionx/fx-core/v7/x/authz/keeper"
+	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	"github.com/functionx/fx-core/v7/x/crosschain"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/erc20"
+	erc20keeper "github.com/functionx/fx-core/v7/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	fxevmkeeper "github.com/functionx/fx-core/v7/x/evm/keeper"
+	fxgovkeeper "github.com/functionx/fx-core/v7/x/gov/keeper"
+	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
+	gravitytypes "github.com/functionx/fx-core/v7/x/gravity/types"
+	fxtransfer "github.com/functionx/fx-core/v7/x/ibc/applications/transfer"
+	fxtransferkeeper "github.com/functionx/fx-core/v7/x/ibc/applications/transfer/keeper"
+	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter"
+	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
+	migratekeeper "github.com/functionx/fx-core/v7/x/migrate/keeper"
+	migratetypes "github.com/functionx/fx-core/v7/x/migrate/types"
+	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
+	fxslashingkeeper "github.com/functionx/fx-core/v7/x/slashing/keeper"
+	fxstakingkeeper "github.com/functionx/fx-core/v7/x/staking/keeper"
+	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type CrossChainKeepers struct {
@@ -447,7 +446,7 @@ func NewAppKeeper(
 		AddRoute(bsctypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.BscKeeper)).
 		AddRoute(polygontypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.PolygonKeeper)).
 		AddRoute(avalanchetypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.AvalancheKeeper)).
-		AddRoute(ethtypes.ModuleName, ethkeeper.NewModuleHandler(appKeepers.EthKeeper)).
+		AddRoute(ethtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.EthKeeper)).
 		AddRoute(arbitrumtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.ArbitrumKeeper)).
 		AddRoute(optimismtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.OptimismKeeper)).
 		AddRoute(layer2types.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.Layer2Keeper)).
@@ -494,8 +493,8 @@ func NewAppKeeper(
 	)
 
 	ibcTransferRouter := fxtypes.NewRouter().
-		AddRoute(gravitytypes.ModuleName, appKeepers.Layer2Keeper).
-		AddRoute(ethtypes.ModuleName, appKeepers.Layer2Keeper).
+		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper).
+		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).

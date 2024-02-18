@@ -13,9 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
 func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
@@ -651,11 +653,11 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
 				base := helpers.NewRandDenom()
-				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), aliases[0] // #nosec G602
+				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), base // #nosec G602
 			},
 		},
 		{
-			name: "alias denom, math alias, expected ibc",
+			name: "alias denom, match alias, expected ibc",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
@@ -680,7 +682,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			},
 		},
 		{
-			name: "alias denom, not math alias",
+			name: "alias denom, not match alias",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
@@ -701,7 +703,76 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					i++
 				}
 				base := helpers.NewRandDenom()
-				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), aliases[0] // #nosec G602
+				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), base // #nosec G602
+			},
+		},
+		{
+			name: "convert one to many, alias to base denom",
+			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
+				portID, channelID := suite.RandTransferChannel()
+				ibcDenom := suite.AddIBCToken(portID, channelID)
+
+				md := fxtypes.GetCrossChainMetadataOneToOne("PURSE Token", ibcDenom, "PURSE", 18)
+				alias := fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddressByModule(ethtypes.ModuleName))
+				md.DenomUnits[0].Aliases = []string{alias}
+
+				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(types.ModuleName), md.Base
+			},
+		},
+		{
+			name: "convert one to many, base denom to alias",
+			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
+				portID, channelID := suite.RandTransferChannel()
+				ibcDenom := suite.AddIBCToken(portID, channelID)
+
+				md := fxtypes.GetCrossChainMetadataOneToOne("PURSE Token", ibcDenom, "PURSE", 18)
+				alias := fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddressByModule(ethtypes.ModuleName))
+				md.DenomUnits[0].Aliases = []string{alias}
+
+				return md.Base, md.Base, []string{alias}, fxtypes.ParseFxTarget(ethtypes.ModuleName), alias
+			},
+		},
+		{
+			name: "convert one to many, default base denom",
+			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
+				portID, channelID := suite.RandTransferChannel()
+				ibcDenom := suite.AddIBCToken(portID, channelID)
+
+				md := fxtypes.GetCrossChainMetadataOneToOne("PURSE Token", ibcDenom, "PURSE", 18)
+				alias := fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddressByModule(ethtypes.ModuleName))
+				md.DenomUnits[0].Aliases = []string{alias}
+
+				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(bsctypes.ModuleName), md.Base
+			},
+		},
+		{
+			name: "FX, alias to base denom",
+			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
+				md := fxtypes.GetFXMetaData("FX")
+				alias := fmt.Sprintf("%s%s", bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
+				md.DenomUnits[0].Aliases = []string{alias}
+
+				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(types.ModuleName), md.Base
+			},
+		},
+		{
+			name: "FX, base denom to alias",
+			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
+				md := fxtypes.GetFXMetaData("FX")
+				alias := fmt.Sprintf("%s%s", bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
+				md.DenomUnits[0].Aliases = []string{alias}
+
+				return md.Base, md.Base, []string{alias}, fxtypes.ParseFxTarget(bsctypes.ModuleName), alias
+			},
+		},
+		{
+			name: "FX, default denom",
+			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
+				md := fxtypes.GetFXMetaData("FX")
+				alias := fmt.Sprintf("%s%s", bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
+				md.DenomUnits[0].Aliases = []string{alias}
+
+				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(ethtypes.ModuleName), md.Base
 			},
 		},
 	}
@@ -958,6 +1029,136 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				originCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
 				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[1], amt)
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[1])
+
+				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
+				suite.Require().NoError(err)
+
+				return originCoin, expCoin, fxTarget, []string{}
+			},
+			expPass: true,
+		},
+		{
+			name: "ok - register no alias, update new alias, alias to base denom",
+			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
+				md := suite.GenerateCrossChainDenoms()
+				mdmd := md.GetMetadata()
+				mdmd.DenomUnits[0].Aliases = []string{}
+
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, mdmd)
+				suite.Require().NoError(err)
+
+				module := md.RandModule()
+				k := suite.CrossChainKeepers()[module]
+				tokenContract := helpers.GenerateAddressByModule(module)
+				newAlias := fmt.Sprintf("%s%s", module, tokenContract)
+				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)
+
+				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, mdmd.Base, newAlias)
+				suite.NoError(err)
+				suite.True(update)
+				mdmd.DenomUnits[0].Aliases = []string{newAlias}
+
+				originCoin := sdk.NewCoin(mdmd.DenomUnits[0].Aliases[0], amt)
+				expCoin := sdk.NewCoin(mdmd.Base, amt)
+				fxTarget := fxtypes.ParseFxTarget(types.ModuleName)
+
+				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
+				suite.Require().NoError(err)
+
+				return originCoin, expCoin, fxTarget, []string{}
+			},
+			expPass: true,
+		},
+		{
+			name: "ok - register no alias, update new alias, base denom to alias",
+			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
+				md := suite.GenerateCrossChainDenoms()
+				mdmd := md.GetMetadata()
+				mdmd.DenomUnits[0].Aliases = []string{}
+
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, mdmd)
+				suite.Require().NoError(err)
+
+				moduleName := md.RandModule()
+				k := suite.CrossChainKeepers()[moduleName]
+				tokenContract := helpers.GenerateAddressByModule(moduleName)
+				newAlias := fmt.Sprintf("%s%s", moduleName, tokenContract)
+				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)
+
+				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, mdmd.Base, newAlias)
+				suite.NoError(err)
+				suite.True(update)
+				mdmd.DenomUnits[0].Aliases = []string{newAlias}
+
+				originCoin := sdk.NewCoin(mdmd.Base, amt)
+				expCoin := sdk.NewCoin(mdmd.DenomUnits[0].Aliases[0], amt)
+				fxTarget := fxtypes.ParseFxTarget(moduleName)
+
+				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
+				suite.Require().NoError(err)
+
+				return originCoin, expCoin, fxTarget, []string{}
+			},
+			expPass: true,
+		},
+		{
+			name: "ok - FX update alias, convert alias to base denom",
+			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
+
+				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, fxtypes.DefaultDenom)
+				suite.True(found)
+
+				moduleName := bsctypes.ModuleName
+				tokenContract := helpers.GenerateAddressByModule(moduleName)
+				newAlias := fmt.Sprintf("%s%s", moduleName, tokenContract)
+				k := suite.CrossChainKeepers()[moduleName]
+				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)
+
+				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, md.Base, newAlias)
+				suite.NoError(err)
+				suite.True(update)
+				md.DenomUnits[0].Aliases = []string{newAlias}
+
+				originCoin := sdk.NewCoin(md.DenomUnits[0].Aliases[0], amt)
+				expCoin := sdk.NewCoin(md.Base, amt)
+				fxTarget := fxtypes.ParseFxTarget(types.ModuleName)
+
+				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
+				suite.Require().NoError(err)
+
+				return originCoin, expCoin, fxTarget, []string{}
+			},
+			expPass: true,
+		},
+		{
+			name: "ok - FX update alias, convert base denom to alias",
+			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
+
+				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, fxtypes.DefaultDenom)
+				suite.True(found)
+
+				moduleName := bsctypes.ModuleName
+				tokenContract := helpers.GenerateAddressByModule(moduleName)
+				newAlias := fmt.Sprintf("%s%s", moduleName, tokenContract)
+				k := suite.CrossChainKeepers()[moduleName]
+				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)
+
+				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, md.Base, newAlias)
+				suite.NoError(err)
+				suite.True(update)
+				md.DenomUnits[0].Aliases = []string{newAlias}
+
+				originCoin := sdk.NewCoin(md.Base, amt)
+				expCoin := sdk.NewCoin(md.DenomUnits[0].Aliases[0], amt)
+				fxTarget := fxtypes.ParseFxTarget(moduleName)
 
 				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 				err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))

@@ -1,19 +1,31 @@
 import {HardhatUserConfig} from "hardhat/config"
 import "hardhat-dependency-compiler"
-import "@nomiclabs/hardhat-ethers"
+import "@nomicfoundation/hardhat-ethers"
+import '@typechain/hardhat'
+import "hardhat-gas-reporter"
+import "@nomicfoundation/hardhat-verify";
 
 import './tasks/task'
 
 const config: HardhatUserConfig = {
-    defaultNetwork: "localhost",
+    defaultNetwork: "hardhat",
     networks: {
         hardhat: {
-            mining: {
-                interval: 1000
-            }
+            // forking: {
+            //     url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
+            // }
+            chainId: 1337
+        },
+        mainnet: {
+            url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
+            chainId: 1,
+        },
+        goerli: {
+            url: `${process.env.GOERLI_URL || "https://goerli.infura.io/v3/infura-key"}`,
+            chainId: 5,
         },
         localhost: {
-            url: `${process.env.LOCAL_URL || "http://localhost:8545"}`,
+            url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
         },
     },
     solidity: {
@@ -47,11 +59,22 @@ const config: HardhatUserConfig = {
             },
         ]
     },
+    etherscan: {
+        apiKey: {
+            mainnet: `${process.env.ETHERSCAN_API_KEY || "scan-key"}`,
+            goerli: `${process.env.ETHERSCAN_API_KEY || "scan-key"}`,
+        }
+    },
     dependencyCompiler: {
         paths: [
             "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
             "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol",
         ],
+    },
+    gasReporter: {
+        enabled: false,
+        currency: 'USD',
+        gasPrice: 30
     },
 };
 

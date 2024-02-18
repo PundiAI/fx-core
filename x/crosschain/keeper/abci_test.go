@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/crosschain"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v6/x/tron/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
@@ -441,7 +441,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 
 	require.True(suite.T(), sdkmath.NewInt(10*1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
 
-	var newOracleAddressList []string
+	newOracleAddressList := make([]string, 0, len(suite.oracleAddrs)-1)
 	for _, address := range suite.oracleAddrs[1:] {
 		newOracleAddressList = append(newOracleAddressList, address.String())
 	}

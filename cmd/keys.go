@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/cli"
 
-	fxkeys "github.com/functionx/fx-core/v6/client/cli/keys"
+	fxkeys "github.com/functionx/fx-core/v7/client/cli/keys"
 )
 
 // Commands registers a sub-tree of commands to interact with

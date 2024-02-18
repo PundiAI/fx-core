@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	"github.com/functionx/fx-core/v6/client/cli"
+	"github.com/functionx/fx-core/v7/client/cli"
 )
 
 func CmdHandler(cmd *cobra.Command, args []string) error {

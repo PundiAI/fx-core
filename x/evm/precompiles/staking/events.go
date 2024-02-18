@@ -3,7 +3,7 @@ package staking
 import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
-	"github.com/functionx/fx-core/v6/x/evm/types"
+	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 var (
@@ -65,6 +65,20 @@ var (
 			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
 			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
 			abi.Argument{Name: "reward", Type: types.TypeUint256, Indexed: false},
+		},
+	)
+
+	RedelegateEvent = abi.NewEvent(
+		RedelegateEventName,
+		RedelegateEventName,
+		false,
+		abi.Arguments{
+			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "valSrc", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "valDst", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "completionTime", Type: types.TypeUint256, Indexed: false},
 		},
 	)
 )

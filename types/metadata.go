@@ -23,7 +23,7 @@ func GetFXMetaData(denom string) banktypes.Metadata {
 	}
 }
 
-func GetCrossChainMetadata(name, symbol string, decimals uint32, aliases ...string) banktypes.Metadata {
+func GetCrossChainMetadataManyToOne(name, symbol string, decimals uint32, aliases ...string) banktypes.Metadata {
 	return banktypes.Metadata{
 		Description: "The cross chain token of the Function X",
 		DenomUnits: []*banktypes.DenomUnit{
@@ -39,6 +39,26 @@ func GetCrossChainMetadata(name, symbol string, decimals uint32, aliases ...stri
 		},
 		Base:    strings.ToLower(symbol),
 		Display: strings.ToLower(symbol),
+		Name:    name,
+		Symbol:  symbol,
+	}
+}
+
+func GetCrossChainMetadataOneToOne(name, denom, symbol string, decimals uint32) banktypes.Metadata {
+	return banktypes.Metadata{
+		Description: "The cross chain token of the Function X",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    denom,
+				Exponent: 0,
+			},
+			{
+				Denom:    symbol,
+				Exponent: decimals,
+			},
+		},
+		Base:    denom,
+		Display: denom,
 		Name:    name,
 		Symbol:  symbol,
 	}

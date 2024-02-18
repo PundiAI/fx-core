@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	_ "github.com/functionx/fx-core/v6/app"
-	"github.com/functionx/fx-core/v6/x/ibc/ibcrouter"
-	"github.com/functionx/fx-core/v6/x/ibc/ibcrouter/parser"
+	_ "github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter"
+	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/parser"
 )
 
 func TestParseIncomingTransferField(t *testing.T) {

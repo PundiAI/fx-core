@@ -14,7 +14,7 @@ import (
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 // EVMConfig creates the EVMConfig based on current state

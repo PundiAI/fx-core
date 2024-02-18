@@ -14,6 +14,14 @@ interface IStaking {
         external
         returns (uint256 _amount, uint256 _reward, uint256 _completionTime);
 
+    function redelegate(
+        string memory _valSrc,
+        string memory _valDst,
+        uint256 _shares
+    )
+        external
+        returns (uint256 _amount, uint256 _reward, uint256 _completionTime);
+
     function withdraw(string memory _val) external returns (uint256 _reward);
 
     function approveShares(
@@ -61,6 +69,15 @@ interface IStaking {
     event Undelegate(
         address indexed sender,
         string validator,
+        uint256 shares,
+        uint256 amount,
+        uint256 completionTime
+    );
+
+    event Redelegate(
+        address indexed sender,
+        string valSrc,
+        string valDst,
         uint256 shares,
         uint256 amount,
         uint256 completionTime

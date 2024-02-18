@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+/* solhint-disable one-contract-per-file */
 
 pragma solidity ^0.8.0;
 
@@ -13,6 +14,7 @@ import "./IFIP20Upgradable.sol";
 import "../crosschain/CrossChainCall.sol";
 
 /* solhint-enable no-global-import */
+/* solhint-disable custom-errors */
 
 /**
  * @dev An upgradeability mechanism designed for UUPS proxies. The functions included here can perform an upgrade of an
@@ -38,6 +40,7 @@ abstract contract UUPSUpgradeable is
     function __UUPSUpgradeable_init_unchained() internal onlyInitializing {}
 
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
+    // solhint-disable-next-line immutable-vars-naming
     address private immutable __self =
         0x0000000000000000000000000000000000001001;
 

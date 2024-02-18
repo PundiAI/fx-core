@@ -49,7 +49,7 @@ func BuildEthTransaction(ctx context.Context, cli *ethclient.Client, priKey cryp
 	msg := ethereum.CallMsg{From: sender, To: to, GasPrice: gasPrice, GasTipCap: gasTipCap, GasFeeCap: gasFeeCap, Value: value, Data: data}
 	gasLimit, err := cli.EstimateGas(ctx, msg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to estimate gas needed: %v", err)
+		return nil, fmt.Errorf("failed to estimate gas needed: %w", err)
 	}
 	gasLimit = gasLimit * 130 / 100
 	if value == nil {

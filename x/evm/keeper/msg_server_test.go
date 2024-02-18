@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	fxevmtypes "github.com/functionx/fx-core/v6/x/evm/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {

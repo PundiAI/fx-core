@@ -10,7 +10,6 @@ import {
     TransactionToJson,
     vote_power
 } from "./subtasks";
-import {BigNumber} from "ethers";
 import {bech32} from "bech32";
 
 const sendToFx = task("send-to-fx", "call bridge contract sendToFx()")
@@ -27,7 +26,7 @@ const sendToFx = task("send-to-fx", "call bridge contract sendToFx()")
 
         const allowanceAmount = await bridgeTokenContract.allowance(from, taskArgs.bridgeContract);
 
-        if (allowanceAmount.lt(BigNumber.from(taskArgs.amount))) {
+        if (hre.ethers.getBigInt(taskArgs.amount) > allowanceAmount) {
             const erc20_factory = await hre.ethers.getContractFactory("ERC20TokenTest");
             const data = erc20_factory.interface.encodeFunctionData(
                 "approve",
@@ -63,7 +62,7 @@ const sendToFx = task("send-to-fx", "call bridge contract sendToFx()")
         const destination_bc = bech32.fromWords(bech32.decode(taskArgs.destination).words);
         const destination_bc_hex = ('0x' + '0'.repeat(24) + Buffer.from(destination_bc).toString('hex')).toString()
 
-        const target = hre.ethers.utils.formatBytes32String(taskArgs.targetIbc);
+        const target = hre.ethers.encodeBytes32String(taskArgs.targetIbc);
 
         const data = bridge_factory.interface.encodeFunctionData(
             "sendToFx",
@@ -108,7 +107,7 @@ const initBridge = task("init-bridge", "init bridge contract")
 
         const oracle_set = await GetOracleSet(fxRestUrl, chainName)
         const gravity_id_str = await GetGravityId(fxRestUrl, chainName)
-        const gravity_id = hre.ethers.utils.formatBytes32String(gravity_id_str);
+        const gravity_id = hre.ethers.encodeBytes32String(gravity_id_str);
 
         const external_addresses = [];
         const powers = [];
@@ -170,7 +169,7 @@ const addBridgeToken = task("add-bridge-token", "add bridge token into bridge co
         const from = await wallet.getAddress();
 
         const bridge_factory = await hre.ethers.getContractFactory("FxBridgeLogic")
-        const ibc = hre.ethers.utils.formatBytes32String(targetIbc)
+        const ibc = hre.ethers.encodeBytes32String(targetIbc)
         const data = bridge_factory.interface.encodeFunctionData('addBridgeToken', [tokenContract, ibc, isOriginal])
 
         const tx = await hre.run(SUB_CREATE_TRANSACTION, {

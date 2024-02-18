@@ -11,7 +11,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v6/x/migrate/types"
+	"github.com/functionx/fx-core/v7/x/migrate/types"
 )
 
 type GovMigrate struct {
@@ -110,7 +110,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 			govStore.Delete(govtypes.VoteKey(proposalID, from))
 			govStore.Set(govtypes.VoteKey(proposalID, to.Bytes()), cdc.MustMarshal(&fromVote))
 
-			var options govv1.WeightedVoteOptions = fromVote.Options[:]
+			var options govv1.WeightedVoteOptions = fromVote.Options
 			// add events
 			events = append(events,
 				sdk.NewEvent(

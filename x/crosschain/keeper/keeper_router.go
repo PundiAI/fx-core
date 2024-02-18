@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // RouterKeeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine

@@ -21,6 +21,20 @@ library Encode {
             );
     }
 
+    function redelegate(
+        string memory _valSrc,
+        string memory _valDst,
+        uint256 _shares
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSignature(
+                "redelegate(string,string,uint256)",
+                _valSrc,
+                _valDst,
+                _shares
+            );
+    }
+
     function withdraw(
         string memory _validator
     ) internal pure returns (bytes memory) {

@@ -15,12 +15,13 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
-	"github.com/functionx/fx-core/v6/x/evm/precompiles/crosschain"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v7/x/evm/precompiles/crosschain"
 )
 
 func TestCancelSendToExternalABI(t *testing.T) {
@@ -139,7 +140,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		{
 			name: "ok - fip20 contract + evm token",
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				moduleName := bsctypes.ModuleName
+				moduleName := ethtypes.ModuleName
 				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), pair.GetDenom())
@@ -159,7 +160,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		{
 			name: "ok - address + evm token",
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				moduleName := bsctypes.ModuleName
+				moduleName := ethtypes.ModuleName
 
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 
@@ -210,7 +211,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		{
 			name: "ok - address + wrapper origin token",
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				moduleName := bsctypes.ModuleName
+				moduleName := ethtypes.ModuleName
 				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 

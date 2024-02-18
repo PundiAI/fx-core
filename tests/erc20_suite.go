@@ -4,18 +4,13 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/v6/client"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
-	precompilescrosschain "github.com/functionx/fx-core/v6/x/evm/precompiles/crosschain"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 type Erc20TestSuite struct {
@@ -26,6 +21,14 @@ func NewErc20TestSuite(ts *TestSuite) Erc20TestSuite {
 	return Erc20TestSuite{
 		EvmTestSuite: NewEvmTestSuite(ts),
 	}
+}
+
+func (suite *Erc20TestSuite) AccAddress() sdk.AccAddress {
+	return sdk.AccAddress(suite.privKey.PubKey().Address())
+}
+
+func (suite *Erc20TestSuite) HexAddress() common.Address {
+	return common.BytesToAddress(suite.privKey.PubKey().Address())
 }
 
 func (suite *Erc20TestSuite) ERC20Query() erc20types.QueryClient {
@@ -102,7 +105,8 @@ func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk
 	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "UpdateDenomAliasProposal", "UpdateDenomAliasProposal")
 }
 
-func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient common.Address, coin sdk.Coin) *sdk.TxResponse {
+func (suite *Erc20TestSuite) ConvertCoin(recipient common.Address, coin sdk.Coin) *sdk.TxResponse {
+	private := suite.privKey
 	fromAddress := sdk.AccAddress(private.PubKey().Address())
 	beforeBalance := suite.QueryBalances(fromAddress).AmountOf(coin.Denom)
 	beforeBalanceOf := suite.BalanceOf(suite.Erc20TokenAddress(coin.Denom), recipient)
@@ -115,7 +119,8 @@ func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient 
 	return txResponse
 }
 
-func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token common.Address, amount sdkmath.Int, recipient sdk.AccAddress) *sdk.TxResponse {
+func (suite *Erc20TestSuite) ConvertERC20(token common.Address, amount sdkmath.Int, recipient sdk.AccAddress) *sdk.TxResponse {
+	private := suite.privKey
 	beforeBalance := suite.QueryBalances(recipient).AmountOf(suite.DenomFromErc20(token))
 	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(private.PubKey().Address().Bytes()))
 	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, common.BytesToAddress(private.PubKey().Address().Bytes()))
@@ -127,7 +132,8 @@ func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token com
 	return txResponse
 }
 
-func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver sdk.AccAddress, coin sdk.Coin, target string) *sdk.TxResponse {
+func (suite *Erc20TestSuite) ConvertDenom(receiver sdk.AccAddress, coin sdk.Coin, target string) *sdk.TxResponse {
+	private := suite.privKey
 	fromAddress := sdk.AccAddress(private.PubKey().Address())
 	beforeBalance := suite.QueryBalances(fromAddress).AmountOf(coin.Denom)
 	txResponse := suite.BroadcastTx(private, &erc20types.MsgConvertDenom{
@@ -139,52 +145,4 @@ func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver 
 	afterBalance := suite.QueryBalances(fromAddress).AmountOf(coin.Denom)
 	suite.Require().True(beforeBalance.Sub(afterBalance).Equal(coin.Amount))
 	return txResponse
-}
-
-func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
-	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	pack, err := fxtypes.GetFIP20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
-	suite.Require().NoError(err)
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
-	suite.Require().NoError(err, target)
-	suite.SendTransaction(ethTx)
-	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(new(big.Int).Add(amount, fee)) == 0)
-	return ethTx
-}
-
-func (suite *Erc20TestSuite) CrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
-	crossChainContract := precompilescrosschain.GetAddress()
-	suite.ApproveERC20(privateKey, token, crossChainContract, big.NewInt(0).Add(amount, fee))
-
-	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	pack, err := precompilescrosschain.GetABI().Pack("crossChain", token, recipient, amount, fee, fxtypes.MustStrToByte32(target), "")
-	suite.Require().NoError(err)
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crossChainContract, nil, pack)
-	suite.Require().NoError(err, target)
-	suite.SendTransaction(ethTx)
-	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(new(big.Int).Add(amount, fee)) == 0)
-	return ethTx
-}
-
-func (suite *Erc20TestSuite) CancelSendToExternal(privateKey cryptotypes.PrivKey, chain string, txId uint64) *ethtypes.Transaction {
-	crossChainContract := precompilescrosschain.GetAddress()
-	pack, err := precompilescrosschain.GetABI().Pack(precompilescrosschain.CancelSendToExternalMethodName, chain, big.NewInt(int64(txId)))
-	suite.Require().NoError(err)
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crossChainContract, nil, pack)
-	suite.Require().NoError(err, chain)
-	suite.SendTransaction(ethTx)
-	return ethTx
-}
-
-func (suite *Erc20TestSuite) IncreaseBridgeFee(privateKey cryptotypes.PrivKey, chain string, txId uint64, token common.Address, fee *big.Int) *ethtypes.Transaction {
-	crossChainContract := precompilescrosschain.GetAddress()
-	suite.ApproveERC20(privateKey, token, crossChainContract, fee)
-	pack, err := precompilescrosschain.GetABI().Pack(precompilescrosschain.IncreaseBridgeFeeMethodName, chain, big.NewInt(int64(txId)), token, fee)
-	suite.Require().NoError(err)
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crossChainContract, nil, pack)
-	suite.Require().NoError(err, chain)
-	suite.SendTransaction(ethTx)
-	return ethTx
 }

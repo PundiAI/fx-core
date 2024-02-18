@@ -10,7 +10,7 @@ import (
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
-	fxcfg "github.com/functionx/fx-core/v6/server/config"
+	fxcfg "github.com/functionx/fx-core/v7/server/config"
 )
 
 const (
@@ -93,9 +93,7 @@ func preUpgradeCmd() *cobra.Command {
 		Use:   "pre-upgrade",
 		Short: "Called by cosmovisor, before migrations upgrade",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return updateConfig(cmd, args)
-		},
+		RunE:  updateConfig,
 	}
 	return cmd
 }

@@ -5,9 +5,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"golang.org/x/exp/slices"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // AttestationHandler Handle is the entry point for Attestation processing.
@@ -26,8 +27,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if err != nil {
 			return errorsmod.Wrap(types.ErrInvalid, "receiver address")
 		}
-		isOriginDenom := k.erc20Keeper.IsOriginDenom(ctx, bridgeToken.Denom)
-		if !isOriginDenom {
+		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+		if !isOriginOrConverted {
 			// If it is not fxcore originated, mint the coins (aka vouchers)
 			if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
 				return errorsmod.Wrapf(err, "mint vouchers coins")
@@ -89,7 +90,20 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 					types.ErrInvalid,
 					fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, fxtypes.DenomUnit))
 			}
-			k.AddBridgeToken(ctx, claim.TokenContract, claim.Symbol)
+			// first to add origin token, update alias first
+			if len(metadata.DenomUnits[0].Aliases) == 0 {
+				k.AddBridgeToken(ctx, claim.TokenContract, claim.Symbol)
+				return nil
+			}
+
+			// add more origin token
+			denom := fmt.Sprintf("%s%s", k.moduleName, claim.TokenContract)
+			if !slices.Contains(metadata.DenomUnits[0].Aliases, denom) {
+				return errorsmod.Wrap(
+					types.ErrInvalid,
+					fmt.Sprintf("Token %s not exist in metadata", denom))
+			}
+			k.AddBridgeToken(ctx, claim.TokenContract, denom)
 			return nil
 		}
 

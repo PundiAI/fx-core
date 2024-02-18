@@ -17,12 +17,13 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
-	"github.com/functionx/fx-core/v6/x/evm/precompiles/crosschain"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v7/x/evm/precompiles/crosschain"
 )
 
 func TestFIP20CrossChainABI(t *testing.T) {
@@ -78,7 +79,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 
-				moduleName := bsctypes.ModuleName
+				moduleName := ethtypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 
 				fee := big.NewInt(1)
@@ -710,7 +711,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 
-				moduleName := bsctypes.ModuleName
+				moduleName := ethtypes.ModuleName
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
 
 				fee := big.NewInt(1)

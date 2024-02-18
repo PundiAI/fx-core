@@ -22,10 +22,10 @@ import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v6/app"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	migratekeeper "github.com/functionx/fx-core/v6/x/migrate/keeper"
+	"github.com/functionx/fx-core/v7/app"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	migratekeeper "github.com/functionx/fx-core/v7/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
@@ -275,7 +275,7 @@ func buildCommitVotes(t *testing.T, ctx sdk.Context, stakingKeeper stakingkeeper
 	t.Helper()
 	validators := stakingKeeper.GetAllValidators(ctx)
 
-	var result []abcitypes.VoteInfo
+	result := make([]abcitypes.VoteInfo, 0, len(validators))
 	for _, validator := range validators {
 		if !validator.IsBonded() {
 			continue

@@ -4,8 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v6/x/arbitrum/types"
-	"github.com/functionx/fx-core/v6/x/crosschain/client/cli"
+	"github.com/functionx/fx-core/v7/x/arbitrum/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/client/cli"
 )
 
 func GetQueryCmd() *cobra.Command {

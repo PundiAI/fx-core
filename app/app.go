@@ -33,21 +33,21 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	fxante "github.com/functionx/fx-core/v6/ante"
-	"github.com/functionx/fx-core/v6/app/keepers"
-	_ "github.com/functionx/fx-core/v6/docs/statik"
-	fxcfg "github.com/functionx/fx-core/v6/server/config"
-	fxauth "github.com/functionx/fx-core/v6/server/grpc/auth"
-	gaspricev1 "github.com/functionx/fx-core/v6/server/grpc/gasprice/legacy/v1"
-	gaspricev2 "github.com/functionx/fx-core/v6/server/grpc/gasprice/legacy/v2"
-	fxrest "github.com/functionx/fx-core/v6/server/rest"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/crosschain"
-	"github.com/functionx/fx-core/v6/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v6/x/crosschain/types"
-	"github.com/functionx/fx-core/v6/x/gravity"
-	gravitykeeper "github.com/functionx/fx-core/v6/x/gravity/keeper"
-	gravitytypes "github.com/functionx/fx-core/v6/x/gravity/types"
+	fxante "github.com/functionx/fx-core/v7/ante"
+	"github.com/functionx/fx-core/v7/app/keepers"
+	_ "github.com/functionx/fx-core/v7/docs/statik"
+	fxcfg "github.com/functionx/fx-core/v7/server/config"
+	fxauth "github.com/functionx/fx-core/v7/server/grpc/auth"
+	gaspricev1 "github.com/functionx/fx-core/v7/server/grpc/gasprice/legacy/v1"
+	gaspricev2 "github.com/functionx/fx-core/v7/server/grpc/gasprice/legacy/v2"
+	fxrest "github.com/functionx/fx-core/v7/server/rest"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain"
+	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/gravity"
+	gravitykeeper "github.com/functionx/fx-core/v7/x/gravity/keeper"
+	gravitytypes "github.com/functionx/fx-core/v7/x/gravity/types"
 )
 
 var _ servertypes.Application = (*App)(nil)
@@ -163,7 +163,7 @@ func New(
 	}
 
 	if err := anteOptions.Validate(); err != nil {
-		panic(fmt.Errorf("failed to ante options validate: %s", err))
+		panic(fmt.Errorf("failed to ante options validate: %w", err))
 	}
 
 	myApp.SetAnteHandler(fxante.NewAnteHandler(anteOptions))

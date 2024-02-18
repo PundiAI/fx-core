@@ -7,7 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 type msgServer struct {
@@ -99,6 +99,14 @@ func (k msgServer) SendToFxClaim(ctx context.Context, msg *types.MsgSendToFxClai
 		return nil, err
 	} else {
 		return queryServer.SendToFxClaim(ctx, msg)
+	}
+}
+
+func (k msgServer) BridgeCallClaim(ctx context.Context, msg *types.MsgBridgeCallClaim) (*types.MsgBridgeCallClaimResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeCallClaim(ctx, msg)
 	}
 }
 

@@ -16,9 +16,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	erc20types "github.com/functionx/fx-core/v6/x/erc20/types"
-	"github.com/functionx/fx-core/v6/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 // FIP20CrossChain only for fip20 contract transferCrossChain called

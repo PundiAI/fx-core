@@ -6,7 +6,7 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
 func (suite *IntegrationTest) ByPassFeeTest() {

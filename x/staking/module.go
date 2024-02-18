@@ -10,14 +10,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxstakingcli "github.com/functionx/fx-core/v6/x/staking/client/cli"
-	"github.com/functionx/fx-core/v6/x/staking/keeper"
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	fxstakingcli "github.com/functionx/fx-core/v7/x/staking/client/cli"
+	"github.com/functionx/fx-core/v7/x/staking/keeper"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 var (
@@ -78,8 +77,7 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak stakingtypes.Account
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	fxstakingtypes.RegisterMsgServer(cfg.MsgServer(), am.Keeper)
-	stakingtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.Keeper))
-	stakingtypes.RegisterQueryServer(cfg.QueryServer(), stakingkeeper.Querier{Keeper: am.Keeper.Keeper})
+	am.AppModule.RegisterServices(cfg)
 }
 
 // EndBlock returns the end blocker for the staking module. It returns no validator

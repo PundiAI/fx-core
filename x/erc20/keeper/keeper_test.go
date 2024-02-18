@@ -38,13 +38,13 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v6/app"
-	fxserverconfig "github.com/functionx/fx-core/v6/server/config"
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	bsctypes "github.com/functionx/fx-core/v6/x/bsc/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v6/x/eth/types"
+	"github.com/functionx/fx-core/v7/app"
+	fxserverconfig "github.com/functionx/fx-core/v7/server/config"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
 type KeeperTestSuite struct {
@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	if count >= len(modules) {
 		count = len(modules) - 1
 	}
-	metadata := fxtypes.GetCrossChainMetadata("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
+	metadata := fxtypes.GetCrossChainMetadataManyToOne("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 

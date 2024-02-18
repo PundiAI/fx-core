@@ -35,6 +35,19 @@ library StakingCall {
         return Decode.undelegate(data);
     }
 
+    function redelegate(
+        string memory _valSrc,
+        string memory _valDst,
+        uint256 _shares
+    ) internal returns (uint256, uint256, uint256) {
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool result, bytes memory data) = STAKING_ADDRESS.call(
+            Encode.redelegate(_valSrc, _valDst, _shares)
+        );
+        Decode.ok(result, data, "redelegate failed");
+        return Decode.redelegate(data);
+    }
+
     function withdraw(string memory _val) internal returns (uint256) {
         // solhint-disable-next-line avoid-low-level-calls
         (bool result, bytes memory data) = STAKING_ADDRESS.call(

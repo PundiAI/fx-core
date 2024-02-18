@@ -14,18 +14,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func (k Keeper) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
-	if ctx.BlockHeight()%2000 == 0 && len(ctx.VoteInfos()) > 5 {
-		params := k.GetParams(ctx)
-		params.MaxValidators = params.MaxValidators - 1
-		if params.MaxValidators >= 5 {
-			k.SetParams(ctx, params)
-		}
-	}
-
 	// staking EndBlocker
 	valUpdates := staking.EndBlocker(ctx, k.Keeper)
 

@@ -14,10 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/evm/precompiles/staking"
-	fxstakingtypes "github.com/functionx/fx-core/v6/x/staking/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func TestStakingTransferSharesABI(t *testing.T) {

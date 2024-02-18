@@ -9,8 +9,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v6/types"
-	"github.com/functionx/fx-core/v6/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 // RegisterNativeCoin deploys an erc20 contract and creates the token pair for the existing cosmos coin
@@ -203,7 +203,7 @@ func (k Keeper) UpdateDenomAliases(ctx sdk.Context, denom, alias string) (bool, 
 		return false, errorsmod.Wrapf(types.ErrInvalidDenom, "coin denomination already registered: %s", alias)
 	}
 
-	md, found := k.HasDenomAlias(ctx, denom)
+	md, found := k.GetValidMetadata(ctx, denom)
 	if !found {
 		return false, errorsmod.Wrapf(types.ErrInvalidMetadata, "denom %s not support update denom aliases", denom)
 	}
@@ -224,9 +224,7 @@ func (k Keeper) UpdateDenomAliases(ctx sdk.Context, denom, alias string) (bool, 
 			}
 			newAliases = append(newAliases, denomAlias)
 		}
-		if len(newAliases) == 0 {
-			return false, errorsmod.Wrapf(types.ErrInvalidDenom, "can not remove, alias %s is the last one", alias)
-		}
+		// NOTE: FX,PUNDIX,PURSE can delete all alias, others must keep at least one
 		k.DeleteAliasesDenom(ctx, alias)
 	} else {
 		// check if denom not equal alias registered denom, return error

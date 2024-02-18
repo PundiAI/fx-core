@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v6/testutil/helpers"
-	"github.com/functionx/fx-core/v6/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
-	var member []types.BridgeValidator
+	member := make([]types.BridgeValidator, 0, len(suite.externalPris))
 	for i, external := range suite.externalPris {
 		externalAddr := suite.PubKeyToExternalAddr(external.PublicKey)
 		member = append(member, types.BridgeValidator{
@@ -173,7 +173,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
-	var member []types.BridgeValidator
+	member := make([]types.BridgeValidator, 0, len(suite.externalPris))
 	for i, external := range suite.externalPris {
 		member = append(member, types.BridgeValidator{
 			Power:           uint64(i),

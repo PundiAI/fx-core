@@ -52,8 +52,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	fxcfg "github.com/functionx/fx-core/v6/server/config"
-	fxtypes "github.com/functionx/fx-core/v6/types"
+	fxcfg "github.com/functionx/fx-core/v7/server/config"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 const FlagApplicationDatabaseDir = "application-db-dir"
@@ -125,10 +125,10 @@ which accepts a path for the resulting pprof file.
 			serverCtx.Logger = NewFxZeroLogWrapper(zeroLog, filterLogTypes)
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			if len(clientCtx.ChainID) <= 0 {
+			if len(clientCtx.ChainID) == 0 {
 				clientCtx.ChainID = fxtypes.ChainId()
 			}
-			if len(clientCtx.HomeDir) <= 0 {
+			if len(clientCtx.HomeDir) == 0 {
 				clientCtx.HomeDir = serverCtx.Config.RootDir
 			}
 
@@ -253,7 +253,7 @@ func startStandAlone(svrCtx *server.Context, appCreator types.AppCreator) error 
 
 	svr, err := abciserver.NewServer(addr, transport, app)
 	if err != nil {
-		return fmt.Errorf("error creating listener: %v", err)
+		return fmt.Errorf("error creating listener: %w", err)
 	}
 
 	svr.SetLogger(svrCtx.Logger.With("module", "abci-server"))
@@ -609,7 +609,8 @@ func wrapCPUProfile(ctx *server.Context, callback func() error) error {
 
 	err := callback()
 	time.Sleep(100 * time.Millisecond)
-	errCode, ok := err.(server.ErrorCode)
+	var errCode server.ErrorCode
+	ok := errors.As(err, &errCode)
 	if !ok {
 		return err
 	}
@@ -663,6 +664,10 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 		if blockStore.Height() < fxtypes.MainnetBlockHeightV5 {
 			return errors.New("invalid version: The current block height is less than the v5.0.0 upgrade height(11_601_700)," +
 				" please use the v4.x.x version to synchronize the block or download the latest snapshot")
+		}
+		if blockStore.Height() < fxtypes.MainnetBlockHeightV6 {
+			return errors.New("invalid version: The current block height is less than the v6.0.0 upgrade height(13_598_000)," +
+				" please use the v5.x.x version to synchronize the block or download the latest snapshot")
 		}
 		return errors.New("invalid version: The current version is not released, please use the corresponding version")
 	}

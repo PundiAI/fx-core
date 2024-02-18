@@ -18,6 +18,7 @@ const (
 	MainnetBlockHeightV3 = 8_756_000
 	MainnetBlockHeightV4 = 10_477_500
 	MainnetBlockHeightV5 = 11_601_700
+	MainnetBlockHeightV6 = 13_598_000
 )
 
 // testnet
@@ -31,6 +32,7 @@ const (
 	TestnetBlockHeightV41 = 8_376_000
 	TestnetBlockHeightV42 = 8_481_000
 	TestnetBlockHeightV5  = 9_773_000
+	TestnetBlockHeightV6  = 11_701_000
 )
 
 var (
