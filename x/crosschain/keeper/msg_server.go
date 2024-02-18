@@ -535,6 +535,14 @@ func (s MsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim)
 	return &types.MsgSendToFxClaimResponse{}, nil
 }
 
+func (s MsgServer) BridgeCallClaim(c context.Context, msg *types.MsgBridgeCallClaim) (*types.MsgBridgeCallClaimResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &types.MsgBridgeCallClaimResponse{}, nil
+}
+
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v7/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 )
 
@@ -74,7 +74,7 @@ func TestParseReceiveAndAmountByPacket(t *testing.T) {
 			"error router - expect error, sender eip address is lowercase",
 			types.FungibleTokenPacketData{Sender: "0x50194ffc34db0fb3de90a4ee75db66e868ad7820", Receiver: "0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820", Amount: "1", Fee: "1", Router: "erc20"},
 			false, false,
-			fmt.Errorf("decoding bech32 failed: invalid character not part of charset: 98"),
+			fmt.Errorf("decoding bech32 failed: invalid character not part of charset: 98\nmismatch expected: 0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820, got: 0x50194ffc34db0fb3de90a4ee75db66e868ad7820"),
 			expect{address: []byte{}, amount: sdkmath.Int{}, fee: sdkmath.Int{}},
 		},
 	}
@@ -171,13 +171,13 @@ func TestParsePacketAddress(t *testing.T) {
 		{"normal fx address", sdk.AccAddress("abc").String(), true, false, nil, sdk.AccAddress("abc")},
 		{"normal eip address", "0x2652554541Eff910C154fB643d2b167D743434EA", true, true, nil, common.HexToAddress("0x2652554541Eff910C154fB643d2b167D743434EA").Bytes()},
 
-		{"err bech32 address - kc74", "fx1yef9232palu3ps25ldjr62ck046rgd8292kc74", false, false, fmt.Errorf("decoding bech32 failed: invalid checksum (expected 92kc73 got 92kc74)"), []byte{}},
-		{"err lowercase eip address", "0x2652554541eff910c154fb643d2b167d743434ea", false, false, fmt.Errorf("decoding bech32 failed: invalid checksum (expected j389ls got 3434ea)"), []byte{}},
+		{"err bech32 address - kc74", "fx1yef9232palu3ps25ldjr62ck046rgd8292kc74", false, false, fmt.Errorf("decoding bech32 failed: invalid checksum (expected 92kc73 got 92kc74)\nwrong length"), []byte{}},
+		{"err lowercase eip address", "0x2652554541eff910c154fb643d2b167d743434ea", false, false, fmt.Errorf("decoding bech32 failed: invalid checksum (expected j389ls got 3434ea)\nmismatch expected: 0x2652554541Eff910C154fB643d2b167D743434EA, got: 0x2652554541eff910c154fb643d2b167d743434ea"), []byte{}},
 	}
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actualAddress, isEvmAddr, err := parsePacketAddress(tc.address)
+			actualAddress, isEvmAddr, err := fxtypes.ParseAddress(tc.address)
 			if tc.expPass {
 				require.EqualValues(t, tc.isEvmAddr, isEvmAddr)
 				require.NoError(t, err, "valid test case %d failed: %v", i, err)

@@ -1095,3 +1095,61 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
 	require.Error(suite.T(), err)
 }
+
+func (suite *KeeperTestSuite) TestBridgeCallClaim() {
+	normalMsg := &types.MsgBondedOracle{
+		OracleAddress:    suite.oracleAddrs[0].String(),
+		BridgerAddress:   suite.bridgerAddrs[0].String(),
+		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
+		ValidatorAddress: suite.valAddrs[0].String(),
+		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+		ChainName:        suite.chainName,
+	}
+	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
+	require.NoError(suite.T(), err)
+
+	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
+	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
+
+	sender := helpers.GenerateAddress().String()
+	if suite.chainName == trontypes.ModuleName {
+		sender = trontypes.AddressFromHex(sender)
+	}
+
+	testMsgs := []struct {
+		name      string
+		msg       *types.MsgBridgeCallClaim
+		err       error
+		errReason string
+	}{
+		{
+			name: "success",
+			msg: &types.MsgBridgeCallClaim{
+				DstChainId:     "123",
+				EventNonce:     oracleLastEventNonce + 1,
+				Sender:         sender,
+				Asset:          "123",
+				Receiver:       helpers.GenerateAddress().String(),
+				To:             helpers.GenerateAddress().String(),
+				Message:        "123",
+				Value:          sdkmath.NewInt(0),
+				BlockHeight:    1,
+				BridgerAddress: suite.bridgerAddrs[0].String(),
+				ChainName:      suite.chainName,
+			},
+			err:       nil,
+			errReason: "",
+		},
+	}
+
+	for _, testData := range testMsgs {
+		err = testData.msg.ValidateBasic()
+		require.NoError(suite.T(), err)
+		_, err = suite.MsgServer().BridgeCallClaim(sdk.WrapSDKContext(suite.ctx), testData.msg)
+		require.ErrorIs(suite.T(), err, testData.err, testData.name)
+		if err == nil {
+			continue
+		}
+		require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
+	}
+}

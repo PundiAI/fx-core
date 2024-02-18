@@ -40,6 +40,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgBridgeTokenClaim{},
 
 		&MsgSendToFxClaim{},
+		&MsgBridgeCallClaim{},
 
 		&MsgSendToExternal{},
 		&MsgCancelSendToExternal{},
@@ -58,6 +59,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		(*ExternalClaim)(nil),
 		&MsgSendToExternalClaim{},
 		&MsgSendToFxClaim{},
+		&MsgBridgeCallClaim{},
 		&MsgBridgeTokenClaim{},
 		&MsgOracleSetUpdatedClaim{},
 	)
@@ -87,6 +89,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgBridgeTokenClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeTokenClaim"), nil)
 
 	cdc.RegisterConcrete(&MsgSendToFxClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToFxClaim"), nil)
+	cdc.RegisterConcrete(&MsgBridgeCallClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallClaim"), nil)
 
 	cdc.RegisterConcrete(&MsgSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToExternal"), nil)
 	cdc.RegisterConcrete(&MsgCancelSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCancelSendToExternal"), nil)
