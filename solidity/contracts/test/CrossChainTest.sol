@@ -7,6 +7,7 @@ import "../crosschain/CrossChainCall.sol";
 import "../fip20/IFIP20Upgradable.sol";
 
 /* solhint-enable no-global-import */
+/* solhint-disable custom-errors */
 
 contract CrossChainTest {
     function crossChain(

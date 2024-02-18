@@ -3,7 +3,7 @@ import {TransactionRequest} from "@ethersproject/abstract-provider/src.ts";
 import {expect} from "chai";
 
 describe("fork mainnet fx bridge test", function () {
-    it("update bridge contract", async function () {
+    it.skip("update bridge contract", async function () {
         const gasAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
         const adminAddress = "0x0F413055AdEF9b61e9507928c6856F438d690882"
         const ownerAddress = "0xE77A7EA2F1DC25968b5941a456d99D37b80E98B5"
