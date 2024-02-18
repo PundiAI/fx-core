@@ -3,13 +3,27 @@ import "hardhat-dependency-compiler"
 import "@nomicfoundation/hardhat-ethers"
 import '@typechain/hardhat'
 import "hardhat-gas-reporter"
+import "@nomicfoundation/hardhat-verify";
 
 import './tasks/task'
 
 const config: HardhatUserConfig = {
     defaultNetwork: "hardhat",
     networks: {
-        hardhat: {},
+        hardhat: {
+            // forking: {
+            //     url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
+            // }
+            chainId: 1337
+        },
+        mainnet: {
+            url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
+            chainId: 1,
+        },
+        goerli: {
+            url: `${process.env.GOERLI_URL || "https://goerli.infura.io/v3/infura-key"}`,
+            chainId: 5,
+        },
         localhost: {
             url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
         },
@@ -44,6 +58,12 @@ const config: HardhatUserConfig = {
                 }
             },
         ]
+    },
+    etherscan: {
+        apiKey: {
+            mainnet: `${process.env.ETHERSCAN_API_KEY || "scan-key"}`,
+            goerli: `${process.env.ETHERSCAN_API_KEY || "scan-key"}`,
+        }
     },
     dependencyCompiler: {
         paths: [
