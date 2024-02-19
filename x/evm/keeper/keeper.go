@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +14,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	fxserverconfig "github.com/functionx/fx-core/v7/server/config"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -94,6 +98,102 @@ func (k *Keeper) CallEVMWithoutGas(
 		}
 		return res, errorsmod.Wrap(types.ErrVMExecution, errStr)
 	}
+
+	ctx.WithGasMeter(gasMeter)
+
+	return res, nil
+}
+
+func (k *Keeper) CallEVM(
+	ctx sdk.Context,
+	from common.Address,
+	contract *common.Address,
+	value *big.Int,
+	gasLimit uint64,
+	data []byte,
+	commit bool,
+) (*types.MsgEthereumTxResponse, error) {
+	gasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+
+	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	params := ctx.ConsensusParams()
+	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
+		gasLimit = uint64(params.Block.MaxGas)
+	}
+
+	if value == nil {
+		value = big.NewInt(0)
+	}
+	msg := ethtypes.NewMessage(
+		from,
+		contract,
+		nonce,
+		value,         // amount
+		gasLimit,      // gasLimit
+		big.NewInt(0), // gasFeeCap
+		big.NewInt(0), // gasTipCap
+		big.NewInt(0), // gasPrice
+		data,
+		ethtypes.AccessList{}, // AccessList
+		!commit,               // isFake
+	)
+
+	res, err := k.ApplyMessage(ctx, msg, types.NewNoOpTracer(), commit)
+	if err != nil {
+		return nil, err
+	}
+
+	attrs := []sdk.Attribute{
+		sdk.NewAttribute(sdk.AttributeKeyAmount, value.String()),
+		// add event for ethereum transaction hash format
+		sdk.NewAttribute(types.AttributeKeyEthereumTxHash, res.Hash),
+		// add event for index of valid ethereum tx
+		sdk.NewAttribute(types.AttributeKeyTxIndex, strconv.FormatUint(0, 10)),
+		// add event for eth tx gas used, we can't get it from cosmos tx result when it contains multiple eth tx msgs.
+		sdk.NewAttribute(types.AttributeKeyTxGasUsed, strconv.FormatUint(res.GasUsed, 10)),
+	}
+
+	if len(ctx.TxBytes()) > 0 {
+		// add event for tendermint transaction hash format
+		hash := tmbytes.HexBytes(tmtypes.Tx(ctx.TxBytes()).Hash())
+		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyTxHash, hash.String()))
+	}
+
+	attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyRecipient, contract.Hex()))
+
+	if res.Failed() {
+		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEthereumTxFailed, res.VmError))
+	}
+
+	txLogAttrs := make([]sdk.Attribute, len(res.Logs))
+	for i, log := range res.Logs {
+		value, err := json.Marshal(log)
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "failed to encode log")
+		}
+		txLogAttrs[i] = sdk.NewAttribute(types.AttributeKeyTxLog, string(value))
+	}
+
+	// emit events
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeEthereumTx,
+			attrs...,
+		),
+		sdk.NewEvent(
+			types.EventTypeTxLog,
+			txLogAttrs...,
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, from.String()),
+		),
+	})
 
 	ctx.WithGasMeter(gasMeter)
 

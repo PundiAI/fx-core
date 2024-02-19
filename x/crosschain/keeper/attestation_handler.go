@@ -53,6 +53,18 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return nil
 		}
 
+	case *types.MsgBridgeCallClaim:
+		assetType, assetData, err := types.UnpackAssetType(claim.Asset)
+		if err != nil {
+			return errorsmod.Wrap(types.ErrInvalid, "asset")
+		}
+		switch assetType {
+		case types.AssetERC20:
+			return k.bridgeCallERC20Handler(ctx, assetData, claim.MustSenderBytes(), claim.MustToBytes(),
+				claim.MustReceiverBytes(), claim.DstChainId, claim.Message, claim.Value, claim.GasLimit, claim.EventNonce)
+		default:
+			return errorsmod.Wrap(types.ErrInvalid, "asset not support")
+		}
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
 

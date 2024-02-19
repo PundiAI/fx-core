@@ -122,6 +122,7 @@ type MsgValidateBasic interface {
 	MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error)
 
 	ValidateAddress(addr string) error
+	AddressToBytes(addr string) ([]byte, error)
 }
 
 var reModuleName *regexp.Regexp
@@ -630,6 +631,48 @@ func (m *MsgBridgeCallClaim) Route() string { return RouterKey }
 func (m *MsgBridgeCallClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%s/%s/%s/%d", m.BlockHeight, m.EventNonce, m.DstChainId, m.Sender, m.Receiver, m.To, m.Asset, m.Message, m.Value.String(), m.GasLimit)
 	return tmhash.Sum([]byte(path))
+}
+
+// GetAddressBytes parse addr to bytes
+func (m *MsgBridgeCallClaim) GetAddressBytes(addr string) ([]byte, error) {
+	if err := ValidateModuleName(m.ChainName); err != nil {
+		return nil, errortypes.ErrInvalidRequest.Wrap("invalid chain name")
+	}
+	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+		return nil, errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	} else {
+		return router.AddressToBytes(addr)
+	}
+}
+
+// MustSenderBytes parse sender to bytes
+func (m *MsgBridgeCallClaim) MustSenderBytes() []byte {
+	addr, err := m.GetAddressBytes(m.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+// MustReceiverBytes parse receiver to bytes
+func (m *MsgBridgeCallClaim) MustReceiverBytes() []byte {
+	addr, err := m.GetAddressBytes(m.Receiver)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+// MustToBytes parse to addr to bytes
+func (m *MsgBridgeCallClaim) MustToBytes() []byte {
+	if len(m.To) == 0 {
+		return []byte{}
+	}
+	addr, err := m.GetAddressBytes(m.To)
+	if err != nil {
+		panic(err)
+	}
+	return addr
 }
 
 // MsgSendToExternalClaim

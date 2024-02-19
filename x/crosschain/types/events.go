@@ -31,4 +31,8 @@ const (
 	AttributeKeyIbcSourceChannel = "ibc_source_channel"
 
 	EventTypeEvmTransfer = "evm_transfer"
+
+	EventTypeBridgeCallEvm    = "bridge_call_evm"
+	AttributeKeyEvmCallResult = "evm_call_result"
+	AttributeKeyEvmCallError  = "evm_call_error"
 )

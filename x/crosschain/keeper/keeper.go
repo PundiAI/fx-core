@@ -26,6 +26,7 @@ type Keeper struct {
 	bankKeeper         types.BankKeeper
 	ibcTransferKeeper  types.IBCTransferKeeper
 	erc20Keeper        types.Erc20Keeper
+	evmKeeper          types.EVMKeeper
 
 	authority string
 }
@@ -34,7 +35,7 @@ type Keeper struct {
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionMsgServer,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
-	authority string,
+	evmKeeper types.EVMKeeper, authority string,
 ) Keeper {
 	if addr := ak.GetModuleAddress(moduleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", moduleName))
@@ -51,6 +52,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		bankKeeper:         bankKeeper,
 		ibcTransferKeeper:  ibcTransferKeeper,
 		erc20Keeper:        erc20Keeper,
+		evmKeeper:          evmKeeper,
 		authority:          authority,
 	}
 }

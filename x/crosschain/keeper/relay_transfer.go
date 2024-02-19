@@ -3,9 +3,12 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
+	"strconv"
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -102,4 +105,104 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, target.SourceChannel),
 	))
 	return err
+}
+
+func (k Keeper) bridgeCallERC20Handler(
+	ctx sdk.Context,
+	asset, sender, to, receiver []byte,
+	dstChainID, message string,
+	value sdkmath.Int,
+	gasLimit, eventNonce uint64,
+) error {
+	tokens, amounts, err := types.UnpackERC20Asset(asset)
+	if err != nil {
+		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
+	}
+	senderAddr := common.BytesToAddress(sender)
+	targetCoins, err := k.bridgeCallTargetCoinsHandler(ctx, senderAddr, tokens, amounts)
+	if err != nil {
+		return err
+	}
+
+	switch dstChainID {
+	case types.FxcoreChainID:
+		// convert coin to erc20
+		for _, coin := range targetCoins {
+			// not convert FX
+			if coin.Denom == fxtypes.DefaultDenom {
+				continue
+			}
+			if err = k.transferErc20Handler(ctx, eventNonce, receiver, coin); err != nil {
+				return err
+			}
+		}
+		var toAddrPtr *common.Address
+		if len(to) > 0 {
+			toAddr := common.BytesToAddress(to)
+			toAddrPtr = &toAddr
+		}
+		if len(message) > 0 || toAddrPtr != nil {
+			k.bridgeCallEvmHandler(ctx, senderAddr, toAddrPtr, message, value, gasLimit, eventNonce)
+		}
+	default:
+		// not support chain, refund
+	}
+	// todo refund asset
+
+	return nil
+}
+
+func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Address, tokens []common.Address, amounts []*big.Int) (sdk.Coins, error) {
+	tokens, amounts = types.MergeDuplicationERC20(tokens, amounts)
+	targetCoins := sdk.NewCoins()
+	for i := 0; i < len(tokens); i++ {
+		bridgeToken := k.GetBridgeTokenDenom(ctx, tokens[i].String())
+		if bridgeToken == nil {
+			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+		}
+		coin := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewIntFromBigInt(amounts[i]))
+		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+		if !isOriginOrConverted {
+			if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
+				return nil, errorsmod.Wrapf(err, "mint vouchers coins")
+			}
+		}
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver.Bytes(), sdk.NewCoins(coin)); err != nil {
+			return nil, errorsmod.Wrap(err, "transfer vouchers")
+		}
+
+		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver.Bytes(), coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "convert to target coin")
+		}
+		targetCoins = targetCoins.Add(targetCoin)
+	}
+	return targetCoins, nil
+}
+
+func (k Keeper) bridgeCallEvmHandler(
+	ctx sdk.Context,
+	sender common.Address,
+	to *common.Address,
+	message string, value sdkmath.Int,
+	gasLimit, eventNonce uint64,
+) {
+	cacheCtx, commit := ctx.CacheContext()
+	txResp, err := k.evmKeeper.CallEVM(cacheCtx, sender, to, value.BigInt(), gasLimit, fxtypes.MustDecodeHex(message), true)
+	if err != nil {
+		k.Logger(ctx).Error("bridge call evm error", "nonce", eventNonce, "error", err.Error())
+		attrs := []sdk.Attribute{
+			sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(false)),
+			sdk.NewAttribute(types.AttributeKeyEvmCallError, err.Error()),
+		}
+		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
+		return
+	}
+	// whether the tx succeeds or fails， commit with tx logs
+	commit()
+	attrs := []sdk.Attribute{sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(!txResp.Failed()))}
+	if txResp.Failed() {
+		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEvmCallError, txResp.VmError))
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
 }

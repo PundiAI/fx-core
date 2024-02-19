@@ -5,8 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -157,14 +158,21 @@ func (b TronMsgValidate) MsgBridgeCallClaimValidate(m *crosschaintypes.MsgBridge
 	if err = ValidateTronAddress(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+	if len(m.To) > 0 {
+		if err = ValidateTronAddress(m.To); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+		}
 	}
-	if _, _, err := fxtypes.ParseAddress(m.Receiver); err != nil {
+	if err = ValidateTronAddress(m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+	}
+	if len(m.Message) > 0 {
+		if _, err := hexutil.Decode(m.Message); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid message")
+		}
 	}
 	if m.EventNonce == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
@@ -234,4 +242,12 @@ func (b TronMsgValidate) MsgConfirmBatchValidate(m *crosschaintypes.MsgConfirmBa
 
 func (b TronMsgValidate) ValidateAddress(addr string) error {
 	return ValidateTronAddress(addr)
+}
+
+func (b TronMsgValidate) AddressToBytes(addr string) ([]byte, error) {
+	tronAddr, err := tronaddress.Base58ToAddress(addr)
+	if err != nil {
+		return nil, err
+	}
+	return tronAddr.Bytes(), nil
 }

@@ -17,6 +17,8 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func NewMnemonic() string {
@@ -101,6 +103,20 @@ func GenerateAddressByModule(module string) string {
 		return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, addr.Bytes()...)).String()
 	}
 	return addr.String()
+}
+
+func AddressToBytesByModule(addr, module string) ([]byte, error) {
+	if module == "tron" {
+		tronAddr, err := tronaddress.Base58ToAddress(addr)
+		if err != nil {
+			return nil, err
+		}
+		return tronAddr.Bytes(), nil
+	}
+	if err := fxtypes.ValidateEthereumAddress(addr); err != nil {
+		return nil, err
+	}
+	return common.HexToAddress(addr).Bytes(), nil
 }
 
 // GenerateZeroAddressByModule generates an Ethereum or Tron zero address.
