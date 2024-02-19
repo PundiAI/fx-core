@@ -51,7 +51,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -208,7 +208,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -304,7 +304,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -436,7 +436,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -621,7 +621,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -816,7 +816,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -1040,7 +1040,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -1173,7 +1173,7 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid sender address",
@@ -1245,7 +1245,7 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid sender address",
@@ -1331,7 +1331,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -1467,7 +1467,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",
@@ -1592,7 +1592,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid chain name: invalid request",
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - invalid chain name",

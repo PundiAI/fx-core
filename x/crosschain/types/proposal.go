@@ -58,8 +58,8 @@ func (m *UpdateChainOraclesProposal) ProposalType() string {
 }
 
 func (m *UpdateChainOraclesProposal) ValidateBasic() error {
-	if err := ValidateModuleName(m.ChainName); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("invalid chain name")
+	if _, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if err := govv1betal.ValidateAbstract(m); err != nil {
 		return err
