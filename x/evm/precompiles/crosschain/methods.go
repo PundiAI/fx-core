@@ -186,6 +186,7 @@ func (args *IncreaseBridgeFeeArgs) Validate() error {
 	if err := crosschaintypes.ValidateModuleName(args.Chain); err != nil {
 		return err
 	}
+
 	if args.TxID == nil || args.TxID.Sign() <= 0 {
 		return errors.New("invalid tx id")
 	}
