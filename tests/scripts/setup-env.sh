@@ -35,6 +35,11 @@ export FROM=${FROM:-"test1"}
 
 export DOCKER_NETWORK=${DOCKER_NETWORK:-"test-net"}
 
+if [ -f "$PROJECT_DIR/tests/scripts/.env" ]; then
+  # shellcheck source=/dev/null
+  source "$PROJECT_DIR/tests/scripts/.env"
+fi
+
 mkdir -p "${OUT_DIR}"
 
 function check_command() {
@@ -194,6 +199,12 @@ function add_key() {
   local name=$1 index=$2
   $DAEMON keys delete "$name" --home "$NODE_HOME" -y >/dev/null 2>&1
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$name" --index "$index" --home "$NODE_HOME" --recover
+}
+
+function export_key() {
+  local name=$1 out=$2
+  shift 2
+  $DAEMON keys export "$name" "$@" --home "$NODE_HOME" >"$out"
 }
 
 function cosmos_grpc() {

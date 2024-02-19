@@ -24,18 +24,28 @@ function run() {
   )
 
   (
-    export IBC_CHANNEL="channel-0"
-    PURSE_ADDRESS="$("${script_dir}/ethereum.sh" get_token_address bsc PURSE)"
-    export PURSE_ADDRESS
-    PUNDIX_ADDRESS="$("${script_dir}/ethereum.sh" get_token_address eth PUNDIX)"
-    export PUNDIX_ADDRESS
-    "${script_dir}/pundix.sh" init
-    "${script_dir}/pundix.sh" start
+    # shellcheck source=/dev/null
+    . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-env.sh"
+    if [[ "$ENABLE_IBC" == "true" ]]; then
+      export IBC_CHANNEL="channel-0"
+      PURSE_ADDRESS="$("${script_dir}/ethereum.sh" get_token_address bsc PURSE)"
+      export PURSE_ADDRESS
+      PUNDIX_ADDRESS="$("${script_dir}/ethereum.sh" get_token_address eth PUNDIX)"
+      export PUNDIX_ADDRESS
+      "${script_dir}/pundix.sh" init
+      "${script_dir}/pundix.sh" start
 
-    "${script_dir}/ibcrelayer.sh" transfer
-    "${script_dir}/ibcrelayer.sh" init
-    "${script_dir}/ibcrelayer.sh" create_channel
-    "${script_dir}/ibcrelayer.sh" start
+      "${script_dir}/ibcrelayer.sh" transfer
+      "${script_dir}/ibcrelayer.sh" init
+      "${script_dir}/ibcrelayer.sh" create_channel
+      "${script_dir}/ibcrelayer.sh" start
+    fi
+  )
+
+  (
+    "${script_dir}/bridge.sh" create_oracles eth
+    "${script_dir}/bridge.sh" update_crosschain_oracles eth
+    "${script_dir}/bridge.sh" create_oracle_bridger eth
   )
 
 }
