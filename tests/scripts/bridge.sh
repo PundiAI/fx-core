@@ -7,14 +7,17 @@ set -eo pipefail
 
 readonly bridger_start_index=100
 readonly bridger_oracle_number=3
-readonly bridge_image="functionx/fx-bridge-golang:3.1.0"
 readonly bridge_tokens_file="${PROJECT_DIR}/tests/data/bridge_tokens.json"
 
 export NODE_HOME="$OUT_DIR/.fxcore"
 export LOCAL_PORT=${LOCAL_PORT:-"8545"}
 
+export BRIDGE_IMAGE=${BRIDGE_IMAGE:-"functionx/fx-bridge-robot:latest"}
 export BRIDGE_CONTRACTS_OUT_DIR=${BRIDGE_CONTRACTS_OUT_DIR:-"${OUT_DIR}/bridge_contracts_out.json"}
 export BRIDGE_TOKENS_OUT_DIR=${BRIDGE_TOKENS_OUT_DIR:-"${OUT_DIR}/bridge_tokens_out.json"}
+export RBIDGER_OUT_DIR=${RBIDGER_OUT_DIR:-"${OUT_DIR}/bridger_key/"}
+
+mkdir -p "$RBIDGER_OUT_DIR"
 
 function proposal() {
   "${PROJECT_DIR}/tests/scripts/proposal.sh" "$@"
@@ -30,11 +33,11 @@ function create_oracles() {
     for ((i = 0; i < "$bridger_oracle_number"; i++)); do
       add_key "$chain-oracle-$i" "$index"
       add_key "$chain-bridger-$i" "$((index + 1))"
-
       oracle_address=$(show_address "$chain-oracle-$i" -a)
       bridger_address=$(show_address "$chain-bridger-$i" -a)
       external_address=$(show_address "$chain-bridger-$i" -e)
-
+      echo "12345678" | export_key "$chain-bridger-$i" "$RBIDGER_OUT_DIR/fx-$chain-bridger-$i.key" --ascii-armor
+      echo "12345678" | export_key "$chain-bridger-$i" "$RBIDGER_OUT_DIR/eth-$chain-bridger-$i.key"
       cat >"$oracle_file.new" <<EOF
 [
   {
@@ -86,7 +89,7 @@ function create_oracle_bridger() {
       cosmos_transfer "$oracle_name" 100
       cosmos_transfer "$bridge_name" 500
 
-      cosmos_tx "$chain" create-oracle-bridger "$validator_address" "$bridge_address" "$external_address" "$min_deposit" --from "$oracle_name"
+      cosmos_tx "$chain" bounded-oracle "$validator_address" "$bridge_address" "$external_address" "$min_deposit" --from "$oracle_name"
     done < <(jq -r '.[] | "\(.oracle_name) \(.oracle_address) \(.oracle_index) \(.bridge_name) \(.bridge_address) \(.bridge_index) \(.external_address)"' "$oracle_file")
   done
 }
@@ -109,11 +112,13 @@ EOF
       cat >>"$OUT_DIR/bridge-docker-compose.yml" <<EOF
     fx-$bridge_name:
       container_name: fx-$bridge_name
-      image: $bridge_image
+      image: $BRIDGE_IMAGE
       hostname: fx-$bridge_name
-      command: --chain-name="$chain" --external-jsonrpc="$external_json_rpc_url" --external-key="$TEST_MNEMONIC" --external-index="$bridge_index" --fx-bridge-addr="$bridge_contract_address" --fx-gas-price=4000000000000FX --fx-grpc="http://fxcore:9090" --fx-key="$TEST_MNEMONIC" --fx-index="$bridge_index"
+      command: bridge --bridge-chain-name="$chain" --bridge-node-url="$external_json_rpc_url" --bridge-addr="$bridge_contract_address" --fx-gas-price=4000000000000FX --fx-grpc="http://fxcore:9090" --bridge-key=/root/eth-$bridge_name.key --bridge-pwd=12345678 --fx-key=/root/fx-$bridge_name.key --fx-pwd=/root/fx-$bridge_name.password
       networks:
         - $DOCKER_NETWORK
+      volumes:
+        - $RBIDGER_OUT_DIR:/root
 EOF
 
     done < <(jq -r '.[] | "\(.bridge_index) \(.bridge_name)"' "$oracle_file")

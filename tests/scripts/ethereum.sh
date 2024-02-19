@@ -33,7 +33,7 @@ function hardhat_task() {
     cd "$solidity_dir" || exit 1
     yarn install >/dev/null 2>&1
 
-    npx hardhat "$@"
+    npx hardhat "$@" --network localhost
   )
 }
 
@@ -55,6 +55,7 @@ function init_bridge_contract() {
 }
 
 ## ARGS: <bridge-contract> <bridge-token> <is-original> <target-ibc>
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 function add_bridge_token() {
   local contract=${1} token=${2} is_original=${3} target_ibc=${4}
   shift 4

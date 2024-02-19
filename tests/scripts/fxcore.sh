@@ -8,7 +8,7 @@ set -eo pipefail
 export CHAIN_NAME="fxcore"
 export NODE_HOME="$OUT_DIR/.$CHAIN_NAME"
 
-export DOCKER_IMAGE=${DOCKER_IMAGE:-"ghcr.io/functionx/fx-core:4.1.0-rc0"}
+export DOCKER_IMAGE=${DOCKER_IMAGE:-"ghcr.io/functionx/fx-core:latest"}
 export DAEMON="docker run --rm -i --network $DOCKER_NETWORK -v $NODE_HOME:$NODE_HOME $DOCKER_IMAGE"
 
 export NODE_RPC="http://$CHAIN_NAME:26657"
@@ -35,6 +35,7 @@ function init() {
   "bech32_prefix": "$BECH32_PREFIX"
 }
 EOF
+  sleep 2
 }
 
 function start() {
