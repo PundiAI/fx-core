@@ -12,7 +12,8 @@ function run() {
   )
 
   (
-    export LOCAL_PORT=8535
+    LOCAL_PORT=8535
+    export LOCAL_PORT
     "${script_dir}/ethereum.sh" start
     "${script_dir}/ethereum.sh" deploy_bridge_token
     "${script_dir}/ethereum.sh" deploy_bridge_contract
@@ -46,6 +47,11 @@ function run() {
     "${script_dir}/bridge.sh" create_oracles eth
     "${script_dir}/bridge.sh" update_crosschain_oracles eth
     "${script_dir}/bridge.sh" create_oracle_bridger eth
+
+    LOCAL_PORT=8535
+    export LOCAL_PORT
+    "${script_dir}/ethereum.sh" init_bridge
+    "${script_dir}/bridge.sh" setup_bridge_server eth
   )
 
 }
