@@ -3,16 +3,16 @@
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
-version: 2
-updates:
-  # Maintain dependencies for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
+#version: 2
+#updates:
+#  # Maintain dependencies for GitHub Actions
+#  - package-ecosystem: "github-actions"
+#    directory: "/"
+#    schedule:
+#      interval: "weekly"
+#      day: "monday"
+#      time: "09:00"
+#    open-pull-requests-limit: 10
 #  - package-ecosystem: "gomod"
 #    directory: "/"
 #    schedule:
