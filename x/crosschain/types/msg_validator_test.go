@@ -1753,7 +1753,7 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  fmt.Sprintf("invalid chain name: %s", errortypes.ErrInvalidRequest),
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
 			testName: "err - empty oracle",
