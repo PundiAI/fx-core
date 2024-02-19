@@ -99,14 +99,14 @@ const initBridge = task("init-bridge", "init bridge contract")
     .addParam("restUrl", "fx node rest rpc url", undefined, string, false)
     .addParam("chainName", "init cross chain name", undefined, string, false)
     .setAction(async (taskArgs, hre) => {
-        const {bridgeLogic, bridgeContract, fxRestUrl, chainName} = taskArgs;
+        const {bridgeLogic, bridgeContract, restUrl, chainName} = taskArgs;
         const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
         const from = await wallet.getAddress();
 
         const bridge_logic_factory = await hre.ethers.getContractFactory("FxBridgeLogic")
 
-        const oracle_set = await GetOracleSet(fxRestUrl, chainName)
-        const gravity_id_str = await GetGravityId(fxRestUrl, chainName)
+        const oracle_set = await GetOracleSet(restUrl, chainName)
+        const gravity_id_str = await GetGravityId(restUrl, chainName)
         const gravity_id = hre.ethers.encodeBytes32String(gravity_id_str);
 
         const external_addresses = [];
@@ -130,7 +130,7 @@ const initBridge = task("init-bridge", "init bridge contract")
         ])
 
         if (bridgeLogic) {
-            const proxy_factory = await hre.ethers.getContractFactory("TransparentUpgradeableProxy")
+            const proxy_factory = await hre.ethers.getContractAt("ITransparentUpgradeableProxy", bridgeContract, wallet)
             data = proxy_factory.interface.encodeFunctionData('upgradeToAndCall', [bridgeLogic, data])
         }
 

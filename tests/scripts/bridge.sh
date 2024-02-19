@@ -114,7 +114,7 @@ EOF
       container_name: fx-$bridge_name
       image: $BRIDGE_IMAGE
       hostname: fx-$bridge_name
-      command: bridge --bridge-chain-name="$chain" --bridge-node-url="$external_json_rpc_url" --bridge-addr="$bridge_contract_address" --fx-gas-price=4000000000000FX --fx-grpc="http://fxcore:9090" --bridge-key=/root/eth-$bridge_name.key --bridge-pwd=12345678 --fx-key=/root/fx-$bridge_name.key --fx-pwd=/root/fx-$bridge_name.password
+      command: bridge --bridge-chain-name="$chain" --bridge-node-url="$external_json_rpc_url" --bridge-addr="$bridge_contract_address" --fx-gas-price=4000000000000FX --fx-grpc="http://fxcore:9090" --bridge-key=/root/eth-$bridge_name.key --bridge-pwd=12345678 --fx-key=/root/fx-$bridge_name.key --fx-pwd=12345678
       networks:
         - $DOCKER_NETWORK
       volumes:
@@ -129,6 +129,8 @@ networks:
   $DOCKER_NETWORK:
     external: true
 EOF
+
+  docker-compose -f "$OUT_DIR/bridge-docker-compose.yml" up -d
 }
 
 function request_batch() {
