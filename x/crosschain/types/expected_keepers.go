@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -9,6 +10,8 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/x/evm/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
@@ -61,6 +64,11 @@ type Erc20Keeper interface {
 	DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
 	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
+}
+
+// EVMKeeper defines the expected EVM keeper interface used on crosschain
+type EVMKeeper interface {
+	CallEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types.MsgEthereumTxResponse, error)
 }
 
 type IBCTransferKeeper interface {

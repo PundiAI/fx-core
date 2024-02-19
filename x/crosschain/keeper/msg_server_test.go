@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
+	"math/big"
 	"sort"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -20,6 +22,7 @@ import (
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -1111,10 +1114,50 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
 
-	sender := helpers.GenerateAddress().String()
-	if suite.chainName == trontypes.ModuleName {
-		sender = trontypes.AddressFromHex(sender)
-	}
+	tokenContract := helpers.GenerateAddressByModule(suite.chainName)
+	_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), &types.MsgBridgeTokenClaim{
+		EventNonce:     oracleLastEventNonce + 1,
+		BlockHeight:    uint64(suite.ctx.BlockHeight()),
+		TokenContract:  tokenContract,
+		Name:           "Token Test",
+		Symbol:         "TTT",
+		Decimals:       18,
+		BridgerAddress: suite.bridgerAddrs[0].String(),
+		ChannelIbc:     "",
+		ChainName:      suite.chainName,
+	})
+	require.NoError(suite.T(), err)
+
+	oracleLastEventNonce = suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
+	require.EqualValues(suite.T(), 1, oracleLastEventNonce)
+
+	_, err = suite.app.Erc20Keeper.RegisterCoin(sdk.WrapSDKContext(suite.ctx), &erc20types.MsgRegisterCoin{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Metadata: banktypes.Metadata{
+			Description: "Test token",
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    "ttt",
+					Exponent: 0,
+					Aliases:  []string{fmt.Sprintf("%s%s", suite.chainName, tokenContract)},
+				},
+				{
+					Denom:    "TTT",
+					Exponent: 18,
+				},
+			},
+			Base:    "ttt",
+			Display: "TTT",
+			Name:    "Test Token",
+			Symbol:  "TTT",
+		},
+	})
+	require.NoError(suite.T(), err)
+
+	tokenAddrBytes, err := helpers.AddressToBytesByModule(tokenContract, suite.chainName)
+	require.NoError(suite.T(), err)
+	assetBytes, err := types.PackERC20Asset([][]byte{tokenAddrBytes}, []*big.Int{big.NewInt(100)})
+	require.NoError(suite.T(), err)
 
 	testMsgs := []struct {
 		name      string
@@ -1125,14 +1168,15 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		{
 			name: "success",
 			msg: &types.MsgBridgeCallClaim{
-				DstChainId:     "123",
+				DstChainId:     "530",
 				EventNonce:     oracleLastEventNonce + 1,
-				Sender:         sender,
-				Asset:          "123",
-				Receiver:       helpers.GenerateAddress().String(),
-				To:             helpers.GenerateAddress().String(),
-				Message:        "123",
+				Sender:         helpers.GenerateAddressByModule(suite.chainName),
+				Asset:          hex.EncodeToString(assetBytes),
+				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+				To:             helpers.GenerateAddressByModule(suite.chainName),
+				Message:        "",
 				Value:          sdkmath.NewInt(0),
+				GasLimit:       3000000,
 				BlockHeight:    1,
 				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChainName:      suite.chainName,

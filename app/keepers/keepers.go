@@ -346,6 +346,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
@@ -359,6 +360,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
@@ -372,6 +374,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
@@ -385,6 +388,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.ArbitrumKeeper = crosschainkeeper.NewKeeper(
@@ -398,6 +402,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
@@ -411,6 +416,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.Layer2Keeper = crosschainkeeper.NewKeeper(
@@ -424,6 +430,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
@@ -437,6 +444,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	), appKeepers.Erc20Keeper)
 

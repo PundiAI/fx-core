@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
@@ -201,14 +203,21 @@ func (b MsgValidate) MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err erro
 	if err = fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+	if len(m.To) > 0 {
+		if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+		}
 	}
-	if _, _, err := fxtypes.ParseAddress(m.Receiver); err != nil {
+	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+	}
+	if len(m.Message) > 0 {
+		if _, err := hexutil.Decode(m.Message); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid message")
+		}
 	}
 	if m.EventNonce == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
@@ -301,4 +310,11 @@ func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 
 func (b MsgValidate) ValidateAddress(addr string) error {
 	return fxtypes.ValidateEthereumAddress(addr)
+}
+
+func (b MsgValidate) AddressToBytes(addr string) ([]byte, error) {
+	if err := fxtypes.ValidateEthereumAddress(addr); err != nil {
+		return nil, err
+	}
+	return common.HexToAddress(addr).Bytes(), nil
 }
