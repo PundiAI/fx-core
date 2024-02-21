@@ -207,6 +207,13 @@ function export_key() {
   $DAEMON keys export "$name" "$@" --home "$NODE_HOME" >"$out"
 }
 
+function erc20_token_address() {
+  local denom=$1
+  address_list=$(cosmos_query erc20 token-pairs --output json | jq -r ['.token_pairs[] | select(.denom == "'"$denom"'") | .erc20_address'])
+  address=$(echo "${address_list}" | jq -r '.[0]')
+  echo "${address}"
+}
+
 function cosmos_grpc() {
   grpcurl -plaintext "$NODE_GRPC" "$@"
 }

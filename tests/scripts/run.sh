@@ -60,6 +60,9 @@ function run() {
     LOCAL_PORT=8545
     export LOCAL_PORT
     "${script_dir}/ethereum.sh" deploy_bridge_call_contract
+    LOCAL_PORT=8535
+    export LOCAL_PORT
+    "${script_dir}/ethereum.sh" bridge_erc20_call_test eth
   )
 }
 

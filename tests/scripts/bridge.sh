@@ -95,7 +95,7 @@ function create_oracle_bridger() {
 }
 
 function setup_bridge_server() {
-  local external_json_rpc_url="http://host.docker.internal:$LOCAL_PORT"
+  local external_json_rpc_url="http://host-network:$LOCAL_PORT"
   local chain_name=("$@")
 
   cat >"$OUT_DIR/bridge-docker-compose.yml" <<EOF
@@ -125,6 +125,15 @@ EOF
   done
 
   cat >>"$OUT_DIR/bridge-docker-compose.yml" <<EOF
+    host-network:
+      container_name: host-network
+      image: qoomon/docker-host
+      restart: always
+      cap_add:
+       - NET_ADMIN
+       - NET_RAW
+      networks:
+       - $DOCKER_NETWORK
 networks:
   $DOCKER_NETWORK:
     external: true
