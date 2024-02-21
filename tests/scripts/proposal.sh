@@ -56,7 +56,7 @@ function vote() {
   local option=$1 proposal_id=${2:-""}
 
   if [[ -z "$proposal_id" ]]; then
-    proposal_id="$(cosmos_query gov proposals --status=voting_period | jq -r '.proposals[0].proposal_id // .proposals[0].id')"
+    proposal_id="$(cosmos_query gov proposals --reverse --limit 1 --status=voting_period | jq -r '.proposals[0].proposal_id // .proposals[0].id')"
   fi
 
   [[ "$(cosmos_query gov proposal "${proposal_id}" | jq -r '.status')" != "PROPOSAL_STATUS_VOTING_PERIOD" ]] &&

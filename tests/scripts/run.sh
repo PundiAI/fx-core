@@ -51,9 +51,16 @@ function run() {
     LOCAL_PORT=8535
     export LOCAL_PORT
     "${script_dir}/ethereum.sh" init_bridge
+    "${script_dir}/ethereum.sh" add_bridge_tokens
     "${script_dir}/bridge.sh" setup_bridge_server eth
+    "${script_dir}/bridge.sh" register_coin
   )
 
+  (
+    LOCAL_PORT=8545
+    export LOCAL_PORT
+    "${script_dir}/ethereum.sh" deploy_bridge_call_contract
+  )
 }
 
 #function close() {
