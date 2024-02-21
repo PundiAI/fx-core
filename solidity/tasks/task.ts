@@ -4,6 +4,7 @@ import {
     AddTxParam,
     SUB_CHECK_PRIVATE_KEY,
     SUB_CONFIRM_TRANSACTION,
+    SUB_CREATE_ASSET_DATA,
     SUB_CREATE_TRANSACTION,
     SUB_GET_NODE_URL,
     SUB_SEND_ETH,
@@ -105,6 +106,40 @@ task("call", "call contract, Example: npx hardhat call 0x... balanceOf(address)(
             console.log(splitByComma(abiInterface.decodeFunctionResult(abi.name as string, result).toString()))
         }
     )
+
+task("encode", "encode function data, Example: npx hardhat encode transfer(address,uint256) 0x... 1000000000000000000")
+    .addVariadicPositionalParam("params", "encode function data params", undefined, string, true)
+    .setAction(async (taskArgs, hre) => {
+        const {params} = taskArgs;
+        const func = params[0];
+        params.splice(0, 1);
+
+        if (!func) {
+            throw new Error("Please provide func");
+        }
+
+        const abi = parseAbiItemFromSignature(func)
+        const abiInterface = new hre.ethers.Interface([abi])
+
+        if (abi.inputs && (abi.inputs.length !== params.length)) {
+            throw new Error(`Please provide ${abi.inputs.length} params`)
+        }
+        const data = abiInterface.encodeFunctionData(abi.name as string, params)
+        console.log(data)
+    })
+
+task("encode-erc20-data", "encode asset data, Example: npx hardhat encode-erc20-data 0x... 1000000000000000000")
+    .addParam("tokens", "", undefined, string, true)
+    .addParam("amounts", "", undefined, string, true)
+    .setAction(async (taskArgs, hre) => {
+        const {tokens, amounts} = taskArgs;
+        const asset = await hre.run(SUB_CREATE_ASSET_DATA, {
+            bridgeTokens: tokens,
+            bridgeAmounts: amounts,
+            assetType: "ERC20"
+        });
+        console.log(asset)
+    })
 
 interface AbiItem {
     name?: string;
