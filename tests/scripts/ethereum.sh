@@ -13,9 +13,11 @@ export LOCAL_PORT=${LOCAL_PORT:-"8545"}
 export LOCAL_URL=${LOCAL_URL:-"http://127.0.0.1:$LOCAL_PORT"}
 export REST_RPC=${REST_RPC:-"http://127.0.0.1:1317"}
 export MNEMONIC=${MNEMONIC:-"test test test test test test test test test test test junk"}
+export BRIDGE_ADMIN_INDEX=${BRIDGE_ADMIN_INDEX:-"50"}
 
 export BRIDGE_TOKENS_OUT_DIR=${BRIDGE_TOKEN_OUT_DIR:-"${OUT_DIR}/bridge_tokens_out.json"}
 export BRIDGE_CONTRACTS_OUT_DIR=${BRIDGE_CONTRACTS_OUT_DIR:-"${OUT_DIR}/bridge_contracts_out.json"}
+export BRIDGE_CALL_CONTRACT_OUT_DIR=${BRIDGE_CALL_CONTRACT_OUT_DIR:-"${OUT_DIR}/bridge_call_contract_out.json"}
 
 function start() {
   stop
@@ -131,6 +133,23 @@ EOF
   rm -r "$BRIDGE_TOKENS_OUT_DIR.new"
 }
 
+function deploy_bridge_call_contract() {
+  # deploy erc20 token test
+  erc20_address=$(deploy_contract "ERC20TokenTest" "TestToken" "TT" "18" "10000000000000000000000")
+  erc721_address=$(deploy_contract "ERC721TokenTest" "TestToken" "TT")
+  erc1155_address=$(deploy_contract "ERC1155TokenTest" "test_uri")
+  staking_address=$(deploy_contract "StakingTest")
+
+  cat >"$BRIDGE_CALL_CONTRACT_OUT_DIR" <<EOF
+{
+  "erc20": "$erc20_address",
+  "erc721": "$erc721_address",
+  "erc1155": "$erc1155_address",
+  "staking": "$staking_address"
+}
+EOF
+}
+
 function get_token_address() {
   chain_name=$1 symbol=$2
   jq -r '.[] | select(.chain_name == "'"$chain_name"'") | select(.symbol == "'"$symbol"'") | .bridge_token_address' "$BRIDGE_TOKENS_OUT_DIR"
@@ -139,10 +158,13 @@ function get_token_address() {
 function init_bridge() {
   while read -r chain_name bridge_logic_address bridge_proxy_address; do
     init_bridge_contract "$bridge_logic_address" "$bridge_proxy_address" "$REST_RPC" "$chain_name"
+    add_key bridge_admin "$BRIDGE_ADMIN_INDEX"
+    admin_address=$(show_address bridge_admin -e)
+    send "$bridge_proxy_address" "changeAdmin(address)" "$admin_address"
   done < <(jq -r '.[] | "\(.chain_name) \(.bridge_logic_address) \(.bridge_proxy_address)"' "$BRIDGE_CONTRACTS_OUT_DIR")
 }
 
-function add_bridge_token() {
+function add_bridge_tokens() {
   while read -r chain_name bridge_proxy_address; do
     while read -r bridge_token_address is_original target_ibc; do
       if [ "$target_ibc" == "null" ]; then
