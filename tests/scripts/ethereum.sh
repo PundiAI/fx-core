@@ -34,6 +34,7 @@ function hardhat_task() {
   (
     cd "$solidity_dir" || exit 1
     yarn install >/dev/null 2>&1
+    yarn typechain >/dev/null 2>&1
 
     npx hardhat "$@" --network localhost
   )
@@ -185,6 +186,102 @@ function add_bridge_tokens() {
       add_bridge_token "$bridge_proxy_address" "$bridge_token_address" "$is_original" "$target_ibc"
     done < <(jq -r '.[] | select(.chain_name == "'"$chain_name"'") | "\(.bridge_token_address) \(.is_original) \(.target_ibc)"' "$BRIDGE_TOKENS_OUT_DIR")
   done < <(jq -r '.[] | "\(.chain_name) \(.bridge_proxy_address)"' "$BRIDGE_CONTRACTS_OUT_DIR")
+}
+
+function bridge_erc20_call_test() {
+  local chain_name=("$@")
+  for chain in "${chain_name[@]}"; do
+    bridge_contract_address=$(jq -r '.[] | select(.chain_name == "'"$chain"'") | "\(.bridge_proxy_address)"' "$BRIDGE_CONTRACTS_OUT_DIR")
+    while read -r bridge_token_address symbol; do
+      if [[ "$symbol" == "FX" ]]; then
+        bridge_call_staking "$bridge_contract_address" "$bridge_token_address"
+        continue
+      fi
+      if [[ "$symbol" == "USDT" ]]; then
+        bridge_call_transfer_bridge_token "$bridge_contract_address" "$bridge_token_address" "usdt"
+        continue
+      fi
+      bridge_call_mint_erc20 "$bridge_contract_address" "$bridge_token_address"
+      bridge_call_transfer_erc20 "$bridge_contract_address" "$bridge_token_address"
+      bridge_call_mint_erc721 "$bridge_contract_address" "$bridge_token_address"
+      bridge_call_transfer_erc721 "$bridge_contract_address" "$bridge_token_address"
+    done < <(jq -r '.[] | select(.chain_name == "'"$chain"'") | "\(.bridge_token_address) \(.symbol)"' "$BRIDGE_TOKENS_OUT_DIR")
+  done
+}
+
+function bridge_call_staking() {
+  local bridge_contract_address=$1 bridge_token_address=$2
+  staking_address=$(jq -r '.staking' "$BRIDGE_CALL_CONTRACT_OUT_DIR")
+  val_address=$(cosmos_query staking validators | jq -r '.validators[0].operator_address')
+  staking_msg=$(encode "delegate(string)" "$val_address")
+  external_address=$(show_address "$FROM" -e)
+  send "$bridge_token_address" "approve(address,uint256)" "$bridge_contract_address" "1000000000000000000000"
+  bridge_erc20_call --dst-chain-id "530" --bridge-contract "$bridge_contract_address" \
+    --call-gas-limit "200000" --call-value "1000000000000000000000" --message "$staking_msg" \
+    --receiver "$external_address" --to "$staking_address" --bridge-tokens "$bridge_token_address" --bridge-amounts "1000000000000000000000"
+}
+
+function bridge_call_mint_erc20() {
+  local bridge_contract_address=$1 bridge_token_address=$2
+  erc20_address=$(jq -r '.erc20' "$BRIDGE_CALL_CONTRACT_OUT_DIR")
+  mint_address=$(show_address "$FROM" -e)
+  mint_msg=$(encode "mint(address,uint256)" "$mint_address" "24680000")
+  send "$bridge_token_address" "approve(address,uint256)" "$bridge_contract_address" "10000000"
+  bridge_erc20_call --dst-chain-id "530" --bridge-contract "$bridge_contract_address" \
+    --call-gas-limit "200000" --message "$mint_msg" \
+    --receiver "$mint_address" --to "$erc20_address" --bridge-tokens "$bridge_token_address" --bridge-amounts "10000000"
+}
+
+function bridge_call_mint_erc721() {
+  local bridge_contract_address=$1 bridge_token_address=$2
+  erc721_address=$(jq -r '.erc721' "$BRIDGE_CALL_CONTRACT_OUT_DIR")
+  mint_address=$(show_address "$FROM" -e)
+  mint_msg=$(encode "mint(address,uint256)" "$mint_address" "1")
+  send "$bridge_token_address" "approve(address,uint256)" "$bridge_contract_address" "10000000"
+  bridge_erc20_call --dst-chain-id "530" --bridge-contract "$bridge_contract_address" \
+    --call-gas-limit "200000" --message "$mint_msg" \
+    --receiver "$mint_address" --to "$erc721_address" --bridge-tokens "$bridge_token_address" --bridge-amounts "10000000"
+}
+
+function bridge_call_transfer_erc20() {
+  local bridge_contract_address=$1 bridge_token_address=$2
+  erc20_address=$(jq -r '.erc20' "$BRIDGE_CALL_CONTRACT_OUT_DIR")
+  add_key transfer_to "18"
+  transfer_to_address=$(show_address transfer_to -e)
+  transfer_msg=$(encode "transfer(address,uint256)" "$transfer_to_address" "12340000")
+  send "$bridge_token_address" "approve(address,uint256)" "$bridge_contract_address" "10000000"
+  bridge_erc20_call --dst-chain-id "530" --bridge-contract "$bridge_contract_address" \
+    --call-gas-limit "200000" --message "$transfer_msg" \
+    --receiver "$transfer_to_address" --to "$erc20_address" --bridge-tokens "$bridge_token_address" --bridge-amounts "10000000"
+}
+
+function bridge_call_transfer_erc721() {
+  local bridge_contract_address=$1 bridge_token_address=$2
+  erc721_address=$(jq -r '.erc721' "$BRIDGE_CALL_CONTRACT_OUT_DIR")
+  add_key transfer_to "18"
+  transfer_from_address=$(show_address "$FROM" -e)
+  transfer_to_address=$(show_address transfer_to -e)
+  transfer_msg=$(encode "transferFrom(address,address,uint256)" "$transfer_from_address" "$transfer_to_address" "1")
+  send "$bridge_token_address" "approve(address,uint256)" "$bridge_contract_address" "10000000"
+  bridge_erc20_call --dst-chain-id "530" --bridge-contract "$bridge_contract_address" \
+    --call-gas-limit "200000" --message "$transfer_msg" \
+    --receiver "$transfer_from_address" --to "$erc721_address" --bridge-tokens "$bridge_token_address" --bridge-amounts "10000000"
+}
+
+function bridge_call_transfer_bridge_token() {
+  local bridge_contract_address=$1 bridge_token_address=$2 denom=$3
+  erc20_address=$(erc20_token_address "$denom")
+  add_key transfer_from "19"
+  transfer_from_address=$(show_address transfer_from -e)
+  send "$bridge_token_address" "transfer(address,uint256)" "$transfer_from_address" "24680000"
+  send "$bridge_token_address" "approve(address,uint256)" "$bridge_contract_address" "24680000" --index "19"
+  add_key transfer_to "18"
+  transfer_to_address=$(show_address transfer_to -e)
+  transfer_msg=$(encode "transfer(address,uint256)" "$transfer_to_address" "12340000")
+  bridge_erc20_call --dst-chain-id "530" --bridge-contract "$bridge_contract_address" \
+    --call-gas-limit "200000" --message "$transfer_msg" \
+    --receiver "$transfer_from_address" --to "$erc20_address" \
+    --bridge-tokens "$bridge_token_address" --bridge-amounts "24680000" --index "19"
 }
 
 # shellcheck source=/dev/null
