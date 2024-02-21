@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -170,7 +169,7 @@ func (b TronMsgValidate) MsgBridgeCallClaimValidate(m *crosschaintypes.MsgBridge
 		return errortypes.ErrInvalidRequest.Wrap("invalid value")
 	}
 	if len(m.Message) > 0 {
-		if _, err := hexutil.Decode(m.Message); err != nil {
+		if _, err := hex.DecodeString(m.Message); err != nil {
 			return errortypes.ErrInvalidRequest.Wrap("invalid message")
 		}
 	}

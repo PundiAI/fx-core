@@ -201,7 +201,7 @@ func (k Keeper) bridgeCallEvmHandler(
 		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
 	}()
 
-	txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, fxtypes.MustDecodeHex(message), true)
+	txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, types.MustDecodeMessage(message), true)
 	if err != nil {
 		k.Logger(ctx).Error("bridge call evm error", "nonce", eventNonce, "error", err.Error())
 		callErr = err.Error()

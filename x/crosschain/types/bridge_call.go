@@ -121,3 +121,14 @@ func PackERC20Asset(tokens [][]byte, amounts []*big.Int) ([]byte, error) {
 	}
 	return assetTypeDecode.Pack("ERC20", assetData)
 }
+
+func MustDecodeMessage(message string) []byte {
+	if len(message) == 0 {
+		return []byte{}
+	}
+	bz, err := hex.DecodeString(message)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
