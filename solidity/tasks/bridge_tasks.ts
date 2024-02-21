@@ -6,6 +6,7 @@ import {
     GetOracleSet,
     SUB_CHECK_PRIVATE_KEY,
     SUB_CONFIRM_TRANSACTION,
+    SUB_CREATE_ASSET_DATA,
     SUB_CREATE_TRANSACTION,
     TransactionToJson,
     vote_power
@@ -196,4 +197,64 @@ const addBridgeToken = task("add-bridge-token", "add bridge token into bridge co
         }
     });
 
-AddTxParam([sendToFx, initBridge, addBridgeToken])
+const bridgeERC20Call = task("bridge-erc20-call", "bridge erc20 and call contract function")
+    .addParam("bridgeContract", "bridge contract address", undefined, string, false)
+    .addParam("dstChainId", "destination chain id", undefined, string, false)
+    .addParam("callGasLimit", "call gas limit", "0", string, true)
+    .addParam("receiver", "call receiver", undefined, string, false)
+    .addParam("to", "call to", undefined, string, false)
+    .addParam("message", "call message", undefined, string, false)
+    .addParam("callValue", "call value", "0", string, true)
+    .addParam("bridgeTokens", "bridge token address list", undefined, string, false)
+    .addParam("bridgeAmounts", "bridge token amount list", undefined, string, false)
+    .setAction(async (taskArgs, hre) => {
+        const {
+            bridgeContract,
+            dstChainId,
+            callGasLimit,
+            receiver,
+            to,
+            message,
+            callValue,
+            bridgeTokens,
+            bridgeAmounts
+        } = taskArgs;
+        const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
+        const from = await wallet.getAddress();
+
+        const asset = await hre.run(SUB_CREATE_ASSET_DATA, {
+            bridgeTokens: bridgeTokens,
+            bridgeAmounts: bridgeAmounts,
+            assetType: "ERC20"
+        });
+
+        const bridge_logic_factory = await hre.ethers.getContractFactory("FxBridgeLogic")
+        const data = bridge_logic_factory.interface.encodeFunctionData('bridgeCall', [
+            dstChainId, callGasLimit, receiver, to, message, callValue, asset
+        ])
+
+        const tx = await hre.run(SUB_CREATE_TRANSACTION, {
+            from: from, to: bridgeContract, data: data, value: taskArgs.value,
+            gasPrice: taskArgs.gasPrice,
+            maxFeePerGas: taskArgs.maxFeePerGas,
+            maxPriorityFeePerGas: taskArgs.maxPriorityFeePerGas,
+            nonce: taskArgs.nonce,
+            gasLimit: taskArgs.gasLimit,
+        });
+
+        const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+            message: `\n${TransactionToJson(tx)}\n`,
+            disableConfirm: taskArgs.disableConfirm,
+        });
+        if (!answer) return;
+
+        try {
+            const bridgeCallTx = await wallet.sendTransaction(tx);
+            await bridgeCallTx.wait();
+            console.log(`bridge call success, ${bridgeCallTx.hash}`)
+        } catch (e) {
+            console.log(`bridge call failed, ${e}`)
+        }
+    });
+
+AddTxParam([sendToFx, initBridge, addBridgeToken, bridgeERC20Call])
