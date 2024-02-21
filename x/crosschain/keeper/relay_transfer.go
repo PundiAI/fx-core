@@ -187,22 +187,24 @@ func (k Keeper) bridgeCallEvmHandler(
 	message string, value sdkmath.Int,
 	gasLimit, eventNonce uint64,
 ) {
+	callErr, callResult := "", false
+	defer func() {
+		attrs := []sdk.Attribute{sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(callResult))}
+		if len(callErr) > 0 {
+			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEvmCallError, callErr))
+		}
+		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
+	}()
+
 	cacheCtx, commit := ctx.CacheContext()
 	txResp, err := k.evmKeeper.CallEVM(cacheCtx, sender, to, value.BigInt(), gasLimit, fxtypes.MustDecodeHex(message), true)
 	if err != nil {
 		k.Logger(ctx).Error("bridge call evm error", "nonce", eventNonce, "error", err.Error())
-		attrs := []sdk.Attribute{
-			sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(false)),
-			sdk.NewAttribute(types.AttributeKeyEvmCallError, err.Error()),
-		}
-		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
+		callErr = err.Error()
 		return
 	}
-	// whether the tx succeeds or fails， commit with tx logs
 	commit()
-	attrs := []sdk.Attribute{sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(!txResp.Failed()))}
-	if txResp.Failed() {
-		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEvmCallError, txResp.VmError))
-	}
-	ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
+
+	callResult = !txResp.Failed()
+	callErr = txResp.VmError
 }
