@@ -2,18 +2,8 @@ import {ethers} from "hardhat";
 import {HardhatEthersSigner} from "@nomicfoundation/hardhat-ethers/signers";
 import {expect} from "chai";
 import {ERC20TokenTest, FxBridgeLogic} from "../typechain-types"
-import {AbiCoder, encodeBytes32String, solidityPacked} from "ethers"
-
-
-async function encodeERC20(assetType: string, tokens: string[], amounts: BigInt[]): Promise<string> {
-    const abiCode = new AbiCoder;
-    let tokenData = "";
-    for (let i = 0; i < tokens.length; i++) {
-        tokenData += solidityPacked(["address"], [tokens[i]]).substring(2);
-    }
-    const tokenAmountData = abiCode.encode(["bytes", "uint256[]"], ["0x" + tokenData, amounts]);
-    return abiCode.encode(["string", "bytes"], [assetType, tokenAmountData]);
-}
+import {encodeBytes32String} from "ethers"
+import {encodeERC20} from "../tasks/subtasks";
 
 // total power 10000
 export function examplePowers(): number[] {
@@ -56,7 +46,7 @@ describe("bridge call tests", function () {
         const fxBridgeLogicProxy = await transparentUpgradeableProxyFactory.deploy(fxBridgeLogicAddress, admin.address, "0x")
         const fxBridgeLogicProxyAddress = await fxBridgeLogicProxy.getAddress()
 
-        fxBridge = <FxBridgeLogic>await fxBridgeLogicFactory.attach(fxBridgeLogicProxyAddress)
+        fxBridge = <FxBridgeLogic>fxBridgeLogicFactory.attach(fxBridgeLogicProxyAddress)
 
         const powers: number[] = examplePowers();
         const validators = signers.slice(0, powers.length)
