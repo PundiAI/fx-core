@@ -12,6 +12,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -118,14 +119,18 @@ func (k Keeper) bridgeCallERC20Handler(
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
 	}
-	senderAddr := common.BytesToAddress(sender)
-	targetCoins, err := k.bridgeCallTargetCoinsHandler(ctx, senderAddr, tokens, amounts)
+	targetCoins, err := k.bridgeCallTargetCoinsHandler(ctx, tokens, amounts)
 	if err != nil {
 		return err
 	}
 
 	switch dstChainID {
 	case types.FxcoreChainID:
+		if len(targetCoins) > 0 {
+			if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver, targetCoins); err != nil {
+				return errorsmod.Wrap(err, "transfer vouchers")
+			}
+		}
 		// convert coin to erc20
 		for _, coin := range targetCoins {
 			// not convert FX
@@ -142,6 +147,7 @@ func (k Keeper) bridgeCallERC20Handler(
 			toAddrPtr = &toAddr
 		}
 		if len(message) > 0 || toAddrPtr != nil {
+			senderAddr := common.BytesToAddress(sender)
 			k.bridgeCallEvmHandler(ctx, senderAddr, toAddrPtr, message, value, gasLimit, eventNonce)
 		}
 	default:
@@ -152,13 +158,16 @@ func (k Keeper) bridgeCallERC20Handler(
 	return nil
 }
 
-func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Address, tokens []common.Address, amounts []*big.Int) (sdk.Coins, error) {
+func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, tokens []common.Address, amounts []*big.Int) (sdk.Coins, error) {
 	tokens, amounts = types.MergeDuplicationERC20(tokens, amounts)
 	targetCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
 		bridgeToken := k.GetBridgeTokenDenom(ctx, tokens[i].String())
 		if bridgeToken == nil {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+		}
+		if amounts[i].Cmp(big.NewInt(0)) <= 0 {
+			continue
 		}
 		coin := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewIntFromBigInt(amounts[i]))
 		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
@@ -167,11 +176,7 @@ func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Ad
 				return nil, errorsmod.Wrapf(err, "mint vouchers coins")
 			}
 		}
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver.Bytes(), sdk.NewCoins(coin)); err != nil {
-			return nil, errorsmod.Wrap(err, "transfer vouchers")
-		}
-
-		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver.Bytes(), coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, authtypes.NewModuleAddress(k.moduleName).Bytes(), coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "convert to target coin")
 		}
