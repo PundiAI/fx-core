@@ -75,6 +75,18 @@ function call() {
   hardhat_task call "$@"
 }
 
+function bridge_erc20_call() {
+  hardhat_task bridge-erc20-call "$@" --mnemonic "$MNEMONIC" --disable-confirm "true"
+}
+
+function encode() {
+  hardhat_task encode "$@"
+}
+
+function encode_erc20_data() {
+  hardhat_task encode-erc20-data "$@"
+}
+
 ## ARGS: <bridge-contract> <bridge-token> <amount> <destination> <target-ibc> [opts...]
 function send_to_fx() {
   local bridge_contract=${1} bridge_token=${2} amount=${3} destination=${4} target_ibc=${5:-""}
