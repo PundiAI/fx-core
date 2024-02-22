@@ -30,7 +30,7 @@ function datetime_since() {
 
 function datetime_add() {
   second=$(echo "${2:-0}" | bc)
-  python3 -c "import time; print(time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(time.mktime(time.strptime('${1%.*}', '%Y-%m-%dT%H:%M:%S'))+$second)))"
+  python3 -c "import time; print(time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(time.mktime(time.strptime('${1%.*}', '%Y-%m-%dT%H:%M:%S'))+$second)))"
 }
 
 function get_latest_block_and_time() {
