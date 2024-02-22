@@ -308,6 +308,8 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 			fmt.Printf("%sVersion: V4.2\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV6 {
 			fmt.Printf("%sVersion: V5.0\n", SPACE)
+		} else if blockHeight < fxtypes.TestnetBlockHeightV71 {
+			fmt.Printf("%sVersion: V6.0\n", SPACE)
 		}
 	}
 	return plan != nil, nil
