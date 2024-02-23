@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v7.0.1-rc0]
+
+### Bug Fixes
+
+* Fix: unified decode message
+
 ## [v7.0.0-rc0]
 
 ### Features
