@@ -1,15 +1,23 @@
 # Fx Bridge Contract Upgrade Process
 
-```
-1. Deploy new bridge logic contract
+```shell
+# setup env
+cd solidity
 
-npx hardhat deploy-contract --contract-name FxBridgeLogicETH --is-ledger --driver-path "m/44'/60'/0'/0/0" --network <network>
+yarn install
 
-2. send upgradeTo
+yarn typechain
 
-npx hardhat send 0x6f1D09Fed11115d65E1071CD2109eDb300D80A27 "upgradeTo(address)" <new bridge logic address> --driver-path "m/44'/60'/0'/0/0" --network <network>
+# deploy bridge logic contract
+export GOERLI_URL="https://goerli.infura.io/v3/xxxxxxx"
 
-3. send migrate
+npx hardhat deploy-contract --contract-name FxBridgeLogicETH --is-ledger true --driver-path "m/44'/60'/0'/0/0" --network goerli
 
-npx hardhat send 0x6f1D09Fed11115d65E1071CD2109eDb300D80A27 "migrate()" --driver-path "m/44'/60'/0'/0/0" --network <network>
+# verify bridge logic contract
+export ETHERSCAN_API_KEY="xxxxxxx"
+
+npx hardhat verify <new bridge logic address> --network goerli
+
+# upgrade bridge logic contract
+npx hardhat send 0xB1B68DFC4eE0A3123B897107aFbF43CEFEE9b0A2 "upgradeTo(address)" <new bridge logic address> --is-ledger true --driver-path "m/44'/60'/0'/0/1" --network goerli
 ```
