@@ -553,7 +553,7 @@ func (m *MsgSendToFxClaim) ClaimHash() []byte {
 
 // GetType returns the type of the claim
 func (m *MsgBridgeCallClaim) GetType() ClaimType {
-	return CLAIM_TYPE_SEND_TO_FX
+	return CLAIM_TYPE_BRIDGE_CALL
 }
 
 // ValidateBasic performs stateless checks

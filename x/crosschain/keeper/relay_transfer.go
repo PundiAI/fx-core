@@ -12,7 +12,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -43,7 +42,7 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	if fxTarget.GetTarget() == fxtypes.ERC20Target {
 		// transfer to evm
 		cacheCtx, commit := ctx.CacheContext()
-		if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, coin); err != nil {
+		if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, receiver, coin); err != nil {
 			return err
 		}
 		commit()
@@ -51,9 +50,9 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	return nil
 }
 
-func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, receiver sdk.AccAddress, coin sdk.Coin) error {
+func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, sender, receiver sdk.AccAddress, coin sdk.Coin) error {
 	receiverEthAddr := common.BytesToAddress(receiver.Bytes())
-	if err := k.erc20Keeper.TransferAfter(ctx, receiver, receiverEthAddr.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
+	if err := k.erc20Keeper.TransferAfter(ctx, sender, receiverEthAddr.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
 		k.Logger(ctx).Error("transfer convert denom failed", "error", err.Error())
 		return err
 	}
@@ -119,25 +118,21 @@ func (k Keeper) bridgeCallERC20Handler(
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
 	}
-	targetCoins, err := k.bridgeCallTargetCoinsHandler(ctx, tokens, amounts)
+	senderAddr := common.BytesToAddress(sender)
+	targetCoins, err := k.bridgeCallTargetCoinsHandler(ctx, senderAddr, tokens, amounts)
 	if err != nil {
 		return err
 	}
 
 	switch dstChainID {
 	case types.FxcoreChainID:
-		if len(targetCoins) > 0 {
-			if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver, targetCoins); err != nil {
-				return errorsmod.Wrap(err, "transfer vouchers")
-			}
-		}
 		// convert coin to erc20
 		for _, coin := range targetCoins {
 			// not convert FX
 			if coin.Denom == fxtypes.DefaultDenom {
 				continue
 			}
-			if err = k.transferErc20Handler(ctx, eventNonce, receiver, coin); err != nil {
+			if err = k.transferErc20Handler(ctx, eventNonce, senderAddr.Bytes(), receiver, coin); err != nil {
 				return err
 			}
 		}
@@ -147,7 +142,6 @@ func (k Keeper) bridgeCallERC20Handler(
 			toAddrPtr = &toAddr
 		}
 		if len(message) > 0 || toAddrPtr != nil {
-			senderAddr := common.BytesToAddress(sender)
 			k.bridgeCallEvmHandler(ctx, senderAddr, toAddrPtr, message, value, gasLimit, eventNonce)
 		}
 	default:
@@ -158,7 +152,7 @@ func (k Keeper) bridgeCallERC20Handler(
 	return nil
 }
 
-func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, tokens []common.Address, amounts []*big.Int) (sdk.Coins, error) {
+func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Address, tokens []common.Address, amounts []*big.Int) (sdk.Coins, error) {
 	tokens, amounts = types.MergeDuplicationERC20(tokens, amounts)
 	targetCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
@@ -176,7 +170,10 @@ func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, tokens []common.Ad
 				return nil, errorsmod.Wrapf(err, "mint vouchers coins")
 			}
 		}
-		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, authtypes.NewModuleAddress(k.moduleName).Bytes(), coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver.Bytes(), sdk.NewCoins(coin)); err != nil {
+			return nil, errorsmod.Wrap(err, "transfer vouchers")
+		}
+		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver.Bytes(), coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "convert to target coin")
 		}
