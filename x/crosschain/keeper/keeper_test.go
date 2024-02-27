@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"reflect"
 	"regexp"
 	"testing"
@@ -60,7 +61,7 @@ func TestKeeperTestSuite(t *testing.T) {
 			if !compile.MatchString(method.Name) {
 				continue
 			}
-			t.Run(method.Name, func(subT *testing.T) {
+			t.Run(fmt.Sprintf("%s/%s", moduleName, method.Name), func(subT *testing.T) {
 				mySuite := &KeeperTestSuite{chainName: moduleName}
 				mySuite.SetT(subT)
 				mySuite.SetupTest()
