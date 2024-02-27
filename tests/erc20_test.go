@@ -142,7 +142,6 @@ func (suite *IntegrationTest) ERC20TokenERC20Test() {
 	symbol := suite.evm.Symbol(proxy)
 	suite.erc20.CheckRegisterCoin(strings.ToLower(symbol))
 	metadata := suite.GetMetadata(strings.ToLower(symbol))
-	suite.T().Log("metadata", metadata.String())
 
 	tokenPair := suite.erc20.TokenPair(metadata.Base)
 	suite.Equal(tokenPair.Denom, metadata.Base)

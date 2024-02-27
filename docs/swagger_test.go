@@ -66,19 +66,17 @@ func TestSwaggerConfig(t *testing.T) {
 			}
 		}
 	}
-	for k := range route {
-		t.Log("ignore", k)
-		// ignore routes:
-		// 1. other/v1/gas_price
-		// 2. fx/gravity/v1
-		// 3. fx/other/gas_price
-		// 4. fx/base/v1
-		// 5. fx/ibc/applications
-		// 6. ibc/core/channel/v1
-		// 7. ibc/core/client/v1
-		// 8. ibc/core/connection/v1
-		// 9. cosmos/gov/v1beta1
-	}
+
+	// ignore routes:
+	// 1. other/v1/gas_price
+	// 2. fx/gravity/v1
+	// 3. fx/other/gas_price
+	// 4. fx/base/v1
+	// 5. fx/ibc/applications
+	// 6. ibc/core/channel/v1
+	// 7. ibc/core/client/v1
+	// 8. ibc/core/connection/v1
+	// 9. cosmos/gov/v1beta1
 	assert.Equal(t, ignoreLen, len(route))
 	assert.Equal(t, 9, len(route))
 }
