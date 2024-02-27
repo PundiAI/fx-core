@@ -85,7 +85,6 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		suite.Require().NoError(err)
 		suite.Require().EqualValues(100, len(batch.Transactions))
 		suite.Require().EqualValues(50+i, batch.Block)
-		// suite.T().Log(i, batch.BatchTimeout, suite.chainName)
 		if suite.chainName == ethtypes.ModuleName {
 			suite.Require().True(batch.BatchTimeout > 2800)
 		} else {

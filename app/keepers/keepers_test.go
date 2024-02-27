@@ -96,7 +96,6 @@ func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
 			if valueOfField.Type().String() == "types.EvmHooks" {
 				continue
 			}
-			t.Log("-> hooks: ", valueOfField.Type(), valueOfField.Kind())
 			assert.False(t, valueOfField.IsNil(), typeOfField.Name)
 		}
 
@@ -108,7 +107,6 @@ func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
 			}
 			assert.False(t, valueOfField.IsNil(), typeOfField.Name)
 		}
-		t.Log("-> struct: ", valueOf.Type(), typeOfField.Name)
 		checkStructField(t, valueOfField, typeOfField.Name)
 	}
 }

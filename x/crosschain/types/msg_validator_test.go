@@ -1020,7 +1020,6 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
-	t.Logf("normal external address:%s", normalExternalAddress)
 	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))

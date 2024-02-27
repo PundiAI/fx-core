@@ -36,8 +36,6 @@ func TestClient_GetChainId(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NotNil(t, account.GetPubKey())
-	pubKey, err := types.NewAnyWithValue(&ethsecp256k1.PubKey{Key: account.GetPubKey().Bytes()})
+	_, err = types.NewAnyWithValue(&ethsecp256k1.PubKey{Key: account.GetPubKey().Bytes()})
 	assert.NoError(t, err)
-	t.Log(pubKey)
-	t.Log(account)
 }

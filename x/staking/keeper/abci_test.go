@@ -747,7 +747,6 @@ func TestValidatorUpdateEvidence(t *testing.T) {
 
 	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewClient("http://localhost:26657"))
 	key := privval.LoadFilePVEmptyState(keyFilePath, "")
-	t.Log("address:", key.GetAddress().String())
 
 	// val power
 	valResp, err := rpc.Validators(height, 1, 100)

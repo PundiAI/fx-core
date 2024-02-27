@@ -579,7 +579,6 @@ func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 	for _, client := range clients {
 		balances, err := client.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
 		suite.NoError(err)
-		suite.T().Log(balances)
 		suite.True(balances.IsAllPositive())
 
 		if rpc, ok := client.(*jsonrpc.NodeRPC); ok {
@@ -591,7 +590,6 @@ func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 
 		balances, err = client.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
 		suite.NoError(err)
-		suite.T().Log(balances)
 		suite.False(balances.IsAllPositive())
 	}
 }

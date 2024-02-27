@@ -19,7 +19,6 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	var count1 int
 	for interfaceNames.Next() {
 		count1++
-		t.Log(interfaceNames.Key())
 	}
 	assert.Equal(t, 32, count1)
 
@@ -27,7 +26,6 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	var count2 int
 	for interfaceImpls.Next() {
 		count2++
-		t.Log(interfaceImpls.Value())
 	}
 	assert.Equal(t, 32, count2)
 
@@ -35,7 +33,6 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	var count3 int
 	for typeURLMap.Next() {
 		count3++
-		t.Log(typeURLMap.Key())
 	}
 	assert.Equal(t, 264, count3)
 
@@ -54,7 +51,6 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 		assert.NoError(t, err)
 
 		if _, ok := resolvedMsg.(govProposalMsg); ok {
-			t.Log(len(govMsg), implementation)
 			govMsg = append(govMsg, implementation)
 		}
 	}

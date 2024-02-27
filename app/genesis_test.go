@@ -20,6 +20,5 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 	genAppStateStr, err := json.Marshal(genAppState)
 	assert.NoError(t, err)
 
-	t.Log(string(genAppStateStr))
 	assert.Equal(t, genesisData, string(genAppStateStr))
 }
