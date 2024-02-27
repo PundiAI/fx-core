@@ -154,25 +154,38 @@ func (k Keeper) bridgeCallERC20Handler(
 
 func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Address, tokens []common.Address, amounts []*big.Int) (sdk.Coins, error) {
 	tokens, amounts = types.MergeDuplicationERC20(tokens, amounts)
-	targetCoins := sdk.NewCoins()
+
+	mintCoins := sdk.NewCoins()
+	unlockCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
 		bridgeToken := k.GetBridgeTokenDenom(ctx, tokens[i].String())
 		if bridgeToken == nil {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 		}
-		if amounts[i].Cmp(big.NewInt(0)) <= 0 {
+		amount := sdkmath.NewIntFromBigInt(amounts[i])
+		if !amount.IsPositive() {
 			continue
 		}
-		coin := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewIntFromBigInt(amounts[i]))
+		coin := sdk.NewCoin(bridgeToken.Denom, amount)
 		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
 		if !isOriginOrConverted {
-			if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
-				return nil, errorsmod.Wrapf(err, "mint vouchers coins")
-			}
+			mintCoins = mintCoins.Add(coin)
 		}
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver.Bytes(), sdk.NewCoins(coin)); err != nil {
+		unlockCoins = unlockCoins.Add(coin)
+	}
+	if mintCoins.IsAllPositive() {
+		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, mintCoins); err != nil {
+			return nil, errorsmod.Wrapf(err, "mint vouchers coins")
+		}
+	}
+	if unlockCoins.IsAllPositive() {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver.Bytes(), unlockCoins); err != nil {
 			return nil, errorsmod.Wrap(err, "transfer vouchers")
 		}
+	}
+
+	targetCoins := sdk.NewCoins()
+	for _, coin := range unlockCoins {
 		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver.Bytes(), coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "convert to target coin")
