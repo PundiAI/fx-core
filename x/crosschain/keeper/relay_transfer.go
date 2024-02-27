@@ -42,7 +42,8 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	if fxTarget.GetTarget() == fxtypes.ERC20Target {
 		// transfer to evm
 		cacheCtx, commit := ctx.CacheContext()
-		if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, receiver, coin); err != nil {
+		receiverHex := common.BytesToAddress(receiver.Bytes())
+		if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, receiverHex, coin, true); err != nil {
 			return err
 		}
 		commit()
@@ -50,17 +51,18 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	return nil
 }
 
-func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, sender, receiver sdk.AccAddress, coin sdk.Coin) error {
-	receiverEthAddr := common.BytesToAddress(receiver.Bytes())
-	if err := k.erc20Keeper.TransferAfter(ctx, sender, receiverEthAddr.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
+func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin, isEmitEvent bool) error {
+	if err := k.erc20Keeper.TransferAfter(ctx, sender, receiver.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
 		k.Logger(ctx).Error("transfer convert denom failed", "error", err.Error())
 		return err
 	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeEvmTransfer,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
-	))
+	if isEmitEvent {
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeEvmTransfer,
+			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
+		))
+	}
 	return nil
 }
 
@@ -127,14 +129,16 @@ func (k Keeper) bridgeCallERC20Handler(
 	switch dstChainID {
 	case types.FxcoreChainID:
 		// convert coin to erc20
+		isEmitEvent := true
 		for _, coin := range targetCoins {
 			// not convert FX
 			if coin.Denom == fxtypes.DefaultDenom {
 				continue
 			}
-			if err = k.transferErc20Handler(ctx, eventNonce, senderAddr.Bytes(), receiver, coin); err != nil {
+			if err = k.transferErc20Handler(ctx, eventNonce, senderAddr.Bytes(), common.BytesToAddress(receiver), coin, isEmitEvent); err != nil {
 				return err
 			}
+			isEmitEvent = false
 		}
 		var toAddrPtr *common.Address
 		if len(to) > 0 {
