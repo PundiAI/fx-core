@@ -127,10 +127,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
-	if trontypes.ModuleName == suite.chainName {
-		return tronaddress.PubkeyToAddress(publicKey).String()
-	}
-	return crypto.PubkeyToAddress(publicKey).Hex()
+	address := crypto.PubkeyToAddress(publicKey)
+	return fxtypes.AddressToStr(address.Bytes(), suite.chainName)
 }
 
 func (suite *KeeperTestSuite) Commit(block ...int64) {

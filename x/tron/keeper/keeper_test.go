@@ -19,7 +19,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type KeeperTestSuite struct {
@@ -67,13 +66,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBatch {
 	batchNonce := tmrand.Uint64()
-	tokenContract := trontypes.AddressFromHex(helpers.GenerateAddress().Hex())
+	tokenContract := helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex())
 	newOutgoingTx := &crosschaintypes.OutgoingTxBatch{
 		BatchNonce: batchNonce,
 		Transactions: []*crosschaintypes.OutgoingTransferTx{
 			{
 				Sender:      suite.signer.AccAddress().String(),
-				DestAddress: trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
+				DestAddress: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
 				Token: crosschaintypes.ERC20Token{
 					Contract: tokenContract,
 					Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
@@ -85,7 +84,7 @@ func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBa
 			},
 		},
 		TokenContract: tokenContract,
-		FeeReceive:    trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
+		FeeReceive:    helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
 		Block:         batchNonce,
 	}
 	err := suite.app.TronKeeper.StoreBatch(suite.ctx, newOutgoingTx)
@@ -97,7 +96,7 @@ func (suite *KeeperTestSuite) NewOracleByBridger() (sdk.AccAddress, sdk.AccAddre
 	oracle := sdk.AccAddress(helpers.GenerateAddress().Bytes())
 	bridger := sdk.AccAddress(helpers.GenerateAddress().Bytes())
 	externalKey := helpers.NewEthPrivKey()
-	externalAddress := trontypes.AddressFromHex(externalKey.PubKey().Address().String())
+	externalAddress := helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String())
 	newOracle := crosschaintypes.Oracle{
 		OracleAddress:   oracle.String(),
 		BridgerAddress:  bridger.String(),
@@ -116,7 +115,7 @@ func (suite *KeeperTestSuite) NewOracleSet(externalKey cryptotypes.PrivKey) *cro
 	newOracleSet := crosschaintypes.NewOracleSet(tmrand.Uint64(), tmrand.Uint64(), crosschaintypes.BridgeValidators{
 		{
 			Power:           tmrand.Uint64(),
-			ExternalAddress: trontypes.AddressFromHex(externalKey.PubKey().Address().String()),
+			ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),
 		},
 	})
 	suite.app.TronKeeper.StoreOracleSet(suite.ctx, newOracleSet)
@@ -126,7 +125,7 @@ func (suite *KeeperTestSuite) NewOracleSet(externalKey cryptotypes.PrivKey) *cro
 func (suite *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []crosschaintypes.BridgeToken {
 	bridgeTokens := make([]crosschaintypes.BridgeToken, 0)
 	for i := 0; i < 3; i++ {
-		bridgeTokens = append(bridgeTokens, crosschaintypes.BridgeToken{Token: trontypes.AddressFromHex(helpers.GenerateAddress().Hex())})
+		bridgeTokens = append(bridgeTokens, crosschaintypes.BridgeToken{Token: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex())})
 		channelIBC := ""
 		if i == 2 {
 			channelIBC = hex.EncodeToString([]byte("transfer/channel-0"))
