@@ -156,13 +156,13 @@ func (k Keeper) bridgeCallERC20Handler(
 	return nil
 }
 
-func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Address, tokens []common.Address, amounts []*big.Int) (sdk.Coins, error) {
+func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Address, tokens [][]byte, amounts []*big.Int) (sdk.Coins, error) {
 	tokens, amounts = types.MergeDuplicationERC20(tokens, amounts)
 
 	mintCoins := sdk.NewCoins()
 	unlockCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
-		bridgeToken := k.GetBridgeTokenDenom(ctx, tokens[i].String())
+		bridgeToken := k.GetBridgeTokenDenom(ctx, fxtypes.AddressToStr(tokens[i], k.moduleName))
 		if bridgeToken == nil {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 		}
