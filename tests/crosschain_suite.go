@@ -15,7 +15,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -60,10 +59,8 @@ func (suite *CrosschainTestSuite) OracleAddr() sdk.AccAddress {
 }
 
 func (suite *CrosschainTestSuite) ExternalAddr() string {
-	if suite.chainName == trontypes.ModuleName {
-		return tronaddress.PubkeyToAddress(suite.externalPrivKey.PublicKey).String()
-	}
-	return ethcrypto.PubkeyToAddress(suite.externalPrivKey.PublicKey).String()
+	address := ethcrypto.PubkeyToAddress(suite.externalPrivKey.PublicKey)
+	return fxtypes.AddressToStr(address.Bytes(), suite.chainName)
 }
 
 func (suite *CrosschainTestSuite) BridgerAddr() sdk.AccAddress {
@@ -79,11 +76,7 @@ func (suite *CrosschainTestSuite) HexAddress() gethcommon.Address {
 }
 
 func (suite *CrosschainTestSuite) HexAddressString() string {
-	hexAddr := suite.HexAddress()
-	if suite.chainName == trontypes.ModuleName {
-		return trontypes.AddressFromHex(hexAddr.String())
-	}
-	return hexAddr.String()
+	return fxtypes.AddressToStr(suite.HexAddress().Bytes(), suite.chainName)
 }
 
 func (suite *CrosschainTestSuite) CrosschainQuery() crosschaintypes.QueryClient {
@@ -531,9 +524,5 @@ func (suite *CrosschainTestSuite) AddBridgeToken(md banktypes.Metadata) (string,
 }
 
 func (suite *CrosschainTestSuite) FormatAddress(address gethcommon.Address) string {
-	receive := address.String()
-	if suite.chainName == trontypes.ModuleName {
-		receive = trontypes.AddressFromHex(receive)
-	}
-	return receive
+	return fxtypes.AddressToStr(address.Bytes(), suite.chainName)
 }

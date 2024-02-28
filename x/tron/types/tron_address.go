@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 )
 
@@ -29,9 +28,4 @@ func ValidateTronAddress(address string) error {
 		return fmt.Errorf("mismatch expected: %s, got: %s", expectAddress, address)
 	}
 	return nil
-}
-
-func AddressFromHex(str string) string {
-	bytes, _ := common.FromHex(str)
-	return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, bytes...)).String()
 }

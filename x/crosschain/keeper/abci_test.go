@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -16,7 +15,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
@@ -35,12 +33,8 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
-	bridgeToken := helpers.GenerateAddress().String()
-	sendToFxSendAddr := helpers.GenerateAddress().String()
-	if trontypes.ModuleName == suite.chainName {
-		bridgeToken = trontypes.AddressFromHex(bridgeToken)
-		sendToFxSendAddr = tronaddress.PubkeyToAddress(suite.externalPris[0].PublicKey).String()
-	}
+	bridgeToken := helpers.GenerateAddressByModule(suite.chainName)
+	sendToFxSendAddr := helpers.GenerateAddressByModule(suite.chainName)
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 		EventNonce:     1,
 		BlockHeight:    1000,
@@ -111,10 +105,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
-	bridgeToken := helpers.GenerateAddress().String()
-	if trontypes.ModuleName == suite.chainName {
-		bridgeToken = trontypes.AddressFromHex(bridgeToken)
-	}
+	bridgeToken := helpers.GenerateAddressByModule(suite.chainName)
 
 	for i := 0; i < 6; i++ {
 		addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
@@ -225,10 +216,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
-	bridgeToken := helpers.GenerateAddress().String()
-	if trontypes.ModuleName == suite.chainName {
-		bridgeToken = trontypes.AddressFromHex(bridgeToken)
-	}
+	bridgeToken := helpers.GenerateAddressByModule(suite.chainName)
 
 	{
 		firstBridgeTokenClaim := &types.MsgBridgeTokenClaim{

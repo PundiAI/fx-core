@@ -99,10 +99,7 @@ func GenerateAddress() common.Address {
 // GenerateAddressByModule generates an Ethereum or Tron address.
 func GenerateAddressByModule(module string) string {
 	addr := GenerateAddress()
-	if module == "tron" {
-		return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, addr.Bytes()...)).String()
-	}
-	return addr.String()
+	return fxtypes.AddressToStr(addr.Bytes(), module)
 }
 
 func AddressToBytesByModule(addr, module string) ([]byte, error) {
@@ -121,11 +118,13 @@ func AddressToBytesByModule(addr, module string) ([]byte, error) {
 
 // GenerateZeroAddressByModule generates an Ethereum or Tron zero address.
 func GenerateZeroAddressByModule(module string) string {
-	addr := common.HexToAddress(common.Address{}.Hex())
-	if module == "tron" {
-		return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, addr.Bytes()...)).String()
-	}
-	return addr.String()
+	addr := common.Address{}
+	return fxtypes.AddressToStr(addr.Bytes(), module)
+}
+
+func HexAddrToTronAddr(str string) string {
+	addr := common.FromHex(str)
+	return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, addr...)).String()
 }
 
 // NewPubKeyFromHex returns a PubKey from a hex string.
