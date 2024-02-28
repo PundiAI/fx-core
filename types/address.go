@@ -23,6 +23,9 @@ func ParseAddress(addr string) (accAddr sdk.AccAddress, isEvmAddr bool, err erro
 
 func AddressToStr(bt []byte, module string) string {
 	if module == "tron" {
+		if len(bt) == common.AddressLength {
+			bt = append([]byte{tronaddress.TronBytePrefix}, bt...)
+		}
 		return tronaddress.Address(bt).String()
 	} else {
 		return common.BytesToAddress(bt).String()
