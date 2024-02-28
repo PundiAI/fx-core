@@ -1,12 +1,12 @@
 package types
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
@@ -58,7 +58,7 @@ func UnpackAssetType(asset string) (string, []byte, error) {
 	return assetType, assetData, nil
 }
 
-func UnpackERC20Asset(asset []byte) ([]common.Address, []*big.Int, error) {
+func UnpackERC20Asset(asset []byte) ([][]byte, []*big.Int, error) {
 	values, err := erc20AssetDecode.UnpackValues(asset)
 	if err != nil {
 		return nil, nil, err
@@ -74,10 +74,13 @@ func UnpackERC20Asset(asset []byte) ([]common.Address, []*big.Int, error) {
 	if !ok {
 		return nil, nil, fmt.Errorf("invalid amount type")
 	}
-	tokens := make([]common.Address, 0, len(amounts))
-	for i := 0; i*common.AddressLength < len(tokenBytes); i++ {
-		token := tokenBytes[i*common.AddressLength : (i+1)*common.AddressLength]
-		tokens = append(tokens, common.BytesToAddress(token))
+	tokens := make([][]byte, 0, len(amounts))
+	addrLength := len(tokenBytes) / len(amounts)
+	if len(tokenBytes) != addrLength*len(amounts) {
+		return nil, nil, fmt.Errorf("invalid tokens length")
+	}
+	for i := 0; i*addrLength < len(tokenBytes); i++ {
+		tokens = append(tokens, tokenBytes[i*addrLength:(i+1)*addrLength])
 	}
 	if len(tokens) != len(amounts) {
 		return nil, nil, fmt.Errorf("token not match amount")
@@ -85,14 +88,14 @@ func UnpackERC20Asset(asset []byte) ([]common.Address, []*big.Int, error) {
 	return tokens, amounts, nil
 }
 
-func MergeDuplicationERC20(tokens []common.Address, amounts []*big.Int) ([]common.Address, []*big.Int) {
-	tokenArray := make([]common.Address, 0, len(tokens))
+func MergeDuplicationERC20(tokens [][]byte, amounts []*big.Int) ([][]byte, []*big.Int) {
+	tokenArray := make([][]byte, 0, len(tokens))
 	amountArray := make([]*big.Int, 0, len(amounts))
 	for i := 0; i < len(tokens); i++ {
 		found := false
 		j := 0
 		for ; j < len(tokenArray); j++ {
-			if tokens[i] == tokenArray[j] {
+			if bytes.Equal(tokens[i], tokenArray[j]) {
 				found = true
 				break
 			}
@@ -111,7 +114,7 @@ func PackERC20Asset(tokens [][]byte, amounts []*big.Int) ([]byte, error) {
 	if len(tokens) != len(amounts) {
 		return nil, fmt.Errorf("token not match amount")
 	}
-	tokenBytes := make([]byte, 0, common.AddressLength*len(tokens))
+	tokenBytes := make([]byte, 0)
 	for _, token := range tokens {
 		tokenBytes = append(tokenBytes, token...)
 	}
