@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"strings"
 	"time"
 
@@ -9,7 +10,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/gogo/protobuf/proto"
+
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
+
+type MemoPacket interface {
+	proto.Message
+	GetType() IbcCallType
+	ValidateBasic() error
+}
+
+var _ MemoPacket = &IbcCallEvmPacket{}
 
 // DefaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
 // relative to the current block timestamp of the counterparty chain provided by the client
@@ -54,7 +67,10 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	if fee.IsNegative() {
 		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee must be strictly not negative: got %d", fee)
 	}
-	return transfertypes.ValidatePrefixedDenom(ftpd.Denom)
+	if err := transfertypes.ValidatePrefixedDenom(ftpd.Denom); err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetBytes is a helper for serialising
@@ -70,4 +86,40 @@ func (ftpd FungibleTokenPacketData) ToIBCPacketData() transfertypes.FungibleToke
 	result := transfertypes.NewFungibleTokenPacketData(ftpd.Denom, ftpd.Amount, ftpd.Sender, ftpd.Receiver, ftpd.Memo)
 	result.Memo = ftpd.Memo
 	return result
+}
+
+func (icep IbcCallEvmPacket) GetType() IbcCallType {
+	return IBC_CALL_TYPE_EVM
+}
+
+func (icep IbcCallEvmPacket) ValidateBasic() error {
+	if err := fxtypes.ValidateEthereumAddress(icep.To); err != nil {
+		return ErrInvalidEvmData.Wrap("to")
+	}
+	if icep.Value.IsNegative() {
+		return ErrInvalidEvmData.Wrap("value")
+	}
+
+	// gas limit
+
+	if _, err := hex.DecodeString(icep.Message); err != nil {
+		return ErrInvalidEvmData.Wrap("message")
+	}
+	return nil
+}
+
+func (icep IbcCallEvmPacket) MustGetToAddr() *common.Address {
+	if err := fxtypes.ValidateEthereumAddress(icep.To); err != nil {
+		panic(err)
+	}
+	to := common.HexToAddress(icep.To)
+	return &to
+}
+
+func (icep IbcCallEvmPacket) MustGetMessage() []byte {
+	bz, err := hex.DecodeString(icep.Message)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }

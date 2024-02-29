@@ -8,6 +8,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -388,6 +389,48 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			},
 			// 4: token pair not found
 			errorStr:      "ABCI code: 4: error handling packet: see events for details",
+			checkBalance:  true,
+			checkCoinAddr: senderAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
+		},
+		{
+			name: "pass - any memo",
+			malleate: func(packet *channeltypes.Packet) {
+				packetData := transfertypes.FungibleTokenPacketData{}
+				transfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+				packetData.Memo = "0000"
+				packet.Data = packetData.GetBytes()
+			},
+			expPass:       true,
+			errorStr:      "",
+			checkBalance:  true,
+			checkCoinAddr: senderAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
+		},
+		{
+			name: "pass - ibc call evm",
+			malleate: func(packet *channeltypes.Packet) {
+				packetData := transfertypes.FungibleTokenPacketData{}
+				transfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+
+				hexIbcSender := fxtransfertypes.IntermediateSender(ibctesting.TransferPort, "channel-0", senderAddr.String())
+				ibcCallBaseAcc := authtypes.NewBaseAccountWithAddress(hexIbcSender.Bytes())
+				suite.NoError(ibcCallBaseAcc.SetSequence(0))
+				suite.GetApp(suite.chainA.App).AccountKeeper.SetAccount(suite.chainA.GetContext(), ibcCallBaseAcc)
+				evmPacket := fxtransfertypes.IbcCallEvmPacket{
+					To:       common.BigToAddress(big.NewInt(0)).String(),
+					Value:    sdkmath.ZeroInt(),
+					GasLimit: 300000,
+					Message:  "",
+				}
+				cdc := suite.GetApp(suite.chainA.App).AppCodec()
+				bz, err := cdc.MarshalInterfaceJSON(&evmPacket)
+				suite.Require().NoError(err)
+				packetData.Memo = string(bz)
+				packet.Data = packetData.GetBytes()
+			},
+			expPass:       true,
+			errorStr:      "",
 			checkBalance:  true,
 			checkCoinAddr: senderAddr,
 			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),

@@ -20,21 +20,21 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	for interfaceNames.Next() {
 		count1++
 	}
-	assert.Equal(t, 32, count1)
+	assert.Equal(t, 33, count1)
 
 	interfaceImpls := interfaceRegistry.Field(1).MapRange()
 	var count2 int
 	for interfaceImpls.Next() {
 		count2++
 	}
-	assert.Equal(t, 32, count2)
+	assert.Equal(t, 33, count2)
 
 	typeURLMap := interfaceRegistry.Field(2).MapRange()
 	var count3 int
 	for typeURLMap.Next() {
 		count3++
 	}
-	assert.Equal(t, 264, count3)
+	assert.Equal(t, 265, count3)
 
 	govContent := encodingConfig.InterfaceRegistry.ListImplementations("cosmos.gov.v1beta1.Content")
 	assert.Equal(t, 14, len(govContent))
