@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -670,6 +671,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToFxClaim)
 				suite.True(ok)
+				suite.Keeper().AddBridgeToken(suite.ctx, msg.TokenContract, fmt.Sprintf("%s%s", suite.chainName, msg.TokenContract))
 				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
@@ -703,6 +705,11 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgOracleSetUpdatedClaim)
 				suite.True(ok)
+				suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
+					Nonce:   msg.OracleSetNonce,
+					Height:  msg.BlockHeight,
+					Members: msg.Members,
+				})
 				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
@@ -1115,7 +1122,8 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
 
 	tokenContract := helpers.GenerateAddressByModule(suite.chainName)
-	_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), &types.MsgBridgeTokenClaim{
+	ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+	_, err = suite.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
 		EventNonce:     oracleLastEventNonce + 1,
 		BlockHeight:    uint64(suite.ctx.BlockHeight()),
 		TokenContract:  tokenContract,
@@ -1127,6 +1135,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		ChainName:      suite.chainName,
 	})
 	require.NoError(suite.T(), err)
+	suite.checkObservationState(ctx, true)
 
 	oracleLastEventNonce = suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 	require.EqualValues(suite.T(), 1, oracleLastEventNonce)
@@ -1189,11 +1198,36 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	for _, testData := range testMsgs {
 		err = testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
-		_, err = suite.MsgServer().BridgeCallClaim(sdk.WrapSDKContext(suite.ctx), testData.msg)
+		ctx = sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)
 		require.ErrorIs(suite.T(), err, testData.err, testData.name)
+		if testData.err == nil {
+			suite.checkObservationState(ctx, true)
+		}
 		if err == nil {
 			continue
 		}
+
 		require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
 	}
+}
+
+func (suite *KeeperTestSuite) checkObservationState(ctx context.Context, expect bool) {
+	foundObservation := false
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	for _, event := range sdkCtx.EventManager().Events() {
+		if event.Type != types.EventTypeContractEvent {
+			continue
+		}
+		suite.Require().False(foundObservation, "found multiple observation event")
+		for _, attr := range event.Attributes {
+			if string(attr.Key) != types.AttributeKeyStateSuccess {
+				continue
+			}
+			suite.Require().EqualValues(fmt.Sprintf("%v", expect), string(attr.Value))
+			foundObservation = true
+			break
+		}
+	}
+	suite.Require().True(foundObservation, "not found observation event")
 }
