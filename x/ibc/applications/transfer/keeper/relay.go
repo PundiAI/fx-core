@@ -174,8 +174,16 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return err
 			}
 		}
+
 		// NOTE: if not router, emit onRecvPacketCtx event, only error is nil emit
 		ctx.EventManager().EmitEvents(onRecvPacketCtxWithNewEvent.EventManager().Events())
+
+		// ibc call
+		if len(data.Memo) > 0 {
+			if err = k.HandlerIbcCall(ctx, packet.SourcePort, packet.SourceChannel, data); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 	route, exists := k.router.GetRoute(data.Router)

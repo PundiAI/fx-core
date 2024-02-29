@@ -20,7 +20,7 @@ import (
 type Keeper struct {
 	ibctransferkeeper.Keeper
 	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
+	cdc        codec.Codec
 	paramSpace paramtypes.Subspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
@@ -30,13 +30,14 @@ type Keeper struct {
 	bankKeeper    transfertypes.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
 	erc20Keeper   types.Erc20Keeper
+	evmKeeper     types.EvmKeeper
 	router        *fxtypes.Router
 	refundHook    types.RefundHook
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(keeper ibctransferkeeper.Keeper,
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.Codec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper transfertypes.ChannelKeeper, portKeeper transfertypes.PortKeeper,
 	authKeeper transfertypes.AccountKeeper, bankKeeper transfertypes.BankKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
@@ -77,6 +78,11 @@ func (k Keeper) SetRefundHook(hook types.RefundHook) Keeper {
 
 func (k Keeper) SetErc20Keeper(erc20Keeper types.Erc20Keeper) Keeper {
 	k.erc20Keeper = erc20Keeper
+	return k
+}
+
+func (k Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) Keeper {
+	k.evmKeeper = evmKeeper
 	return k
 }
 
