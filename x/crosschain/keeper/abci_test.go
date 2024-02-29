@@ -216,13 +216,11 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
-	bridgeToken := helpers.GenerateAddressByModule(suite.chainName)
-
 	{
 		firstBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 			EventNonce:     1,
 			BlockHeight:    1000,
-			TokenContract:  bridgeToken,
+			TokenContract:  helpers.GenerateAddressByModule(suite.chainName),
 			Name:           "Test Token",
 			Symbol:         "TEST",
 			Decimals:       18,
@@ -241,8 +239,6 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			require.NotNil(suite.T(), endBlockBeforeAttestation.Votes)
 			require.EqualValues(suite.T(), i+1, len(endBlockBeforeAttestation.Votes))
 
-			suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
-			suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 			endBlockAfterAttestation := suite.Keeper().GetAttestation(suite.ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
 			require.NotNil(suite.T(), endBlockAfterAttestation)
 			require.False(suite.T(), endBlockAfterAttestation.Observed)
@@ -263,7 +259,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		secondBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 			EventNonce:     2,
 			BlockHeight:    1001,
-			TokenContract:  bridgeToken,
+			TokenContract:  helpers.GenerateAddressByModule(suite.chainName),
 			Name:           "Test Token2",
 			Symbol:         "TEST2",
 			Decimals:       18,
