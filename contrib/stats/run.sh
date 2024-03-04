@@ -114,7 +114,7 @@ function show_validator_reward() {
         echo "$operator_address#$jailed#$status#$commission_rate%#$self_delegated#$party_delegated#$block_reward#$tx_fee_reward#$moniker"
       fi
     done < <(curl -s "$REST_RPC/cosmos/staking/v1beta1/validators" | jq -r '.validators[]|"\(.operator_address) \(.jailed) \(.status) \(.tokens) \(.commission.commission_rates.rate) \(.description.moniker)"')
-  } | column -t -R -s"#"
+  } | column -t -s"#"
 }
 
 function show_validator_vote() {
