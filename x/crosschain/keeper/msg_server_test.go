@@ -22,6 +22,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -1168,6 +1169,29 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	assetBytes, err := types.PackERC20Asset([][]byte{tokenAddrBytes}, []*big.Int{big.NewInt(100)})
 	require.NoError(suite.T(), err)
 
+	ctx = sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+	oracleLastEventNonce = suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
+	fxMetadata := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+	fxTokenContract := helpers.GenerateAddressByModule(ethtypes.ModuleName)
+	_, err = suite.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
+		EventNonce:     oracleLastEventNonce + 1,
+		BlockHeight:    uint64(suite.ctx.BlockHeight()),
+		TokenContract:  fxTokenContract,
+		Name:           fxMetadata.Name,
+		Symbol:         fxMetadata.Symbol,
+		Decimals:       18,
+		BridgerAddress: suite.bridgerAddrs[0].String(),
+		ChannelIbc:     "",
+		ChainName:      ethtypes.ModuleName,
+	})
+	require.NoError(suite.T(), err)
+	suite.checkObservationState(ctx, true)
+
+	fxTokenAddrBytes, err := helpers.AddressToBytesByModule(fxTokenContract, ethtypes.ModuleName)
+	require.NoError(suite.T(), err)
+	fxAssetBytes, err := types.PackERC20Asset([][]byte{fxTokenAddrBytes}, []*big.Int{big.NewInt(100)})
+	require.NoError(suite.T(), err)
+
 	testMsgs := []struct {
 		name      string
 		msg       *types.MsgBridgeCallClaim
@@ -1178,7 +1202,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			name: "success",
 			msg: &types.MsgBridgeCallClaim{
 				DstChainId:     "530",
-				EventNonce:     oracleLastEventNonce + 1,
+				EventNonce:     oracleLastEventNonce + 2,
 				Sender:         helpers.GenerateAddressByModule(suite.chainName),
 				Asset:          hex.EncodeToString(assetBytes),
 				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
@@ -1193,12 +1217,34 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			err:       nil,
 			errReason: "",
 		},
+		{
+			name: "success - FX",
+			msg: &types.MsgBridgeCallClaim{
+				DstChainId:     "530",
+				EventNonce:     oracleLastEventNonce + 3,
+				Sender:         helpers.GenerateAddressByModule(ethtypes.ModuleName),
+				Asset:          hex.EncodeToString(fxAssetBytes),
+				Receiver:       helpers.GenerateAddressByModule(ethtypes.ModuleName),
+				To:             helpers.GenerateAddressByModule(ethtypes.ModuleName),
+				Message:        "",
+				Value:          sdkmath.NewInt(0),
+				GasLimit:       3000000,
+				BlockHeight:    1,
+				BridgerAddress: suite.bridgerAddrs[0].String(),
+				ChainName:      ethtypes.ModuleName,
+			},
+			err:       nil,
+			errReason: "",
+		},
 	}
 
 	for _, testData := range testMsgs {
 		err = testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
 		ctx = sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+		if testData.msg.Asset == hex.EncodeToString(fxAssetBytes) && suite.chainName != ethtypes.ModuleName {
+			continue
+		}
 		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)
 		require.ErrorIs(suite.T(), err, testData.err, testData.name)
 		if testData.err == nil {
@@ -1230,4 +1276,5 @@ func (suite *KeeperTestSuite) checkObservationState(ctx context.Context, expect 
 		}
 	}
 	suite.Require().True(foundObservation, "not found observation event")
+	sdkCtx.WithEventManager(sdk.NewEventManager())
 }

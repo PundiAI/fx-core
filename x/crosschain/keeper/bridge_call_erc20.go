@@ -98,6 +98,9 @@ func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, receiver sdk.AccAddr
 func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddress, receiver []byte, coins sdk.Coins) error {
 	for _, coin := range coins {
 		if coin.Denom == fxtypes.DefaultDenom {
+			if err := k.bankKeeper.SendCoins(ctx, sender, receiver, sdk.NewCoins(coin)); err != nil {
+				return err
+			}
 			continue
 		}
 		if _, err := k.erc20Keeper.ConvertCoin(sdk.WrapSDKContext(ctx), &erc20types.MsgConvertCoin{
