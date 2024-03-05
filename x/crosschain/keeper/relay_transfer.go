@@ -3,12 +3,9 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
-	"strconv"
 	"strings"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -43,25 +40,16 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 		// transfer to evm
 		cacheCtx, commit := ctx.CacheContext()
 		receiverHex := common.BytesToAddress(receiver.Bytes())
-		if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, receiverHex, coin, true); err != nil {
+		if err := k.erc20Keeper.TransferAfter(cacheCtx, receiver, receiverHex.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
+			k.Logger(cacheCtx).Error("transfer convert denom failed", "error", err.Error())
 			return err
 		}
-		commit()
-	}
-	return nil
-}
-
-func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin, isEmitEvent bool) error {
-	if err := k.erc20Keeper.TransferAfter(ctx, sender, receiver.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
-		k.Logger(ctx).Error("transfer convert denom failed", "error", err.Error())
-		return err
-	}
-	if isEmitEvent {
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
+		cacheCtx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeEvmTransfer,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
 		))
+		commit()
 	}
 	return nil
 }
@@ -107,121 +95,4 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, target.SourceChannel),
 	))
 	return err
-}
-
-func (k Keeper) bridgeCallERC20Handler(
-	ctx sdk.Context,
-	asset, sender, to, receiver []byte,
-	dstChainID, message string,
-	value sdkmath.Int,
-	gasLimit, eventNonce uint64,
-) error {
-	tokens, amounts, err := types.UnpackERC20Asset(asset)
-	if err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
-	}
-	senderAddr := common.BytesToAddress(sender)
-	targetCoins, err := k.bridgeCallTargetCoinsHandler(ctx, senderAddr, tokens, amounts)
-	if err != nil {
-		return err
-	}
-
-	switch dstChainID {
-	case types.FxcoreChainID:
-		// convert coin to erc20
-		isEmitEvent := true
-		for _, coin := range targetCoins {
-			// not convert FX
-			if coin.Denom == fxtypes.DefaultDenom {
-				continue
-			}
-			if err = k.transferErc20Handler(ctx, eventNonce, senderAddr.Bytes(), common.BytesToAddress(receiver), coin, isEmitEvent); err != nil {
-				return err
-			}
-			isEmitEvent = false
-		}
-		var toAddrPtr *common.Address
-		if len(to) > 0 {
-			toAddr := common.BytesToAddress(to)
-			toAddrPtr = &toAddr
-		}
-		if len(message) > 0 || toAddrPtr != nil {
-			k.bridgeCallEvmHandler(ctx, senderAddr, toAddrPtr, message, value, gasLimit, eventNonce)
-		}
-	default:
-		// not support chain, refund
-	}
-	// todo refund asset
-
-	return nil
-}
-
-func (k Keeper) bridgeCallTargetCoinsHandler(ctx sdk.Context, receiver common.Address, tokens [][]byte, amounts []*big.Int) (sdk.Coins, error) {
-	tokens, amounts = types.MergeDuplicationERC20(tokens, amounts)
-
-	mintCoins := sdk.NewCoins()
-	unlockCoins := sdk.NewCoins()
-	for i := 0; i < len(tokens); i++ {
-		bridgeToken := k.GetBridgeTokenDenom(ctx, fxtypes.AddressToStr(tokens[i], k.moduleName))
-		if bridgeToken == nil {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
-		}
-		amount := sdkmath.NewIntFromBigInt(amounts[i])
-		if !amount.IsPositive() {
-			continue
-		}
-		coin := sdk.NewCoin(bridgeToken.Denom, amount)
-		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
-		if !isOriginOrConverted {
-			mintCoins = mintCoins.Add(coin)
-		}
-		unlockCoins = unlockCoins.Add(coin)
-	}
-	if mintCoins.IsAllPositive() {
-		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, mintCoins); err != nil {
-			return nil, errorsmod.Wrapf(err, "mint vouchers coins")
-		}
-	}
-	if unlockCoins.IsAllPositive() {
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver.Bytes(), unlockCoins); err != nil {
-			return nil, errorsmod.Wrap(err, "transfer vouchers")
-		}
-	}
-
-	targetCoins := sdk.NewCoins()
-	for _, coin := range unlockCoins {
-		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver.Bytes(), coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "convert to target coin")
-		}
-		targetCoins = targetCoins.Add(targetCoin)
-	}
-	return targetCoins, nil
-}
-
-func (k Keeper) bridgeCallEvmHandler(
-	ctx sdk.Context,
-	sender common.Address,
-	to *common.Address,
-	message string, value sdkmath.Int,
-	gasLimit, eventNonce uint64,
-) {
-	callErr, callResult := "", false
-	defer func() {
-		attrs := []sdk.Attribute{sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(callResult))}
-		if len(callErr) > 0 {
-			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEvmCallError, callErr))
-		}
-		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
-	}()
-
-	txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, types.MustDecodeMessage(message), true)
-	if err != nil {
-		k.Logger(ctx).Error("bridge call evm error", "nonce", eventNonce, "error", err.Error())
-		callErr = err.Error()
-		return
-	}
-
-	callResult = !txResp.Failed()
-	callErr = txResp.VmError
 }
