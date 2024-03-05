@@ -25,14 +25,14 @@ func (k Keeper) bridgeCallERC20Handler(
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
 	}
-	targetCoins, err := k.bridgeCallTransferToSender(ctx, sender, tokens, amounts)
+	coins, err := k.bridgeCallTransferToSender(ctx, sender, tokens, amounts)
 	if err != nil {
 		return err
 	}
 
 	switch dstChainID {
 	case types.FxcoreChainID:
-		if err = k.bridgeCallTransferToReceiver(ctx, sender, receiver, targetCoins); err != nil {
+		if err = k.bridgeCallTransferToReceiver(ctx, sender, receiver, coins); err != nil {
 			return err
 		}
 		var toAddrPtr *common.Address
@@ -49,22 +49,6 @@ func (k Keeper) bridgeCallERC20Handler(
 	}
 	// todo refund asset
 
-	return nil
-}
-
-func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddress, receiver []byte, targetCoins sdk.Coins) error {
-	for _, coin := range targetCoins {
-		if coin.Denom == fxtypes.DefaultDenom {
-			continue
-		}
-		if _, err := k.erc20Keeper.ConvertCoin(sdk.WrapSDKContext(ctx), &erc20types.MsgConvertCoin{
-			Coin:     coin,
-			Receiver: common.BytesToAddress(receiver).String(),
-			Sender:   sender.String(),
-		}); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -111,13 +95,23 @@ func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, receiver sdk.AccAddr
 	return targetCoins, nil
 }
 
-func (k Keeper) bridgeCallEvmHandler(
-	ctx sdk.Context,
-	sender common.Address,
-	to *common.Address,
-	message string, value sdkmath.Int,
-	gasLimit, eventNonce uint64,
-) {
+func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddress, receiver []byte, coins sdk.Coins) error {
+	for _, coin := range coins {
+		if coin.Denom == fxtypes.DefaultDenom {
+			continue
+		}
+		if _, err := k.erc20Keeper.ConvertCoin(sdk.WrapSDKContext(ctx), &erc20types.MsgConvertCoin{
+			Coin:     coin,
+			Receiver: common.BytesToAddress(receiver).String(),
+			Sender:   sender.String(),
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to *common.Address, message string, value sdkmath.Int, gasLimit, eventNonce uint64) {
 	callErr, callResult := "", false
 	defer func() {
 		attrs := []sdk.Attribute{sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(callResult))}
