@@ -61,7 +61,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		switch assetType {
 		case types.AssetERC20:
 			return k.bridgeCallERC20Handler(ctx, assetData, claim.MustSender(), claim.MustTo(),
-				claim.MustReceiver(), claim.DstChainId, claim.Message, claim.Value, claim.GasLimit, claim.EventNonce)
+				claim.MustReceiver(), claim.DstChainId, claim.MustMessage(), claim.Value, claim.GasLimit, claim.EventNonce)
 		default:
 			return errorsmod.Wrap(types.ErrInvalid, "asset not support")
 		}

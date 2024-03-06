@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"math/big"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -21,15 +20,16 @@ func (k Keeper) bridgeCallERC20Handler(
 	sender common.Address,
 	to *common.Address,
 	receiver sdk.AccAddress,
-	dstChainID, message string,
+	dstChainID string,
+	message []byte,
 	value sdkmath.Int,
 	gasLimit, eventNonce uint64,
 ) error {
-	tokens, amounts, err := types.UnpackERC20Asset(asset)
+	tokens, err := types.UnpackERC20Asset(k.moduleName, asset)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
 	}
-	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens, amounts)
+	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens)
 	if err != nil {
 		return err
 	}
@@ -53,21 +53,18 @@ func (k Keeper) bridgeCallERC20Handler(
 	return nil
 }
 
-func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, receiver sdk.AccAddress, tokens [][]byte, amounts []*big.Int) (sdk.Coins, error) {
-	tokens, amounts = types.MergeDuplicationERC20(tokens, amounts)
-
+func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, receiver sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {
 	mintCoins := sdk.NewCoins()
 	unlockCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
-		bridgeToken := k.GetBridgeTokenDenom(ctx, fxtypes.AddressToStr(tokens[i], k.moduleName))
+		bridgeToken := k.GetBridgeTokenDenom(ctx, tokens[i].Contract)
 		if bridgeToken == nil {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 		}
-		amount := sdkmath.NewIntFromBigInt(amounts[i])
-		if !amount.IsPositive() {
+		if !tokens[i].Amount.IsPositive() {
 			continue
 		}
-		coin := sdk.NewCoin(bridgeToken.Denom, amount)
+		coin := sdk.NewCoin(bridgeToken.Denom, tokens[i].Amount)
 		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
 		if !isOriginOrConverted {
 			mintCoins = mintCoins.Add(coin)
@@ -115,7 +112,7 @@ func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddr
 	return nil
 }
 
-func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to *common.Address, message string, value sdkmath.Int, gasLimit, eventNonce uint64) (*evmtypes.MsgEthereumTxResponse, error) {
+func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to *common.Address, message []byte, value sdkmath.Int, gasLimit, eventNonce uint64) (*evmtypes.MsgEthereumTxResponse, error) {
 	callErr, callResult := "", false
 	defer func() {
 		attrs := []sdk.Attribute{
@@ -128,7 +125,7 @@ func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to 
 		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
 	}()
 
-	txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, types.MustDecodeMessage(message), true)
+	txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, message, true)
 	if err != nil {
 		callErr = err.Error()
 		return nil, err
