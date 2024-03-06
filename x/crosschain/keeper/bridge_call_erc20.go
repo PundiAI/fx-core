@@ -8,6 +8,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -16,7 +17,10 @@ import (
 
 func (k Keeper) bridgeCallERC20Handler(
 	ctx sdk.Context,
-	asset, sender, to, receiver []byte,
+	asset []byte,
+	sender common.Address,
+	to *common.Address,
+	receiver sdk.AccAddress,
 	dstChainID, message string,
 	value sdkmath.Int,
 	gasLimit, eventNonce uint64,
@@ -25,24 +29,21 @@ func (k Keeper) bridgeCallERC20Handler(
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
 	}
-	coins, err := k.bridgeCallTransferToSender(ctx, sender, tokens, amounts)
+	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens, amounts)
 	if err != nil {
 		return err
 	}
 
 	switch dstChainID {
 	case types.FxcoreChainID:
-		if err = k.bridgeCallTransferToReceiver(ctx, sender, receiver, coins); err != nil {
+		if err = k.bridgeCallTransferToReceiver(ctx, sender.Bytes(), receiver, coins); err != nil {
 			return err
 		}
-		var toAddrPtr *common.Address
-		if len(to) > 0 {
-			toAddr := common.BytesToAddress(to)
-			toAddrPtr = &toAddr
-		}
-		if len(message) > 0 || toAddrPtr != nil {
-			senderAddr := common.BytesToAddress(sender)
-			k.bridgeCallEvmHandler(ctx, senderAddr, toAddrPtr, message, value, gasLimit, eventNonce)
+		if len(message) > 0 || to != nil {
+			_, err := k.bridgeCallEvmHandler(ctx, sender, to, message, value, gasLimit, eventNonce)
+			if err != nil {
+				return err
+			}
 		}
 	default:
 		// not support chain, refund
@@ -114,10 +115,13 @@ func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddr
 	return nil
 }
 
-func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to *common.Address, message string, value sdkmath.Int, gasLimit, eventNonce uint64) {
+func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to *common.Address, message string, value sdkmath.Int, gasLimit, eventNonce uint64) (*evmtypes.MsgEthereumTxResponse, error) {
 	callErr, callResult := "", false
 	defer func() {
-		attrs := []sdk.Attribute{sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(callResult))}
+		attrs := []sdk.Attribute{
+			sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatUint(eventNonce, 10)),
+			sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(callResult)),
+		}
 		if len(callErr) > 0 {
 			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEvmCallError, callErr))
 		}
@@ -126,11 +130,11 @@ func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to 
 
 	txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, types.MustDecodeMessage(message), true)
 	if err != nil {
-		k.Logger(ctx).Error("bridge call evm error", "nonce", eventNonce, "error", err.Error())
 		callErr = err.Error()
-		return
+		return nil, err
 	}
 
 	callResult = !txResp.Failed()
 	callErr = txResp.VmError
+	return txResp, nil
 }
