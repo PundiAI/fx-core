@@ -239,14 +239,14 @@ func (b TronMsgValidate) MsgConfirmBatchValidate(m *crosschaintypes.MsgConfirmBa
 	return nil
 }
 
-func (b TronMsgValidate) ValidateAddress(addr string) error {
+func (b TronMsgValidate) ValidateExternalAddress(addr string) error {
 	return ValidateTronAddress(addr)
 }
 
-func (b TronMsgValidate) AddressToBytes(addr string) ([]byte, error) {
+func (b TronMsgValidate) ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error) {
 	tronAddr, err := tronaddress.Base58ToAddress(addr)
 	if err != nil {
 		return nil, err
 	}
-	return tronAddr.Bytes(), nil
+	return tronAddr.Bytes()[1:], nil
 }

@@ -307,11 +307,11 @@ func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 	return nil
 }
 
-func (b MsgValidate) ValidateAddress(addr string) error {
+func (b MsgValidate) ValidateExternalAddress(addr string) error {
 	return fxtypes.ValidateEthereumAddress(addr)
 }
 
-func (b MsgValidate) AddressToBytes(addr string) ([]byte, error) {
+func (b MsgValidate) ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error) {
 	if err := fxtypes.ValidateEthereumAddress(addr); err != nil {
 		return nil, err
 	}

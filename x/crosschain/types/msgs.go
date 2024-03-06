@@ -10,6 +10,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
@@ -121,8 +122,8 @@ type MsgValidateBasic interface {
 	MsgRequestBatchValidate(m *MsgRequestBatch) (err error)
 	MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error)
 
-	ValidateAddress(addr string) error
-	AddressToBytes(addr string) ([]byte, error)
+	ValidateExternalAddress(addr string) error
+	ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error)
 }
 
 var reModuleName *regexp.Regexp
@@ -591,43 +592,32 @@ func (m *MsgBridgeCallClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
-// GetAddressBytes parse addr to bytes
-func (m *MsgBridgeCallClaim) GetAddressBytes(addr string) ([]byte, error) {
-	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
-		return nil, errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	} else {
-		return router.AddressToBytes(addr)
+func (m *MsgBridgeCallClaim) ToAccAddress(addr string) sdk.AccAddress {
+	router, ok := msgValidateBasicRouter[m.ChainName]
+	if !ok {
+		panic("unrecognized cross chain name")
 	}
-}
-
-// MustSenderBytes parse sender to bytes
-func (m *MsgBridgeCallClaim) MustSenderBytes() []byte {
-	addr, err := m.GetAddressBytes(m.Sender)
+	accAddr, err := router.ExternalAddressToAccAddress(addr)
 	if err != nil {
 		panic(err)
 	}
-	return addr
+	return accAddr
 }
 
-// MustReceiverBytes parse receiver to bytes
-func (m *MsgBridgeCallClaim) MustReceiverBytes() []byte {
-	addr, err := m.GetAddressBytes(m.Receiver)
-	if err != nil {
-		panic(err)
-	}
-	return addr
+func (m *MsgBridgeCallClaim) MustSender() common.Address {
+	return common.BytesToAddress(m.ToAccAddress(m.Sender).Bytes())
 }
 
-// MustToBytes parse to addr to bytes
-func (m *MsgBridgeCallClaim) MustToBytes() []byte {
+func (m *MsgBridgeCallClaim) MustReceiver() sdk.AccAddress {
+	return m.ToAccAddress(m.Receiver)
+}
+
+func (m *MsgBridgeCallClaim) MustTo() *common.Address {
 	if len(m.To) == 0 {
-		return []byte{}
+		return nil
 	}
-	addr, err := m.GetAddressBytes(m.To)
-	if err != nil {
-		panic(err)
-	}
-	return addr
+	addr := common.BytesToAddress(m.ToAccAddress(m.To).Bytes())
+	return &addr
 }
 
 // MsgSendToExternalClaim
