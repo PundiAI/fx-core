@@ -593,31 +593,19 @@ func (m *MsgBridgeCallClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
-func (m *MsgBridgeCallClaim) ToAccAddress(addr string) sdk.AccAddress {
-	router, ok := msgValidateBasicRouter[m.ChainName]
-	if !ok {
-		panic("unrecognized cross chain name")
-	}
-	accAddr, err := router.ExternalAddressToAccAddress(addr)
-	if err != nil {
-		panic(err)
-	}
-	return accAddr
-}
-
 func (m *MsgBridgeCallClaim) MustSender() common.Address {
-	return common.BytesToAddress(m.ToAccAddress(m.Sender).Bytes())
+	return common.BytesToAddress(ExternalAddressToAccAddress(m.ChainName, m.Sender).Bytes())
 }
 
 func (m *MsgBridgeCallClaim) MustReceiver() sdk.AccAddress {
-	return m.ToAccAddress(m.Receiver)
+	return ExternalAddressToAccAddress(m.ChainName, m.Receiver)
 }
 
 func (m *MsgBridgeCallClaim) MustTo() *common.Address {
 	if len(m.To) == 0 {
 		return nil
 	}
-	addr := common.BytesToAddress(m.ToAccAddress(m.To).Bytes())
+	addr := common.BytesToAddress(ExternalAddressToAccAddress(m.ChainName, m.To).Bytes())
 	return &addr
 }
 
