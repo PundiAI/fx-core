@@ -106,6 +106,12 @@ var (
 
 	// OutgoingTxRelationKey outgoing tx with evm
 	OutgoingTxRelationKey = []byte{0x41}
+
+	BridgeCallRefundKey = []byte{0x42}
+
+	BridgeCallRefundEventNonceKey = []byte{0x43}
+
+	SnapshotOracleKey = []byte{0x44}
 )
 
 // GetOracleKey returns the following key format
@@ -197,4 +203,16 @@ func GetPastExternalSignatureCheckpointKey(blockHeight uint64, checkpoint []byte
 
 func GetOutgoingTxRelationKey(txID uint64) []byte {
 	return append(OutgoingTxRelationKey, sdk.Uint64ToBigEndian(txID)...)
+}
+
+func GetBridgeCallRefundKey(address string, nonce uint64) []byte {
+	return append(BridgeCallRefundKey, append([]byte(address), sdk.Uint64ToBigEndian(nonce)...)...)
+}
+
+func GetBridgeCallRefundEventNonceKey(nonce uint64) []byte {
+	return append(BridgeCallRefundEventNonceKey, sdk.Uint64ToBigEndian(nonce)...)
+}
+
+func GetSnapshotOracleKey(oracleSetNonce uint64) []byte {
+	return append(SnapshotOracleKey, sdk.Uint64ToBigEndian(oracleSetNonce)...)
 }

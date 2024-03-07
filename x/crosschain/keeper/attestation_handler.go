@@ -60,11 +60,12 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		}
 		switch assetType {
 		case types.AssetERC20:
-			return k.bridgeCallERC20Handler(ctx, assetData, claim.MustSender(), claim.MustTo(),
+			return k.BridgeCallERC20Handler(ctx, assetData, claim.MustSender(), claim.MustTo(),
 				claim.MustReceiver(), claim.DstChainId, claim.MustMessage(), claim.Value, claim.GasLimit, claim.EventNonce)
 		default:
 			return errorsmod.Wrap(types.ErrInvalid, "asset not support")
 		}
+
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
 
@@ -109,7 +110,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			}
 
 			// add more origin token
-			denom := fmt.Sprintf("%s%s", k.moduleName, claim.TokenContract)
+			denom := NewBridgeDenom(k.moduleName, claim.TokenContract)
 			if !slices.Contains(metadata.DenomUnits[0].Aliases, denom) {
 				return errorsmod.Wrap(
 					types.ErrInvalid,
@@ -151,4 +152,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
 	}
 	return nil
+}
+
+func NewBridgeDenom(moduleName string, token string) string {
+	return fmt.Sprintf("%s%s", moduleName, token)
 }

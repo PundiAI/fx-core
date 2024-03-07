@@ -24,6 +24,7 @@ import (
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -1109,61 +1110,13 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 }
 
 func (suite *KeeperTestSuite) TestBridgeCallClaim() {
-	normalMsg := &types.MsgBondedOracle{
-		OracleAddress:    suite.oracleAddrs[0].String(),
-		BridgerAddress:   suite.bridgerAddrs[0].String(),
-		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		ValidatorAddress: suite.valAddrs[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-		ChainName:        suite.chainName,
-	}
-	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
-	require.NoError(suite.T(), err)
-
-	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
-	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
+	suite.bondedOracle()
 
 	tokenContract := helpers.GenerateAddressByModule(suite.chainName)
-	ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
-	_, err = suite.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
-		EventNonce:     oracleLastEventNonce + 1,
-		BlockHeight:    uint64(suite.ctx.BlockHeight()),
-		TokenContract:  tokenContract,
-		Name:           "Token Test",
-		Symbol:         "TTT",
-		Decimals:       18,
-		BridgerAddress: suite.bridgerAddrs[0].String(),
-		ChannelIbc:     "",
-		ChainName:      suite.chainName,
-	})
-	require.NoError(suite.T(), err)
-	suite.checkObservationState(ctx, true)
 
-	oracleLastEventNonce = suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
-	require.EqualValues(suite.T(), 1, oracleLastEventNonce)
+	suite.addBridgeToken(tokenContract, fxtypes.GetCrossChainMetadataManyToOne("test token", "TT", 18))
 
-	_, err = suite.app.Erc20Keeper.RegisterCoin(sdk.WrapSDKContext(suite.ctx), &erc20types.MsgRegisterCoin{
-		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		Metadata: banktypes.Metadata{
-			Description: "Test token",
-			DenomUnits: []*banktypes.DenomUnit{
-				{
-					Denom:    "ttt",
-					Exponent: 0,
-					Aliases:  []string{fmt.Sprintf("%s%s", suite.chainName, tokenContract)},
-				},
-				{
-					Denom:    "TTT",
-					Exponent: 18,
-				},
-			},
-			Base:    "ttt",
-			Display: "TTT",
-			Name:    "Test Token",
-			Symbol:  "TTT",
-		},
-	})
-	require.NoError(suite.T(), err)
+	suite.registerCoin(keeper.NewBridgeDenom(suite.chainName, tokenContract))
 
 	asset, err := types.PackERC20AssetWithType(
 		[]common.Address{
@@ -1174,23 +1127,8 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	)
 	require.NoError(suite.T(), err)
 
-	ctx = sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
-	oracleLastEventNonce = suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
-	fxMetadata := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
 	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
-	_, err = suite.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
-		EventNonce:     oracleLastEventNonce + 1,
-		BlockHeight:    uint64(suite.ctx.BlockHeight()),
-		TokenContract:  fxTokenContract,
-		Name:           fxMetadata.Name,
-		Symbol:         fxMetadata.Symbol,
-		Decimals:       18,
-		BridgerAddress: suite.bridgerAddrs[0].String(),
-		ChannelIbc:     "",
-		ChainName:      suite.chainName,
-	})
-	require.NoError(suite.T(), err)
-	suite.checkObservationState(ctx, true)
+	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData(fxtypes.DefaultDenom))
 
 	fxAsset, err := types.PackERC20AssetWithType(
 		[]common.Address{
@@ -1200,6 +1138,8 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		},
 	)
 	require.NoError(suite.T(), err)
+
+	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 
 	testMsgs := []struct {
 		name      string
@@ -1212,7 +1152,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			name: "success",
 			msg: &types.MsgBridgeCallClaim{
 				DstChainId:     "530",
-				EventNonce:     oracleLastEventNonce + 2,
+				EventNonce:     oracleLastEventNonce + 1,
 				Sender:         helpers.GenerateAddressByModule(suite.chainName),
 				Asset:          asset,
 				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
@@ -1232,7 +1172,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			name: "success - FX",
 			msg: &types.MsgBridgeCallClaim{
 				DstChainId:     "530",
-				EventNonce:     oracleLastEventNonce + 3,
+				EventNonce:     oracleLastEventNonce + 2,
 				Sender:         helpers.GenerateAddressByModule(suite.chainName),
 				Asset:          fxAsset,
 				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
@@ -1253,7 +1193,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	for _, testData := range testMsgs {
 		err = testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
-		ctx = sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+		ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
 		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)
 		require.ErrorIs(suite.T(), err, testData.err, testData.name)
 		if testData.err == nil {
@@ -1265,6 +1205,69 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 
 		require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
 	}
+}
+
+func (suite *KeeperTestSuite) bondedOracle() uint64 {
+	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
+		OracleAddress:    suite.oracleAddrs[0].String(),
+		BridgerAddress:   suite.bridgerAddrs[0].String(),
+		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
+		ValidatorAddress: suite.valAddrs[0].String(),
+		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+		ChainName:        suite.chainName,
+	})
+	require.NoError(suite.T(), err)
+
+	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
+	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
+	return oracleLastEventNonce
+}
+
+func (suite *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.Metadata) {
+	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
+	ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+	_, err := suite.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
+		EventNonce:     oracleLastEventNonce + 1,
+		BlockHeight:    uint64(suite.ctx.BlockHeight()),
+		TokenContract:  tokenContract,
+		Name:           md.Name,
+		Symbol:         md.Symbol,
+		Decimals:       18,
+		BridgerAddress: suite.bridgerAddrs[0].String(),
+		ChannelIbc:     "",
+		ChainName:      suite.chainName,
+	})
+	require.NoError(suite.T(), err)
+
+	suite.checkObservationState(ctx, true)
+
+	newOracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
+	require.EqualValues(suite.T(), oracleLastEventNonce+1, newOracleLastEventNonce)
+}
+
+func (suite *KeeperTestSuite) registerCoin(bridgeDenom string) {
+	_, err := suite.app.Erc20Keeper.RegisterCoin(sdk.WrapSDKContext(suite.ctx), &erc20types.MsgRegisterCoin{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Metadata: banktypes.Metadata{
+			Description: "Test token",
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    "ttt",
+					Exponent: 0,
+					Aliases:  []string{bridgeDenom},
+				},
+				{
+					Denom:    "TTT",
+					Exponent: 18,
+				},
+			},
+			Base:    "ttt",
+			Display: "TTT",
+			Name:    "Test Token",
+			Symbol:  "TTT",
+		},
+	})
+	require.NoError(suite.T(), err)
 }
 
 func (suite *KeeperTestSuite) checkObservationState(ctx context.Context, expect bool) {
