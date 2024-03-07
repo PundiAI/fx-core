@@ -25,10 +25,15 @@ func (k Keeper) bridgeCallERC20Handler(
 	value sdkmath.Int,
 	gasLimit, eventNonce uint64,
 ) error {
-	tokens, err := types.UnpackERC20Asset(k.moduleName, asset)
+	tokenAddrs, amounts, err := types.UnpackERC20Asset(asset)
 	if err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, "asset erc20")
+		return errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
+	tokens, err := types.NewERC20Tokens(k.moduleName, tokenAddrs, amounts)
+	if err != nil {
+		return errorsmod.Wrap(types.ErrInvalid, err.Error())
+	}
+
 	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens)
 	if err != nil {
 		return err

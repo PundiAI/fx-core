@@ -102,20 +102,6 @@ func GenerateAddressByModule(module string) string {
 	return fxtypes.AddressToStr(addr.Bytes(), module)
 }
 
-func AddressToBytesByModule(addr, module string) ([]byte, error) {
-	if module == "tron" {
-		tronAddr, err := tronaddress.Base58ToAddress(addr)
-		if err != nil {
-			return nil, err
-		}
-		return tronAddr.Bytes(), nil
-	}
-	if err := fxtypes.ValidateEthereumAddress(addr); err != nil {
-		return nil, err
-	}
-	return common.HexToAddress(addr).Bytes(), nil
-}
-
 // GenerateZeroAddressByModule generates an Ethereum or Tron zero address.
 func GenerateZeroAddressByModule(module string) string {
 	addr := common.Address{}

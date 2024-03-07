@@ -15,6 +15,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -1164,15 +1165,19 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	})
 	require.NoError(suite.T(), err)
 
-	tokenAddrBytes, err := helpers.AddressToBytesByModule(tokenContract, suite.chainName)
-	require.NoError(suite.T(), err)
-	assetBytes, err := types.PackERC20Asset([][]byte{tokenAddrBytes}, []*big.Int{big.NewInt(100)})
+	asset, err := types.PackERC20AssetWithType(
+		[]common.Address{
+			common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, tokenContract).Bytes()),
+		}, []*big.Int{
+			big.NewInt(100),
+		},
+	)
 	require.NoError(suite.T(), err)
 
 	ctx = sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
 	oracleLastEventNonce = suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 	fxMetadata := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
-	fxTokenContract := helpers.GenerateAddressByModule(ethtypes.ModuleName)
+	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
 	_, err = suite.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
 		EventNonce:     oracleLastEventNonce + 1,
 		BlockHeight:    uint64(suite.ctx.BlockHeight()),
@@ -1182,14 +1187,18 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		Decimals:       18,
 		BridgerAddress: suite.bridgerAddrs[0].String(),
 		ChannelIbc:     "",
-		ChainName:      ethtypes.ModuleName,
+		ChainName:      suite.chainName,
 	})
 	require.NoError(suite.T(), err)
 	suite.checkObservationState(ctx, true)
 
-	fxTokenAddrBytes, err := helpers.AddressToBytesByModule(fxTokenContract, ethtypes.ModuleName)
-	require.NoError(suite.T(), err)
-	fxAssetBytes, err := types.PackERC20Asset([][]byte{fxTokenAddrBytes}, []*big.Int{big.NewInt(100)})
+	fxAsset, err := types.PackERC20AssetWithType(
+		[]common.Address{
+			common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, fxTokenContract).Bytes()),
+		}, []*big.Int{
+			big.NewInt(100),
+		},
+	)
 	require.NoError(suite.T(), err)
 
 	testMsgs := []struct {
@@ -1197,6 +1206,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		msg       *types.MsgBridgeCallClaim
 		err       error
 		errReason string
+		expect    bool
 	}{
 		{
 			name: "success",
@@ -1204,7 +1214,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 				DstChainId:     "530",
 				EventNonce:     oracleLastEventNonce + 2,
 				Sender:         helpers.GenerateAddressByModule(suite.chainName),
-				Asset:          hex.EncodeToString(assetBytes),
+				Asset:          asset,
 				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
 				To:             helpers.GenerateAddressByModule(suite.chainName),
 				Message:        "",
@@ -1216,25 +1226,27 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			},
 			err:       nil,
 			errReason: "",
+			expect:    true,
 		},
 		{
 			name: "success - FX",
 			msg: &types.MsgBridgeCallClaim{
 				DstChainId:     "530",
 				EventNonce:     oracleLastEventNonce + 3,
-				Sender:         helpers.GenerateAddressByModule(ethtypes.ModuleName),
-				Asset:          hex.EncodeToString(fxAssetBytes),
-				Receiver:       helpers.GenerateAddressByModule(ethtypes.ModuleName),
-				To:             helpers.GenerateAddressByModule(ethtypes.ModuleName),
+				Sender:         helpers.GenerateAddressByModule(suite.chainName),
+				Asset:          fxAsset,
+				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+				To:             helpers.GenerateAddressByModule(suite.chainName),
 				Message:        "",
 				Value:          sdkmath.NewInt(0),
 				GasLimit:       3000000,
 				BlockHeight:    1,
 				BridgerAddress: suite.bridgerAddrs[0].String(),
-				ChainName:      ethtypes.ModuleName,
+				ChainName:      suite.chainName,
 			},
 			err:       nil,
 			errReason: "",
+			expect:    suite.chainName == ethtypes.ModuleName,
 		},
 	}
 
@@ -1242,13 +1254,10 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		err = testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
 		ctx = sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
-		if testData.msg.Asset == hex.EncodeToString(fxAssetBytes) && suite.chainName != ethtypes.ModuleName {
-			continue
-		}
 		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)
 		require.ErrorIs(suite.T(), err, testData.err, testData.name)
 		if testData.err == nil {
-			suite.checkObservationState(ctx, true)
+			suite.checkObservationState(ctx, testData.expect)
 		}
 		if err == nil {
 			continue

@@ -6,7 +6,9 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
@@ -58,28 +60,69 @@ func UnpackAssetType(asset string) (string, []byte, error) {
 	return assetType, assetData, nil
 }
 
-func UnpackERC20Asset(module string, asset []byte) ([]ERC20Token, error) {
+func UnpackERC20Asset(asset []byte) ([]common.Address, []*big.Int, error) {
 	values, err := erc20AssetDecode.UnpackValues(asset)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(values) != 2 {
-		return nil, fmt.Errorf("invalid length")
+		return nil, nil, fmt.Errorf("invalid length")
 	}
-	tokenBytes, ok := values[0].([]byte)
+	addrBytes, ok := values[0].([]byte)
 	if !ok {
-		return nil, fmt.Errorf("invalid token type")
+		return nil, nil, fmt.Errorf("invalid token address type")
 	}
 	amounts, ok := values[1].([]*big.Int)
 	if !ok {
-		return nil, fmt.Errorf("invalid amount type")
+		return nil, nil, fmt.Errorf("invalid amount type")
+	}
+
+	addrLength := len(addrBytes) / len(amounts)
+	tokenAddrs := make([]common.Address, 0)
+	for i := 0; i*addrLength < len(addrBytes); i++ {
+		contract := common.BytesToAddress(addrBytes[i*addrLength : (i+1)*addrLength])
+		tokenAddrs = append(tokenAddrs, contract)
+	}
+	return tokenAddrs, amounts, nil
+}
+
+func PackERC20AssetWithType(tokenAddrs []common.Address, amounts []*big.Int) (string, error) {
+	addrBytes := make([]byte, 0)
+	for i := 0; i < len(tokenAddrs); i++ {
+		addrBytes = append(addrBytes, tokenAddrs[i].Bytes()...)
+	}
+	assetData, err := erc20AssetDecode.Pack(addrBytes, amounts)
+	if err != nil {
+		return "", err
+	}
+	pack, err := assetTypeDecode.Pack(AssetERC20, assetData)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(pack), nil
+}
+
+func ExternalAddressToAccAddress(chainName, addr string) sdk.AccAddress {
+	router, ok := msgValidateBasicRouter[chainName]
+	if !ok {
+		panic("unrecognized cross chain name")
+	}
+	accAddr, err := router.ExternalAddressToAccAddress(addr)
+	if err != nil {
+		panic(err)
+	}
+	return accAddr
+}
+
+func NewERC20Tokens(module string, tokenAddrs []common.Address, tokenAmounts []*big.Int) ([]ERC20Token, error) {
+	if len(tokenAddrs) != len(tokenAmounts) {
+		return nil, fmt.Errorf("invalid length")
 	}
 	tokens := make([]ERC20Token, 0)
-	addrLength := len(tokenBytes) / len(amounts)
-	for i := 0; i*addrLength < len(tokenBytes); i++ {
-		var found bool
-		contract := fxtypes.AddressToStr(tokenBytes[i*addrLength:(i+1)*addrLength], module)
-		amount := sdkmath.NewIntFromBigInt(amounts[i])
+	for i := 0; i < len(tokenAddrs); i++ {
+		contract := fxtypes.AddressToStr(tokenAddrs[i].Bytes(), module)
+		amount := sdkmath.NewIntFromBigInt(tokenAmounts[i])
+		found := false
 		for j := 0; j < len(tokens); j++ {
 			if contract == tokens[j].Contract {
 				tokens[j].Amount = tokens[j].Amount.Add(amount)
@@ -95,19 +138,4 @@ func UnpackERC20Asset(module string, asset []byte) ([]ERC20Token, error) {
 		}
 	}
 	return tokens, nil
-}
-
-func PackERC20Asset(tokens [][]byte, amounts []*big.Int) ([]byte, error) {
-	if len(tokens) != len(amounts) {
-		return nil, fmt.Errorf("token not match amount")
-	}
-	tokenBytes := make([]byte, 0)
-	for _, token := range tokens {
-		tokenBytes = append(tokenBytes, token...)
-	}
-	assetData, err := erc20AssetDecode.Pack(tokenBytes, amounts)
-	if err != nil {
-		return nil, err
-	}
-	return assetTypeDecode.Pack("ERC20", assetData)
 }
