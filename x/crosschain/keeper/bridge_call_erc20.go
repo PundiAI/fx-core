@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -14,7 +15,7 @@ import (
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-func (k Keeper) bridgeCallERC20Handler(
+func (k Keeper) BridgeCallERC20Handler(
 	ctx sdk.Context,
 	asset []byte,
 	sender common.Address,
@@ -34,27 +35,47 @@ func (k Keeper) bridgeCallERC20Handler(
 		return errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
+	var refundReason string
+	if dstChainID == types.FxcoreChainID {
+		cacheCtx, commit := ctx.CacheContext()
+		err = k.bridgeCallFxCore(cacheCtx, sender, tokens, receiver, message, to, value, gasLimit, eventNonce)
+		if err != nil {
+			refundReason = err.Error()
+		} else {
+			commit()
+		}
+	}
+	if len(refundReason) > 0 && len(tokens) > 0 {
+		receiverStr := fxtypes.AddressToStr(sender.Bytes(), k.moduleName)
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(types.EventTypeBridgeCallRefund,
+				sdk.NewAttribute(types.AttributeKeyRefundReason, refundReason),
+				sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
+				sdk.NewAttribute(types.AttributeKeyRefundAddress, receiverStr),
+			),
+		})
+		return k.AddRefundRecord(ctx, receiverStr, eventNonce, tokens)
+	}
+	return nil
+}
+
+func (k Keeper) bridgeCallFxCore(ctx sdk.Context, sender common.Address, tokens []types.ERC20Token, receiver sdk.AccAddress, message []byte, to *common.Address, value sdkmath.Int, gasLimit uint64, eventNonce uint64) error {
 	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens)
 	if err != nil {
 		return err
 	}
-
-	switch dstChainID {
-	case types.FxcoreChainID:
-		if err = k.bridgeCallTransferToReceiver(ctx, sender.Bytes(), receiver, coins); err != nil {
+	if err = k.bridgeCallTransferToReceiver(ctx, sender.Bytes(), receiver, coins); err != nil {
+		return err
+	}
+	if len(message) > 0 || to != nil {
+		res, err := k.bridgeCallEvmHandler(ctx, sender, to, message, value, gasLimit, eventNonce)
+		if err != nil {
 			return err
 		}
-		if len(message) > 0 || to != nil {
-			_, err := k.bridgeCallEvmHandler(ctx, sender, to, message, value, gasLimit, eventNonce)
-			if err != nil {
-				return err
-			}
+		if res.Failed() {
+			return errorsmod.Wrap(types.ErrInvalid, res.VmError)
 		}
-	default:
-		// not support chain, refund
 	}
-	// todo refund asset
-
 	return nil
 }
 
