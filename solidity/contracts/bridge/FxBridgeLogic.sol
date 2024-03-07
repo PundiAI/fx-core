@@ -32,11 +32,12 @@ contract FxBridgeLogic is
     bytes32 public state_lastOracleSetCheckpoint;
     uint256 public state_lastOracleSetNonce;
     mapping(address => uint256) public state_lastBatchNonces;
-    /* solhint-enable var-name-mixedcase */
 
     address[] public bridgeTokens;
     mapping(address => TokenStatus) public tokenStatus;
     string public version;
+    mapping(uint256 => bool) public state_lastRefundNonce;
+    /* solhint-enable var-name-mixedcase */
 
     struct TokenStatus {
         bool isOriginated;
@@ -422,6 +423,109 @@ contract FxBridgeLogic is
         }
     }
 
+    function refundBridgeToken(
+        address[] memory _currentOracles,
+        uint256[] memory _currentPowers,
+        uint8[] memory _v,
+        bytes32[] memory _r,
+        bytes32[] memory _s,
+        uint256[2] memory _nonceArray,
+        address _receiver,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256 _timeout
+    ) public nonReentrant whenNotPaused {
+        {
+            require(
+                _tokens.length == _amounts.length,
+                "Token not match amount"
+            );
+
+            for (uint256 i = 0; i < _tokens.length; i++) {
+                TokenStatus memory _tokenStatus = tokenStatus[_tokens[i]];
+                require(_tokenStatus.isExist, "Unsupported token address");
+                require(_tokenStatus.isActive, "Token was paused");
+                require(_amounts[i] > 0, "Amount must be great 0");
+            }
+
+            require(
+                !state_lastRefundNonce[_nonceArray[1]],
+                "New refund nonce must be not used."
+            );
+
+            require(
+                block.timestamp < _timeout,
+                "timeout must be greater than the current block timestamp."
+            );
+
+            require(
+                _currentOracles.length == _currentPowers.length &&
+                    _currentOracles.length == _v.length &&
+                    _currentOracles.length == _r.length &&
+                    _currentOracles.length == _s.length,
+                "Malformed current oracle set."
+            );
+
+            require(
+                makeCheckpoint(
+                    _currentOracles,
+                    _currentPowers,
+                    _nonceArray[0],
+                    state_fxBridgeId
+                ) == state_lastOracleSetCheckpoint,
+                "Supplied current oracles and powers do not match checkpoint."
+            );
+
+            checkOracleSignatures(
+                _currentOracles,
+                _currentPowers,
+                _v,
+                _r,
+                _s,
+                keccak256(
+                    abi.encode(
+                        state_fxBridgeId,
+                        // bytes32 encoding of "refundToken"
+                        0x726566756e64546f6b656e000000000000000000000000000000000000000000,
+                        _receiver,
+                        _tokens,
+                        _amounts,
+                        _nonceArray[1],
+                        _timeout
+                    )
+                ),
+                state_powerThreshold
+            );
+        }
+
+        state_lastRefundNonce[_nonceArray[1]] = true;
+
+        {
+            for (uint256 i = 0; i < _tokens.length; i++) {
+                TokenStatus memory _tokenStatus = tokenStatus[_tokens[i]];
+                if (_tokenStatus.isOriginated == true) {
+                    IERC20ExtensionsUpgradeable(_tokens[i]).mint(
+                        address(this),
+                        _amounts[i]
+                    );
+                }
+                IERC20MetadataUpgradeable(_tokens[i]).safeTransfer(
+                    _receiver,
+                    _amounts[i]
+                );
+            }
+        }
+
+        {
+            state_lastEventNonce = state_lastEventNonce.add(1);
+            emit RefundTokenExecutedEvent(
+                _receiver,
+                _nonceArray[1],
+                state_lastEventNonce
+            );
+        }
+    }
+
     function transferOwner(
         address _token,
         address _newOwner
@@ -642,5 +746,11 @@ contract FxBridgeLogic is
         uint256 _value,
         bytes _message,
         bytes _asset
+    );
+
+    event RefundTokenExecutedEvent(
+        address indexed _receiver,
+        uint256 indexed _refundNonce,
+        uint256 _eventNonce
     );
 }
