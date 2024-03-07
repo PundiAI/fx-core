@@ -30,48 +30,37 @@ func testPackAsset(token [][]byte, amount []*big.Int) []byte {
 
 func TestBridgeCall_UnpackERC20Asset(t *testing.T) {
 	// ERC20
-	assetBytes := testPackAsset([][]byte{common.BigToAddress(big.NewInt(1)).Bytes()}, []*big.Int{big.NewInt(1)})
-	tokens, amounts, err := UnpackERC20Asset(assetBytes)
+	assetBytes := testPackAsset(
+		[][]byte{
+			common.BigToAddress(big.NewInt(1)).Bytes(),
+			common.BigToAddress(big.NewInt(1)).Bytes(),
+			common.BigToAddress(big.NewInt(1)).Bytes(),
+		},
+		[]*big.Int{
+			big.NewInt(1),
+			big.NewInt(0),
+			big.NewInt(1),
+		})
+	tokens, err := UnpackERC20Asset("eth", assetBytes)
 	require.NoError(t, err)
-	require.Equal(t, common.BytesToAddress(tokens[0]).String(), common.BigToAddress(big.NewInt(1)).String())
-	require.Equal(t, amounts[0].String(), "1")
+	require.Equal(t, tokens[0].Contract, common.BigToAddress(big.NewInt(1)).String())
+	require.Equal(t, tokens[0].Amount.String(), "2")
 
 	// Tron
-	assetBytes = testPackAsset([][]byte{tronaddress.BigToAddress(big.NewInt(1))}, []*big.Int{big.NewInt(1)})
-	tokens, amounts, err = UnpackERC20Asset(assetBytes)
+	assetBytes = testPackAsset(
+		[][]byte{
+			tronaddress.BigToAddress(big.NewInt(1)),
+			tronaddress.BigToAddress(big.NewInt(2)),
+			tronaddress.BigToAddress(big.NewInt(1)),
+		},
+		[]*big.Int{
+			big.NewInt(1),
+			big.NewInt(1),
+			big.NewInt(1),
+		},
+	)
+	tokens, err = UnpackERC20Asset("tron", assetBytes)
 	require.NoError(t, err)
-	require.Equal(t, tokens[0], tronaddress.BigToAddress(big.NewInt(1)).Bytes())
-	require.Equal(t, amounts[0].String(), "1")
-}
-
-func TestBridgeCall_MergeDuplicationERC20(t *testing.T) {
-	tokens := [][]byte{
-		common.BigToAddress(big.NewInt(1)).Bytes(),
-		common.BigToAddress(big.NewInt(2)).Bytes(),
-		common.BigToAddress(big.NewInt(3)).Bytes(),
-		common.BigToAddress(big.NewInt(1)).Bytes(),
-		common.BigToAddress(big.NewInt(3)).Bytes(),
-	}
-	expectedTokens := [][]byte{
-		common.BigToAddress(big.NewInt(1)).Bytes(),
-		common.BigToAddress(big.NewInt(2)).Bytes(),
-		common.BigToAddress(big.NewInt(3)).Bytes(),
-	}
-	amounts := []*big.Int{
-		big.NewInt(1),
-		big.NewInt(1),
-		big.NewInt(1),
-		big.NewInt(1),
-		big.NewInt(1),
-	}
-	expectedAmounts := []*big.Int{
-		big.NewInt(2),
-		big.NewInt(1),
-		big.NewInt(2),
-	}
-
-	newTokens, newAmounts := MergeDuplicationERC20(tokens, amounts)
-
-	require.Equal(t, expectedTokens, newTokens)
-	require.Equal(t, expectedAmounts, newAmounts)
+	require.Equal(t, tokens[0].Contract, tronaddress.BigToAddress(big.NewInt(1)).String())
+	require.Equal(t, tokens[0].Amount.String(), "2")
 }

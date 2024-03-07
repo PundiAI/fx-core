@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"regexp"
@@ -618,6 +619,17 @@ func (m *MsgBridgeCallClaim) MustTo() *common.Address {
 	}
 	addr := common.BytesToAddress(m.ToAccAddress(m.To).Bytes())
 	return &addr
+}
+
+func (m *MsgBridgeCallClaim) MustMessage() []byte {
+	if len(m.Message) == 0 {
+		return []byte{}
+	}
+	bz, err := hex.DecodeString(m.Message)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 // MsgSendToExternalClaim

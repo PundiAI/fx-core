@@ -1,11 +1,11 @@
 package types
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -58,56 +58,43 @@ func UnpackAssetType(asset string) (string, []byte, error) {
 	return assetType, assetData, nil
 }
 
-func UnpackERC20Asset(asset []byte) ([][]byte, []*big.Int, error) {
+func UnpackERC20Asset(module string, asset []byte) ([]ERC20Token, error) {
 	values, err := erc20AssetDecode.UnpackValues(asset)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if len(values) != 2 {
-		return nil, nil, fmt.Errorf("invalid length")
+		return nil, fmt.Errorf("invalid length")
 	}
 	tokenBytes, ok := values[0].([]byte)
 	if !ok {
-		return nil, nil, fmt.Errorf("invalid token type")
+		return nil, fmt.Errorf("invalid token type")
 	}
 	amounts, ok := values[1].([]*big.Int)
 	if !ok {
-		return nil, nil, fmt.Errorf("invalid amount type")
+		return nil, fmt.Errorf("invalid amount type")
 	}
-	tokens := make([][]byte, 0, len(amounts))
+	tokens := make([]ERC20Token, 0)
 	addrLength := len(tokenBytes) / len(amounts)
-	if len(tokenBytes) != addrLength*len(amounts) {
-		return nil, nil, fmt.Errorf("invalid tokens length")
-	}
 	for i := 0; i*addrLength < len(tokenBytes); i++ {
-		tokens = append(tokens, tokenBytes[i*addrLength:(i+1)*addrLength])
-	}
-	if len(tokens) != len(amounts) {
-		return nil, nil, fmt.Errorf("token not match amount")
-	}
-	return tokens, amounts, nil
-}
-
-func MergeDuplicationERC20(tokens [][]byte, amounts []*big.Int) ([][]byte, []*big.Int) {
-	tokenArray := make([][]byte, 0, len(tokens))
-	amountArray := make([]*big.Int, 0, len(amounts))
-	for i := 0; i < len(tokens); i++ {
-		found := false
-		j := 0
-		for ; j < len(tokenArray); j++ {
-			if bytes.Equal(tokens[i], tokenArray[j]) {
+		var found bool
+		contract := fxtypes.AddressToStr(tokenBytes[i*addrLength:(i+1)*addrLength], module)
+		amount := sdkmath.NewIntFromBigInt(amounts[i])
+		for j := 0; j < len(tokens); j++ {
+			if contract == tokens[j].Contract {
+				tokens[j].Amount = tokens[j].Amount.Add(amount)
 				found = true
 				break
 			}
 		}
-		if found {
-			amountArray[j] = new(big.Int).Add(amountArray[j], amounts[i])
-		} else {
-			tokenArray = append(tokenArray, tokens[i])
-			amountArray = append(amountArray, amounts[i])
+		if !found {
+			tokens = append(tokens, ERC20Token{
+				Contract: contract,
+				Amount:   amount,
+			})
 		}
 	}
-	return tokenArray, amountArray
+	return tokens, nil
 }
 
 func PackERC20Asset(tokens [][]byte, amounts []*big.Int) ([]byte, error) {
@@ -123,15 +110,4 @@ func PackERC20Asset(tokens [][]byte, amounts []*big.Int) ([]byte, error) {
 		return nil, err
 	}
 	return assetTypeDecode.Pack("ERC20", assetData)
-}
-
-func MustDecodeMessage(message string) []byte {
-	if len(message) == 0 {
-		return []byte{}
-	}
-	bz, err := hex.DecodeString(message)
-	if err != nil {
-		panic(err)
-	}
-	return bz
 }
