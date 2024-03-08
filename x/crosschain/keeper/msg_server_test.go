@@ -1207,6 +1207,103 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestConfirmRefund() {
+	externalKey := helpers.NewEthPrivKey()
+	externalEcdsaKey, err := crypto.ToECDSA(externalKey.Bytes())
+	require.NoError(suite.T(), err)
+	externalAddr := fxtypes.AddressToStr(externalKey.PubKey().Address().Bytes(), suite.chainName)
+	oracleSetNonce := uint64(tmrand.Int63n(10000))
+	eventNonce := uint64(tmrand.Int63n(10000))
+	suite.Keeper().SetSnapshotOracle(suite.ctx, &types.SnapshotOracle{
+		OracleSetNonce: oracleSetNonce,
+		Members: types.BridgeValidators{
+			types.BridgeValidator{
+				Power:           tmrand.Uint64(),
+				ExternalAddress: externalAddr,
+			},
+		},
+		EventNonces: []uint64{eventNonce},
+	})
+
+	randomTokenSize := tmrand.Intn(10) + 1
+	tokens := make([]types.ERC20Token, randomTokenSize)
+	for i := 0; i < randomTokenSize; i++ {
+		tokens[i] = types.ERC20Token{
+			Contract: helpers.GenerateAddressByModule(suite.chainName),
+			Amount:   sdkmath.NewIntFromUint64(tmrand.Uint64()),
+		}
+	}
+	refundRecord := &types.RefundRecord{
+		EventNonce:     eventNonce,
+		Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+		Timeout:        tmrand.Uint64(),
+		Tokens:         tokens,
+		OracleSetNonce: oracleSetNonce,
+	}
+	suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
+
+	var signature []byte
+	var signatureErr error
+	if suite.chainName != trontypes.ModuleName {
+		checkpoint, err := refundRecord.GetCheckpoint(suite.Keeper().GetGravityID(suite.ctx))
+		require.NoError(suite.T(), err)
+		signature, signatureErr = types.NewEthereumSignature(checkpoint, externalEcdsaKey)
+	} else {
+		checkpoint, err := trontypes.GetCheckpointConfirmRefund(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
+		require.NoError(suite.T(), err)
+		signature, signatureErr = trontypes.NewTronSignature(checkpoint, externalEcdsaKey)
+	}
+	require.NoError(suite.T(), signatureErr)
+
+	testMsgs := []struct {
+		name      string
+		msg       *types.MsgConfirmRefund
+		err       error
+		errReason string
+	}{
+		{
+			name: "success",
+			msg: &types.MsgConfirmRefund{
+				Nonce:           eventNonce,
+				BridgerAddress:  suite.bridgerAddrs[0].String(),
+				ExternalAddress: externalAddr,
+				Signature:       hex.EncodeToString(signature),
+				ChainName:       suite.chainName,
+			},
+			err:       nil,
+			errReason: "",
+		},
+		{
+			name: "external address not in oracle set",
+			msg: &types.MsgConfirmRefund{
+				Nonce:           eventNonce,
+				BridgerAddress:  suite.bridgerAddrs[0].String(),
+				ExternalAddress: helpers.GenerateAddressByModule(suite.chainName),
+				Signature:       hex.EncodeToString(signature),
+				ChainName:       suite.chainName,
+			},
+			err:       types.ErrInvalid,
+			errReason: errorsmod.Wrap(types.ErrInvalid, "external address not in snapshot oracle").Error(),
+		},
+	}
+
+	for _, testData := range testMsgs {
+		suite.T().Run(testData.name, func(t *testing.T) {
+			err = testData.msg.ValidateBasic()
+			require.NoError(suite.T(), err)
+			ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+			_, err = suite.MsgServer().ConfirmRefund(ctx, testData.msg)
+			require.ErrorIs(suite.T(), err, testData.err, testData.name)
+			if testData.err == nil {
+				require.NoError(suite.T(), err)
+				return
+			}
+			require.NotNil(t, err)
+			require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) bondedOracle() uint64 {
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
 		OracleAddress:    suite.oracleAddrs[0].String(),
