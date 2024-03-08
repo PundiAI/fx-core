@@ -26,7 +26,7 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(m v1.MsgServer, k Keeper) *msgServer {
+func NewMsgServerImpl(m v1.MsgServer, k Keeper) types.MsgServerPro {
 	return &msgServer{MsgServer: m, Keeper: k}
 }
 
