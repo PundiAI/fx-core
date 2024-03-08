@@ -307,6 +307,22 @@ func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 	return nil
 }
 
+func (b MsgValidate) MsgConfirmRefundValidate(m *MsgConfirmRefund) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+	}
+	if err = fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+	}
+	if len(m.Signature) == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("empty signature")
+	}
+	if _, err = hex.DecodeString(m.Signature); err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
+	}
+	return nil
+}
+
 func (b MsgValidate) ValidateExternalAddress(addr string) error {
 	return fxtypes.ValidateEthereumAddress(addr)
 }

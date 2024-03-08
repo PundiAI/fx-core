@@ -38,8 +38,9 @@ const (
 	TypeMsgIncreaseBridgeFee    = "increase_bridge_fee"
 	TypeMsgSendToExternalClaim  = "send_to_external_claim"
 
-	TypeMsgRequestBatch = "request_batch"
-	TypeMsgConfirmBatch = "confirm_batch"
+	TypeMsgRequestBatch  = "request_batch"
+	TypeMsgConfirmBatch  = "confirm_batch"
+	TypeMsgConfirmRefund = "confirm_refund"
 
 	TypeMsgUpdateParams = "update_params"
 
@@ -94,6 +95,9 @@ var (
 	_ sdk.Msg       = &MsgConfirmBatch{}
 	_ CrossChainMsg = &MsgConfirmBatch{}
 
+	_ sdk.Msg       = &MsgConfirmRefund{}
+	_ CrossChainMsg = &MsgConfirmRefund{}
+
 	_ sdk.Msg       = &MsgUpdateParams{}
 	_ CrossChainMsg = &MsgUpdateParams{}
 
@@ -122,6 +126,7 @@ type MsgValidateBasic interface {
 	MsgIncreaseBridgeFeeValidate(m *MsgIncreaseBridgeFee) (err error)
 	MsgRequestBatchValidate(m *MsgRequestBatch) (err error)
 	MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error)
+	MsgConfirmRefundValidate(m *MsgConfirmRefund) (err error)
 
 	ValidateExternalAddress(addr string) error
 	ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error)
@@ -416,6 +421,28 @@ func (m *MsgConfirmBatch) GetSignBytes() []byte {
 // GetSigners defines whose signature is required
 func (m *MsgConfirmBatch) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
+}
+
+// MsgConfirmRefund
+
+func (m *MsgConfirmRefund) Route() string { return RouterKey }
+
+func (m *MsgConfirmRefund) Type() string { return TypeMsgConfirmRefund }
+
+func (m *MsgConfirmRefund) ValidateBasic() error {
+	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	} else {
+		return router.MsgConfirmRefundValidate(m)
+	}
+}
+
+func (m *MsgConfirmRefund) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
+}
+
+func (m *MsgConfirmRefund) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // MsgCancelSendToExternal

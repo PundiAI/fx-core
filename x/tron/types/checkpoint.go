@@ -81,3 +81,37 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 	}
 	return crypto.Keccak256(encode), nil
 }
+
+func GetCheckpointConfirmRefund(refund *types.RefundRecord, gravityIDStr string) ([]byte, error) {
+	tokenAmounts := make([]*big.Int, len(refund.Tokens))
+	tokenContracts := make([]string, len(refund.Tokens))
+	for i, token := range refund.Tokens {
+		tokenAmounts[i] = token.Amount.BigInt()
+		tokenContracts[i] = token.Contract
+	}
+
+	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse gravity id")
+	}
+	transactionBatch, err := fxtypes.StrToByte32("refundToken")
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse checkpoint")
+	}
+
+	params := []abi.Param{
+		{"bytes32": gravityID},
+		{"bytes32": transactionBatch},
+		{"address": refund.Receiver},
+		{"address[]": tokenContracts},
+		{"uint256[]": tokenAmounts},
+		{"uint256": big.NewInt(int64(refund.EventNonce))},
+		{"uint256": big.NewInt(int64(refund.Timeout))},
+	}
+
+	encode, err := abi.GetPaddedParam(params)
+	if err != nil {
+		return nil, err
+	}
+	return crypto.Keccak256(encode), nil
+}

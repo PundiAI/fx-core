@@ -20,8 +20,9 @@ import (
 // truncate the first several bytes where the call name is encoded to finally get the equal of the
 
 var (
-	outgoingBatchTxCheckpointABI abi.ABI
-	oracleSetCheckpointABI       abi.ABI
+	outgoingBatchTxCheckpointABI    abi.ABI
+	oracleSetCheckpointABI          abi.ABI
+	bridgeCallRefundTxCheckpointABI abi.ABI
 )
 
 func init() {
@@ -63,6 +64,24 @@ func init() {
 			{ "internalType": "bytes32", "name": "", "type": "bytes32" }
 		]
 	}]`
+
+		bridgeCallRefundTxCheckpointABIJSON = `[{
+		"name":"refundToken",
+		"stateMutability":"nonpayable",
+		"type":"function",
+		"inputs":[
+			{ "internalType": "bytes32",   "name": "_fxbridgeId",    "type": "bytes32" },
+			{ "internalType": "bytes32",   "name": "_methodName",    "type": "bytes32" },
+			{ "internalType": "address",   "name": "_receiver",      "type": "address" },
+			{ "internalType": "address[]", "name": "_tokenContract", "type": "address[]" },
+			{ "internalType": "uint256[]", "name": "_amounts",       "type": "uint256[]" },
+			{ "internalType": "uint256",   "name": "_eventNonce",    "type": "uint256" },
+			{ "internalType": "uint256",   "name": "_timeout",       "type": "uint256" }
+		],
+		"outputs": [
+			{ "internalType": "bytes32", "name": "", "type": "bytes32" }
+		]
+	}]`
 	)
 
 	var err error
@@ -71,6 +90,10 @@ func init() {
 		panic(err.Error())
 	}
 	oracleSetCheckpointABI, err = abi.JSON(strings.NewReader(oracleSetCheckpointABIJSON))
+	if err != nil {
+		panic(err.Error())
+	}
+	bridgeCallRefundTxCheckpointABI, err = abi.JSON(strings.NewReader(bridgeCallRefundTxCheckpointABIJSON))
 	if err != nil {
 		panic(err.Error())
 	}
