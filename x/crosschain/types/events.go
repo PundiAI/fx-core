@@ -8,6 +8,7 @@ const (
 
 	AttributeKeyBlockHeight  = "block_height"
 	AttributeKeyStateSuccess = "state_success"
+	AttributeKeyErrReason    = "err_reason"
 
 	EventTypeOracleSetUpdate   = "oracle_set_update"
 	AttributeKeyOracleSetNonce = "oracle_set_nonce"

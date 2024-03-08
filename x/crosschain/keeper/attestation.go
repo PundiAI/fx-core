@@ -89,7 +89,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
 		err := k.processAttestation(ctx, claim)
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
+		event := sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
@@ -97,7 +97,11 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			sdk.NewAttribute(types.AttributeKeyClaimHash, fmt.Sprint(hex.EncodeToString(claim.ClaimHash()))),
 			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
 			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
-		))
+		)
+		if err != nil {
+			event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyErrReason, err.Error()))
+		}
+		ctx.EventManager().EmitEvent(event)
 
 		k.pruneAttestations(ctx)
 		break
