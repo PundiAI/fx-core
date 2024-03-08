@@ -239,6 +239,22 @@ func (b TronMsgValidate) MsgConfirmBatchValidate(m *crosschaintypes.MsgConfirmBa
 	return nil
 }
 
+func (b TronMsgValidate) MsgConfirmRefundValidate(m *crosschaintypes.MsgConfirmRefund) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+	}
+	if err = ValidateTronAddress(m.ExternalAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+	}
+	if len(m.Signature) == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("empty signature")
+	}
+	if _, err = hex.DecodeString(m.Signature); err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
+	}
+	return nil
+}
+
 func (b TronMsgValidate) ValidateExternalAddress(addr string) error {
 	return ValidateTronAddress(addr)
 }

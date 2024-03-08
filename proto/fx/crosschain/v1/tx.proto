@@ -281,6 +281,16 @@ message MsgBridgeTokenClaim {
 
 message MsgBridgeTokenClaimResponse {}
 
+message MsgConfirmRefund {
+  uint64 nonce = 1;
+  string bridger_address = 3;
+  string external_address = 4;
+  string signature = 5;
+  string chain_name = 6;
+}
+
+message MsgConfirmRefundResponse {}
+
 // Deprecated: after block 5713000
 message MsgSetOrchestratorAddress {
   string oracle_address = 1;

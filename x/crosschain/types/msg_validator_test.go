@@ -1828,6 +1828,55 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgConfirmRefund_ValidateBasic(t *testing.T) {
+	moduleName := getRandModule()
+	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
+	testCases := []struct {
+		testName   string
+		msg        *types.MsgConfirmRefund
+		expectPass bool
+		err        error
+		errReason  string
+	}{
+		{
+			testName: "err - empty chain name",
+			msg: &types.MsgConfirmRefund{
+				ChainName: "",
+			},
+			expectPass: false,
+			err:        errortypes.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "success",
+			msg: &types.MsgConfirmRefund{
+				Nonce:           uint64(tmrand.Int63n(100000)),
+				BridgerAddress:  normalBridgeAddress,
+				ExternalAddress: normalExternalAddress,
+				Signature:       hex.EncodeToString(tmrand.Bytes(100)),
+				ChainName:       moduleName,
+			},
+			expectPass: true,
+			err:        nil,
+			errReason:  "",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			err := testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err)
+				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
+				require.EqualValuesf(t, testCase.errReason, err.Error(), "%+v", testCase.msg)
+			}
+		})
+	}
+}
+
 // externalAddressToUpper for test case address to upper
 func externalAddressToUpper(address string) string {
 	if strings.HasPrefix(address, "0x") {
