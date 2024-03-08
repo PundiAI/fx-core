@@ -90,7 +90,7 @@ var (
 	LastEventBlockHeightByOracleKey = []byte{0x35}
 
 	// Deprecated: PastExternalSignatureCheckpointKey indexes eth signature checkpoints that have existed
-	PastExternalSignatureCheckpointKey = []byte{0x36}
+	// PastExternalSignatureCheckpointKey = []byte{0x36}
 
 	// LastOracleSlashBlockHeight indexes the last oracle slash block height
 	LastOracleSlashBlockHeight = []byte{0x37}
@@ -104,8 +104,8 @@ var (
 	// ParamsKey is the prefix for params key
 	ParamsKey = []byte{0x40}
 
-	// OutgoingTxRelationKey outgoing tx with evm
-	OutgoingTxRelationKey = []byte{0x41}
+	// Deprecated: OutgoingTxRelationKey outgoing tx with evm
+	// OutgoingTxRelationKey = []byte{0x41}
 
 	BridgeCallRefundKey = []byte{0x42}
 
@@ -196,15 +196,6 @@ func GetDenomToTokenKey(tokenContract string) []byte {
 // GetTokenToDenomKey returns the following key format
 func GetTokenToDenomKey(denom string) []byte {
 	return append(TokenToDenomKey, []byte(denom)...)
-}
-
-// GetPastExternalSignatureCheckpointKey returns the following key format
-func GetPastExternalSignatureCheckpointKey(blockHeight uint64, checkpoint []byte) []byte {
-	return append(PastExternalSignatureCheckpointKey, append(sdk.Uint64ToBigEndian(blockHeight), checkpoint...)...)
-}
-
-func GetOutgoingTxRelationKey(txID uint64) []byte {
-	return append(OutgoingTxRelationKey, sdk.Uint64ToBigEndian(txID)...)
 }
 
 func GetBridgeCallRefundKey(address string, nonce uint64) []byte {
