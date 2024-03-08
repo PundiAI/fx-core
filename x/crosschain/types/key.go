@@ -112,6 +112,8 @@ var (
 	BridgeCallRefundEventNonceKey = []byte{0x43}
 
 	SnapshotOracleKey = []byte{0x44}
+
+	BridgeCallRefundConfirmKey = []byte{0x45}
 )
 
 // GetOracleKey returns the following key format
@@ -215,4 +217,8 @@ func GetBridgeCallRefundEventNonceKey(nonce uint64) []byte {
 
 func GetSnapshotOracleKey(oracleSetNonce uint64) []byte {
 	return append(SnapshotOracleKey, sdk.Uint64ToBigEndian(oracleSetNonce)...)
+}
+
+func GetRefundConfirmKey(nonce uint64, addr sdk.AccAddress) []byte {
+	return append(BridgeCallRefundConfirmKey, append(sdk.Uint64ToBigEndian(nonce), addr.Bytes()...)...)
 }

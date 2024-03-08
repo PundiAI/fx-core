@@ -100,6 +100,50 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 	return &crosschaintypes.MsgOracleSetConfirmResponse{}, nil
 }
 
+func (s msgServer) ConfirmRefund(c context.Context, msg *crosschaintypes.MsgConfirmRefund) (*crosschaintypes.MsgConfirmRefundResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	record, found := s.GetRefundRecord(ctx, msg.Nonce)
+	if !found {
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find refund record")
+	}
+
+	snapshotOracle, found := s.GetSnapshotOracle(ctx, record.OracleSetNonce)
+	if !found {
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find snapshot oracle")
+	}
+	if !snapshotOracle.HasExternalAddress(msg.ExternalAddress) {
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "external address not in snapshot oracle")
+	}
+
+	checkpoint, err := trontypes.GetCheckpointConfirmRefund(record, s.GetGravityID(ctx))
+	if err != nil {
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, err.Error())
+	}
+	sigBytes, err := hex.DecodeString(msg.Signature)
+	if err != nil {
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "signature decoding")
+	}
+
+	if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, msg.ExternalAddress); err != nil {
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", msg.ExternalAddress, hex.EncodeToString(checkpoint), sigBytes))
+	}
+
+	externalAddr := crosschaintypes.ExternalAddressToAccAddress(s.ModuleName(), msg.ExternalAddress)
+	if _, found = s.GetRefundConfirm(ctx, msg.Nonce, externalAddr); found {
+		return nil, errorsmod.Wrap(crosschaintypes.ErrDuplicate, "signature")
+	}
+	s.SetRefundConfirm(ctx, externalAddr, msg)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
+	))
+
+	return &crosschaintypes.MsgConfirmRefundResponse{}, nil
+}
+
 func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
