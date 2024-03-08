@@ -1,9 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -48,158 +48,52 @@ func DefaultParams() Params {
 }
 
 // ValidateBasic checks that the parameters have valid values.
+// nolint:gocyclo
 func (m *Params) ValidateBasic() error {
-	if err := validateGravityID(m.GravityId); err != nil {
-		return errorsmod.Wrap(err, "gravity id")
-	}
-	if err := validateAverageBlockTime(m.AverageBlockTime); err != nil {
-		return errorsmod.Wrap(err, "average block time")
-	}
-	if err := validateExternalBatchTimeout(m.ExternalBatchTimeout); err != nil {
-		return errorsmod.Wrap(err, "external batch timeout")
-	}
-	if err := validateAverageExternalBlockTime(m.AverageExternalBlockTime); err != nil {
-		return errorsmod.Wrap(err, "average external block time")
-	}
-	if err := validateSignedWindow(m.SignedWindow); err != nil {
-		return errorsmod.Wrap(err, "signed blocks window")
-	}
-	if err := validateSlashFraction(m.SlashFraction); err != nil {
-		return errorsmod.Wrap(err, "slash fraction")
-	}
-	if err := validateIbcTransferTimeoutHeight(m.IbcTransferTimeoutHeight); err != nil {
-		return errorsmod.Wrap(err, "ibc transfer timeout height")
-	}
-	if err := validateOracleSetUpdatePowerChangePercent(m.OracleSetUpdatePowerChangePercent); err != nil {
-		return errorsmod.Wrap(err, "power changer update oracle set percent")
-	}
-	if err := validateOracleDelegateThreshold(m.DelegateThreshold); err != nil {
-		return errorsmod.Wrap(err, "oracle delegate threshold")
-	}
-	if err := validateOracleDelegateMultiple(m.DelegateMultiple); err != nil {
-		return errorsmod.Wrap(err, "delegate multiple")
-	}
-	return nil
-}
-
-func validateGravityID(i interface{}) error {
-	v, ok := i.(string)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if len(v) == 0 {
+	if len(m.GravityId) == 0 {
 		return fmt.Errorf("gravityId cannpt be empty")
 	}
-	if _, err := fxtypes.StrToByte32(v); err != nil {
+	if _, err := fxtypes.StrToByte32(m.GravityId); err != nil {
 		return err
 	}
-	return nil
-}
-
-func validateExternalBatchTimeout(i interface{}) error {
-	timeout, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if timeout < 60000 {
-		return fmt.Errorf("invalid target batch timeout, less than 60 seconds is too short")
-	}
-	return nil
-}
-
-func validateAverageBlockTime(i interface{}) error {
-	time, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if time < 100 {
+	if m.AverageBlockTime < 100 {
 		return fmt.Errorf("invalid average block time, too short for latency limitations")
 	}
-	return nil
-}
-
-func validateAverageExternalBlockTime(i interface{}) error {
-	val, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+	if m.ExternalBatchTimeout < 60000 {
+		return fmt.Errorf("invalid target batch timeout, less than 60 seconds is too short")
 	}
-	if val < 100 {
+	if m.AverageExternalBlockTime < 100 {
 		return fmt.Errorf("invalid average external block time, too short for latency limitations")
 	}
-	return nil
-}
-
-func validateSignedWindow(i interface{}) error {
-	window, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if window <= 1 {
+	if m.SignedWindow <= 1 {
 		return fmt.Errorf("invalid signed window too short")
 	}
-	return nil
-}
-
-func validateOracleDelegateThreshold(i interface{}) error {
-	c, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+	if m.SlashFraction.IsNegative() {
+		return fmt.Errorf("attempted to slash with a negative slash factor: %v", m.SlashFraction)
 	}
-	if !c.IsValid() || !c.IsPositive() {
-		return fmt.Errorf("invalid delegate threshold")
+	if m.SlashFraction.GT(sdk.OneDec()) {
+		return fmt.Errorf("slash factor too large: %s", m.SlashFraction)
 	}
-	if c.Denom != OracleDelegateDenom {
-		return fmt.Errorf("oracle delegate denom must FX")
-	}
-	return nil
-}
-
-func validateIbcTransferTimeoutHeight(i interface{}) error {
-	timeout, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if timeout <= 1 {
+	if m.IbcTransferTimeoutHeight <= 1 {
 		return fmt.Errorf("invalid ibc transfer timeout too short")
 	}
-	return nil
-}
-
-func validateOracleDelegateMultiple(i interface{}) error {
-	multiple, ok := i.(int64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+	if m.OracleSetUpdatePowerChangePercent.IsNegative() {
+		return fmt.Errorf("attempted to powet change percent with a negative: %v", m.OracleSetUpdatePowerChangePercent)
 	}
-	if multiple <= 0 {
+	if m.OracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
+		return fmt.Errorf("powet change percent too large: %s", m.OracleSetUpdatePowerChangePercent)
+	}
+	if !m.DelegateThreshold.IsValid() || !m.DelegateThreshold.IsPositive() {
+		return fmt.Errorf("invalid delegate threshold")
+	}
+	if m.DelegateThreshold.Denom != OracleDelegateDenom {
+		return fmt.Errorf("oracle delegate denom must FX")
+	}
+	if m.DelegateMultiple <= 0 {
 		return fmt.Errorf("invalid delegate multiple")
 	}
-	return nil
-}
-
-func validateOracleSetUpdatePowerChangePercent(i interface{}) error {
-	percent, ok := i.(sdk.Dec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if percent.IsNegative() {
-		return fmt.Errorf("attempted to powet change percent with a negative: %v", percent)
-	}
-	if percent.GT(sdk.OneDec()) {
-		return fmt.Errorf("powet change percent too large: %s", i)
-	}
-	return nil
-}
-
-func validateSlashFraction(i interface{}) error {
-	slashFactor, ok := i.(sdk.Dec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if slashFactor.IsNegative() {
-		return fmt.Errorf("attempted to slash with a negative slash factor: %v", slashFactor)
-	}
-	if slashFactor.GT(sdk.OneDec()) {
-		return fmt.Errorf("slash factor too large: %s", i)
+	if len(m.Oracles) > 0 {
+		return errors.New("deprecated oracles")
 	}
 	return nil
 }
