@@ -158,6 +158,14 @@ func (k msgServer) ConfirmBatch(ctx context.Context, msg *types.MsgConfirmBatch)
 	}
 }
 
+func (k msgServer) ConfirmRefund(ctx context.Context, msg *types.MsgConfirmRefund) (*types.MsgConfirmRefundResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.ConfirmRefund(ctx, msg)
+	}
+}
+
 func (k msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err

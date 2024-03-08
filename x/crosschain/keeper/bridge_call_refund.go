@@ -67,3 +67,19 @@ func (k Keeper) GetSnapshotOracle(ctx sdk.Context, oracleSetNonce uint64) (*type
 	k.cdc.MustUnmarshal(bz, snapshotOracle)
 	return snapshotOracle, true
 }
+
+func (k Keeper) GetRefundConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) (*types.MsgConfirmRefund, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetRefundConfirmKey(nonce, addr))
+	if bz == nil {
+		return nil, false
+	}
+	var msg types.MsgConfirmRefund
+	k.cdc.MustUnmarshal(bz, &msg)
+	return &msg, true
+}
+
+func (k Keeper) SetRefundConfirm(ctx sdk.Context, addr sdk.AccAddress, msg *types.MsgConfirmRefund) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetRefundConfirmKey(msg.Nonce, addr), k.cdc.MustMarshal(msg))
+}

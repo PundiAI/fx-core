@@ -438,3 +438,15 @@ func (m *RefundRecord) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// then need to adjust how many bytes you truncate off the front to get the output of abi.encode()
 	return crypto.Keccak256Hash(abiEncodedBatch[4:]).Bytes(), nil
 }
+
+func (m *SnapshotOracle) HasExternalAddress(address string) bool {
+	if m == nil {
+		return false
+	}
+	for _, member := range m.Members {
+		if address == member.ExternalAddress {
+			return true
+		}
+	}
+	return false
+}

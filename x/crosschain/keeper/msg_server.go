@@ -519,6 +519,50 @@ func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 	return &types.MsgOracleSetConfirmResponse{}, nil
 }
 
+func (s MsgServer) ConfirmRefund(c context.Context, msg *types.MsgConfirmRefund) (*types.MsgConfirmRefundResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	record, found := s.GetRefundRecord(ctx, msg.Nonce)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find refund record")
+	}
+
+	snapshotOracle, found := s.GetSnapshotOracle(ctx, record.OracleSetNonce)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find snapshot oracle")
+	}
+	if !snapshotOracle.HasExternalAddress(msg.ExternalAddress) {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "external address not in snapshot oracle")
+	}
+	checkpoint, err := record.GetCheckpoint(s.GetGravityID(ctx))
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
+	}
+
+	sigBytes, err := hex.DecodeString(msg.Signature)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
+	}
+
+	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, msg.ExternalAddress); err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", msg.ExternalAddress, hex.EncodeToString(checkpoint), sigBytes))
+	}
+
+	externalAddr := types.ExternalAddressToAccAddress(s.moduleName, msg.ExternalAddress)
+	if _, found = s.GetRefundConfirm(ctx, msg.Nonce, externalAddr); found {
+		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
+	}
+	s.SetRefundConfirm(ctx, externalAddr, msg)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
+	))
+
+	return &types.MsgConfirmRefundResponse{}, nil
+}
+
 func (s MsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {

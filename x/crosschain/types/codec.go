@@ -52,6 +52,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 		&MsgUpdateParams{},
 		&MsgUpdateChainOracles{},
+
+		&MsgConfirmRefund{},
 	)
 
 	registry.RegisterInterface(
@@ -98,6 +100,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	cdc.RegisterConcrete(&MsgRequestBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRequestBatch"), nil)
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
+
+	cdc.RegisterConcrete(&MsgConfirmRefund{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmRefund"), nil)
 
 	// register Proposal
 	cdc.RegisterConcrete(&UpdateChainOraclesProposal{}, fmt.Sprintf("%s/%s", ModuleName, "UpdateChainOraclesProposal"), nil)
