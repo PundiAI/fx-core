@@ -107,12 +107,7 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	migrator := crosschainkeeper.NewMigrator(am.keeper, am.legacySubspace)
-	if err := cfg.RegisterMigration(am.Name(), 3, migrator.Migrate3to4); err != nil {
-		panic(err)
-	}
-}
+func (am AppModule) RegisterServices(cfg module.Configurator) {}
 
 // InitGenesis initializes the genesis state for this module and implements app module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {

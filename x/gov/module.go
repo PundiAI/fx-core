@@ -108,16 +108,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	//  fx gov
 	types.RegisterMsgServer(cfg.MsgServer(), msgServer)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
-	m := keeper.NewMigrator(am.cdc, am.keeper)
-	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)
-	if err != nil {
-		panic(err)
-	}
-	err = cfg.RegisterMigration(govtypes.ModuleName, 2, m.Migrate2to3)
-	if err != nil {
-		panic(err)
-	}
 }
 
 // InitGenesis performs genesis initialization for the gov module. It returns
