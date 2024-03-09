@@ -117,6 +117,24 @@ function show_validator_reward() {
   } | column -t -s"#"
 }
 
+function show_oracle_reward() {
+  local json_rpc_url=${1:-"https://fx-json.functionx.io:26657"}
+  local DAEMON=${DAEMON:-"fxcored"}
+  local decimals=18
+  declare -a arr=("eth" "bsc" "polygon" "tron" "avalanche")
+  {
+    for chain_name in "${arr[@]}"; do
+      echo "${chain_name}_oracle_address#delegate_amount#start_height#online#delegate_validator#reward"
+      while read -r oracle_address delegate_amount start_height online delegate_validator; do
+        reward_amount=$($DAEMON q crosschain "$chain_name" reward "$oracle_address" --node "$json_rpc_url" | jq -r '.total[0].amount')
+        reward_amount=$(echo "scale=6; $reward_amount / 10^$decimals" | bc)
+        delegate_amount=$(echo "scale=6; $delegate_amount / 10^$decimals" | bc)
+        echo "$oracle_address#$delegate_amount#$start_height#$online#$delegate_validator#$reward_amount"
+      done < <(curl -s "$REST_RPC/fx/crosschain/v1/oracles?chain_name=$chain_name" | jq -r '.oracles[]|"\(.oracle_address) \(.delegate_amount) \(.start_height) \(.online) \(.delegate_validator)"')
+    done
+  } | column -t -s"#"
+}
+
 function show_validator_vote() {
   if [ -z "$PROPOSAL_ID" ]; then
     {
