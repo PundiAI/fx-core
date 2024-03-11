@@ -46,6 +46,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgCancelSendToExternal{},
 		&MsgIncreaseBridgeFee{},
 		&MsgSendToExternalClaim{},
+		&MsgRefundTokenClaim{},
 
 		&MsgRequestBatch{},
 		&MsgConfirmBatch{},
@@ -64,6 +65,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgBridgeCallClaim{},
 		&MsgBridgeTokenClaim{},
 		&MsgOracleSetUpdatedClaim{},
+		&MsgRefundTokenClaim{},
 	)
 
 	registry.RegisterImplementations(
@@ -97,6 +99,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCancelSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCancelSendToExternal"), nil)
 	cdc.RegisterConcrete(&MsgIncreaseBridgeFee{}, fmt.Sprintf("%s/%s", ModuleName, "MsgIncreaseBridgeFee"), nil)
 	cdc.RegisterConcrete(&MsgSendToExternalClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToExternalClaim"), nil)
+	cdc.RegisterConcrete(&MsgRefundTokenClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRefundTokenClaim"), nil)
 
 	cdc.RegisterConcrete(&MsgRequestBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRequestBatch"), nil)
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)

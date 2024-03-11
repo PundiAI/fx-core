@@ -148,6 +148,9 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		}
 		k.SetLastObservedOracleSet(ctx, observedOracleSet)
 
+	case *types.MsgRefundTokenClaim:
+		k.HandleRefundTokenClaim(ctx, claim)
+		return nil
 	default:
 		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
 	}

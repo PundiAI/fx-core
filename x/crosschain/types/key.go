@@ -213,3 +213,7 @@ func GetSnapshotOracleKey(oracleSetNonce uint64) []byte {
 func GetRefundConfirmKey(nonce uint64, addr sdk.AccAddress) []byte {
 	return append(BridgeCallRefundConfirmKey, append(sdk.Uint64ToBigEndian(nonce), addr.Bytes()...)...)
 }
+
+func GetRefundConfirmKeyByNonce(nonce uint64) []byte {
+	return append(BridgeCallRefundConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
+}

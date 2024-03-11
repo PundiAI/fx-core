@@ -110,6 +110,14 @@ func (k msgServer) BridgeCallClaim(ctx context.Context, msg *types.MsgBridgeCall
 	}
 }
 
+func (k msgServer) RefundTokenClaim(ctx context.Context, msg *types.MsgRefundTokenClaim) (*types.MsgRefundTokenClaimResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.RefundTokenClaim(ctx, msg)
+	}
+}
+
 func (k msgServer) SendToExternal(ctx context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err

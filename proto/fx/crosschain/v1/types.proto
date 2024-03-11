@@ -70,6 +70,7 @@ enum ClaimType {
   CLAIM_TYPE_BRIDGE_TOKEN = 3;
   CLAIM_TYPE_ORACLE_SET_UPDATED = 4;
   CLAIM_TYPE_BRIDGE_CALL = 5;
+  CLAIM_TYPE_REFUND_TOKEN = 6;
 }
 
 // Attestation is an aggregate of `claims` that eventually becomes `observed` by

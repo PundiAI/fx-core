@@ -25,6 +25,7 @@ service Msg {
 
   rpc SendToFxClaim(MsgSendToFxClaim) returns (MsgSendToFxClaimResponse);
   rpc BridgeCallClaim(MsgBridgeCallClaim) returns (MsgBridgeCallClaimResponse);
+  rpc RefundTokenClaim(MsgRefundTokenClaim) returns (MsgRefundTokenClaimResponse);
 
   rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
   rpc CancelSendToExternal(MsgCancelSendToExternal) returns (MsgCancelSendToExternalResponse);
@@ -171,6 +172,16 @@ message MsgBridgeCallClaim {
 }
 
 message MsgBridgeCallClaimResponse {}
+
+message MsgRefundTokenClaim {
+  uint64 refund_nonce = 1;
+  uint64 event_nonce = 2;
+  uint64 block_height = 3;
+  string bridger_address = 4;
+  string chain_name = 5;
+}
+
+message MsgRefundTokenClaimResponse {}
 
 // MsgSendToExternal
 // This is the message that a user calls when they want to bridge an asset
