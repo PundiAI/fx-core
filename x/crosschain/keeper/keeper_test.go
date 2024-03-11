@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 	"testing"
@@ -43,17 +44,27 @@ type KeeperTestSuite struct {
 	chainName    string
 }
 
-func TestKeeperTestSuite(t *testing.T) {
+func TestCrosschainKeeperTestSuite(t *testing.T) {
 	compile := regexp.MustCompile("^Test")
-	subModules := []string{
+	mustTestModule := []string{
+		trontypes.ModuleName,
+	}
+	otherModules := []string{
+		ethtypes.ModuleName,
 		bsctypes.ModuleName,
 		polygontypes.ModuleName,
-		trontypes.ModuleName,
-		ethtypes.ModuleName,
 		avalanchetypes.ModuleName,
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
 	}
+
+	subModules := mustTestModule
+	if os.Getenv("TEST_INTEGRATION") != "true" {
+		subModules = append(subModules, otherModules[tmrand.Int63n(int64(len(otherModules)))])
+	} else {
+		subModules = append(subModules, otherModules...)
+	}
+
 	for _, moduleName := range subModules {
 		methodFinder := reflect.TypeOf(new(KeeperTestSuite))
 		for i := 0; i < methodFinder.NumMethod(); i++ {
