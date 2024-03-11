@@ -28,3 +28,7 @@ jobs:
         env:
           TEST_INTEGRATION: true
 
+      - name: Run TestCrosschainKeeperTestSuite
+        run: go test -mod=readonly -v -run TestCrosschainKeeperTestSuite ./x/crosschain/...
+        env:
+          TEST_INTEGRATION: true
