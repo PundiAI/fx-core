@@ -152,6 +152,11 @@ interface IFxBridgeLogic {
         bytes memory _asset
     ) external pure returns (string memory, bytes memory);
 
+    /* ============== BSC FUNCTIONS =============== */
+    function convert_decimals(
+        address _erc20Address
+    ) external view returns (uint8);
+
     /* =============== EVENTS =============== */
 
     event TransactionBatchExecutedEvent(
