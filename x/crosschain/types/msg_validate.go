@@ -227,6 +227,22 @@ func (b MsgValidate) MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err erro
 	return nil
 }
 
+func (b MsgValidate) MsgRefundTokenClaimValidate(m *MsgRefundTokenClaim) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+	}
+	if m.RefundNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero refund nonce")
+	}
+	if m.EventNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+	}
+	if m.BlockHeight == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	return nil
+}
+
 func (b MsgValidate) MsgSendToExternalValidate(m *MsgSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
