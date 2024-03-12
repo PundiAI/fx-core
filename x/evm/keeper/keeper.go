@@ -92,8 +92,8 @@ func (k *Keeper) CallEVMWithoutGas(
 	if res.Failed() {
 		errStr := res.VmError
 		if res.VmError == vm.ErrExecutionReverted.Error() {
-			if reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret)); err == nil {
-				errStr = reason
+			if cause, err := abi.UnpackRevert(common.CopyBytes(res.Ret)); err == nil {
+				errStr = cause
 			}
 		}
 		return res, errorsmod.Wrap(types.ErrVMExecution, errStr)

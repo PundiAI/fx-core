@@ -35,21 +35,21 @@ func (k Keeper) BridgeCallERC20Handler(
 		return errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
-	var refundReason string
+	var errCause string
 	if dstChainID == types.FxcoreChainID {
 		cacheCtx, commit := ctx.CacheContext()
 		err = k.bridgeCallFxCore(cacheCtx, sender, tokens, receiver, message, to, value, gasLimit, eventNonce)
 		if err != nil {
-			refundReason = err.Error()
+			errCause = err.Error()
 		} else {
 			commit()
 		}
 	}
-	if len(refundReason) > 0 && len(tokens) > 0 {
+	if len(errCause) > 0 && len(tokens) > 0 {
 		receiverStr := fxtypes.AddressToStr(sender.Bytes(), k.moduleName)
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(types.EventTypeBridgeCallRefund,
-				sdk.NewAttribute(types.AttributeKeyRefundReason, refundReason),
+				sdk.NewAttribute(types.AttributeKeyErrCause, errCause),
 				sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
 				sdk.NewAttribute(types.AttributeKeyRefundAddress, receiverStr),
 			),

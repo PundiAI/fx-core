@@ -99,7 +99,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
 		)
 		if err != nil {
-			event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyErrReason, err.Error()))
+			event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyErrCause, err.Error()))
 		}
 		ctx.EventManager().EmitEvent(event)
 
