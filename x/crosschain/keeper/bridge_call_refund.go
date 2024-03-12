@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -59,7 +57,7 @@ func (k Keeper) AddRefundRecord(ctx sdk.Context, receiver string, eventNonce uin
 	k.SetRefundRecord(ctx, &types.RefundRecord{
 		EventNonce:     eventNonce,
 		Receiver:       receiver,
-		Timeout:        uint64(ctx.BlockTime().Add(time.Hour * 24 * 7).Second()), // TODO need to be configurable
+		Timeout:        k.GetBridgeCallRefundTimeout(ctx),
 		OracleSetNonce: oracleSet.Nonce,
 		Tokens:         tokens,
 	})

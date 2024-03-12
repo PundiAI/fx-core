@@ -229,6 +229,7 @@ message Params {
   repeated string oracles = 9 [(gogoproto.nullable) = true];
   cosmos.base.v1beta1.Coin delegate_threshold = 10 [(gogoproto.nullable) = false];
   int64 delegate_multiple = 11;
+  uint64 bridge_call_refund_timeout = 12;
 }
 
 // Deprecated: after block 5713000

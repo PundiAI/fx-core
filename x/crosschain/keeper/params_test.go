@@ -27,6 +27,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
@@ -45,6 +46,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
@@ -63,6 +65,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
@@ -81,6 +84,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
@@ -99,6 +103,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 sdk.NewCoin("PX", sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
@@ -117,6 +122,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				IbcTransferTimeoutHeight:          1,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
@@ -131,10 +137,11 @@ func (suite *KeeperTestSuite) TestParams() {
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
 				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDec(2),            // 10%
+				OracleSetUpdatePowerChangePercent: sdk.NewDec(2),            // 200%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
@@ -148,22 +155,41 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDec(2),            // 80%
+				SlashFraction:                     sdk.NewDec(2),            // 200%
 				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           types.DefaultBridgeCallRefundTimeout,
 				Oracles:                           nil,
 			},
 			expectErr: true,
 			expErrMsg: "slash factor too large",
 		},
+		{
+			name: "invalid bridge call refund timeout",
+			input: &types.Params{
+				GravityId:                         "fx-gravity-id",
+				AverageBlockTime:                  7_000,
+				AverageExternalBlockTime:          5_000,
+				ExternalBatchTimeout:              12 * 3600 * 1000,
+				SignedWindow:                      30_000,
+				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				IbcTransferTimeoutHeight:          20_000,
+				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+				DelegateMultiple:                  10,
+				BridgeCallRefundTimeout:           1,
+				Oracles:                           nil,
+			},
+			expectErr: true,
+			expErrMsg: "invalid bridge call refund timeout",
+		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
-			expected := suite.app.CrossChainKeepers.BscKeeper.GetParams(suite.ctx)
-			err := suite.app.CrossChainKeepers.BscKeeper.SetParams(suite.ctx, tc.input)
+			expected := suite.Keeper().GetParams(suite.ctx)
+			err := suite.Keeper().SetParams(suite.ctx, tc.input)
 			if tc.expectErr {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expErrMsg)
@@ -171,7 +197,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				expected = *tc.input
 				suite.Require().NoError(err)
 			}
-			params := suite.app.CrossChainKeepers.BscKeeper.GetParams(suite.ctx)
+			params := suite.Keeper().GetParams(suite.ctx)
 			suite.Require().Equal(expected, params)
 		})
 	}

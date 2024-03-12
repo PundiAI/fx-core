@@ -108,7 +108,12 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ module.Configurator) {}
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	migrator := crosschainkeeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(am.Name(), 1, migrator.Migrate); err != nil {
+		panic(err)
+	}
+}
 
 // InitGenesis initializes the genesis state for this module and implements app module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
@@ -127,7 +132,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 1
+	return 2
 }
 
 // EndBlock implements app module
