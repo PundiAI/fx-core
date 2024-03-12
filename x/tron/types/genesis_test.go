@@ -31,6 +31,7 @@ func TestDefaultGenesisState(t *testing.T) {
 					IbcTransferTimeoutHeight:          20_000,
 					DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 					DelegateMultiple:                  10,
+					BridgeCallRefundTimeout:           crosschaintypes.DefaultBridgeCallRefundTimeout,
 				},
 			},
 		},

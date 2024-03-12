@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,6 +18,7 @@ const (
 	MaxResults                     = 100
 	MaxOracleSetRequestsResults    = 5
 	MaxKeepEventSize               = 100
+	DefaultBridgeCallRefundTimeout = uint64(7 * 24 * time.Hour)
 )
 
 var (
@@ -43,6 +45,7 @@ func DefaultParams() Params {
 		IbcTransferTimeoutHeight:          20_000,
 		DelegateThreshold:                 NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 		DelegateMultiple:                  DefaultOracleDelegateThreshold,
+		BridgeCallRefundTimeout:           DefaultBridgeCallRefundTimeout,
 		Oracles:                           nil,
 	}
 }
@@ -94,6 +97,9 @@ func (m *Params) ValidateBasic() error {
 	}
 	if len(m.Oracles) > 0 {
 		return errors.New("deprecated oracles")
+	}
+	if m.BridgeCallRefundTimeout <= uint64(1*time.Hour) {
+		return fmt.Errorf("invalid bridge call refund timeout")
 	}
 	return nil
 }

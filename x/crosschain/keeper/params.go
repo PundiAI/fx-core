@@ -65,3 +65,7 @@ func (k Keeper) GetIbcTransferTimeoutHeight(ctx sdk.Context) uint64 {
 func (k Keeper) GetOracleSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
 	return k.GetParams(ctx).OracleSetUpdatePowerChangePercent
 }
+
+func (k Keeper) GetBridgeCallRefundTimeout(ctx sdk.Context) uint64 {
+	return k.GetParams(ctx).BridgeCallRefundTimeout
+}

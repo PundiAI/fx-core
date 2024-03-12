@@ -56,7 +56,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 		IbcTransferTimeoutHeight:          10000,
 		DelegateThreshold: sdk.NewCoin(fxtypes.DefaultDenom,
 			sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
-		DelegateMultiple: 10,
+		DelegateMultiple:        10,
+		BridgeCallRefundTimeout: crosschaintypes.DefaultBridgeCallRefundTimeout,
 	})
 	suite.Require().NoError(err)
 	suite.msgServer = tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
