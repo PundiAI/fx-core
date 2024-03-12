@@ -79,6 +79,12 @@ func GetQuerySubCmds(chainName string) []*cobra.Command {
 
 		// help cmd.
 		CmdCovertBridgeToken(chainName),
+
+		// refund token
+		CmdRefundRecord(chainName),
+		CmdRefundRecordByAddr(chainName),
+		CmdRefundConfirm(chainName),
+		CmdLastPendingRefundRecord(chainName),
 	}
 
 	for _, command := range cmds {
@@ -812,6 +818,112 @@ func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 			res, err := queryClient.BridgeCoinByDenom(cmd.Context(), &types.QueryBridgeCoinByDenomRequest{
 				ChainName: chainName,
 				Denom:     denom,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdRefundRecord(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "refund-record [nonce]",
+		Short: "Query refund record by event nonce",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			nonce, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.RefundRecordByNonce(cmd.Context(), &types.QueryRefundRecordByNonceRequest{
+				ChainName:  chainName,
+				EventNonce: nonce,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdRefundRecordByAddr(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "refund-record-by-receiver [address]",
+		Short: "Query refund records by receiver",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			receiver, err := getContractAddr(args[0])
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.RefundRecordByReceiver(cmd.Context(), &types.QueryRefundRecordByReceiverRequest{
+				ChainName:       chainName,
+				ReceiverAddress: receiver,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdRefundConfirm(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "refund-confirm [nonce]",
+		Short: "Query refund confirm by event nonce",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			nonce, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.RefundConfirmByNonce(cmd.Context(), &types.QueryRefundConfirmByNonceRequest{
+				ChainName:  chainName,
+				EventNonce: nonce,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdLastPendingRefundRecord(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "last-pending-refund-record [external-address]",
+		Short: "Query last pending refund record for bridge address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			externalAddress, err := getContractAddr(args[0])
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.LastPendingRefundRecordByAddr(cmd.Context(), &types.QueryLastPendingRefundRecordByAddrRequest{
+				ChainName:       chainName,
+				ExternalAddress: externalAddress,
 			})
 			if err != nil {
 				return err

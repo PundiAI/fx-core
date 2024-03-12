@@ -87,6 +87,35 @@ func (k Keeper) GetRefundRecord(ctx sdk.Context, eventNonce uint64) (*types.Refu
 	return refundRecord, true
 }
 
+func (k Keeper) IterRefundRecord(ctx sdk.Context, cb func(record *types.RefundRecord) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.BridgeCallRefundEventNonceKey)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		record := new(types.RefundRecord)
+		k.cdc.MustUnmarshal(iterator.Value(), record)
+		if cb(record) {
+			break
+		}
+	}
+}
+
+func (k Keeper) IterRefundRecordByAddr(ctx sdk.Context, addr string, cb func(record *types.RefundRecord) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.GetBridgeCallRefundAddressKey(addr))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		nonce := types.ParseBridgeCallRefundNonce(iterator.Key(), addr)
+		record, found := k.GetRefundRecord(ctx, nonce)
+		if !found {
+			continue
+		}
+		if cb(record) {
+			break
+		}
+	}
+}
+
 func (k Keeper) SetSnapshotOracle(ctx sdk.Context, snapshotOracleKey *types.SnapshotOracle) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetSnapshotOracleKey(snapshotOracleKey.OracleSetNonce), k.cdc.MustMarshal(snapshotOracleKey))
@@ -101,6 +130,11 @@ func (k Keeper) GetSnapshotOracle(ctx sdk.Context, oracleSetNonce uint64) (*type
 	snapshotOracle := new(types.SnapshotOracle)
 	k.cdc.MustUnmarshal(bz, snapshotOracle)
 	return snapshotOracle, true
+}
+
+func (k Keeper) HasRefundConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetRefundConfirmKey(nonce, addr))
 }
 
 func (k Keeper) DeleteSnapshotOracle(ctx sdk.Context, nonce uint64) {
@@ -122,6 +156,21 @@ func (k Keeper) GetRefundConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddr
 func (k Keeper) SetRefundConfirm(ctx sdk.Context, addr sdk.AccAddress, msg *types.MsgConfirmRefund) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetRefundConfirmKey(msg.Nonce, addr), k.cdc.MustMarshal(msg))
+}
+
+func (k Keeper) IterRefundConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(msg *types.MsgConfirmRefund) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetRefundConfirmNonceKey(nonce))
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		confirm := new(types.MsgConfirmRefund)
+		k.cdc.MustUnmarshal(iter.Value(), confirm)
+		// cb returns true to stop early
+		if cb(confirm) {
+			break
+		}
+	}
 }
 
 func (k Keeper) DeleteRefundConfirm(ctx sdk.Context, nonce uint64) {
