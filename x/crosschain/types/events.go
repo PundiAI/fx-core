@@ -8,7 +8,7 @@ const (
 
 	AttributeKeyBlockHeight  = "block_height"
 	AttributeKeyStateSuccess = "state_success"
-	AttributeKeyErrReason    = "err_reason"
+	AttributeKeyErrCause     = "err_cause"
 
 	EventTypeOracleSetUpdate   = "oracle_set_update"
 	AttributeKeyOracleSetNonce = "oracle_set_nonce"
@@ -38,6 +38,5 @@ const (
 	AttributeKeyEvmCallError  = "evm_call_error"
 
 	EventTypeBridgeCallRefund = "bridge_call_refund"
-	AttributeKeyRefundReason  = "refund_reason"
 	AttributeKeyRefundAddress = "refund_address"
 )

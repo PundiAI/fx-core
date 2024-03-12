@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallERC20Handler() {
 
 	event := suite.FindEvent(types.EventTypeBridgeCallRefund)
 	suite.NotNil(event)
-	suite.Equal(string(event.Attributes[0].GetKey()), types.AttributeKeyRefundReason)
+	suite.Equal(string(event.Attributes[0].GetKey()), types.AttributeKeyErrCause)
 	suite.Equal(string(event.Attributes[0].GetValue()), "bridge token is not exist: invalid")
 	suite.Equal(string(event.Attributes[1].GetKey()), types.AttributeKeyEventNonce)
 	suite.Equal(string(event.Attributes[1].GetValue()), fmt.Sprint(eventNonce))
