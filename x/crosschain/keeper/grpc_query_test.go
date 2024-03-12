@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
@@ -2413,6 +2415,308 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeChainList() {
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, expectedError)
+			}
+		})
+	}
+}
+
+func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundRecordByNonce() {
+	var (
+		request       *types.QueryRefundRecordByNonceRequest
+		response      *types.QueryRefundRecordByNonceResponse
+		expectedError error
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "ok",
+			malleate: func() {
+				eventNonce := uint64(tmrand.Int63n(10000))
+				refundRecord := &types.RefundRecord{
+					EventNonce:     eventNonce,
+					Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+					Timeout:        tmrand.Uint64(),
+					Tokens:         nil,
+					OracleSetNonce: uint64(tmrand.Int63n(10000)),
+				}
+				suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
+				request = &types.QueryRefundRecordByNonceRequest{
+					ChainName:  suite.chainName,
+					EventNonce: eventNonce,
+				}
+				response = &types.QueryRefundRecordByNonceResponse{
+					Record: refundRecord,
+				}
+			},
+			expPass: true,
+		},
+	}
+	for _, testCase := range testCases {
+		suite.Run(testCase.name, func() {
+			suite.SetupTest()
+			testCase.malleate()
+			res, err := suite.Keeper().RefundRecordByNonce(sdk.WrapSDKContext(suite.ctx), request)
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(response.Record, res.Record)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, expectedError)
+			}
+		})
+	}
+}
+
+func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundRecordByReceiver() {
+	var (
+		request       *types.QueryRefundRecordByReceiverRequest
+		response      *types.QueryRefundRecordByReceiverResponse
+		expectedError error
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "ok",
+			malleate: func() {
+				receiver := helpers.GenerateAddressByModule(suite.chainName)
+				refundRecord := &types.RefundRecord{
+					EventNonce:     uint64(tmrand.Int63n(10000)),
+					Receiver:       receiver,
+					Timeout:        tmrand.Uint64(),
+					Tokens:         nil,
+					OracleSetNonce: uint64(tmrand.Int63n(10000)),
+				}
+				suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
+				request = &types.QueryRefundRecordByReceiverRequest{
+					ChainName:       suite.chainName,
+					ReceiverAddress: receiver,
+				}
+				response = &types.QueryRefundRecordByReceiverResponse{
+					Records: []*types.RefundRecord{refundRecord},
+				}
+			},
+			expPass: true,
+		},
+	}
+	for _, testCase := range testCases {
+		suite.Run(testCase.name, func() {
+			suite.SetupTest()
+			testCase.malleate()
+			res, err := suite.Keeper().RefundRecordByReceiver(sdk.WrapSDKContext(suite.ctx), request)
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(response.Records, res.Records)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, expectedError)
+			}
+		})
+	}
+}
+
+func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundConfirmByNonce() {
+	externalKey := helpers.NewEthPrivKey()
+	externalEcdsaKey, err := crypto.ToECDSA(externalKey.Bytes())
+	require.NoError(suite.T(), err)
+	externalAddr := fxtypes.AddressToStr(externalKey.PubKey().Address().Bytes(), suite.chainName)
+
+	eventNonce := uint64(tmrand.Int63n(10000))
+	oracleNonce := uint64(tmrand.Int63n(10000))
+
+	testCases := []struct {
+		name     string
+		malleate func([]byte) (*types.QueryRefundConfirmByNonceRequest, *types.QueryRefundConfirmByNonceResponse)
+		expPass  bool
+		expErr   error
+	}{
+		{
+			name: "ok",
+			malleate: func(signature []byte) (*types.QueryRefundConfirmByNonceRequest, *types.QueryRefundConfirmByNonceResponse) {
+				refundConfirm := &types.MsgConfirmRefund{
+					Nonce:           eventNonce,
+					BridgerAddress:  suite.bridgerAddrs[0].String(),
+					ExternalAddress: externalAddr,
+					Signature:       hex.EncodeToString(signature),
+					ChainName:       suite.chainName,
+				}
+
+				suite.Keeper().SetRefundConfirm(suite.ctx, suite.bridgerAddrs[0], refundConfirm)
+				request := &types.QueryRefundConfirmByNonceRequest{
+					ChainName:  suite.chainName,
+					EventNonce: eventNonce,
+				}
+				response := &types.QueryRefundConfirmByNonceResponse{
+					Confirms:    []*types.MsgConfirmRefund{refundConfirm},
+					EnoughPower: true,
+				}
+				return request, response
+			},
+			expPass: true,
+		},
+	}
+	for _, testCase := range testCases {
+		suite.Run(testCase.name, func() {
+			suite.SetupTest()
+
+			refundRecord := &types.RefundRecord{
+				EventNonce:     eventNonce,
+				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+				Timeout:        tmrand.Uint64(),
+				Tokens:         nil,
+				OracleSetNonce: oracleNonce,
+			}
+			suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
+
+			members := types.BridgeValidators{
+				types.BridgeValidator{
+					Power:           tmrand.Uint64(),
+					ExternalAddress: externalAddr,
+				},
+			}
+
+			newOracle := types.Oracle{
+				OracleAddress:   suite.oracleAddrs[0].String(),
+				BridgerAddress:  suite.bridgerAddrs[0].String(),
+				ExternalAddress: externalAddr,
+				DelegateAmount:  sdkmath.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10000), big.NewInt(1e18))),
+				StartHeight:     0,
+				Online:          true,
+			}
+			suite.Keeper().SetOracle(suite.ctx, newOracle)
+
+			suite.Keeper().SetSnapshotOracle(suite.ctx, &types.SnapshotOracle{
+				OracleSetNonce: oracleNonce,
+				Members:        members,
+				EventNonces:    []uint64{eventNonce},
+			})
+
+			var signature []byte
+			var signatureErr error
+			if suite.chainName != trontypes.ModuleName {
+				checkpoint, err := refundRecord.GetCheckpoint(suite.Keeper().GetGravityID(suite.ctx))
+				require.NoError(suite.T(), err)
+				signature, signatureErr = types.NewEthereumSignature(checkpoint, externalEcdsaKey)
+			} else {
+				checkpoint, err := trontypes.GetCheckpointConfirmRefund(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
+				require.NoError(suite.T(), err)
+				signature, signatureErr = trontypes.NewTronSignature(checkpoint, externalEcdsaKey)
+			}
+			require.NoError(suite.T(), signatureErr)
+
+			request, response := testCase.malleate(signature)
+
+			res, err := suite.Keeper().RefundConfirmByNonce(sdk.WrapSDKContext(suite.ctx), request)
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(response.Confirms, res.Confirms)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, testCase.expErr)
+			}
+		})
+	}
+}
+
+func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingRefundRecordByAddr() {
+	var (
+		request       *types.QueryLastPendingRefundRecordByAddrRequest
+		response      *types.QueryLastPendingRefundRecordByAddrResponse
+		expectedError error
+	)
+
+	externalKey := helpers.NewEthPrivKey()
+	externalEcdsaKey, err := crypto.ToECDSA(externalKey.Bytes())
+	require.NoError(suite.T(), err)
+	externalAddr := fxtypes.AddressToStr(externalKey.PubKey().Address().Bytes(), suite.chainName)
+
+	oracleNonce := uint64(tmrand.Int63n(10000))
+	eventNonce := uint64(tmrand.Int63n(10000))
+	refundRecord := &types.RefundRecord{
+		EventNonce:     eventNonce,
+		Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+		Timeout:        tmrand.Uint64(),
+		Tokens:         nil,
+		OracleSetNonce: oracleNonce,
+	}
+	suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
+
+	var signature []byte
+	var signatureErr error
+	if suite.chainName != trontypes.ModuleName {
+		checkpoint, err := refundRecord.GetCheckpoint(suite.Keeper().GetGravityID(suite.ctx))
+		require.NoError(suite.T(), err)
+		signature, signatureErr = types.NewEthereumSignature(checkpoint, externalEcdsaKey)
+	} else {
+		checkpoint, err := trontypes.GetCheckpointConfirmRefund(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
+		require.NoError(suite.T(), err)
+		signature, signatureErr = trontypes.NewTronSignature(checkpoint, externalEcdsaKey)
+	}
+	require.NoError(suite.T(), signatureErr)
+
+	refundConfirm := &types.MsgConfirmRefund{
+		Nonce:           eventNonce,
+		BridgerAddress:  suite.bridgerAddrs[0].String(),
+		ExternalAddress: externalAddr,
+		Signature:       hex.EncodeToString(signature),
+		ChainName:       suite.chainName,
+	}
+	suite.Keeper().SetRefundConfirm(suite.ctx, suite.bridgerAddrs[0], refundConfirm)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "ok",
+			malleate: func() {
+				suite.Keeper().SetSnapshotOracle(suite.ctx, &types.SnapshotOracle{
+					OracleSetNonce: oracleNonce,
+					Members: types.BridgeValidators{
+						types.BridgeValidator{
+							Power:           tmrand.Uint64(),
+							ExternalAddress: externalAddr,
+						},
+					},
+					EventNonces: []uint64{eventNonce, eventNonce + 1},
+				})
+
+				refundRecordNew := &types.RefundRecord{
+					EventNonce:     eventNonce + 1,
+					Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+					Timeout:        tmrand.Uint64(),
+					Tokens:         nil,
+					OracleSetNonce: oracleNonce,
+				}
+				suite.Keeper().SetRefundRecord(suite.ctx, refundRecordNew)
+				request = &types.QueryLastPendingRefundRecordByAddrRequest{
+					ChainName:       suite.chainName,
+					ExternalAddress: externalAddr,
+				}
+				response = &types.QueryLastPendingRefundRecordByAddrResponse{
+					Records: []*types.RefundRecord{refundRecordNew},
+				}
+			},
+			expPass: true,
+		},
+	}
+	for _, testCase := range testCases {
+		suite.Run(testCase.name, func() {
+			suite.SetupTest()
+			testCase.malleate()
+			res, err := suite.Keeper().LastPendingRefundRecordByAddr(sdk.WrapSDKContext(suite.ctx), request)
+			if testCase.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(response.Records, res.Records)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, expectedError)

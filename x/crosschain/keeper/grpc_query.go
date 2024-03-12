@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"google.golang.org/grpc/codes"
@@ -432,4 +433,80 @@ func (k Keeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainList
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
 	}}, nil
+}
+
+func (k Keeper) RefundRecordByNonce(c context.Context, req *types.QueryRefundRecordByNonceRequest) (*types.QueryRefundRecordByNonceResponse, error) {
+	if req.GetEventNonce() == 0 {
+		return nil, status.Error(codes.InvalidArgument, "event nonce")
+	}
+	record, found := k.GetRefundRecord(sdk.UnwrapSDKContext(c), req.GetEventNonce())
+	if !found {
+		return nil, status.Error(codes.NotFound, "refund record")
+	}
+	return &types.QueryRefundRecordByNonceResponse{Record: record}, nil
+}
+
+func (k Keeper) RefundRecordByReceiver(c context.Context, req *types.QueryRefundRecordByReceiverRequest) (*types.QueryRefundRecordByReceiverResponse, error) {
+	if len(req.GetReceiverAddress()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "receiver")
+	}
+
+	refundRecords := make([]*types.RefundRecord, 0)
+	k.IterRefundRecordByAddr(sdk.UnwrapSDKContext(c), req.GetReceiverAddress(), func(record *types.RefundRecord) bool {
+		refundRecords = append(refundRecords, record)
+		return false
+	})
+	return &types.QueryRefundRecordByReceiverResponse{Records: refundRecords}, nil
+}
+
+func (k Keeper) RefundConfirmByNonce(c context.Context, req *types.QueryRefundConfirmByNonceRequest) (*types.QueryRefundConfirmByNonceResponse, error) {
+	if req.GetEventNonce() == 0 {
+		return nil, status.Error(codes.InvalidArgument, "event nonce")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	currentOracleSet := k.GetCurrentOracleSet(ctx)
+	confirmPowers := uint64(0)
+	refundConfirms := make([]*types.MsgConfirmRefund, 0)
+	k.IterRefundConfirmByNonce(ctx, req.GetEventNonce(), func(msg *types.MsgConfirmRefund) bool {
+		power, found := currentOracleSet.GetBridgePower(msg.ExternalAddress)
+		if !found {
+			return false
+		}
+		confirmPowers += power
+		refundConfirms = append(refundConfirms, msg)
+		return false
+	})
+	totalPower := currentOracleSet.GetTotalPower()
+	requiredPower := types.AttestationVotesPowerThreshold.Mul(sdkmath.NewIntFromUint64(totalPower)).Quo(sdkmath.NewInt(100))
+	enoughPower := requiredPower.GTE(sdkmath.NewIntFromUint64(confirmPowers))
+	return &types.QueryRefundConfirmByNonceResponse{Confirms: refundConfirms, EnoughPower: enoughPower}, nil
+}
+
+func (k Keeper) LastPendingRefundRecordByAddr(c context.Context, req *types.QueryLastPendingRefundRecordByAddrRequest) (*types.QueryLastPendingRefundRecordByAddrResponse, error) {
+	if len(req.GetExternalAddress()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty external address")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	pendingRecords := make([]*types.RefundRecord, 0)
+
+	accAddr := types.ExternalAddressToAccAddress(k.moduleName, req.GetExternalAddress())
+	snapshotOracleCache := make(map[uint64]*types.SnapshotOracle)
+	k.IterRefundRecord(ctx, func(record *types.RefundRecord) bool {
+		snapshotOracle, found := snapshotOracleCache[record.OracleSetNonce]
+		if !found {
+			snapshotOracle, found = k.GetSnapshotOracle(ctx, record.OracleSetNonce)
+			if !found {
+				return false
+			}
+			snapshotOracleCache[record.OracleSetNonce] = snapshotOracle
+		}
+
+		if !snapshotOracle.HasExternalAddress(req.GetExternalAddress()) || k.HasRefundConfirm(ctx, record.EventNonce, accAddr) {
+			return false
+		}
+		pendingRecords = append(pendingRecords, record)
+		return false
+	})
+	return &types.QueryLastPendingRefundRecordByAddrResponse{Records: pendingRecords}, nil
 }

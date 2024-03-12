@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -202,6 +204,16 @@ func GetBridgeCallRefundKey(address string, nonce uint64) []byte {
 	return append(BridgeCallRefundKey, append([]byte(address), sdk.Uint64ToBigEndian(nonce)...)...)
 }
 
+func ParseBridgeCallRefundNonce(key []byte, address string) (nonce uint64) {
+	addrNonce := bytes.TrimPrefix(key, BridgeCallRefundKey)
+	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
+	return sdk.BigEndianToUint64(nonceBytes)
+}
+
+func GetBridgeCallRefundAddressKey(address string) []byte {
+	return append(BridgeCallRefundKey, []byte(address)...)
+}
+
 func GetBridgeCallRefundEventNonceKey(nonce uint64) []byte {
 	return append(BridgeCallRefundEventNonceKey, sdk.Uint64ToBigEndian(nonce)...)
 }
@@ -215,5 +227,9 @@ func GetRefundConfirmKey(nonce uint64, addr sdk.AccAddress) []byte {
 }
 
 func GetRefundConfirmKeyByNonce(nonce uint64) []byte {
+	return append(BridgeCallRefundConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
+}
+
+func GetRefundConfirmNonceKey(nonce uint64) []byte {
 	return append(BridgeCallRefundConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
 }

@@ -231,6 +231,29 @@ func (m *OracleSet) Equal(o *OracleSet) (bool, error) {
 	return true, nil
 }
 
+func (m *OracleSet) GetTotalPower() uint64 {
+	if m == nil {
+		return 0
+	}
+	totalPower := uint64(0)
+	for _, member := range m.Members {
+		totalPower += member.Power
+	}
+	return totalPower
+}
+
+func (m *OracleSet) GetBridgePower(externalAddress string) (uint64, bool) {
+	if m == nil {
+		return 0, false
+	}
+	for _, member := range m.Members {
+		if externalAddress == member.ExternalAddress {
+			return member.Power, true
+		}
+	}
+	return 0, false
+}
+
 type OracleSets []*OracleSet
 
 func (v OracleSets) Len() int {
@@ -449,4 +472,27 @@ func (m *SnapshotOracle) HasExternalAddress(address string) bool {
 		}
 	}
 	return false
+}
+
+func (m *SnapshotOracle) GetExternalAddressPower(address string) uint64 {
+	if m == nil {
+		return 0
+	}
+	for _, member := range m.Members {
+		if address == member.ExternalAddress {
+			return member.Power
+		}
+	}
+	return 0
+}
+
+func (m *SnapshotOracle) GetTotalPower() uint64 {
+	if m == nil {
+		return 0
+	}
+	totalPower := uint64(0)
+	for _, member := range m.Members {
+		totalPower = totalPower + member.Power
+	}
+	return totalPower
 }

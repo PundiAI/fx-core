@@ -78,6 +78,19 @@ service Query {
   rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/pending_send_to_external";
   }
+  rpc RefundRecordByNonce(QueryRefundRecordByNonceRequest) returns (QueryRefundRecordByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/refund_record_by_nonce";
+  }
+  rpc RefundRecordByReceiver(QueryRefundRecordByReceiverRequest) returns (QueryRefundRecordByReceiverResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/refund_record_by_receiver";
+  }
+  rpc RefundConfirmByNonce(QueryRefundConfirmByNonceRequest) returns (QueryRefundConfirmByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/refund_confirm_by_nonce";
+  }
+  rpc LastPendingRefundRecordByAddr(QueryLastPendingRefundRecordByAddrRequest) returns (QueryLastPendingRefundRecordByAddrResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/last_pending_refund_record_by_addr";
+  }
+
   // Validators queries all oracle that match the given status.
   rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/oracles";
@@ -299,4 +312,38 @@ message QueryBridgeCoinByDenomResponse {
 message QueryBridgeChainListRequest {}
 message QueryBridgeChainListResponse {
   repeated string chain_names = 1;
+}
+
+message QueryRefundRecordByNonceRequest {
+  string chain_name = 1;
+  uint64 event_nonce = 2;
+}
+message QueryRefundRecordByNonceResponse {
+  RefundRecord record = 1;
+}
+
+message QueryRefundRecordByReceiverRequest {
+  string chain_name = 1;
+  string receiver_address = 2;
+}
+message QueryRefundRecordByReceiverResponse {
+  repeated RefundRecord records = 1;
+}
+
+message QueryRefundConfirmByNonceRequest {
+  string chain_name = 1;
+  uint64 event_nonce = 2;
+}
+
+message QueryRefundConfirmByNonceResponse {
+  repeated MsgConfirmRefund confirms = 1;
+  bool enough_power = 2;
+}
+
+message QueryLastPendingRefundRecordByAddrRequest {
+  string chain_name = 1;
+  string external_address = 2;
+}
+message QueryLastPendingRefundRecordByAddrResponse {
+  repeated RefundRecord records = 1;
 }

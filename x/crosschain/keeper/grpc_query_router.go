@@ -247,3 +247,35 @@ func (k RouterKeeper) BridgeChainList(c context.Context, req *types.QueryBridgeC
 		return queryServer.BridgeChainList(c, req)
 	}
 }
+
+func (k RouterKeeper) RefundRecordByNonce(c context.Context, req *types.QueryRefundRecordByNonceRequest) (*types.QueryRefundRecordByNonceResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.RefundRecordByNonce(c, req)
+	}
+}
+
+func (k RouterKeeper) RefundRecordByReceiver(c context.Context, req *types.QueryRefundRecordByReceiverRequest) (*types.QueryRefundRecordByReceiverResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.RefundRecordByReceiver(c, req)
+	}
+}
+
+func (k RouterKeeper) RefundConfirmByNonce(c context.Context, req *types.QueryRefundConfirmByNonceRequest) (*types.QueryRefundConfirmByNonceResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.RefundConfirmByNonce(c, req)
+	}
+}
+
+func (k RouterKeeper) LastPendingRefundRecordByAddr(c context.Context, req *types.QueryLastPendingRefundRecordByAddrRequest) (*types.QueryLastPendingRefundRecordByAddrResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.LastPendingRefundRecordByAddr(c, req)
+	}
+}
