@@ -54,10 +54,12 @@ func (k Keeper) AddRefundRecord(ctx sdk.Context, receiver string, eventNonce uin
 	snapshotOracle.EventNonces = append(snapshotOracle.EventNonces, eventNonce)
 	k.SetSnapshotOracle(ctx, snapshotOracle)
 
+	params := k.GetParams(ctx)
+	refundTimeout := k.CalExternalTimeoutHeight(ctx, params, params.BridgeCallRefundTimeout)
 	k.SetRefundRecord(ctx, &types.RefundRecord{
 		EventNonce:     eventNonce,
 		Receiver:       receiver,
-		Timeout:        k.GetBridgeCallRefundTimeout(ctx),
+		Timeout:        refundTimeout,
 		OracleSetNonce: oracleSet.Nonce,
 		Tokens:         tokens,
 	})

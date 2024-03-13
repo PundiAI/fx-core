@@ -40,7 +40,8 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 	if types.OutgoingTransferTxs(selectedTx).TotalFee().LT(minimumFee) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "total fee less than minimum fee")
 	}
-	batchTimeout := k.GetBatchTimeoutHeight(ctx)
+	params := k.GetParams(ctx)
+	batchTimeout := k.CalExternalTimeoutHeight(ctx, params, params.ExternalBatchTimeout)
 	if batchTimeout <= 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "batch timeout height")
 	}
@@ -77,26 +78,6 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 	)
 	ctx.EventManager().EmitEvent(batchEvent)
 	return batch, nil
-}
-
-// GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
-func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
-	currentFxHeight := ctx.BlockHeight()
-	params := k.GetParams(ctx)
-	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
-	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
-	heights := k.GetLastObservedBlockHeight(ctx)
-	if heights.ExternalBlockHeight == 0 {
-		return 0
-	}
-	// we project how long it has been in milliseconds since the last Ethereum block height was observed
-	projectedMillis := (uint64(currentFxHeight) - heights.BlockHeight) * params.AverageBlockTime
-	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
-	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
-	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to
-	// place on top of our projection of the current Ethereum block height.
-	blocksToAdd := params.ExternalBatchTimeout / params.AverageExternalBlockTime
-	return projectedCurrentEthereumHeight + blocksToAdd
 }
 
 // OutgoingTxBatchExecuted is run when the Cosmos chain detects that a batch has been executed on Ethereum
