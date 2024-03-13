@@ -129,7 +129,12 @@
         }
         return balances
     }
-    let balances = getBalances(moduleAddress)
+    let balances
+    if (moduleAddress === "") {
+        balances = getTotalSupply()
+    }else{
+        balances = getBalances(moduleAddress)
+    }
     balances = balancesSymbol(balances);
 
     let results = []
@@ -159,7 +164,7 @@
             bridgeURL: bridgeURL,
             blockchain: blockchain,
             denom: balance.denom,
-            symbol: balance.symbol,
+            symbol: balance.symbol ? balance.symbol : "UNKNOWN",
             amount: Number(BigInt(balance.amount) / BigInt(decimal)) / 100,
         })
     }

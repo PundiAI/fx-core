@@ -76,9 +76,6 @@ function getSigningInfos() {
 }
 
 function getBalances(address) {
-    if (address) {
-        return getTotalSupply()
-    }
     const result = httpGetJson(getRestUrl() + `/cosmos/bank/v1beta1/balances/${address}`)
     return result.balances
 }
