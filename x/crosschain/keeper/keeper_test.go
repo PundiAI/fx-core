@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
@@ -87,6 +88,16 @@ func (suite *KeeperTestSuite) MsgServer() types.MsgServer {
 		return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
 	}
 	return keeper.NewMsgServerImpl(suite.Keeper())
+}
+
+func (suite *KeeperTestSuite) QueryClient() types.QueryClient {
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	if suite.chainName == trontypes.ModuleName {
+		types.RegisterQueryServer(queryHelper, suite.app.TronKeeper)
+		return types.NewQueryClient(queryHelper)
+	}
+	types.RegisterQueryServer(queryHelper, suite.Keeper())
+	return types.NewQueryClient(queryHelper)
 }
 
 func (suite *KeeperTestSuite) Keeper() keeper.Keeper {

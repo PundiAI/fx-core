@@ -3,13 +3,18 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -555,4 +560,117 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 		require.False(suite.T(), oracle.Online)
 		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
 	}
+}
+
+func (suite *KeeperTestSuite) TestCleanUpRefundTimeout() {
+	normalMsg := &types.MsgBondedOracle{
+		OracleAddress:    suite.oracleAddrs[0].String(),
+		BridgerAddress:   suite.bridgerAddrs[0].String(),
+		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
+		ValidatorAddress: suite.valAddrs[0].String(),
+		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+		ChainName:        suite.chainName,
+	}
+	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
+	require.NoError(suite.T(), err)
+
+	suite.Commit()
+
+	bridgeToken := helpers.GenerateAddressByModule(suite.chainName)
+	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
+		EventNonce:     1,
+		BlockHeight:    1000,
+		TokenContract:  bridgeToken,
+		Name:           "Test Token",
+		Symbol:         "TEST",
+		Decimals:       18,
+		BridgerAddress: suite.bridgerAddrs[0].String(),
+		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+		ChainName:      suite.chainName,
+	}
+	_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
+	require.NoError(suite.T(), err)
+
+	denomResp, err := suite.QueryClient().TokenToDenom(sdk.WrapSDKContext(suite.ctx), &types.QueryTokenToDenomRequest{
+		ChainName: suite.chainName,
+		Token:     bridgeToken,
+	})
+	suite.NoError(err)
+
+	_, err = suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
+		Description: "Function X cross chain token",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "test",
+				Exponent: 0,
+				Aliases:  []string{denomResp.Denom},
+			},
+			{
+				Denom:    "TEST",
+				Exponent: 18,
+				Aliases:  nil,
+			},
+		},
+		Base:    "test",
+		Display: "TEST",
+		Name:    "Test Token",
+		Symbol:  "TEST",
+	})
+	suite.NoError(err)
+
+	suite.Commit()
+
+	tokenAddr := common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, bridgeToken).Bytes())
+	asset, err := types.PackERC20AssetWithType([]common.Address{tokenAddr}, []*big.Int{big.NewInt(1)})
+	suite.NoError(err)
+
+	bridgeCallClaim := &types.MsgBridgeCallClaim{
+		DstChainId:     types.FxcoreChainID,
+		EventNonce:     2,
+		Sender:         helpers.GenerateAddressByModule(suite.chainName),
+		Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+		Asset:          asset,
+		To:             helpers.GenerateAddressByModule(suite.chainName),
+		Message:        hex.EncodeToString([]byte{0x1}),
+		Value:          sdkmath.NewInt(1),
+		GasLimit:       3000000,
+		BlockHeight:    1001,
+		BridgerAddress: suite.bridgerAddrs[0].String(),
+		ChainName:      suite.chainName,
+	}
+	_, err = suite.MsgServer().BridgeCallClaim(sdk.WrapSDKContext(suite.ctx), bridgeCallClaim)
+	suite.NoError(err)
+
+	recordExist := false
+	for _, event := range suite.ctx.EventManager().Events() {
+		if event.Type == types.EventTypeBridgeCallRefund {
+			recordExist = true
+		}
+	}
+	suite.True(recordExist)
+	refundRecord, err := suite.QueryClient().RefundRecordByNonce(sdk.WrapSDKContext(suite.ctx), &types.QueryRefundRecordByNonceRequest{ChainName: suite.chainName, EventNonce: 2})
+	suite.NoError(err)
+	suite.Equal(uint64(2), refundRecord.Record.EventNonce)
+
+	suite.Commit()
+
+	sendToFxSendAddr := helpers.GenerateAddressByModule(suite.chainName)
+	sendToFxClaim := &types.MsgSendToFxClaim{
+		EventNonce:     3,
+		BlockHeight:    refundRecord.Record.Timeout + 1,
+		TokenContract:  bridgeToken,
+		Amount:         sdkmath.NewInt(1234),
+		Sender:         sendToFxSendAddr,
+		Receiver:       sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
+		BridgerAddress: suite.bridgerAddrs[0].String(),
+		ChainName:      suite.chainName,
+	}
+	_, err = suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
+	require.NoError(suite.T(), err)
+
+	suite.Commit()
+
+	_, err = suite.QueryClient().RefundRecordByNonce(sdk.WrapSDKContext(suite.ctx), &types.QueryRefundRecordByNonceRequest{ChainName: suite.chainName, EventNonce: 2})
+	suite.ErrorIs(err, status.Error(codes.NotFound, "refund record"), suite.chainName)
 }

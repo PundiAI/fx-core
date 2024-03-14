@@ -39,4 +39,6 @@ const (
 
 	EventTypeBridgeCallRefund = "bridge_call_refund"
 	AttributeKeyRefundAddress = "refund_address"
+
+	EventTypeRefundTimeout = "refund_timeout"
 )

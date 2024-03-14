@@ -20,22 +20,7 @@ func (k Keeper) HandleRefundTokenClaim(ctx sdk.Context, claim *types.MsgRefundTo
 	k.DeleteRefundConfirm(ctx, claim.RefundNonce)
 
 	// 3. delete snapshot oracle event nonce or snapshot oracle
-	oracle, found := k.GetSnapshotOracle(ctx, record.OracleSetNonce)
-	if !found {
-		return
-	}
-
-	for i, nonce := range oracle.EventNonces {
-		if nonce == claim.RefundNonce {
-			oracle.EventNonces = append(oracle.EventNonces[:i], oracle.EventNonces[i+1:]...)
-			break
-		}
-	}
-	if len(oracle.EventNonces) == 0 {
-		k.DeleteSnapshotOracle(ctx, record.OracleSetNonce)
-	} else {
-		k.SetSnapshotOracle(ctx, oracle)
-	}
+	k.RemoveEventSnapshotOracle(ctx, record.OracleSetNonce, claim.RefundNonce)
 }
 
 func (k Keeper) AddRefundRecord(ctx sdk.Context, receiver string, eventNonce uint64, tokens []types.ERC20Token) error {
@@ -140,6 +125,25 @@ func (k Keeper) HasRefundConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddr
 func (k Keeper) DeleteSnapshotOracle(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetSnapshotOracleKey(nonce))
+}
+
+func (k Keeper) RemoveEventSnapshotOracle(ctx sdk.Context, oracleNonce, eventNonce uint64) {
+	oracle, found := k.GetSnapshotOracle(ctx, oracleNonce)
+	if !found {
+		return
+	}
+
+	for i, nonce := range oracle.EventNonces {
+		if nonce == eventNonce {
+			oracle.EventNonces = append(oracle.EventNonces[:i], oracle.EventNonces[i+1:]...)
+			break
+		}
+	}
+	if len(oracle.EventNonces) == 0 {
+		k.DeleteSnapshotOracle(ctx, oracleNonce)
+	} else {
+		k.SetSnapshotOracle(ctx, oracle)
+	}
 }
 
 func (k Keeper) GetRefundConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) (*types.MsgConfirmRefund, bool) {

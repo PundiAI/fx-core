@@ -14,6 +14,7 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	signedWindow := k.GetSignedWindow(ctx)
 	k.slashing(ctx, signedWindow)
 	k.cleanupTimedOutBatches(ctx)
+	k.cleanupTimeOutRefund(ctx)
 	k.createOracleSetRequest(ctx)
 	k.pruneOracleSet(ctx, signedWindow)
 }
@@ -144,6 +145,47 @@ func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) {
 		}
 		return false
 	})
+}
+
+func (k Keeper) cleanupTimeOutRefund(ctx sdk.Context) {
+	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
+	k.IterRefundRecord(ctx, func(record *types.RefundRecord) bool {
+		if record.Timeout > externalBlockHeight {
+			return true
+		}
+		receiver, coins, err := k.refundTokenToReceiver(ctx, record)
+		if err != nil {
+			k.Logger(ctx).Error("clean up refund timeout", "event nonce", record.EventNonce, "error", err.Error())
+			return false
+		}
+		k.DeleteRefundRecord(ctx, record)
+		k.DeleteRefundConfirm(ctx, record.EventNonce)
+		k.RemoveEventSnapshotOracle(ctx, record.OracleSetNonce, record.EventNonce)
+
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(types.EventTypeRefundTimeout,
+				sdk.NewAttribute(sdk.AttributeKeySender, record.Receiver),
+				sdk.NewAttribute(types.AttributeKeyRefundAddress, receiver.String()),
+				sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(record.EventNonce)),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
+			),
+		})
+		return false
+	})
+}
+
+func (k Keeper) refundTokenToReceiver(ctx sdk.Context, record *types.RefundRecord) (sdk.AccAddress, sdk.Coins, error) {
+	receiverAddr := types.ExternalAddressToAccAddress(k.moduleName, record.Receiver)
+	cacheCtx, commit := ctx.CacheContext()
+	coins, err := k.bridgeCallTransferToSender(cacheCtx, receiverAddr.Bytes(), record.Tokens)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = k.bridgeCallTransferToReceiver(cacheCtx, receiverAddr, receiverAddr.Bytes(), coins); err != nil {
+		return nil, nil, err
+	}
+	commit()
+	return receiverAddr, coins, nil
 }
 
 func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
