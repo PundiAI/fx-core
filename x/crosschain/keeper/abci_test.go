@@ -638,6 +638,7 @@ func (suite *KeeperTestSuite) TestCleanUpRefundTimeout() {
 		BridgerAddress: suite.bridgerAddrs[0].String(),
 		ChainName:      suite.chainName,
 	}
+	suite.ctx = suite.ctx.WithEventManager(sdk.NewEventManager())
 	_, err = suite.MsgServer().BridgeCallClaim(sdk.WrapSDKContext(suite.ctx), bridgeCallClaim)
 	suite.NoError(err)
 
@@ -645,6 +646,7 @@ func (suite *KeeperTestSuite) TestCleanUpRefundTimeout() {
 	for _, event := range suite.ctx.EventManager().Events() {
 		if event.Type == types.EventTypeBridgeCallRefund {
 			recordExist = true
+			break
 		}
 	}
 	suite.True(recordExist)
@@ -668,8 +670,6 @@ func (suite *KeeperTestSuite) TestCleanUpRefundTimeout() {
 	}
 	_, err = suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
 	require.NoError(suite.T(), err)
-
-	suite.Commit()
 
 	_, err = suite.QueryClient().RefundRecordByNonce(sdk.WrapSDKContext(suite.ctx), &types.QueryRefundRecordByNonceRequest{ChainName: suite.chainName, EventNonce: 2})
 	suite.ErrorIs(err, status.Error(codes.NotFound, "refund record"), suite.chainName)
