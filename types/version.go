@@ -13,7 +13,7 @@ import (
 const (
 	MainnetChainId       = "fxcore"
 	mainnetEvmChainID    = 530
-	MainnetGenesisHash   = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593" //nolint:gosec
+	MainnetGenesisHash   = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
 	MainnetBlockHeightV2 = 5_713_000
 	MainnetBlockHeightV3 = 8_756_000
 	MainnetBlockHeightV4 = 10_477_500
@@ -25,7 +25,7 @@ const (
 const (
 	TestnetChainId        = "dhobyghaut"
 	testnetEvmChainID     = 90001
-	TestnetGenesisHash    = "06D0A9659E1EC5B0E57E8E2E5F1B1266094808BC9B4081E1A55011FEF4586ACE" //nolint:gosec
+	TestnetGenesisHash    = "06D0A9659E1EC5B0E57E8E2E5F1B1266094808BC9B4081E1A55011FEF4586ACE"
 	TestnetBlockHeightV2  = 3_418_880
 	TestnetBlockHeightV3  = 6_578_000
 	TestnetBlockHeightV4  = 8_088_000
