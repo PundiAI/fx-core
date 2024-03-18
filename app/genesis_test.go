@@ -29,7 +29,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -84,7 +84,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -167,7 +167,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -246,7 +246,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -396,7 +396,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -453,7 +453,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -496,7 +496,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -575,7 +575,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_refund_timeout": "604800000000000"
+	  "bridge_call_refund_timeout": "604800000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {

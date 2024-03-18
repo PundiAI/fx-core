@@ -266,3 +266,22 @@ func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAdd
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventNonceByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(eventNonce))
 }
+
+// CalExternalTimeoutHeight This gets the timeout height in External blocks.
+func (k Keeper) CalExternalTimeoutHeight(ctx sdk.Context, params types.Params, timeout uint64) uint64 {
+	currentFxHeight := ctx.BlockHeight()
+	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
+	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
+	heights := k.GetLastObservedBlockHeight(ctx)
+	if heights.ExternalBlockHeight == 0 {
+		return 0
+	}
+	// we project how long it has been in milliseconds since the last Ethereum block height was observed
+	projectedMillis := (uint64(currentFxHeight) - heights.BlockHeight) * params.AverageBlockTime
+	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
+	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
+	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to
+	// place on top of our projection of the current Ethereum block height.
+	blocksToAdd := timeout / params.AverageExternalBlockTime
+	return projectedCurrentEthereumHeight + blocksToAdd
+}
