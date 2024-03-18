@@ -145,7 +145,6 @@ lint-install:
 
 lint: lint-install
 	echo "--> Running linter"
-	$(MAKE) lint-install
 	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
 	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 39 ]; then \
 		echo "--> increase or decrease nolint, please recheck them"; \
