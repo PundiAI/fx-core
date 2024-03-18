@@ -45,6 +45,7 @@ func (k Keeper) AddRefundRecord(ctx sdk.Context, receiver string, eventNonce uin
 		Timeout:        k.GetBridgeCallRefundTimeout(ctx),
 		OracleSetNonce: oracleSet.Nonce,
 		Tokens:         tokens,
+		Block:          uint64(ctx.BlockHeight()),
 	})
 	return nil
 }
