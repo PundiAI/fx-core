@@ -2444,6 +2444,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundRecordByNonce() {
 					Timeout:        tmrand.Uint64(),
 					Tokens:         nil,
 					OracleSetNonce: uint64(tmrand.Int63n(10000)),
+					Block:          tmrand.Uint64(),
 				}
 				suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
 				request = &types.QueryRefundRecordByNonceRequest{
@@ -2494,6 +2495,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundRecordByReceiver() {
 					Timeout:        tmrand.Uint64(),
 					Tokens:         nil,
 					OracleSetNonce: uint64(tmrand.Int63n(10000)),
+					Block:          tmrand.Uint64(),
 				}
 				suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
 				request = &types.QueryRefundRecordByReceiverRequest{
@@ -2573,6 +2575,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundConfirmByNonce() {
 				Timeout:        tmrand.Uint64(),
 				Tokens:         nil,
 				OracleSetNonce: oracleNonce,
+				Block:          tmrand.Uint64(),
 			}
 			suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
 
@@ -2646,6 +2649,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingRefundRecordByAddr()
 		Timeout:        tmrand.Uint64(),
 		Tokens:         nil,
 		OracleSetNonce: oracleNonce,
+		Block:          tmrand.Uint64(),
 	}
 	suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
 
@@ -2696,6 +2700,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingRefundRecordByAddr()
 					Timeout:        tmrand.Uint64(),
 					Tokens:         nil,
 					OracleSetNonce: oracleNonce,
+					Block:          tmrand.Uint64(),
 				}
 				suite.Keeper().SetRefundRecord(suite.ctx, refundRecordNew)
 				request = &types.QueryLastPendingRefundRecordByAddrRequest{

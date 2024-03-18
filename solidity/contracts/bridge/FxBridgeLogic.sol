@@ -454,8 +454,8 @@ contract FxBridgeLogic is
             );
 
             require(
-                block.timestamp < _timeout,
-                "timeout must be greater than the current block timestamp."
+                block.number < _timeout,
+                "refund timeout must be greater than the current block height."
             );
 
             require(

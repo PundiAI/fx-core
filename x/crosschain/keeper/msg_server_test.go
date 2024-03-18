@@ -1239,6 +1239,7 @@ func (suite *KeeperTestSuite) TestConfirmRefund() {
 		Timeout:        tmrand.Uint64(),
 		Tokens:         tokens,
 		OracleSetNonce: oracleSetNonce,
+		Block:          tmrand.Uint64(),
 	}
 	suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
 

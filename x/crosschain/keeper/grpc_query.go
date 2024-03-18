@@ -365,7 +365,9 @@ func (k Keeper) Oracles(c context.Context, _ *types.QueryOraclesRequest) (*types
 }
 
 func (k Keeper) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
-	timeout := k.GetBatchTimeoutHeight(sdk.UnwrapSDKContext(c))
+	ctx := sdk.UnwrapSDKContext(c)
+	params := k.GetParams(ctx)
+	timeout := k.CalExternalTimeoutHeight(ctx, params, params.ExternalBatchTimeout)
 	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: timeout}, nil
 }
 
