@@ -13,8 +13,6 @@ import (
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	signedWindow := k.GetSignedWindow(ctx)
 	k.slashing(ctx, signedWindow)
-	k.cleanupTimedOutBatches(ctx)
-	k.cleanupTimeOutRefund(ctx)
 	k.createOracleSetRequest(ctx)
 	k.pruneOracleSet(ctx, signedWindow)
 }

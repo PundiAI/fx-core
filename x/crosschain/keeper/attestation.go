@@ -103,6 +103,10 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		}
 		ctx.EventManager().EmitEvent(event)
 
+		// execute the timeout logic
+		k.cleanupTimedOutBatches(ctx)
+		k.cleanupTimeOutRefund(ctx)
+
 		k.pruneAttestations(ctx)
 		break
 	}
