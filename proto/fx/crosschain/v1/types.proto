@@ -120,6 +120,7 @@ message RefundRecord {
   uint64 timeout = 3;
   repeated ERC20Token tokens = 4 [(gogoproto.nullable) = false];
   uint64 oracle_set_nonce = 5;
+  uint64 block = 6;
 }
 
 message SnapshotOracle {

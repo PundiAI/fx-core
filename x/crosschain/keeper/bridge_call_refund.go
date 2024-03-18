@@ -47,6 +47,7 @@ func (k Keeper) AddRefundRecord(ctx sdk.Context, receiver string, eventNonce uin
 		Timeout:        refundTimeout,
 		OracleSetNonce: oracleSet.Nonce,
 		Tokens:         tokens,
+		Block:          uint64(ctx.BlockHeight()),
 	})
 	return nil
 }
