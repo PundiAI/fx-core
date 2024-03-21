@@ -1305,7 +1305,7 @@ func (suite *KeeperTestSuite) TestConfirmRefund() {
 	}
 }
 
-func (suite *KeeperTestSuite) bondedOracle() uint64 {
+func (suite *KeeperTestSuite) bondedOracle() {
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
 		OracleAddress:    suite.oracleAddrs[0].String(),
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
@@ -1318,7 +1318,6 @@ func (suite *KeeperTestSuite) bondedOracle() uint64 {
 
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
-	return oracleLastEventNonce
 }
 
 func (suite *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.Metadata) {

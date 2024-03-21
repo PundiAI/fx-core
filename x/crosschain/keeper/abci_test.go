@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -673,4 +674,31 @@ func (suite *KeeperTestSuite) TestCleanUpRefundTimeout() {
 
 	_, err = suite.QueryClient().RefundRecordByNonce(sdk.WrapSDKContext(suite.ctx), &types.QueryRefundRecordByNonceRequest{ChainName: suite.chainName, EventNonce: 2})
 	suite.ErrorIs(err, status.Error(codes.NotFound, "refund record"), suite.chainName)
+}
+
+func (suite *KeeperTestSuite) TestRefundSlashing() {
+	suite.bondedOracle()
+	suite.Commit()
+
+	eventNonce := tmrand.Uint64()
+
+	err := suite.Keeper().AddRefundRecord(suite.ctx, helpers.GenerateZeroAddressByModule(suite.chainName), eventNonce, []types.ERC20Token{})
+	suite.NoError(err)
+
+	params := suite.Keeper().GetParams(suite.ctx)
+	signedWindow := uint64(tmrand.Int63n(10) + 2)
+	params.SignedWindow = signedWindow
+	suite.NoError(suite.Keeper().SetParams(suite.ctx, &params))
+
+	slashedRefundNonce := suite.Keeper().GetLastSlashedRefundNonce(suite.ctx)
+	suite.EqualValues(0, slashedRefundNonce)
+	suite.Commit(int64(signedWindow))
+
+	slashedRefundNonce = suite.Keeper().GetLastSlashedRefundNonce(suite.ctx)
+	suite.EqualValues(eventNonce, slashedRefundNonce)
+
+	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[0])
+	suite.True(found)
+	suite.False(oracle.Online)
+	suite.EqualValues(1, oracle.SlashTimes)
 }
