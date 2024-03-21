@@ -73,7 +73,7 @@ func TestCrosschainKeeperTestSuite(t *testing.T) {
 			if !compile.MatchString(method.Name) {
 				continue
 			}
-			t.Run(fmt.Sprintf("%s/%s", moduleName, method.Name), func(subT *testing.T) {
+			t.Run(fmt.Sprintf("%s/%s", method.Name, moduleName), func(subT *testing.T) {
 				mySuite := &KeeperTestSuite{chainName: moduleName}
 				mySuite.SetT(subT)
 				mySuite.SetupTest()
