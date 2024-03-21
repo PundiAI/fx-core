@@ -1,0 +1,45 @@
+name: solidity
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "solidity/**"
+  pull_request:
+    paths:
+      - "solidity/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          check-latest: false
+          cache: "yarn"
+          cache-dependency-path: solidity/yarn.lock
+      - run: cd solidity && yarn install && yarn lint:sol && yarn compile
+
+  abigen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install abigen
+        run: |
+          wget -q https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.12.0-e501b3b0.tar.gz
+          tar -zxvf geth-alltools-linux-amd64-1.12.0-e501b3b0.tar.gz
+          sudo mv geth-alltools-linux-amd64-1.12.0-e501b3b0/abigen /usr/local/bin
+      - name: Run abigen
+        run: make contract-abigen
+      - name: Check diff
+        run: git diff --exit-code
