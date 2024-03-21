@@ -116,6 +116,9 @@ var (
 	SnapshotOracleKey = []byte{0x44}
 
 	BridgeCallRefundConfirmKey = []byte{0x45}
+
+	// LastSlashedRefundNonce indexes the latest slashed refund nonce
+	LastSlashedRefundNonce = []byte{0x46}
 )
 
 // GetOracleKey returns the following key format

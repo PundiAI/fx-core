@@ -61,7 +61,8 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 	oracles := k.GetAllOracles(ctx, true)
 	oracleSetHasSlash := k.oracleSetSlashing(ctx, oracles, signedWindow)
 	batchHasSlash := k.batchSlashing(ctx, oracles, signedWindow)
-	if oracleSetHasSlash || batchHasSlash {
+	refundHasSlash := k.refundSlashing(ctx, signedWindow)
+	if oracleSetHasSlash || batchHasSlash || refundHasSlash {
 		k.CommonSetOracleTotalPower(ctx)
 	}
 }
@@ -117,6 +118,46 @@ func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Oracles, signedWind
 		}
 		// then we set the latest slashed batch block
 		k.SetLastSlashedBatchBlock(ctx, batch.Block)
+	}
+	return hasSlash
+}
+
+func (k Keeper) refundSlashing(ctx sdk.Context, signedWindow uint64) (hasSlash bool) {
+	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
+	unSlashRefunds := k.GetUnSlashedRefundRecords(ctx, maxHeight)
+
+	snapshotOracleMap := make(map[uint64]*types.SnapshotOracle)
+	for _, record := range unSlashRefunds {
+		confirmOracleMap := make(map[string]bool)
+		k.IterRefundConfirmByNonce(ctx, record.EventNonce, func(confirm *types.MsgConfirmRefund) bool {
+			confirmOracleMap[confirm.ExternalAddress] = true
+			return false
+		})
+
+		snapshotOracle, found := snapshotOracleMap[record.OracleSetNonce]
+		if !found {
+			snapshotOracle, found = k.GetSnapshotOracle(ctx, record.OracleSetNonce)
+			if !found {
+				k.Logger(ctx).Error("refund slashing", "oracle set not found", record.OracleSetNonce)
+				continue
+			}
+			snapshotOracleMap[record.OracleSetNonce] = snapshotOracle
+		}
+
+		for _, members := range snapshotOracle.GetMembers() {
+			if _, ok := confirmOracleMap[members.ExternalAddress]; !ok {
+				oracle, found := k.GetOracleByExternalAddress(ctx, members.ExternalAddress)
+				if !found {
+					k.Logger(ctx).Error("refund slashing", "oracle not found", members.ExternalAddress)
+					continue
+				}
+				k.Logger(ctx).Info("slash oracle by refund", "externalAddress", members.ExternalAddress,
+					"oracleAddress", oracle.String(), "recordNonce", record.EventNonce, "blockHeight", ctx.BlockHeight())
+				k.SlashOracle(ctx, oracle.String())
+				hasSlash = true
+			}
+		}
+		k.SetLastSlashedRefundNonce(ctx, record.EventNonce)
 	}
 	return hasSlash
 }

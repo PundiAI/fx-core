@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -30,4 +32,48 @@ func (suite *KeeperTestSuite) TestKeeper_AddRefundRecord() {
 	suite.Equal(refundRecord.EventNonce, eventNonce)
 	suite.Equal(refundRecord.Receiver, receiver)
 	suite.Equal(refundRecord.Tokens, tokens)
+}
+
+func (suite *KeeperTestSuite) TestKeeper_IterateRefundRecordByNonce() {
+	testCases := []struct {
+		name             string
+		eventNonces      []uint64
+		startNonce       uint64
+		expectEventNonce []uint64
+	}{
+		{
+			name:             "only 1 - start 0",
+			eventNonces:      []uint64{1},
+			startNonce:       uint64(0),
+			expectEventNonce: []uint64{1},
+		},
+		{
+			name:             "only 1 - start 1",
+			eventNonces:      []uint64{1},
+			startNonce:       uint64(1),
+			expectEventNonce: []uint64{1},
+		},
+		{
+			name:             "out-of-order",
+			eventNonces:      []uint64{6, 2, 5},
+			startNonce:       uint64(1),
+			expectEventNonce: []uint64{2, 5, 6},
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.T().Run(testCase.name, func(t *testing.T) {
+			suite.SetupTest()
+			for _, nonce := range testCase.eventNonces {
+				suite.Keeper().SetRefundRecord(suite.ctx, &types.RefundRecord{EventNonce: nonce})
+			}
+			actualEventNonces := make([]uint64, 0, len(testCase.expectEventNonce))
+			suite.Keeper().IterateRefundRecordByNonce(suite.ctx, testCase.startNonce, func(record *types.RefundRecord) bool {
+				actualEventNonces = append(actualEventNonces, record.EventNonce)
+				return false
+			})
+
+			suite.EqualValues(testCase.expectEventNonce, actualEventNonces)
+		})
+	}
 }

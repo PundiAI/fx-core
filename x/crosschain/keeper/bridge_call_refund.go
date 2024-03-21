@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"math"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -186,5 +188,44 @@ func (k Keeper) DeleteRefundConfirm(ctx sdk.Context, nonce uint64) {
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
+	}
+}
+
+func (k Keeper) SetLastSlashedRefundNonce(ctx sdk.Context, nonce uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.LastSlashedRefundNonce, sdk.Uint64ToBigEndian(nonce))
+}
+
+func (k Keeper) GetLastSlashedRefundNonce(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.BigEndianToUint64(store.Get(types.LastSlashedRefundNonce))
+}
+
+func (k Keeper) GetUnSlashedRefundRecords(ctx sdk.Context, height uint64) []types.RefundRecord {
+	nonce := k.GetLastSlashedRefundNonce(ctx)
+	var refunds []types.RefundRecord
+	k.IterateRefundRecordByNonce(ctx, nonce, func(record *types.RefundRecord) bool {
+		if record.Block <= height {
+			refunds = append(refunds, *record)
+			return false
+		}
+		return true
+	})
+	return refunds
+}
+
+func (k Keeper) IterateRefundRecordByNonce(ctx sdk.Context, startNonce uint64, cb func(record *types.RefundRecord) bool) {
+	store := ctx.KVStore(k.storeKey)
+	startKey := append(types.BridgeCallRefundEventNonceKey, sdk.Uint64ToBigEndian(startNonce)...)
+	endKey := append(types.BridgeCallRefundEventNonceKey, sdk.Uint64ToBigEndian(math.MaxUint64)...)
+	iter := store.Iterator(startKey, endKey)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		value := new(types.RefundRecord)
+		k.cdc.MustUnmarshal(iter.Value(), value)
+		if cb(value) {
+			break
+		}
 	}
 }
