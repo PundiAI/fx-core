@@ -1,4 +1,4 @@
-name: solidity
+name: Solidity
 
 on:
   push:

@@ -1,6 +1,7 @@
-name: TestIntegration
+name: Nightly Test
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * 1,3,5"
 
@@ -12,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-integration:
+  integration:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
