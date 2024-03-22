@@ -1,11 +1,12 @@
-name: cleanup caches by a branch
+name: Cleanup caches by a branch
+
 on:
   pull_request:
     types:
       - closed
 
 jobs:
-  cleanup:
+  main:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
