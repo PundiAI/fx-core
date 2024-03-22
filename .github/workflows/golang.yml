@@ -1,9 +1,9 @@
-name: Lint Golang
+name: Golang
 
 on:
   push:
-    tags:
-      - v*
+    branches:
+      - main
     paths:
       - '**.go'
       - 'go.mod'
@@ -24,8 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  golangci:
-    name: golangci-lint
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,3 +35,12 @@ jobs:
         with:
           version: v1.55.2
           args: --timeout 10m
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.21
+      - run: make test
