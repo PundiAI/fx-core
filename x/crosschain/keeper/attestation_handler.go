@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/exp/slices"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -59,7 +60,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return errorsmod.Wrap(types.ErrInvalid, "asset")
 		}
 		switch assetType {
-		case types.AssetERC20:
+		case contract.AssetERC20:
 			return k.BridgeCallERC20Handler(ctx, assetData, claim.MustSender(), claim.MustTo(),
 				claim.MustReceiver(), claim.DstChainId, claim.MustMessage(), claim.Value, claim.GasLimit, claim.EventNonce)
 		default:

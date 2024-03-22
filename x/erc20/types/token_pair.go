@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 // NewTokenPair returns an instance of TokenPair
@@ -36,7 +36,7 @@ func (tp *TokenPair) Validate() error {
 		return err
 	}
 
-	if err := fxtypes.ValidateEthereumAddress(tp.Erc20Address); err != nil {
+	if err := contract.ValidateEthereumAddress(tp.Erc20Address); err != nil {
 		return err
 	}
 

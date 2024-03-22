@@ -26,6 +26,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/contract"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -90,7 +91,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	}
 
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
-	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI), fxtypes.MustDecodeHex(testscontract.StakingTestMetaData.Bin))
+	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), contract.MustABIJson(testscontract.StakingTestMetaData.ABI), contract.MustDecodeHex(testscontract.StakingTestMetaData.Bin))
 	suite.Require().NoError(err)
 	suite.staking = stakingContract
 
@@ -244,25 +245,25 @@ func (suite *PrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from,
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, contract, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
 	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
 	callFunc := staking.TransferSharesMethodName
 	callABI := staking.GetABI()
-	if bytes.Equal(contract.Bytes(), suite.staking.Bytes()) {
+	if bytes.Equal(contractAddr.Bytes(), suite.staking.Bytes()) {
 		callFunc = StakingTestTransferSharesName
-		callABI = fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
+		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
 	}
 	pack, err := callABI.Pack(callFunc, val.String(), to, randShares)
 	suite.Require().NoError(err)
 	return pack, randShares, nil
 }
 
-func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, contract, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
 	callFunc := staking.TransferSharesMethodName
 	callABI := staking.GetABI()
-	if bytes.Equal(contract.Bytes(), suite.staking.Bytes()) {
+	if bytes.Equal(contractAddr.Bytes(), suite.staking.Bytes()) {
 		callFunc = StakingTestTransferSharesName
-		callABI = fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
+		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
 	}
 	pack, err := callABI.Pack(callFunc, val.String(), to, shares)
 	suite.Require().NoError(err)
@@ -280,7 +281,7 @@ func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spend
 	callABI := staking.GetABI()
 	if spender == suite.staking {
 		callFunc = StakingTestTransferFromSharesName
-		callABI = fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
+		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
 	}
 	pack, err := callABI.Pack(callFunc, val.String(), from, to, randShares)
 	suite.Require().NoError(err)
@@ -293,7 +294,7 @@ func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spende
 	callABI := staking.GetABI()
 	if spender == suite.staking {
 		callFunc = StakingTestTransferFromSharesName
-		callABI = fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
+		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
 	}
 	pack, err := callABI.Pack(callFunc, val.String(), from, to, shares)
 	suite.Require().NoError(err)

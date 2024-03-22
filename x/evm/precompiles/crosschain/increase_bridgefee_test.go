@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
@@ -58,8 +59,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		suite.Require().NoError(err)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
-	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := fxtypes.GetFIP20().ABI.Pack(
+	transferCrossChainTxFunc := func(signer *helpers.Signer, contactAddr common.Address, moduleName string, amount, fee, value *big.Int) {
+		data, err := contract.GetFIP20().ABI.Pack(
 			"transferCrossChain",
 			helpers.GenerateAddressByModule(moduleName),
 			amount,
@@ -67,7 +68,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			fxtypes.MustStrToByte32(moduleName),
 		)
 		suite.Require().NoError(err)
-		tx, err := suite.PackEthereumTx(signer, contact, value, data)
+		tx, err := suite.PackEthereumTx(signer, contactAddr, value, data)
 		suite.Require().NoError(err)
 		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 		suite.Require().NoError(err)
@@ -189,7 +190,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
 
-				crossChainTxFunc(signer, common.HexToAddress(fxtypes.EmptyEvmAddress), moduleName, amount, fee, randMint)
+				crossChainTxFunc(signer, common.HexToAddress(contract.EmptyEvmAddress), moduleName, amount, fee, randMint)
 
 				return &pair, moduleName, fxtypes.DefaultDenom
 			},
@@ -528,7 +529,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := fxtypes.GetFIP20().ABI.Pack(
+		data, err := contract.GetFIP20().ABI.Pack(
 			"transferCrossChain",
 			helpers.GenerateAddressByModule(moduleName),
 			amount,

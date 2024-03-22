@@ -22,6 +22,7 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
@@ -1118,7 +1119,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 
 	suite.registerCoin(keeper.NewBridgeDenom(suite.chainName, tokenContract))
 
-	asset, err := types.PackERC20AssetWithType(
+	asset, err := contract.PackERC20AssetWithType(
 		[]common.Address{
 			common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, tokenContract).Bytes()),
 		}, []*big.Int{
@@ -1130,7 +1131,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
 	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData(fxtypes.DefaultDenom))
 
-	fxAsset, err := types.PackERC20AssetWithType(
+	fxAsset, err := contract.PackERC20AssetWithType(
 		[]common.Address{
 			common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, fxTokenContract).Bytes()),
 		}, []*big.Int{

@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
@@ -57,7 +58,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				moduleName := md.RandModule()
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					amount,
@@ -84,7 +85,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.GetWFX().ABI.Pack(
+				data, err := contract.GetWFX().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					amount,
@@ -134,7 +135,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(bsctypes.ModuleName),
 					randMint,
@@ -157,7 +158,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				suite.Require().NoError(err)
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					randMint,
@@ -191,7 +192,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 					expectedModuleName = "eth"
 				}
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					addAmount,
@@ -221,7 +222,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				suite.Require().NoError(err)
 
 				unknownChain := "chainabc"
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(unknownChain),
 					randMint,
@@ -281,7 +282,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 					&types.MsgConvertCoin{Coin: randCoin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					randMint,
@@ -412,7 +413,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				moduleName := md.RandModule()
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					amount,
@@ -436,7 +437,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				suite.Require().NoError(err)
 
 				moduleName := md.RandModule()
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					randMint,
@@ -464,7 +465,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				suite.Require().NoError(err)
 
 				unknownChain := "chainabc"
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(unknownChain),
 					randMint,
@@ -522,7 +523,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 					&types.MsgConvertCoin{Coin: randCoin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					randMint,
@@ -663,7 +664,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					randMint,
@@ -692,7 +693,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				sourcePort1, sourceChannel1 := suite.RandTransferChannel()
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					randMint,
@@ -716,7 +717,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
-				data, err := fxtypes.GetWFX().ABI.Pack(
+				data, err := contract.GetWFX().ABI.Pack(
 					"transferCrossChain",
 					helpers.GenerateAddressByModule(moduleName),
 					amount,
@@ -750,7 +751,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 
 				ibcTarget := fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(sourceChannel, ibcchanneltypes.ChannelPrefix), prefix)
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					relayAmount,
@@ -799,7 +800,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				prefix, recipient := "0x", suite.RandSigner().AccAddress().String()
 				ibcTarget := fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(sourceChannel, ibcchanneltypes.ChannelPrefix), prefix)
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					randMint,
@@ -830,7 +831,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				prefix, recipient := "px", helpers.GenerateAddress().Hex()
 				ibcTarget := fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(sourceChannel, ibcchanneltypes.ChannelPrefix), prefix)
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					randMint,
@@ -981,7 +982,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					randMint,
@@ -1012,7 +1013,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 				sourcePort1, sourceChannel1 := suite.RandTransferChannel()
 				prefix, recipient := suite.RandPrefixAndAddress()
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					randMint,
@@ -1045,7 +1046,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 
 				ibcTarget := fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(sourceChannel, ibcchanneltypes.ChannelPrefix), prefix)
 
-				data, err := fxtypes.GetFIP20().ABI.Pack(
+				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
 					recipient,
 					relayAmount,
@@ -1201,7 +1202,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 
 func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 	crossChainABI := crosschain.GetABI()
-	otherABI := fxtypes.MustABIJson(testJsonABI)
+	otherABI := contract.MustABIJson(testJsonABI)
 
 	testCases := []struct {
 		name     string

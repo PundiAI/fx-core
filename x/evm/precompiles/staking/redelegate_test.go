@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v7/contract"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -43,7 +44,7 @@ func (suite *PrecompileTestSuite) TestRedelegate() {
 		suite.Require().NoError(err)
 		return pack
 	}
-	testABI := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI)
+	testABI := contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
 	mustPackTestABIFunc := func(valSrc, valDst sdk.ValAddress, shares sdk.Dec) []byte {
 		pack, err := testABI.Pack(StakingTestRedelegateName, valSrc.String(), valDst.String(), shares.TruncateInt().BigInt())
 		suite.Require().NoError(err)

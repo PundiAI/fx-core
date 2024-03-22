@@ -11,6 +11,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/functionx/fx-core/v7/client"
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -40,7 +41,7 @@ func (suite *PrecompileTestSuite) HexAddress() common.Address {
 func (suite *PrecompileTestSuite) TransferCrossChain(token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
 	privateKey := suite.privKey
 	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	pack, err := fxtypes.GetFIP20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
+	pack, err := contract.GetFIP20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
 	suite.Require().NoError(err, target)

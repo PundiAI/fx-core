@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
@@ -55,7 +55,7 @@ func NewConvertCoinCmd() *cobra.Command {
 
 			if len(args) == 2 {
 				receiver = args[1]
-				if err := fxtypes.ValidateEthereumAddress(receiver); err != nil {
+				if err := contract.ValidateEthereumAddress(receiver); err != nil {
 					return fmt.Errorf("invalid receiver hex address %w", err)
 				}
 			} else {
@@ -88,8 +88,8 @@ func NewConvertERC20Cmd() *cobra.Command {
 				return err
 			}
 
-			contract := args[0]
-			if err := fxtypes.ValidateEthereumAddress(contract); err != nil {
+			contractAdr := args[0]
+			if err := contract.ValidateEthereumAddress(contractAdr); err != nil {
 				return fmt.Errorf("invalid ERC20 contract address %w", err)
 			}
 
@@ -109,7 +109,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 			}
 
 			msg := &types.MsgConvertERC20{
-				ContractAddress: contract,
+				ContractAddress: contractAdr,
 				Amount:          amount,
 				Receiver:        receiver.String(),
 				Sender:          from.Hex(),

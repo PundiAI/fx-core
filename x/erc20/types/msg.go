@@ -11,6 +11,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
@@ -58,7 +59,7 @@ func (m *MsgConvertCoin) ValidateBasic() error {
 	if err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err.Error())
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
+	if err = contract.ValidateEthereumAddress(m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err.Error())
 	}
 	if err = ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
@@ -98,13 +99,13 @@ func (m *MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
 
 // ValidateBasic runs stateless checks on the message
 func (m *MsgConvertERC20) ValidateBasic() error {
-	if err := fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
+	if err := contract.ValidateEthereumAddress(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err.Error())
 	}
-	if err := fxtypes.ValidateEthereumAddress(m.ContractAddress); err != nil {
+	if err := contract.ValidateEthereumAddress(m.ContractAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid contract address: %s", err.Error())
 	}
 	if m.Amount.IsNil() || !m.Amount.IsPositive() {
@@ -240,7 +241,7 @@ func (m *MsgRegisterERC20) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return errorsmod.Wrap(err, "authority")
 	}
-	if err := fxtypes.ValidateEthereumAddress(m.Erc20Address); err != nil {
+	if err := contract.ValidateEthereumAddress(m.Erc20Address); err != nil {
 		return errorsmod.Wrap(err, "ERC20 address")
 	}
 	seenAliases := make(map[string]bool)
@@ -280,7 +281,7 @@ func (m *MsgToggleTokenConversion) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return errorsmod.Wrap(err, "authority")
 	}
-	if err := fxtypes.ValidateEthereumAddress(m.Token); err != nil {
+	if err := contract.ValidateEthereumAddress(m.Token); err != nil {
 		if err = sdk.ValidateDenom(m.Token); err != nil {
 			return errorsmod.Wrap(err, "token")
 		}

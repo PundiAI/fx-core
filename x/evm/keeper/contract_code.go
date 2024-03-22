@@ -14,7 +14,7 @@ import (
 	"github.com/evmos/ethermint/x/evm/statedb"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
@@ -93,7 +93,7 @@ func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.AB
 // DeployUpgradableContract deploy upgrade contract and initialize it
 func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Address, logicData []byte, initializeAbi *abi.ABI, initializeArgs ...interface{}) (common.Address, error) {
 	// deploy proxy
-	erc1967Proxy := fxtypes.GetERC1967Proxy()
+	erc1967Proxy := contract.GetERC1967Proxy()
 	if logicData == nil {
 		logicData = []byte{}
 	}

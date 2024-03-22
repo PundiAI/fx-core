@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v7/contract"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
 )
 
@@ -71,7 +71,7 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 		{
 			name: "contract - ok",
 			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, val.String(), owner.Address(), spender.Address())
+				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, val.String(), owner.Address(), spender.Address())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -80,7 +80,7 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 		{
 			name: "contract - ok - default allowance zero",
 			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, val.String(), suite.RandSigner().Address(), spender.Address())
+				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, val.String(), suite.RandSigner().Address(), spender.Address())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -90,7 +90,7 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 			name: "contract - failed - invalid validator address",
 			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
 				valStr := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, valStr, suite.RandSigner().Address(), spender.Address())
+				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, valStr, suite.RandSigner().Address(), spender.Address())
 				suite.Require().NoError(err)
 				return pack, []string{valStr}
 			},

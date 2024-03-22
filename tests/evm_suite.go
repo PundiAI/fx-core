@@ -147,7 +147,7 @@ func (suite *EvmTestSuite) Transfer(privateKey cryptotypes.PrivKey, recipient co
 
 func (suite *EvmTestSuite) WFXDeposit(privateKey cryptotypes.PrivKey, address common.Address, value *big.Int) *ethtypes.Transaction {
 	suite.True(suite.Balance(common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
-	pack, err := fxtypes.GetWFX().ABI.Pack("deposit")
+	pack, err := contract.GetWFX().ABI.Pack("deposit")
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &address, value, pack)
@@ -162,7 +162,7 @@ func (suite *EvmTestSuite) WFXDeposit(privateKey cryptotypes.PrivKey, address co
 func (suite *EvmTestSuite) WFXWithdraw(privateKey cryptotypes.PrivKey, address, recipient common.Address, value *big.Int) *ethtypes.Transaction {
 	suite.True(suite.TotalSupply(address).Cmp(value) >= 0)
 	suite.True(suite.BalanceOf(address, common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
-	pack, err := fxtypes.GetWFX().ABI.Pack("withdraw", recipient, value)
+	pack, err := contract.GetWFX().ABI.Pack("withdraw", recipient, value)
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &address, nil, pack)
@@ -177,7 +177,7 @@ func (suite *EvmTestSuite) WFXWithdraw(privateKey cryptotypes.PrivKey, address, 
 func (suite *EvmTestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, recipient common.Address, value *big.Int) *ethtypes.Transaction {
 	suite.True(suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
 
-	pack, err := fxtypes.GetFIP20().ABI.Pack("transfer", recipient, value)
+	pack, err := contract.GetFIP20().ABI.Pack("transfer", recipient, value)
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
@@ -189,7 +189,7 @@ func (suite *EvmTestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, 
 }
 
 func (suite *EvmTestSuite) ApproveERC20(privateKey cryptotypes.PrivKey, token, spender common.Address, value *big.Int) *ethtypes.Transaction {
-	pack, err := fxtypes.GetFIP20().ABI.Pack("approve", spender, value)
+	pack, err := contract.GetFIP20().ABI.Pack("approve", spender, value)
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
@@ -201,7 +201,7 @@ func (suite *EvmTestSuite) ApproveERC20(privateKey cryptotypes.PrivKey, token, s
 }
 
 func (suite *EvmTestSuite) TransferOwnership(privateKey cryptotypes.PrivKey, token, newOwner common.Address) *ethtypes.Transaction {
-	pack, err := fxtypes.GetFIP20().ABI.Pack("transferOwnership", newOwner)
+	pack, err := contract.GetFIP20().ABI.Pack("transferOwnership", newOwner)
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
@@ -213,7 +213,7 @@ func (suite *EvmTestSuite) TransferOwnership(privateKey cryptotypes.PrivKey, tok
 }
 
 func (suite *EvmTestSuite) TransferFromERC20(privateKey cryptotypes.PrivKey, token, sender, recipient common.Address, value *big.Int) *ethtypes.Transaction {
-	pack, err := fxtypes.GetFIP20().ABI.Pack("transferFrom", sender, recipient, value)
+	pack, err := contract.GetFIP20().ABI.Pack("transferFrom", sender, recipient, value)
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
@@ -225,7 +225,7 @@ func (suite *EvmTestSuite) TransferFromERC20(privateKey cryptotypes.PrivKey, tok
 }
 
 func (suite *EvmTestSuite) MintERC20(privateKey cryptotypes.PrivKey, token, account common.Address, value *big.Int) *ethtypes.Transaction {
-	pack, err := fxtypes.GetFIP20().ABI.Pack("mint", account, value)
+	pack, err := contract.GetFIP20().ABI.Pack("mint", account, value)
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
 	suite.Require().NoError(err)
@@ -240,7 +240,7 @@ func (suite *EvmTestSuite) BurnERC20(privateKey cryptotypes.PrivKey, token, acco
 	suite.True(beforeBalance.Cmp(value) >= 0)
 	beforeTotalSupply := suite.TotalSupply(token)
 	suite.True(beforeTotalSupply.Cmp(value) >= 0)
-	pack, err := fxtypes.GetFIP20().ABI.Pack("burn", account, value)
+	pack, err := contract.GetFIP20().ABI.Pack("burn", account, value)
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
 	suite.Require().NoError(err)
@@ -331,14 +331,14 @@ func (suite *EvmTestSuite) DeployContract(privKey cryptotypes.PrivKey, contractB
 	suite.Require().NoError(err)
 	receipt := suite.SendTransaction(tx)
 
-	suite.Require().NotEqualf(fxtypes.EmptyEvmAddress, receipt.ContractAddress.String(), "contract address is empty")
+	suite.Require().NotEqualf(contract.EmptyEvmAddress, receipt.ContractAddress.String(), "contract address is empty")
 	return receipt.ContractAddress, receipt.TxHash
 }
 
 func (suite *EvmTestSuite) DeployProxy(privateKey cryptotypes.PrivKey, logic common.Address, initData []byte) common.Address {
-	input, err := fxtypes.GetERC1967Proxy().ABI.Pack("", logic, initData)
+	input, err := contract.GetERC1967Proxy().ABI.Pack("", logic, initData)
 	suite.NoError(err)
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, nil, nil, append(fxtypes.GetERC1967Proxy().Bin, input...))
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, nil, nil, append(contract.GetERC1967Proxy().Bin, input...))
 	suite.NoError(err)
 	suite.SendTransaction(tx)
 	return crypto.CreateAddress(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), tx.Nonce())
@@ -363,12 +363,12 @@ func (suite *EvmTestSuite) TxFee(hash common.Hash) *big.Int {
 }
 
 func (suite *EvmTestSuite) DeployERC20Contract(privKey cryptotypes.PrivKey) common.Address {
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privKey, nil, nil, fxtypes.GetFIP20().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privKey, nil, nil, contract.GetFIP20().Bin)
 	suite.NoError(err)
 	suite.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.DeployProxy(privKey, logic, []byte{})
-	pack, err := fxtypes.GetFIP20().ABI.Pack("initialize", "Test ERC20", helpers.NewRandSymbol(), uint8(18), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes()))
+	pack, err := contract.GetFIP20().ABI.Pack("initialize", "Test ERC20", helpers.NewRandSymbol(), uint8(18), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes()))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.EthClient(), privKey, &proxy, nil, pack)
 	suite.NoError(err)
@@ -376,9 +376,9 @@ func (suite *EvmTestSuite) DeployERC20Contract(privKey cryptotypes.PrivKey) comm
 	return proxy
 }
 
-func GetERC721() fxtypes.Contract {
-	return fxtypes.Contract{
-		ABI: fxtypes.MustABIJson(testscontract.ERC721TokenTestMetaData.ABI),
-		Bin: fxtypes.MustDecodeHex(testscontract.ERC721TokenTestMetaData.Bin),
+func GetERC721() contract.Contract {
+	return contract.Contract{
+		ABI: contract.MustABIJson(testscontract.ERC721TokenTestMetaData.ABI),
+		Bin: contract.MustDecodeHex(testscontract.ERC721TokenTestMetaData.Bin),
 	}
 }

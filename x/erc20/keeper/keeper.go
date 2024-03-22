@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/libs/log"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
@@ -75,7 +75,7 @@ func (k Keeper) ModuleAddress() common.Address {
 
 // TransferAfter ibc transfer after
 func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _ bool) error {
-	if err := fxtypes.ValidateEthereumAddress(receive); err != nil {
+	if err := contract.ValidateEthereumAddress(receive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err.Error())
 	}
 	_, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{

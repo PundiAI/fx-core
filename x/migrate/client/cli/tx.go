@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	"github.com/functionx/fx-core/v7/x/migrate/types"
@@ -42,7 +43,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 			}
 			fromAddress := cliCtx.GetFromAddress()
 
-			if err := fxtypes.ValidateEthereumAddress(args[0]); err != nil {
+			if err := contract.ValidateEthereumAddress(args[0]); err != nil {
 				return err
 			}
 			hexAddress := common.HexToAddress(args[0])

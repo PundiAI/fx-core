@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
@@ -49,7 +49,7 @@ func (k Keeper) TokenPair(c context.Context, req *types.QueryTokenPairRequest) (
 	}
 
 	// check if the token is a hex address, if not, check if it is a valid SDK denom
-	if err := fxtypes.ValidateEthereumAddress(req.Token); err != nil {
+	if err := contract.ValidateEthereumAddress(req.Token); err != nil {
 		if err := sdk.ValidateDenom(req.Token); err != nil {
 			return nil, status.Errorf(
 				codes.InvalidArgument,

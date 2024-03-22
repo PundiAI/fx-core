@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/evm/types"
 )
@@ -17,14 +18,14 @@ import (
 // IncreaseBridgeFee add bridge fee to unbatched tx
 //
 //gocyclo:ignore
-func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("increase bridge fee method not readonly")
 	}
 
 	// args
 	var args IncreaseBridgeFeeArgs
-	err := types.ParseMethodArgs(IncreaseBridgeFeeMethod, &args, contract.Input[4:])
+	err := types.ParseMethodArgs(IncreaseBridgeFeeMethod, &args, contractAddr.Input[4:])
 	if err != nil {
 		return nil, err
 	}
@@ -39,10 +40,10 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contract *vm.
 		return nil, fmt.Errorf("chain not support: %s", args.Chain)
 	}
 
-	value := contract.Value()
-	sender := contract.Caller()
+	value := contractAddr.Value()
+	sender := contractAddr.Caller()
 	crossChainDenom := ""
-	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == fxtypes.EmptyEvmAddress {
+	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == contract.EmptyEvmAddress {
 		if args.Fee.Cmp(value) != 0 {
 			return nil, errors.New("add bridge fee not equal msg.value")
 		}

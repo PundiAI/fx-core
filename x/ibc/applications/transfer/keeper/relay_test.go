@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
@@ -276,7 +277,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().True(found)
 				toAddress := common.HexToAddress(packetData.Receiver)
 				var balanceRes struct{ Value *big.Int }
-				err := suite.GetApp(suite.chainA.App).EvmKeeper.QueryContract(suite.chainA.GetContext(), common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), fxtypes.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
+				err := suite.GetApp(suite.chainA.App).EvmKeeper.QueryContract(suite.chainA.GetContext(), common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), contract.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
 				suite.Require().NoError(err)
 				suite.Require().EqualValues(expectBalance.String(), sdk.NewIntFromBigInt(balanceRes.Value).String())
 			},
@@ -325,7 +326,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().True(found)
 				toAddress := common.HexToAddress(packetData.Receiver)
 				var balanceRes struct{ Value *big.Int }
-				err := suite.GetApp(suite.chainA.App).EvmKeeper.QueryContract(suite.chainA.GetContext(), common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), fxtypes.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
+				err := suite.GetApp(suite.chainA.App).EvmKeeper.QueryContract(suite.chainA.GetContext(), common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), contract.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
 				suite.Require().NoError(err)
 				suite.Require().EqualValues(expectBalance.String(), sdk.NewIntFromBigInt(balanceRes.Value).String())
 			},

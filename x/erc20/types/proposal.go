@@ -10,6 +10,7 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
@@ -95,7 +96,7 @@ func (*RegisterERC20Proposal) ProposalType() string {
 
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *RegisterERC20Proposal) ValidateBasic() error {
-	if err := fxtypes.ValidateEthereumAddress(m.Erc20Address); err != nil {
+	if err := contract.ValidateEthereumAddress(m.Erc20Address); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
 	}
 	seenAliases := make(map[string]bool)
@@ -135,7 +136,7 @@ func (*ToggleTokenConversionProposal) ProposalType() string {
 func (m *ToggleTokenConversionProposal) ValidateBasic() error {
 	// check if the token is a hex address, if not, check if it is a valid SDK
 	// denom
-	if err := fxtypes.ValidateEthereumAddress(m.Token); err != nil {
+	if err := contract.ValidateEthereumAddress(m.Token); err != nil {
 		if err := sdk.ValidateDenom(m.Token); err != nil {
 			return errortypes.ErrInvalidRequest.Wrap("invalid token")
 		}

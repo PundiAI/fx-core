@@ -12,17 +12,18 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/x/evm/types"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
-	contract := suite.DeployERC20Contract()
+	contractAddr := suite.DeployERC20Contract()
 
 	recipient := helpers.GenerateAddress()
 	amount := big.NewInt(10)
-	data, err := fxtypes.GetFIP20().ABI.Pack("transfer", recipient, amount)
+	data, err := contract.GetFIP20().ABI.Pack("transfer", recipient, amount)
 	suite.Require().NoError(err)
 
 	chanId := suite.app.EvmKeeper.ChainID()
@@ -38,7 +39,7 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
 	tx := types.NewTx(
 		chanId,
 		suite.app.EvmKeeper.GetNonce(suite.ctx, suite.signer.Address()),
-		&contract,
+		&contractAddr,
 		big.NewInt(0),
 		gasLimit,
 		big.NewInt(500*1e9),
@@ -60,7 +61,7 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
 	totalSupplyAfter := suite.app.BankKeeper.GetSupply(suite.ctx, fxtypes.DefaultDenom)
 	suite.Require().Equal(totalSupplyBefore.String(), totalSupplyAfter.String())
 
-	suite.Equal(amount, suite.BalanceOf(contract, recipient))
+	suite.Equal(amount, suite.BalanceOf(contractAddr, recipient))
 }
 
 func (suite *KeeperTestSuite) TestKeeper_EthereumTx2() {
@@ -110,7 +111,7 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx2() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_CallContract() {
-	erc20 := fxtypes.GetFIP20()
+	erc20 := contract.GetFIP20()
 	initializeArgs := []interface{}{"FunctionX USD", "fxUSD", uint8(18), suite.app.Erc20Keeper.ModuleAddress()}
 
 	// deploy contract

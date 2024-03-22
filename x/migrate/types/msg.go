@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 const TypeMsgMigrateAccount = "migrate_account"
@@ -38,7 +38,7 @@ func (m *MsgMigrateAccount) ValidateBasic() error {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid from address: %s", err)
 	}
 	// check to address
-	if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
+	if err = contract.ValidateEthereumAddress(m.To); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
 	}
 	toAddress := common.HexToAddress(m.To)

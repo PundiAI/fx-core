@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain"
@@ -622,7 +623,7 @@ func (suite *KeeperTestSuite) TestCleanUpRefundTimeout() {
 	suite.Commit()
 
 	tokenAddr := common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, bridgeToken).Bytes())
-	asset, err := types.PackERC20AssetWithType([]common.Address{tokenAddr}, []*big.Int{big.NewInt(1)})
+	asset, err := contract.PackERC20AssetWithType([]common.Address{tokenAddr}, []*big.Int{big.NewInt(1)})
 	suite.NoError(err)
 
 	bridgeCallClaim := &types.MsgBridgeCallClaim{

@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/x/migrate/types"
 )
 
@@ -12,7 +12,7 @@ import (
 func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, record := range state.MigrateRecords {
 		fromAddr := sdk.MustAccAddressFromBech32(record.From)
-		if err := fxtypes.ValidateEthereumAddress(record.To); err != nil {
+		if err := contract.ValidateEthereumAddress(record.To); err != nil {
 			panic(err)
 		}
 		k.SetMigrateRecord(ctx, fromAddr, common.HexToAddress(record.To))

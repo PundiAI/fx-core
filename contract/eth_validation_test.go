@@ -1,4 +1,4 @@
-package types_test
+package contract_test
 
 import (
 	"strings"
@@ -7,8 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func TestIsEmptyHash(t *testing.T) {
@@ -30,7 +30,7 @@ func TestIsEmptyHash(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, fxtypes.IsEmptyHash(tc.hash), tc.name)
+		require.Equal(t, tc.expEmpty, contract.IsEmptyHash(tc.hash), tc.name)
 	}
 }
 
@@ -53,7 +53,7 @@ func TestIsZeroEthereumAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, fxtypes.IsZeroEthereumAddress(tc.address), tc.name)
+		require.Equal(t, tc.expEmpty, contract.IsZeroEthereumAddress(tc.address), tc.name)
 	}
 }
 
@@ -84,7 +84,7 @@ func TestValidateEthereumAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := fxtypes.ValidateEthereumAddress(tc.address)
+		err := contract.ValidateEthereumAddress(tc.address)
 
 		if tc.expError {
 			require.Error(t, err, tc.name)

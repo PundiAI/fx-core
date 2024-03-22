@@ -6,7 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 var _ sdk.Msg = &MsgCallContract{}
@@ -26,7 +26,7 @@ func (m *MsgCallContract) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return errorsmod.Wrap(err, "authority")
 	}
-	if err := fxtypes.ValidateEthereumAddress(m.ContractAddress); err != nil {
+	if err := contract.ValidateEthereumAddress(m.ContractAddress); err != nil {
 		return errorsmod.Wrap(err, "contract address")
 	}
 	if len(m.Data) == 0 {
