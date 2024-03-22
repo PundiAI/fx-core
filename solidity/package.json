@@ -1,7 +1,7 @@
 {
-  "name": "fxcore-solidity",
+  "name": "fx-contracts",
   "description": "Smart Contract library for Solidity",
-  "version": "0.1.2",
+  "version": "0.7.0",
   "files": [
     "/contracts/**/*.sol",
     "package.json",
@@ -17,9 +17,10 @@
   },
   "keywords": [
     "solidity",
-    "ethereum",
+    "evm",
     "crosschain",
-    "staking"
+    "staking",
+    "bridge call"
   ],
   "publishConfig": {
     "access": "public",
@@ -32,6 +33,7 @@
   "bugs": {
     "url": "https://github.com/FunctionX/fx-core/issues"
   },
+  "homepage": "https://github.com/FunctionX/fx-core/blob/main/solidity/README.md",
   "license": "Apache-2.0",
   "dependencies": {
     "@ethers-ext/signer-ledger": "^6.0.0-beta.1",
