@@ -2,8 +2,6 @@ name: Lint Shell
 
 on:
   push:
-    tags:
-      - v*
     branches:
       - main
     paths:
@@ -20,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  shellcheck:
+  main:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
