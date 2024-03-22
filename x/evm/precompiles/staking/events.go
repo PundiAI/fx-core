@@ -3,7 +3,7 @@ package staking
 import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 var (
@@ -12,10 +12,10 @@ var (
 		ApproveSharesEventName,
 		false,
 		abi.Arguments{
-			abi.Argument{Name: "owner", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "spender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "owner", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "spender", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "validator", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "shares", Type: contract.TypeUint256, Indexed: false},
 		},
 	)
 
@@ -24,10 +24,10 @@ var (
 		DelegateEventName,
 		false,
 		abi.Arguments{
-			abi.Argument{Name: "delegator", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "delegator", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "validator", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "amount", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "shares", Type: contract.TypeUint256, Indexed: false},
 		},
 	)
 
@@ -36,11 +36,11 @@ var (
 		TransferSharesEventName,
 		false,
 		abi.Arguments{
-			abi.Argument{Name: "from", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "to", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "token", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "from", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "to", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "validator", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "shares", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "token", Type: contract.TypeUint256, Indexed: false},
 		},
 	)
 
@@ -49,11 +49,11 @@ var (
 		UndelegateEventName,
 		false,
 		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "completionTime", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "sender", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "validator", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "shares", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "amount", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "completionTime", Type: contract.TypeUint256, Indexed: false},
 		},
 	)
 
@@ -62,9 +62,9 @@ var (
 		WithdrawEventName,
 		false,
 		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "reward", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "sender", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "validator", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "reward", Type: contract.TypeUint256, Indexed: false},
 		},
 	)
 
@@ -73,12 +73,12 @@ var (
 		RedelegateEventName,
 		false,
 		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
-			abi.Argument{Name: "valSrc", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "valDst", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "shares", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
-			abi.Argument{Name: "completionTime", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "sender", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "valSrc", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "valDst", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "shares", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "amount", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "completionTime", Type: contract.TypeUint256, Indexed: false},
 		},
 	)
 )
