@@ -12,6 +12,7 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
@@ -27,7 +28,7 @@ func NewERC20Token(amount sdkmath.Int, contract string) ERC20Token {
 
 // ValidateBasic permforms stateless validation
 func (m *ERC20Token) ValidateBasic() error {
-	if err := fxtypes.ValidateEthereumAddress(m.Contract); err != nil {
+	if err := contract.ValidateEthereumAddress(m.Contract); err != nil {
 		return errorsmod.Wrap(err, "invalid contract address")
 	}
 	if !m.Amount.IsPositive() {
@@ -43,7 +44,7 @@ func (m *BridgeValidator) ValidateBasic() error {
 	if m.Power == 0 {
 		return errorsmod.Wrap(ErrEmpty, "power")
 	}
-	if err := fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
+	if err := contract.ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return errorsmod.Wrap(ErrInvalid, "external address")
 	}
 	return nil

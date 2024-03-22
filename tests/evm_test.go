@@ -20,18 +20,17 @@ import (
 	"github.com/functionx/fx-core/v7/client"
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/types"
 	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 func (suite *IntegrationTest) WFXTest() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetWFX().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, contract.GetWFX().Bin)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
-	pack, err := types.GetWFX().ABI.Pack("initialize", "Wrapped Function X", "WFX", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
+	pack, err := contract.GetWFX().ABI.Pack("initialize", "Wrapped Function X", "WFX", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
 	suite.NoError(err)
@@ -49,12 +48,12 @@ func (suite *IntegrationTest) WFXTest() {
 
 func (suite *IntegrationTest) ERC20TokenTest() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetFIP20().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, contract.GetFIP20().Bin)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
-	pack, err := types.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
+	pack, err := contract.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
 	suite.NoError(err)
@@ -121,9 +120,9 @@ func (suite *IntegrationTest) ERC721Test() {
 }
 
 func (suite *IntegrationTest) deployProxy(privateKey cryptotypes.PrivKey, logic common.Address, initData []byte) common.Address {
-	input, err := types.GetERC1967Proxy().ABI.Pack("", logic, initData)
+	input, err := contract.GetERC1967Proxy().ABI.Pack("", logic, initData)
 	suite.NoError(err)
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), privateKey, nil, nil, append(types.GetERC1967Proxy().Bin, input...))
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), privateKey, nil, nil, append(contract.GetERC1967Proxy().Bin, input...))
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	return crypto.CreateAddress(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), tx.Nonce())
@@ -292,19 +291,19 @@ func (suite *IntegrationTest) EVMWeb3Test() {
 
 func (suite *IntegrationTest) CallContractTest() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
-	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetFIP20().Bin)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, contract.GetFIP20().Bin)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
 	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
-	pack, err := types.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()))
+	pack, err := contract.GetFIP20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()))
 	suite.NoError(err)
 	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
 	suite.NoError(err)
 	suite.evm.SendTransaction(tx)
 	suite.evm.TransferOwnership(suite.evm.privKey, proxy, common.BytesToAddress(authtypes.NewModuleAddress(evmtypes.ModuleName)))
 	amount := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
-	args, err := types.GetFIP20().ABI.Pack("mint", suite.evm.HexAddress(), amount)
+	args, err := contract.GetFIP20().ABI.Pack("mint", suite.evm.HexAddress(), amount)
 	suite.Require().NoError(err)
 	response, proposalId := suite.BroadcastProposalTx2([]sdk.Msg{&fxevmtypes.MsgCallContract{
 		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -318,22 +317,22 @@ func (suite *IntegrationTest) CallContractTest() {
 
 func (suite *IntegrationTest) FIP20CodeCheckTest() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
-	fip20Addr, _ := suite.evm.DeployContract(suite.evm.privKey, types.GetFIP20().Bin)
+	fip20Addr, _ := suite.evm.DeployContract(suite.evm.privKey, contract.GetFIP20().Bin)
 	code, err := suite.evm.EthClient().CodeAt(suite.ctx, fip20Addr, nil)
 	suite.Require().NoError(err)
-	suite.Equal(types.GetFIP20().Code, code, fmt.Sprintf("fip20 deployed code: %s", common.Bytes2Hex(code)))
+	suite.Equal(contract.GetFIP20().Code, code, fmt.Sprintf("fip20 deployed code: %s", common.Bytes2Hex(code)))
 
-	deployedCode := bytes.ReplaceAll(code, types.GetFIP20().Address.Bytes(), common.HexToAddress(types.EmptyEvmAddress).Bytes())
+	deployedCode := bytes.ReplaceAll(code, contract.GetFIP20().Address.Bytes(), common.HexToAddress(contract.EmptyEvmAddress).Bytes())
 	suite.True(strings.HasSuffix(contract.FIP20UpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
 }
 
 func (suite *IntegrationTest) WFXCodeCheckTest() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
-	wfxAddr, _ := suite.evm.DeployContract(suite.evm.privKey, types.GetWFX().Bin)
+	wfxAddr, _ := suite.evm.DeployContract(suite.evm.privKey, contract.GetWFX().Bin)
 	code, err := suite.evm.EthClient().CodeAt(suite.ctx, wfxAddr, nil)
 	suite.Require().NoError(err)
-	suite.Equal(types.GetWFX().Code, code, fmt.Sprintf("wfx deployed code: %s", common.Bytes2Hex(code)))
+	suite.Equal(contract.GetWFX().Code, code, fmt.Sprintf("wfx deployed code: %s", common.Bytes2Hex(code)))
 
-	deployedCode := bytes.ReplaceAll(code, types.GetWFX().Address.Bytes(), common.HexToAddress(types.EmptyEvmAddress).Bytes())
+	deployedCode := bytes.ReplaceAll(code, contract.GetWFX().Address.Bytes(), common.HexToAddress(contract.EmptyEvmAddress).Bytes())
 	suite.True(strings.HasSuffix(contract.WFXUpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
 }

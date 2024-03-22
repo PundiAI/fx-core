@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
@@ -26,7 +27,7 @@ func (k Keeper) BridgeCallERC20Handler(
 	value sdkmath.Int,
 	gasLimit, eventNonce uint64,
 ) error {
-	tokenAddrs, amounts, err := types.UnpackERC20Asset(asset)
+	tokenAddrs, amounts, err := contract.UnpackERC20Asset(asset)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}

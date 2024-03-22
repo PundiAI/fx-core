@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/ethereum/go-ethereum/common"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 func ParseAddress(addr string) (accAddr sdk.AccAddress, isEvmAddr bool, err error) {
@@ -14,7 +16,7 @@ func ParseAddress(addr string) (accAddr sdk.AccAddress, isEvmAddr bool, err erro
 	if decodeErr == nil {
 		return bytes, false, nil
 	}
-	ethAddrError := ValidateEthereumAddress(addr)
+	ethAddrError := contract.ValidateEthereumAddress(addr)
 	if ethAddrError == nil {
 		return common.HexToAddress(addr).Bytes(), true, nil
 	}

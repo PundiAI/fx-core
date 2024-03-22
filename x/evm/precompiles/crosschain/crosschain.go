@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	"github.com/functionx/fx-core/v7/x/evm/types"
@@ -91,28 +92,28 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 // CrossChain called at any address(account or contract)
 //
 //gocyclo:ignore
-func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("cross chain method not readonly")
 	}
 
 	// args
 	var args CrossChainArgs
-	err := types.ParseMethodArgs(CrossChainMethod, &args, contract.Input[4:])
+	err := types.ParseMethodArgs(CrossChainMethod, &args, contractAddr.Input[4:])
 	if err != nil {
 		return nil, err
 	}
 
 	// call param
-	value := contract.Value()
-	sender := contract.Caller()
+	value := contractAddr.Value()
+	sender := contractAddr.Caller()
 
 	// cross chain param
 	originToken := false
 	crossChainDenom := ""
 
 	// cross-chain origin token
-	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == fxtypes.EmptyEvmAddress {
+	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == contract.EmptyEvmAddress {
 		totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
 		if totalAmount.Cmp(value) != 0 {
 			return nil, errors.New("amount + fee not equal msg.value")
@@ -290,8 +291,8 @@ func (c *Contract) ibcTransfer(
 	if !fee.IsZero() {
 		return fmt.Errorf("ibc transfer fee must be zero: %s", fee.String())
 	}
-	if strings.ToLower(fxTarget.Prefix) == fxtypes.EthereumAddressPrefix {
-		if err := fxtypes.ValidateEthereumAddress(to); err != nil {
+	if strings.ToLower(fxTarget.Prefix) == contract.EthereumAddressPrefix {
+		if err := contract.ValidateEthereumAddress(to); err != nil {
 			return fmt.Errorf("invalid to address: %s", to)
 		}
 	} else {

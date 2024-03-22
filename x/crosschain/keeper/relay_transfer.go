@@ -13,6 +13,7 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -56,7 +57,7 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 
 func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive sdk.AccAddress, coin sdk.Coin, target fxtypes.FxTarget) error {
 	var ibcReceiveAddress string
-	if strings.ToLower(target.Prefix) == fxtypes.EthereumAddressPrefix {
+	if strings.ToLower(target.Prefix) == contract.EthereumAddressPrefix {
 		ibcReceiveAddress = common.BytesToAddress(receive.Bytes()).String()
 	} else {
 		var err error

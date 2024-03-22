@@ -7,7 +7,7 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 var _ MsgValidateBasic = &MsgValidate{}
@@ -21,7 +21,7 @@ func (b MsgValidate) MsgBondedOracleValidate(m *MsgBondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
+	if err = contract.ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if !m.DelegateAmount.IsValid() || m.DelegateAmount.IsNegative() {
@@ -84,7 +84,7 @@ func (b MsgValidate) MsgOracleSetConfirmValidate(m *MsgOracleSetConfirm) (err er
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
+	if err = contract.ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if len(m.Signature) == 0 {
@@ -104,7 +104,7 @@ func (b MsgValidate) MsgOracleSetUpdatedClaimValidate(m *MsgOracleSetUpdatedClai
 		return errortypes.ErrInvalidRequest.Wrap("empty members")
 	}
 	for _, member := range m.Members {
-		if err = fxtypes.ValidateEthereumAddress(member.ExternalAddress); err != nil {
+		if err = contract.ValidateEthereumAddress(member.ExternalAddress); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 		}
 		if member.Power == 0 {
@@ -124,7 +124,7 @@ func (b MsgValidate) MsgBridgeTokenClaimValidate(m *MsgBridgeTokenClaim) (err er
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+	if err = contract.ValidateEthereumAddress(m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err = hex.DecodeString(m.ChannelIbc); len(m.ChannelIbc) > 0 && err != nil {
@@ -149,7 +149,7 @@ func (b MsgValidate) MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+	if err = contract.ValidateEthereumAddress(m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if m.EventNonce == 0 {
@@ -168,10 +168,10 @@ func (b MsgValidate) MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
+	if err = contract.ValidateEthereumAddress(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+	if err = contract.ValidateEthereumAddress(m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Receiver); err != nil {
@@ -199,15 +199,15 @@ func (b MsgValidate) MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err erro
 	if m.DstChainId == "" {
 		return errortypes.ErrInvalidRequest.Wrap("empty dst chain id")
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
+	if err = contract.ValidateEthereumAddress(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if len(m.To) > 0 {
-		if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
+		if err = contract.ValidateEthereumAddress(m.To); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
 		}
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
+	if err = contract.ValidateEthereumAddress(m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
@@ -247,7 +247,7 @@ func (b MsgValidate) MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.Dest); err != nil {
+	if err = contract.ValidateEthereumAddress(m.Dest); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid dest address: %s", err)
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
@@ -295,7 +295,7 @@ func (b MsgValidate) MsgRequestBatchValidate(m *MsgRequestBatch) (err error) {
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid minimum fee")
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.FeeReceive); err != nil {
+	if err = contract.ValidateEthereumAddress(m.FeeReceive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid fee receive address: %s", err)
 	}
 	if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
@@ -308,10 +308,10 @@ func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
+	if err = contract.ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+	if err = contract.ValidateEthereumAddress(m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if len(m.Signature) == 0 {
@@ -327,7 +327,7 @@ func (b MsgValidate) MsgConfirmRefundValidate(m *MsgConfirmRefund) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
+	if err = contract.ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if len(m.Signature) == 0 {
@@ -340,11 +340,11 @@ func (b MsgValidate) MsgConfirmRefundValidate(m *MsgConfirmRefund) (err error) {
 }
 
 func (b MsgValidate) ValidateExternalAddress(addr string) error {
-	return fxtypes.ValidateEthereumAddress(addr)
+	return contract.ValidateEthereumAddress(addr)
 }
 
 func (b MsgValidate) ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error) {
-	if err := fxtypes.ValidateEthereumAddress(addr); err != nil {
+	if err := contract.ValidateEthereumAddress(addr); err != nil {
 		return nil, err
 	}
 	return common.HexToAddress(addr).Bytes(), nil

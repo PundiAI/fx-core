@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
@@ -18,7 +19,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallERC20Handler() {
 	suite.TestMsgSetOracleSetConfirm()
 
 	bridgeTokenAddr := helpers.GenerateAddress()
-	asset, err := types.PackERC20AssetWithType(
+	asset, err := contract.PackERC20AssetWithType(
 		[]common.Address{
 			bridgeTokenAddr,
 		},

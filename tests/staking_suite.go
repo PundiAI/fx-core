@@ -19,9 +19,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v7/client"
+	"github.com/functionx/fx-core/v7/contract"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	precompilesstaking "github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
 )
 
@@ -76,7 +76,7 @@ func (suite *StakingSuite) TransactionOpts(privateKey cryptotypes.PrivKey) *bind
 }
 
 func (suite *StakingSuite) DeployStakingContract(privKey cryptotypes.PrivKey) (common.Address, common.Hash) {
-	stakingBin := fxtypes.MustDecodeHex(testscontract.StakingTestMetaData.Bin)
+	stakingBin := contract.MustDecodeHex(testscontract.StakingTestMetaData.Bin)
 	return suite.DeployContract(privKey, stakingBin)
 }
 

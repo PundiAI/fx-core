@@ -11,7 +11,7 @@ import (
 	"github.com/evmos/ethermint/x/evm/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 // InitGenesis initializes genesis state based on exported genesis
@@ -52,13 +52,13 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, accountKeeper types.AccountKeeper,
 	}
 
 	// init logic contract
-	initContract := []fxtypes.Contract{fxtypes.GetFIP20(), fxtypes.GetWFX()}
-	for _, contract := range initContract {
-		if len(contract.Code) == 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
-			panic(fmt.Sprintf("invalid contract: %s", contract.Address.String()))
+	initContract := []contract.Contract{contract.GetFIP20(), contract.GetWFX()}
+	for _, contractAddr := range initContract {
+		if len(contractAddr.Code) == 0 || contractAddr.Address == common.HexToAddress(contract.EmptyEvmAddress) {
+			panic(fmt.Sprintf("invalid contract: %s", contractAddr.Address.String()))
 		}
-		if err := k.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
-			panic(fmt.Sprintf("create contract %s with code error %s", contract.Address.String(), err.Error()))
+		if err := k.CreateContractWithCode(ctx, contractAddr.Address, contractAddr.Code); err != nil {
+			panic(fmt.Sprintf("create contract %s with code error %s", contractAddr.Address.String(), err.Error()))
 		}
 	}
 

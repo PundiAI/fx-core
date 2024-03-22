@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/exp/slices"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
@@ -567,7 +568,7 @@ func (suite *KeeperTestSuite) TestRegisterERC20ConversionInvariant() {
 	beforeMintBalance := suite.BalanceOf(contact, suite.signer.Address())
 	suite.Require().EqualValues(beforeMintBalance.String(), big.NewInt(0).String())
 	initBalance := sdkmath.NewInt(1000).MulRaw(1e18)
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contact, nil, fxtypes.GetFIP20().ABI, "mint", suite.signer.Address(), initBalance.BigInt())
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contact, nil, contract.GetFIP20().ABI, "mint", suite.signer.Address(), initBalance.BigInt())
 	suite.Require().NoError(err)
 	afterMintBalance := suite.BalanceOf(contact, suite.signer.Address())
 	suite.Require().EqualValues(afterMintBalance.String(), initBalance.String())

@@ -39,6 +39,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/contract"
 	fxserverconfig "github.com/functionx/fx-core/v7/server/config"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -130,12 +131,12 @@ func (suite *KeeperTestSuite) BurnEvmRefundFee(addr sdk.AccAddress, coins sdk.Co
 }
 
 func (suite *KeeperTestSuite) DeployContract(from common.Address) (common.Address, error) {
-	contract, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
+	contractAddr, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
 
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contract, nil, fxtypes.GetFIP20().ABI, "transferOwnership", from)
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, nil, contract.GetFIP20().ABI, "transferOwnership", from)
 	suite.Require().NoError(err)
-	return contract, nil
+	return contractAddr, nil
 }
 
 func (suite *KeeperTestSuite) DeployFXRelayToken() (types.TokenPair, banktypes.Metadata) {
@@ -216,36 +217,36 @@ func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata,
 	return coin.Amount.BigInt()
 }
 
-func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) *big.Int {
+func (suite *KeeperTestSuite) BalanceOf(contractAddr, account common.Address) *big.Int {
 	var balanceRes struct{ Value *big.Int }
-	err := suite.app.EvmKeeper.QueryContract(suite.ctx, account, contract, fxtypes.GetFIP20().ABI, "balanceOf", &balanceRes, account)
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, account, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, account)
 	suite.NoError(err)
 	return balanceRes.Value
 }
 
 func (suite *KeeperTestSuite) MintERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20 := fxtypes.GetFIP20()
+	erc20 := contract.GetFIP20()
 	transferData, err := erc20.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendEvmTx(signer, contractAddr, transferData)
 }
 
 func (suite *KeeperTestSuite) ModuleMintERC20Token(contractAddr, to common.Address, amount *big.Int) {
-	erc20 := fxtypes.GetFIP20()
+	erc20 := contract.GetFIP20()
 	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, nil, erc20.ABI, "mint", to, amount)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 }
 
 func (suite *KeeperTestSuite) TransferERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20 := fxtypes.GetFIP20()
+	erc20 := contract.GetFIP20()
 	transferData, err := erc20.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendEvmTx(signer, contractAddr, transferData)
 }
 
 func (suite *KeeperTestSuite) TransferERC20TokenToModule(signer *helpers.Signer, contractAddr common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20 := fxtypes.GetFIP20()
+	erc20 := contract.GetFIP20()
 	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 	transferData, err := erc20.ABI.Pack("transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)
@@ -253,7 +254,7 @@ func (suite *KeeperTestSuite) TransferERC20TokenToModule(signer *helpers.Signer,
 }
 
 func (suite *KeeperTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr, from common.Address, amount *big.Int) {
-	erc20 := fxtypes.GetFIP20()
+	erc20 := contract.GetFIP20()
 	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 	_, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, from, contractAddr, nil, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)

@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
@@ -58,7 +59,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := fxtypes.GetFIP20().ABI.Pack(
+		data, err := contract.GetFIP20().ABI.Pack(
 			"transferCrossChain",
 			helpers.GenerateAddressByModule(moduleName),
 			amount,
@@ -173,7 +174,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
 
-				crossChainTxFunc(signer, common.HexToAddress(fxtypes.EmptyEvmAddress), moduleName, amount, fee, randMint)
+				crossChainTxFunc(signer, common.HexToAddress(contract.EmptyEvmAddress), moduleName, amount, fee, randMint)
 
 				return &pair, moduleName, fxtypes.DefaultDenom
 			},

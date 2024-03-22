@@ -6,16 +6,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
-func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
+func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
 	// parse args
 	var args BridgeCoinAmountArgs
-	if err := types.ParseMethodArgs(BridgeCoinAmountMethod, &args, contract.Input[4:]); err != nil {
+	if err := types.ParseMethodArgs(BridgeCoinAmountMethod, &args, contractAddr.Input[4:]); err != nil {
 		return nil, err
 	}
 	pair, has := c.erc20Keeper.GetTokenPair(cacheCtx, args.Token.Hex())
@@ -23,7 +24,7 @@ func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contract *vm.C
 		return nil, fmt.Errorf("token not support: %s", args.Token.Hex())
 	}
 	// FX
-	if fxtypes.IsZeroEthereumAddress(args.Token.Hex()) {
+	if contract.IsZeroEthereumAddress(args.Token.Hex()) {
 		supply := c.bankKeeper.GetSupply(cacheCtx, fxtypes.DefaultDenom)
 		balance := c.bankKeeper.GetBalance(cacheCtx, c.accountKeeper.GetModuleAddress(ethtypes.ModuleName), fxtypes.DefaultDenom)
 		return BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.Sub(balance.Amount).BigInt())

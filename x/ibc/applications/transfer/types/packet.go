@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gogo/protobuf/proto"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 type MemoPacket interface {
@@ -93,7 +93,7 @@ func (icep IbcCallEvmPacket) GetType() IbcCallType {
 }
 
 func (icep IbcCallEvmPacket) ValidateBasic() error {
-	if err := fxtypes.ValidateEthereumAddress(icep.To); err != nil {
+	if err := contract.ValidateEthereumAddress(icep.To); err != nil {
 		return ErrInvalidEvmData.Wrap("to")
 	}
 	if icep.Value.IsNegative() {
@@ -109,7 +109,7 @@ func (icep IbcCallEvmPacket) ValidateBasic() error {
 }
 
 func (icep IbcCallEvmPacket) MustGetToAddr() *common.Address {
-	if err := fxtypes.ValidateEthereumAddress(icep.To); err != nil {
+	if err := contract.ValidateEthereumAddress(icep.To); err != nil {
 		panic(err)
 	}
 	to := common.HexToAddress(icep.To)
