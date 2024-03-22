@@ -13,6 +13,7 @@ import (
 
 func main() {
 	if err := svrcmd.Execute(cmd.NewRootCmd(), fxtypes.EnvPrefix, fxtypes.GetDefaultNodeHome()); err != nil {
+
 		var e server.ErrorCode
 		switch {
 		case errors.As(err, &e):
