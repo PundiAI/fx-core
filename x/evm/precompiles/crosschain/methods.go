@@ -7,8 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v7/contract"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 // BridgeCoinAmountMethod query the amount of bridge coin
@@ -17,11 +17,11 @@ var BridgeCoinAmountMethod = abi.NewMethod(
 	BridgeCoinAmountMethodName,
 	abi.Function, "view", false, false,
 	abi.Arguments{
-		abi.Argument{Name: "_token", Type: types.TypeAddress},
-		abi.Argument{Name: "_target", Type: types.TypeBytes32},
+		abi.Argument{Name: "_token", Type: contract.TypeAddress},
+		abi.Argument{Name: "_target", Type: contract.TypeBytes32},
 	},
 	abi.Arguments{
-		abi.Argument{Name: "_amount", Type: types.TypeUint256},
+		abi.Argument{Name: "_amount", Type: contract.TypeUint256},
 	},
 )
 
@@ -32,11 +32,11 @@ var (
 		CancelSendToExternalMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_chain", Type: types.TypeString},
-			abi.Argument{Name: "_txID", Type: types.TypeUint256},
+			abi.Argument{Name: "_chain", Type: contract.TypeString},
+			abi.Argument{Name: "_txID", Type: contract.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: contract.TypeBool},
 		},
 	)
 
@@ -47,15 +47,15 @@ var (
 		FIP20CrossChainMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_sender", Type: types.TypeAddress},
-			abi.Argument{Name: "_receipt", Type: types.TypeString},
-			abi.Argument{Name: "_amount", Type: types.TypeUint256},
-			abi.Argument{Name: "_fee", Type: types.TypeUint256},
-			abi.Argument{Name: "_target", Type: types.TypeBytes32},
-			abi.Argument{Name: "_memo", Type: types.TypeString},
+			abi.Argument{Name: "_sender", Type: contract.TypeAddress},
+			abi.Argument{Name: "_receipt", Type: contract.TypeString},
+			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
+			abi.Argument{Name: "_fee", Type: contract.TypeUint256},
+			abi.Argument{Name: "_target", Type: contract.TypeBytes32},
+			abi.Argument{Name: "_memo", Type: contract.TypeString},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: contract.TypeBool},
 		},
 	)
 	// CrossChainMethod cross chain with FIP20 token
@@ -64,15 +64,15 @@ var (
 		CrossChainMethodName,
 		abi.Function, "payable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_token", Type: types.TypeAddress},
-			abi.Argument{Name: "_receipt", Type: types.TypeString},
-			abi.Argument{Name: "_amount", Type: types.TypeUint256},
-			abi.Argument{Name: "_fee", Type: types.TypeUint256},
-			abi.Argument{Name: "_target", Type: types.TypeBytes32},
-			abi.Argument{Name: "_memo", Type: types.TypeString},
+			abi.Argument{Name: "_token", Type: contract.TypeAddress},
+			abi.Argument{Name: "_receipt", Type: contract.TypeString},
+			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
+			abi.Argument{Name: "_fee", Type: contract.TypeUint256},
+			abi.Argument{Name: "_target", Type: contract.TypeBytes32},
+			abi.Argument{Name: "_memo", Type: contract.TypeString},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: contract.TypeBool},
 		},
 	)
 
@@ -82,13 +82,13 @@ var (
 		IncreaseBridgeFeeMethodName,
 		abi.Function, "payable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_chain", Type: types.TypeString},
-			abi.Argument{Name: "_txID", Type: types.TypeUint256},
-			abi.Argument{Name: "_token", Type: types.TypeAddress},
-			abi.Argument{Name: "_fee", Type: types.TypeUint256},
+			abi.Argument{Name: "_chain", Type: contract.TypeString},
+			abi.Argument{Name: "_txID", Type: contract.TypeUint256},
+			abi.Argument{Name: "_token", Type: contract.TypeAddress},
+			abi.Argument{Name: "_fee", Type: contract.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: contract.TypeBool},
 		},
 	)
 )

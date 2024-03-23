@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 var (
@@ -19,12 +19,12 @@ var (
 		AllowanceSharesMethodName,
 		abi.Function, "view", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_owner", Type: types.TypeAddress},
-			abi.Argument{Name: "_spender", Type: types.TypeAddress},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
+			abi.Argument{Name: "_owner", Type: contract.TypeAddress},
+			abi.Argument{Name: "_spender", Type: contract.TypeAddress},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
 		},
 	)
 
@@ -34,12 +34,12 @@ var (
 		DelegationMethodName,
 		abi.Function, "view", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_del", Type: types.TypeAddress},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
+			abi.Argument{Name: "_del", Type: contract.TypeAddress},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
-			abi.Argument{Name: "_delegateAmount", Type: types.TypeUint256},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
+			abi.Argument{Name: "_delegateAmount", Type: contract.TypeUint256},
 		},
 	)
 
@@ -49,11 +49,11 @@ var (
 		DelegationRewardsMethodName,
 		abi.Function, "view", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_del", Type: types.TypeAddress},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
+			abi.Argument{Name: "_del", Type: contract.TypeAddress},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
 		},
 	)
 )
@@ -65,12 +65,12 @@ var (
 		ApproveSharesMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_spender", Type: types.TypeAddress},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
+			abi.Argument{Name: "_spender", Type: contract.TypeAddress},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: contract.TypeBool},
 		},
 	)
 
@@ -80,11 +80,11 @@ var (
 		DelegateMethodName,
 		abi.Function, "payable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
+			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
 		},
 	)
 
@@ -94,13 +94,13 @@ var (
 		TransferSharesMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_to", Type: types.TypeAddress},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
+			abi.Argument{Name: "_to", Type: contract.TypeAddress},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_token", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_token", Type: contract.TypeUint256},
+			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
 		},
 	)
 
@@ -110,14 +110,14 @@ var (
 		TransferFromSharesMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_from", Type: types.TypeAddress},
-			abi.Argument{Name: "_to", Type: types.TypeAddress},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
+			abi.Argument{Name: "_from", Type: contract.TypeAddress},
+			abi.Argument{Name: "_to", Type: contract.TypeAddress},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_token", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_token", Type: contract.TypeUint256},
+			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
 		},
 	)
 
@@ -127,13 +127,13 @@ var (
 		UndelegateMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_amount", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
-			abi.Argument{Name: "_completionTime", Type: types.TypeUint256},
+			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
+			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
+			abi.Argument{Name: "_completionTime", Type: contract.TypeUint256},
 		},
 	)
 
@@ -143,10 +143,10 @@ var (
 		WithdrawMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_val", Type: types.TypeString},
+			abi.Argument{Name: "_val", Type: contract.TypeString},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
 		},
 	)
 
@@ -156,14 +156,14 @@ var (
 		RedelegateMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_valSrc", Type: types.TypeString},
-			abi.Argument{Name: "_valDst", Type: types.TypeString},
-			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_valSrc", Type: contract.TypeString},
+			abi.Argument{Name: "_valDst", Type: contract.TypeString},
+			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "_amount", Type: types.TypeUint256},
-			abi.Argument{Name: "_reward", Type: types.TypeUint256},
-			abi.Argument{Name: "_completionTime", Type: types.TypeUint256},
+			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
+			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
+			abi.Argument{Name: "_completionTime", Type: contract.TypeUint256},
 		},
 	)
 )

@@ -6,6 +6,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/evmos/ethermint/x/evm/types"
+
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 const (
@@ -19,6 +21,6 @@ var (
 )
 
 func PackRetError(str string) ([]byte, error) {
-	pack, _ := abi.Arguments{{Type: TypeString}}.Pack(str)
+	pack, _ := abi.Arguments{{Type: contract.TypeString}}.Pack(str)
 	return pack, errors.New(str)
 }
