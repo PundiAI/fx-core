@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
     networks: {
         hardhat: {
             // forking: {
-            //     url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
+            //     url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/"+process.env.INFURA_KEY}`,
             // }
             chainId: 1337,
             mining: {
@@ -20,12 +20,20 @@ const config: HardhatUserConfig = {
             },
         },
         mainnet: {
-            url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/infura-key"}`,
+            url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/"+process.env.INFURA_KEY}`,
             chainId: 1,
         },
-        goerli: {
-            url: `${process.env.GOERLI_URL || "https://goerli.infura.io/v3/infura-key"}`,
-            chainId: 5,
+        sepolia: {
+            url: `${process.env.SEPOLIA_URL || "https://sepolia.infura.io/v3/"+process.env.INFURA_KEY}`,
+            chainId: 11155111,
+        },
+        arbitrumSepolia: {
+            url: `${process.env.ARBITRUM_URL || "https://sepolia-rollup.arbitrum.io/rpc"}`,
+            chainId: 421614,
+        },
+        optimisticSepolia: {
+            url: `${process.env.OPTIMISTIC_URL || "https://sepolia.optimism.io"}`,
+            chainId: 11155420,
         },
         localhost: {
             url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
@@ -64,9 +72,21 @@ const config: HardhatUserConfig = {
     },
     etherscan: {
         apiKey: {
-            mainnet: `${process.env.ETHERSCAN_API_KEY || "scan-key"}`,
-            goerli: `${process.env.ETHERSCAN_API_KEY || "scan-key"}`,
-        }
+            mainnet: `${process.env.ETHERSCAN_API_KEY}`,
+            sepolia: `${process.env.ETHERSCAN_API_KEY}`,
+            arbitrumSepolia: `${process.env.ETHERSCAN_API_KEY}`,
+            optimisticSepolia: `${process.env.ETHERSCAN_API_KEY}`,
+        },
+        customChains: [
+            {
+                network: "optimisticSepolia",
+                chainId: 11155420,
+                urls: {
+                    apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
+                    browserURL: "https://sepolia-optimism.etherscan.io/"
+                }
+            }
+        ]
     },
     dependencyCompiler: {
         paths: [
