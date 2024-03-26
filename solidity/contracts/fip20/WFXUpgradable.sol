@@ -263,8 +263,15 @@ contract WFXUpgradable is
         emit Withdraw(_msgSender(), to, value);
     }
 
+    function withdraw(uint256 value) public {
+        _burn(_msgSender(), value);
+        payable(_msgSender()).transfer(value);
+        emit Withdraw(_msgSender(), value);
+    }
+
     event Deposit(address indexed from, uint256 value);
     event Withdraw(address indexed from, address indexed to, uint256 value);
+    event Withdraw(address indexed from, uint256 value);
 
     function transferCrossChain(
         string memory recipient,

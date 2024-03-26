@@ -269,7 +269,13 @@ func (suite *KeeperTestSuite) Deposit(contractAddr common.Address, amount *big.I
 }
 
 func (suite *KeeperTestSuite) Withdraw(contractAddr common.Address, amount *big.Int) {
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contractAddr, nil, contract.GetWFX().ABI, "withdraw", suite.signer.Address(), amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contractAddr, nil, contract.GetWFX().ABI, "withdraw0", suite.signer.Address(), amount)
+	suite.Require().NoError(err)
+	suite.Require().False(rsp.Failed(), rsp)
+}
+
+func (suite *KeeperTestSuite) WithdrawSelf(contractAddr common.Address, amount *big.Int) {
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contractAddr, nil, contract.GetWFX().ABI, "withdraw", amount)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
