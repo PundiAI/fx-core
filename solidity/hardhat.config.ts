@@ -15,9 +15,6 @@ const config: HardhatUserConfig = {
             //     url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/"+process.env.INFURA_KEY}`,
             // }
             chainId: 1337,
-            mining: {
-                interval: 3000
-            },
         },
         mainnet: {
             url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/"+process.env.INFURA_KEY}`,

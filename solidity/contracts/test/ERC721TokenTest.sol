@@ -6,10 +6,7 @@ import {ERC721Burnable} from "@openzeppelin/contracts/token/ERC721/extensions/ER
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ERC721TokenTest is ERC721, ERC721Burnable, Ownable {
-    constructor(
-        string memory name,
-        string memory symbol
-    ) ERC721(name, symbol) {}
+    constructor() ERC721("ERC721TokenTest", "TTT") {}
 
     function mint(address _to, uint256 _id) external onlyOwner {
         _safeMint(_to, _id);
