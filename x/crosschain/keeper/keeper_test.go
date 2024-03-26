@@ -27,6 +27,7 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
 	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
 	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
@@ -49,21 +50,19 @@ func TestCrosschainKeeperTestSuite(t *testing.T) {
 	compile := regexp.MustCompile("^Test")
 	mustTestModule := []string{
 		trontypes.ModuleName,
-	}
-	otherModules := []string{
 		ethtypes.ModuleName,
-		bsctypes.ModuleName,
-		polygontypes.ModuleName,
-		avalanchetypes.ModuleName,
-		arbitrumtypes.ModuleName,
-		optimismtypes.ModuleName,
 	}
 
 	subModules := mustTestModule
-	if os.Getenv("TEST_INTEGRATION") != "true" {
-		subModules = append(subModules, otherModules[tmrand.Int63n(int64(len(otherModules)))])
-	} else {
-		subModules = append(subModules, otherModules...)
+	if os.Getenv("TEST_CROSSCHAIN") == "true" {
+		subModules = append(subModules, []string{
+			bsctypes.ModuleName,
+			polygontypes.ModuleName,
+			avalanchetypes.ModuleName,
+			arbitrumtypes.ModuleName,
+			optimismtypes.ModuleName,
+			layer2types.ModuleName,
+		}...)
 	}
 
 	for _, moduleName := range subModules {
