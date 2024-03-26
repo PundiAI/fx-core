@@ -6,6 +6,7 @@ import {ConfigurableTaskDefinition} from "hardhat/types";
 import {boolean, string} from "hardhat/internal/core/params/argumentTypes";
 import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
 import inquirer from 'inquirer';
+import {IFxBridgeLogic} from "../typechain-types";
 
 // sub task name
 export const SUB_CHECK_PRIVATE_KEY: string = "sub:check-private-key";
@@ -236,6 +237,28 @@ export function TransactionToJson(transaction: TransactionLike): string {
         nonce: transaction.nonce?.toString(),
         gasLimit: transaction.gasLimit?.toString(),
         chainId: transaction.chainId?.toString()
+    }, null, 2);
+}
+
+export function BridgeStateInfoToJson(
+    fxBridgeId: string,
+    powerThreshold: bigint,
+    lastEventNonce: bigint,
+    lastOracleSetNonce: bigint,
+    lastOracleSetCheckpoint: string,
+    bridgeTokenAddress: string[],
+    lastBatchNonce: bigint[],
+    tokenStatus: IFxBridgeLogic.TokenStatusStruct[]
+): string {
+    return JSON.stringify({
+        fxBridgeId: fxBridgeId,
+        powerThreshold: powerThreshold.toString(),
+        lastEventNonce: lastEventNonce.toString(),
+        lastOracleSetNonce: lastOracleSetNonce.toString(),
+        lastOracleSetCheckpoint: lastOracleSetCheckpoint,
+        bridgeTokenAddress: bridgeTokenAddress.toString(),
+        lastBatchNonce: lastBatchNonce.toString(),
+        tokenStatus: tokenStatus.toString()
     }, null, 2);
 }
 
