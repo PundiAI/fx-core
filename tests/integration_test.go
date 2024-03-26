@@ -2,12 +2,18 @@ package tests
 
 import (
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
+	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
+	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
@@ -26,20 +32,35 @@ func TestIntegrationTest(t *testing.T) {
 	}
 
 	testSuite := NewTestSuite()
-	suite.Run(t, &IntegrationTest{
+	testingSuite := &IntegrationTest{
 		TestSuite: testSuite,
 		crosschain: []CrosschainTestSuite{
 			NewCrosschainWithTestSuite(ethtypes.ModuleName, testSuite),
 			NewCrosschainWithTestSuite(bsctypes.ModuleName, testSuite),
 			NewCrosschainWithTestSuite(trontypes.ModuleName, testSuite),
-			// NewCrosschainWithTestSuite(polygontypes.ModuleName, testSuite),
-			// NewCrosschainWithTestSuite(avalanchetypes.ModuleName, testSuite),
 		},
 		erc20:      NewErc20TestSuite(testSuite),
 		evm:        NewEvmTestSuite(testSuite),
 		staking:    NewStakingSuite(testSuite),
 		precompile: NewPrecompileTestSuite(testSuite),
-	})
+	}
+	if runtime.GOOS == "linux" {
+		evmChainModules := []string{
+			polygontypes.ModuleName,
+			avalanchetypes.ModuleName,
+			arbitrumtypes.ModuleName,
+			optimismtypes.ModuleName,
+			layer2types.ModuleName,
+		}
+		for _, module := range evmChainModules {
+			testingSuite.crosschain = append(
+				testingSuite.crosschain,
+				NewCrosschainWithTestSuite(module, testSuite),
+			)
+		}
+	}
+
+	suite.Run(t, testingSuite)
 }
 
 func (suite *IntegrationTest) TestRun() {
