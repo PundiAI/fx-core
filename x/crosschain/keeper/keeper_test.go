@@ -115,6 +115,8 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 		return suite.app.ArbitrumKeeper
 	case optimismtypes.ModuleName:
 		return suite.app.OptimismKeeper
+	case layer2types.ModuleName:
+		return suite.app.Layer2Keeper
 	default:
 		panic("invalid chain name")
 	}
