@@ -162,7 +162,7 @@ func (suite *EvmTestSuite) WFXDeposit(privateKey cryptotypes.PrivKey, address co
 func (suite *EvmTestSuite) WFXWithdraw(privateKey cryptotypes.PrivKey, address, recipient common.Address, value *big.Int) *ethtypes.Transaction {
 	suite.True(suite.TotalSupply(address).Cmp(value) >= 0)
 	suite.True(suite.BalanceOf(address, common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
-	pack, err := contract.GetWFX().ABI.Pack("withdraw", recipient, value)
+	pack, err := contract.GetWFX().ABI.Pack("withdraw0", recipient, value)
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &address, nil, pack)
