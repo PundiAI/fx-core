@@ -154,16 +154,16 @@ lint: lint-install
 format: lint-install
 	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab --fix
 
-lint-shell:
+shell-lint:
 	# install shellcheck > https://github.com/koalaman/shellcheck
-	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build}  . | cut -d: -f1 | xargs shellcheck
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build} . | cut -d: -f1 | xargs shellcheck
 
-format-shell:
+shell-format:
 	# install shfmt > https://github.com/mvdan/sh
-	go install mvdan.cc/sh/v3/cmd/shfmt@v3.6.0
-	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build}  . | cut -d: -f1 | xargs shfmt -l -w -i 2
+	#go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build} . | cut -d: -f1 | xargs shfmt -l -w -i 2
 
-.PHONY: format lint format-goimports lint-shell
+.PHONY: format lint shell-lint shell-format
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
