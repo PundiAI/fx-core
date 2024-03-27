@@ -9,6 +9,7 @@ on:
   pull_request:
     paths:
       - '**.sh'
+      - '.github/workflows/lint_shell.yml'
 
 permissions:
   contents: read

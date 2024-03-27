@@ -15,6 +15,7 @@ on:
       - '**.go'
       - 'go.mod'
       - 'go.sum'
+      - '.github/workflows/security.yml'
 
 jobs:
   main:

@@ -15,6 +15,7 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '.golangci.yml'
+      - '.github/workflows/golang.yml'
 
 permissions:
   contents: read

@@ -9,6 +9,7 @@ on:
   pull_request:
     paths:
       - "solidity/**"
+      - ".github/workflows/solidity.yml"
 
 permissions:
   contents: read

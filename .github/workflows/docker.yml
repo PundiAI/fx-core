@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - "v*.*.*"
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/docker.yml'
 
 jobs:
   build_and_push:
@@ -49,6 +53,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64, linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
