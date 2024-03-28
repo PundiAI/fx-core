@@ -127,7 +127,7 @@ func (c *NodeRPC) GetAddressPrefix() (prefix string, err error) {
 		return
 	}
 	if len(authGen.Accounts) == 0 {
-		return sdk.Bech32MainPrefix, nil
+		return sdk.GetConfig().GetBech32AccountAddrPrefix(), nil
 	}
 	c.addrPrefix, _, err = bech32.Decode(authGen.Accounts[0].Address)
 	return c.addrPrefix, err
