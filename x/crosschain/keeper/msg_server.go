@@ -481,7 +481,7 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
 	))
 
-	return nil, nil
+	return &types.MsgConfirmBatchResponse{}, nil
 }
 
 func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
