@@ -5,6 +5,7 @@ import '@typechain/hardhat'
 import "hardhat-gas-reporter"
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-chai-matchers";
+import "hardhat-ignore-warnings"
 
 import './tasks/task'
 
@@ -97,6 +98,10 @@ const config: HardhatUserConfig = {
         currency: 'USD',
         gasPrice: 30
     },
+    warnings: {
+        "@openzeppelin/contracts/**/*": "off",
+        "@openzeppelin/contracts-upgradeable/**/*": "off",
+    }
 };
 
 export default config;

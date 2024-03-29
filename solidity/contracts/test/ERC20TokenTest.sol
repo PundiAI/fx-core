@@ -11,10 +11,10 @@ contract ERC20TokenTest is ERC20, ERC20Burnable, Ownable {
     constructor(
         string memory name,
         string memory symbol,
-        uint8 decimals,
+        uint8 tokenDecimals,
         uint256 initialSupply
     ) ERC20(name, symbol) {
-        _decimals = decimals;
+        _decimals = tokenDecimals;
         _mint(msg.sender, initialSupply);
     }
 
