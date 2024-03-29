@@ -110,11 +110,11 @@ func (k msgServer) BridgeCallClaim(ctx context.Context, msg *types.MsgBridgeCall
 	}
 }
 
-func (k msgServer) RefundTokenClaim(ctx context.Context, msg *types.MsgRefundTokenClaim) (*types.MsgRefundTokenClaimResponse, error) {
+func (k msgServer) BridgeCallResultClaim(ctx context.Context, msg *types.MsgBridgeCallResultClaim) (*types.MsgBridgeCallResultClaimResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err
 	} else {
-		return queryServer.RefundTokenClaim(ctx, msg)
+		return queryServer.BridgeCallResultClaim(ctx, msg)
 	}
 }
 

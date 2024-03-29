@@ -9,22 +9,6 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (k Keeper) HandleRefundTokenClaim(ctx sdk.Context, claim *types.MsgRefundTokenClaim) {
-	record, found := k.GetRefundRecord(ctx, claim.RefundNonce)
-	if !found {
-		return
-	}
-	// todo: If need be to slash unsigned oracles, can't delete refund record and refund confirm here
-	// 1. delete refund record
-	k.DeleteRefundRecord(ctx, record)
-
-	// 2. delete confirm
-	k.DeleteBridgeCallConfirm(ctx, claim.RefundNonce)
-
-	// 3. delete snapshot oracle event nonce or snapshot oracle
-	k.RemoveEventSnapshotOracle(ctx, record.OracleSetNonce, claim.RefundNonce)
-}
-
 func (k Keeper) AddRefundRecord(ctx sdk.Context, receiver string, eventNonce uint64, tokens []types.ERC20Token) error {
 	oracleSet := k.GetLatestOracleSet(ctx)
 	if oracleSet == nil {

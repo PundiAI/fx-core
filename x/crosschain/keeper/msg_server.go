@@ -587,12 +587,12 @@ func (s MsgServer) BridgeCallClaim(c context.Context, msg *types.MsgBridgeCallCl
 	return &types.MsgBridgeCallClaimResponse{}, nil
 }
 
-func (s MsgServer) RefundTokenClaim(c context.Context, msg *types.MsgRefundTokenClaim) (*types.MsgRefundTokenClaimResponse, error) {
+func (s MsgServer) BridgeCallResultClaim(c context.Context, msg *types.MsgBridgeCallResultClaim) (*types.MsgBridgeCallResultClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}
-	return &types.MsgRefundTokenClaimResponse{}, nil
+	return &types.MsgBridgeCallResultClaimResponse{}, nil
 }
 
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {

@@ -149,8 +149,15 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		}
 		k.SetLastObservedOracleSet(ctx, observedOracleSet)
 
-	case *types.MsgRefundTokenClaim:
-		k.HandleRefundTokenClaim(ctx, claim)
+	case *types.MsgBridgeCallResultClaim:
+		// query bridge call record
+		// todo: If need be to slash unsigned oracles, can't delete refund record and refund confirm here
+		// 1. delete bridge call record
+
+		// 2. delete bridge call confirm
+
+		// 3. delete snapshot oracle event nonce or snapshot oracle
+		// k.RemoveEventSnapshotOracle(ctx, record.OracleSetNonce, claim.EventNonce)
 		return nil
 	default:
 		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
