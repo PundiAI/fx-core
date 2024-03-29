@@ -24,18 +24,19 @@ service Msg {
   rpc BridgeTokenClaim(MsgBridgeTokenClaim) returns (MsgBridgeTokenClaimResponse);
 
   rpc SendToFxClaim(MsgSendToFxClaim) returns (MsgSendToFxClaimResponse);
-  rpc BridgeCallClaim(MsgBridgeCallClaim) returns (MsgBridgeCallClaimResponse);
-  rpc BridgeCallResultClaim(MsgBridgeCallResultClaim) returns (MsgBridgeCallResultClaimResponse);
 
   rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
   rpc CancelSendToExternal(MsgCancelSendToExternal) returns (MsgCancelSendToExternalResponse);
   rpc SendToExternalClaim(MsgSendToExternalClaim) returns (MsgSendToExternalClaimResponse);
 
-  rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
-
   rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
+
+  rpc BridgeCallClaim(MsgBridgeCallClaim) returns (MsgBridgeCallClaimResponse);
+
+  rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
   rpc BridgeCallConfirm(MsgBridgeCallConfirm) returns (MsgBridgeCallConfirmResponse);
+  rpc BridgeCallResultClaim(MsgBridgeCallResultClaim) returns (MsgBridgeCallResultClaimResponse);
 
   // UpdateParams defines a governance operation for updating the x/crosschain module
   // parameters. The authority is hard-coded to the x/gov module account.
