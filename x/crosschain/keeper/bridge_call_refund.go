@@ -18,8 +18,8 @@ func (k Keeper) HandleRefundTokenClaim(ctx sdk.Context, claim *types.MsgRefundTo
 	// 1. delete refund record
 	k.DeleteRefundRecord(ctx, record)
 
-	// 2. delete record confirm
-	k.DeleteRefundConfirm(ctx, claim.RefundNonce)
+	// 2. delete confirm
+	k.DeleteBridgeCallConfirm(ctx, claim.RefundNonce)
 
 	// 3. delete snapshot oracle event nonce or snapshot oracle
 	k.RemoveEventSnapshotOracle(ctx, record.OracleSetNonce, claim.RefundNonce)
@@ -122,9 +122,9 @@ func (k Keeper) GetSnapshotOracle(ctx sdk.Context, oracleSetNonce uint64) (*type
 	return snapshotOracle, true
 }
 
-func (k Keeper) HasRefundConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) bool {
+func (k Keeper) HasBridgeCallConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetRefundConfirmKey(nonce, addr))
+	return store.Has(types.GetBridgeCallConfirmKey(nonce, addr))
 }
 
 func (k Keeper) DeleteSnapshotOracle(ctx sdk.Context, nonce uint64) {
@@ -151,29 +151,29 @@ func (k Keeper) RemoveEventSnapshotOracle(ctx sdk.Context, oracleNonce, eventNon
 	}
 }
 
-func (k Keeper) GetRefundConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) (*types.MsgConfirmRefund, bool) {
+func (k Keeper) GetBridgeCallConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) (*types.MsgBridgeCallConfirm, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetRefundConfirmKey(nonce, addr))
+	bz := store.Get(types.GetBridgeCallConfirmKey(nonce, addr))
 	if bz == nil {
 		return nil, false
 	}
-	var msg types.MsgConfirmRefund
+	var msg types.MsgBridgeCallConfirm
 	k.cdc.MustUnmarshal(bz, &msg)
 	return &msg, true
 }
 
-func (k Keeper) SetRefundConfirm(ctx sdk.Context, addr sdk.AccAddress, msg *types.MsgConfirmRefund) {
+func (k Keeper) SetBridgeCallConfirm(ctx sdk.Context, addr sdk.AccAddress, msg *types.MsgBridgeCallConfirm) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetRefundConfirmKey(msg.Nonce, addr), k.cdc.MustMarshal(msg))
+	store.Set(types.GetBridgeCallConfirmKey(msg.Nonce, addr), k.cdc.MustMarshal(msg))
 }
 
-func (k Keeper) IterRefundConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(msg *types.MsgConfirmRefund) bool) {
+func (k Keeper) IterBridgeCallConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(msg *types.MsgBridgeCallConfirm) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetRefundConfirmNonceKey(nonce))
+	iter := sdk.KVStorePrefixIterator(store, types.GetBridgeCallConfirmNonceKey(nonce))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		confirm := new(types.MsgConfirmRefund)
+		confirm := new(types.MsgBridgeCallConfirm)
 		k.cdc.MustUnmarshal(iter.Value(), confirm)
 		// cb returns true to stop early
 		if cb(confirm) {
@@ -182,9 +182,9 @@ func (k Keeper) IterRefundConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(
 	}
 }
 
-func (k Keeper) DeleteRefundConfirm(ctx sdk.Context, nonce uint64) {
+func (k Keeper) DeleteBridgeCallConfirm(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.GetRefundConfirmKeyByNonce(nonce))
+	iterator := sdk.KVStorePrefixIterator(store, types.GetBridgeCallConfirmKeyByNonce(nonce))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())

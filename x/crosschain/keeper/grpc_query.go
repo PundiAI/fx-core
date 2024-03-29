@@ -462,7 +462,7 @@ func (k Keeper) RefundRecordByReceiver(c context.Context, req *types.QueryRefund
 	return &types.QueryRefundRecordByReceiverResponse{Records: refundRecords}, nil
 }
 
-func (k Keeper) RefundConfirmByNonce(c context.Context, req *types.QueryRefundConfirmByNonceRequest) (*types.QueryRefundConfirmByNonceResponse, error) {
+func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
 	if req.GetEventNonce() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "event nonce")
 	}
@@ -470,20 +470,20 @@ func (k Keeper) RefundConfirmByNonce(c context.Context, req *types.QueryRefundCo
 	ctx := sdk.UnwrapSDKContext(c)
 	currentOracleSet := k.GetCurrentOracleSet(ctx)
 	confirmPowers := uint64(0)
-	refundConfirms := make([]*types.MsgConfirmRefund, 0)
-	k.IterRefundConfirmByNonce(ctx, req.GetEventNonce(), func(msg *types.MsgConfirmRefund) bool {
+	bridgeCallConfirms := make([]*types.MsgBridgeCallConfirm, 0)
+	k.IterBridgeCallConfirmByNonce(ctx, req.GetEventNonce(), func(msg *types.MsgBridgeCallConfirm) bool {
 		power, found := currentOracleSet.GetBridgePower(msg.ExternalAddress)
 		if !found {
 			return false
 		}
 		confirmPowers += power
-		refundConfirms = append(refundConfirms, msg)
+		bridgeCallConfirms = append(bridgeCallConfirms, msg)
 		return false
 	})
 	totalPower := currentOracleSet.GetTotalPower()
 	requiredPower := types.AttestationVotesPowerThreshold.Mul(sdkmath.NewIntFromUint64(totalPower)).Quo(sdkmath.NewInt(100))
 	enoughPower := requiredPower.GTE(sdkmath.NewIntFromUint64(confirmPowers))
-	return &types.QueryRefundConfirmByNonceResponse{Confirms: refundConfirms, EnoughPower: enoughPower}, nil
+	return &types.QueryBridgeCallConfirmByNonceResponse{Confirms: bridgeCallConfirms, EnoughPower: enoughPower}, nil
 }
 
 func (k Keeper) LastPendingRefundRecordByAddr(c context.Context, req *types.QueryLastPendingRefundRecordByAddrRequest) (*types.QueryLastPendingRefundRecordByAddrResponse, error) {
@@ -505,7 +505,7 @@ func (k Keeper) LastPendingRefundRecordByAddr(c context.Context, req *types.Quer
 			snapshotOracleCache[record.OracleSetNonce] = snapshotOracle
 		}
 
-		if !snapshotOracle.HasExternalAddress(req.GetExternalAddress()) || k.HasRefundConfirm(ctx, record.EventNonce, accAddr) {
+		if !snapshotOracle.HasExternalAddress(req.GetExternalAddress()) || k.HasBridgeCallConfirm(ctx, record.EventNonce, accAddr) {
 			return false
 		}
 		pendingRecords = append(pendingRecords, record)

@@ -83,7 +83,7 @@ func GetQuerySubCmds(chainName string) []*cobra.Command {
 		// refund token
 		CmdRefundRecord(chainName),
 		CmdRefundRecordByAddr(chainName),
-		CmdRefundConfirm(chainName),
+		CmdBridgeCallConfirm(chainName),
 		CmdLastPendingRefundRecord(chainName),
 	}
 
@@ -881,10 +881,10 @@ func CmdRefundRecordByAddr(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdRefundConfirm(chainName string) *cobra.Command {
+func CmdBridgeCallConfirm(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "refund-confirm [nonce]",
-		Short: "Query refund confirm by event nonce",
+		Use:   "bridge-call-confirm [nonce]",
+		Short: "Query bridge call confirm by event nonce",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -895,7 +895,7 @@ func CmdRefundConfirm(chainName string) *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.RefundConfirmByNonce(cmd.Context(), &types.QueryRefundConfirmByNonceRequest{
+			res, err := queryClient.BridgeCallConfirmByNonce(cmd.Context(), &types.QueryBridgeCallConfirmByNonceRequest{
 				ChainName:  chainName,
 				EventNonce: nonce,
 			})

@@ -427,7 +427,7 @@ func (m *RefundRecord) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	}
 
 	// Create the methodName argument which salts the signature
-	methodNameBytes := []uint8("refundToken")
+	methodNameBytes := []uint8("submitBridgeCall")
 	var batchMethodName [32]uint8
 	copy(batchMethodName[:], methodNameBytes)
 
@@ -442,7 +442,7 @@ func (m *RefundRecord) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// the methodName needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	abiEncodedBatch, err := bridgeCallRefundTxCheckpointABI.Pack("refundToken",
+	abiEncodedBatch, err := outgoingBridgeCallTxCheckpointABI.Pack("submitBridgeCall",
 		gravityID,
 		batchMethodName,
 		gethcommon.HexToAddress(m.Receiver),

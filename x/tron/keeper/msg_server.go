@@ -100,12 +100,13 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 	return &crosschaintypes.MsgOracleSetConfirmResponse{}, nil
 }
 
-func (s msgServer) ConfirmRefund(c context.Context, msg *crosschaintypes.MsgConfirmRefund) (*crosschaintypes.MsgConfirmRefundResponse, error) {
+func (s msgServer) BridgeCallConfirm(c context.Context, msg *crosschaintypes.MsgBridgeCallConfirm) (*crosschaintypes.MsgBridgeCallConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
+	// TODO bridge call record
 	record, found := s.GetRefundRecord(ctx, msg.Nonce)
 	if !found {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find refund record")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find bridge call record")
 	}
 
 	snapshotOracle, found := s.GetSnapshotOracle(ctx, record.OracleSetNonce)
@@ -116,7 +117,7 @@ func (s msgServer) ConfirmRefund(c context.Context, msg *crosschaintypes.MsgConf
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "external address not in snapshot oracle")
 	}
 
-	checkpoint, err := trontypes.GetCheckpointConfirmRefund(record, s.GetGravityID(ctx))
+	checkpoint, err := trontypes.GetCheckpointBridgeCall(record, s.GetGravityID(ctx))
 	if err != nil {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, err.Error())
 	}
@@ -130,10 +131,10 @@ func (s msgServer) ConfirmRefund(c context.Context, msg *crosschaintypes.MsgConf
 	}
 
 	externalAddr := crosschaintypes.ExternalAddressToAccAddress(s.ModuleName(), msg.ExternalAddress)
-	if _, found = s.GetRefundConfirm(ctx, msg.Nonce, externalAddr); found {
+	if _, found = s.GetBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
-	s.SetRefundConfirm(ctx, externalAddr, msg)
+	s.SetBridgeCallConfirm(ctx, externalAddr, msg)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -141,7 +142,7 @@ func (s msgServer) ConfirmRefund(c context.Context, msg *crosschaintypes.MsgConf
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
 	))
 
-	return &crosschaintypes.MsgConfirmRefundResponse{}, nil
+	return &crosschaintypes.MsgBridgeCallConfirmResponse{}, nil
 }
 
 func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {

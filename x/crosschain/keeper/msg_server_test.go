@@ -1208,7 +1208,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestConfirmRefund() {
+func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 	externalKey := helpers.NewEthPrivKey()
 	externalEcdsaKey, err := crypto.ToECDSA(externalKey.Bytes())
 	require.NoError(suite.T(), err)
@@ -1251,7 +1251,7 @@ func (suite *KeeperTestSuite) TestConfirmRefund() {
 		require.NoError(suite.T(), err)
 		signature, signatureErr = types.NewEthereumSignature(checkpoint, externalEcdsaKey)
 	} else {
-		checkpoint, err := trontypes.GetCheckpointConfirmRefund(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
+		checkpoint, err := trontypes.GetCheckpointBridgeCall(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
 		require.NoError(suite.T(), err)
 		signature, signatureErr = trontypes.NewTronSignature(checkpoint, externalEcdsaKey)
 	}
@@ -1259,13 +1259,13 @@ func (suite *KeeperTestSuite) TestConfirmRefund() {
 
 	testMsgs := []struct {
 		name      string
-		msg       *types.MsgConfirmRefund
+		msg       *types.MsgBridgeCallConfirm
 		err       error
 		errReason string
 	}{
 		{
 			name: "success",
-			msg: &types.MsgConfirmRefund{
+			msg: &types.MsgBridgeCallConfirm{
 				Nonce:           eventNonce,
 				BridgerAddress:  suite.bridgerAddrs[0].String(),
 				ExternalAddress: externalAddr,
@@ -1277,7 +1277,7 @@ func (suite *KeeperTestSuite) TestConfirmRefund() {
 		},
 		{
 			name: "external address not in oracle set",
-			msg: &types.MsgConfirmRefund{
+			msg: &types.MsgBridgeCallConfirm{
 				Nonce:           eventNonce,
 				BridgerAddress:  suite.bridgerAddrs[0].String(),
 				ExternalAddress: helpers.GenerateAddressByModule(suite.chainName),
@@ -1294,7 +1294,7 @@ func (suite *KeeperTestSuite) TestConfirmRefund() {
 			err = testData.msg.ValidateBasic()
 			require.NoError(suite.T(), err)
 			ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
-			_, err = suite.MsgServer().ConfirmRefund(ctx, testData.msg)
+			_, err = suite.MsgServer().BridgeCallConfirm(ctx, testData.msg)
 			require.ErrorIs(suite.T(), err, testData.err, testData.name)
 			if testData.err == nil {
 				require.NoError(suite.T(), err)

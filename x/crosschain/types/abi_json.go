@@ -20,9 +20,9 @@ import (
 // truncate the first several bytes where the call name is encoded to finally get the equal of the
 
 var (
-	outgoingBatchTxCheckpointABI    abi.ABI
-	oracleSetCheckpointABI          abi.ABI
-	bridgeCallRefundTxCheckpointABI abi.ABI
+	outgoingBatchTxCheckpointABI      abi.ABI
+	oracleSetCheckpointABI            abi.ABI
+	outgoingBridgeCallTxCheckpointABI abi.ABI
 )
 
 func init() {
@@ -65,8 +65,8 @@ func init() {
 		]
 	}]`
 
-		bridgeCallRefundTxCheckpointABIJSON = `[{
-		"name":"refundToken",
+		outgoingBridgeCallTxCheckpointABIJSON = `[{
+		"name":"submitBridgeCall",
 		"stateMutability":"nonpayable",
 		"type":"function",
 		"inputs":[
@@ -93,7 +93,7 @@ func init() {
 	if err != nil {
 		panic(err.Error())
 	}
-	bridgeCallRefundTxCheckpointABI, err = abi.JSON(strings.NewReader(bridgeCallRefundTxCheckpointABIJSON))
+	outgoingBridgeCallTxCheckpointABI, err = abi.JSON(strings.NewReader(outgoingBridgeCallTxCheckpointABIJSON))
 	if err != nil {
 		panic(err.Error())
 	}

@@ -35,7 +35,7 @@ service Msg {
 
   rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
-  rpc ConfirmRefund(MsgConfirmRefund) returns (MsgConfirmRefundResponse);
+  rpc BridgeCallConfirm(MsgBridgeCallConfirm) returns (MsgBridgeCallConfirmResponse);
 
   // UpdateParams defines a governance operation for updating the x/crosschain module
   // parameters. The authority is hard-coded to the x/gov module account.
@@ -296,7 +296,7 @@ message MsgBridgeTokenClaim {
 
 message MsgBridgeTokenClaimResponse {}
 
-message MsgConfirmRefund {
+message MsgBridgeCallConfirm {
   uint64 nonce = 1;
   string bridger_address = 3;
   string external_address = 4;
@@ -304,7 +304,7 @@ message MsgConfirmRefund {
   string chain_name = 6;
 }
 
-message MsgConfirmRefundResponse {}
+message MsgBridgeCallConfirmResponse {}
 
 // Deprecated: after block 5713000
 message MsgSetOrchestratorAddress {

@@ -129,7 +129,7 @@ func (k Keeper) refundSlashing(ctx sdk.Context, signedWindow uint64) (hasSlash b
 	snapshotOracleMap := make(map[uint64]*types.SnapshotOracle)
 	for _, record := range unSlashRefunds {
 		confirmOracleMap := make(map[string]bool)
-		k.IterRefundConfirmByNonce(ctx, record.EventNonce, func(confirm *types.MsgConfirmRefund) bool {
+		k.IterBridgeCallConfirmByNonce(ctx, record.EventNonce, func(confirm *types.MsgBridgeCallConfirm) bool {
 			confirmOracleMap[confirm.ExternalAddress] = true
 			return false
 		})
@@ -198,7 +198,7 @@ func (k Keeper) cleanupTimeOutRefund(ctx sdk.Context) {
 			return false
 		}
 		k.DeleteRefundRecord(ctx, record)
-		k.DeleteRefundConfirm(ctx, record.EventNonce)
+		k.DeleteBridgeCallConfirm(ctx, record.EventNonce)
 		k.RemoveEventSnapshotOracle(ctx, record.OracleSetNonce, record.EventNonce)
 
 		ctx.EventManager().EmitEvents(sdk.Events{

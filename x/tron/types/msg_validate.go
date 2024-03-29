@@ -239,7 +239,7 @@ func (b TronMsgValidate) MsgConfirmBatchValidate(m *crosschaintypes.MsgConfirmBa
 	return nil
 }
 
-func (b TronMsgValidate) MsgConfirmRefundValidate(m *crosschaintypes.MsgConfirmRefund) (err error) {
+func (b TronMsgValidate) MsgBridgeCallConfirmValidate(m *crosschaintypes.MsgBridgeCallConfirm) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}

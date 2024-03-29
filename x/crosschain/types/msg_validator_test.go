@@ -1829,20 +1829,20 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgConfirmRefund_ValidateBasic(t *testing.T) {
+func TestMsgBridgeCallConfirm_ValidateBasic(t *testing.T) {
 	moduleName := getRandModule()
 	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	testCases := []struct {
 		testName   string
-		msg        *types.MsgConfirmRefund
+		msg        *types.MsgBridgeCallConfirm
 		expectPass bool
 		err        error
 		errReason  string
 	}{
 		{
 			testName: "err - empty chain name",
-			msg: &types.MsgConfirmRefund{
+			msg: &types.MsgBridgeCallConfirm{
 				ChainName: "",
 			},
 			expectPass: false,
@@ -1851,7 +1851,7 @@ func TestMsgConfirmRefund_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "success",
-			msg: &types.MsgConfirmRefund{
+			msg: &types.MsgBridgeCallConfirm{
 				Nonce:           uint64(tmrand.Int63n(100000)),
 				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,

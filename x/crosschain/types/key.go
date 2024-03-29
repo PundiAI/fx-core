@@ -115,7 +115,7 @@ var (
 
 	SnapshotOracleKey = []byte{0x44}
 
-	BridgeCallRefundConfirmKey = []byte{0x45}
+	BridgeCallConfirmKey = []byte{0x45}
 
 	// LastSlashedRefundNonce indexes the latest slashed refund nonce
 	LastSlashedRefundNonce = []byte{0x46}
@@ -232,16 +232,16 @@ func GetSnapshotOracleKey(oracleSetNonce uint64) []byte {
 	return append(SnapshotOracleKey, sdk.Uint64ToBigEndian(oracleSetNonce)...)
 }
 
-func GetRefundConfirmKey(nonce uint64, addr sdk.AccAddress) []byte {
-	return append(BridgeCallRefundConfirmKey, append(sdk.Uint64ToBigEndian(nonce), addr.Bytes()...)...)
+func GetBridgeCallConfirmKey(nonce uint64, addr sdk.AccAddress) []byte {
+	return append(BridgeCallConfirmKey, append(sdk.Uint64ToBigEndian(nonce), addr.Bytes()...)...)
 }
 
-func GetRefundConfirmKeyByNonce(nonce uint64) []byte {
-	return append(BridgeCallRefundConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
+func GetBridgeCallConfirmKeyByNonce(nonce uint64) []byte {
+	return append(BridgeCallConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
 }
 
-func GetRefundConfirmNonceKey(nonce uint64) []byte {
-	return append(BridgeCallRefundConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
+func GetBridgeCallConfirmNonceKey(nonce uint64) []byte {
+	return append(BridgeCallConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
 }
 
 func GetTokenTypeToTokenKey(tokenContract string) []byte {

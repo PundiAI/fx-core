@@ -323,7 +323,7 @@ func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 	return nil
 }
 
-func (b MsgValidate) MsgConfirmRefundValidate(m *MsgConfirmRefund) (err error) {
+func (b MsgValidate) MsgBridgeCallConfirmValidate(m *MsgBridgeCallConfirm) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}

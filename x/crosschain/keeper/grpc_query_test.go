@@ -2525,7 +2525,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundRecordByReceiver() {
 	}
 }
 
-func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundConfirmByNonce() {
+func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCallConfirmByNonce() {
 	externalKey := helpers.NewEthPrivKey()
 	externalEcdsaKey, err := crypto.ToECDSA(externalKey.Bytes())
 	require.NoError(suite.T(), err)
@@ -2536,14 +2536,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundConfirmByNonce() {
 
 	testCases := []struct {
 		name     string
-		malleate func([]byte) (*types.QueryRefundConfirmByNonceRequest, *types.QueryRefundConfirmByNonceResponse)
+		malleate func([]byte) (*types.QueryBridgeCallConfirmByNonceRequest, *types.QueryBridgeCallConfirmByNonceResponse)
 		expPass  bool
 		expErr   error
 	}{
 		{
 			name: "ok",
-			malleate: func(signature []byte) (*types.QueryRefundConfirmByNonceRequest, *types.QueryRefundConfirmByNonceResponse) {
-				refundConfirm := &types.MsgConfirmRefund{
+			malleate: func(signature []byte) (*types.QueryBridgeCallConfirmByNonceRequest, *types.QueryBridgeCallConfirmByNonceResponse) {
+				bridgeCallConfirm := &types.MsgBridgeCallConfirm{
 					Nonce:           eventNonce,
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
 					ExternalAddress: externalAddr,
@@ -2551,13 +2551,13 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundConfirmByNonce() {
 					ChainName:       suite.chainName,
 				}
 
-				suite.Keeper().SetRefundConfirm(suite.ctx, suite.bridgerAddrs[0], refundConfirm)
-				request := &types.QueryRefundConfirmByNonceRequest{
+				suite.Keeper().SetBridgeCallConfirm(suite.ctx, suite.bridgerAddrs[0], bridgeCallConfirm)
+				request := &types.QueryBridgeCallConfirmByNonceRequest{
 					ChainName:  suite.chainName,
 					EventNonce: eventNonce,
 				}
-				response := &types.QueryRefundConfirmByNonceResponse{
-					Confirms:    []*types.MsgConfirmRefund{refundConfirm},
+				response := &types.QueryBridgeCallConfirmByNonceResponse{
+					Confirms:    []*types.MsgBridgeCallConfirm{bridgeCallConfirm},
 					EnoughPower: true,
 				}
 				return request, response
@@ -2609,7 +2609,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundConfirmByNonce() {
 				require.NoError(suite.T(), err)
 				signature, signatureErr = types.NewEthereumSignature(checkpoint, externalEcdsaKey)
 			} else {
-				checkpoint, err := trontypes.GetCheckpointConfirmRefund(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
+				checkpoint, err := trontypes.GetCheckpointBridgeCall(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
 				require.NoError(suite.T(), err)
 				signature, signatureErr = trontypes.NewTronSignature(checkpoint, externalEcdsaKey)
 			}
@@ -2617,7 +2617,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_RefundConfirmByNonce() {
 
 			request, response := testCase.malleate(signature)
 
-			res, err := suite.Keeper().RefundConfirmByNonce(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.Keeper().BridgeCallConfirmByNonce(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.Confirms, res.Confirms)
@@ -2660,20 +2660,20 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingRefundRecordByAddr()
 		require.NoError(suite.T(), err)
 		signature, signatureErr = types.NewEthereumSignature(checkpoint, externalEcdsaKey)
 	} else {
-		checkpoint, err := trontypes.GetCheckpointConfirmRefund(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
+		checkpoint, err := trontypes.GetCheckpointBridgeCall(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
 		require.NoError(suite.T(), err)
 		signature, signatureErr = trontypes.NewTronSignature(checkpoint, externalEcdsaKey)
 	}
 	require.NoError(suite.T(), signatureErr)
 
-	refundConfirm := &types.MsgConfirmRefund{
+	bridgeCallConfirm := &types.MsgBridgeCallConfirm{
 		Nonce:           eventNonce,
 		BridgerAddress:  suite.bridgerAddrs[0].String(),
 		ExternalAddress: externalAddr,
 		Signature:       hex.EncodeToString(signature),
 		ChainName:       suite.chainName,
 	}
-	suite.Keeper().SetRefundConfirm(suite.ctx, suite.bridgerAddrs[0], refundConfirm)
+	suite.Keeper().SetBridgeCallConfirm(suite.ctx, suite.bridgerAddrs[0], bridgeCallConfirm)
 
 	testCases := []struct {
 		name     string
