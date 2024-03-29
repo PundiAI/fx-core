@@ -1306,6 +1306,178 @@ func (suite *KeeperTestSuite) TestConfirmRefund() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestMsgBridgeCall() {
+	// 1. First sets up a valid validator
+	totalPower := sdkmath.ZeroInt()
+	delegateAmounts := make([]sdkmath.Int, 0, len(suite.oracleAddrs))
+	for i, oracle := range suite.oracleAddrs {
+		normalMsg := &types.MsgBondedOracle{
+			OracleAddress:    oracle.String(),
+			BridgerAddress:   suite.bridgerAddrs[i].String(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+			ValidatorAddress: suite.valAddrs[0].String(),
+			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+			ChainName:        suite.chainName,
+		}
+		if len(suite.valAddrs) > i {
+			normalMsg.ValidatorAddress = suite.valAddrs[i].String()
+		}
+		delegateAmounts = append(delegateAmounts, normalMsg.DelegateAmount.Amount)
+		totalPower = totalPower.Add(normalMsg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
+		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		require.NoError(suite.T(), err)
+	}
+
+	suite.Keeper().EndBlocker(suite.ctx)
+
+	var externalOracleMembers types.BridgeValidators
+	for i, key := range suite.externalPris {
+		power := delegateAmounts[i].Quo(sdk.DefaultPowerReduction).MulRaw(math.MaxUint32).Quo(totalPower)
+		bridgeVal := types.BridgeValidator{
+			Power:           power.Uint64(),
+			ExternalAddress: suite.PubKeyToExternalAddr(key.PublicKey),
+		}
+		externalOracleMembers = append(externalOracleMembers, bridgeVal)
+	}
+	sort.Sort(externalOracleMembers)
+
+	// 2. oracle update claim
+	for i := range suite.oracleAddrs {
+		normalMsg := &types.MsgOracleSetUpdatedClaim{
+			EventNonce:     1,
+			BlockHeight:    1,
+			OracleSetNonce: 1,
+			Members:        externalOracleMembers,
+			BridgerAddress: suite.bridgerAddrs[i].String(),
+			ChainName:      suite.chainName,
+		}
+		_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		require.NoError(suite.T(), err)
+	}
+
+	suite.Keeper().EndBlocker(suite.ctx)
+
+	// 3. add bridge token.
+	sendToFxSendAddr := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
+	sendToFxReceiveAddr := suite.bridgerAddrs[0]
+	sendToFxAmount := sdkmath.NewIntWithDecimal(1000, 18)
+	randomPrivateKey, err := crypto.GenerateKey()
+	suite.Require().NoError(err)
+	sendToFxToken := suite.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
+
+	for i, oracle := range suite.oracleAddrs {
+		normalMsg := &types.MsgBridgeTokenClaim{
+			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
+			BlockHeight:    1,
+			TokenContract:  sendToFxToken,
+			Name:           "Test USDT",
+			Symbol:         "USDT",
+			Decimals:       18,
+			BridgerAddress: suite.bridgerAddrs[i].String(),
+			ChannelIbc:     "",
+			ChainName:      suite.chainName,
+		}
+		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		require.NoError(suite.T(), err)
+	}
+
+	suite.Keeper().EndBlocker(suite.ctx)
+
+	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.ctx, sendToFxToken)
+	require.NotNil(suite.T(), bridgeDenomData)
+	tokenDenom := fmt.Sprintf("%s%s", suite.chainName, sendToFxToken)
+	require.EqualValues(suite.T(), tokenDenom, bridgeDenomData.Denom)
+	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.ctx, tokenDenom)
+	require.NotNil(suite.T(), bridgeTokenData)
+	require.EqualValues(suite.T(), sendToFxToken, bridgeTokenData.Token)
+
+	// 4. register coin
+	tokenPair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
+		Description: "FunctionX Token",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "test",
+				Exponent: 0,
+				Aliases:  []string{fmt.Sprintf("%s%s", suite.chainName, sendToFxToken)},
+			}, {
+				Denom:    "TEST",
+				Exponent: 18,
+			},
+		},
+		Base:    "test",
+		Display: "TEST",
+		Name:    "Test Token",
+		Symbol:  "TEST",
+	})
+	suite.NoError(err)
+
+	// 5. sendToFx.
+	for i, oracle := range suite.oracleAddrs {
+		normalMsg := &types.MsgSendToFxClaim{
+			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
+			BlockHeight:    1,
+			TokenContract:  sendToFxToken,
+			Amount:         sendToFxAmount,
+			Sender:         sendToFxSendAddr,
+			Receiver:       sendToFxReceiveAddr.String(),
+			TargetIbc:      hex.EncodeToString([]byte(erc20types.ModuleName)),
+			BridgerAddress: suite.bridgerAddrs[i].String(),
+			ChainName:      suite.chainName,
+		}
+		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		require.NoError(suite.T(), err)
+	}
+
+	suite.Keeper().EndBlocker(suite.ctx)
+
+	var balanceRes struct{ Value *big.Int }
+	addr := common.BytesToAddress(sendToFxReceiveAddr.Bytes())
+	err = suite.app.EvmKeeper.QueryContract(suite.ctx, addr, tokenPair.GetERC20Contract(), contract.GetFIP20().ABI, "balanceOf", &balanceRes, addr)
+	suite.NoError(err)
+	suite.Equal(balanceRes.Value.String(), sendToFxAmount.String())
+
+	assetData, err := contract.PackERC20AssetWithType([]common.Address{tokenPair.GetERC20Contract()}, []*big.Int{big.NewInt(1e18)})
+	suite.NoError(err)
+
+	testCases := []struct {
+		name     string
+		malleate func() *types.MsgBridgeCall
+		pass     bool
+		err      error
+	}{
+		{
+			name: "pass",
+			malleate: func() *types.MsgBridgeCall {
+				return &types.MsgBridgeCall{
+					ChainName: suite.chainName,
+					Sender:    sendToFxReceiveAddr.String(),
+					Receiver:  helpers.GenerateAddressByModule(suite.chainName),
+					To:        helpers.GenerateAddressByModule(suite.chainName),
+					Asset:     assetData,
+					Message:   "",
+					Value:     sdkmath.ZeroInt(),
+					GasLimit:  0,
+				}
+			},
+			pass: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.T().Run(testCase.name, func(t *testing.T) {
+			msg := testCase.malleate()
+
+			_, err = suite.MsgServer().BridgeCall(sdk.WrapSDKContext(suite.ctx), msg)
+			if testCase.pass {
+				require.NoError(suite.T(), err)
+			} else {
+				require.NotNil(suite.T(), err)
+				require.Equal(suite.T(), err.Error(), testCase.err.Error())
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) bondedOracle() {
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
 		OracleAddress:    suite.oracleAddrs[0].String(),

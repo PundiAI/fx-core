@@ -255,6 +255,32 @@ func (b TronMsgValidate) MsgConfirmRefundValidate(m *crosschaintypes.MsgConfirmR
 	return nil
 }
 
+func (b TronMsgValidate) MsgBridgeCallValidate(m *crosschaintypes.MsgBridgeCall) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if err = ValidateTronAddress(m.Receiver); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	}
+	if err = ValidateTronAddress(m.To); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
+	}
+	if m.Value.IsNil() || m.Value.IsNegative() {
+		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+	}
+	if len(m.Asset) > 0 {
+		if _, err := hex.DecodeString(m.Asset); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid asset")
+		}
+	}
+	if len(m.Message) > 0 {
+		if _, err := hex.DecodeString(m.Message); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid message")
+		}
+	}
+	return nil
+}
+
 func (b TronMsgValidate) ValidateExternalAddress(addr string) error {
 	return ValidateTronAddress(addr)
 }

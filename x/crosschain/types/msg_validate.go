@@ -339,6 +339,32 @@ func (b MsgValidate) MsgConfirmRefundValidate(m *MsgConfirmRefund) (err error) {
 	return nil
 }
 
+func (b MsgValidate) MsgBridgeCallValidate(m *MsgBridgeCall) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if err = contract.ValidateEthereumAddress(m.Receiver); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	}
+	if err = contract.ValidateEthereumAddress(m.To); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
+	}
+	if m.Value.IsNil() || m.Value.IsNegative() {
+		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+	}
+	if len(m.Asset) > 0 {
+		if _, err := hex.DecodeString(m.Asset); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid asset")
+		}
+	}
+	if len(m.Message) > 0 {
+		if _, err := hex.DecodeString(m.Message); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid message")
+		}
+	}
+	return nil
+}
+
 func (b MsgValidate) ValidateExternalAddress(addr string) error {
 	return contract.ValidateEthereumAddress(addr)
 }

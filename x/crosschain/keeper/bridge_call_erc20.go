@@ -2,11 +2,13 @@ package keeper
 
 import (
 	"fmt"
+	"math/big"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
@@ -161,4 +163,86 @@ func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to 
 	callResult = !txResp.Failed()
 	callErr = txResp.VmError
 	return txResp, nil
+}
+
+func (k Keeper) bridgeCallAssetHandler(ctx sdk.Context, sender sdk.AccAddress, asset string) (string, error) {
+	assetType, assetData, err := types.UnpackAssetType(asset)
+	if err != nil {
+		return "", errorsmod.Wrap(types.ErrInvalid, "asset")
+	}
+
+	switch assetType {
+	case contract.AssetERC20:
+		tokenAddrs, amounts, err := contract.UnpackERC20Asset(assetData)
+		if err != nil {
+			return "", errorsmod.Wrap(types.ErrInvalid, "erc20 token")
+		}
+		tokens, err := types.NewERC20Tokens(fxtypes.EthTarget, tokenAddrs, amounts)
+		if err != nil {
+			return "", errorsmod.Wrap(types.ErrInvalid, err.Error())
+		}
+		coins, err := k.bridgeCallERC20ToCoins(ctx, sender, tokens)
+		if err != nil {
+			return "", err
+		}
+		if coins.IsZero() {
+			return "", nil
+		}
+		return k.BridgeTokenToAsset(ctx, sender, coins)
+	default:
+		return "", errorsmod.Wrap(types.ErrInvalid, "asset type")
+	}
+}
+
+func (k Keeper) bridgeCallERC20ToCoins(ctx sdk.Context, sender sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {
+	coins := sdk.NewCoins()
+	for _, t := range tokens {
+		if t.Contract == contract.EmptyEvmAddress {
+			coins = coins.Add(sdk.NewCoin(fxtypes.DefaultDenom, t.Amount))
+			continue
+		}
+		if _, err := k.erc20Keeper.ConvertERC20(sdk.WrapSDKContext(ctx), &erc20types.MsgConvertERC20{
+			ContractAddress: t.Contract,
+			Amount:          t.Amount,
+			Receiver:        sender.String(),
+			Sender:          common.BytesToAddress(sender.Bytes()).String(),
+		}); err != nil {
+			return nil, err
+		}
+		tokenPair, found := k.erc20Keeper.GetTokenPair(ctx, t.Contract)
+		if !found {
+			return nil, errorsmod.Wrap(erc20types.ErrTokenPairNotFound, t.Contract)
+		}
+		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, sdk.NewCoin(tokenPair.Denom, t.Amount), fxtypes.ParseFxTarget(k.moduleName))
+		if err != nil {
+			return nil, err
+		}
+		coins = coins.Add(targetCoin)
+	}
+	return coins, nil
+}
+
+func (k Keeper) BridgeTokenToAsset(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (string, error) {
+	tokenAddrs := make([]common.Address, 0, len(coins))
+	amounts := make([]*big.Int, 0, len(coins))
+	coinsNeedBurn := sdk.NewCoins()
+	for _, coin := range coins {
+		bridgeToken := k.GetDenomBridgeToken(ctx, coin.Denom)
+		if bridgeToken == nil {
+			return "", errorsmod.Wrap(errortypes.ErrNotFound, "bridge token")
+		}
+		tokenAddr := types.ExternalAddressToAccAddress(k.moduleName, bridgeToken.Token)
+		tokenAddrs = append(tokenAddrs, common.BytesToAddress(tokenAddr.Bytes()))
+		amounts = append(amounts, coin.Amount.BigInt())
+		if k.erc20Keeper.IsOriginOrConvertedDenom(ctx, coin.Denom) {
+			coinsNeedBurn = coinsNeedBurn.Add(coin)
+		}
+	}
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, coins); err != nil {
+		return "", err
+	}
+	if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, coinsNeedBurn); err != nil {
+		return "", err
+	}
+	return contract.PackERC20AssetWithType(tokenAddrs, amounts)
 }

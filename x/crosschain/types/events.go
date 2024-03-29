@@ -20,6 +20,9 @@ const (
 	AttributeKeyOutgoingTxID        = "outgoing_tx_id"
 	AttributeKeyIncreaseFee         = "increase_fee"
 
+	EventTypeBridgeCall              = "bridge_call"
+	AttributeKeyOutgoingBridgeCallId = "outgoing_bridge_call_id"
+
 	EventTypeOutgoingBatch           = "outgoing_batch"
 	EventTypeOutgoingBatchCanceled   = "outgoing_batch_canceled"
 	AttributeKeyOutgoingTxIds        = "outgoing_tx_ids"
