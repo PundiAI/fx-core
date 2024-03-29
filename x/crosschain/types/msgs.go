@@ -39,6 +39,8 @@ const (
 	TypeMsgIncreaseBridgeFee    = "increase_bridge_fee"
 	TypeMsgSendToExternalClaim  = "send_to_external_claim"
 
+	TypeMsgBridgeCall = "bridge_call"
+
 	TypeMsgRequestBatch  = "request_batch"
 	TypeMsgConfirmBatch  = "confirm_batch"
 	TypeMsgConfirmRefund = "confirm_refund"
@@ -93,6 +95,9 @@ var (
 	_ sdk.Msg       = &MsgSendToExternalClaim{}
 	_ CrossChainMsg = &MsgSendToExternalClaim{}
 
+	_ sdk.Msg       = &MsgBridgeCall{}
+	_ CrossChainMsg = &MsgBridgeCall{}
+
 	_ sdk.Msg       = &MsgRequestBatch{}
 	_ CrossChainMsg = &MsgRequestBatch{}
 	_ sdk.Msg       = &MsgConfirmBatch{}
@@ -125,6 +130,7 @@ type MsgValidateBasic interface {
 	MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error)
 	MsgRefundTokenClaimValidate(m *MsgRefundTokenClaim) (err error)
 	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
+	MsgBridgeCallValidate(m *MsgBridgeCall) (err error)
 
 	MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error)
 	MsgIncreaseBridgeFeeValidate(m *MsgIncreaseBridgeFee) (err error)
@@ -901,4 +907,23 @@ func (m *MsgUpdateChainOracles) ValidateBasic() error {
 
 func (m *MsgUpdateChainOracles) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
+}
+
+func (m *MsgBridgeCall) Route() string { return RouterKey }
+func (m *MsgBridgeCall) Type() string  { return TypeMsgBridgeCall }
+func (m *MsgBridgeCall) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgBridgeCall) ValidateBasic() error {
+	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	} else {
+		return router.MsgBridgeCallValidate(m)
+	}
+}
+
+func (m *MsgBridgeCall) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }

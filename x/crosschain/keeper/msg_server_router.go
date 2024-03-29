@@ -190,6 +190,14 @@ func (k msgServer) UpdateChainOracles(ctx context.Context, msg *types.MsgUpdateC
 	}
 }
 
+func (k msgServer) BridgeCall(ctx context.Context, msg *types.MsgBridgeCall) (*types.MsgBridgeCallResponse, error) {
+	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return server.BridgeCall(ctx, msg)
+	}
+}
+
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {

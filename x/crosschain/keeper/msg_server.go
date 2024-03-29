@@ -603,6 +603,33 @@ func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeToken
 	return &types.MsgBridgeTokenClaimResponse{}, nil
 }
 
+func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*types.MsgBridgeCallResponse, error) {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	if len(msg.Asset) > 0 {
+		msg.Asset, err = s.Keeper.bridgeCallAssetHandler(ctx, sender, msg.Asset)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if _, err = s.Keeper.AddOutgoingBridgeCall(ctx, msg); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
+
+	return nil, nil
+}
+
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
 func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)

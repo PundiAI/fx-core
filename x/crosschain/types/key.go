@@ -122,6 +122,10 @@ var (
 
 	// TokenTypeToTokenKey prefixes the index of asset token type to external token
 	TokenTypeToTokenKey = []byte{0x47}
+
+	KeyLastBridgeCallID = append(SequenceKeyPrefix, []byte("bridgeCallId")...)
+
+	OutgoingBridgeCallKey = []byte{0x48}
 )
 
 // GetOracleKey returns the following key format
@@ -242,4 +246,8 @@ func GetRefundConfirmNonceKey(nonce uint64) []byte {
 
 func GetTokenTypeToTokenKey(tokenContract string) []byte {
 	return append(TokenTypeToTokenKey, []byte(tokenContract)...)
+}
+
+func GetOutgoingBridgeCallKey(id uint64) []byte {
+	return append(OutgoingBridgeCallKey, sdk.Uint64ToBigEndian(id)...)
 }
