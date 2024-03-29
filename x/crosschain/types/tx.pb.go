@@ -2764,7 +2764,7 @@ func init() {
 func init() { proto.RegisterFile("fx/crosschain/v1/tx.proto", fileDescriptor_ee1a6565f08a339d) }
 
 var fileDescriptor_ee1a6565f08a339d = []byte{
-	// 2044 bytes of a gzipped FileDescriptorProto
+	// 2046 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x5a, 0x4d, 0x6c, 0x1b, 0xc7,
 	0x15, 0xf6, 0x92, 0x14, 0x65, 0x3d, 0x4a, 0x94, 0xbc, 0x61, 0x62, 0x89, 0xb6, 0x29, 0x85, 0x68,
 	0x6a, 0x39, 0xae, 0xc9, 0x48, 0x69, 0x93, 0xc6, 0x87, 0x00, 0x92, 0x6c, 0xc3, 0x04, 0xaa, 0xb8,
@@ -2876,23 +2876,23 @@ var fileDescriptor_ee1a6565f08a339d = []byte{
 	0xfc, 0xda, 0x42, 0xec, 0xf2, 0xe4, 0x9f, 0x2a, 0xd0, 0x88, 0x4d, 0xfd, 0x78, 0xb9, 0xba, 0x5f,
 	0x6c, 0xbf, 0xf0, 0xa0, 0xb0, 0x79, 0x77, 0x71, 0x99, 0x30, 0x04, 0x89, 0x92, 0x39, 0x1b, 0x82,
 	0x38, 0x7b, 0x0e, 0x04, 0xf3, 0x6a, 0x42, 0xd5, 0x85, 0xb5, 0xe8, 0x48, 0xf3, 0xcd, 0xcc, 0x7d,
-	0x22, 0xbc, 0xcd, 0xfd, 0xe2, 0xbc, 0xf2, 0xc0, 0x09, 0xac, 0xc7, 0x87, 0x78, 0x5f, 0x29, 0xa0,
-	0xba, 0xe4, 0x6e, 0x7e, 0x75, 0x11, 0x6e, 0x79, 0xec, 0xcf, 0x14, 0x78, 0x35, 0x7d, 0x06, 0xb5,
-	0x5f, 0x70, 0xbf, 0x90, 0x4c, 0x8e, 0xaf, 0x33, 0x67, 0x48, 0xfe, 0x15, 0x8b, 0x4d, 0x47, 0x6e,
-	0x17, 0x80, 0x31, 0x60, 0xce, 0xb9, 0x62, 0x73, 0x06, 0x38, 0x3f, 0x56, 0xa0, 0x91, 0x3a, 0x98,
-	0xc9, 0x7e, 0xd4, 0xd3, 0x44, 0x9a, 0xef, 0x2d, 0x2c, 0x22, 0xd5, 0xf8, 0x91, 0x02, 0xaf, 0xa4,
-	0xf5, 0xca, 0x6f, 0x2d, 0x60, 0x13, 0x77, 0xc0, 0xd7, 0x17, 0x95, 0x08, 0x27, 0x8a, 0x50, 0x99,
-	0x70, 0xb3, 0xa0, 0x23, 0x73, 0x12, 0x45, 0x32, 0xe3, 0xfa, 0x99, 0x36, 0x32, 0x6d, 0xba, 0x95,
-	0x93, 0x69, 0x66, 0xac, 0x39, 0x99, 0x36, 0x75, 0x4c, 0x63, 0xc1, 0x6a, 0x64, 0x02, 0x93, 0x7d,
-	0x5a, 0x98, 0x35, 0xe7, 0xb4, 0xb4, 0xb1, 0x87, 0xfa, 0x7d, 0xb8, 0x92, 0x6c, 0x22, 0x3b, 0x45,
-	0xef, 0xa5, 0x78, 0xb3, 0xdf, 0x59, 0x8c, 0x3f, 0x6c, 0x6a, 0xa4, 0xaf, 0xc8, 0x36, 0x35, 0xcc,
-	0x9a, 0x63, 0x6a, 0x5a, 0xcd, 0xef, 0x9b, 0x9a, 0xac, 0xf7, 0xb3, 0x4d, 0x4d, 0xf0, 0xe7, 0x98,
-	0x3a, 0xb7, 0x24, 0x57, 0x7f, 0x00, 0x6a, 0x4a, 0x39, 0xde, 0x2d, 0x60, 0x45, 0x58, 0xa0, 0xf9,
-	0xee, 0x82, 0x02, 0xc1, 0xf9, 0x87, 0xbd, 0x8f, 0x9f, 0xb5, 0x94, 0x4f, 0x9e, 0xb5, 0x94, 0xcf,
-	0x9e, 0xb5, 0x94, 0x5f, 0x3c, 0x6f, 0x5d, 0xfa, 0xe4, 0x79, 0xeb, 0xd2, 0xdf, 0x9f, 0xb7, 0x2e,
-	0x7d, 0xb7, 0x1b, 0x2a, 0x5a, 0x47, 0x13, 0x87, 0xb5, 0x30, 0xd3, 0xee, 0x68, 0x7a, 0x47, 0x73,
-	0x3d, 0xdc, 0x8d, 0xfc, 0x4b, 0x06, 0xab, 0x60, 0x87, 0x55, 0xf6, 0xaf, 0x17, 0x6f, 0xff, 0x2f,
-	0x00, 0x00, 0xff, 0xff, 0x5f, 0xe0, 0xed, 0xa5, 0x39, 0x22, 0x00, 0x00,
+	0x22, 0xbc, 0xcd, 0xfd, 0xe2, 0xbc, 0xe1, 0x08, 0x8b, 0x0d, 0x07, 0x6e, 0x17, 0xd8, 0x25, 0x60,
+	0xce, 0x89, 0xb0, 0x39, 0xf3, 0x8b, 0x1f, 0x2b, 0xd0, 0x48, 0x9d, 0x4b, 0x64, 0xbf, 0x69, 0x69,
+	0x22, 0xcd, 0xf7, 0x16, 0x16, 0x91, 0x6a, 0xfc, 0x48, 0x81, 0x57, 0xd2, 0x5a, 0xc5, 0xb7, 0x16,
+	0xb0, 0x89, 0x03, 0xff, 0xf5, 0x45, 0x25, 0xa4, 0x0e, 0x16, 0xac, 0x46, 0x86, 0x20, 0xb7, 0x72,
+	0x1e, 0xc0, 0x19, 0x6b, 0x4e, 0x02, 0x48, 0x9d, 0x1e, 0x58, 0xb0, 0x1a, 0x19, 0x0c, 0x64, 0x9f,
+	0x16, 0x66, 0xcd, 0x39, 0x2d, 0xad, 0x1b, 0x57, 0x27, 0xb0, 0x1e, 0x9f, 0x0f, 0x7f, 0xa5, 0xc0,
+	0xad, 0x90, 0xdc, 0xcd, 0xaf, 0x2e, 0xc2, 0x1d, 0x4e, 0x3d, 0xa1, 0xc2, 0xe3, 0x66, 0xc1, 0x3d,
+	0x72, 0x52, 0x4f, 0x32, 0x87, 0xab, 0xdf, 0x87, 0x2b, 0xc9, 0xd6, 0xad, 0x53, 0x54, 0x65, 0xf1,
+	0x52, 0xbe, 0xb3, 0x18, 0xbf, 0x3c, 0xfc, 0x67, 0x0a, 0xbc, 0x9a, 0x3e, 0xc3, 0xdd, 0x2f, 0x6e,
+	0x47, 0x20, 0x93, 0xf3, 0x56, 0x66, 0xce, 0x60, 0xfd, 0x98, 0x8a, 0xf4, 0x15, 0xd9, 0x31, 0x15,
+	0x66, 0xcd, 0x89, 0xa9, 0xb4, 0x9a, 0xdf, 0x07, 0x3d, 0x59, 0xef, 0x67, 0x83, 0x9e, 0xe0, 0xcf,
+	0x01, 0x7d, 0x6e, 0x49, 0xae, 0xfe, 0x00, 0xd4, 0x94, 0x72, 0xbc, 0x5b, 0xc0, 0x8a, 0xb0, 0x40,
+	0xf3, 0xdd, 0x05, 0x05, 0x82, 0xf3, 0x0f, 0x7b, 0x1f, 0x3f, 0x6b, 0x29, 0x9f, 0x3c, 0x6b, 0x29,
+	0x9f, 0x3d, 0x6b, 0x29, 0xbf, 0x78, 0xde, 0xba, 0xf4, 0xc9, 0xf3, 0xd6, 0xa5, 0xbf, 0x3f, 0x6f,
+	0x5d, 0xfa, 0x6e, 0x37, 0x54, 0xb4, 0x8e, 0x26, 0x0e, 0x6b, 0x61, 0xa6, 0xdd, 0xd1, 0xf4, 0x8e,
+	0xe6, 0x7a, 0xb8, 0x1b, 0xf9, 0x97, 0x0c, 0x56, 0xc1, 0x0e, 0xab, 0xec, 0x5f, 0x2f, 0xde, 0xfe,
+	0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x3f, 0xd0, 0x3f, 0x42, 0x39, 0x22, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -2917,15 +2917,15 @@ type MsgClient interface {
 	OracleSetUpdateClaim(ctx context.Context, in *MsgOracleSetUpdatedClaim, opts ...grpc.CallOption) (*MsgOracleSetUpdatedClaimResponse, error)
 	BridgeTokenClaim(ctx context.Context, in *MsgBridgeTokenClaim, opts ...grpc.CallOption) (*MsgBridgeTokenClaimResponse, error)
 	SendToFxClaim(ctx context.Context, in *MsgSendToFxClaim, opts ...grpc.CallOption) (*MsgSendToFxClaimResponse, error)
-	BridgeCallClaim(ctx context.Context, in *MsgBridgeCallClaim, opts ...grpc.CallOption) (*MsgBridgeCallClaimResponse, error)
-	BridgeCallResultClaim(ctx context.Context, in *MsgBridgeCallResultClaim, opts ...grpc.CallOption) (*MsgBridgeCallResultClaimResponse, error)
 	SendToExternal(ctx context.Context, in *MsgSendToExternal, opts ...grpc.CallOption) (*MsgSendToExternalResponse, error)
 	CancelSendToExternal(ctx context.Context, in *MsgCancelSendToExternal, opts ...grpc.CallOption) (*MsgCancelSendToExternalResponse, error)
 	SendToExternalClaim(ctx context.Context, in *MsgSendToExternalClaim, opts ...grpc.CallOption) (*MsgSendToExternalClaimResponse, error)
-	BridgeCall(ctx context.Context, in *MsgBridgeCall, opts ...grpc.CallOption) (*MsgBridgeCallResponse, error)
 	RequestBatch(ctx context.Context, in *MsgRequestBatch, opts ...grpc.CallOption) (*MsgRequestBatchResponse, error)
 	ConfirmBatch(ctx context.Context, in *MsgConfirmBatch, opts ...grpc.CallOption) (*MsgConfirmBatchResponse, error)
+	BridgeCallClaim(ctx context.Context, in *MsgBridgeCallClaim, opts ...grpc.CallOption) (*MsgBridgeCallClaimResponse, error)
+	BridgeCall(ctx context.Context, in *MsgBridgeCall, opts ...grpc.CallOption) (*MsgBridgeCallResponse, error)
 	BridgeCallConfirm(ctx context.Context, in *MsgBridgeCallConfirm, opts ...grpc.CallOption) (*MsgBridgeCallConfirmResponse, error)
+	BridgeCallResultClaim(ctx context.Context, in *MsgBridgeCallResultClaim, opts ...grpc.CallOption) (*MsgBridgeCallResultClaimResponse, error)
 	// UpdateParams defines a governance operation for updating the x/crosschain module
 	// parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -3031,24 +3031,6 @@ func (c *msgClient) SendToFxClaim(ctx context.Context, in *MsgSendToFxClaim, opt
 	return out, nil
 }
 
-func (c *msgClient) BridgeCallClaim(ctx context.Context, in *MsgBridgeCallClaim, opts ...grpc.CallOption) (*MsgBridgeCallClaimResponse, error) {
-	out := new(MsgBridgeCallClaimResponse)
-	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BridgeCallClaim", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) BridgeCallResultClaim(ctx context.Context, in *MsgBridgeCallResultClaim, opts ...grpc.CallOption) (*MsgBridgeCallResultClaimResponse, error) {
-	out := new(MsgBridgeCallResultClaimResponse)
-	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BridgeCallResultClaim", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) SendToExternal(ctx context.Context, in *MsgSendToExternal, opts ...grpc.CallOption) (*MsgSendToExternalResponse, error) {
 	out := new(MsgSendToExternalResponse)
 	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/SendToExternal", in, out, opts...)
@@ -3076,15 +3058,6 @@ func (c *msgClient) SendToExternalClaim(ctx context.Context, in *MsgSendToExtern
 	return out, nil
 }
 
-func (c *msgClient) BridgeCall(ctx context.Context, in *MsgBridgeCall, opts ...grpc.CallOption) (*MsgBridgeCallResponse, error) {
-	out := new(MsgBridgeCallResponse)
-	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BridgeCall", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) RequestBatch(ctx context.Context, in *MsgRequestBatch, opts ...grpc.CallOption) (*MsgRequestBatchResponse, error) {
 	out := new(MsgRequestBatchResponse)
 	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/RequestBatch", in, out, opts...)
@@ -3103,9 +3076,36 @@ func (c *msgClient) ConfirmBatch(ctx context.Context, in *MsgConfirmBatch, opts 
 	return out, nil
 }
 
+func (c *msgClient) BridgeCallClaim(ctx context.Context, in *MsgBridgeCallClaim, opts ...grpc.CallOption) (*MsgBridgeCallClaimResponse, error) {
+	out := new(MsgBridgeCallClaimResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BridgeCallClaim", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) BridgeCall(ctx context.Context, in *MsgBridgeCall, opts ...grpc.CallOption) (*MsgBridgeCallResponse, error) {
+	out := new(MsgBridgeCallResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BridgeCall", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) BridgeCallConfirm(ctx context.Context, in *MsgBridgeCallConfirm, opts ...grpc.CallOption) (*MsgBridgeCallConfirmResponse, error) {
 	out := new(MsgBridgeCallConfirmResponse)
 	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BridgeCallConfirm", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) BridgeCallResultClaim(ctx context.Context, in *MsgBridgeCallResultClaim, opts ...grpc.CallOption) (*MsgBridgeCallResultClaimResponse, error) {
+	out := new(MsgBridgeCallResultClaimResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BridgeCallResultClaim", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3151,15 +3151,15 @@ type MsgServer interface {
 	OracleSetUpdateClaim(context.Context, *MsgOracleSetUpdatedClaim) (*MsgOracleSetUpdatedClaimResponse, error)
 	BridgeTokenClaim(context.Context, *MsgBridgeTokenClaim) (*MsgBridgeTokenClaimResponse, error)
 	SendToFxClaim(context.Context, *MsgSendToFxClaim) (*MsgSendToFxClaimResponse, error)
-	BridgeCallClaim(context.Context, *MsgBridgeCallClaim) (*MsgBridgeCallClaimResponse, error)
-	BridgeCallResultClaim(context.Context, *MsgBridgeCallResultClaim) (*MsgBridgeCallResultClaimResponse, error)
 	SendToExternal(context.Context, *MsgSendToExternal) (*MsgSendToExternalResponse, error)
 	CancelSendToExternal(context.Context, *MsgCancelSendToExternal) (*MsgCancelSendToExternalResponse, error)
 	SendToExternalClaim(context.Context, *MsgSendToExternalClaim) (*MsgSendToExternalClaimResponse, error)
-	BridgeCall(context.Context, *MsgBridgeCall) (*MsgBridgeCallResponse, error)
 	RequestBatch(context.Context, *MsgRequestBatch) (*MsgRequestBatchResponse, error)
 	ConfirmBatch(context.Context, *MsgConfirmBatch) (*MsgConfirmBatchResponse, error)
+	BridgeCallClaim(context.Context, *MsgBridgeCallClaim) (*MsgBridgeCallClaimResponse, error)
+	BridgeCall(context.Context, *MsgBridgeCall) (*MsgBridgeCallResponse, error)
 	BridgeCallConfirm(context.Context, *MsgBridgeCallConfirm) (*MsgBridgeCallConfirmResponse, error)
+	BridgeCallResultClaim(context.Context, *MsgBridgeCallResultClaim) (*MsgBridgeCallResultClaimResponse, error)
 	// UpdateParams defines a governance operation for updating the x/crosschain module
 	// parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -3201,12 +3201,6 @@ func (*UnimplementedMsgServer) BridgeTokenClaim(ctx context.Context, req *MsgBri
 func (*UnimplementedMsgServer) SendToFxClaim(ctx context.Context, req *MsgSendToFxClaim) (*MsgSendToFxClaimResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendToFxClaim not implemented")
 }
-func (*UnimplementedMsgServer) BridgeCallClaim(ctx context.Context, req *MsgBridgeCallClaim) (*MsgBridgeCallClaimResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallClaim not implemented")
-}
-func (*UnimplementedMsgServer) BridgeCallResultClaim(ctx context.Context, req *MsgBridgeCallResultClaim) (*MsgBridgeCallResultClaimResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallResultClaim not implemented")
-}
 func (*UnimplementedMsgServer) SendToExternal(ctx context.Context, req *MsgSendToExternal) (*MsgSendToExternalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendToExternal not implemented")
 }
@@ -3216,17 +3210,23 @@ func (*UnimplementedMsgServer) CancelSendToExternal(ctx context.Context, req *Ms
 func (*UnimplementedMsgServer) SendToExternalClaim(ctx context.Context, req *MsgSendToExternalClaim) (*MsgSendToExternalClaimResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendToExternalClaim not implemented")
 }
-func (*UnimplementedMsgServer) BridgeCall(ctx context.Context, req *MsgBridgeCall) (*MsgBridgeCallResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BridgeCall not implemented")
-}
 func (*UnimplementedMsgServer) RequestBatch(ctx context.Context, req *MsgRequestBatch) (*MsgRequestBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestBatch not implemented")
 }
 func (*UnimplementedMsgServer) ConfirmBatch(ctx context.Context, req *MsgConfirmBatch) (*MsgConfirmBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfirmBatch not implemented")
 }
+func (*UnimplementedMsgServer) BridgeCallClaim(ctx context.Context, req *MsgBridgeCallClaim) (*MsgBridgeCallClaimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallClaim not implemented")
+}
+func (*UnimplementedMsgServer) BridgeCall(ctx context.Context, req *MsgBridgeCall) (*MsgBridgeCallResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeCall not implemented")
+}
 func (*UnimplementedMsgServer) BridgeCallConfirm(ctx context.Context, req *MsgBridgeCallConfirm) (*MsgBridgeCallConfirmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallConfirm not implemented")
+}
+func (*UnimplementedMsgServer) BridgeCallResultClaim(ctx context.Context, req *MsgBridgeCallResultClaim) (*MsgBridgeCallResultClaimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallResultClaim not implemented")
 }
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -3422,42 +3422,6 @@ func _Msg_SendToFxClaim_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_BridgeCallClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgBridgeCallClaim)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).BridgeCallClaim(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/fx.gravity.crosschain.v1.Msg/BridgeCallClaim",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).BridgeCallClaim(ctx, req.(*MsgBridgeCallClaim))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_BridgeCallResultClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgBridgeCallResultClaim)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).BridgeCallResultClaim(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/fx.gravity.crosschain.v1.Msg/BridgeCallResultClaim",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).BridgeCallResultClaim(ctx, req.(*MsgBridgeCallResultClaim))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_SendToExternal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgSendToExternal)
 	if err := dec(in); err != nil {
@@ -3512,24 +3476,6 @@ func _Msg_SendToExternalClaim_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_BridgeCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgBridgeCall)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).BridgeCall(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/fx.gravity.crosschain.v1.Msg/BridgeCall",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).BridgeCall(ctx, req.(*MsgBridgeCall))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_RequestBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgRequestBatch)
 	if err := dec(in); err != nil {
@@ -3566,6 +3512,42 @@ func _Msg_ConfirmBatch_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_BridgeCallClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgBridgeCallClaim)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).BridgeCallClaim(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/BridgeCallClaim",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).BridgeCallClaim(ctx, req.(*MsgBridgeCallClaim))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_BridgeCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgBridgeCall)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).BridgeCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/BridgeCall",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).BridgeCall(ctx, req.(*MsgBridgeCall))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_BridgeCallConfirm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgBridgeCallConfirm)
 	if err := dec(in); err != nil {
@@ -3580,6 +3562,24 @@ func _Msg_BridgeCallConfirm_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).BridgeCallConfirm(ctx, req.(*MsgBridgeCallConfirm))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_BridgeCallResultClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgBridgeCallResultClaim)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).BridgeCallResultClaim(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/BridgeCallResultClaim",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).BridgeCallResultClaim(ctx, req.(*MsgBridgeCallResultClaim))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3683,14 +3683,6 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_SendToFxClaim_Handler,
 		},
 		{
-			MethodName: "BridgeCallClaim",
-			Handler:    _Msg_BridgeCallClaim_Handler,
-		},
-		{
-			MethodName: "BridgeCallResultClaim",
-			Handler:    _Msg_BridgeCallResultClaim_Handler,
-		},
-		{
 			MethodName: "SendToExternal",
 			Handler:    _Msg_SendToExternal_Handler,
 		},
@@ -3703,10 +3695,6 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_SendToExternalClaim_Handler,
 		},
 		{
-			MethodName: "BridgeCall",
-			Handler:    _Msg_BridgeCall_Handler,
-		},
-		{
 			MethodName: "RequestBatch",
 			Handler:    _Msg_RequestBatch_Handler,
 		},
@@ -3715,8 +3703,20 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_ConfirmBatch_Handler,
 		},
 		{
+			MethodName: "BridgeCallClaim",
+			Handler:    _Msg_BridgeCallClaim_Handler,
+		},
+		{
+			MethodName: "BridgeCall",
+			Handler:    _Msg_BridgeCall_Handler,
+		},
+		{
 			MethodName: "BridgeCallConfirm",
 			Handler:    _Msg_BridgeCallConfirm_Handler,
+		},
+		{
+			MethodName: "BridgeCallResultClaim",
+			Handler:    _Msg_BridgeCallResultClaim_Handler,
 		},
 		{
 			MethodName: "UpdateParams",

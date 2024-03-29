@@ -30,20 +30,21 @@ const (
 
 	TypeMsgBridgeTokenClaim = "bridge_token_claim"
 
-	TypeMsgSendToFxClaim         = "send_to_fx_claim"
-	TypeMsgBridgeCallClaim       = "bridge_call_claim"
-	TypeMsgBridgeCallResultClaim = "bridge_call_result_claim"
+	TypeMsgSendToFxClaim = "send_to_fx_claim"
 
 	TypeMsgSendToExternal       = "send_to_external"
 	TypeMsgCancelSendToExternal = "cancel_send_to_external"
 	TypeMsgIncreaseBridgeFee    = "increase_bridge_fee"
 	TypeMsgSendToExternalClaim  = "send_to_external_claim"
 
-	TypeMsgBridgeCall = "bridge_call"
+	TypeMsgBridgeCallClaim = "bridge_call_claim"
 
-	TypeMsgRequestBatch      = "request_batch"
-	TypeMsgConfirmBatch      = "confirm_batch"
-	TypeMsgBridgeCallConfirm = "bridge_call_confirm"
+	TypeMsgBridgeCall            = "bridge_call"
+	TypeMsgBridgeCallConfirm     = "bridge_call_confirm"
+	TypeMsgBridgeCallResultClaim = "bridge_call_result_claim"
+
+	TypeMsgRequestBatch = "request_batch"
+	TypeMsgConfirmBatch = "confirm_batch"
 
 	TypeMsgUpdateParams = "update_params"
 
@@ -81,10 +82,6 @@ var (
 
 	_ sdk.Msg       = &MsgSendToFxClaim{}
 	_ CrossChainMsg = &MsgSendToFxClaim{}
-	_ sdk.Msg       = &MsgBridgeCallClaim{}
-	_ CrossChainMsg = &MsgBridgeCallClaim{}
-	_ sdk.Msg       = &MsgBridgeCallResultClaim{}
-	_ CrossChainMsg = &MsgBridgeCallResultClaim{}
 
 	_ sdk.Msg       = &MsgSendToExternal{}
 	_ CrossChainMsg = &MsgSendToExternal{}
@@ -95,16 +92,20 @@ var (
 	_ sdk.Msg       = &MsgSendToExternalClaim{}
 	_ CrossChainMsg = &MsgSendToExternalClaim{}
 
-	_ sdk.Msg       = &MsgBridgeCall{}
-	_ CrossChainMsg = &MsgBridgeCall{}
-
 	_ sdk.Msg       = &MsgRequestBatch{}
 	_ CrossChainMsg = &MsgRequestBatch{}
 	_ sdk.Msg       = &MsgConfirmBatch{}
 	_ CrossChainMsg = &MsgConfirmBatch{}
 
+	_ sdk.Msg       = &MsgBridgeCallClaim{}
+	_ CrossChainMsg = &MsgBridgeCallClaim{}
+
+	_ sdk.Msg       = &MsgBridgeCall{}
+	_ CrossChainMsg = &MsgBridgeCall{}
 	_ sdk.Msg       = &MsgBridgeCallConfirm{}
 	_ CrossChainMsg = &MsgBridgeCallConfirm{}
+	_ sdk.Msg       = &MsgBridgeCallResultClaim{}
+	_ CrossChainMsg = &MsgBridgeCallResultClaim{}
 
 	_ sdk.Msg       = &MsgUpdateParams{}
 	_ CrossChainMsg = &MsgUpdateParams{}
@@ -123,20 +124,23 @@ type MsgValidateBasic interface {
 
 	MsgOracleSetConfirmValidate(m *MsgOracleSetConfirm) (err error)
 	MsgOracleSetUpdatedClaimValidate(m *MsgOracleSetUpdatedClaim) (err error)
+
 	MsgBridgeTokenClaimValidate(m *MsgBridgeTokenClaim) (err error)
-	MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error)
 
 	MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error)
-	MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error)
-	MsgBridgeCallResultClaimValidate(m *MsgBridgeCallResultClaim) (err error)
-	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
-	MsgBridgeCallValidate(m *MsgBridgeCall) (err error)
 
-	MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error)
+	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
 	MsgIncreaseBridgeFeeValidate(m *MsgIncreaseBridgeFee) (err error)
 	MsgRequestBatchValidate(m *MsgRequestBatch) (err error)
+	MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error)
 	MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error)
+	MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error)
+
+	MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error)
+
+	MsgBridgeCallValidate(m *MsgBridgeCall) (err error)
 	MsgBridgeCallConfirmValidate(m *MsgBridgeCallConfirm) (err error)
+	MsgBridgeCallResultClaimValidate(m *MsgBridgeCallResultClaim) (err error)
 
 	ValidateExternalAddress(addr string) error
 	ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error)
