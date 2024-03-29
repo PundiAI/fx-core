@@ -264,11 +264,11 @@ func (k RouterKeeper) RefundRecordByReceiver(c context.Context, req *types.Query
 	}
 }
 
-func (k RouterKeeper) RefundConfirmByNonce(c context.Context, req *types.QueryRefundConfirmByNonceRequest) (*types.QueryRefundConfirmByNonceResponse, error) {
+func (k RouterKeeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.RefundConfirmByNonce(c, req)
+		return queryServer.BridgeCallConfirmByNonce(c, req)
 	}
 }
 

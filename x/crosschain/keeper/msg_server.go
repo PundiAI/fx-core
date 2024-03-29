@@ -519,12 +519,12 @@ func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 	return &types.MsgOracleSetConfirmResponse{}, nil
 }
 
-func (s MsgServer) ConfirmRefund(c context.Context, msg *types.MsgConfirmRefund) (*types.MsgConfirmRefundResponse, error) {
+func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCallConfirm) (*types.MsgBridgeCallConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	record, found := s.GetRefundRecord(ctx, msg.Nonce)
 	if !found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find refund record")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find bridge call record")
 	}
 
 	snapshotOracle, found := s.GetSnapshotOracle(ctx, record.OracleSetNonce)
@@ -549,10 +549,10 @@ func (s MsgServer) ConfirmRefund(c context.Context, msg *types.MsgConfirmRefund)
 	}
 
 	externalAddr := types.ExternalAddressToAccAddress(s.moduleName, msg.ExternalAddress)
-	if _, found = s.GetRefundConfirm(ctx, msg.Nonce, externalAddr); found {
+	if _, found = s.GetBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
 		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
-	s.SetRefundConfirm(ctx, externalAddr, msg)
+	s.SetBridgeCallConfirm(ctx, externalAddr, msg)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -560,7 +560,7 @@ func (s MsgServer) ConfirmRefund(c context.Context, msg *types.MsgConfirmRefund)
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
 	))
 
-	return &types.MsgConfirmRefundResponse{}, nil
+	return &types.MsgBridgeCallConfirmResponse{}, nil
 }
 
 func (s MsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {

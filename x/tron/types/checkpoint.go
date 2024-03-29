@@ -82,7 +82,7 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 	return crypto.Keccak256(encode), nil
 }
 
-func GetCheckpointConfirmRefund(refund *types.RefundRecord, gravityIDStr string) ([]byte, error) {
+func GetCheckpointBridgeCall(refund *types.RefundRecord, gravityIDStr string) ([]byte, error) {
 	tokenAmounts := make([]*big.Int, len(refund.Tokens))
 	tokenContracts := make([]string, len(refund.Tokens))
 	for i, token := range refund.Tokens {
@@ -94,7 +94,7 @@ func GetCheckpointConfirmRefund(refund *types.RefundRecord, gravityIDStr string)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
-	transactionBatch, err := fxtypes.StrToByte32("refundToken")
+	transactionBatch, err := fxtypes.StrToByte32("bridgeCall")
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse checkpoint")
 	}
