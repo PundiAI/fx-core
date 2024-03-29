@@ -53,7 +53,7 @@ describe("bridge call tests", function () {
         const valAddresses = await getSignerAddresses(validators)
 
         await fxBridge.init(gravityId, powerThreshold, valAddresses, powers)
-        await fxBridge.addBridgeToken(erc20TokenAddress, encodeBytes32String(""), true)
+        await fxBridge.addBridgeToken(erc20TokenAddress, encodeBytes32String(""), true, 0)
     })
 
     describe("BridgeCallUpgradeable test", function () {
@@ -100,10 +100,10 @@ describe("bridge call tests", function () {
                 token3 = await erc2TokenFactory.deploy("Token3", "TTT", "18", ethers.parseEther(totalSupply))
                 token4 = await erc2TokenFactory.deploy("Token4", "TTTT", "18", ethers.parseEther(totalSupply))
 
-                await fxBridge.addBridgeToken(await token1.getAddress(), encodeBytes32String(""), false)
-                await fxBridge.addBridgeToken(await token2.getAddress(), encodeBytes32String(""), false)
-                await fxBridge.addBridgeToken(await token3.getAddress(), encodeBytes32String(""), false)
-                await fxBridge.addBridgeToken(await token4.getAddress(), encodeBytes32String(""), false)
+                await fxBridge.addBridgeToken(await token1.getAddress(), encodeBytes32String(""), false, 0)
+                await fxBridge.addBridgeToken(await token2.getAddress(), encodeBytes32String(""), false, 0)
+                await fxBridge.addBridgeToken(await token3.getAddress(), encodeBytes32String(""), false, 0)
+                await fxBridge.addBridgeToken(await token4.getAddress(), encodeBytes32String(""), false, 0)
 
                 await token1.approve(await fxBridge.getAddress(), totalSupply);
                 await token2.approve(await fxBridge.getAddress(), totalSupply);

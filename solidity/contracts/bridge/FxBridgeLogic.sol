@@ -43,6 +43,7 @@ contract FxBridgeLogic is
         bool isOriginated;
         bool isActive;
         bool isExist;
+        BridgeTokenType tokenType;
     }
 
     struct TransferInfo {
@@ -58,8 +59,14 @@ contract FxBridgeLogic is
         string name;
         string symbol;
         uint8 decimals;
+        BridgeTokenType tokenType;
     }
 
+    enum BridgeTokenType {
+        ERC20,
+        ERC721,
+        ERC404
+    }
     /* =============== INIT =============== */
 
     function init(
@@ -115,7 +122,8 @@ contract FxBridgeLogic is
     function addBridgeToken(
         address _tokenAddr,
         bytes32 _channelIBC,
-        bool _isOriginated
+        bool _isOriginated,
+        BridgeTokenType _tokenType
     ) public onlyOwner returns (bool) {
         require(_tokenAddr != address(0), "Invalid token address");
         require(
@@ -124,7 +132,7 @@ contract FxBridgeLogic is
         );
         _handlerAddBridgeToken(
             _tokenAddr,
-            TokenStatus(_isOriginated, true, true)
+            TokenStatus(_isOriginated, true, true, _tokenType)
         );
         emit AddBridgeTokenEvent(
             _tokenAddr,
@@ -132,7 +140,8 @@ contract FxBridgeLogic is
             IERC20MetadataUpgradeable(_tokenAddr).symbol(),
             IERC20MetadataUpgradeable(_tokenAddr).decimals(),
             state_lastEventNonce,
-            _channelIBC
+            _channelIBC,
+            _tokenType
         );
         return true;
     }
@@ -255,6 +264,10 @@ contract FxBridgeLogic is
         TokenStatus memory _tokenStatus = tokenStatus[_tokenContract];
         require(_tokenStatus.isExist, "Unsupported token address");
         require(_tokenStatus.isActive, "token was paused");
+        require(
+            _tokenStatus.tokenType == BridgeTokenType.ERC20,
+            "Unsupported token type"
+        );
 
         IERC20MetadataUpgradeable(_tokenContract).safeTransferFrom(
             msg.sender,
@@ -535,6 +548,29 @@ contract FxBridgeLogic is
         return true;
     }
 
+    function updateTokenType(
+        address[] memory _tokens,
+        BridgeTokenType[] memory _tokenTypes
+    ) public onlyOwner returns (bool) {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            BridgeTokenType tokenType = _tokenTypes[i];
+            require(tokenStatus[token].isExist, "Unsupported token address");
+            tokenStatus[token].tokenType = tokenType;
+            state_lastEventNonce = state_lastEventNonce.add(1);
+            emit AddBridgeTokenEvent(
+                token,
+                IERC20MetadataUpgradeable(token).name(),
+                IERC20MetadataUpgradeable(token).symbol(),
+                IERC20MetadataUpgradeable(token).decimals(),
+                state_lastEventNonce,
+                bytes32(0),
+                tokenType
+            );
+        }
+        return true;
+    }
+
     /* =============== QUERY FUNCTIONS =============== */
 
     function lastBatchNonce(
@@ -630,11 +666,19 @@ contract FxBridgeLogic is
         BridgeToken[] memory result = new BridgeToken[](bridgeTokens.length);
         for (uint256 i = 0; i < bridgeTokens.length; i++) {
             address _tokenAddr = address(bridgeTokens[i]);
+            string memory _name = IERC20MetadataUpgradeable(_tokenAddr).name();
+            string memory _symbol = IERC20MetadataUpgradeable(_tokenAddr)
+                .symbol();
+            uint8 _decimals = 0;
+            if (tokenStatus[_tokenAddr].tokenType != BridgeTokenType.ERC721) {
+                _decimals = IERC20MetadataUpgradeable(_tokenAddr).decimals();
+            }
             BridgeToken memory bridgeToken = BridgeToken(
                 _tokenAddr,
-                IERC20MetadataUpgradeable(_tokenAddr).name(),
-                IERC20MetadataUpgradeable(_tokenAddr).symbol(),
-                IERC20MetadataUpgradeable(_tokenAddr).decimals()
+                _name,
+                _symbol,
+                _decimals,
+                tokenStatus[_tokenAddr].tokenType
             );
             result[i] = bridgeToken;
         }
@@ -726,7 +770,8 @@ contract FxBridgeLogic is
         string _symbol,
         uint8 _decimals,
         uint256 _eventNonce,
-        bytes32 _channelIBC
+        bytes32 _channelIBC,
+        BridgeTokenType _tokenType
     );
     event OracleSetUpdatedEvent(
         uint256 indexed _newOracleSetNonce,
