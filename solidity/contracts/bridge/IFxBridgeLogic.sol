@@ -51,6 +51,17 @@ interface IFxBridgeLogic {
         ERC404
     }
 
+    struct BridgeCallData {
+        address sender;
+        address receiver;
+        address to;
+        uint256 value;
+        bytes asset;
+        bytes message;
+        uint256 timeout;
+        uint256 gasLimit;
+    }
+
     function addBridgeToken(
         address _tokenAddr,
         bytes32 _channelIBC,
@@ -117,6 +128,16 @@ interface IFxBridgeLogic {
         address[] memory _tokens,
         uint256[] memory _amounts,
         uint256 _timeout
+    ) external;
+
+    function submitBridgeCall(
+        address[] memory _currentOracles,
+        uint256[] memory _currentPowers,
+        uint8[] memory _v,
+        bytes32[] memory _r,
+        bytes32[] memory _s,
+        uint256[2] memory _nonceArray,
+        BridgeCallData memory _input
     ) external;
 
     function transferOwner(

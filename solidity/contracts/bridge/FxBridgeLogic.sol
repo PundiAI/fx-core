@@ -37,6 +37,7 @@ contract FxBridgeLogic is
     mapping(address => TokenStatus) public tokenStatus;
     string public version;
     mapping(uint256 => bool) public state_lastRefundNonce;
+    mapping(uint256 => bool) public state_lastBridgeCallNonce;
     /* solhint-enable var-name-mixedcase */
 
     struct TokenStatus {
@@ -60,6 +61,17 @@ contract FxBridgeLogic is
         string symbol;
         uint8 decimals;
         BridgeTokenType tokenType;
+    }
+
+    struct BridgeCallData {
+        address sender;
+        address receiver;
+        address to;
+        uint256 value;
+        bytes asset;
+        bytes message;
+        uint256 timeout;
+        uint256 gasLimit;
     }
 
     enum BridgeTokenType {
@@ -300,7 +312,7 @@ contract FxBridgeLogic is
     ) external {
         // decode and transfer asset
         (string memory assetType, bytes memory assetData) = decodeType(_asset);
-        transferAsset(msg.sender, assetType, assetData);
+        transferAsset(msg.sender, address(this), assetType, assetData, false);
 
         // last event nonce +1
         state_lastEventNonce = state_lastEventNonce.add(1);
@@ -539,6 +551,139 @@ contract FxBridgeLogic is
         }
     }
 
+    function submitBridgeCall(
+        address[] memory _currentOracles,
+        uint256[] memory _currentPowers,
+        uint8[] memory _v,
+        bytes32[] memory _r,
+        bytes32[] memory _s,
+        uint256[2] memory _nonceArray,
+        BridgeCallData memory _input
+    ) public nonReentrant whenNotPaused {
+        verifyBridgeCall(
+            _currentOracles,
+            _currentPowers,
+            _v,
+            _r,
+            _s,
+            _nonceArray,
+            _input
+        );
+
+        state_lastBridgeCallNonce[_nonceArray[1]] = true;
+
+        bool result = true;
+        // solhint-disable-next-line no-empty-blocks
+        try this.callAssetMessage(_input) {
+            // event success
+        } catch {
+            // event failed
+            result = false;
+        }
+        emit SubmitBridgeCallEvent(
+            _input.sender,
+            _input.receiver,
+            _input.to,
+            _nonceArray[1],
+            false
+        );
+    }
+
+    function bridgeCallSigHash(
+        BridgeCallData memory input,
+        uint256 nonce
+    ) internal view returns (bytes32) {
+        bytes memory data = abi.encode(
+            state_fxBridgeId,
+            // bytes32 encoding of "bridgeCall"
+            0x62726964676543616c6c00000000000000000000000000000000000000000000,
+            input.sender,
+            input.receiver,
+            input.to,
+            input.value,
+            input.asset,
+            input.message,
+            nonce,
+            input.timeout
+        );
+        return keccak256(data);
+    }
+
+    function verifyBridgeCall(
+        address[] memory _currentOracles,
+        uint256[] memory _currentPowers,
+        uint8[] memory _v,
+        bytes32[] memory _r,
+        bytes32[] memory _s,
+        uint256[2] memory _nonceArray,
+        BridgeCallData memory _input
+    ) internal view {
+        require(
+            !state_lastBridgeCallNonce[_nonceArray[1]],
+            "New bridge call nonce must be not exist."
+        );
+
+        require(
+            block.number < _input.timeout,
+            "timeout must be greater than the current block height."
+        );
+
+        require(
+            _currentOracles.length == _currentPowers.length &&
+                _currentOracles.length == _v.length &&
+                _currentOracles.length == _r.length &&
+                _currentOracles.length == _s.length,
+            "Malformed current oracle set."
+        );
+
+        require(
+            makeCheckpoint(
+                _currentOracles,
+                _currentPowers,
+                _nonceArray[0],
+                state_fxBridgeId
+            ) == state_lastOracleSetCheckpoint,
+            "Supplied current oracles and powers do not match checkpoint."
+        );
+
+        bytes32 dataHash = bridgeCallSigHash(_input, _nonceArray[1]);
+
+        checkOracleSignatures(
+            _currentOracles,
+            _currentPowers,
+            _v,
+            _r,
+            _s,
+            dataHash,
+            state_powerThreshold
+        );
+    }
+
+    function callAssetMessage(BridgeCallData memory _input) public onlySelf {
+        if (_input.asset.length > 0) {
+            (string memory assetType, bytes memory assetData) = decodeType(
+                _input.asset
+            );
+            transferAsset(
+                address(this),
+                _input.receiver,
+                assetType,
+                assetData,
+                true
+            );
+        }
+
+        if (_input.message.length > 0) {
+            bytes memory data = abi.encodeWithSignature(
+                "onFxcoreMessage((address,address,address,uint256,bytes,bytes,uint256,uint256))",
+                _input
+            );
+            // solhint-disable-next-line avoid-low-level-calls
+            (bool success, ) = (_input.to).call{gas: _input.gasLimit}(data);
+            require(success, "Call onFxcoreMessage failed");
+        }
+    }
+
     function transferOwner(
         address _token,
         address _newOwner
@@ -693,8 +838,10 @@ contract FxBridgeLogic is
 
     function transferAsset(
         address _sender,
+        address _receiver,
         string memory _assetType,
-        bytes memory _assetData
+        bytes memory _assetData,
+        bool _mintToken
     ) internal {
         if (
             keccak256(bytes(_assetType)) ==
@@ -702,13 +849,18 @@ contract FxBridgeLogic is
                 0x8ae85d849167ff996c04040c44924fd364217285e4cad818292c7ac37c0a345b
             )
         ) {
-            transferERC20(_sender, _assetData);
+            transferERC20(_sender, _receiver, _assetData, _mintToken);
         } else {
             revert("Asset type not support");
         }
     }
 
-    function transferERC20(address _from, bytes memory _asset) internal {
+    function transferERC20(
+        address _from,
+        address _receiver,
+        bytes memory _asset,
+        bool _mintToken
+    ) internal {
         (address[] memory token, uint256[] memory amount) = decodeERC20(_asset);
         for (uint256 i = 0; i < token.length; i++) {
             require(amount[i] > 0, "amount should be greater than zero");
@@ -716,12 +868,26 @@ contract FxBridgeLogic is
             require(_tokenStatus.isExist, "Unsupported token address");
             require(_tokenStatus.isActive, "token was paused");
 
-            IERC20MetadataUpgradeable(token[i]).safeTransferFrom(
-                _from,
-                address(this),
-                amount[i]
-            );
-            if (_tokenStatus.isOriginated == true) {
+            // mint origin token
+            if (_tokenStatus.isOriginated == true && _mintToken) {
+                IERC20ExtensionsUpgradeable(token[i]).mint(_from, amount[i]);
+            }
+
+            if (_from == address(this)) {
+                IERC20MetadataUpgradeable(token[i]).safeTransfer(
+                    _receiver,
+                    amount[i]
+                );
+            } else {
+                IERC20MetadataUpgradeable(token[i]).safeTransferFrom(
+                    _from,
+                    _receiver,
+                    amount[i]
+                );
+            }
+
+            // burn origin token
+            if (_tokenStatus.isOriginated == true && !_mintToken) {
                 IERC20ExtensionsUpgradeable(token[i]).burn(amount[i]);
             }
         }
@@ -747,6 +913,14 @@ contract FxBridgeLogic is
             tokens[i] = currentToken;
         }
         return (tokens, amounts);
+    }
+
+    modifier onlySelf() {
+        require(
+            address(this) == _msgSender(),
+            "Selfable: caller is not the self"
+        );
+        _;
     }
 
     /* =============== EVENTS =============== */
@@ -797,5 +971,13 @@ contract FxBridgeLogic is
         address indexed _receiver,
         uint256 indexed _refundNonce,
         uint256 _eventNonce
+    );
+
+    event SubmitBridgeCallEvent(
+        address indexed _sender,
+        address indexed _receiver,
+        address indexed _to,
+        uint256 _eventNonce,
+        bool _result
     );
 }
