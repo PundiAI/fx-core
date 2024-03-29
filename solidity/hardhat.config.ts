@@ -4,6 +4,7 @@ import "@nomicfoundation/hardhat-ethers"
 import '@typechain/hardhat'
 import "hardhat-gas-reporter"
 import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-chai-matchers";
 
 import './tasks/task'
 
@@ -17,11 +18,11 @@ const config: HardhatUserConfig = {
             chainId: 1337,
         },
         mainnet: {
-            url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/"+process.env.INFURA_KEY}`,
+            url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY}`,
             chainId: 1,
         },
         sepolia: {
-            url: `${process.env.SEPOLIA_URL || "https://sepolia.infura.io/v3/"+process.env.INFURA_KEY}`,
+            url: `${process.env.SEPOLIA_URL || "https://sepolia.infura.io/v3/" + process.env.INFURA_KEY}`,
             chainId: 11155111,
         },
         arbitrumSepolia: {
