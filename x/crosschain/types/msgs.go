@@ -30,9 +30,9 @@ const (
 
 	TypeMsgBridgeTokenClaim = "bridge_token_claim"
 
-	TypeMsgSendToFxClaim    = "send_to_fx_claim"
-	TypeMsgBridgeCallClaim  = "bridge_call_claim"
-	TypeMsgRefundTokenClaim = "refund_token_claim" //nolint:gosec
+	TypeMsgSendToFxClaim         = "send_to_fx_claim"
+	TypeMsgBridgeCallClaim       = "bridge_call_claim"
+	TypeMsgBridgeCallResultClaim = "bridge_call_result_claim"
 
 	TypeMsgSendToExternal       = "send_to_external"
 	TypeMsgCancelSendToExternal = "cancel_send_to_external"
@@ -83,8 +83,8 @@ var (
 	_ CrossChainMsg = &MsgSendToFxClaim{}
 	_ sdk.Msg       = &MsgBridgeCallClaim{}
 	_ CrossChainMsg = &MsgBridgeCallClaim{}
-	_ sdk.Msg       = &MsgRefundTokenClaim{}
-	_ CrossChainMsg = &MsgRefundTokenClaim{}
+	_ sdk.Msg       = &MsgBridgeCallResultClaim{}
+	_ CrossChainMsg = &MsgBridgeCallResultClaim{}
 
 	_ sdk.Msg       = &MsgSendToExternal{}
 	_ CrossChainMsg = &MsgSendToExternal{}
@@ -128,7 +128,7 @@ type MsgValidateBasic interface {
 
 	MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error)
 	MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error)
-	MsgRefundTokenClaimValidate(m *MsgRefundTokenClaim) (err error)
+	MsgBridgeCallResultClaimValidate(m *MsgBridgeCallResultClaim) (err error)
 	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
 	MsgBridgeCallValidate(m *MsgBridgeCall) (err error)
 
@@ -538,7 +538,7 @@ var (
 	_ ExternalClaim = &MsgBridgeTokenClaim{}
 	_ ExternalClaim = &MsgSendToExternalClaim{}
 	_ ExternalClaim = &MsgOracleSetUpdatedClaim{}
-	_ ExternalClaim = &MsgRefundTokenClaim{}
+	_ ExternalClaim = &MsgBridgeCallResultClaim{}
 )
 
 func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (ExternalClaim, error) {
@@ -658,45 +658,45 @@ func (m *MsgBridgeCallClaim) MustMessage() []byte {
 	return bz
 }
 
-// MsgRefundTokenClaim
+// MsgBridgeCallResultClaim
 
 // GetType returns the type of the claim
-func (m *MsgRefundTokenClaim) GetType() ClaimType {
-	return CLAIM_TYPE_REFUND_TOKEN
+func (m *MsgBridgeCallResultClaim) GetType() ClaimType {
+	return CLAIM_TYPE_BRIDGE_CALL_RESULT
 }
 
 // ValidateBasic performs stateless checks
-func (m *MsgRefundTokenClaim) ValidateBasic() (err error) {
+func (m *MsgBridgeCallResultClaim) ValidateBasic() (err error) {
 	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	} else {
-		return router.MsgRefundTokenClaimValidate(m)
+		return router.MsgBridgeCallResultClaimValidate(m)
 	}
 }
 
 // GetSignBytes encodes the message for signing
-func (m *MsgRefundTokenClaim) GetSignBytes() []byte {
+func (m *MsgBridgeCallResultClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m *MsgRefundTokenClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgBridgeCallResultClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
 // GetSigners defines whose signature is required
-func (m *MsgRefundTokenClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgBridgeCallResultClaim) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
 // Type should return the action
-func (m *MsgRefundTokenClaim) Type() string { return TypeMsgRefundTokenClaim }
+func (m *MsgBridgeCallResultClaim) Type() string { return TypeMsgBridgeCallResultClaim }
 
 // Route should return the name of the module
-func (m *MsgRefundTokenClaim) Route() string { return RouterKey }
+func (m *MsgBridgeCallResultClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
-func (m *MsgRefundTokenClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%d", m.BlockHeight, m.EventNonce, m.RefundNonce)
+func (m *MsgBridgeCallResultClaim) ClaimHash() []byte {
+	path := fmt.Sprintf("%d/%d", m.BlockHeight, m.EventNonce)
 	return tmhash.Sum([]byte(path))
 }
 
