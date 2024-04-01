@@ -198,8 +198,8 @@ func (k Keeper) bridgeCallERC20ToCoins(ctx sdk.Context, sender sdk.AccAddress, t
 	coins := sdk.NewCoins()
 	for _, t := range tokens {
 		if t.Contract == contract.EmptyEvmAddress {
-			coins = coins.Add(sdk.NewCoin(fxtypes.DefaultDenom, t.Amount))
-			continue
+			// todo support origin token
+			return nil, errortypes.ErrInvalidType.Wrap("token not support")
 		}
 		if _, err := k.erc20Keeper.ConvertERC20(sdk.WrapSDKContext(ctx), &erc20types.MsgConvertERC20{
 			ContractAddress: t.Contract,

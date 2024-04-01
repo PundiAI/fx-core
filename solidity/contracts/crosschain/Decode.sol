@@ -33,6 +33,10 @@ library Decode {
         return amount;
     }
 
+    function bridgeCall(bytes memory data) internal pure returns (bool) {
+        return abi.decode(data, (bool));
+    }
+
     function ok(
         bool _result,
         bytes memory _data,

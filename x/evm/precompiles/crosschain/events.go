@@ -43,4 +43,21 @@ var (
 			abi.Argument{Name: "txID", Type: contract.TypeUint256, Indexed: false},
 			abi.Argument{Name: "fee", Type: contract.TypeUint256, Indexed: false},
 		})
+
+	BridgeCallEvent = abi.NewEvent(
+		BridgeCallEventName,
+		BridgeCallEventName,
+		false,
+		abi.Arguments{
+			abi.Argument{Name: "sender", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "receiver", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "to", Type: contract.TypeAddress, Indexed: true},
+			abi.Argument{Name: "eventNonce", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "dstChainId", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "gasLimit", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "value", Type: contract.TypeUint256, Indexed: false},
+			abi.Argument{Name: "message", Type: contract.TypeBytes, Indexed: false},
+			abi.Argument{Name: "asset", Type: contract.TypeBytes, Indexed: false},
+		},
+	)
 )

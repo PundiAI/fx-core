@@ -1,10 +1,16 @@
 package keeper
 
 import (
+	"encoding/hex"
+	"math/big"
+
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v7/contract"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // TransferAfter
@@ -32,4 +38,29 @@ func (k Keeper) PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sen
 
 func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error {
 	return k.AddUnbatchedTxBridgeFee(ctx, txID, sender, addBridgeFee)
+}
+
+func (k Keeper) PrecompileBridgeCall(ctx sdk.Context, dstChainId string, gasLimit uint64, sender, receiver, to common.Address, asset, message []byte, value *big.Int) (eventNonce uint64, err error) {
+	msg := types.MsgBridgeCall{
+		ChainName: dstChainId,
+		Sender:    sdk.AccAddress(sender.Bytes()).String(),
+		Receiver:  receiver.String(),
+		To:        to.String(),
+		Asset:     hex.EncodeToString(asset),
+		Message:   hex.EncodeToString(message),
+		Value:     sdkmath.NewIntFromBigInt(value),
+		GasLimit:  gasLimit,
+	}
+	if len(asset) > 0 {
+		msg.Asset, err = k.bridgeCallAssetHandler(ctx, sender.Bytes(), hex.EncodeToString(asset))
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	outCall, err := k.AddOutgoingBridgeCall(ctx, &msg)
+	if err != nil {
+		return 0, err
+	}
+	return outCall.Nonce, nil
 }
