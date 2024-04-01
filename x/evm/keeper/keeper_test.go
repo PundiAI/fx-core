@@ -264,7 +264,6 @@ func (suite *KeeperTestSuite) Deposit(contractAddr common.Address, amount *big.I
 
 	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, evmtypes.NewNoOpTracer(), true)
 	suite.Require().NoError(err)
-	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp)
 }
 

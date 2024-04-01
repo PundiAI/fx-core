@@ -46,3 +46,14 @@ func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, out *types.OutgoingBridge
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetOutgoingBridgeCallKey(out.Nonce), k.cdc.MustMarshal(out))
 }
+
+func (k Keeper) GetOutgoingBridgeCallByNonce(ctx sdk.Context, nonce uint64) (*types.OutgoingBridgeCall, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetOutgoingBridgeCallKey(nonce))
+	if bz == nil {
+		return nil, false
+	}
+	var out types.OutgoingBridgeCall
+	k.cdc.MustUnmarshal(bz, &out)
+	return &out, true
+}

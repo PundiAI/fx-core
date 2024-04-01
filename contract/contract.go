@@ -43,6 +43,8 @@ var (
 		Bin:     MustDecodeHex(ERC1967ProxyMetaData.Bin),
 		Code:    []byte{},
 	}
+
+	fxBridgeABI = MustABIJson(IFxBridgeLogicMetaData.ABI)
 )
 
 type Contract struct {
@@ -66,6 +68,10 @@ func GetWFX() Contract {
 
 func GetERC1967Proxy() Contract {
 	return erc1967Proxy
+}
+
+func GetFxBridgeABI() abi.ABI {
+	return fxBridgeABI
 }
 
 func MustDecodeHex(str string) []byte {

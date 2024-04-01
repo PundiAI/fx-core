@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
@@ -82,31 +83,36 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 	return crypto.Keccak256(encode), nil
 }
 
-func GetCheckpointBridgeCall(refund *types.RefundRecord, gravityIDStr string) ([]byte, error) {
-	tokenAmounts := make([]*big.Int, len(refund.Tokens))
-	tokenContracts := make([]string, len(refund.Tokens))
-	for i, token := range refund.Tokens {
-		tokenAmounts[i] = token.Amount.BigInt()
-		tokenContracts[i] = token.Contract
-	}
-
+func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr string) ([]byte, error) {
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
-	transactionBatch, err := fxtypes.StrToByte32("bridgeCall")
+	transactionBatch, err := fxtypes.StrToByte32("bridgeCallCheckpoint")
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse checkpoint")
+	}
+	messagesBytes, err := hex.DecodeString(bridgeCall.Message)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse message")
+	}
+	assetBytes, err := hex.DecodeString(bridgeCall.Asset)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse asset")
 	}
 
 	params := []abi.Param{
 		{"bytes32": gravityID},
 		{"bytes32": transactionBatch},
-		{"address": refund.Receiver},
-		{"address[]": tokenContracts},
-		{"uint256[]": tokenAmounts},
-		{"uint256": big.NewInt(int64(refund.EventNonce))},
-		{"uint256": big.NewInt(int64(refund.Timeout))},
+		{"address": bridgeCall.Sender},
+		{"address": bridgeCall.To},
+		{"address": bridgeCall.Receiver},
+		{"uint256": bridgeCall.Value.BigInt()},
+		{"uint256": big.NewInt(int64(bridgeCall.Nonce))},
+		{"uint256": big.NewInt(int64(bridgeCall.Timeout))},
+		{"string": ModuleName},
+		{"bytes": messagesBytes},
+		{"bytes": assetBytes},
 	}
 
 	encode, err := abi.GetPaddedParam(params)

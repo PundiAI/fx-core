@@ -187,6 +187,43 @@ interface IFxBridgeLogic {
         address _erc20Address
     ) external view returns (uint8);
 
+    /* =============== CHECKPOINTS =============== */
+
+    function oracleSetCheckpoint(
+        bytes32 _fxbridgeId,
+        bytes32 _methodName,
+        uint256 _oracleSetNonce,
+        address[] memory _oracles,
+        uint256[] memory _powers
+    ) external returns (bytes32);
+
+    function submitBatchCheckpoint(
+        bytes32 _fxbridgeId,
+        bytes32 _methodName,
+        uint256[] memory _amounts,
+        address[] memory _destinations,
+        uint256[] memory _fees,
+        uint256 _batchNonce,
+        address _tokenContract,
+        uint256 _batchTimeout,
+        address _feeReceive
+    ) external returns (bytes32);
+
+    function bridgeCallCheckpoint(
+        bytes32 _fxbridgeId,
+        bytes32 _methodName,
+        address _sender,
+        address _to,
+        address _receiver,
+        uint256 _value,
+        uint256 _nonce,
+        uint256 _gasLimit,
+        uint256 _timeout,
+        string memory _dstChain,
+        bytes calldata _message,
+        bytes calldata _asset
+    ) external returns (bytes32);
+
     /* =============== EVENTS =============== */
 
     event TransactionBatchExecutedEvent(
