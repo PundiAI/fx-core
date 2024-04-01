@@ -66,6 +66,8 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return IncreaseBridgeFeeGas
 	case string(BridgeCoinAmountMethod.ID):
 		return BridgeCoinAmountFeeGas
+	case string(BridgeCallMethod.ID):
+		return BridgeCallFeeGas
 	default:
 		return 0
 	}
@@ -91,6 +93,9 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		ret, err = c.IncreaseBridgeFee(cacheCtx, evm, contract, readonly)
 	case string(BridgeCoinAmountMethod.ID):
 		ret, err = c.BridgeCoinAmount(cacheCtx, evm, contract, readonly)
+	case string(BridgeCallMethod.ID):
+		ret, err = c.BridgeCall(cacheCtx, evm, contract, readonly)
+
 	default:
 		err = errors.New("unknown method")
 	}

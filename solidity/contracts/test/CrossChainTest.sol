@@ -79,4 +79,25 @@ contract CrossChainTest {
     ) external view returns (uint256) {
         return CrossChainCall.bridgeCoinAmount(_token, _target);
     }
+
+    function bridgeCall(
+        string memory _dstChainId,
+        uint256 _gasLimit,
+        address _receiver,
+        address _to,
+        bytes calldata _message,
+        uint256 _value,
+        bytes memory _asset
+    ) internal returns (bool) {
+        return
+            CrossChainCall.bridgeCall(
+                _dstChainId,
+                _gasLimit,
+                _receiver,
+                _to,
+                _message,
+                _value,
+                _asset
+            );
+    }
 }

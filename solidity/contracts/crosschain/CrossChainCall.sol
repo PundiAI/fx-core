@@ -87,4 +87,30 @@ library CrossChainCall {
         Decode.ok(result, data, "bridge coin failed");
         return Decode.bridgeCoinAmount(data);
     }
+
+    function bridgeCall(
+        string memory _dstChainId,
+        uint256 _gasLimit,
+        address _receiver,
+        address _to,
+        bytes calldata _message,
+        uint256 _value,
+        bytes memory _asset
+    ) internal returns (bool) {
+        (bool result, bytes memory data) = CROSS_CHAIN_ADDRESS.call{
+            value: msg.value
+        }(
+            Encode.bridgeCall(
+                _dstChainId,
+                _gasLimit,
+                _receiver,
+                _to,
+                _message,
+                _value,
+                _asset
+            )
+        );
+        Decode.ok(result, data, "bridge call failed");
+        return Decode.bridgeCall(data);
+    }
 }

@@ -39,6 +39,16 @@ interface ICrossChain {
         bytes32 _target
     ) external view returns (uint256 _amount);
 
+    function bridgeCall(
+        string memory _dstChainId,
+        uint256 _gasLimit,
+        address _receiver,
+        address _to,
+        bytes calldata _message,
+        uint256 _value,
+        bytes memory _asset
+    ) external payable returns (bool _result);
+
     event CrossChain(
         address indexed sender,
         address indexed token,
@@ -62,5 +72,17 @@ interface ICrossChain {
         string chain,
         uint256 txID,
         uint256 fee
+    );
+
+    event BridgeCallEvent(
+        address indexed _sender,
+        address indexed _receiver,
+        address indexed _to,
+        uint256 _eventNonce,
+        string _dstChainId,
+        uint256 _gasLimit,
+        uint256 _value,
+        bytes _message,
+        bytes _asset
     );
 }

@@ -83,4 +83,26 @@ library Encode {
                 _target
             );
     }
+
+    function bridgeCall(
+        string memory _dstChainId,
+        uint256 _gasLimit,
+        address _receiver,
+        address _to,
+        bytes calldata _message,
+        uint256 _value,
+        bytes memory _asset
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSignature(
+                "bridgeCall(string,uint256,address,address,bytes,uint256,bytes)",
+                _dstChainId,
+                _gasLimit,
+                _receiver,
+                _to,
+                _message,
+                _value,
+                _asset
+            );
+    }
 }

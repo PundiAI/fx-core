@@ -13,16 +13,19 @@ const (
 	CancelSendToExternalGas = 30_000 // 70000 - 126000
 	IncreaseBridgeFeeGas    = 40_000 // 70000 - 140000
 	BridgeCoinAmountFeeGas  = 10_000 // 9000
+	BridgeCallFeeGas        = 50_000 // 50000
 
 	FIP20CrossChainMethodName      = "fip20CrossChain"
 	CrossChainMethodName           = "crossChain"
 	CancelSendToExternalMethodName = "cancelSendToExternal"
 	IncreaseBridgeFeeMethodName    = "increaseBridgeFee"
 	BridgeCoinAmountMethodName     = "bridgeCoinAmount"
+	BridgeCallMethodName           = "bridgeCall"
 
 	CrossChainEventName           = "CrossChain"
 	CancelSendToExternalEventName = "CancelSendToExternal"
 	IncreaseBridgeFeeEventName    = "IncreaseBridgeFee"
+	BridgeCallEventName           = "BridgeCallEvent"
 )
 
 const (
