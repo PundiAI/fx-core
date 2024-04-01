@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
 	"math"
 	"math/big"
 	"sort"
@@ -201,7 +202,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	packBytes, packErr := oracleSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
+	packBytes, packErr := contract.GetFxBridgeABI().Pack("oracleSetCheckpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -323,7 +324,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// the methodName needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	abiEncodedBatch, err := outgoingBatchTxCheckpointABI.Pack("submitBatch",
+	abiEncodedBatch, err := contract.GetFxBridgeABI().Pack("submitBatchCheckpoint",
 		gravityID,
 		batchMethodName,
 		txAmounts,
@@ -415,8 +416,8 @@ func (bs OutgoingTransferTxs) TotalFee() sdkmath.Int {
 	return totalFee
 }
 
-// GetCheckpoint gets the checkpoint signature from the given outgoing tx batch
-func (m *RefundRecord) GetCheckpoint(gravityIDString string) ([]byte, error) {
+// GetCheckpoint gets the checkpoint signature from the given outgoing bridge call
+func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([]byte, error) {
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
@@ -427,29 +428,35 @@ func (m *RefundRecord) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	}
 
 	// Create the methodName argument which salts the signature
-	methodNameBytes := []uint8("submitBridgeCall")
+	methodNameBytes := []uint8("bridgeCallCheckpoint")
 	var batchMethodName [32]uint8
 	copy(batchMethodName[:], methodNameBytes)
 
-	// Run through the elements of the batch and serialize them
-	tokenAmounts := make([]*big.Int, len(m.Tokens))
-	tokenContractAddresses := make([]gethcommon.Address, len(m.Tokens))
-	for i, token := range m.Tokens {
-		tokenAmounts[i] = token.Amount.BigInt()
-		tokenContractAddresses[i] = gethcommon.HexToAddress(token.Contract)
+	messagesBytes, err := hex.DecodeString(m.Message)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse message")
+	}
+	assetBytes, err := hex.DecodeString(m.Asset)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse asset")
 	}
 
 	// the methodName needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	abiEncodedBatch, err := outgoingBridgeCallTxCheckpointABI.Pack("submitBridgeCall",
+	abiEncodedBatch, err := contract.GetFxBridgeABI().Pack("bridgeCallCheckpoint",
 		gravityID,
 		batchMethodName,
+		gethcommon.HexToAddress(m.Sender),
+		gethcommon.HexToAddress(m.To),
 		gethcommon.HexToAddress(m.Receiver),
-		tokenContractAddresses,
-		tokenAmounts,
-		big.NewInt(int64(m.EventNonce)),
+		m.Value.BigInt(),
+		big.NewInt(int64(m.Nonce)),
+		big.NewInt(int64(m.GasLimit)),
 		big.NewInt(int64(m.Timeout)),
+		chainName,
+		messagesBytes,
+		assetBytes,
 	)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.

@@ -103,13 +103,12 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 func (s msgServer) BridgeCallConfirm(c context.Context, msg *crosschaintypes.MsgBridgeCallConfirm) (*crosschaintypes.MsgBridgeCallConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	// TODO bridge call record
-	record, found := s.GetRefundRecord(ctx, msg.Nonce)
+	outgoingBridgeCall, found := s.GetOutgoingBridgeCallByNonce(ctx, msg.Nonce)
 	if !found {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find bridge call record")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find outgoing bridge call")
 	}
 
-	snapshotOracle, found := s.GetSnapshotOracle(ctx, record.OracleSetNonce)
+	snapshotOracle, found := s.GetSnapshotOracle(ctx, outgoingBridgeCall.OracleSetNonce)
 	if !found {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find snapshot oracle")
 	}
@@ -117,7 +116,7 @@ func (s msgServer) BridgeCallConfirm(c context.Context, msg *crosschaintypes.Msg
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "external address not in snapshot oracle")
 	}
 
-	checkpoint, err := trontypes.GetCheckpointBridgeCall(record, s.GetGravityID(ctx))
+	checkpoint, err := trontypes.GetCheckpointBridgeCall(outgoingBridgeCall, s.GetGravityID(ctx))
 	if err != nil {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, err.Error())
 	}

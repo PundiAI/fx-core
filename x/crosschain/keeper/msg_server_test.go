@@ -1226,32 +1226,25 @@ func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 		EventNonces: []uint64{eventNonce},
 	})
 
-	randomTokenSize := tmrand.Intn(10) + 1
-	tokens := make([]types.ERC20Token, randomTokenSize)
-	for i := 0; i < randomTokenSize; i++ {
-		tokens[i] = types.ERC20Token{
-			Contract: helpers.GenerateAddressByModule(suite.chainName),
-			Amount:   sdkmath.NewIntFromUint64(tmrand.Uint64()),
-		}
-	}
-	refundRecord := &types.RefundRecord{
-		EventNonce:     eventNonce,
+	outgoingBridgeCall := &types.OutgoingBridgeCall{
+		Nonce:          eventNonce,
+		Sender:         helpers.GenerateAddressByModule(suite.chainName),
+		To:             helpers.GenerateAddressByModule(suite.chainName),
 		Receiver:       helpers.GenerateAddressByModule(suite.chainName),
 		Timeout:        tmrand.Uint64(),
-		Tokens:         tokens,
 		OracleSetNonce: oracleSetNonce,
-		Block:          tmrand.Uint64(),
+		BlockHeight:    tmrand.Uint64(),
 	}
-	suite.Keeper().SetRefundRecord(suite.ctx, refundRecord)
+	suite.Keeper().SetOutgoingBridgeCall(suite.ctx, outgoingBridgeCall)
 
 	var signature []byte
 	var signatureErr error
 	if suite.chainName != trontypes.ModuleName {
-		checkpoint, err := refundRecord.GetCheckpoint(suite.Keeper().GetGravityID(suite.ctx))
+		checkpoint, err := outgoingBridgeCall.GetCheckpoint(suite.Keeper().GetGravityID(suite.ctx), suite.chainName)
 		require.NoError(suite.T(), err)
 		signature, signatureErr = types.NewEthereumSignature(checkpoint, externalEcdsaKey)
 	} else {
-		checkpoint, err := trontypes.GetCheckpointBridgeCall(refundRecord, suite.Keeper().GetGravityID(suite.ctx))
+		checkpoint, err := trontypes.GetCheckpointBridgeCall(outgoingBridgeCall, suite.Keeper().GetGravityID(suite.ctx))
 		require.NoError(suite.T(), err)
 		signature, signatureErr = trontypes.NewTronSignature(checkpoint, externalEcdsaKey)
 	}
