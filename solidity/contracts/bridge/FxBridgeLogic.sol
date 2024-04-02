@@ -311,8 +311,7 @@ contract FxBridgeLogic is
         bytes memory _asset
     ) external {
         // decode and transfer asset
-        (string memory assetType, bytes memory assetData) = decodeType(_asset);
-        transferAsset(msg.sender, address(this), assetType, assetData, false);
+        _transferAsset(_msgSender(), address(this), _asset, false);
 
         // last event nonce +1
         state_lastEventNonce = state_lastEventNonce.add(1);
@@ -661,16 +660,7 @@ contract FxBridgeLogic is
 
     function callAssetMessage(BridgeCallData memory _input) public onlySelf {
         if (_input.asset.length > 0) {
-            (string memory assetType, bytes memory assetData) = decodeType(
-                _input.asset
-            );
-            transferAsset(
-                address(this),
-                _input.receiver,
-                assetType,
-                assetData,
-                true
-            );
+            _transferAsset(address(this), _input.receiver, _input.asset, true);
         }
 
         if (_input.message.length > 0) {
@@ -830,38 +820,15 @@ contract FxBridgeLogic is
         return result;
     }
 
-    function decodeType(
-        bytes memory _asset
-    ) public pure returns (string memory, bytes memory) {
-        return abi.decode(_asset, (string, bytes));
-    }
-
-    function transferAsset(
-        address _sender,
-        address _receiver,
-        string memory _assetType,
-        bytes memory _assetData,
-        bool _mintToken
-    ) internal {
-        if (
-            keccak256(bytes(_assetType)) ==
-            bytes32(
-                0x8ae85d849167ff996c04040c44924fd364217285e4cad818292c7ac37c0a345b
-            )
-        ) {
-            transferERC20(_sender, _receiver, _assetData, _mintToken);
-        } else {
-            revert("Asset type not support");
-        }
-    }
-
-    function transferERC20(
+    function _transferAsset(
         address _from,
         address _receiver,
         bytes memory _asset,
         bool _mintToken
     ) internal {
-        (address[] memory token, uint256[] memory amount) = decodeERC20(_asset);
+        (address[] memory token, uint256[] memory amount) = _decodeAsset(
+            _asset
+        );
         for (uint256 i = 0; i < token.length; i++) {
             require(amount[i] > 0, "amount should be greater than zero");
             TokenStatus memory _tokenStatus = tokenStatus[token[i]];
@@ -870,30 +837,25 @@ contract FxBridgeLogic is
 
             // mint origin token
             if (_tokenStatus.isOriginated == true && _mintToken) {
-                IERC20ExtensionsUpgradeable(token[i]).mint(_from, amount[i]);
+                _mintAssetToken(token[i], _from, amount[i], _tokenStatus);
             }
 
-            if (_from == address(this)) {
-                IERC20MetadataUpgradeable(token[i]).safeTransfer(
-                    _receiver,
-                    amount[i]
-                );
-            } else {
-                IERC20MetadataUpgradeable(token[i]).safeTransferFrom(
-                    _from,
-                    _receiver,
-                    amount[i]
-                );
-            }
+            _transferAssetToken(
+                token[i],
+                _from,
+                _receiver,
+                amount[i],
+                _tokenStatus
+            );
 
             // burn origin token
             if (_tokenStatus.isOriginated == true && !_mintToken) {
-                IERC20ExtensionsUpgradeable(token[i]).burn(amount[i]);
+                _burnAssetToken(token[i], amount[i], _tokenStatus);
             }
         }
     }
 
-    function decodeERC20(
+    function _decodeAsset(
         bytes memory _data
     ) internal pure returns (address[] memory, uint256[] memory) {
         (bytes memory tokenBytes, uint256[] memory amounts) = abi.decode(
@@ -913,6 +875,57 @@ contract FxBridgeLogic is
             tokens[i] = currentToken;
         }
         return (tokens, amounts);
+    }
+
+    function _mintAssetToken(
+        address _token,
+        address _from,
+        uint256 _amount,
+        TokenStatus memory _tokenStatus
+    ) internal {
+        // ERC20
+        if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
+            IERC20ExtensionsUpgradeable(_token).mint(_from, _amount);
+        }
+        // todo ERC721 ERC404
+    }
+
+    function _burnAssetToken(
+        address _token,
+        uint256 _amount,
+        TokenStatus memory _tokenStatus
+    ) internal {
+        // ERC20
+        if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
+            IERC20ExtensionsUpgradeable(_token).burn(_amount);
+        }
+        // todo ERC721 ERC404
+    }
+
+    function _transferAssetToken(
+        address _token,
+        address _from,
+        address _to,
+        uint256 _amount,
+        TokenStatus memory _tokenStatus
+    ) internal {
+        if (_from == address(this)) {
+            // ERC20
+            if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
+                IERC20MetadataUpgradeable(_token).safeTransfer(_to, _amount);
+            }
+            // todo ERC721 ERC404
+        } else {
+            // ERC20
+            if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
+                IERC20MetadataUpgradeable(_token).safeTransferFrom(
+                    _from,
+                    _to,
+                    _amount
+                );
+            }
+            // todo ERC721 ERC404
+        }
     }
 
     modifier onlySelf() {
