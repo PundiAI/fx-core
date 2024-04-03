@@ -178,6 +178,15 @@ interface IFxBridgeLogic {
 
     function getBridgeTokenList() external view returns (BridgeToken[] memory);
 
+    function encodeAsset(
+        address[] memory _token,
+        uint256[] memory _amount
+    ) external pure returns (bytes memory);
+
+    function decodeAsset(
+        bytes memory _data
+    ) external pure returns (address[] memory, uint256[] memory);
+
     /* ============== BSC FUNCTIONS =============== */
     function convert_decimals(
         address _erc20Address
