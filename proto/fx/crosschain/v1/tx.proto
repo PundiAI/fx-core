@@ -177,10 +177,15 @@ message MsgBridgeCallClaim {
 message MsgBridgeCallClaimResponse {}
 
 message MsgBridgeCallResultClaim {
-  uint64 event_nonce = 1;
-  uint64 block_height = 2;
-  string bridger_address = 3;
-  string chain_name = 4;
+  string sender = 1;
+  string receiver = 2;
+  string to = 3;
+  uint64 nonce = 5;
+  uint64 eventNonce = 6;
+  bool result = 7;
+  uint64 block_height = 8;
+  string bridger_address = 9;
+  string chain_name = 10;
 }
 
 message MsgBridgeCallResultClaimResponse {}
