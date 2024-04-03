@@ -10,8 +10,10 @@ import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Addr
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
+import {IERC721ExtensionsUpgradeable} from "./IERC721ExtensionsUpgradeable.sol";
 
 /* solhint-disable custom-errors */
 
@@ -826,29 +828,31 @@ contract FxBridgeLogic is
         bytes memory _asset,
         bool _mintToken
     ) internal {
-        (address[] memory token, uint256[] memory amount) = decodeAsset(_asset);
+        (address[] memory token, uint256[] memory amountOrId) = decodeAsset(
+            _asset
+        );
         for (uint256 i = 0; i < token.length; i++) {
-            require(amount[i] > 0, "amount should be greater than zero");
+            require(amountOrId[i] > 0, "amount should be greater than zero");
             TokenStatus memory _tokenStatus = tokenStatus[token[i]];
             require(_tokenStatus.isExist, "Unsupported token address");
             require(_tokenStatus.isActive, "token was paused");
 
             // mint origin token
             if (_tokenStatus.isOriginated == true && _mintToken) {
-                _mintAssetToken(token[i], _from, amount[i], _tokenStatus);
+                _mintAssetToken(token[i], _from, amountOrId[i], _tokenStatus);
             }
 
             _transferAssetToken(
                 token[i],
                 _from,
                 _receiver,
-                amount[i],
+                amountOrId[i],
                 _tokenStatus
             );
 
             // burn origin token
             if (_tokenStatus.isOriginated == true && !_mintToken) {
-                _burnAssetToken(token[i], amount[i], _tokenStatus);
+                _burnAssetToken(token[i], amountOrId[i], _tokenStatus);
             }
         }
     }
@@ -898,51 +902,78 @@ contract FxBridgeLogic is
     function _mintAssetToken(
         address _token,
         address _from,
-        uint256 _amount,
+        uint256 _amountOrId,
         TokenStatus memory _tokenStatus
     ) internal {
         // ERC20
         if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
-            IERC20ExtensionsUpgradeable(_token).mint(_from, _amount);
+            IERC20ExtensionsUpgradeable(_token).mint(_from, _amountOrId);
         }
-        // todo ERC721 ERC404
+        // ERC721
+        if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
+            IERC721ExtensionsUpgradeable(_token).mint(_from, _amountOrId);
+        }
+        // TODO ERC404
     }
 
     function _burnAssetToken(
         address _token,
-        uint256 _amount,
+        uint256 _amountOrId,
         TokenStatus memory _tokenStatus
     ) internal {
         // ERC20
         if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
-            IERC20ExtensionsUpgradeable(_token).burn(_amount);
+            IERC20ExtensionsUpgradeable(_token).burn(_amountOrId);
         }
-        // todo ERC721 ERC404
+        // ERC721
+        if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
+            IERC721ExtensionsUpgradeable(_token).burn(_amountOrId);
+        }
+        // TODO ERC404
     }
 
     function _transferAssetToken(
         address _token,
         address _from,
         address _to,
-        uint256 _amount,
+        uint256 _amountOrId,
         TokenStatus memory _tokenStatus
     ) internal {
         if (_from == address(this)) {
             // ERC20
             if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
-                IERC20MetadataUpgradeable(_token).safeTransfer(_to, _amount);
+                IERC20MetadataUpgradeable(_token).safeTransfer(
+                    _to,
+                    _amountOrId
+                );
             }
-            // todo ERC721 ERC404
+            // ERC721
+            if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
+                IERC721Upgradeable(_token).safeTransferFrom(
+                    _from,
+                    _to,
+                    _amountOrId
+                );
+            }
+            // todo ERC404
         } else {
             // ERC20
             if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
                 IERC20MetadataUpgradeable(_token).safeTransferFrom(
                     _from,
                     _to,
-                    _amount
+                    _amountOrId
                 );
             }
-            // todo ERC721 ERC404
+            // ERC721
+            if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
+                IERC721Upgradeable(_token).safeTransferFrom(
+                    _from,
+                    _to,
+                    _amountOrId
+                );
+            }
+            // todo ERC404
         }
     }
 
