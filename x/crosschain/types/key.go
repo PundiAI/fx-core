@@ -125,7 +125,8 @@ var (
 
 	KeyLastBridgeCallID = append(SequenceKeyPrefix, []byte("bridgeCallId")...)
 
-	OutgoingBridgeCallKey = []byte{0x48}
+	OutgoingBridgeCallNonceKey           = []byte{0x48}
+	OutgoingBridgeCallAddressAndNonceKey = []byte{0x49}
 )
 
 // GetOracleKey returns the following key format
@@ -248,6 +249,20 @@ func GetTokenTypeToTokenKey(tokenContract string) []byte {
 	return append(TokenTypeToTokenKey, []byte(tokenContract)...)
 }
 
-func GetOutgoingBridgeCallKey(id uint64) []byte {
-	return append(OutgoingBridgeCallKey, sdk.Uint64ToBigEndian(id)...)
+func GetOutgoingBridgeCallNonceKey(id uint64) []byte {
+	return append(OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(id)...)
+}
+
+func GetOutgoingBridgeCallAddressAndNonceKey(address string, nonce uint64) []byte {
+	return append(OutgoingBridgeCallAddressAndNonceKey, append([]byte(address), sdk.Uint64ToBigEndian(nonce)...)...)
+}
+
+func GetOutgoingBridgeCallAddressKey(address string) []byte {
+	return append(OutgoingBridgeCallAddressAndNonceKey, []byte(address)...)
+}
+
+func ParseOutgoingBridgeCallNonce(key []byte, address string) (nonce uint64) {
+	addrNonce := bytes.TrimPrefix(key, OutgoingBridgeCallAddressAndNonceKey)
+	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
+	return sdk.BigEndianToUint64(nonceBytes)
 }

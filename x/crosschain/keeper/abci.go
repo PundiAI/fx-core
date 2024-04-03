@@ -227,6 +227,29 @@ func (k Keeper) refundTokenToReceiver(ctx sdk.Context, record *types.RefundRecor
 	return receiverAddr, coins, nil
 }
 
+func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) {
+	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
+	k.IterateOutgoingBridgeCalls(ctx, func(data *types.OutgoingBridgeCall) bool {
+		if data.Timeout > externalBlockHeight {
+			return true
+		}
+		// 1. handler bridge call refund
+		k.HandleOutgoingBridgeCallRefund(ctx, data)
+
+		// 2. delete bridge call
+		k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce)
+		return false
+	})
+}
+
+func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, nonce uint64) {
+	// 1. delete bridge call
+	k.DeleteOutgoingBridgeCall(ctx, nonce)
+
+	// 2. delete bridge call confirm
+	k.DeleteBridgeCallConfirm(ctx, nonce)
+}
+
 func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
 	// Oracle set pruning
 	// prune all Oracle sets with a nonce less than the
