@@ -826,9 +826,7 @@ contract FxBridgeLogic is
         bytes memory _asset,
         bool _mintToken
     ) internal {
-        (address[] memory token, uint256[] memory amount) = _decodeAsset(
-            _asset
-        );
+        (address[] memory token, uint256[] memory amount) = decodeAsset(_asset);
         for (uint256 i = 0; i < token.length; i++) {
             require(amount[i] > 0, "amount should be greater than zero");
             TokenStatus memory _tokenStatus = tokenStatus[token[i]];
@@ -855,9 +853,9 @@ contract FxBridgeLogic is
         }
     }
 
-    function _decodeAsset(
+    function decodeAsset(
         bytes memory _data
-    ) internal pure returns (address[] memory, uint256[] memory) {
+    ) public pure returns (address[] memory, uint256[] memory) {
         (bytes memory tokenBytes, uint256[] memory amounts) = abi.decode(
             _data,
             (bytes, uint256[])
@@ -875,6 +873,26 @@ contract FxBridgeLogic is
             tokens[i] = currentToken;
         }
         return (tokens, amounts);
+    }
+
+    function encodeAsset(
+        address[] memory _token,
+        uint256[] memory _amount
+    ) public pure returns (bytes memory) {
+        uint256 tokenCount = _token.length;
+        require(tokenCount == _amount.length, "Token not match amount");
+
+        bytes memory tokenBytes = new bytes(tokenCount * 20);
+        for (uint256 i = 0; i < tokenCount; i++) {
+            require(_amount[i] > 0, "invalid amount");
+
+            uint256 currentTokenStartingByte = i * 20;
+            bytes memory currentTokenBytes = abi.encodePacked(_token[i]);
+            for (uint256 j = 0; j < 20; j++) {
+                tokenBytes[currentTokenStartingByte + j] = currentTokenBytes[j];
+            }
+        }
+        return abi.encode(tokenBytes, _amount);
     }
 
     function _mintAssetToken(
