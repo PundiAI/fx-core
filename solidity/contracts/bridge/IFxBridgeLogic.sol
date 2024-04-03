@@ -278,4 +278,12 @@ interface IFxBridgeLogic {
         uint256 indexed _refundNonce,
         uint256 _eventNonce
     );
+
+    event SubmitBridgeCallEvent(
+        address indexed _sender,
+        address indexed _receiver,
+        address indexed _to,
+        uint256 _eventNonce,
+        bool _result
+    );
 }
