@@ -581,13 +581,17 @@ contract FxBridgeLogic is
             // event failed
             result = false;
         }
-        emit SubmitBridgeCallEvent(
-            _input.sender,
-            _input.receiver,
-            _input.to,
-            _nonceArray[1],
-            false
-        );
+        {
+            state_lastEventNonce = state_lastEventNonce.add(1);
+            emit SubmitBridgeCallEvent(
+                _input.sender,
+                _input.receiver,
+                _input.to,
+                _nonceArray[1],
+                state_lastEventNonce,
+                result
+            );
+        }
     }
 
     function bridgeCallSigHash(
@@ -1039,6 +1043,7 @@ contract FxBridgeLogic is
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        uint256 _nonce,
         uint256 _eventNonce,
         bool _result
     );

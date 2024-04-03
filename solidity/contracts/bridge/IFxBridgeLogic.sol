@@ -283,6 +283,7 @@ interface IFxBridgeLogic {
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        uint256 _nonce,
         uint256 _eventNonce,
         bool _result
     );
