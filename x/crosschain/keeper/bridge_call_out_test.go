@@ -17,6 +17,7 @@ import (
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.bondedOracle()
+	suite.Commit()
 
 	bridgeToken := helpers.GenerateAddress()
 	bridgeTokenStr := fxtypes.AddressToStr(bridgeToken.Bytes(), suite.chainName)
