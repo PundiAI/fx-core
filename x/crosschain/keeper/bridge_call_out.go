@@ -39,7 +39,7 @@ func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, msg *types.MsgBridgeCall)
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCall,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingBridgeCallId, fmt.Sprint(outCall.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(outCall.Nonce)),
 	))
 
 	return outCall, nil
