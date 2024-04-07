@@ -140,12 +140,12 @@ func (k Keeper) bridgeCallEvmHandler(ctx sdk.Context, sender common.Address, to 
 	defer func() {
 		attrs := []sdk.Attribute{
 			sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatUint(eventNonce, 10)),
-			sdk.NewAttribute(types.AttributeKeyEvmCallResult, strconv.FormatBool(callResult)),
+			sdk.NewAttribute(types.AttributeKeyBridgeCallResult, strconv.FormatBool(callResult)),
 		}
 		if len(callErr) > 0 {
-			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEvmCallError, callErr))
+			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyBridgeCallError, callErr))
 		}
-		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvm, attrs...)})
+		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvent, attrs...)})
 	}()
 
 	txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, message, true)
