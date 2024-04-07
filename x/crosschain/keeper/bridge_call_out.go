@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"math"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -126,5 +127,21 @@ func (k Keeper) bridgeCallAssetRefundHandler(ctx sdk.Context, receive sdk.AccAdd
 		return k.bridgeCallTransferToReceiver(ctx, receive, receive, coins)
 	default:
 		return errorsmod.Wrap(types.ErrInvalid, "asset type")
+	}
+}
+
+func (k Keeper) IterateBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(bridgeCall *types.OutgoingBridgeCall) bool) {
+	store := ctx.KVStore(k.storeKey)
+	startKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(startNonce)...)
+	endKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(math.MaxUint64)...)
+	iter := store.Iterator(startKey, endKey)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		value := new(types.OutgoingBridgeCall)
+		k.cdc.MustUnmarshal(iter.Value(), value)
+		if cb(value) {
+			break
+		}
 	}
 }
