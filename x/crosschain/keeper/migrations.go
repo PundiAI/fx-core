@@ -18,7 +18,7 @@ func NewMigrator(k Keeper) Migrator {
 
 func (m Migrator) Migrate(ctx sdk.Context) error {
 	params := m.keeper.GetParams(ctx)
-	params.BridgeCallRefundTimeout = types.DefaultBridgeCallRefundTimeout
+	params.BridgeCallTimeout = types.DefaultBridgeCallTimeout
 	if err := m.keeper.SetParams(ctx, &params); err != nil {
 		return err
 	}
