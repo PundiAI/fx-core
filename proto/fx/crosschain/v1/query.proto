@@ -78,17 +78,17 @@ service Query {
   rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/pending_send_to_external";
   }
-  rpc RefundRecordByNonce(QueryRefundRecordByNonceRequest) returns (QueryRefundRecordByNonceResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/refund_record_by_nonce";
-  }
-  rpc RefundRecordByReceiver(QueryRefundRecordByReceiverRequest) returns (QueryRefundRecordByReceiverResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/refund_record_by_receiver";
-  }
   rpc BridgeCallConfirmByNonce(QueryBridgeCallConfirmByNonceRequest) returns (QueryBridgeCallConfirmByNonceResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/bridge_call_confirm_by_nonce";
   }
-  rpc LastPendingRefundRecordByAddr(QueryLastPendingRefundRecordByAddrRequest) returns (QueryLastPendingRefundRecordByAddrResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/last_pending_refund_record_by_addr";
+  rpc BridgeCallByNonce(QueryBridgeCallByNonceRequest) returns (QueryBridgeCallByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_call_by_nonce";
+  }
+  rpc BridgeCallByReceiver(QueryBridgeCallByReceiverRequest) returns (QueryBridgeCallByReceiverResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_call_by_receiver";
+  }
+  rpc LastPendingBridgeCallByAddr(QueryLastPendingBridgeCallByAddrRequest) returns (QueryLastPendingBridgeCallByAddrResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/last_pending_bridge_call_by_addr";
   }
 
   // Validators queries all oracle that match the given status.
@@ -314,20 +314,20 @@ message QueryBridgeChainListResponse {
   repeated string chain_names = 1;
 }
 
-message QueryRefundRecordByNonceRequest {
+message QueryBridgeCallByNonceRequest {
   string chain_name = 1;
   uint64 event_nonce = 2;
 }
-message QueryRefundRecordByNonceResponse {
-  RefundRecord record = 1;
+message QueryBridgeCallByNonceResponse {
+  OutgoingBridgeCall bridge_call = 1;
 }
 
-message QueryRefundRecordByReceiverRequest {
+message QueryBridgeCallByReceiverRequest {
   string chain_name = 1;
   string receiver_address = 2;
 }
-message QueryRefundRecordByReceiverResponse {
-  repeated RefundRecord records = 1;
+message QueryBridgeCallByReceiverResponse {
+  repeated OutgoingBridgeCall bridge_calls = 1;
 }
 
 message QueryBridgeCallConfirmByNonceRequest {
@@ -340,10 +340,10 @@ message QueryBridgeCallConfirmByNonceResponse {
   bool enough_power = 2;
 }
 
-message QueryLastPendingRefundRecordByAddrRequest {
+message QueryLastPendingBridgeCallByAddrRequest {
   string chain_name = 1;
   string external_address = 2;
 }
-message QueryLastPendingRefundRecordByAddrResponse {
-  repeated RefundRecord records = 1;
+message QueryLastPendingBridgeCallByAddrResponse {
+  repeated OutgoingBridgeCall bridge_call = 1;
 }

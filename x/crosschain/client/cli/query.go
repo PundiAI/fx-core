@@ -80,11 +80,11 @@ func GetQuerySubCmds(chainName string) []*cobra.Command {
 		// help cmd.
 		CmdCovertBridgeToken(chainName),
 
-		// refund token
-		CmdRefundRecord(chainName),
-		CmdRefundRecordByAddr(chainName),
+		// bridge call
+		CmdBridgeCall(chainName),
+		CmdBridgeCallByAddr(chainName),
 		CmdBridgeCallConfirm(chainName),
-		CmdLastPendingRefundRecord(chainName),
+		CmdLastPendingBridgeCall(chainName),
 	}
 
 	for _, command := range cmds {
@@ -828,10 +828,10 @@ func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdRefundRecord(chainName string) *cobra.Command {
+func CmdBridgeCall(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "refund-record [nonce]",
-		Short: "Query refund record by event nonce",
+		Use:   "bridge-call [nonce]",
+		Short: "Query bridge call by event nonce",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -842,7 +842,7 @@ func CmdRefundRecord(chainName string) *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.RefundRecordByNonce(cmd.Context(), &types.QueryRefundRecordByNonceRequest{
+			res, err := queryClient.BridgeCallByNonce(cmd.Context(), &types.QueryBridgeCallByNonceRequest{
 				ChainName:  chainName,
 				EventNonce: nonce,
 			})
@@ -855,10 +855,10 @@ func CmdRefundRecord(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdRefundRecordByAddr(chainName string) *cobra.Command {
+func CmdBridgeCallByAddr(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "refund-record-by-receiver [address]",
-		Short: "Query refund records by receiver",
+		Use:   "bridge-call-by-receiver [address]",
+		Short: "Query bridge call by receiver",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -868,7 +868,7 @@ func CmdRefundRecordByAddr(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.RefundRecordByReceiver(cmd.Context(), &types.QueryRefundRecordByReceiverRequest{
+			res, err := queryClient.BridgeCallByReceiver(cmd.Context(), &types.QueryBridgeCallByReceiverRequest{
 				ChainName:       chainName,
 				ReceiverAddress: receiver,
 			})
@@ -908,10 +908,10 @@ func CmdBridgeCallConfirm(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdLastPendingRefundRecord(chainName string) *cobra.Command {
+func CmdLastPendingBridgeCall(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "last-pending-refund-record [external-address]",
-		Short: "Query last pending refund record for bridge address",
+		Use:   "last-pending-bridge-call [external-address]",
+		Short: "Query last pending bridge call for bridge address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -921,7 +921,7 @@ func CmdLastPendingRefundRecord(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.LastPendingRefundRecordByAddr(cmd.Context(), &types.QueryLastPendingRefundRecordByAddrRequest{
+			res, err := queryClient.LastPendingBridgeCallByAddr(cmd.Context(), &types.QueryLastPendingBridgeCallByAddrRequest{
 				ChainName:       chainName,
 				ExternalAddress: externalAddress,
 			})

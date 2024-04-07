@@ -248,22 +248,6 @@ func (k RouterKeeper) BridgeChainList(c context.Context, req *types.QueryBridgeC
 	}
 }
 
-func (k RouterKeeper) RefundRecordByNonce(c context.Context, req *types.QueryRefundRecordByNonceRequest) (*types.QueryRefundRecordByNonceResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
-		return nil, err
-	} else {
-		return queryServer.RefundRecordByNonce(c, req)
-	}
-}
-
-func (k RouterKeeper) RefundRecordByReceiver(c context.Context, req *types.QueryRefundRecordByReceiverRequest) (*types.QueryRefundRecordByReceiverResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
-		return nil, err
-	} else {
-		return queryServer.RefundRecordByReceiver(c, req)
-	}
-}
-
 func (k RouterKeeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
 		return nil, err
@@ -272,10 +256,26 @@ func (k RouterKeeper) BridgeCallConfirmByNonce(c context.Context, req *types.Que
 	}
 }
 
-func (k RouterKeeper) LastPendingRefundRecordByAddr(c context.Context, req *types.QueryLastPendingRefundRecordByAddrRequest) (*types.QueryLastPendingRefundRecordByAddrResponse, error) {
+func (k RouterKeeper) BridgeCallByNonce(c context.Context, req *types.QueryBridgeCallByNonceRequest) (*types.QueryBridgeCallByNonceResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.LastPendingRefundRecordByAddr(c, req)
+		return queryServer.BridgeCallByNonce(c, req)
+	}
+}
+
+func (k RouterKeeper) BridgeCallByReceiver(c context.Context, req *types.QueryBridgeCallByReceiverRequest) (*types.QueryBridgeCallByReceiverResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeCallByReceiver(c, req)
+	}
+}
+
+func (k RouterKeeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.LastPendingBridgeCallByAddr(c, req)
 	}
 }

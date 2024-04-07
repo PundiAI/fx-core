@@ -109,16 +109,12 @@ var (
 	// Deprecated: OutgoingTxRelationKey outgoing tx with evm
 	// OutgoingTxRelationKey = []byte{0x41}
 
-	BridgeCallRefundKey = []byte{0x42}
-
-	BridgeCallRefundEventNonceKey = []byte{0x43}
-
 	SnapshotOracleKey = []byte{0x44}
 
 	BridgeCallConfirmKey = []byte{0x45}
 
-	// LastSlashedRefundNonce indexes the latest slashed refund nonce
-	LastSlashedRefundNonce = []byte{0x46}
+	// LastSlashedBridgeCallNonce indexes the latest slashed bridge call nonce
+	LastSlashedBridgeCallNonce = []byte{0x46}
 
 	// TokenTypeToTokenKey prefixes the index of asset token type to external token
 	TokenTypeToTokenKey = []byte{0x47}
@@ -209,24 +205,6 @@ func GetDenomToTokenKey(tokenContract string) []byte {
 // GetTokenToDenomKey returns the following key format
 func GetTokenToDenomKey(denom string) []byte {
 	return append(TokenToDenomKey, []byte(denom)...)
-}
-
-func GetBridgeCallRefundKey(address string, nonce uint64) []byte {
-	return append(BridgeCallRefundKey, append([]byte(address), sdk.Uint64ToBigEndian(nonce)...)...)
-}
-
-func ParseBridgeCallRefundNonce(key []byte, address string) (nonce uint64) {
-	addrNonce := bytes.TrimPrefix(key, BridgeCallRefundKey)
-	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
-	return sdk.BigEndianToUint64(nonceBytes)
-}
-
-func GetBridgeCallRefundAddressKey(address string) []byte {
-	return append(BridgeCallRefundKey, []byte(address)...)
-}
-
-func GetBridgeCallRefundEventNonceKey(nonce uint64) []byte {
-	return append(BridgeCallRefundEventNonceKey, sdk.Uint64ToBigEndian(nonce)...)
 }
 
 func GetSnapshotOracleKey(oracleSetNonce uint64) []byte {

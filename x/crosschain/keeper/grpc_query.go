@@ -438,30 +438,6 @@ func (k Keeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainList
 	}}, nil
 }
 
-func (k Keeper) RefundRecordByNonce(c context.Context, req *types.QueryRefundRecordByNonceRequest) (*types.QueryRefundRecordByNonceResponse, error) {
-	if req.GetEventNonce() == 0 {
-		return nil, status.Error(codes.InvalidArgument, "event nonce")
-	}
-	record, found := k.GetRefundRecord(sdk.UnwrapSDKContext(c), req.GetEventNonce())
-	if !found {
-		return nil, status.Error(codes.NotFound, "refund record")
-	}
-	return &types.QueryRefundRecordByNonceResponse{Record: record}, nil
-}
-
-func (k Keeper) RefundRecordByReceiver(c context.Context, req *types.QueryRefundRecordByReceiverRequest) (*types.QueryRefundRecordByReceiverResponse, error) {
-	if len(req.GetReceiverAddress()) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "receiver")
-	}
-
-	refundRecords := make([]*types.RefundRecord, 0)
-	k.IterRefundRecordByAddr(sdk.UnwrapSDKContext(c), req.GetReceiverAddress(), func(record *types.RefundRecord) bool {
-		refundRecords = append(refundRecords, record)
-		return false
-	})
-	return &types.QueryRefundRecordByReceiverResponse{Records: refundRecords}, nil
-}
-
 func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
 	if req.GetEventNonce() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "event nonce")
@@ -486,30 +462,20 @@ func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBrid
 	return &types.QueryBridgeCallConfirmByNonceResponse{Confirms: bridgeCallConfirms, EnoughPower: enoughPower}, nil
 }
 
-func (k Keeper) LastPendingRefundRecordByAddr(c context.Context, req *types.QueryLastPendingRefundRecordByAddrRequest) (*types.QueryLastPendingRefundRecordByAddrResponse, error) {
-	if len(req.GetExternalAddress()) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "empty external address")
+func (k Keeper) BridgeCallByNonce(c context.Context, req *types.QueryBridgeCallByNonceRequest) (*types.QueryBridgeCallByNonceResponse, error) {
+	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(sdk.UnwrapSDKContext(c), req.GetEventNonce())
+	if !found {
+		return nil, status.Error(codes.NotFound, "outgoing bridge call not found")
 	}
-	ctx := sdk.UnwrapSDKContext(c)
-	pendingRecords := make([]*types.RefundRecord, 0)
+	return &types.QueryBridgeCallByNonceResponse{BridgeCall: outgoingBridgeCall}, nil
+}
 
-	accAddr := types.ExternalAddressToAccAddress(k.moduleName, req.GetExternalAddress())
-	snapshotOracleCache := make(map[uint64]*types.SnapshotOracle)
-	k.IterRefundRecord(ctx, func(record *types.RefundRecord) bool {
-		snapshotOracle, found := snapshotOracleCache[record.OracleSetNonce]
-		if !found {
-			snapshotOracle, found = k.GetSnapshotOracle(ctx, record.OracleSetNonce)
-			if !found {
-				return false
-			}
-			snapshotOracleCache[record.OracleSetNonce] = snapshotOracle
-		}
+func (k Keeper) BridgeCallByReceiver(c context.Context, req *types.QueryBridgeCallByReceiverRequest) (*types.QueryBridgeCallByReceiverResponse, error) {
+	// TODO implement me
+	panic("implement me")
+}
 
-		if !snapshotOracle.HasExternalAddress(req.GetExternalAddress()) || k.HasBridgeCallConfirm(ctx, record.EventNonce, accAddr) {
-			return false
-		}
-		pendingRecords = append(pendingRecords, record)
-		return false
-	})
-	return &types.QueryLastPendingRefundRecordByAddrResponse{Records: pendingRecords}, nil
+func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {
+	// TODO implement me
+	panic("implement me")
 }
