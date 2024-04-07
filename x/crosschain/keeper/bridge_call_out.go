@@ -15,34 +15,42 @@ import (
 
 func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, msg *types.MsgBridgeCall) (*types.OutgoingBridgeCall, error) {
 	params := k.GetParams(ctx)
-	batchTimeout := k.CalExternalTimeoutHeight(ctx, params, params.ExternalBatchTimeout)
-	if batchTimeout <= 0 {
+	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, params, params.BridgeCallTimeout)
+	if bridgeCallTimeout <= 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge call timeout height")
+	}
+
+	oracleSet := k.GetLatestOracleSet(ctx)
+	if oracleSet == nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "no oracle set")
 	}
 
 	nextID := k.autoIncrementID(ctx, types.KeyLastBridgeCallID)
 
 	senderAddr := sdk.MustAccAddressFromBech32(msg.Sender)
-	outCall := &types.OutgoingBridgeCall{
-		Nonce:    nextID,
-		Timeout:  batchTimeout,
-		Sender:   fxtypes.AddressToStr(senderAddr.Bytes(), k.moduleName),
-		Receiver: msg.Receiver,
-		To:       msg.To,
-		Asset:    msg.Asset,
-		Message:  msg.Message,
-		Value:    msg.Value,
-		GasLimit: msg.GasLimit,
+	bridgeCall := &types.OutgoingBridgeCall{
+		Nonce:          nextID,
+		Timeout:        bridgeCallTimeout,
+		Sender:         fxtypes.AddressToStr(senderAddr.Bytes(), k.moduleName),
+		Receiver:       msg.Receiver,
+		To:             msg.To,
+		Asset:          msg.Asset,
+		Message:        msg.Message,
+		Value:          msg.Value,
+		GasLimit:       msg.GasLimit,
+		OracleSetNonce: oracleSet.Nonce,
+		BlockHeight:    uint64(ctx.BlockHeight()),
 	}
-	k.SetOutgoingBridgeCall(ctx, outCall)
+	k.SetOutgoingBridgeCall(ctx, bridgeCall)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCall,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(outCall.Nonce)),
+		sdk.NewAttribute(sdk.AttributeKeySender, bridgeCall.Sender),
+		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(bridgeCall.Nonce)),
 	))
 
-	return outCall, nil
+	return bridgeCall, nil
 }
 
 func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, out *types.OutgoingBridgeCall) {
