@@ -66,6 +66,6 @@ func (k Keeper) GetOracleSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
 	return k.GetParams(ctx).OracleSetUpdatePowerChangePercent
 }
 
-func (k Keeper) GetBridgeCallRefundTimeout(ctx sdk.Context) uint64 {
-	return k.GetParams(ctx).BridgeCallRefundTimeout
+func (k Keeper) GetBridgeCallTimeout(ctx sdk.Context) uint64 {
+	return k.GetParams(ctx).BridgeCallTimeout
 }

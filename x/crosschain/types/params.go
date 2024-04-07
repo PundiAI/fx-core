@@ -17,7 +17,7 @@ const (
 	MaxResults                     = 100
 	MaxOracleSetRequestsResults    = 5
 	MaxKeepEventSize               = 100
-	DefaultBridgeCallRefundTimeout = 604_800_000 // 7 * 24 * 3600 * 1000
+	DefaultBridgeCallTimeout       = 604_800_000 // 7 * 24 * 3600 * 1000
 )
 
 var (
@@ -44,7 +44,7 @@ func DefaultParams() Params {
 		IbcTransferTimeoutHeight:          20_000,
 		DelegateThreshold:                 NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 		DelegateMultiple:                  DefaultOracleDelegateThreshold,
-		BridgeCallRefundTimeout:           DefaultBridgeCallRefundTimeout,
+		BridgeCallTimeout:                 DefaultBridgeCallTimeout,
 		Oracles:                           nil,
 	}
 }
@@ -97,8 +97,8 @@ func (m *Params) ValidateBasic() error {
 	if len(m.Oracles) > 0 {
 		return errors.New("deprecated oracles")
 	}
-	if m.BridgeCallRefundTimeout <= 3_600_000 {
-		return fmt.Errorf("invalid bridge call refund timeout")
+	if m.BridgeCallTimeout <= 3_600_000 {
+		return fmt.Errorf("invalid bridge call timeout")
 	}
 	return nil
 }
