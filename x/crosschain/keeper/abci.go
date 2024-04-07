@@ -61,8 +61,8 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 	oracles := k.GetAllOracles(ctx, true)
 	oracleSetHasSlash := k.oracleSetSlashing(ctx, oracles, signedWindow)
 	batchHasSlash := k.batchSlashing(ctx, oracles, signedWindow)
-	refundHasSlash := k.refundSlashing(ctx, signedWindow)
-	if oracleSetHasSlash || batchHasSlash || refundHasSlash {
+	bridgeCallHasSlash := k.bridgeCallSlashing(ctx, signedWindow)
+	if oracleSetHasSlash || batchHasSlash || bridgeCallHasSlash {
 		k.CommonSetOracleTotalPower(ctx)
 	}
 }
@@ -122,14 +122,14 @@ func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Oracles, signedWind
 	return hasSlash
 }
 
-func (k Keeper) refundSlashing(ctx sdk.Context, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) bridgeCallSlashing(ctx sdk.Context, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
-	unSlashRefunds := k.GetUnSlashedRefundRecords(ctx, maxHeight)
+	unSlashOutgoingBridgeCalls := k.GetUnSlashedBridgeCalls(ctx, maxHeight)
 
 	snapshotOracleMap := make(map[uint64]*types.SnapshotOracle)
-	for _, record := range unSlashRefunds {
+	for _, record := range unSlashOutgoingBridgeCalls {
 		confirmOracleMap := make(map[string]bool)
-		k.IterBridgeCallConfirmByNonce(ctx, record.EventNonce, func(confirm *types.MsgBridgeCallConfirm) bool {
+		k.IterBridgeCallConfirmByNonce(ctx, record.Nonce, func(confirm *types.MsgBridgeCallConfirm) bool {
 			confirmOracleMap[confirm.ExternalAddress] = true
 			return false
 		})
@@ -138,7 +138,7 @@ func (k Keeper) refundSlashing(ctx sdk.Context, signedWindow uint64) (hasSlash b
 		if !found {
 			snapshotOracle, found = k.GetSnapshotOracle(ctx, record.OracleSetNonce)
 			if !found {
-				k.Logger(ctx).Error("refund slashing", "oracle set not found", record.OracleSetNonce)
+				k.Logger(ctx).Error("outgoing bridge call slashing", "oracle set not found", record.OracleSetNonce)
 				continue
 			}
 			snapshotOracleMap[record.OracleSetNonce] = snapshotOracle
@@ -148,16 +148,16 @@ func (k Keeper) refundSlashing(ctx sdk.Context, signedWindow uint64) (hasSlash b
 			if _, ok := confirmOracleMap[members.ExternalAddress]; !ok {
 				oracle, found := k.GetOracleByExternalAddress(ctx, members.ExternalAddress)
 				if !found {
-					k.Logger(ctx).Error("refund slashing", "oracle not found", members.ExternalAddress)
+					k.Logger(ctx).Error("outgoing bridge call slashing", "oracle not found", members.ExternalAddress)
 					continue
 				}
-				k.Logger(ctx).Info("slash oracle by refund", "externalAddress", members.ExternalAddress,
-					"oracleAddress", oracle.String(), "recordNonce", record.EventNonce, "blockHeight", ctx.BlockHeight())
+				k.Logger(ctx).Info("slash oracle by outgoing bridge call", "externalAddress", members.ExternalAddress,
+					"oracleAddress", oracle.String(), "nonce", record.Nonce, "blockHeight", ctx.BlockHeight())
 				k.SlashOracle(ctx, oracle.String())
 				hasSlash = true
 			}
 		}
-		k.SetLastSlashedRefundNonce(ctx, record.EventNonce)
+		k.SetLastSlashedBridgeCallNonce(ctx, record.Nonce)
 	}
 	return hasSlash
 }
@@ -184,47 +184,6 @@ func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) {
 		}
 		return false
 	})
-}
-
-func (k Keeper) cleanupTimeOutRefund(ctx sdk.Context) {
-	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
-	k.IterRefundRecord(ctx, func(record *types.RefundRecord) bool {
-		if record.Timeout > externalBlockHeight {
-			return true
-		}
-		receiver, coins, err := k.refundTokenToReceiver(ctx, record)
-		if err != nil {
-			k.Logger(ctx).Error("clean up refund timeout", "event nonce", record.EventNonce, "error", err.Error())
-			return false
-		}
-		k.DeleteRefundRecord(ctx, record)
-		k.DeleteBridgeCallConfirm(ctx, record.EventNonce)
-		k.RemoveEventSnapshotOracle(ctx, record.OracleSetNonce, record.EventNonce)
-
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(types.EventTypeRefundTimeout,
-				sdk.NewAttribute(sdk.AttributeKeySender, record.Receiver),
-				sdk.NewAttribute(types.AttributeKeyRefundAddress, receiver.String()),
-				sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(record.EventNonce)),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
-			),
-		})
-		return false
-	})
-}
-
-func (k Keeper) refundTokenToReceiver(ctx sdk.Context, record *types.RefundRecord) (sdk.AccAddress, sdk.Coins, error) {
-	receiverAddr := types.ExternalAddressToAccAddress(k.moduleName, record.Receiver)
-	cacheCtx, commit := ctx.CacheContext()
-	coins, err := k.bridgeCallTransferToSender(cacheCtx, receiverAddr.Bytes(), record.Tokens)
-	if err != nil {
-		return nil, nil, err
-	}
-	if err = k.bridgeCallTransferToReceiver(cacheCtx, receiverAddr, receiverAddr.Bytes(), coins); err != nil {
-		return nil, nil, err
-	}
-	commit()
-	return receiverAddr, coins, nil
 }
 
 func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) {

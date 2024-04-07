@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"math/big"
 	"strconv"
 
@@ -49,15 +48,10 @@ func (k Keeper) BridgeCallERC20Handler(
 		}
 	}
 	if len(errCause) > 0 && len(tokens) > 0 {
-		receiverStr := fxtypes.AddressToStr(sender.Bytes(), k.moduleName)
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(types.EventTypeBridgeCallRefund,
-				sdk.NewAttribute(types.AttributeKeyErrCause, errCause),
-				sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
-				sdk.NewAttribute(types.AttributeKeyRefundAddress, receiverStr),
-			),
-		})
-		return k.AddRefundRecord(ctx, receiverStr, eventNonce, tokens)
+		// receiverStr := fxtypes.AddressToStr(sender.Bytes(), k.moduleName)
+		// TODO: emit event
+		// TODO: add refund record
+		return nil
 	}
 	return nil
 }

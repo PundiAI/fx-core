@@ -39,9 +39,4 @@ const (
 	EventTypeBridgeCallEvm    = "bridge_call_evm"
 	AttributeKeyEvmCallResult = "evm_call_result"
 	AttributeKeyEvmCallError  = "evm_call_error"
-
-	EventTypeBridgeCallRefund = "bridge_call_refund"
-	AttributeKeyRefundAddress = "refund_address"
-
-	EventTypeRefundTimeout = "refund_timeout"
 )

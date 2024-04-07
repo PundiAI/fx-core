@@ -105,7 +105,6 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 
 		// execute the timeout logic
 		k.cleanupTimedOutBatches(ctx)
-		k.cleanupTimeOutRefund(ctx)
 		k.cleanupTimeOutBridgeCall(ctx)
 
 		k.pruneAttestations(ctx)

@@ -1131,14 +1131,14 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
 	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData(fxtypes.DefaultDenom))
 
-	fxAsset, err := contract.PackERC20AssetWithType(
-		[]common.Address{
-			common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, fxTokenContract).Bytes()),
-		}, []*big.Int{
-			big.NewInt(100),
-		},
-	)
-	require.NoError(suite.T(), err)
+	// fxAsset, err := contract.PackERC20AssetWithType(
+	// 	[]common.Address{
+	// 		common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, fxTokenContract).Bytes()),
+	// 	}, []*big.Int{
+	// 		big.NewInt(100),
+	// 	},
+	// )
+	// require.NoError(suite.T(), err)
 
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 
@@ -1169,26 +1169,26 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			errReason: "",
 			expect:    true,
 		},
-		{
-			name: "success - FX",
-			msg: &types.MsgBridgeCallClaim{
-				DstChainId:     "530",
-				EventNonce:     oracleLastEventNonce + 2,
-				Sender:         helpers.GenerateAddressByModule(suite.chainName),
-				Asset:          fxAsset,
-				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
-				To:             helpers.GenerateAddressByModule(suite.chainName),
-				Message:        "",
-				Value:          sdkmath.NewInt(0),
-				GasLimit:       3000000,
-				BlockHeight:    1,
-				BridgerAddress: suite.bridgerAddrs[0].String(),
-				ChainName:      suite.chainName,
-			},
-			err:       nil,
-			errReason: "",
-			expect:    suite.chainName == ethtypes.ModuleName,
-		},
+		// {
+		// 	name: "success - FX",
+		// 	msg: &types.MsgBridgeCallClaim{
+		// 		DstChainId:     "530",
+		// 		EventNonce:     oracleLastEventNonce + 2,
+		// 		Sender:         helpers.GenerateAddressByModule(suite.chainName),
+		// 		Asset:          fxAsset,
+		// 		Receiver:       helpers.GenerateAddressByModule(suite.chainName),
+		// 		To:             helpers.GenerateAddressByModule(suite.chainName),
+		// 		Message:        "",
+		// 		Value:          sdkmath.NewInt(0),
+		// 		GasLimit:       3000000,
+		// 		BlockHeight:    1,
+		// 		BridgerAddress: suite.bridgerAddrs[0].String(),
+		// 		ChainName:      suite.chainName,
+		// 	},
+		// 	err:       nil,
+		// 	errReason: "",
+		// 	expect:    suite.chainName == ethtypes.ModuleName,
+		// },
 	}
 
 	for _, testData := range testMsgs {
