@@ -700,7 +700,7 @@ func (m *MsgBridgeCallResultClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgBridgeCallResultClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d", m.BlockHeight, m.EventNonce)
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%d/%t", m.BlockHeight, m.EventNonce, m.Sender, m.Receiver, m.To, m.Nonce, m.Result)
 	return tmhash.Sum([]byte(path))
 }
 

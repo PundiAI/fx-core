@@ -231,6 +231,20 @@ func (b MsgValidate) MsgBridgeCallResultClaimValidate(m *MsgBridgeCallResultClai
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
+	if err = contract.ValidateEthereumAddress(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if len(m.To) > 0 {
+		if err = contract.ValidateEthereumAddress(m.To); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+		}
+	}
+	if err = contract.ValidateEthereumAddress(m.Receiver); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	}
+	if m.Nonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero nonce")
+	}
 	if m.EventNonce == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
 	}
