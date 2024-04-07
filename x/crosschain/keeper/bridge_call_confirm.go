@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -114,20 +112,4 @@ func (k Keeper) GetUnSlashedBridgeCalls(ctx sdk.Context, height uint64) []types.
 		return true
 	})
 	return bridgeCalls
-}
-
-func (k Keeper) IterateBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(bridgeCall *types.OutgoingBridgeCall) bool) {
-	store := ctx.KVStore(k.storeKey)
-	startKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(startNonce)...)
-	endKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(math.MaxUint64)...)
-	iter := store.Iterator(startKey, endKey)
-	defer iter.Close()
-
-	for ; iter.Valid(); iter.Next() {
-		value := new(types.OutgoingBridgeCall)
-		k.cdc.MustUnmarshal(iter.Value(), value)
-		if cb(value) {
-			break
-		}
-	}
 }
