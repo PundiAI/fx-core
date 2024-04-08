@@ -41,6 +41,7 @@ func GetTxSubCmds(chainName string) []*cobra.Command {
 		CmdUpdateChainOraclesProposal(chainName),
 
 		CmdBoundedOracle(chainName),
+		CmdUnboundedOracle(chainName),
 		CmdReDelegate(chainName),
 		CmdAddDelegate(chainName),
 
@@ -93,6 +94,26 @@ func CmdBoundedOracle(chainName string) *cobra.Command {
 				ValidatorAddress: valAddr.String(),
 				DelegateAmount:   amount,
 				ChainName:        chainName,
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
+		},
+	}
+	return cmd
+}
+
+func CmdUnboundedOracle(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unbounded-oracle",
+		Short: "Quit the oracle",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			msg := types.MsgUnbondedOracle{
+				OracleAddress: cliCtx.GetFromAddress().String(),
+				ChainName:     chainName,
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
