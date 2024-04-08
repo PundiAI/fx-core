@@ -1,4 +1,4 @@
-package keeper_test
+package tests_test
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		denom, err := suite.Keeper().SetIbcDenomTrace(suite.ctx, bridgeToken.Token, "")
 		require.NoError(suite.T(), err)
 		require.Equal(suite.T(), denom, bridgeToken.Denom)
-		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom)
+		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom) // nolint:staticcheck
 
 		for _, bridger := range suite.bridgerAddrs {
 			voucher := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(9990))

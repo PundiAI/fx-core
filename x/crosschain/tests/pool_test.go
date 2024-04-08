@@ -1,4 +1,4 @@
-package keeper_test
+package tests_test
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 	suite.NoError(err)
 	suite.Equal(sendAmount, suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 
-	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom)
+	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom) // nolint:staticcheck
 
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	receiver := helpers.GenerateAddress().Hex()
@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
 	}
 	suite.NoError(err)
 
-	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom)
+	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom) // nolint:staticcheck
 
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	receiver := helpers.GenerateAddress().Hex()
