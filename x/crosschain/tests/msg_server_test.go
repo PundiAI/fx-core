@@ -1,4 +1,4 @@
-package keeper_test
+package tests_test
 
 import (
 	"context"
@@ -365,7 +365,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 
 	token := fmt.Sprintf("0x%s", tmrand.Str(40))
 	denom := fmt.Sprintf("%s%s", suite.chainName, token)
-	suite.Keeper().AddBridgeToken(suite.ctx, token, denom)
+	suite.Keeper().AddBridgeToken(suite.ctx, token, denom) // nolint:staticcheck
 
 	privateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
@@ -675,7 +675,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToFxClaim)
 				suite.True(ok)
-				suite.Keeper().AddBridgeToken(suite.ctx, msg.TokenContract, fmt.Sprintf("%s%s", suite.chainName, msg.TokenContract))
+				suite.Keeper().AddBridgeToken(suite.ctx, msg.TokenContract, fmt.Sprintf("%s%s", suite.chainName, msg.TokenContract)) // nolint:staticcheck
 				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
