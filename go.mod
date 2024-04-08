@@ -16,6 +16,7 @@ require (
 	github.com/evmos/ethermint v0.22.0
 	github.com/fbsobreira/gotron-sdk v0.0.0-20211012084317-763989224068
 	github.com/gogo/protobuf v1.3.3
+	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
