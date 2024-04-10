@@ -211,7 +211,7 @@ subtask(SUB_CONFIRM_TRANSACTION, "confirm transaction").setAction(
 
 subtask(SUB_CREATE_ASSET_DATA, "create asset data").setAction(
     async (taskArgs, hre) => {
-        const {bridgeTokens, bridgeAmounts, assetType} = taskArgs;
+        const {bridgeTokens, bridgeAmounts} = taskArgs;
         const bridgeToken = bridgeTokens.split(",");
         const bridgeAmount = bridgeAmounts.split(",");
         if (bridgeToken.length !== bridgeAmount.length) {
@@ -221,7 +221,7 @@ subtask(SUB_CREATE_ASSET_DATA, "create asset data").setAction(
         bridgeAmount.forEach((value: string) => {
             amounts.push(hre.ethers.parseUnits(value, "wei"));
         });
-        return await encodeERC20(assetType, bridgeToken, amounts);
+        return await encodeAssets(bridgeToken, amounts);
     });
 
 // function Transaction to json string
@@ -285,14 +285,13 @@ export async function GetGravityId(restRpc: string, chainName: string): Promise<
     return response.data.params.gravity_id;
 }
 
-export async function encodeERC20(assetType: string, tokens: string[], amounts: BigInt[]): Promise<string> {
+export async function encodeAssets(tokens: string[], amounts: BigInt[]): Promise<string> {
     const abiCode = new AbiCoder;
     let tokenData = "";
     for (let i = 0; i < tokens.length; i++) {
         tokenData += solidityPacked(["address"], [tokens[i]]).substring(2);
     }
-    const tokenAmountData = abiCode.encode(["bytes", "uint256[]"], ["0x" + tokenData, amounts]);
-    return abiCode.encode(["string", "bytes"], [assetType, tokenAmountData]);
+    return abiCode.encode(["bytes", "uint256[]"], ["0x" + tokenData, amounts]);
 }
 
 export function AddTxParam(tasks: ConfigurableTaskDefinition[]) {
