@@ -3,7 +3,7 @@ import {HardhatEthersSigner} from "@nomicfoundation/hardhat-ethers/signers";
 import {expect} from "chai";
 import {ERC20TokenTest, FxBridgeLogic} from "../typechain-types"
 import {encodeBytes32String} from "ethers"
-import {encodeERC20} from "../tasks/subtasks";
+import {encodeAssets} from "../tasks/subtasks";
 
 // total power 10000
 export function examplePowers(): number[] {
@@ -70,7 +70,7 @@ describe("bridge call tests", function () {
             const lastEventNonce = await fxBridge.state_lastEventNonce()
 
             // bridge call
-            const assetBytes = await encodeERC20("ERC20", tokens, amounts);
+            const assetBytes = await encodeAssets(tokens, amounts);
             await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
 
             // check nonce
@@ -115,7 +115,7 @@ describe("bridge call tests", function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress()]
                 const amounts = [BigInt(1), BigInt(2)]
 
-                const assetBytes = await encodeERC20("ERC20", tokens, amounts);
+                const assetBytes = await encodeAssets(tokens, amounts);
                 await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
 
                 const balance1 = await token1.balanceOf(deploy.address)
@@ -132,14 +132,14 @@ describe("bridge call tests", function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress()]
                 const amounts = [BigInt(1), BigInt(2), BigInt(3)]
 
-                const assetBytes = await encodeERC20("ERC20", tokens, amounts);
+                const assetBytes = await encodeAssets(tokens, amounts);
                 await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
             })
             it("bridge call transfer 4 token", async function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress(), await token4.getAddress()]
                 const amounts = [BigInt(1), BigInt(2), BigInt(3), BigInt(4)]
 
-                const assetBytes = await encodeERC20("ERC20", tokens, amounts);
+                const assetBytes = await encodeAssets(tokens, amounts);
                 await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
             })
         })
