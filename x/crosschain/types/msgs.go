@@ -777,7 +777,7 @@ func (m *MsgBridgeTokenClaim) GetType() ClaimType {
 }
 
 func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/%s/%d", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals, m.ChannelIbc, m.TokenType)
+	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/%s/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals, m.ChannelIbc)
 	return tmhash.Sum([]byte(path))
 }
 

@@ -97,7 +97,7 @@ func (b TronMsgValidate) MsgBridgeTokenClaimValidate(m *crosschaintypes.MsgBridg
 	if m.BlockHeight == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
-	return crosschaintypes.ValidateBridgeTokenType(m.TokenType)
+	return nil
 }
 
 func (b TronMsgValidate) MsgSendToExternalClaimValidate(m *crosschaintypes.MsgSendToExternalClaim) (err error) {

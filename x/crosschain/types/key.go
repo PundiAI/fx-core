@@ -116,9 +116,6 @@ var (
 	// LastSlashedBridgeCallNonce indexes the latest slashed bridge call nonce
 	LastSlashedBridgeCallNonce = []byte{0x46}
 
-	// TokenTypeToTokenKey prefixes the index of asset token type to external token
-	TokenTypeToTokenKey = []byte{0x47}
-
 	KeyLastBridgeCallID = append(SequenceKeyPrefix, []byte("bridgeCallId")...)
 
 	OutgoingBridgeCallNonceKey           = []byte{0x48}
@@ -230,10 +227,6 @@ func GetBridgeCallConfirmKeyByNonce(nonce uint64) []byte {
 
 func GetBridgeCallConfirmNonceKey(nonce uint64) []byte {
 	return append(BridgeCallConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
-}
-
-func GetTokenTypeToTokenKey(tokenContract string) []byte {
-	return append(TokenTypeToTokenKey, []byte(tokenContract)...)
 }
 
 func GetOutgoingBridgeCallNonceKey(id uint64) []byte {
