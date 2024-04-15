@@ -10,10 +10,8 @@ import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Addr
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
-import {IERC721ExtensionsUpgradeable} from "./IERC721ExtensionsUpgradeable.sol";
 
 /* solhint-disable custom-errors */
 
@@ -69,9 +67,10 @@ contract FxBridgeLogic is
         address sender;
         address receiver;
         address to;
-        uint256 value;
-        bytes asset;
+        address[] tokens;
+        uint256[] amounts;
         bytes message;
+        uint256 value;
         uint256 timeout;
         uint256 gasLimit;
     }
@@ -308,12 +307,13 @@ contract FxBridgeLogic is
         uint256 _gasLimit,
         address _receiver,
         address _to,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
         bytes calldata _message,
-        uint256 _value,
-        bytes memory _asset
+        uint256 _value
     ) external {
-        // decode and transfer asset
-        _transferAsset(_msgSender(), address(this), _asset, false);
+        // transfer ERC20
+        _transferERC20(_msgSender(), address(this), _tokens, _amounts);
 
         // last event nonce +1
         state_lastEventNonce = state_lastEventNonce.add(1);
@@ -323,12 +323,13 @@ contract FxBridgeLogic is
             _msgSender(),
             _receiver,
             _to,
+            _tokens,
+            _amounts,
             state_lastEventNonce,
             _dstChainId,
             _gasLimit,
-            _value,
             _message,
-            _asset
+            _value
         );
     }
 
@@ -573,14 +574,12 @@ contract FxBridgeLogic is
 
         state_lastBridgeCallNonce[_nonceArray[1]] = true;
 
-        bool result = true;
-        // solhint-disable-next-line no-empty-blocks
+        bool result = false;
         try this.callAssetMessage(_input) {
-            // event success
-        } catch {
-            // event failed
-            result = false;
-        }
+            result = true;
+            // solhint-disable-next-line no-empty-blocks
+        } catch {}
+
         {
             state_lastEventNonce = state_lastEventNonce.add(1);
             emit SubmitBridgeCallEvent(
@@ -606,7 +605,8 @@ contract FxBridgeLogic is
             input.receiver,
             input.to,
             input.value,
-            input.asset,
+            input.tokens,
+            input.amounts,
             input.message,
             nonce,
             input.timeout
@@ -631,6 +631,11 @@ contract FxBridgeLogic is
         require(
             block.number < _input.timeout,
             "timeout must be greater than the current block height."
+        );
+
+        require(
+            _input.tokens.length == _input.amounts.length,
+            "Token not match amount"
         );
 
         require(
@@ -665,13 +670,18 @@ contract FxBridgeLogic is
     }
 
     function callAssetMessage(BridgeCallData memory _input) public onlySelf {
-        if (_input.asset.length > 0) {
-            _transferAsset(address(this), _input.receiver, _input.asset, true);
+        if (_input.tokens.length > 0) {
+            _transferERC20(
+                address(this),
+                _input.receiver,
+                _input.tokens,
+                _input.amounts
+            );
         }
 
         if (_input.message.length > 0) {
             bytes memory data = abi.encodeWithSignature(
-                "onFxcoreMessage((address,address,address,uint256,bytes,bytes,uint256,uint256))",
+                "onFxcoreMessage((address,address,address,address[],uint256[],bytes,uint256,uint256,uint256))",
                 _input
             );
             // solhint-disable-next-line avoid-low-level-calls
@@ -826,158 +836,45 @@ contract FxBridgeLogic is
         return result;
     }
 
-    function _transferAsset(
+    function _transferERC20(
         address _from,
         address _receiver,
-        bytes memory _asset,
-        bool _mintToken
+        address[] memory _tokens,
+        uint256[] memory _amounts
     ) internal {
-        (address[] memory token, uint256[] memory amountOrId) = decodeAsset(
-            _asset
-        );
-        for (uint256 i = 0; i < token.length; i++) {
-            require(amountOrId[i] > 0, "amount should be greater than zero");
-            TokenStatus memory _tokenStatus = tokenStatus[token[i]];
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(_amounts[i] > 0, "amount should be greater than zero");
+            TokenStatus memory _tokenStatus = tokenStatus[_tokens[i]];
             require(_tokenStatus.isExist, "Unsupported token address");
             require(_tokenStatus.isActive, "token was paused");
 
             // mint origin token
-            if (_tokenStatus.isOriginated == true && _mintToken) {
-                _mintAssetToken(token[i], _from, amountOrId[i], _tokenStatus);
+            if (_tokenStatus.isOriginated == true && _from == address(this)) {
+                IERC20ExtensionsUpgradeable(_tokens[i]).mint(
+                    _from,
+                    _amounts[i]
+                );
             }
 
-            _transferAssetToken(
-                token[i],
-                _from,
-                _receiver,
-                amountOrId[i],
-                _tokenStatus
-            );
+            if (_from == address(this)) {
+                IERC20MetadataUpgradeable(_tokens[i]).safeTransfer(
+                    _receiver,
+                    _amounts[i]
+                );
+            } else {
+                IERC20MetadataUpgradeable(_tokens[i]).safeTransferFrom(
+                    _from,
+                    _receiver,
+                    _amounts[i]
+                );
+            }
 
             // burn origin token
-            if (_tokenStatus.isOriginated == true && !_mintToken) {
-                _burnAssetToken(token[i], amountOrId[i], _tokenStatus);
+            if (
+                _tokenStatus.isOriginated == true && _receiver == address(this)
+            ) {
+                IERC20ExtensionsUpgradeable(_tokens[i]).burn(_amounts[i]);
             }
-        }
-    }
-
-    function decodeAsset(
-        bytes memory _data
-    ) public pure returns (address[] memory, uint256[] memory) {
-        (bytes memory tokenBytes, uint256[] memory amounts) = abi.decode(
-            _data,
-            (bytes, uint256[])
-        );
-        uint256 tokenCount = amounts.length;
-        require(tokenBytes.length == tokenCount * 20, "Token not match amount");
-        address[] memory tokens = new address[](tokenCount);
-        for (uint256 i = 0; i < tokenCount; i++) {
-            uint256 currentTokenStartingByte = 20 + i * 20;
-            address currentToken;
-            // solhint-disable-next-line no-inline-assembly
-            assembly {
-                currentToken := mload(add(tokenBytes, currentTokenStartingByte))
-            }
-            tokens[i] = currentToken;
-        }
-        return (tokens, amounts);
-    }
-
-    function encodeAsset(
-        address[] memory _token,
-        uint256[] memory _amount
-    ) public pure returns (bytes memory) {
-        uint256 tokenCount = _token.length;
-        require(tokenCount == _amount.length, "Token not match amount");
-
-        bytes memory tokenBytes = new bytes(tokenCount * 20);
-        for (uint256 i = 0; i < tokenCount; i++) {
-            require(_amount[i] > 0, "invalid amount");
-
-            uint256 currentTokenStartingByte = i * 20;
-            bytes memory currentTokenBytes = abi.encodePacked(_token[i]);
-            for (uint256 j = 0; j < 20; j++) {
-                tokenBytes[currentTokenStartingByte + j] = currentTokenBytes[j];
-            }
-        }
-        return abi.encode(tokenBytes, _amount);
-    }
-
-    function _mintAssetToken(
-        address _token,
-        address _from,
-        uint256 _amountOrId,
-        TokenStatus memory _tokenStatus
-    ) internal {
-        // ERC20
-        if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
-            IERC20ExtensionsUpgradeable(_token).mint(_from, _amountOrId);
-        }
-        // ERC721
-        if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
-            IERC721ExtensionsUpgradeable(_token).mint(_from, _amountOrId);
-        }
-        // TODO ERC404
-    }
-
-    function _burnAssetToken(
-        address _token,
-        uint256 _amountOrId,
-        TokenStatus memory _tokenStatus
-    ) internal {
-        // ERC20
-        if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
-            IERC20ExtensionsUpgradeable(_token).burn(_amountOrId);
-        }
-        // ERC721
-        if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
-            IERC721ExtensionsUpgradeable(_token).burn(_amountOrId);
-        }
-        // TODO ERC404
-    }
-
-    function _transferAssetToken(
-        address _token,
-        address _from,
-        address _to,
-        uint256 _amountOrId,
-        TokenStatus memory _tokenStatus
-    ) internal {
-        if (_from == address(this)) {
-            // ERC20
-            if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
-                IERC20MetadataUpgradeable(_token).safeTransfer(
-                    _to,
-                    _amountOrId
-                );
-            }
-            // ERC721
-            if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
-                IERC721Upgradeable(_token).safeTransferFrom(
-                    _from,
-                    _to,
-                    _amountOrId
-                );
-            }
-            // todo ERC404
-        } else {
-            // ERC20
-            if (_tokenStatus.tokenType == BridgeTokenType.ERC20) {
-                IERC20MetadataUpgradeable(_token).safeTransferFrom(
-                    _from,
-                    _to,
-                    _amountOrId
-                );
-            }
-            // ERC721
-            if (_tokenStatus.tokenType == BridgeTokenType.ERC721) {
-                IERC721Upgradeable(_token).safeTransferFrom(
-                    _from,
-                    _to,
-                    _amountOrId
-                );
-            }
-            // todo ERC404
         }
     }
 
@@ -1025,12 +922,13 @@ contract FxBridgeLogic is
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        address[] _tokens,
+        uint256[] _amounts,
         uint256 _eventNonce,
         string _dstChainId,
         uint256 _gasLimit,
-        uint256 _value,
         bytes _message,
-        bytes _asset
+        uint256 _value
     );
 
     event RefundTokenExecutedEvent(
