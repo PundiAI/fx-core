@@ -2342,6 +2342,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 				}
 				amount := sdk.NewInt(int64(tmrand.Uint32() + 1))
 				err = suite.Keeper().AttestationHandler(suite.ctx, &types.MsgSendToFxClaim{
+					Sender:        helpers.GenerateAddressByModule(suite.chainName),
 					ChainName:     suite.chainName,
 					TokenContract: token,
 					Amount:        amount,

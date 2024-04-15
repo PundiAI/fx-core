@@ -11,6 +11,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/tendermint/tendermint/libs/log"
 
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
@@ -181,13 +182,14 @@ func (k Keeper) ModuleName() string {
 	return k.moduleName
 }
 
-func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, eventNonce uint64, bridgeToken *types.BridgeToken) {
+func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.AccAddress, eventNonce uint64, bridgeToken *types.BridgeToken) {
 	cacheContext, commit := ctx.CacheContext()
 
 	erc20ModuleAddress := k.ak.GetModuleAddress(erc20types.ModuleName)
 	var err error
 	var txId uint64
 	var provideLiquidityTxIds []uint64
+	var rewards sdk.Coins
 	// iterator pending outgoing tx by bridgeToken contract address
 	k.IteratorPendingOutgoingTxByBridgeTokenContractAddr(cacheContext, bridgeToken.Token, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
 		// 1. check erc20 module has enough balance
@@ -212,11 +214,29 @@ func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, eventNonce uint64, brid
 			return true
 		}
 		provideLiquidityTxIds = append(provideLiquidityTxIds, txId)
+		for _, reward := range pendingOutgoingTx.Rewards {
+			rewards = rewards.Add(reward)
+		}
 		return false
 	})
 
 	if len(provideLiquidityTxIds) > 0 && err == nil {
-		// 5. emit event & commit
+		// 5. transfer rewards
+		if !rewards.Empty() {
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, liquidityProvider, rewards); err != nil {
+				k.Logger(ctx).Info("failed to transfer rewards", "error", err)
+				return
+			}
+
+			for _, reward := range rewards {
+				if _, err = k.erc20Keeper.ConvertDenomToTarget(ctx, liquidityProvider, reward, fxtypes.ParseFxTarget(fxtypes.ERC20Target)); err != nil {
+					k.Logger(ctx).Info("failed to convert reward to target coin", "error", err)
+					return
+				}
+			}
+		}
+
+		// 6. emit event & commit
 		var eventIds string
 		for _, id := range provideLiquidityTxIds {
 			eventIds += fmt.Sprintf("%d,", id)
