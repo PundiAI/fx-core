@@ -14,6 +14,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 var _ types.MsgServer = MsgServer{}
@@ -346,13 +347,18 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	// convert denom to many
 	fxTarget := fxtypes.ParseFxTarget(s.moduleName)
 	targetCoin, err := s.erc20Keeper.ConvertDenomToTarget(ctx, sender, msg.Amount.Add(msg.BridgeFee), fxTarget)
-	if err != nil {
+	if err != nil && !erc20types.IsInsufficientLiquidityErr(err) {
 		return nil, err
 	}
 	msg.Amount.Denom = targetCoin.Denom
 	msg.BridgeFee.Denom = targetCoin.Denom
 
-	txID, err := s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
+	var txID uint64
+	if erc20types.IsInsufficientLiquidityErr(err) {
+		txID, err = s.AddToOutgoingPendingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
+	} else {
+		txID, err = s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
+	}
 	if err != nil {
 		return nil, err
 	}

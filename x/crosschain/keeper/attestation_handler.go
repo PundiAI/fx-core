@@ -54,6 +54,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return nil
 		}
 
+		k.HandlePendingOutgoingTx(ctx, externalClaim.GetEventNonce(), bridgeToken)
+
 	case *types.MsgBridgeCallClaim:
 		assetType, assetData, err := types.UnpackAssetType(claim.Asset)
 		if err != nil {

@@ -122,6 +122,16 @@ message OutgoingTransferTx {
   ERC20Token fee = 5 [(gogoproto.nullable) = false];
 }
 
+// OutgoingTransferTx represents an individual send from gravity to ETH
+message PendingOutgoingTransferTx {
+  uint64 id = 1;
+  string sender = 2;
+  string dest_address = 3;
+  string token_contract = 4;
+  cosmos.base.v1beta1.Coin token = 5 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin fee = 6 [(gogoproto.nullable) = false];
+}
+
 message SnapshotOracle {
   uint64 oracle_set_nonce = 1;
   repeated BridgeValidator members = 2 [(gogoproto.nullable) = false];

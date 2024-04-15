@@ -18,6 +18,7 @@ const (
 	EventTypeSendToExternalCanceled = "send_to_external_canceled"
 	EventTypeIncreaseBridgeFee      = "increase_bridge_fee"
 	AttributeKeyOutgoingTxID        = "outgoing_tx_id"
+	AttributeKeyPendingOutgoingTxID = "pending_outgoing_tx_id"
 	AttributeKeyIncreaseFee         = "increase_fee"
 
 	EventTypeOutgoingBatch           = "outgoing_batch"
@@ -39,4 +40,7 @@ const (
 
 	EventTypeBridgeCall         = "bridge_call"
 	AttributeKeyBridgeCallNonce = "bridge_call_nonce"
+
+	EventTypeProvideLiquidity         = "provide_liquidity"
+	AttributeKeyProvideLiquidityTxIds = "provide_liquidity_tx_ids"
 )

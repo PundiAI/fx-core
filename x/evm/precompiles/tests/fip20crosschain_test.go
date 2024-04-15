@@ -207,7 +207,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: fip-cross-chain failed: convert denom: %s is smaller than %s: insufficient funds", args[0], args[1])
+				return fmt.Sprintf("execution reverted: fip-cross-chain failed: convert denom: %s is smaller than %s: insufficient liquidity", args[0], args[1])
 			},
 			result: false,
 		},

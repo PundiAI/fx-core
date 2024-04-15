@@ -157,6 +157,24 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	return targetCoin, nil
 }
 
+func (k Keeper) AddToOutgoingPendingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+	bridgeToken := k.GetDenomBridgeToken(ctx, amount.Denom)
+	if bridgeToken == nil {
+		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+	}
+	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
+
+	pendingOutgoingTx := types.NewPendingOutgoingTx(nextTxID, sender, receiver, bridgeToken.Token, amount, fee)
+	k.AddPendingTx(ctx, &pendingOutgoingTx)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSendToExternal,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyPendingOutgoingTxID, fmt.Sprint(nextTxID)),
+	))
+	return nextTxID, nil
+}
+
 func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error {
 	if ctx.IsZero() || txId < 1 || sender.Empty() || addBridgeFee.IsZero() {
 		return errorsmod.Wrap(types.ErrInvalid, "arguments")
@@ -226,6 +244,17 @@ func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.Outgoi
 
 	store.Set(idxKey, k.cdc.MustMarshal(outgoingTransferTx))
 	return nil
+}
+
+func (k Keeper) AddPendingTx(ctx sdk.Context, outgoing *types.PendingOutgoingTransferTx) {
+	store := ctx.KVStore(k.storeKey)
+	idxKey := types.GetOutgoingPendingTxPoolKey(outgoing.TokenContract, outgoing.Id)
+	store.Set(idxKey, k.cdc.MustMarshal(outgoing))
+}
+
+func (k Keeper) RemovePendingOutgoingTx(context sdk.Context, tokenContract string, txId uint64) {
+	store := context.KVStore(k.storeKey)
+	store.Delete(types.GetOutgoingPendingTxPoolKey(tokenContract, txId))
 }
 
 // removeUnbatchedTXIndex removes the tx from the pool
@@ -390,6 +419,19 @@ func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.Batch
 			TotalFees:     fee.Amount,
 			TotalTxs:      1,
 			TotalAmount:   amt.Amount,
+		}
+	}
+}
+
+func (k Keeper) IteratorPendingOutgoingTxByBridgeTokenContractAddr(ctx sdk.Context, tokenContract string, cb func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetOutgoingPendingTxPoolContractPrefix(tokenContract))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var pendingOutgoingTx types.PendingOutgoingTransferTx
+		k.cdc.MustUnmarshal(iter.Value(), &pendingOutgoingTx)
+		if cb(pendingOutgoingTx) {
+			break
 		}
 	}
 }

@@ -511,3 +511,14 @@ func ValidateBridgeTokenType(value BridgeTokenType) error {
 	}
 	return nil
 }
+
+func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, tokenContract string, amount, fee sdk.Coin) PendingOutgoingTransferTx {
+	return PendingOutgoingTransferTx{
+		Id:            txID,
+		Sender:        sender.String(),
+		DestAddress:   receiver,
+		TokenContract: tokenContract,
+		Token:         amount,
+		Fee:           fee,
+	}
+}
