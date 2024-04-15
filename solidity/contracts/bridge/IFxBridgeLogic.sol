@@ -55,9 +55,10 @@ interface IFxBridgeLogic {
         address sender;
         address receiver;
         address to;
-        uint256 value;
-        bytes asset;
+        address[] tokens;
+        uint256[] amounts;
         bytes message;
+        uint256 value;
         uint256 timeout;
         uint256 gasLimit;
     }
@@ -97,9 +98,10 @@ interface IFxBridgeLogic {
         uint256 _gasLimit,
         address _receiver,
         address _to,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
         bytes calldata _message,
-        uint256 _value,
-        bytes memory _asset
+        uint256 _value
     ) external;
 
     function submitBatch(
@@ -178,15 +180,6 @@ interface IFxBridgeLogic {
 
     function getBridgeTokenList() external view returns (BridgeToken[] memory);
 
-    function encodeAsset(
-        address[] memory _token,
-        uint256[] memory _amount
-    ) external pure returns (bytes memory);
-
-    function decodeAsset(
-        bytes memory _data
-    ) external pure returns (address[] memory, uint256[] memory);
-
     /* ============== BSC FUNCTIONS =============== */
     function convert_decimals(
         address _erc20Address
@@ -226,7 +219,7 @@ interface IFxBridgeLogic {
         uint256 _timeout,
         string memory _dstChain,
         bytes calldata _message,
-        bytes calldata _asset
+        bytes calldata _asset // todo modify with bridge call confirm
     ) external returns (bytes32);
 
     /* =============== EVENTS =============== */
@@ -265,12 +258,13 @@ interface IFxBridgeLogic {
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        address[] _tokens,
+        uint256[] _amounts,
         uint256 _eventNonce,
         string _dstChainId,
         uint256 _gasLimit,
-        uint256 _value,
         bytes _message,
-        bytes _asset
+        uint256 _value
     );
 
     event RefundTokenExecutedEvent(
