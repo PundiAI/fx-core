@@ -12,6 +12,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
+import {IBridgeCallback} from "./IBridgeCallback.sol";
 
 /* solhint-disable custom-errors */
 
@@ -562,7 +563,7 @@ contract FxBridgeLogic is
         state_lastBridgeCallNonce[_nonceArray[1]] = true;
 
         bool result = false;
-        try this.callAssetMessage(_input) {
+        try this._transferAndBridgeCallback(_input) {
             result = true;
             // solhint-disable-next-line no-empty-blocks
         } catch {}
@@ -656,7 +657,9 @@ contract FxBridgeLogic is
         );
     }
 
-    function callAssetMessage(BridgeCallData memory _input) public onlySelf {
+    function _transferAndBridgeCallback(
+        BridgeCallData memory _input
+    ) public onlySelf {
         if (_input.tokens.length > 0) {
             _transferERC20(
                 address(this),
@@ -667,13 +670,17 @@ contract FxBridgeLogic is
         }
 
         if (_input.message.length > 0) {
-            bytes memory data = abi.encodeWithSignature(
-                "onFxcoreMessage((address,address,address,address[],uint256[],bytes,uint256,uint256,uint256))",
-                _input
+            IBridgeCallback(_input.to).bridgeCallback{gas: _input.gasLimit}(
+                _input.sender,
+                _input.receiver,
+                _input.to,
+                _input.tokens,
+                _input.amounts,
+                _input.message,
+                _input.value,
+                _input.timeout,
+                _input.gasLimit
             );
-            // solhint-disable-next-line avoid-low-level-calls
-            (bool success, ) = (_input.to).call{gas: _input.gasLimit}(data);
-            require(success, "Call onFxcoreMessage failed");
         }
     }
 
