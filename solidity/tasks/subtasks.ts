@@ -209,21 +209,6 @@ subtask(SUB_CONFIRM_TRANSACTION, "confirm transaction").setAction(
         return {answer: _answer};
     });
 
-subtask(SUB_CREATE_ASSET_DATA, "create asset data").setAction(
-    async (taskArgs, hre) => {
-        const {bridgeTokens, bridgeAmounts} = taskArgs;
-        const bridgeToken = bridgeTokens.split(",");
-        const bridgeAmount = bridgeAmounts.split(",");
-        if (bridgeToken.length !== bridgeAmount.length) {
-            throw new Error("Please provide the same number of bridge tokens and bridge amounts");
-        }
-        let amounts: BigInt[] = [];
-        bridgeAmount.forEach((value: string) => {
-            amounts.push(hre.ethers.parseUnits(value, "wei"));
-        });
-        return await encodeAssets(bridgeToken, amounts);
-    });
-
 // function Transaction to json string
 export function TransactionToJson(transaction: TransactionLike): string {
     return JSON.stringify({
@@ -283,15 +268,6 @@ export async function GetGravityId(restRpc: string, chainName: string): Promise<
     const request_string = restRpc + `/fx/crosschain/v1/params?chain_name=${chainName}`
     const response = await axios.get(request_string);
     return response.data.params.gravity_id;
-}
-
-export async function encodeAssets(tokens: string[], amounts: BigInt[]): Promise<string> {
-    const abiCode = new AbiCoder;
-    let tokenData = "";
-    for (let i = 0; i < tokens.length; i++) {
-        tokenData += solidityPacked(["address"], [tokens[i]]).substring(2);
-    }
-    return abiCode.encode(["bytes", "uint256[]"], ["0x" + tokenData, amounts]);
 }
 
 export function AddTxParam(tasks: ConfigurableTaskDefinition[]) {

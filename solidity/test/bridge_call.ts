@@ -2,8 +2,7 @@ import {ethers} from "hardhat";
 import {HardhatEthersSigner} from "@nomicfoundation/hardhat-ethers/signers";
 import {expect} from "chai";
 import {ERC20TokenTest, FxBridgeLogic} from "../typechain-types"
-import {encodeBytes32String} from "ethers"
-import {encodeAssets} from "../tasks/subtasks";
+import {BigNumberish, encodeBytes32String} from "ethers"
 
 // total power 10000
 export function examplePowers(): number[] {
@@ -53,7 +52,7 @@ describe("bridge call tests", function () {
         const valAddresses = await getSignerAddresses(validators)
 
         await fxBridge.init(gravityId, powerThreshold, valAddresses, powers)
-        await fxBridge.addBridgeToken(erc20TokenAddress, encodeBytes32String(""), true, 0)
+        await fxBridge.addBridgeToken(erc20TokenAddress, encodeBytes32String(""), true)
     })
 
     describe("BridgeCallUpgradeable test", function () {
@@ -63,15 +62,14 @@ describe("bridge call tests", function () {
         it("should bridge call erc20", async function () {
             const tokens = [await erc20Token.getAddress()]
             const amount = ethers.parseEther("1")
-            const amounts: BigInt[] = [amount]
+            const amounts: BigNumberish[] = [amount]
 
             // approve
             await erc20Token.approve(await fxBridge.getAddress(), amount);
             const lastEventNonce = await fxBridge.state_lastEventNonce()
 
             // bridge call
-            const assetBytes = await encodeAssets(tokens, amounts);
-            await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
+            await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, tokens, amounts, "0x", 0)
 
             // check nonce
             const lastEventNonceAfter = await fxBridge.state_lastEventNonce()
@@ -100,10 +98,10 @@ describe("bridge call tests", function () {
                 token3 = await erc2TokenFactory.deploy("Token3", "TTT", "18", ethers.parseEther(totalSupply))
                 token4 = await erc2TokenFactory.deploy("Token4", "TTTT", "18", ethers.parseEther(totalSupply))
 
-                await fxBridge.addBridgeToken(await token1.getAddress(), encodeBytes32String(""), false, 0)
-                await fxBridge.addBridgeToken(await token2.getAddress(), encodeBytes32String(""), false, 0)
-                await fxBridge.addBridgeToken(await token3.getAddress(), encodeBytes32String(""), false, 0)
-                await fxBridge.addBridgeToken(await token4.getAddress(), encodeBytes32String(""), false, 0)
+                await fxBridge.addBridgeToken(await token1.getAddress(), encodeBytes32String(""), false)
+                await fxBridge.addBridgeToken(await token2.getAddress(), encodeBytes32String(""), false)
+                await fxBridge.addBridgeToken(await token3.getAddress(), encodeBytes32String(""), false)
+                await fxBridge.addBridgeToken(await token4.getAddress(), encodeBytes32String(""), false)
 
                 await token1.approve(await fxBridge.getAddress(), totalSupply);
                 await token2.approve(await fxBridge.getAddress(), totalSupply);
@@ -115,8 +113,7 @@ describe("bridge call tests", function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress()]
                 const amounts = [BigInt(1), BigInt(2)]
 
-                const assetBytes = await encodeAssets(tokens, amounts);
-                await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
+                await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, tokens, amounts, "0x", 0)
 
                 const balance1 = await token1.balanceOf(deploy.address)
                 const balance2 = await token2.balanceOf(deploy.address)
@@ -132,15 +129,13 @@ describe("bridge call tests", function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress()]
                 const amounts = [BigInt(1), BigInt(2), BigInt(3)]
 
-                const assetBytes = await encodeAssets(tokens, amounts);
-                await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
+                await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, tokens, amounts, "0x", 0)
             })
             it("bridge call transfer 4 token", async function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress(), await token4.getAddress()]
                 const amounts = [BigInt(1), BigInt(2), BigInt(3), BigInt(4)]
 
-                const assetBytes = await encodeAssets(tokens, amounts);
-                await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, "0x", 0, assetBytes)
+                await fxBridge.bridgeCall(fxcoreChainId, gasLimit, user1.address, user1.address, tokens, amounts, "0x", 0)
             })
         })
     })
