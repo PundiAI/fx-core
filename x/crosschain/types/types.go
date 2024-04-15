@@ -505,7 +505,7 @@ func (m *SnapshotOracle) GetTotalPower() uint64 {
 	return totalPower
 }
 
-func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, tokenContract string, amount, fee sdk.Coin) PendingOutgoingTransferTx {
+func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, tokenContract string, amount, fee sdk.Coin, rewawrds sdk.Coins) PendingOutgoingTransferTx {
 	return PendingOutgoingTransferTx{
 		Id:            txID,
 		Sender:        sender.String(),
@@ -513,5 +513,6 @@ func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, t
 		TokenContract: tokenContract,
 		Token:         amount,
 		Fee:           fee,
+		Rewards:       rewawrds,
 	}
 }

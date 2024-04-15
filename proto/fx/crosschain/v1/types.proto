@@ -122,6 +122,7 @@ message PendingOutgoingTransferTx {
   string token_contract = 4;
   cosmos.base.v1beta1.Coin token = 5 [(gogoproto.nullable) = false];
   cosmos.base.v1beta1.Coin fee = 6 [(gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin rewards = 7 [(gogoproto.nullable) = false];
 }
 
 message SnapshotOracle {

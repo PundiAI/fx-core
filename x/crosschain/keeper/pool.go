@@ -164,7 +164,7 @@ func (k Keeper) AddToOutgoingPendingPool(ctx sdk.Context, sender sdk.AccAddress,
 	}
 	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
 
-	pendingOutgoingTx := types.NewPendingOutgoingTx(nextTxID, sender, receiver, bridgeToken.Token, amount, fee)
+	pendingOutgoingTx := types.NewPendingOutgoingTx(nextTxID, sender, receiver, bridgeToken.Token, amount, fee, sdk.NewCoins())
 	k.AddPendingTx(ctx, &pendingOutgoingTx)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

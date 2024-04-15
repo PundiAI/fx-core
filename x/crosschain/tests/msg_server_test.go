@@ -666,7 +666,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					BlockHeight:   tmrand.Uint64(),
 					TokenContract: helpers.GenerateAddress().String(),
 					Amount:        sdkmath.NewInt(tmrand.Int63n(100000) + 1).MulRaw(1e18),
-					Sender:        helpers.GenerateAddress().String(),
+					Sender:        helpers.GenerateAddressByModule(suite.chainName),
 					Receiver:      sdk.AccAddress(tmrand.Bytes(20)).String(),
 					TargetIbc:     "",
 					ChainName:     suite.chainName,
