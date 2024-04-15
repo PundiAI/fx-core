@@ -142,7 +142,7 @@ func (b MsgValidate) MsgBridgeTokenClaimValidate(m *MsgBridgeTokenClaim) (err er
 	if m.BlockHeight == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
-	return ValidateBridgeTokenType(m.TokenType)
+	return nil
 }
 
 func (b MsgValidate) MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error) {
