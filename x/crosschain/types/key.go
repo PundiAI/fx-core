@@ -172,6 +172,15 @@ func GetOutgoingTxPoolKey(fee ERC20Token, id uint64) []byte {
 	return append(OutgoingTxPoolKey, append([]byte(fee.Contract), append(amount, sdk.Uint64ToBigEndian(id)...)...)...)
 }
 
+// GetOutgoingPendingTxPoolKey returns the following key format
+func GetOutgoingPendingTxPoolKey(tokenContract string, id uint64) []byte {
+	return append(OutgoingTxPoolKey, append([]byte(tokenContract), sdk.Uint64ToBigEndian(id)...)...)
+}
+
+func GetOutgoingPendingTxPoolContractPrefix(tokenContract string) []byte {
+	return append(OutgoingTxPoolKey, []byte(tokenContract)...)
+}
+
 // GetOutgoingTxBatchKey returns the following key format
 func GetOutgoingTxBatchKey(tokenContract string, batchNonce uint64) []byte {
 	return append(append(OutgoingTxBatchKey, []byte(tokenContract)...), sdk.Uint64ToBigEndian(batchNonce)...)

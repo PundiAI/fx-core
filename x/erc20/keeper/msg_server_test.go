@@ -892,7 +892,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 			},
 			expPass: false,
 			expErr: func(args []string) string {
-				return fmt.Sprintf("%s is smaller than %s: insufficient funds", args[0], args[1])
+				return fmt.Sprintf("%s is smaller than %s: insufficient liquidity", args[0], args[1])
 			},
 		},
 		{
@@ -1011,7 +1011,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 			},
 			expPass: false,
 			expErr: func(args []string) string {
-				return fmt.Sprintf("%s is smaller than %s: insufficient funds", args[0], args[1])
+				return fmt.Sprintf("%s is smaller than %s: insufficient liquidity", args[0], args[1])
 			},
 		},
 		{
