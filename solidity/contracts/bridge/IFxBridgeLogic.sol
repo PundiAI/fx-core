@@ -26,7 +26,6 @@ interface IFxBridgeLogic {
         bool isOriginated;
         bool isActive;
         bool isExist;
-        BridgeTokenType tokenType;
     }
 
     struct TransferInfo {
@@ -42,13 +41,6 @@ interface IFxBridgeLogic {
         string name;
         string symbol;
         uint8 decimals;
-        BridgeTokenType tokenType;
-    }
-
-    enum BridgeTokenType {
-        ERC20,
-        ERC721,
-        ERC404
     }
 
     struct BridgeCallData {
@@ -66,8 +58,7 @@ interface IFxBridgeLogic {
     function addBridgeToken(
         address _tokenAddr,
         bytes32 _channelIBC,
-        bool _isOriginated,
-        BridgeTokenType _tokenType
+        bool _isOriginated
     ) external returns (bool);
 
     function pauseBridgeToken(address _tokenAddr) external returns (bool);
@@ -243,8 +234,7 @@ interface IFxBridgeLogic {
         string _symbol,
         uint8 _decimals,
         uint256 _eventNonce,
-        bytes32 _channelIBC,
-        BridgeTokenType _tokenType
+        bytes32 _channelIBC
     );
     event OracleSetUpdatedEvent(
         uint256 indexed _newOracleSetNonce,
