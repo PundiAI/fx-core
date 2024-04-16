@@ -17,36 +17,31 @@ import (
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-func (k Keeper) BridgeCallERC20Handler(
+func (k Keeper) BridgeCallHandler(
 	ctx sdk.Context,
-	asset []byte,
 	sender common.Address,
 	to *common.Address,
 	receiver sdk.AccAddress,
+	tokens []common.Address,
+	amounts []*big.Int,
 	dstChainID string,
 	message []byte,
 	value sdkmath.Int,
 	gasLimit, eventNonce uint64,
 ) error {
-	tokenAddrs, amounts, err := contract.UnpackERC20Asset(asset)
+	erc20Token, err := types.NewERC20Tokens(k.moduleName, tokens, amounts)
 	if err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, err.Error())
+		return err
 	}
-	tokens, err := types.NewERC20Tokens(k.moduleName, tokenAddrs, amounts)
+	var errCause string
+	cacheCtx, commit := ctx.CacheContext()
+	err = k.bridgeCallFxCore(cacheCtx, sender, receiver, to, erc20Token, message, value, gasLimit, eventNonce, dstChainID)
 	if err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, err.Error())
+		errCause = err.Error()
+	} else {
+		commit()
 	}
 
-	var errCause string
-	if dstChainID == types.FxcoreChainID {
-		cacheCtx, commit := ctx.CacheContext()
-		err = k.bridgeCallFxCore(cacheCtx, sender, tokens, receiver, message, to, value, gasLimit, eventNonce)
-		if err != nil {
-			errCause = err.Error()
-		} else {
-			commit()
-		}
-	}
 	if len(errCause) > 0 && len(tokens) > 0 {
 		// receiverStr := fxtypes.AddressToStr(sender.Bytes(), k.moduleName)
 		// TODO: emit event
@@ -56,7 +51,12 @@ func (k Keeper) BridgeCallERC20Handler(
 	return nil
 }
 
-func (k Keeper) bridgeCallFxCore(ctx sdk.Context, sender common.Address, tokens []types.ERC20Token, receiver sdk.AccAddress, message []byte, to *common.Address, value sdkmath.Int, gasLimit uint64, eventNonce uint64) error {
+func (k Keeper) bridgeCallFxCore(ctx sdk.Context,
+	sender common.Address, receiver sdk.AccAddress, to *common.Address,
+	tokens []types.ERC20Token,
+	message []byte, value sdkmath.Int,
+	gasLimit, eventNonce uint64, _ string,
+) error {
 	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens)
 	if err != nil {
 		return err
@@ -64,6 +64,7 @@ func (k Keeper) bridgeCallFxCore(ctx sdk.Context, sender common.Address, tokens 
 	if err = k.bridgeCallTransferToReceiver(ctx, sender.Bytes(), receiver, coins); err != nil {
 		return err
 	}
+	// todo dstChainID != fxcore
 	if len(message) > 0 || to != nil {
 		res, err := k.bridgeCallEvmHandler(ctx, sender, to, message, value, gasLimit, eventNonce)
 		if err != nil {

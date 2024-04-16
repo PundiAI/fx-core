@@ -41,11 +41,11 @@ func NewERC20Tokens(module string, tokenAddrs []common.Address, tokenAmounts []*
 	}
 	tokens := make([]ERC20Token, 0)
 	for i := 0; i < len(tokenAddrs); i++ {
-		contract := fxtypes.AddressToStr(tokenAddrs[i].Bytes(), module)
+		contractAddr := fxtypes.AddressToStr(tokenAddrs[i].Bytes(), module)
 		amount := sdkmath.NewIntFromBigInt(tokenAmounts[i])
 		found := false
 		for j := 0; j < len(tokens); j++ {
-			if contract == tokens[j].Contract {
+			if contractAddr == tokens[j].Contract {
 				tokens[j].Amount = tokens[j].Amount.Add(amount)
 				found = true
 				break
@@ -53,7 +53,7 @@ func NewERC20Tokens(module string, tokenAddrs []common.Address, tokenAmounts []*
 		}
 		if !found {
 			tokens = append(tokens, ERC20Token{
-				Contract: contract,
+				Contract: contractAddr,
 				Amount:   amount,
 			})
 		}

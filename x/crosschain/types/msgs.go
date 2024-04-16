@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 	"regexp"
 	"sort"
 
@@ -631,7 +632,7 @@ func (m *MsgBridgeCallClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgBridgeCallClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%s/%s/%s/%d", m.BlockHeight, m.EventNonce, m.DstChainId, m.Sender, m.Receiver, m.To, m.Asset, m.Message, m.Value.String(), m.GasLimit)
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s/%s/%d", m.BlockHeight, m.EventNonce, m.DstChainId, m.Sender, m.Receiver, m.To, m.TokenContracts, m.Amounts, m.Message, m.Value.String(), m.GasLimit)
 	return tmhash.Sum([]byte(path))
 }
 
@@ -660,6 +661,30 @@ func (m *MsgBridgeCallClaim) MustMessage() []byte {
 		panic(err)
 	}
 	return bz
+}
+
+func (m *MsgBridgeCallClaim) MustTokensAddr() []common.Address {
+	router, ok := msgValidateBasicRouter[m.ChainName]
+	if !ok {
+		panic(fmt.Sprintf("unrecognized cross chain name %s", m.ChainName))
+	}
+	addrs := make([]common.Address, 0, len(m.TokenContracts))
+	for _, token := range m.TokenContracts {
+		addr, err := router.ExternalAddressToAccAddress(token)
+		if err != nil {
+			panic(err)
+		}
+		addrs = append(addrs, common.BytesToAddress(addr))
+	}
+	return addrs
+}
+
+func (m *MsgBridgeCallClaim) AmountsToBigInt() []*big.Int {
+	amts := make([]*big.Int, 0, len(m.Amounts))
+	for _, a := range m.Amounts {
+		amts = append(amts, a.BigInt())
+	}
+	return amts
 }
 
 // MsgBridgeCallResultClaim

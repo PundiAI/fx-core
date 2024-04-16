@@ -1119,15 +1119,6 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 
 	suite.registerCoin(keeper.NewBridgeDenom(suite.chainName, tokenContract))
 
-	asset, err := contract.PackERC20AssetWithType(
-		[]common.Address{
-			common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, tokenContract).Bytes()),
-		}, []*big.Int{
-			big.NewInt(100),
-		},
-	)
-	require.NoError(suite.T(), err)
-
 	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
 	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData(fxtypes.DefaultDenom))
 
@@ -1155,7 +1146,8 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 				DstChainId:     "530",
 				EventNonce:     oracleLastEventNonce + 1,
 				Sender:         helpers.GenerateAddressByModule(suite.chainName),
-				Asset:          asset,
+				TokenContracts: []string{tokenContract},
+				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)},
 				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
 				To:             helpers.GenerateAddressByModule(suite.chainName),
 				Message:        "",
@@ -1192,7 +1184,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	}
 
 	for _, testData := range testMsgs {
-		err = testData.msg.ValidateBasic()
+		err := testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
 		ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
 		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)

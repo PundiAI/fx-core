@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/exp/slices"
 
-	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -57,17 +56,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.HandlePendingOutgoingTx(ctx, receiveAddr, externalClaim.GetEventNonce(), bridgeToken)
 
 	case *types.MsgBridgeCallClaim:
-		assetType, assetData, err := types.UnpackAssetType(claim.Asset)
-		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, "asset")
-		}
-		switch assetType {
-		case contract.AssetERC20:
-			return k.BridgeCallERC20Handler(ctx, assetData, claim.MustSender(), claim.MustTo(),
-				claim.MustReceiver(), claim.DstChainId, claim.MustMessage(), claim.Value, claim.GasLimit, claim.EventNonce)
-		default:
-			return errorsmod.Wrap(types.ErrInvalid, "asset not support")
-		}
+		return k.BridgeCallHandler(ctx, claim.MustSender(), claim.MustTo(), claim.MustReceiver(),
+			claim.MustTokensAddr(), claim.AmountsToBigInt(), claim.DstChainId, claim.MustMessage(), claim.Value, claim.GasLimit, claim.EventNonce)
 
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
