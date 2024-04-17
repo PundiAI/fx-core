@@ -110,19 +110,6 @@ interface IFxBridgeLogic {
         address _feeReceive
     ) external;
 
-    function refundBridgeToken(
-        address[] memory _currentOracles,
-        uint256[] memory _currentPowers,
-        uint8[] memory _v,
-        bytes32[] memory _r,
-        bytes32[] memory _s,
-        uint256[2] memory _nonceArray,
-        address _receiver,
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        uint256 _timeout
-    ) external;
-
     function submitBridgeCall(
         address[] memory _currentOracles,
         uint256[] memory _currentPowers,
@@ -256,12 +243,6 @@ interface IFxBridgeLogic {
         uint256 _gasLimit,
         bytes _message,
         uint256 _value
-    );
-
-    event RefundTokenExecutedEvent(
-        address indexed _receiver,
-        uint256 indexed _refundNonce,
-        uint256 _eventNonce
     );
 
     event SubmitBridgeCallEvent(
