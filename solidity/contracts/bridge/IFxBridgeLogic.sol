@@ -85,7 +85,7 @@ interface IFxBridgeLogic {
     ) external;
 
     function bridgeCall(
-        string memory _dstChainId,
+        string memory _dstChain,
         uint256 _gasLimit,
         address _receiver,
         address _to,
@@ -252,7 +252,7 @@ interface IFxBridgeLogic {
         address[] _tokens,
         uint256[] _amounts,
         uint256 _eventNonce,
-        string _dstChainId,
+        string _dstChain,
         uint256 _gasLimit,
         bytes _message,
         uint256 _value

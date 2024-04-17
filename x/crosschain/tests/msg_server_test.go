@@ -1140,7 +1140,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		{
 			name: "success",
 			msg: &types.MsgBridgeCallClaim{
-				DstChainId:     "530",
+				DstChain:       "530",
 				EventNonce:     oracleLastEventNonce + 1,
 				Sender:         helpers.GenerateAddressByModule(suite.chainName),
 				TokenContracts: []string{tokenContract},

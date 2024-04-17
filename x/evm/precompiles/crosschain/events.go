@@ -53,7 +53,7 @@ var (
 			abi.Argument{Name: "receiver", Type: contract.TypeAddress, Indexed: true},
 			abi.Argument{Name: "to", Type: contract.TypeAddress, Indexed: true},
 			abi.Argument{Name: "eventNonce", Type: contract.TypeUint256, Indexed: false},
-			abi.Argument{Name: "dstChainId", Type: contract.TypeString, Indexed: false},
+			abi.Argument{Name: "dstChain", Type: contract.TypeString, Indexed: false},
 			abi.Argument{Name: "gasLimit", Type: contract.TypeUint256, Indexed: false},
 			abi.Argument{Name: "value", Type: contract.TypeUint256, Indexed: false},
 			abi.Argument{Name: "message", Type: contract.TypeBytes, Indexed: false},

@@ -196,7 +196,7 @@ func (b MsgValidate) MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err erro
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if m.DstChainId == "" {
+	if m.DstChain == "" {
 		return errortypes.ErrInvalidRequest.Wrap("empty dst chain id")
 	}
 	if err = contract.ValidateEthereumAddress(m.Sender); err != nil {

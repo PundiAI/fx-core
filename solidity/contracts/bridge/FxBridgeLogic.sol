@@ -291,7 +291,7 @@ contract FxBridgeLogic is
     }
 
     function bridgeCall(
-        string memory _dstChainId,
+        string memory _dstChain,
         uint256 _gasLimit,
         address _receiver,
         address _to,
@@ -314,7 +314,7 @@ contract FxBridgeLogic is
             _tokens,
             _amounts,
             state_lastEventNonce,
-            _dstChainId,
+            _dstChain,
             _gasLimit,
             _message,
             _value

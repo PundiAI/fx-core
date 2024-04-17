@@ -40,7 +40,7 @@ interface ICrossChain {
     ) external view returns (uint256 _amount);
 
     function bridgeCall(
-        string memory _dstChainId,
+        string memory _dstChain,
         uint256 _gasLimit,
         address _receiver,
         address _to,
@@ -80,7 +80,7 @@ interface ICrossChain {
         address indexed _receiver,
         address indexed _to,
         uint256 _eventNonce,
-        string _dstChainId,
+        string _dstChain,
         uint256 _gasLimit,
         uint256 _value,
         bytes _message,
