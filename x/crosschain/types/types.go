@@ -436,9 +436,11 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse message")
 	}
-	assetBytes, err := hex.DecodeString(m.Asset)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse asset")
+	contracts := make([]gethcommon.Address, 0, len(m.Tokens))
+	amounts := make([]*big.Int, 0, len(m.Tokens))
+	for _, token := range m.Tokens {
+		contracts = append(contracts, gethcommon.HexToAddress(token.Contract))
+		amounts = append(amounts, token.Amount.BigInt())
 	}
 
 	// the methodName needs to be the same as the 'name' above in the checkpointAbiJson
@@ -456,7 +458,8 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 		big.NewInt(int64(m.Timeout)),
 		chainName,
 		messagesBytes,
-		assetBytes,
+		contracts,
+		amounts,
 	)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.

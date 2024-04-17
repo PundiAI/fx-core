@@ -102,9 +102,10 @@ var (
 			abi.Argument{Name: "_gasLimit", Type: contract.TypeUint256},
 			abi.Argument{Name: "_receiver", Type: contract.TypeAddress},
 			abi.Argument{Name: "_to", Type: contract.TypeAddress},
+			abi.Argument{Name: "_tokens", Type: contract.TypeAddressArray},
+			abi.Argument{Name: "_amounts", Type: contract.TypeUint256Array},
 			abi.Argument{Name: "_message", Type: contract.TypeBytes},
 			abi.Argument{Name: "_value", Type: contract.TypeUint256},
-			abi.Argument{Name: "_asset", Type: contract.TypeBytes},
 		},
 		abi.Arguments{
 			abi.Argument{Name: "_result", Type: contract.TypeBool},
@@ -216,13 +217,14 @@ func (args *IncreaseBridgeFeeArgs) Validate() error {
 }
 
 type BridgeCallArgs struct {
-	DstChainId string         `abi:"_dstChainId"`
-	GasLimit   *big.Int       `abi:"_gasLimit"`
-	Receiver   common.Address `abi:"_receiver"`
-	To         common.Address `abi:"_to"`
-	Message    []byte         `abi:"_message"`
-	Value      *big.Int       `abi:"_value"`
-	Asset      []byte         `abi:"_asset"`
+	DstChainId string           `abi:"_dstChainId"`
+	GasLimit   *big.Int         `abi:"_gasLimit"`
+	Receiver   common.Address   `abi:"_receiver"`
+	To         common.Address   `abi:"_to"`
+	Tokens     []common.Address `abi:"_tokens"`
+	Amounts    []*big.Int       `abi:"_amounts"`
+	Message    []byte           `abi:"_message"`
+	Value      *big.Int         `abi:"_value"`
 }
 
 // Validate validates the args
@@ -236,25 +238,8 @@ func (args *BridgeCallArgs) Validate() error {
 	if args.Value.Cmp(big.NewInt(0)) == -1 {
 		return errors.New("invalid value")
 	}
-	if len(args.Asset) > 0 {
-		if err := assetValidate(args.Asset); err != nil {
-			return err
-		}
+	if len(args.Tokens) != len(args.Amounts) {
+		return errors.New("token not match amount")
 	}
-
 	return nil
-}
-
-func assetValidate(asset []byte) error {
-	assetType, assetData, err := contract.UnpackAssetType(asset)
-	if err != nil {
-		return err
-	}
-	switch assetType {
-	case contract.AssetERC20:
-		_, _, err = contract.UnpackERC20Asset(assetData)
-	default:
-		err = errors.New("invalid asset type")
-	}
-	return err
 }

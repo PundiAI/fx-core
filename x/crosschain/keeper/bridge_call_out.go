@@ -5,15 +5,20 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gogotypes "github.com/gogo/protobuf/types"
 
-	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, msg *types.MsgBridgeCall) (*types.OutgoingBridgeCall, error) {
+func (k Keeper) AddOutgoingBridgeCall(
+	ctx sdk.Context,
+	sender sdk.AccAddress, receiver, to string,
+	tokens []types.ERC20Token, message string, value sdkmath.Int,
+	gasLimit uint64,
+) (*types.OutgoingBridgeCall, error) {
 	params := k.GetParams(ctx)
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, params, params.BridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
@@ -27,17 +32,16 @@ func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, msg *types.MsgBridgeCall)
 
 	nextID := k.autoIncrementID(ctx, types.KeyLastBridgeCallID)
 
-	senderAddr := sdk.MustAccAddressFromBech32(msg.Sender)
 	bridgeCall := &types.OutgoingBridgeCall{
 		Nonce:          nextID,
 		Timeout:        bridgeCallTimeout,
-		Sender:         fxtypes.AddressToStr(senderAddr.Bytes(), k.moduleName),
-		Receiver:       msg.Receiver,
-		To:             msg.To,
-		Asset:          msg.Asset,
-		Message:        msg.Message,
-		Value:          msg.Value,
-		GasLimit:       msg.GasLimit,
+		Sender:         fxtypes.AddressToStr(sender, k.moduleName),
+		Receiver:       receiver,
+		To:             to,
+		Tokens:         tokens,
+		Message:        message,
+		Value:          value,
+		GasLimit:       gasLimit,
 		OracleSetNonce: oracleSet.Nonce,
 		BlockHeight:    uint64(ctx.BlockHeight()),
 	}
@@ -107,35 +111,17 @@ func (k Keeper) IterateOutgoingBridgeCallsByAddress(ctx sdk.Context, addr string
 
 func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) {
 	receiveAddr := types.ExternalAddressToAccAddress(k.moduleName, data.GetSender())
-	if err := k.bridgeCallAssetRefundHandler(ctx, receiveAddr, data.Asset); err != nil {
+	if err := k.bridgeCallAssetRefundHandler(ctx, receiveAddr, data.Tokens); err != nil {
 		panic(err)
 	}
 }
 
-func (k Keeper) bridgeCallAssetRefundHandler(ctx sdk.Context, receive sdk.AccAddress, asset string) error {
-	assetType, assetData, err := types.UnpackAssetType(asset)
+func (k Keeper) bridgeCallAssetRefundHandler(ctx sdk.Context, receive sdk.AccAddress, tokens []types.ERC20Token) error {
+	coins, err := k.bridgeCallTransferToSender(ctx, receive, tokens)
 	if err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, "asset")
+		return err
 	}
-
-	switch assetType {
-	case contract.AssetERC20:
-		tokenAddresses, amounts, err := contract.UnpackERC20Asset(assetData)
-		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, "erc20 token")
-		}
-		tokens, err := types.NewERC20Tokens(k.moduleName, tokenAddresses, amounts)
-		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, err.Error())
-		}
-		coins, err := k.bridgeCallTransferToSender(ctx, receive, tokens)
-		if err != nil {
-			return err
-		}
-		return k.bridgeCallTransferToReceiver(ctx, receive, receive, coins)
-	default:
-		return errorsmod.Wrap(types.ErrInvalid, "asset type")
-	}
+	return k.bridgeCallTransferToReceiver(ctx, receive, receive, coins)
 }
 
 func (k Keeper) IterateBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(bridgeCall *types.OutgoingBridgeCall) bool) {

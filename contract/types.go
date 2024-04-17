@@ -10,4 +10,5 @@ var (
 	TypeBytes32, _      = abi.NewType("bytes32", "", nil)
 	TypeBytes, _        = abi.NewType("bytes", "", nil)
 	TypeUint256Array, _ = abi.NewType("uint256[]", "", nil)
+	TypeAddressArray, _ = abi.NewType("address[]", "", nil)
 )

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
-	"math/big"
 	"sort"
 	"testing"
 
@@ -15,14 +14,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
@@ -1405,7 +1402,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			Amount:         sendToFxAmount,
 			Sender:         sendToFxSendAddr,
 			Receiver:       sendToFxReceiveAddr.String(),
-			TargetIbc:      hex.EncodeToString([]byte(erc20types.ModuleName)),
+			TargetIbc:      "",
 			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
@@ -1414,15 +1411,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
-
-	var balanceRes struct{ Value *big.Int }
-	addr := common.BytesToAddress(sendToFxReceiveAddr.Bytes())
-	err = suite.app.EvmKeeper.QueryContract(suite.ctx, addr, tokenPair.GetERC20Contract(), contract.GetFIP20().ABI, "balanceOf", &balanceRes, addr)
-	suite.NoError(err)
-	suite.Equal(balanceRes.Value.String(), sendToFxAmount.String())
-
-	assetData, err := contract.PackERC20AssetWithType([]common.Address{tokenPair.GetERC20Contract()}, []*big.Int{big.NewInt(1e18)})
-	suite.NoError(err)
+	suite.Equal(sendToFxAmount, suite.app.BankKeeper.GetBalance(suite.ctx, sendToFxReceiveAddr, tokenPair.GetDenom()).Amount)
 
 	testCases := []struct {
 		name     string
@@ -1438,7 +1427,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 					Sender:    sendToFxReceiveAddr.String(),
 					Receiver:  helpers.GenerateAddressByModule(suite.chainName),
 					To:        helpers.GenerateAddressByModule(suite.chainName),
-					Asset:     assetData,
+					Coins:     sdk.NewCoins(sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewInt(1e18))),
 					Message:   "",
 					Value:     sdkmath.ZeroInt(),
 					GasLimit:  0,

@@ -210,7 +210,8 @@ interface IFxBridgeLogic {
         uint256 _timeout,
         string memory _dstChain,
         bytes calldata _message,
-        bytes calldata _asset // todo modify with bridge call confirm
+        address[] memory _tokens,
+        uint256[] memory _amounts
     ) external returns (bytes32);
 
     /* =============== EVENTS =============== */

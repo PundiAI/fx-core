@@ -96,9 +96,11 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse message")
 	}
-	assetBytes, err := hex.DecodeString(bridgeCall.Asset)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse asset")
+	contracts := make([]string, 0, len(bridgeCall.Tokens))
+	amounts := make([]*big.Int, 0, len(bridgeCall.Tokens))
+	for _, token := range bridgeCall.Tokens {
+		contracts = append(contracts, token.Contract)
+		amounts = append(amounts, token.Amount.BigInt())
 	}
 
 	params := []abi.Param{
@@ -112,7 +114,8 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 		{"uint256": big.NewInt(int64(bridgeCall.Timeout))},
 		{"string": ModuleName},
 		{"bytes": messagesBytes},
-		{"bytes": assetBytes},
+		{"address[]": contracts},
+		{"uint256[]": amounts},
 	}
 
 	encode, err := abi.GetPaddedParam(params)

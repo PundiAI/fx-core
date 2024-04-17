@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -35,26 +36,25 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		Amount:         sdk.NewInt(randomAmount),
 		Sender:         fxtypes.AddressToStr(helpers.GenerateAddress().Bytes(), suite.chainName),
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
-		TargetIbc:      hex.EncodeToString([]byte(fxtypes.ERC20Target)),
+		TargetIbc:      "",
 		BridgerAddress: suite.bridgerAddrs[0].String(),
 	})
 	suite.NoError(err)
 
 	pair, b := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, "ttt")
 	suite.True(b)
-	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount))
+	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 
-	erc20AssetWithType, err := contract.PackERC20AssetWithType([]common.Address{pair.GetERC20Contract()}, []*big.Int{big.NewInt(randomAmount)})
 	suite.NoError(err)
 	_, err = suite.MsgServer().BridgeCall(suite.ctx, &types.MsgBridgeCall{
 		Sender:   sdk.AccAddress(fxAddr1.Bytes()).String(),
 		Receiver: helpers.GenerateAddressByModule(suite.chainName),
-		Asset:    erc20AssetWithType,
+		Coins:    sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewInt(randomAmount))),
 		Value:    sdk.ZeroInt(),
 	})
 	suite.NoError(err)
 
-	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(0))
+	suite.Equal(sdkmath.NewInt(0), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 
 	var outgoingBridgeCall *types.OutgoingBridgeCall
 	suite.Keeper().IterateOutgoingBridgeCallsByAddress(suite.ctx, fxtypes.AddressToStr(fxAddr1.Bytes(), suite.chainName), func(value *types.OutgoingBridgeCall) bool {
