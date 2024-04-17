@@ -57,7 +57,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 
 	case *types.MsgBridgeCallClaim:
 		return k.BridgeCallHandler(ctx, claim.MustSender(), claim.MustTo(), claim.MustReceiver(),
-			claim.MustTokensAddr(), claim.AmountsToBigInt(), claim.DstChainId, claim.MustMessage(), claim.Value, claim.GasLimit, claim.EventNonce)
+			claim.MustTokensAddr(), claim.AmountsToBigInt(), claim.DstChain, claim.MustMessage(), claim.Value, claim.GasLimit, claim.EventNonce)
 
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)

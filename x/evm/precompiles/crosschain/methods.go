@@ -98,7 +98,7 @@ var (
 		BridgeCallMethodName,
 		abi.Function, "payable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "_dstChainId", Type: contract.TypeString},
+			abi.Argument{Name: "_dstChain", Type: contract.TypeString},
 			abi.Argument{Name: "_gasLimit", Type: contract.TypeUint256},
 			abi.Argument{Name: "_receiver", Type: contract.TypeAddress},
 			abi.Argument{Name: "_to", Type: contract.TypeAddress},
@@ -217,20 +217,20 @@ func (args *IncreaseBridgeFeeArgs) Validate() error {
 }
 
 type BridgeCallArgs struct {
-	DstChainId string           `abi:"_dstChainId"`
-	GasLimit   *big.Int         `abi:"_gasLimit"`
-	Receiver   common.Address   `abi:"_receiver"`
-	To         common.Address   `abi:"_to"`
-	Tokens     []common.Address `abi:"_tokens"`
-	Amounts    []*big.Int       `abi:"_amounts"`
-	Message    []byte           `abi:"_message"`
-	Value      *big.Int         `abi:"_value"`
+	DstChain string           `abi:"_dstChain"`
+	GasLimit *big.Int         `abi:"_gasLimit"`
+	Receiver common.Address   `abi:"_receiver"`
+	To       common.Address   `abi:"_to"`
+	Tokens   []common.Address `abi:"_tokens"`
+	Amounts  []*big.Int       `abi:"_amounts"`
+	Message  []byte           `abi:"_message"`
+	Value    *big.Int         `abi:"_value"`
 }
 
 // Validate validates the args
 func (args *BridgeCallArgs) Validate() error {
-	if len(args.DstChainId) == 0 {
-		return errors.New("empty dst chain id")
+	if len(args.DstChain) == 0 {
+		return errors.New("empty dst chain")
 	}
 	if args.GasLimit.Cmp(big.NewInt(0)) == -1 || !args.GasLimit.IsUint64() {
 		return errors.New("invalid gas limit")

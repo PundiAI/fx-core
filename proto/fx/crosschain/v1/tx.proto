@@ -157,7 +157,7 @@ message MsgSendToFxClaim {
 message MsgSendToFxClaimResponse {}
 
 message MsgBridgeCallClaim {
-  string dst_chain_id = 1;
+  string dst_chain = 1;
   uint64 event_nonce = 2;
   string sender = 3;
   string receiver = 4;

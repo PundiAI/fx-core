@@ -36,7 +36,7 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	if c.router == nil {
 		return nil, errors.New("cross chain router empty")
 	}
-	route, has := c.router.GetRoute(args.DstChainId)
+	route, has := c.router.GetRoute(args.DstChain)
 	if !has {
 		return nil, errors.New("invalid target")
 	}
@@ -48,7 +48,7 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 
 	// add event log
 	if err = c.AddLog(evm, BridgeCallEvent, []common.Hash{sender.Hash(), args.Receiver.Hash(), args.To.Hash()}, sdkmath.NewIntFromUint64(eventNonce).BigInt(),
-		args.DstChainId, args.GasLimit, args.Value, args.Message, args.Tokens, args.Amounts); err != nil {
+		args.DstChain, args.GasLimit, args.Value, args.Message, args.Tokens, args.Amounts); err != nil {
 		return nil, err
 	}
 	return BridgeCallMethod.Outputs.Pack(true)
