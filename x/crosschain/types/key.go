@@ -120,6 +120,8 @@ var (
 
 	OutgoingBridgeCallNonceKey           = []byte{0x48}
 	OutgoingBridgeCallAddressAndNonceKey = []byte{0x49}
+
+	PendingOutgoingTxPoolKey = []byte{0x50}
 )
 
 // GetOracleKey returns the following key format
@@ -171,11 +173,11 @@ func GetOutgoingTxPoolKey(fee ERC20Token, id uint64) []byte {
 
 // GetOutgoingPendingTxPoolKey returns the following key format
 func GetOutgoingPendingTxPoolKey(tokenContract string, id uint64) []byte {
-	return append(OutgoingTxPoolKey, append([]byte(tokenContract), sdk.Uint64ToBigEndian(id)...)...)
+	return append(GetOutgoingPendingTxPoolContractPrefix(tokenContract), sdk.Uint64ToBigEndian(id)...)
 }
 
 func GetOutgoingPendingTxPoolContractPrefix(tokenContract string) []byte {
-	return append(OutgoingTxPoolKey, []byte(tokenContract)...)
+	return append(PendingOutgoingTxPoolKey, []byte(tokenContract)...)
 }
 
 // GetOutgoingTxBatchKey returns the following key format
