@@ -164,15 +164,14 @@ const addBridgeToken = task("add-bridge-token", "add bridge token into bridge co
     .addParam("tokenContract", "token contract address", undefined, string, false)
     .addParam("isOriginal", "bridge token target ibc for bridge token", false, boolean, true)
     .addParam("targetIbc", "bridge token target ibc for bridge token", "", string, true)
-    .addParam("tokenType","bridge token type", "0", string, true)
     .setAction(async (taskArgs, hre) => {
-        const {bridgeContract, tokenContract, isOriginal, targetIbc, tokenType} = taskArgs;
+        const {bridgeContract, tokenContract, isOriginal, targetIbc} = taskArgs;
         const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
         const from = await wallet.getAddress();
 
         const bridge_factory = await hre.ethers.getContractFactory("FxBridgeLogic")
         const ibc = hre.ethers.encodeBytes32String(targetIbc)
-        const data = bridge_factory.interface.encodeFunctionData('addBridgeToken', [tokenContract, ibc, isOriginal, tokenType])
+        const data = bridge_factory.interface.encodeFunctionData('addBridgeToken', [tokenContract, ibc, isOriginal])
 
         const tx = await hre.run(SUB_CREATE_TRANSACTION, {
             from: from, to: bridgeContract, data: data, value: taskArgs.value,
