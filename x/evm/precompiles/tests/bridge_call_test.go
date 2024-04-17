@@ -13,6 +13,6 @@ func TestBridgeCallABI(t *testing.T) {
 
 	method := crosschainABI.Methods[crosschain.BridgeCallMethodName]
 	require.Equal(t, method, crosschain.BridgeCallMethod)
-	require.Equal(t, 7, len(crosschain.BridgeCallMethod.Inputs))
+	require.Equal(t, 8, len(crosschain.BridgeCallMethod.Inputs))
 	require.Equal(t, 1, len(crosschain.BridgeCallMethod.Outputs))
 }

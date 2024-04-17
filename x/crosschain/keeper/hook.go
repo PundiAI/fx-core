@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 // TransferAfter
@@ -40,25 +40,25 @@ func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender
 	return k.AddUnbatchedTxBridgeFee(ctx, txID, sender, addBridgeFee)
 }
 
-func (k Keeper) PrecompileBridgeCall(ctx sdk.Context, dstChainId string, gasLimit uint64, sender, receiver, to common.Address, asset, message []byte, value *big.Int) (eventNonce uint64, err error) {
-	msg := types.MsgBridgeCall{
-		ChainName: dstChainId,
-		Sender:    sdk.AccAddress(sender.Bytes()).String(),
-		Receiver:  receiver.String(),
-		To:        to.String(),
-		Asset:     hex.EncodeToString(asset),
-		Message:   hex.EncodeToString(message),
-		Value:     sdkmath.NewIntFromBigInt(value),
-		GasLimit:  gasLimit,
-	}
-	if len(asset) > 0 {
-		msg.Asset, err = k.bridgeCallAssetHandler(ctx, sender.Bytes(), hex.EncodeToString(asset))
-		if err != nil {
-			return 0, err
-		}
+func (k Keeper) PrecompileBridgeCall(
+	ctx sdk.Context, sender, receiver, to common.Address,
+	coins sdk.Coins, message []byte, value *big.Int, gasLimit uint64,
+) (eventNonce uint64, err error) {
+	tokens, err := k.bridgeCallCoinsHandler(ctx, sender.Bytes(), coins)
+	if err != nil {
+		return 0, err
 	}
 
-	outCall, err := k.AddOutgoingBridgeCall(ctx, &msg)
+	outCall, err := k.AddOutgoingBridgeCall(
+		ctx,
+		sender.Bytes(),
+		fxtypes.AddressToStr(receiver.Bytes(), k.moduleName),
+		fxtypes.AddressToStr(to.Bytes(), k.moduleName),
+		tokens,
+		hex.EncodeToString(message),
+		sdkmath.NewIntFromBigInt(value),
+		gasLimit,
+	)
 	if err != nil {
 		return 0, err
 	}

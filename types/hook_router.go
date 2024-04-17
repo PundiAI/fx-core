@@ -12,7 +12,7 @@ type TransactionHook interface {
 	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken bool) error
 	PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
 	PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
-	PrecompileBridgeCall(ctx sdk.Context, dstChainId string, gasLimit uint64, sender, receiver, to common.Address, asset, message []byte, value *big.Int) (uint64, error)
+	PrecompileBridgeCall(ctx sdk.Context, sender, receiver, to common.Address, coins sdk.Coins, message []byte, value *big.Int, gasLimit uint64) (uint64, error)
 }
 
 type Router struct {

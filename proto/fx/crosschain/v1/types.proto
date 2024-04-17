@@ -271,7 +271,7 @@ message OutgoingBridgeCall {
   string sender = 3;
   string receiver = 4;
   string to = 5;
-  string asset = 6;
+  repeated ERC20Token tokens = 6 [(gogoproto.nullable) = false];
   string message = 7;
   string value = 8 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",

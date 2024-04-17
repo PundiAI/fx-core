@@ -268,10 +268,8 @@ func (b TronMsgValidate) MsgBridgeCallValidate(m *crosschaintypes.MsgBridgeCall)
 	if m.Value.IsNil() || m.Value.IsNegative() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid value")
 	}
-	if len(m.Asset) > 0 {
-		if _, err := hex.DecodeString(m.Asset); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid asset")
-		}
+	if err = m.Coins.Validate(); err != nil {
+		return errortypes.ErrInvalidCoins.Wrap(err.Error())
 	}
 	if len(m.Message) > 0 {
 		if _, err := hex.DecodeString(m.Message); err != nil {

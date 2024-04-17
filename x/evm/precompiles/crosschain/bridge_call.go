@@ -23,6 +23,16 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 	sender := contract.Caller()
 
+	// NOTE: current only support erc20 token
+	tokens := sdk.NewCoins()
+	for i, token := range args.Tokens {
+		tokenDenom, err := c.handlerERC20Token(ctx, evm, token, sender, args.Amounts[i])
+		if err != nil {
+			return nil, err
+		}
+		tokens = tokens.Add(sdk.NewCoin(tokenDenom, sdkmath.NewIntFromBigInt(args.Amounts[i])))
+	}
+
 	if c.router == nil {
 		return nil, errors.New("cross chain router empty")
 	}
@@ -30,15 +40,15 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	if !has {
 		return nil, errors.New("invalid target")
 	}
-	eventNonce, err := route.PrecompileBridgeCall(ctx, args.DstChainId, args.GasLimit.Uint64(), sender,
-		args.Receiver, args.To, args.Asset, args.Message, args.Value)
+	eventNonce, err := route.PrecompileBridgeCall(ctx, sender,
+		args.Receiver, args.To, tokens, args.Message, args.Value, args.GasLimit.Uint64())
 	if err != nil {
 		return nil, err
 	}
 
 	// add event log
-	if err = c.AddLog(evm, BridgeCallEvent, []common.Hash{sender.Hash(), args.Receiver.Hash(), args.To.Hash()},
-		sdkmath.NewIntFromUint64(eventNonce).BigInt(), args.DstChainId, args.GasLimit, args.Value, args.Message, args.Asset); err != nil {
+	if err = c.AddLog(evm, BridgeCallEvent, []common.Hash{sender.Hash(), args.Receiver.Hash(), args.To.Hash()}, sdkmath.NewIntFromUint64(eventNonce).BigInt(),
+		args.DstChainId, args.GasLimit, args.Value, args.Message, args.Tokens, args.Amounts); err != nil {
 		return nil, err
 	}
 	return BridgeCallMethod.Outputs.Pack(true)

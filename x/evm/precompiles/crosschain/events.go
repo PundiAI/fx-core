@@ -57,7 +57,8 @@ var (
 			abi.Argument{Name: "gasLimit", Type: contract.TypeUint256, Indexed: false},
 			abi.Argument{Name: "value", Type: contract.TypeUint256, Indexed: false},
 			abi.Argument{Name: "message", Type: contract.TypeBytes, Indexed: false},
-			abi.Argument{Name: "asset", Type: contract.TypeBytes, Indexed: false},
+			abi.Argument{Name: "tokens", Type: contract.TypeAddressArray, Indexed: false},
+			abi.Argument{Name: "amounts", Type: contract.TypeUint256Array, Indexed: false},
 		},
 	)
 )

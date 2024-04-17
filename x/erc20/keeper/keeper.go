@@ -95,7 +95,7 @@ func (k Keeper) PrecompileIncreaseBridgeFee(_ sdk.Context, _ uint64, _ sdk.AccAd
 	return errors.New("invalid implemented")
 }
 
-func (k Keeper) PrecompileBridgeCall(_ sdk.Context, _ string, _ uint64, _, _, _ common.Address, _, _ []byte, _ *big.Int) (uint64, error) {
+func (k Keeper) PrecompileBridgeCall(_ sdk.Context, _, _, _ common.Address, _ sdk.Coins, _ []byte, _ *big.Int, _ uint64) (uint64, error) {
 	return 0, errors.New("invalid implemented")
 }
 

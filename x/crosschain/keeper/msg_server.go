@@ -616,14 +616,12 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if len(msg.Asset) > 0 {
-		msg.Asset, err = s.Keeper.bridgeCallAssetHandler(ctx, sender, msg.Asset)
-		if err != nil {
-			return nil, err
-		}
+	tokens, err := s.Keeper.bridgeCallCoinsHandler(ctx, sender, msg.Coins)
+	if err != nil {
+		return nil, err
 	}
 
-	if _, err = s.Keeper.AddOutgoingBridgeCall(ctx, msg); err != nil {
+	if _, err = s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Message, msg.Value, msg.GasLimit); err != nil {
 		return nil, err
 	}
 
