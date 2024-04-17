@@ -54,7 +54,7 @@ func TestSwaggerConfig(t *testing.T) {
 			assert.Equal(t, 2, handler.Value().Len())
 		}
 		if handler.Key().String() == "GET" {
-			assert.Equal(t, 209, handler.Value().Len())
+			assert.Equal(t, 210, handler.Value().Len())
 		}
 	}
 	assert.Equal(t, 32, len(route))

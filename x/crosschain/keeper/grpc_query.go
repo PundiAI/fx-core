@@ -5,7 +5,9 @@ import (
 	"sort"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -334,6 +336,30 @@ func (k Keeper) GetPendingSendToExternal(c context.Context, req *types.QueryPend
 		return false
 	})
 	return res, nil
+}
+
+func (k Keeper) GetPendingPoolSendToExternal(c context.Context, req *types.QueryPendingPoolSendToExternalRequest) (*types.QueryPendingPoolSendToExternalResponse, error) {
+	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "sender address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	pendingOutgoingStore := prefix.NewStore(store, types.PendingOutgoingTxPoolKey)
+
+	txs, pageRes, err := query.GenericFilteredPaginate(k.cdc, pendingOutgoingStore, req.Pagination, func(key []byte, tx *types.PendingOutgoingTransferTx) (*types.PendingOutgoingTransferTx, error) {
+		if tx.Sender != req.SenderAddress {
+			return nil, nil
+		}
+		return tx, nil
+	}, func() *types.PendingOutgoingTransferTx {
+		return &types.PendingOutgoingTransferTx{}
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryPendingPoolSendToExternalResponse{Txs: txs, Pagination: pageRes}, nil
 }
 
 func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
