@@ -14,12 +14,11 @@ interface IFxBridgeLogic {
         address _erc20Address
     ) external view returns (uint256);
 
-    function bridgeTokens() external view returns (address[] memory);
+    function bridgeTokens(uint256 _index) external view returns (address);
     function tokenStatus(
         address _tokenAddr
     ) external view returns (TokenStatus memory);
     function version() external view returns (string memory);
-    function state_lastRefundNonce(uint256 _nonce) external view returns (bool);
     /* solhint-disable func-name-mixedcase */
 
     struct TokenStatus {
