@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math/big"
 	"strconv"
 
@@ -37,12 +38,18 @@ func (k Keeper) BridgeCallHandler(
 	} else {
 		commit()
 	}
-
 	if len(errCause) > 0 && len(tokens) > 0 {
-		// receiverStr := fxtypes.AddressToStr(sender.Bytes(), k.moduleName)
-		// TODO: emit event
-		// TODO: add refund record
-		return nil
+		// new outgoing bridge call to refund
+		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), common.Address{}.String(), erc20Token, "", sdkmath.ZeroInt(), 0)
+		if err != nil {
+			return err
+		}
+		// refund event
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeBridgeCallEvent,
+			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", eventNonce)),
+			sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCall.Nonce)),
+		))
 	}
 	return nil
 }
