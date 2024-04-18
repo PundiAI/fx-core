@@ -76,7 +76,8 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	})
 	suite.NoError(err)
 	// expect balance = sendToFx value + outgointBridgeCallRefund value
-	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount+randomAmount))
+	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount))
+	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 }
 
 func (suite *KeeperTestSuite) checkBalanceOf(contractAddr, address common.Address, expectBalance *big.Int) {

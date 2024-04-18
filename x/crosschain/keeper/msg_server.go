@@ -621,9 +621,13 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 		return nil, err
 	}
 
-	if _, err = s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Message, msg.Value, msg.GasLimit); err != nil {
+	outCall, err := s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Message, msg.Value, msg.GasLimit)
+	if err != nil {
 		return nil, err
 	}
+
+	// bridge call from msg
+	s.Keeper.SetBridgeCallFromMsg(ctx, outCall.Nonce)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,

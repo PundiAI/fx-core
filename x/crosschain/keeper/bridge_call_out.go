@@ -111,17 +111,18 @@ func (k Keeper) IterateOutgoingBridgeCallsByAddress(ctx sdk.Context, addr string
 
 func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) {
 	receiveAddr := types.ExternalAddressToAccAddress(k.moduleName, data.GetSender())
-	if err := k.bridgeCallAssetRefundHandler(ctx, receiveAddr, data.Tokens); err != nil {
+	coins, err := k.bridgeCallTransferToSender(ctx, receiveAddr, data.Tokens)
+	if err != nil {
 		panic(err)
 	}
-}
 
-func (k Keeper) bridgeCallAssetRefundHandler(ctx sdk.Context, receive sdk.AccAddress, tokens []types.ERC20Token) error {
-	coins, err := k.bridgeCallTransferToSender(ctx, receive, tokens)
-	if err != nil {
-		return err
+	if k.HasBridgeCallFromMsg(ctx, data.Nonce) {
+		return
 	}
-	return k.bridgeCallTransferToReceiver(ctx, receive, receive, coins)
+	// precompile bridge call refund
+	if err = k.bridgeCallTransferToReceiver(ctx, receiveAddr, receiveAddr, coins); err != nil {
+		panic(err)
+	}
 }
 
 func (k Keeper) IterateBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(bridgeCall *types.OutgoingBridgeCall) bool) {
@@ -138,4 +139,18 @@ func (k Keeper) IterateBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb 
 			break
 		}
 	}
+}
+
+func (k Keeper) SetBridgeCallFromMsg(ctx sdk.Context, txID uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetBridgeCallFromMsgKey(txID), []byte{})
+}
+
+func (k Keeper) DeleteBridgeCallFromMsg(ctx sdk.Context, txID uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetBridgeCallFromMsgKey(txID))
+}
+
+func (k Keeper) HasBridgeCallFromMsg(ctx sdk.Context, txID uint64) bool {
+	return ctx.KVStore(k.storeKey).Has(types.GetBridgeCallFromMsgKey(txID))
 }
