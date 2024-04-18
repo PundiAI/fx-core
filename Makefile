@@ -181,8 +181,9 @@ test-nightly:
 	@TEST_CROSSCHAIN=true go test -mod=readonly -v -run TestCrosschainKeeperTestSuite ./x/crosschain/...
 
 mocks:
-	@go install github.com/golang/mock/mockgen@v1.6.0
+	@go install go.uber.org/mock/mockgen@v0.4.0
 	mockgen -source=x/crosschain/types/expected_keepers.go -package mock -destination x/crosschain/mock/expected_keepers_mocks.go
+	mockgen -source=x/evm/precompiles/crosschain/expected_keepers.go -package mock -destination x/evm/precompiles/crosschain/mock/expected_keepers_mocks.go
 
 .PHONY: test test-count test-nightly mocks
 
