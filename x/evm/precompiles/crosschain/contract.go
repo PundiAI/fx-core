@@ -9,13 +9,12 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 type Contract struct {
 	ctx               sdk.Context
-	router            *fxtypes.Router
+	router            *Router
 	bankKeeper        BankKeeper
 	evmKeeper         EvmKeeper
 	erc20Keeper       Erc20Keeper
@@ -30,7 +29,7 @@ func NewPrecompiledContract(
 	erc20Keeper Erc20Keeper,
 	ibcTransferKeeper IBCTransferKeeper,
 	accountKeeper AccountKeeper,
-	router *fxtypes.Router,
+	router *Router,
 ) *Contract {
 	return &Contract{
 		ctx:               ctx,

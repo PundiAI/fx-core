@@ -23,7 +23,6 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
@@ -88,7 +87,7 @@ func (appKeepers *AppKeepers) EvmPrecompiled() {
 	}
 
 	// cross chain precompile
-	transferRouter := fxtypes.NewRouter().
+	crosschainRouter := precompilescrosschain.NewRouter().
 		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
@@ -105,7 +104,7 @@ func (appKeepers *AppKeepers) EvmPrecompiled() {
 			appKeepers.Erc20Keeper,
 			appKeepers.IBCTransferKeeper,
 			appKeepers.AccountKeeper,
-			transferRouter,
+			crosschainRouter,
 		)
 	}
 

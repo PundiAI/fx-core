@@ -1,9 +1,7 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
-	"math/big"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -85,18 +83,6 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive st
 		Sender:   sender.String(),
 	})
 	return err
-}
-
-func (k Keeper) PrecompileCancelSendToExternal(_ sdk.Context, _ uint64, _ sdk.AccAddress) (sdk.Coin, error) {
-	return sdk.Coin{}, errors.New("invalid implemented")
-}
-
-func (k Keeper) PrecompileIncreaseBridgeFee(_ sdk.Context, _ uint64, _ sdk.AccAddress, _ sdk.Coin) error {
-	return errors.New("invalid implemented")
-}
-
-func (k Keeper) PrecompileBridgeCall(_ sdk.Context, _, _, _ common.Address, _ sdk.Coins, _ []byte, _ *big.Int, _ uint64) (uint64, error) {
-	return 0, errors.New("invalid implemented")
 }
 
 func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {
