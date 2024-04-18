@@ -37,7 +37,6 @@ contract FxBridgeLogic is
     address[] public bridgeTokens;
     mapping(address => TokenStatus) public tokenStatus;
     string public version;
-    mapping(uint256 => bool) public state_lastRefundNonce;
     mapping(uint256 => bool) public state_lastBridgeCallNonce;
     /* solhint-enable var-name-mixedcase */
 
