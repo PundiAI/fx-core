@@ -6,166 +6,39 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/functionx/fx-core/v7/contract"
 )
 
 var (
 	// AllowanceSharesMethod Query the amount of shares an owner allowed to a spender.
-	AllowanceSharesMethod = abi.NewMethod(
-		AllowanceSharesMethodName,
-		AllowanceSharesMethodName,
-		abi.Function, "view", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-			abi.Argument{Name: "_owner", Type: contract.TypeAddress},
-			abi.Argument{Name: "_spender", Type: contract.TypeAddress},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-		},
-	)
+	AllowanceSharesMethod = GetABI().Methods[AllowanceSharesMethodName]
 
 	// DelegationMethod Query the amount of shares in val.
-	DelegationMethod = abi.NewMethod(
-		DelegationMethodName,
-		DelegationMethodName,
-		abi.Function, "view", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-			abi.Argument{Name: "_del", Type: contract.TypeAddress},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-			abi.Argument{Name: "_delegateAmount", Type: contract.TypeUint256},
-		},
-	)
+	DelegationMethod = GetABI().Methods[DelegationMethodName]
 
 	// DelegationRewardsMethod Query the amount of rewards in val.
-	DelegationRewardsMethod = abi.NewMethod(
-		DelegationRewardsMethodName,
-		DelegationRewardsMethodName,
-		abi.Function, "view", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-			abi.Argument{Name: "_del", Type: contract.TypeAddress},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
-		},
-	)
-)
+	DelegationRewardsMethod = GetABI().Methods[DelegationRewardsMethodName]
 
-var (
 	// ApproveSharesMethod Approve shares to a spender.
-	ApproveSharesMethod = abi.NewMethod(
-		ApproveSharesMethodName,
-		ApproveSharesMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-			abi.Argument{Name: "_spender", Type: contract.TypeAddress},
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: contract.TypeBool},
-		},
-	)
+	ApproveSharesMethod = GetABI().Methods[ApproveSharesMethodName]
 
 	// DelegateMethod Delegate token to a validator.
-	DelegateMethod = abi.NewMethod(
-		DelegateMethodName,
-		DelegateMethodName,
-		abi.Function, "payable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
-		},
-	)
+	DelegateMethod = GetABI().Methods[DelegateMethodName]
 
 	// TransferSharesMethod Transfer shares to a recipient.
-	TransferSharesMethod = abi.NewMethod(
-		TransferSharesMethodName,
-		TransferSharesMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-			abi.Argument{Name: "_to", Type: contract.TypeAddress},
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_token", Type: contract.TypeUint256},
-			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
-		},
-	)
+	TransferSharesMethod = GetABI().Methods[TransferSharesMethodName]
 
 	// TransferFromSharesMethod Transfer shares from a sender to a recipient.
-	TransferFromSharesMethod = abi.NewMethod(
-		TransferFromSharesMethodName,
-		TransferFromSharesMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-			abi.Argument{Name: "_from", Type: contract.TypeAddress},
-			abi.Argument{Name: "_to", Type: contract.TypeAddress},
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_token", Type: contract.TypeUint256},
-			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
-		},
-	)
+	TransferFromSharesMethod = GetABI().Methods[TransferFromSharesMethodName]
 
 	// UndelegateMethod Undelegate shares from a validator.
-	UndelegateMethod = abi.NewMethod(
-		UndelegateMethodName,
-		UndelegateMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
-			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
-			abi.Argument{Name: "_completionTime", Type: contract.TypeUint256},
-		},
-	)
+	UndelegateMethod = GetABI().Methods[UndelegateMethodName]
 
 	// WithdrawMethod Withdraw rewards from a validator.
-	WithdrawMethod = abi.NewMethod(
-		WithdrawMethodName,
-		WithdrawMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_val", Type: contract.TypeString},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
-		},
-	)
+	WithdrawMethod = GetABI().Methods[WithdrawMethodName]
 
 	// RedelegateMethod Redelegate share from src validator to dest validator
-	RedelegateMethod = abi.NewMethod(
-		RedelegateMethodName,
-		RedelegateMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_valSrc", Type: contract.TypeString},
-			abi.Argument{Name: "_valDst", Type: contract.TypeString},
-			abi.Argument{Name: "_shares", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
-			abi.Argument{Name: "_reward", Type: contract.TypeUint256},
-			abi.Argument{Name: "_completionTime", Type: contract.TypeUint256},
-		},
-	)
+	RedelegateMethod = GetABI().Methods[RedelegateMethodName]
 )
 
 type AllowanceSharesArgs struct {
