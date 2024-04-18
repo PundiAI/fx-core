@@ -25,3 +25,7 @@ type Erc20Keeper interface {
 type EvmKeeper interface {
 	CallEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
 }
+
+type IBCTransferHook interface {
+	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken bool) error
+}

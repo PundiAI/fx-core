@@ -71,6 +71,7 @@ import (
 	gravitytypes "github.com/functionx/fx-core/v7/x/gravity/types"
 	fxtransfer "github.com/functionx/fx-core/v7/x/ibc/applications/transfer"
 	fxtransferkeeper "github.com/functionx/fx-core/v7/x/ibc/applications/transfer/keeper"
+	fxibctransfertypes "github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter"
 	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
 	migratekeeper "github.com/functionx/fx-core/v7/x/migrate/keeper"
@@ -500,7 +501,7 @@ func NewAppKeeper(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	ibcTransferRouter := fxtypes.NewRouter().
+	ibcTransferRouter := fxibctransfertypes.NewRouter().
 		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).

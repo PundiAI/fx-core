@@ -12,7 +12,6 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/tendermint/tendermint/libs/log"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 )
 
@@ -31,7 +30,7 @@ type Keeper struct {
 	scopedKeeper  capabilitykeeper.ScopedKeeper
 	erc20Keeper   types.Erc20Keeper
 	evmKeeper     types.EvmKeeper
-	router        *fxtypes.Router
+	router        *types.Router
 	refundHook    types.RefundHook
 }
 
@@ -62,7 +61,7 @@ func NewKeeper(keeper ibctransferkeeper.Keeper,
 
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
-func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
+func (k Keeper) SetRouter(rtr types.Router) Keeper {
 	if k.router != nil && k.router.Sealed() {
 		panic("cannot reset a sealed router")
 	}
