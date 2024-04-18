@@ -207,6 +207,9 @@ func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, nonce uint64) {
 
 	// 2. delete bridge call confirm
 	k.DeleteBridgeCallConfirm(ctx, nonce)
+
+	// 3. delete bridge call from msg
+	k.DeleteBridgeCallFromMsg(ctx, nonce)
 }
 
 func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {

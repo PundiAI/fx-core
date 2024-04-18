@@ -41,8 +41,12 @@ func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender
 }
 
 func (k Keeper) PrecompileBridgeCall(
-	ctx sdk.Context, sender, receiver, to common.Address,
-	coins sdk.Coins, message []byte, value *big.Int, gasLimit uint64,
+	ctx sdk.Context,
+	sender, receiver, to common.Address,
+	coins sdk.Coins,
+	message []byte,
+	value *big.Int,
+	gasLimit uint64,
 ) (eventNonce uint64, err error) {
 	tokens, err := k.bridgeCallCoinsHandler(ctx, sender.Bytes(), coins)
 	if err != nil {
@@ -62,5 +66,6 @@ func (k Keeper) PrecompileBridgeCall(
 	if err != nil {
 		return 0, err
 	}
+
 	return outCall.Nonce, nil
 }

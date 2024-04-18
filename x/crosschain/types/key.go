@@ -122,6 +122,8 @@ var (
 	OutgoingBridgeCallAddressAndNonceKey = []byte{0x49}
 
 	PendingOutgoingTxPoolKey = []byte{0x50}
+
+	BridgeCallFromMsgKey = []byte{0x51}
 )
 
 // GetOracleKey returns the following key format
@@ -247,4 +249,8 @@ func ParseOutgoingBridgeCallNonce(key []byte, address string) (nonce uint64) {
 	addrNonce := bytes.TrimPrefix(key, OutgoingBridgeCallAddressAndNonceKey)
 	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
 	return sdk.BigEndianToUint64(nonceBytes)
+}
+
+func GetBridgeCallFromMsgKey(txID uint64) []byte {
+	return append(BridgeCallFromMsgKey, sdk.Uint64ToBigEndian(txID)...)
 }
