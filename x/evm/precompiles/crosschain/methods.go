@@ -4,113 +4,30 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/contract"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-// BridgeCoinAmountMethod query the amount of bridge coin
-var BridgeCoinAmountMethod = abi.NewMethod(
-	BridgeCoinAmountMethodName,
-	BridgeCoinAmountMethodName,
-	abi.Function, "view", false, false,
-	abi.Arguments{
-		abi.Argument{Name: "_token", Type: contract.TypeAddress},
-		abi.Argument{Name: "_target", Type: contract.TypeBytes32},
-	},
-	abi.Arguments{
-		abi.Argument{Name: "_amount", Type: contract.TypeUint256},
-	},
-)
-
 var (
+	// BridgeCoinAmountMethod query the amount of bridge coin
+	BridgeCoinAmountMethod = GetABI().Methods[BridgeCoinAmountMethodName]
+
 	// CancelSendToExternalMethod cancel send to external tx
-	CancelSendToExternalMethod = abi.NewMethod(
-		CancelSendToExternalMethodName,
-		CancelSendToExternalMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_chain", Type: contract.TypeString},
-			abi.Argument{Name: "_txID", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: contract.TypeBool},
-		},
-	)
+	CancelSendToExternalMethod = GetABI().Methods[CancelSendToExternalMethodName]
 
 	// FIP20CrossChainMethod cross chain with FIP20 token, only for FIP20 token
 	// Deprecated: use CrossChainMethod instead
-	FIP20CrossChainMethod = abi.NewMethod(
-		FIP20CrossChainMethodName,
-		FIP20CrossChainMethodName,
-		abi.Function, "nonpayable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_sender", Type: contract.TypeAddress},
-			abi.Argument{Name: "_receipt", Type: contract.TypeString},
-			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
-			abi.Argument{Name: "_fee", Type: contract.TypeUint256},
-			abi.Argument{Name: "_target", Type: contract.TypeBytes32},
-			abi.Argument{Name: "_memo", Type: contract.TypeString},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: contract.TypeBool},
-		},
-	)
+	FIP20CrossChainMethod = GetABI().Methods[FIP20CrossChainMethodName]
+
 	// CrossChainMethod cross chain with FIP20 token
-	CrossChainMethod = abi.NewMethod(
-		CrossChainMethodName,
-		CrossChainMethodName,
-		abi.Function, "payable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_token", Type: contract.TypeAddress},
-			abi.Argument{Name: "_receipt", Type: contract.TypeString},
-			abi.Argument{Name: "_amount", Type: contract.TypeUint256},
-			abi.Argument{Name: "_fee", Type: contract.TypeUint256},
-			abi.Argument{Name: "_target", Type: contract.TypeBytes32},
-			abi.Argument{Name: "_memo", Type: contract.TypeString},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: contract.TypeBool},
-		},
-	)
+	CrossChainMethod = GetABI().Methods[CrossChainMethodName]
 
 	// IncreaseBridgeFeeMethod increase bridge fee
-	IncreaseBridgeFeeMethod = abi.NewMethod(
-		IncreaseBridgeFeeMethodName,
-		IncreaseBridgeFeeMethodName,
-		abi.Function, "payable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_chain", Type: contract.TypeString},
-			abi.Argument{Name: "_txID", Type: contract.TypeUint256},
-			abi.Argument{Name: "_token", Type: contract.TypeAddress},
-			abi.Argument{Name: "_fee", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: contract.TypeBool},
-		},
-	)
+	IncreaseBridgeFeeMethod = GetABI().Methods[IncreaseBridgeFeeMethodName]
 
 	// BridgeCallMethod bridge call other chain
-	BridgeCallMethod = abi.NewMethod(
-		BridgeCallMethodName,
-		BridgeCallMethodName,
-		abi.Function, "payable", false, false,
-		abi.Arguments{
-			abi.Argument{Name: "_dstChain", Type: contract.TypeString},
-			abi.Argument{Name: "_gasLimit", Type: contract.TypeUint256},
-			abi.Argument{Name: "_receiver", Type: contract.TypeAddress},
-			abi.Argument{Name: "_to", Type: contract.TypeAddress},
-			abi.Argument{Name: "_tokens", Type: contract.TypeAddressArray},
-			abi.Argument{Name: "_amounts", Type: contract.TypeUint256Array},
-			abi.Argument{Name: "_message", Type: contract.TypeBytes},
-			abi.Argument{Name: "_value", Type: contract.TypeUint256},
-		},
-		abi.Arguments{
-			abi.Argument{Name: "_result", Type: contract.TypeBool},
-		},
-	)
+	BridgeCallMethod = GetABI().Methods[BridgeCallMethodName]
 )
 
 type BridgeCoinAmountArgs struct {
