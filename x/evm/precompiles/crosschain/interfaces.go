@@ -4,13 +4,11 @@ import (
 	"context"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
@@ -20,7 +18,6 @@ type Erc20Keeper interface {
 	ModuleAddress() common.Address
 	GetTokenPairByAddress(ctx sdk.Context, address common.Address) (types.TokenPair, bool)
 	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error)
-	ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error
 	GetIbcTimeout(ctx sdk.Context) time.Duration
 	SetIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64)
 	HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool
@@ -37,7 +34,6 @@ type EvmKeeper interface {
 type BankKeeper interface {
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
-	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	MintCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
 	BurnCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
@@ -48,7 +44,6 @@ type BankKeeper interface {
 
 type IBCTransferKeeper interface {
 	Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error)
-	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (ibctransfertypes.DenomTrace, bool)
 }
 
 type AccountKeeper interface {
