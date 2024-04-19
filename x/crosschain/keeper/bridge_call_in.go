@@ -22,7 +22,6 @@ func (k Keeper) BridgeCallHandler(
 	receiver sdk.AccAddress,
 	tokens []common.Address,
 	amounts []*big.Int,
-	_ string, // TODO dstChain is not used
 	message []byte,
 	value sdkmath.Int,
 	gasLimit, eventNonce uint64,
