@@ -15,12 +15,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	troncommon "github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/spf13/cobra"
 
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -50,6 +52,7 @@ func GetTxSubCmds(chainName string) []*cobra.Command {
 		CmdCancelSendToExternal(chainName),
 		CmdIncreaseBridgeFee(chainName),
 		CmdRequestBatch(chainName),
+		CmdBridgeCall(chainName),
 
 		// oracle consensus confirm
 		CmdOracleSetConfirm(chainName),
@@ -207,6 +210,81 @@ func CmdSendToExternal(chainName string) *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
+	return cmd
+}
+
+func CmdBridgeCall(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bridge-call [receiver] [coins]",
+		Short: "Adds a new entry to the bridge call pool",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			receiverAddr, err := getContractAddr(args[0])
+			if err != nil {
+				return err
+			}
+			coins, err := sdk.ParseCoinsNormalized(args[1])
+			if err != nil {
+				return errorsmod.Wrap(err, "coins")
+			}
+
+			toAddr, err := cmd.Flags().GetString(FlagTo)
+			if err != nil {
+				return errorsmod.Wrap(err, "to")
+			}
+			if toAddr == "" {
+				toAddr = fxtypes.AddressToStr(gethcommon.Address{}.Bytes(), chainName)
+			} else {
+				if _, err = getContractAddr(toAddr); err != nil {
+					return err
+				}
+			}
+
+			message, err := cmd.Flags().GetString(FlagMessage)
+			if err != nil {
+				return errorsmod.Wrap(err, "message")
+			}
+			if message != "" {
+				if _, err = hex.DecodeString(message); err != nil {
+					return errorsmod.Wrap(err, "message")
+				}
+			}
+
+			valueStr, err := cmd.Flags().GetString(FlagValue)
+			if err != nil {
+				return errorsmod.Wrap(err, "value")
+			}
+			value, ok := sdkmath.NewIntFromString(valueStr)
+			if !ok {
+				return sdkerrors.ErrInvalidRequest.Wrap("value")
+			}
+			gasLimit, err := cmd.Flags().GetUint64(FlagGasLimit)
+			if err != nil {
+				return errorsmod.Wrap(err, "gas-limit")
+			}
+
+			msg := types.MsgBridgeCall{
+				Sender:    cliCtx.GetFromAddress().String(),
+				Receiver:  receiverAddr,
+				To:        toAddr,
+				Coins:     coins,
+				Message:   message,
+				Value:     value,
+				ChainName: chainName,
+				GasLimit:  gasLimit,
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
+		},
+	}
+	cmd.Flags().String(FlagTo, "", "bridge call to address")
+	cmd.Flags().String(FlagMessage, "", "bridge call contract message")
+	cmd.Flags().String(FlagValue, "0", "bridge call value")
+	cmd.Flags().Uint64(FlagGasLimit, 0, "bridge call gas limit")
 	return cmd
 }
 

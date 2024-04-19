@@ -81,7 +81,7 @@ func GetQuerySubCmds(chainName string) []*cobra.Command {
 		CmdCovertBridgeToken(chainName),
 
 		// bridge call
-		CmdBridgeCall(chainName),
+		CmdGetBridgeCall(chainName),
 		CmdBridgeCallByAddr(chainName),
 		CmdBridgeCallConfirm(chainName),
 		CmdLastPendingBridgeCall(chainName),
@@ -828,7 +828,7 @@ func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdBridgeCall(chainName string) *cobra.Command {
+func CmdGetBridgeCall(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bridge-call [nonce]",
 		Short: "Query bridge call by event nonce",
