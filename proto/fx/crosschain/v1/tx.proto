@@ -157,25 +157,24 @@ message MsgSendToFxClaim {
 message MsgSendToFxClaimResponse {}
 
 message MsgBridgeCallClaim {
-  string dst_chain = 1;
-  uint64 event_nonce = 2;
-  string sender = 3;
-  string receiver = 4;
-  string to = 5;
-  repeated string token_contracts = 6;
-  repeated string amounts = 7 [
+  string chain_name = 1;
+  string sender = 2;
+  string receiver = 3;
+  string to = 4;
+  string message = 5;
+  string value = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  string message = 8;
-  string value = 9 [
+  uint64 gasLimit = 7;
+  repeated string token_contracts = 8;
+  repeated string amounts = 9 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  uint64 gasLimit = 10;
+  uint64 event_nonce = 10;
   uint64 block_height = 11;
   string bridger_address = 12;
-  string chain_name = 13;
 }
 
 message MsgBridgeCallClaimResponse {}
@@ -374,16 +373,16 @@ message MsgBridgeCall {
   string sender = 2;
   string receiver = 3;
   string to = 4;
-  repeated cosmos.base.v1beta1.Coin coins = 5 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-  string message = 6;
-  string value = 7 [
+  string message = 5;
+  string value = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  uint64 gas_limit = 8;
+  uint64 gas_limit = 7;
+  repeated cosmos.base.v1beta1.Coin coins = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 message MsgBridgeCallResponse {}

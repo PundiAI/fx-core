@@ -63,7 +63,6 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			claim.MustReceiver(),
 			claim.MustTokensAddr(),
 			claim.AmountsToBigInt(),
-			claim.DstChain,
 			claim.MustMessage(),
 			claim.Value,
 			claim.GasLimit,

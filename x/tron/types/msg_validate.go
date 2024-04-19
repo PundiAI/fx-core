@@ -151,9 +151,6 @@ func (b TronMsgValidate) MsgBridgeCallClaimValidate(m *crosschaintypes.MsgBridge
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if m.DstChain == "" {
-		return errortypes.ErrInvalidRequest.Wrap("empty dst chain id")
-	}
 	if err = ValidateTronAddress(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
