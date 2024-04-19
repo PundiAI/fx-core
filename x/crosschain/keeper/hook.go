@@ -9,15 +9,15 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // TransferAfter
 // 1. Hook operation after transfer transaction triggered by IBC module
 // 2. Hook operation after transferCrossChain triggered by ERC20 module
 func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, amount, fee sdk.Coin, originToken bool) error {
-	if err := contract.ValidateEthereumAddress(receive); err != nil {
+	if err := types.MustGetMsgValidateBasic(k.moduleName).ValidateExternalAddress(receive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
 	}
 
