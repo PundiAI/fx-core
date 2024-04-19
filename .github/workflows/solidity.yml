@@ -7,6 +7,9 @@ on:
     paths:
       - "solidity/**"
   pull_request:
+    types:
+      - opened
+      - synchronize
     paths:
       - "solidity/**"
       - ".github/workflows/solidity.yml"
