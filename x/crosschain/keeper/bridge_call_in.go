@@ -51,6 +51,14 @@ func (k Keeper) BridgeCallHandler(
 			sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCall.Nonce)),
 		))
 	}
+
+	if len(errCause) == 0 {
+		for i := 0; i < len(erc20Token); i++ {
+			bridgeToken := k.GetBridgeTokenDenom(ctx, erc20Token[i].Contract)
+			// no need for a double check here, as the bridge token should exist
+			k.HandlePendingOutgoingTx(ctx, receiver, eventNonce, bridgeToken)
+		}
+	}
 	return nil
 }
 
