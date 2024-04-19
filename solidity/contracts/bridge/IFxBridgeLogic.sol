@@ -194,7 +194,6 @@ interface IFxBridgeLogic {
         uint256 _nonce,
         uint256 _gasLimit,
         uint256 _timeout,
-        string memory _dstChain,
         bytes calldata _message,
         address[] memory _tokens,
         uint256[] memory _amounts
