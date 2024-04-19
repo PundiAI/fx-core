@@ -371,7 +371,7 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 	moduleAddress := k.accountKeeper.GetModuleAddress(types.ModuleName)
 	moduleTargetCoin := k.bankKeeper.GetBalance(ctx, moduleAddress, targetCoin.Denom)
 	if moduleTargetCoin.IsLT(targetCoin) {
-		return sdk.Coin{}, types.ErrInsufficientLiquidity.Wrapf("%s is smaller than %s", moduleTargetCoin, targetCoin)
+		return targetCoin, types.ErrInsufficientLiquidity.Wrapf("%s is smaller than %s", moduleTargetCoin, targetCoin)
 	}
 	// send alias denom to from addr
 	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)); err != nil {
