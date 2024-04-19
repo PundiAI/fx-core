@@ -486,14 +486,15 @@ contract FxBridgeLogic is
             // bytes32 encoding of "bridgeCall"
             0x62726964676543616c6c00000000000000000000000000000000000000000000,
             input.sender,
-            input.receiver,
             input.to,
+            input.receiver,
             input.value,
-            input.tokens,
-            input.amounts,
-            input.message,
             nonce,
-            input.timeout
+            input.gasLimit,
+            input.timeout,
+            input.message,
+            input.tokens,
+            input.amounts
         );
         return keccak256(data);
     }
