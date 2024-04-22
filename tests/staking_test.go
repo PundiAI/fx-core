@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"time"
@@ -552,9 +551,7 @@ func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
 	suite.Require().Equal(0, len(grantResp.Grants))
 
 	// grant privilege val with to address
-	sign, err := suite.staking.privKey.Sign(fxstakingtypes.GrantPrivilegeSignatureData(valAddr, from, to))
-	suite.Require().NoError(err)
-	msg, err := fxstakingtypes.NewMsgGrantPrivilege(valAddr, sdk.AccAddress(valAddr), suite.staking.privKey.PubKey(), hex.EncodeToString(sign))
+	msg, err := fxstakingtypes.NewMsgGrantPrivilege(valAddr, sdk.AccAddress(valAddr), suite.staking.privKey.PubKey())
 	suite.Require().NoError(err)
 	suite.BroadcastTx(suite.GetValidatorPrivKeys(from), msg)
 
@@ -585,17 +582,13 @@ func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
 	suite.Require().Equal(2, len(grantResp.Grants))
 
 	// val grant to to2 address error, val not have privilege
-	sign, err = suite.staking.GrantPrivKey().Sign(fxstakingtypes.GrantPrivilegeSignatureData(valAddr, from, to2))
-	suite.Require().NoError(err)
-	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, from, suite.staking.GrantPrivKey().PubKey(), hex.EncodeToString(sign))
+	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, from, suite.staking.GrantPrivKey().PubKey())
 	suite.Require().NoError(err)
 	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{msg}, 500000, "", 0)
 	suite.Require().Error(err)
 
 	// to grant to to2 address
-	sign, err = suite.staking.GrantPrivKey().Sign(fxstakingtypes.GrantPrivilegeSignatureData(valAddr, to, to2))
-	suite.Require().NoError(err)
-	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, to, suite.staking.GrantPrivKey().PubKey(), hex.EncodeToString(sign))
+	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, to, suite.staking.GrantPrivKey().PubKey())
 	suite.Require().NoError(err)
 	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{msg}, 500000, "", 0)
 	suite.NoError(err)

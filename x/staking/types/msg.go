@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"encoding/hex"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -25,19 +24,15 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgEditConsensusPubKey)(nil)
 )
 
-func NewMsgGrantPrivilege(val sdk.ValAddress, from sdk.AccAddress, pubKey cryptotypes.PubKey, signature string) (*MsgGrantPrivilege, error) {
-	var pkAny *codectypes.Any
-	if pubKey != nil {
-		var err error
-		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
-			return nil, err
-		}
+func NewMsgGrantPrivilege(val sdk.ValAddress, from sdk.AccAddress, pubKey cryptotypes.PubKey) (*MsgGrantPrivilege, error) {
+	pkAny, err := codectypes.NewAnyWithValue(pubKey)
+	if err != nil {
+		return nil, err
 	}
 	return &MsgGrantPrivilege{
 		ValidatorAddress: val.String(),
 		FromAddress:      from.String(),
 		ToPubkey:         pkAny,
-		Signature:        signature,
 	}, nil
 }
 
@@ -46,35 +41,21 @@ func (m *MsgGrantPrivilege) Route() string { return stakingtypes.RouterKey }
 func (m *MsgGrantPrivilege) Type() string { return TypeMsgGrantPrivilege }
 
 func (m *MsgGrantPrivilege) ValidateBasic() error {
-	valAddr, err := sdk.ValAddressFromBech32(m.ValidatorAddress)
-	if err != nil {
+	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
 	}
 	fromAddress, err := sdk.AccAddressFromBech32(m.FromAddress)
 	if err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid from address: %s", err)
 	}
-
 	pk, err := ProtoAnyToAccountPubKey(m.ToPubkey)
 	if err != nil {
 		return err
 	}
 	toAddress := sdk.AccAddress(pk.Address())
-
 	// check same account
 	if bytes.Equal(fromAddress.Bytes(), toAddress.Bytes()) {
 		return errortypes.ErrInvalidRequest.Wrap("same account")
-	}
-	// check signature
-	if len(m.Signature) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty signature")
-	}
-	sig, err := hex.DecodeString(m.Signature)
-	if err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
-	}
-	if !pk.VerifySignature(GrantPrivilegeSignatureData(valAddr, fromAddress, toAddress), sig) {
-		return errortypes.ErrInvalidRequest.Wrap("sig to pub key error")
 	}
 	return nil
 }

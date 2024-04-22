@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -71,16 +70,13 @@ Examples:
 			if err != nil {
 				return err
 			}
-			// signature
-			sign, _, err := clientCtx.Keyring.Sign(toInfo.Name, types.GrantPrivilegeSignatureData(valAddr, fromAddr, toAddr))
+			pk, err := types.ProtoAnyToAccountPubKey(toInfo.PubKey)
 			if err != nil {
-				return fmt.Errorf("sign grant privilege signature error %w", err)
+				return err
 			}
-			msg := &types.MsgGrantPrivilege{
-				ValidatorAddress: valAddr.String(),
-				FromAddress:      fromAddr.String(),
-				ToPubkey:         toInfo.PubKey,
-				Signature:        hex.EncodeToString(sign),
+			msg, err := types.NewMsgGrantPrivilege(valAddr, fromAddr, pk)
+			if err != nil {
+				return err
 			}
 			if err = msg.ValidateBasic(); err != nil {
 				return err
