@@ -307,17 +307,17 @@ contract FxBridgeLogicETH is
     }
 
     function bridgeCall(
-        string memory _dstChainId,
+        string memory _dstChain,
         uint256 _gasLimit,
         address _receiver,
         address _to,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
         bytes calldata _message,
-        uint256 _value,
-        bytes memory _asset
+        uint256 _value
     ) external {
-        // decode and transfer asset
-        (string memory assetType, bytes memory assetData) = decodeType(_asset);
-        transferAsset(msg.sender, assetType, assetData);
+        // transfer ERC20
+        _transferERC20(_msgSender(), address(this), _tokens, _amounts);
 
         // last event nonce +1
         state_lastEventNonce = state_lastEventNonce.add(1);
@@ -327,12 +327,13 @@ contract FxBridgeLogicETH is
             _msgSender(),
             _receiver,
             _to,
+            _tokens,
+            _amounts,
             state_lastEventNonce,
-            _dstChainId,
+            _dstChain,
             _gasLimit,
-            _value,
             _message,
-            _asset
+            _value
         );
     }
 
@@ -568,68 +569,46 @@ contract FxBridgeLogicETH is
         return result;
     }
 
-    function decodeType(
-        bytes memory _asset
-    ) public pure returns (string memory, bytes memory) {
-        return abi.decode(_asset, (string, bytes));
-    }
-
-    function transferAsset(
-        address _sender,
-        string memory _assetType,
-        bytes memory _assetData
+    function _transferERC20(
+        address _from,
+        address _receiver,
+        address[] memory _tokens,
+        uint256[] memory _amounts
     ) internal {
-        if (
-            keccak256(bytes(_assetType)) ==
-            bytes32(
-                0x8ae85d849167ff996c04040c44924fd364217285e4cad818292c7ac37c0a345b
-            )
-        ) {
-            transferERC20(_sender, _assetData);
-        } else {
-            revert("Asset type not support");
-        }
-    }
-
-    function transferERC20(address _from, bytes memory _asset) internal {
-        (address[] memory token, uint256[] memory amount) = decodeERC20(_asset);
-        for (uint256 i = 0; i < token.length; i++) {
-            require(amount[i] > 0, "amount should be greater than zero");
-            TokenStatus memory _tokenStatus = tokenStatus[token[i]];
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(_amounts[i] > 0, "amount should be greater than zero");
+            TokenStatus memory _tokenStatus = tokenStatus[_tokens[i]];
             require(_tokenStatus.isExist, "Unsupported token address");
             require(_tokenStatus.isActive, "token was paused");
 
-            IERC20MetadataUpgradeable(token[i]).safeTransferFrom(
-                _from,
-                address(this),
-                amount[i]
-            );
-            if (_tokenStatus.isOriginated == true) {
-                IERC20ExtensionsUpgradeable(token[i]).burn(amount[i]);
+            // mint origin token
+            if (_tokenStatus.isOriginated == true && _from == address(this)) {
+                IERC20ExtensionsUpgradeable(_tokens[i]).mint(
+                    _from,
+                    _amounts[i]
+                );
             }
-        }
-    }
 
-    function decodeERC20(
-        bytes memory _data
-    ) internal pure returns (address[] memory, uint256[] memory) {
-        (bytes memory tokenBytes, uint256[] memory amounts) = abi.decode(
-            _data,
-            (bytes, uint256[])
-        );
-        uint256 tokenCount = amounts.length;
-        require(tokenBytes.length == tokenCount * 20, "Token not match amount");
-        address[] memory tokens = new address[](tokenCount);
-        for (uint256 i = 0; i < tokenCount; i++) {
-            uint256 currentTokenStartingByte = 20 + i * 20;
-            address currentToken;
-            // solhint-disable-next-line no-inline-assembly
-            assembly {
-                currentToken := mload(add(tokenBytes, currentTokenStartingByte))
+            if (_from == address(this)) {
+                IERC20MetadataUpgradeable(_tokens[i]).safeTransfer(
+                    _receiver,
+                    _amounts[i]
+                );
+            } else {
+                IERC20MetadataUpgradeable(_tokens[i]).safeTransferFrom(
+                    _from,
+                    _receiver,
+                    _amounts[i]
+                );
             }
-            tokens[i] = currentToken;
+
+            // burn origin token
+            if (
+                _tokenStatus.isOriginated == true && _receiver == address(this)
+            ) {
+                IERC20ExtensionsUpgradeable(_tokens[i]).burn(_amounts[i]);
+            }
         }
-        return (tokens, amounts);
     }
 
     /* ============== UPGRADE FUNCTIONS =============== */
@@ -691,11 +670,12 @@ contract FxBridgeLogicETH is
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        address[] _tokens,
+        uint256[] _amounts,
         uint256 _eventNonce,
-        string _dstChainId,
+        string _dstChain,
         uint256 _gasLimit,
-        uint256 _value,
         bytes _message,
-        bytes _asset
+        uint256 _value
     );
 }

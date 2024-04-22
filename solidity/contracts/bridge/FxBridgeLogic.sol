@@ -788,7 +788,7 @@ contract FxBridgeLogic is
         address[] _tokens,
         uint256[] _amounts,
         uint256 _eventNonce,
-        string _dstChainId,
+        string _dstChain,
         uint256 _gasLimit,
         bytes _message,
         uint256 _value
