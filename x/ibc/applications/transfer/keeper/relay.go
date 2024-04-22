@@ -201,7 +201,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	ibcFee := sdk.NewCoin(targetCoin.GetDenom(), feeAmount)
 
 	routerCtxWithNewEvent := ctx.WithEventManager(sdk.NewEventManager())
-	err = route.TransferAfter(routerCtxWithNewEvent, receiver, data.Receiver, ibcAmount, ibcFee, true)
+	err = route.TransferAfter(routerCtxWithNewEvent, receiver, data.Receiver, ibcAmount, ibcFee, true, false)
 	routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
 		sdk.NewAttribute(types.AttributeKeyRoute, data.Router),
 		sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),

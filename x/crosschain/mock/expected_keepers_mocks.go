@@ -621,17 +621,17 @@ func (mr *MockErc20KeeperMockRecorder) ToTargetDenom(ctx, denom, base, aliases, 
 }
 
 // TransferAfter mocks base method.
-func (m *MockErc20Keeper) TransferAfter(ctx types.Context, sender types.AccAddress, receive string, coin, fee types.Coin, arg5 bool) error {
+func (m *MockErc20Keeper) TransferAfter(ctx types.Context, sender types.AccAddress, receive string, coin, fee types.Coin, arg5, arg6 bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransferAfter", ctx, sender, receive, coin, fee, arg5)
+	ret := m.ctrl.Call(m, "TransferAfter", ctx, sender, receive, coin, fee, arg5, arg6)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // TransferAfter indicates an expected call of TransferAfter.
-func (mr *MockErc20KeeperMockRecorder) TransferAfter(ctx, sender, receive, coin, fee, arg5 any) *gomock.Call {
+func (mr *MockErc20KeeperMockRecorder) TransferAfter(ctx, sender, receive, coin, fee, arg5, arg6 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferAfter", reflect.TypeOf((*MockErc20Keeper)(nil).TransferAfter), ctx, sender, receive, coin, fee, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferAfter", reflect.TypeOf((*MockErc20Keeper)(nil).TransferAfter), ctx, sender, receive, coin, fee, arg5, arg6)
 }
 
 // MockEVMKeeper is a mock of EVMKeeper interface.

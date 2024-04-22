@@ -16,12 +16,19 @@ import (
 // TransferAfter
 // 1. Hook operation after transfer transaction triggered by IBC module
 // 2. Hook operation after transferCrossChain triggered by ERC20 module
-func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, amount, fee sdk.Coin, originToken bool) error {
+func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, amount, fee sdk.Coin, originToken, insufficientLiquidity bool) error {
 	if err := types.MustGetMsgValidateBasic(k.moduleName).ValidateExternalAddress(receive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
 	}
 
-	txID, err := k.AddToOutgoingPool(ctx, sender, receive, amount, fee)
+	var err error
+	var txID uint64
+	if insufficientLiquidity {
+		txID, err = k.AddToOutgoingPendingPool(ctx, sender, receive, amount, fee)
+	} else {
+		txID, err = k.AddToOutgoingPool(ctx, sender, receive, amount, fee)
+	}
+
 	if err != nil {
 		return err
 	}
