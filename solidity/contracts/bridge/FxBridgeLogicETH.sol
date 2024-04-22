@@ -782,22 +782,6 @@ contract FxBridgeLogicETH is
         _;
     }
 
-    /* ============== UPGRADE FUNCTIONS =============== */
-
-    function migrate() public onlyOwner {
-        version = "1.1.0";
-
-        for (uint256 i = 0; i < bridgeTokens.length; i++) {
-            tokenStatus[address(bridgeTokens[i])] = TokenStatus(
-                false,
-                true,
-                true
-            );
-        }
-        bridgeTokens.push(state_fxOriginatedToken);
-        tokenStatus[state_fxOriginatedToken] = TokenStatus(true, true, true);
-    }
-
     /* =============== EVENTS =============== */
 
     event TransactionBatchExecutedEvent(
