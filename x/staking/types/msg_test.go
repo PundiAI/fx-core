@@ -24,7 +24,7 @@ func TestMsgGrantPrivilegeRoute(t *testing.T) {
 	addr1 := sdk.AccAddress("from")
 	toKey := helpers.NewPriKey()
 
-	msg, err := types.NewMsgGrantPrivilege(val, addr1, toKey.PubKey(), "signature")
+	msg, err := types.NewMsgGrantPrivilege(val, addr1, toKey.PubKey())
 	require.NoError(t, err)
 	require.Equal(t, msg.Route(), stakingtypes.RouterKey)
 	require.Equal(t, msg.Type(), "grant_privilege")
@@ -43,49 +43,32 @@ func TestMsgGrantPrivilegeValidation(t *testing.T) {
 
 	val := sdk.ValAddress(key1.PubKey().Address())
 	addr1 := sdk.AccAddress(key1.PubKey().Address())
-	addr2 := sdk.AccAddress(key2.PubKey().Address())
 	addr3 := sdk.AccAddress(eth3.PubKey().Address())
-	addr4 := sdk.AccAddress(eth4.PubKey().Address())
-
-	addr1addr2Sign, err := key2.Sign(types.GrantPrivilegeSignatureData(val, addr1, addr2))
-	require.NoError(t, err)
-
-	addr1addr3Sign, err := eth3.Sign(types.GrantPrivilegeSignatureData(val, addr1, addr3))
-	require.NoError(t, err)
-
-	addr3addr4Sign, err := eth4.Sign(types.GrantPrivilegeSignatureData(val, addr3, addr4))
-	require.NoError(t, err)
 
 	invalidAddr := "xxxxxxxxxxxx"
 	invalidPK, _ := codectypes.NewAnyWithValue(&banktypes.MsgSend{})
 	invalidPKType, _ := codectypes.NewAnyWithValue(ed25519.GenPrivKey().PubKey())
-	emptySign := ""
-	invalidSign := "xx xxx"
 
 	cases := []struct {
 		name        string
 		expectedErr string // empty means no error expected
 		msg         *types.MsgGrantPrivilege
 	}{
-		{"valid grant to acc address", "", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any2, Signature: hex.EncodeToString(addr1addr2Sign)}},
-		{"valid grant to eth address", "", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any3, Signature: hex.EncodeToString(addr1addr3Sign)}},
-		{"valid grant eth to eth address", "", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr3.String(), ToPubkey: any4, Signature: hex.EncodeToString(addr3addr4Sign)}},
+		{"valid grant to acc address", "", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any2}},
+		{"valid grant to eth address", "", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any3}},
+		{"valid grant eth to eth address", "", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr3.String(), ToPubkey: any4}},
 
-		{"empty validator address", "invalid validator address: empty address string is not allowed: invalid address", &types.MsgGrantPrivilege{ValidatorAddress: "", FromAddress: addr1.String(), ToPubkey: any2, Signature: hex.EncodeToString(addr1addr2Sign)}},
-		{"invalid validator address", "invalid validator address: decoding bech32 failed: invalid separator index -1: invalid address", &types.MsgGrantPrivilege{FromAddress: addr1.String(), ToPubkey: any2, Signature: hex.EncodeToString(addr1addr2Sign), ValidatorAddress: invalidAddr}},
+		{"empty validator address", "invalid validator address: empty address string is not allowed: invalid address", &types.MsgGrantPrivilege{ValidatorAddress: "", FromAddress: addr1.String(), ToPubkey: any2}},
+		{"invalid validator address", "invalid validator address: decoding bech32 failed: invalid separator index -1: invalid address", &types.MsgGrantPrivilege{FromAddress: addr1.String(), ToPubkey: any2, ValidatorAddress: invalidAddr}},
 
-		{"empty from address", "invalid from address: empty address string is not allowed: invalid address", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: "", ToPubkey: any2, Signature: hex.EncodeToString(addr1addr2Sign)}},
-		{"invalid from address", "invalid from address: decoding bech32 failed: invalid separator index -1: invalid address", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: invalidAddr, ToPubkey: any2, Signature: hex.EncodeToString(addr1addr2Sign)}},
+		{"empty from address", "invalid from address: empty address string is not allowed: invalid address", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: "", ToPubkey: any2}},
+		{"invalid from address", "invalid from address: decoding bech32 failed: invalid separator index -1: invalid address", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: invalidAddr, ToPubkey: any2}},
 
-		{"empty pubkey", "empty pubkey: invalid pubkey", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: nil, Signature: hex.EncodeToString(addr1addr2Sign)}},
-		{"invalid pubkey type", "expecting cryptotypes.PubKey, got *types.MsgSend: invalid pubkey", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: invalidPK, Signature: hex.EncodeToString(addr1addr2Sign)}},
-		{"invalid pubkey key type", "expecting *secp256k1.PubKey or *ethsecp256k1.PubKey, got *ed25519.PubKey: invalid pubkey", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: invalidPKType, Signature: hex.EncodeToString(addr1addr2Sign)}},
+		{"empty pubkey", "empty pubkey: invalid pubkey", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: nil}},
+		{"invalid pubkey type", "expecting cryptotypes.PubKey, got *types.MsgSend: invalid pubkey", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: invalidPK}},
+		{"invalid pubkey key type", "expecting *secp256k1.PubKey or *ethsecp256k1.PubKey, got *ed25519.PubKey: invalid pubkey", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: invalidPKType}},
 
-		{"same from and to address", "same account: invalid request", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any1, Signature: hex.EncodeToString(addr1addr2Sign)}},
-
-		{"empty signature", "empty signature: invalid request", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any2, Signature: emptySign}},
-		{"invalid signature", "could not hex decode signature: invalid request", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any2, Signature: invalidSign}},
-		{"signature key not equal to address", "sig to pub key error: invalid request", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any2, Signature: hex.EncodeToString(addr1addr3Sign)}},
+		{"same from and to address", "same account: invalid request", &types.MsgGrantPrivilege{ValidatorAddress: val.String(), FromAddress: addr1.String(), ToPubkey: any1}},
 	}
 
 	for _, tc := range cases {
@@ -105,19 +88,18 @@ func TestMsgGrantPrivilegeGetSignBytes(t *testing.T) {
 	addr1 := sdk.AccAddress("input")
 	bz, _ := hex.DecodeString("0370c5fe92d864015703aff6d2f3a5608c3740e368370f0c25f090abc2e368b0be")
 	toPk := &ethsecp256k1.PubKey{Key: bz}
-	sign := "0x1"
 
-	msg, err := types.NewMsgGrantPrivilege(val, addr1, toPk, sign)
+	msg, err := types.NewMsgGrantPrivilege(val, addr1, toPk)
 	require.NoError(t, err)
 
 	res := msg.GetSignBytes()
-	expected := `{"type":"staking/MsgGrantPrivilege","value":{"from_address":"cosmos1d9h8qat57ljhcm","signature":"0x1","to_pubkey":"A3DF/pLYZAFXA6/20vOlYIw3QONoNw8MJfCQq8LjaLC+","validator_address":"cosmosvaloper1weskc8rudzy"}}`
+	expected := `{"type":"staking/MsgGrantPrivilege","value":{"from_address":"cosmos1d9h8qat57ljhcm","to_pubkey":"A3DF/pLYZAFXA6/20vOlYIw3QONoNw8MJfCQq8LjaLC+","validator_address":"cosmosvaloper1weskc8rudzy"}}`
 	require.Equal(t, expected, string(res))
 }
 
 func TestMsgGrantPrivilegeGetSigners(t *testing.T) {
 	toKey := helpers.NewEthPrivKey()
-	msg, err := types.NewMsgGrantPrivilege(sdk.ValAddress{}, []byte("input111111111111111"), toKey.PubKey(), "")
+	msg, err := types.NewMsgGrantPrivilege(sdk.ValAddress{}, []byte("input111111111111111"), toKey.PubKey())
 	require.NoError(t, err)
 
 	res := msg.GetSigners()
