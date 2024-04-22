@@ -37,7 +37,7 @@ contract FxBridgeLogic is
     address[] public bridgeTokens;
     mapping(address => TokenStatus) public tokenStatus;
     string public version;
-    mapping(uint256 => bool) public state_lastBridgeCallNonce;
+    mapping(uint256 => bool) public state_lastBridgeCallNonces;
     /* solhint-enable var-name-mixedcase */
 
     struct TokenStatus {
@@ -456,7 +456,7 @@ contract FxBridgeLogic is
             _input
         );
 
-        state_lastBridgeCallNonce[_nonceArray[1]] = true;
+        state_lastBridgeCallNonces[_nonceArray[1]] = true;
 
         bool result = false;
         try this._transferAndBridgeCallback(_input) {
@@ -509,7 +509,7 @@ contract FxBridgeLogic is
         BridgeCallData memory _input
     ) internal view {
         require(
-            !state_lastBridgeCallNonce[_nonceArray[1]],
+            !state_lastBridgeCallNonces[_nonceArray[1]],
             "New bridge call nonce must be not exist."
         );
 
