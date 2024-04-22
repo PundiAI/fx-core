@@ -15,7 +15,7 @@ func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, se
 	}
 	cacheCtx, commit := ctx.CacheContext()
 	if err := k.TransferAfter(cacheCtx, sender, common.BytesToAddress(sender.Bytes()).String(),
-		amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt()), false); err != nil {
+		amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt()), false, false); err != nil {
 		return err
 	}
 	commit()

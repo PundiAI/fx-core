@@ -27,5 +27,5 @@ type EvmKeeper interface {
 }
 
 type IBCTransferHook interface {
-	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken bool) error
+	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken, insufficientLiquidity bool) error
 }

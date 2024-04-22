@@ -38,10 +38,11 @@ func TestFIP20CrossChainABI(t *testing.T) {
 
 func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 	testCases := []struct {
-		name     string
-		malleate func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string)
-		error    func(args []string) string
-		result   bool
+		name          string
+		malleate      func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string)
+		error         func(args []string) string
+		result        bool
+		isPendingPool bool
 	}{
 		{
 			name: "ok",
@@ -175,7 +176,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			result: false,
 		},
 		{
-			name: "failed - module insufficient funds",
+			name: "success - module insufficient funds - add to pending pool",
 
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				// add relay token
@@ -207,9 +208,10 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: fip-cross-chain failed: convert denom: %s is smaller than %s: insufficient liquidity", args[0], args[1])
+				return ""
 			},
-			result: false,
+			result:        true,
+			isPendingPool: true,
 		},
 		{
 			name: "failed - target not support",
@@ -365,20 +367,29 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 					suite.Require().Equal(coin.Amount.String(), expect.String(), coin.Denom)
 				}
 
-				resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
-					&crosschaintypes.QueryPendingSendToExternalRequest{
+				if tc.isPendingPool {
+					resp, err := suite.CrossChainKeepers()[moduleName].GetPendingPoolSendToExternal(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryPendingPoolSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
 					})
-				suite.Require().NoError(err)
-				suite.Require().Equal(1, len(resp.UnbatchedTransfers))
-				suite.Require().Equal(0, len(resp.TransfersInBatches))
-				suite.Require().Equal(signer.AccAddress().String(), resp.UnbatchedTransfers[0].Sender)
-				// NOTE: fee + amount == randMint
-				suite.Require().Equal(randMint.String(), resp.UnbatchedTransfers[0].Fee.Amount.Add(resp.UnbatchedTransfers[0].Token.Amount).BigInt().String())
-				if !strings.EqualFold(resp.UnbatchedTransfers[0].Token.Contract, strings.TrimPrefix(md.GetDenom(moduleName), moduleName)) {
-					bridgeToken := suite.CrossChainKeepers()[moduleName].GetDenomBridgeToken(suite.ctx, newPair.Denom)
-					suite.Require().Equal(resp.UnbatchedTransfers[0].Token.Contract, bridgeToken.Token, moduleName)
+					suite.Require().NoError(err)
+					suite.Require().Equal(1, len(resp.Txs))
+				} else {
+					resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+						&crosschaintypes.QueryPendingSendToExternalRequest{
+							ChainName:     moduleName,
+							SenderAddress: signer.AccAddress().String(),
+						})
+					suite.Require().NoError(err)
+					suite.Require().Equal(1, len(resp.UnbatchedTransfers))
+					suite.Require().Equal(0, len(resp.TransfersInBatches))
+					suite.Require().Equal(signer.AccAddress().String(), resp.UnbatchedTransfers[0].Sender)
+					// NOTE: fee + amount == randMint
+					suite.Require().Equal(randMint.String(), resp.UnbatchedTransfers[0].Fee.Amount.Add(resp.UnbatchedTransfers[0].Token.Amount).BigInt().String())
+					if !strings.EqualFold(resp.UnbatchedTransfers[0].Token.Contract, strings.TrimPrefix(md.GetDenom(moduleName), moduleName)) {
+						bridgeToken := suite.CrossChainKeepers()[moduleName].GetDenomBridgeToken(suite.ctx, newPair.Denom)
+						suite.Require().Equal(resp.UnbatchedTransfers[0].Token.Contract, bridgeToken.Token, moduleName)
+					}
 				}
 			} else {
 				suite.Require().Error(err)

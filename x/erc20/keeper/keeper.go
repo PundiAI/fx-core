@@ -73,7 +73,7 @@ func (k Keeper) ModuleAddress() common.Address {
 }
 
 // TransferAfter ibc transfer after
-func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _ bool) error {
+func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _, _ bool) error {
 	if err := contract.ValidateEthereumAddress(receive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err.Error())
 	}

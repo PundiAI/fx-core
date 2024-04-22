@@ -454,6 +454,7 @@ type CrossChainKeeper interface {
 	GetDenomBridgeToken(ctx sdk.Context, denom string) *crosschaintypes.BridgeToken
 	SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error)
 	GetPendingSendToExternal(c context.Context, req *crosschaintypes.QueryPendingSendToExternalRequest) (*crosschaintypes.QueryPendingSendToExternalResponse, error)
+	GetPendingPoolSendToExternal(c context.Context, req *crosschaintypes.QueryPendingPoolSendToExternalRequest) (*crosschaintypes.QueryPendingPoolSendToExternalResponse, error)
 	AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error)
 	BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive string, maxElements uint, minimumFee, baseFee sdkmath.Int) (*crosschaintypes.OutgoingTxBatch, error)
 	SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight, blockHeight uint64)

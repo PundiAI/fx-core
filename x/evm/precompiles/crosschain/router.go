@@ -9,7 +9,7 @@ import (
 )
 
 type Precompile interface {
-	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken bool) error
+	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken, insufficientLiquidity bool) error
 	PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
 	PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
 	PrecompileBridgeCall(ctx sdk.Context, sender, receiver, to common.Address, coins sdk.Coins, message []byte, value *big.Int, gasLimit uint64) (uint64, error)
