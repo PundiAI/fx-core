@@ -19,6 +19,9 @@ interface IFxBridgeLogic {
         address _tokenAddr
     ) external view returns (TokenStatus memory);
     function version() external view returns (string memory);
+    function state_lastBridgeCallNonces(
+        uint256 _index
+    ) external view returns (bool);
     /* solhint-disable func-name-mixedcase */
 
     struct TokenStatus {
