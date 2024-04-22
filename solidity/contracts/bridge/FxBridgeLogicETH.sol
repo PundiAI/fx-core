@@ -12,6 +12,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
+import {IBridgeCallback} from "./IBridgeCallback.sol";
 
 /* solhint-disable custom-errors */
 
@@ -33,7 +34,6 @@ contract FxBridgeLogicETH is
     bytes32 public state_lastOracleSetCheckpoint;
     uint256 public state_lastOracleSetNonce;
     mapping(address => uint256) public state_lastBatchNonces;
-    /* solhint-enable var-name-mixedcase */
 
     address[] public bridgeTokens;
     /**
@@ -43,6 +43,13 @@ contract FxBridgeLogicETH is
 
     mapping(address => TokenStatus) public tokenStatus;
     string public version;
+
+    /**
+     * @dev Update params support fxCore v7
+     *  Bridge Call
+     */
+    mapping(uint256 => bool) public state_lastBridgeCallNonces;
+    /* solhint-enable var-name-mixedcase */
 
     struct TokenStatus {
         bool isOriginated;
@@ -63,6 +70,18 @@ contract FxBridgeLogicETH is
         string name;
         string symbol;
         uint8 decimals;
+    }
+
+    struct BridgeCallData {
+        address sender;
+        address receiver;
+        address to;
+        address[] tokens;
+        uint256[] amounts;
+        bytes message;
+        uint256 value;
+        uint256 timeout;
+        uint256 gasLimit;
     }
 
     /* =============== INIT =============== */
@@ -454,6 +473,150 @@ contract FxBridgeLogicETH is
         }
     }
 
+    function submitBridgeCall(
+        address[] memory _currentOracles,
+        uint256[] memory _currentPowers,
+        uint8[] memory _v,
+        bytes32[] memory _r,
+        bytes32[] memory _s,
+        uint256[2] memory _nonceArray,
+        BridgeCallData memory _input
+    ) public nonReentrant whenNotPaused {
+        verifyBridgeCall(
+            _currentOracles,
+            _currentPowers,
+            _v,
+            _r,
+            _s,
+            _nonceArray,
+            _input
+        );
+
+        state_lastBridgeCallNonces[_nonceArray[1]] = true;
+
+        bool result = false;
+        try this._transferAndBridgeCallback(_input) {
+            result = true;
+            // solhint-disable-next-line no-empty-blocks
+        } catch {}
+
+        {
+            state_lastEventNonce = state_lastEventNonce.add(1);
+            emit SubmitBridgeCallEvent(
+                _input.sender,
+                _input.receiver,
+                _input.to,
+                _nonceArray[1],
+                state_lastEventNonce,
+                result
+            );
+        }
+    }
+
+    function bridgeCallSigHash(
+        BridgeCallData memory input,
+        uint256 nonce
+    ) internal view returns (bytes32) {
+        bytes memory data = abi.encode(
+            state_fxBridgeId,
+            // bytes32 encoding of "bridgeCall"
+            0x62726964676543616c6c00000000000000000000000000000000000000000000,
+            input.sender,
+            input.to,
+            input.receiver,
+            input.value,
+            nonce,
+            input.gasLimit,
+            input.timeout,
+            input.message,
+            input.tokens,
+            input.amounts
+        );
+        return keccak256(data);
+    }
+
+    function verifyBridgeCall(
+        address[] memory _currentOracles,
+        uint256[] memory _currentPowers,
+        uint8[] memory _v,
+        bytes32[] memory _r,
+        bytes32[] memory _s,
+        uint256[2] memory _nonceArray,
+        BridgeCallData memory _input
+    ) internal view {
+        require(
+            !state_lastBridgeCallNonces[_nonceArray[1]],
+            "New bridge call nonce must be not exist."
+        );
+
+        require(
+            block.number < _input.timeout,
+            "timeout must be greater than the current block height."
+        );
+
+        require(
+            _input.tokens.length == _input.amounts.length,
+            "Token not match amount"
+        );
+
+        require(
+            _currentOracles.length == _currentPowers.length &&
+                _currentOracles.length == _v.length &&
+                _currentOracles.length == _r.length &&
+                _currentOracles.length == _s.length,
+            "Malformed current oracle set."
+        );
+
+        require(
+            makeCheckpoint(
+                _currentOracles,
+                _currentPowers,
+                _nonceArray[0],
+                state_fxBridgeId
+            ) == state_lastOracleSetCheckpoint,
+            "Supplied current oracles and powers do not match checkpoint."
+        );
+
+        bytes32 dataHash = bridgeCallSigHash(_input, _nonceArray[1]);
+
+        checkOracleSignatures(
+            _currentOracles,
+            _currentPowers,
+            _v,
+            _r,
+            _s,
+            dataHash,
+            state_powerThreshold
+        );
+    }
+
+    function _transferAndBridgeCallback(
+        BridgeCallData memory _input
+    ) public onlySelf {
+        if (_input.tokens.length > 0) {
+            _transferERC20(
+                address(this),
+                _input.receiver,
+                _input.tokens,
+                _input.amounts
+            );
+        }
+
+        if (_input.message.length > 0) {
+            IBridgeCallback(_input.to).bridgeCallback{gas: _input.gasLimit}(
+                _input.sender,
+                _input.receiver,
+                _input.to,
+                _input.tokens,
+                _input.amounts,
+                _input.message,
+                _input.value,
+                _input.timeout,
+                _input.gasLimit
+            );
+        }
+    }
+
     function transferOwner(
         address _token,
         address _newOwner
@@ -611,6 +774,14 @@ contract FxBridgeLogicETH is
         }
     }
 
+    modifier onlySelf() {
+        require(
+            address(this) == _msgSender(),
+            "Selfable: caller is not the self"
+        );
+        _;
+    }
+
     /* ============== UPGRADE FUNCTIONS =============== */
 
     function migrate() public onlyOwner {
@@ -677,5 +848,14 @@ contract FxBridgeLogicETH is
         uint256 _gasLimit,
         bytes _message,
         uint256 _value
+    );
+
+    event SubmitBridgeCallEvent(
+        address indexed _sender,
+        address indexed _receiver,
+        address indexed _to,
+        uint256 _nonce,
+        uint256 _eventNonce,
+        bool _result
     );
 }
