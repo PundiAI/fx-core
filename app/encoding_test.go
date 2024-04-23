@@ -34,7 +34,7 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	for typeURLMap.Next() {
 		count3++
 	}
-	assert.Equal(t, 271, count3)
+	assert.Equal(t, 272, count3)
 
 	govContent := encodingConfig.InterfaceRegistry.ListImplementations("cosmos.gov.v1beta1.Content")
 	assert.Equal(t, 14, len(govContent))
