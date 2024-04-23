@@ -331,35 +331,38 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 	return nil
 }
 
-func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error) {
-	var metadata banktypes.Metadata
+func (k Keeper) GetTargetCoin(ctx sdk.Context, coin sdk.Coin, fxTarget fxtypes.FxTarget) (targetCoin sdk.Coin, metadata banktypes.Metadata) {
 	if k.IsDenomRegistered(ctx, coin.Denom) {
 		// is base denom
 		var found bool
 		metadata, found = k.HasDenomAlias(ctx, coin.Denom)
 		if !found { // no convert required
-			return coin, nil
+			return coin, metadata
 		}
 	} else {
 		// is alias denom
 		denom, found := k.GetAliasDenom(ctx, coin.Denom)
 		if !found { // no convert required
-			return coin, nil
+			return coin, metadata
 		}
 
 		// NOTE: metadata must exist, and alias must exist
 		metadata, found = k.HasDenomAlias(ctx, denom)
 		if !found { // no convert required
-			return coin, nil
+			return coin, metadata
 		}
 	}
 
 	targetDenom := k.ToTargetDenom(ctx, coin.Denom, metadata.Base, metadata.DenomUnits[0].Aliases, fxTarget)
-	if coin.Denom == targetDenom {
-		return coin, nil
+	return sdk.NewCoin(targetDenom, coin.Amount), metadata
+}
+
+func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error) {
+	targetCoin, metadata := k.GetTargetCoin(ctx, coin, fxTarget)
+	if coin.Denom == targetCoin.Denom {
+		return targetCoin, nil
 	}
 
-	targetCoin := sdk.NewCoin(targetDenom, coin.Amount)
 	// send denom to module
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {

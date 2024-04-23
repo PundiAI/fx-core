@@ -510,21 +510,6 @@ func (mr *MockErc20KeeperMockRecorder) ConvertDenomToTarget(ctx, from, coin, fxT
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertDenomToTarget", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertDenomToTarget), ctx, from, coin, fxTarget)
 }
 
-// ConvertERC20 mocks base method.
-func (m *MockErc20Keeper) ConvertERC20(goCtx context.Context, msg *types8.MsgConvertERC20) (*types8.MsgConvertERC20Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConvertERC20", goCtx, msg)
-	ret0, _ := ret[0].(*types8.MsgConvertERC20Response)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ConvertERC20 indicates an expected call of ConvertERC20.
-func (mr *MockErc20KeeperMockRecorder) ConvertERC20(goCtx, msg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertERC20", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertERC20), goCtx, msg)
-}
-
 // DeleteOutgoingTransferRelation mocks base method.
 func (m *MockErc20Keeper) DeleteOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) {
 	m.ctrl.T.Helper()
@@ -535,21 +520,6 @@ func (m *MockErc20Keeper) DeleteOutgoingTransferRelation(ctx types.Context, modu
 func (mr *MockErc20KeeperMockRecorder) DeleteOutgoingTransferRelation(ctx, moduleName, txID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteOutgoingTransferRelation), ctx, moduleName, txID)
-}
-
-// GetTokenPair mocks base method.
-func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types8.TokenPair, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokenPair", ctx, tokenOrDenom)
-	ret0, _ := ret[0].(types8.TokenPair)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetTokenPair indicates an expected call of GetTokenPair.
-func (mr *MockErc20KeeperMockRecorder) GetTokenPair(ctx, tokenOrDenom any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenPair", reflect.TypeOf((*MockErc20Keeper)(nil).GetTokenPair), ctx, tokenOrDenom)
 }
 
 // HasOutgoingTransferRelation mocks base method.
