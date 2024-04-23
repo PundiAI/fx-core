@@ -83,78 +83,13 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	if ctx.IsZero() || txId < 1 || sender.Empty() {
 		return sdk.Coin{}, errorsmod.Wrap(types.ErrInvalid, "arguments")
 	}
+
 	// check that we actually have a tx with that id and what it's details are
-	tx, err := k.GetUnbatchedTxById(ctx, txId)
-	if err != nil {
-		return sdk.Coin{}, err
+	if tx, err := k.GetUnbatchedTxById(ctx, txId); err == nil {
+		return k.handleRemoveFromOutgoingPoolAndRefund(ctx, tx, sender)
 	}
 
-	// Check that this user actually sent the transaction, this prevents someone from refunding someone
-	// else transaction to themselves.
-	txSender := sdk.MustAccAddressFromBech32(tx.Sender)
-	if !txSender.Equals(sender) {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
-	}
-
-	// An inconsistent entry should never enter the store, but this is the ideal place to exploit
-	// it such a bug if it did ever occur, so we should double check to be really sure
-	if tx.Fee.Contract != tx.Token.Contract {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Inconsistent tokens to cancel!: %s %s", tx.Fee.Contract, tx.Token.Contract)
-	}
-
-	// delete this tx from the pool
-	if err = k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
-	}
-	// Make sure the tx was removed
-	oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, tx.Fee, tx.Id)
-	if oldTx != nil || oldTxErr == nil {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "tx with id %d was not fully removed from the pool, a duplicate must exist", txId)
-	}
-
-	// query denom, if not exist, return error
-	bridgeToken := k.GetBridgeTokenDenom(ctx, tx.Token.Contract)
-	if bridgeToken == nil {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tx.Token.Contract)
-	}
-	// reissue the amount and the fee
-	totalToRefund := sdk.NewCoin(bridgeToken.Denom, tx.Token.Amount)
-	totalToRefund.Amount = totalToRefund.Amount.Add(tx.Fee.Amount)
-	totalToRefundCoins := sdk.NewCoins(totalToRefund)
-
-	// check bridge denom is origin denom or converted alias
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
-	if isOriginOrConverted {
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, err
-		}
-	} else {
-		if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
-		}
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, errorsmod.Wrap(err, "transfer vouchers")
-		}
-	}
-
-	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, totalToRefund, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
-	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrap(err, "convert denom to erc20")
-	}
-
-	// if not origin token, refund to contract token
-	if k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, txId) {
-		if err = k.erc20Keeper.HookOutgoingRefund(ctx, k.moduleName, txId, sender, targetCoin); err != nil {
-			return sdk.Coin{}, errorsmod.Wrap(err, "outgoing refund")
-		}
-	}
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeSendToExternalCanceled,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
-	))
-	return targetCoin, nil
+	return k.handleRemoveFromOutgoingPendingPoolAndRefund(ctx, txId, sender)
 }
 
 func (k Keeper) AddToOutgoingPendingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
@@ -434,4 +369,125 @@ func (k Keeper) IteratorPendingOutgoingTxByBridgeTokenContractAddr(ctx sdk.Conte
 			break
 		}
 	}
+}
+
+func (k Keeper) IteratorPendingOutgoingTx(ctx sdk.Context, cb func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.PendingOutgoingTxPoolKey)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var pendingOutgoingTx types.PendingOutgoingTransferTx
+		k.cdc.MustUnmarshal(iter.Value(), &pendingOutgoingTx)
+		if cb(pendingOutgoingTx) {
+			break
+		}
+	}
+}
+
+func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types.OutgoingTransferTx, sender sdk.AccAddress) (sdk.Coin, error) {
+	txId := tx.Id
+
+	// Check that this user actually sent the transaction, this prevents someone from refunding someone
+	// else transaction to themselves.
+	txSender := sdk.MustAccAddressFromBech32(tx.Sender)
+	if !txSender.Equals(sender) {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
+	}
+
+	// An inconsistent entry should never enter the store, but this is the ideal place to exploit
+	// it such a bug if it did ever occur, so we should double check to be really sure
+	if tx.Fee.Contract != tx.Token.Contract {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Inconsistent tokens to cancel!: %s %s", tx.Fee.Contract, tx.Token.Contract)
+	}
+
+	// delete this tx from the pool
+	if err := k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
+	}
+	// Make sure the tx was removed
+	oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, tx.Fee, tx.Id)
+	if oldTx != nil || oldTxErr == nil {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "tx with id %d was not fully removed from the pool, a duplicate must exist", txId)
+	}
+
+	return k.handleCancelRefund(ctx, txId, sender, tx.Token.Contract, tx.Token.Amount.Add(tx.Fee.Amount))
+}
+
+func (k Keeper) handleRemoveFromOutgoingPendingPoolAndRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress) (sdk.Coin, error) {
+	var tx types.PendingOutgoingTransferTx
+	err := errorsmod.Wrap(types.ErrUnknown, "pool transaction")
+	// 1. find pending outgoing tx by txId, and check sender
+	k.IteratorPendingOutgoingTx(ctx, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
+		if pendingOutgoingTx.Id == txId {
+			tx = pendingOutgoingTx
+			err = nil
+			txSender := sdk.MustAccAddressFromBech32(tx.Sender)
+			if !txSender.Equals(sender) {
+				err = errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
+			}
+			return true
+		}
+		return false
+	})
+
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	// 2. delete pending outgoing tx
+	k.RemovePendingOutgoingTx(ctx, tx.TokenContract, txId)
+
+	// TODO: 3. refund rewards
+
+	// 4. refund token to sender
+	return k.handleCancelRefund(ctx, txId, sender, tx.TokenContract, tx.Token.Amount.Add(tx.Fee.Amount))
+}
+
+func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress, tokenContract string, refundAmount sdkmath.Int) (sdk.Coin, error) {
+	// 1. handler refund
+	// query denom, if not exist, return error
+	bridgeToken := k.GetBridgeTokenDenom(ctx, tokenContract)
+	if bridgeToken == nil {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tokenContract)
+	}
+	// reissue the amount and the fee
+	totalToRefund := sdk.NewCoin(bridgeToken.Denom, refundAmount)
+	totalToRefundCoins := sdk.NewCoins(totalToRefund)
+
+	// check bridge denom is origin denom or converted alias
+	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+	if isOriginOrConverted {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
+			return sdk.Coin{}, err
+		}
+	} else {
+		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
+			return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
+		}
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
+			return sdk.Coin{}, errorsmod.Wrap(err, "transfer vouchers")
+		}
+	}
+
+	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, totalToRefund, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrap(err, "convert denom to erc20")
+	}
+
+	// 2. handler hook
+	// if not origin token, refund to contract token
+	if k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, txId) {
+		if err := k.erc20Keeper.HookOutgoingRefund(ctx, k.moduleName, txId, sender, targetCoin); err != nil {
+			return sdk.Coin{}, errorsmod.Wrap(err, "outgoing refund")
+		}
+	}
+
+	// 3. emit event
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSendToExternalCanceled,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
+	))
+
+	return targetCoin, nil
 }
