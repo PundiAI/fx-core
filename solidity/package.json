@@ -13,7 +13,9 @@
     "test": "npx hardhat compile && npx hardhat typechain && npx hardhat test",
     "clean": "npx hardhat clean && rm -rf ./build ./contracts/build",
     "lint:sol": "npx solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
-    "typechain": "npx hardhat typechain"
+    "typechain": "npx hardhat typechain",
+    "fork": "npx hardhat node --fork ${NETWORK_URL}",
+    "fork:blocknumber": "npx hardhat node --fork ${NETWORK_URL} --fork-block-number ${BLOCK_NUMBER}"
   },
   "keywords": [
     "solidity",
