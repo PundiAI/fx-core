@@ -34,6 +34,18 @@ jobs:
           cache-dependency-path: solidity/yarn.lock
       - run: cd solidity && yarn install && yarn lint:sol && yarn compile
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          check-latest: false
+          cache: "yarn"
+          cache-dependency-path: solidity/yarn.lock
+      - run: cd solidity && yarn install && yarn test
+
   abigen:
     runs-on: ubuntu-latest
     steps:
