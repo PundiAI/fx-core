@@ -163,36 +163,3 @@ func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddr
 	}
 	return nil
 }
-
-func (k Keeper) bridgeCallCoinsHandler(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, error) {
-	tokens := make([]types.ERC20Token, 0, len(coins))
-	for _, coin := range coins {
-		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, coin, fxtypes.ParseFxTarget(k.moduleName))
-		if err != nil {
-			return nil, err
-		}
-		bridgeToken := k.GetDenomBridgeToken(ctx, targetCoin.Denom)
-		if bridgeToken == nil {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
-		}
-
-		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, targetCoin.Denom)
-		if isOriginOrConverted {
-			// lock coins in module
-			if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(targetCoin)); err != nil {
-				return nil, err
-			}
-		} else {
-			// If it is an external blockchain asset we burn it send coins to module in prep for burn
-			if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(targetCoin)); err != nil {
-				return nil, err
-			}
-			// burn vouchers to send them back to external blockchain
-			if err = k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(targetCoin)); err != nil {
-				return nil, err
-			}
-		}
-		tokens = append(tokens, types.NewERC20Token(targetCoin.Amount, bridgeToken.Token))
-	}
-	return tokens, nil
-}
