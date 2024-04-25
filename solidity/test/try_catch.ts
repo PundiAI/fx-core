@@ -2,11 +2,9 @@ import {ethers} from "hardhat";
 import {TryCatchTest} from "../typechain-types";
 import {expect} from "chai";
 import {HardhatEthersSigner} from "@nomicfoundation/hardhat-ethers/signers";
-import * as wasi from "wasi";
 
 describe("try catch test", function () {
     let tryCatchContract: TryCatchTest;
-    let tryCatchV2Address: string;
     let signers: HardhatEthersSigner[];
     let placeholder = ethers.encodeBytes32String("placeholder")
 

@@ -13,10 +13,7 @@ const config: HardhatUserConfig = {
     defaultNetwork: "hardhat",
     networks: {
         hardhat: {
-            // forking: {
-            //     url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/"+process.env.INFURA_KEY}`,
-            // }
-            chainId: 1337,
+            chainId: process.env.CHAIN_ID ? parseInt(process.env.CHAIN_ID) : 1337,
         },
         mainnet: {
             url: `${process.env.MAINNET_URL || "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY}`,
