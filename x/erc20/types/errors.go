@@ -17,11 +17,6 @@ var (
 	ErrInvalidDenom           = errorsmod.Register(ModuleName, 12, "invalid denom")
 	ErrInvalidAlias           = errorsmod.Register(ModuleName, 15, "invalid alias")
 	ErrInsufficientLiquidity  = errorsmod.Register(ModuleName, 16, "insufficient liquidity")
-
-	// Deprecated
-	// ErrABIPack                = errorsmod.Register(ModuleName, 8, "contract ABI pack failed")
-	// ErrInvalidTarget          = errorsmod.Register(ModuleName, 13, "invalid target")
-	// ErrInternalRouter         = errorsmod.Register(ModuleName, 14, "internal router error")
 )
 
 func IsInsufficientLiquidityErr(err error) bool {
