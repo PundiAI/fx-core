@@ -641,29 +641,15 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
 func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	bridgerAddr := msg.GetClaimer()
-	oracleAddr, err := s.checkBridgerIsOracle(ctx, bridgerAddr)
-	if err != nil {
-		return nil, err
-	}
-
 	for _, member := range msg.Members {
 		if _, found := s.GetOracleByExternalAddress(ctx, member.ExternalAddress); !found {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "external address")
 		}
 	}
-	// Add the claim to the store
-	if _, err := s.Attest(ctx, oracleAddr, msg); err != nil {
+
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}
-
-	// Emit the handle message event
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, bridgerAddr.String()),
-	))
-
 	return &types.MsgOracleSetUpdatedClaimResponse{}, nil
 }
 
