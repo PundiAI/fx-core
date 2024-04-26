@@ -2,21 +2,9 @@ package types
 
 import (
 	"fmt"
-	"strings"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
-
-// SanitizeERC20Name enforces snake_case and removes all "coin" and "token"
-// strings from the ERC20 name.
-func SanitizeERC20Name(name string) string {
-	name = strings.ToLower(name)
-	name = strings.ReplaceAll(name, " token", "")
-	name = strings.ReplaceAll(name, " coin", "")
-	name = strings.TrimSpace(name)
-	name = strings.ReplaceAll(name, " ", "_")
-	return name
-}
 
 // EqualMetadata checks if all the fields of the provided coin metadata are equal.
 func EqualMetadata(a, b banktypes.Metadata) error {
