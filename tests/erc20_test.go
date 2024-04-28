@@ -86,7 +86,7 @@ func (suite *IntegrationTest) ERC20IBCChainTokenOriginTest() {
 
 	for _, chain := range suite.crosschain {
 		tokenAddress := helpers.GenerateAddressByModule(chain.chainName)
-		bridgeDenom := fmt.Sprintf("%s%s", chain.chainName, tokenAddress)
+		bridgeDenom := crosschaintypes.NewBridgeDenom(chain.chainName, tokenAddress)
 		channelIBCHex := hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", portID, channelID)))
 		trace, err := fxtypes.GetIbcDenomTrace(bridgeDenom, channelIBCHex)
 		suite.NoError(err)
@@ -187,7 +187,7 @@ func (suite *IntegrationTest) ERC20IBCChainTokenERC20Test() {
 	aliases := make([]string, 0, len(suite.crosschain))
 	for _, chain := range suite.crosschain {
 		tokenAddress := helpers.GenerateAddressByModule(chain.chainName)
-		bridgeDenom := fmt.Sprintf("%s%s", chain.chainName, tokenAddress)
+		bridgeDenom := crosschaintypes.NewBridgeDenom(chain.chainName, tokenAddress)
 		channelIBCHex := hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", portID, channelID)))
 		trace, err := fxtypes.GetIbcDenomTrace(bridgeDenom, channelIBCHex)
 		suite.NoError(err)

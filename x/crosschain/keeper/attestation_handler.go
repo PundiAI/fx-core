@@ -113,7 +113,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			}
 
 			// add more origin token
-			denom := NewBridgeDenom(k.moduleName, claim.TokenContract)
+			denom := types.NewBridgeDenom(k.moduleName, claim.TokenContract)
 			if !slices.Contains(metadata.DenomUnits[0].Aliases, denom) {
 				return errorsmod.Wrap(
 					types.ErrInvalid,
@@ -165,8 +165,4 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
 	}
 	return nil
-}
-
-func NewBridgeDenom(moduleName string, token string) string {
-	return fmt.Sprintf("%s%s", moduleName, token)
 }

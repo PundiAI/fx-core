@@ -14,6 +14,7 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -26,7 +27,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 		tokenAddress := helpers.GenerateAddressByModule(chain.chainName)
 		metadata := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), 18)
 
-		bridgeDenom := fmt.Sprintf("%s%s", chain.chainName, tokenAddress)
+		bridgeDenom := crosschaintypes.NewBridgeDenom(chain.chainName, tokenAddress)
 		channelIBCHex := ""
 		if chain.chainName == bsctypes.ModuleName {
 			channelIBCHex = hex.EncodeToString([]byte("transfer/channel-0"))
@@ -89,7 +90,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 
 			// add pundix token
 			pundixAddress := helpers.GenerateAddressByModule(chain.chainName)
-			pundixDenom := fmt.Sprintf("%s%s", ethtypes.ModuleName, pundixAddress)
+			pundixDenom := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, pundixAddress)
 			pundixMetadata := fxtypes.GetCrossChainMetadataOneToOne("test token", pundixDenom, "PUNDIX", 18)
 			suite.erc20.RegisterCoinProposal(pundixMetadata)
 
@@ -108,7 +109,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	purseMd := ethChain.SelectTokenMetadata("ibc/")
 
 	newTokenContract := helpers.GenerateAddressByModule(ethtypes.ModuleName)
-	purseNewAlias := fmt.Sprintf("%s%s", ethtypes.ModuleName, newTokenContract)
+	purseNewAlias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, newTokenContract)
 	resp, _ := suite.erc20.UpdateDenomAliasProposal(purseMd.Base, purseNewAlias)
 	suite.Equal(uint32(0), resp.Code)
 
@@ -117,7 +118,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 
 	// bsc add FX token
 	newTokenContract = helpers.GenerateAddressByModule(bsctypes.ModuleName)
-	fxNewAlias := fmt.Sprintf("%s%s", bsctypes.ModuleName, newTokenContract)
+	fxNewAlias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, newTokenContract)
 	resp, _ = suite.erc20.UpdateDenomAliasProposal(fxtypes.DefaultDenom, fxNewAlias)
 	suite.Equal(uint32(0), resp.Code)
 
@@ -128,7 +129,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	pundixMd := tronChain.SelectTokenMetadata("eth")
 
 	newTokenContract = helpers.GenerateAddressByModule(trontypes.ModuleName)
-	pundixAlias := fmt.Sprintf("%s%s", trontypes.ModuleName, newTokenContract)
+	pundixAlias := crosschaintypes.NewBridgeDenom(trontypes.ModuleName, newTokenContract)
 	resp, _ = suite.erc20.UpdateDenomAliasProposal(pundixMd.Base, pundixAlias)
 	suite.Equal(uint32(0), resp.Code)
 

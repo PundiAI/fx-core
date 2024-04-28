@@ -784,7 +784,7 @@ func CmdCovertBridgeToken(chainName string) *cobra.Command {
 				return err
 			}
 			channelIbc := args[1]
-			coinName := fmt.Sprintf("%s%s", chainName, tokenContract)
+			coinName := types.NewBridgeDenom(chainName, tokenContract)
 			if len(channelIbc) > 0 {
 				coinName = tranfsertypes.DenomTrace{
 					Path:      channelIbc,

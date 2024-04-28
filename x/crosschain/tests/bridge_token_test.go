@@ -1,8 +1,6 @@
 package tests_test
 
 import (
-	"fmt"
-
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -11,7 +9,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {
 	tokenContract := helpers.GenerateAddress().Hex()
 	denom, err := suite.Keeper().SetIbcDenomTrace(suite.ctx, tokenContract, "")
 	suite.NoError(err)
-	suite.Equal(fmt.Sprintf("%s%s", suite.chainName, tokenContract), denom)
+	suite.Equal(types.NewBridgeDenom(suite.chainName, tokenContract), denom)
 
 	suite.Keeper().AddBridgeToken(suite.ctx, tokenContract, denom)
 

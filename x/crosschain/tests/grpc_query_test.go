@@ -2,7 +2,6 @@ package tests_test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -2311,8 +2310,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 							Denom:    "usdt",
 							Exponent: 0,
 							Aliases: []string{
-								fmt.Sprintf("%s%s", ethtypes.ModuleName, token),
-								fmt.Sprintf("%s%s", bsctypes.ModuleName, token),
+								types.NewBridgeDenom(ethtypes.ModuleName, token),
+								types.NewBridgeDenom(bsctypes.ModuleName, token),
 							},
 						},
 						{

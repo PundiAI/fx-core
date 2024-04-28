@@ -3,7 +3,6 @@ package tests
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -146,14 +145,14 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 	})
 	suite.NoError(err)
 	if len(channelIBCHex) > 0 {
-		bridgeDenom := fmt.Sprintf("%s%s", suite.chainName, token)
+		bridgeDenom := crosschaintypes.NewBridgeDenom(suite.chainName, token)
 		trace, err := fxtypes.GetIbcDenomTrace(bridgeDenom, channelIBCHex)
 		suite.NoError(err)
 
 		bridgeDenom = trace.IBCDenom()
 		suite.Equal(bridgeDenom, response.Denom)
 	} else if response.Denom != fxtypes.DefaultDenom {
-		suite.Equal(fmt.Sprintf("%s%s", suite.chainName, token), response.Denom)
+		suite.Equal(crosschaintypes.NewBridgeDenom(suite.chainName, token), response.Denom)
 	}
 
 	return response.Denom

@@ -22,7 +22,6 @@ import (
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -361,7 +360,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 	}
 
 	token := fmt.Sprintf("0x%s", tmrand.Str(40))
-	denom := fmt.Sprintf("%s%s", suite.chainName, token)
+	denom := types.NewBridgeDenom(suite.chainName, token)
 	suite.Keeper().AddBridgeToken(suite.ctx, token, denom) // nolint:staticcheck
 
 	privateKey, err := crypto.GenerateKey()
@@ -672,7 +671,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToFxClaim)
 				suite.True(ok)
-				suite.Keeper().AddBridgeToken(suite.ctx, msg.TokenContract, fmt.Sprintf("%s%s", suite.chainName, msg.TokenContract)) // nolint:staticcheck
+				suite.Keeper().AddBridgeToken(suite.ctx, msg.TokenContract, types.NewBridgeDenom(suite.chainName, msg.TokenContract)) // nolint:staticcheck
 				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
@@ -974,7 +973,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 
 	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.ctx, sendToFxToken)
 	require.NotNil(suite.T(), bridgeDenomData)
-	tokenDenom := fmt.Sprintf("%s%s", suite.chainName, sendToFxToken)
+	tokenDenom := types.NewBridgeDenom(suite.chainName, sendToFxToken)
 	require.EqualValues(suite.T(), tokenDenom, bridgeDenomData.Denom)
 	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.ctx, tokenDenom)
 	require.NotNil(suite.T(), bridgeTokenData)
@@ -1114,7 +1113,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 
 	suite.addBridgeToken(tokenContract, fxtypes.GetCrossChainMetadataManyToOne("test token", "TT", 18))
 
-	suite.registerCoin(keeper.NewBridgeDenom(suite.chainName, tokenContract))
+	suite.registerCoin(types.NewBridgeDenom(suite.chainName, tokenContract))
 
 	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
 	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData(fxtypes.DefaultDenom))
@@ -1366,7 +1365,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 
 	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.ctx, sendToFxToken)
 	require.NotNil(suite.T(), bridgeDenomData)
-	tokenDenom := fmt.Sprintf("%s%s", suite.chainName, sendToFxToken)
+	tokenDenom := types.NewBridgeDenom(suite.chainName, sendToFxToken)
 	require.EqualValues(suite.T(), tokenDenom, bridgeDenomData.Denom)
 	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.ctx, tokenDenom)
 	require.NotNil(suite.T(), bridgeTokenData)
@@ -1379,7 +1378,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			{
 				Denom:    "test",
 				Exponent: 0,
-				Aliases:  []string{fmt.Sprintf("%s%s", suite.chainName, sendToFxToken)},
+				Aliases:  []string{types.NewBridgeDenom(suite.chainName, sendToFxToken)},
 			}, {
 				Denom:    "TEST",
 				Exponent: 18,

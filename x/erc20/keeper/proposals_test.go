@@ -16,6 +16,7 @@ import (
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
@@ -561,7 +562,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinConversionInvariant() {
 func (suite *KeeperTestSuite) TestRegisterERC20ConversionInvariant() {
 	contact, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.signer.Address(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
-	tokenPair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, contact, fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddress().String()))
+	tokenPair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, contact, crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenerateAddress().String()))
 	suite.Require().NoError(err)
 	suite.Require().True(tokenPair.Enabled)
 	suite.Require().EqualValues(tokenPair.Erc20Address, contact.String())
