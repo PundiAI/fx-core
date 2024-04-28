@@ -44,6 +44,7 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
@@ -178,12 +179,12 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	for index, m := range modules {
 		address := helpers.GenerateAddressByModule(m)
 
-		denom := fmt.Sprintf("%s%s", m, address)
+		denom := crosschaintypes.NewBridgeDenom(m, address)
 		denoms[index] = denom
 		denomModules[index] = m
 
 		k := keepers[m]
-		k.AddBridgeToken(suite.ctx, address, fmt.Sprintf("%s%s", m, address))
+		k.AddBridgeToken(suite.ctx, address, crosschaintypes.NewBridgeDenom(m, address))
 	}
 	if count >= len(modules) {
 		count = len(modules) - 1
@@ -374,8 +375,8 @@ func newMetadata() banktypes.Metadata {
 				Denom:    "usdt",
 				Exponent: uint32(0),
 				Aliases: []string{
-					fmt.Sprintf("%s%s", bsctypes.ModuleName, helpers.GenerateAddress().String()),
-					fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddress().String()),
+					crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddress().String()),
+					crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenerateAddress().String()),
 					// fmt.Sprintf("%s%s", "ibc/", helpers.GenerateAddress().String()),
 				},
 			}, {

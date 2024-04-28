@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -62,7 +60,7 @@ func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.Bridge
 }
 
 func (k Keeper) SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error) {
-	denom := fmt.Sprintf("%s%s", k.moduleName, token)
+	denom := types.NewBridgeDenom(k.moduleName, token)
 	denomTrace, err := fxtypes.GetIbcDenomTrace(denom, channelIBC)
 	if err != nil {
 		return denom, err

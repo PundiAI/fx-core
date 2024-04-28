@@ -12,7 +12,6 @@ import (
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -24,7 +23,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	bridgeTokenStr := fxtypes.AddressToStr(bridgeToken.Bytes(), suite.chainName)
 	suite.addBridgeToken(bridgeTokenStr, fxtypes.GetCrossChainMetadataManyToOne("test token", "TTT", 18))
 
-	suite.registerCoin(keeper.NewBridgeDenom(suite.chainName, bridgeTokenStr))
+	suite.registerCoin(types.NewBridgeDenom(suite.chainName, bridgeTokenStr))
 
 	fxAddr1 := helpers.GenerateAddress()
 	randomBlock := tmrand.Int63n(1000000000)

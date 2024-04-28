@@ -206,12 +206,12 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 	for index, m := range modules {
 		address := helpers.GenerateAddressByModule(m)
 
-		denom := fmt.Sprintf("%s%s", m, address)
+		denom := crosschaintypes.NewBridgeDenom(m, address)
 		denoms[index] = denom
 		denomModules[index] = m
 
 		k := keepers[m]
-		k.AddBridgeToken(suite.ctx, address, fmt.Sprintf("%s%s", m, address))
+		k.AddBridgeToken(suite.ctx, address, crosschaintypes.NewBridgeDenom(m, address))
 	}
 	if count >= len(modules) {
 		count = len(modules) - 1

@@ -151,7 +151,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				moduleName := ethtypes.ModuleName
 				denomAddr := helpers.GenerateAddress().String()
-				alias := fmt.Sprintf("%s%s", moduleName, denomAddr)
+				alias := crosschaintypes.NewBridgeDenom(moduleName, denomAddr)
 
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, denomAddr, alias)
 
@@ -286,7 +286,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().NoError(err)
 				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenAddress.Hex(), denom)
 				// add to eth chain
-				ethBridgeToken := fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenAddress.Hex())
+				ethBridgeToken := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, tokenAddress.Hex())
 				suite.CrossChainKeepers()[ethtypes.ModuleName].AddBridgeToken(suite.ctx, tokenAddress.Hex(), ethBridgeToken)
 
 				symbol := helpers.NewRandSymbol()
@@ -346,7 +346,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().NoError(err)
 				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenAddress.Hex(), denom)
 				// add to eth chain
-				ethBridgeToken := fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenAddress.Hex())
+				ethBridgeToken := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, tokenAddress.Hex())
 				suite.CrossChainKeepers()[ethtypes.ModuleName].AddBridgeToken(suite.ctx, tokenAddress.Hex(), ethBridgeToken)
 
 				symbol := helpers.NewRandSymbol()
@@ -409,7 +409,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().True(found)
 
 				tokenContract := helpers.GenerateAddressByModule(bsctypes.ModuleName)
-				newAlias := fmt.Sprintf("%s%s", bsctypes.ModuleName, tokenContract)
+				newAlias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, tokenContract)
 				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenContract, newAlias)
 				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, md.Base, newAlias)
 				suite.Require().NoError(err)
@@ -454,7 +454,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().True(found)
 
 				tokenContract := helpers.GenerateAddressByModule(bsctypes.ModuleName)
-				newAlias := fmt.Sprintf("%s%s", bsctypes.ModuleName, tokenContract)
+				newAlias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, tokenContract)
 				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenContract, newAlias)
 				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, md.Base, newAlias)
 				suite.Require().NoError(err)

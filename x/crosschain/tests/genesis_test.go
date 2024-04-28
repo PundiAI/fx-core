@@ -1,7 +1,6 @@
 package tests_test
 
 import (
-	"fmt"
 	"sort"
 	"testing"
 
@@ -23,7 +22,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		contractAddress := helpers.GenerateAddress().Hex()
 		bridgeToken := types.BridgeToken{
 			Token: contractAddress,
-			Denom: fmt.Sprintf("%s%s", suite.chainName, contractAddress),
+			Denom: types.NewBridgeDenom(suite.chainName, contractAddress),
 		}
 		bridgeTokens[i] = bridgeToken
 		denom, err := suite.Keeper().SetIbcDenomTrace(suite.ctx, bridgeToken.Token, "")

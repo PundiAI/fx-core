@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"math"
 	"math/big"
 	"sort"
@@ -540,4 +541,8 @@ func (m *SnapshotOracle) RemoveNonce(nonce uint64) *SnapshotOracle {
 		}
 	}
 	return m
+}
+
+func NewBridgeDenom(moduleName string, token string) string {
+	return fmt.Sprintf("%s%s", moduleName, token)
 }

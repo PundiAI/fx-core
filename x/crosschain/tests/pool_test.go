@@ -1,8 +1,6 @@
 package tests_test
 
 import (
-	"fmt"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -15,7 +13,7 @@ import (
 func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 	sender := helpers.GenerateAddress().Bytes()
 	bridgeToken := helpers.GenerateAddress().Hex()
-	denom := fmt.Sprintf("%s%s", suite.chainName, bridgeToken)
+	denom := types.NewBridgeDenom(suite.chainName, bridgeToken)
 	suite.Equal(sdk.NewCoin(denom, sdkmath.ZeroInt()), suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 
 	sendAmount := sdk.NewCoin(denom, sdkmath.NewInt(int64(tmrand.Uint32()*2)))

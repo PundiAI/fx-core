@@ -251,7 +251,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				randDenom := helpers.NewRandDenom()
 				moduleName := md.RandModule()
-				aliasDenom := fmt.Sprintf("%s%s", moduleName, helpers.GenerateAddressByModule(moduleName))
+				aliasDenom := crosschaintypes.NewBridgeDenom(moduleName, helpers.GenerateAddressByModule(moduleName))
 				newPair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
 					Description: "New Token",
 					DenomUnits: []*banktypes.DenomUnit{
@@ -501,7 +501,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 
 				randDenom := helpers.NewRandDenom()
 				moduleName := md.RandModule()
-				aliasDenom := fmt.Sprintf("%s%s", moduleName, helpers.GenerateAddressByModule(moduleName))
+				aliasDenom := crosschaintypes.NewBridgeDenom(moduleName, helpers.GenerateAddressByModule(moduleName))
 				newPair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
 					Description: "New Token",
 					DenomUnits: []*banktypes.DenomUnit{
