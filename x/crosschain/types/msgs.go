@@ -33,10 +33,11 @@ const (
 
 	TypeMsgSendToFxClaim = "send_to_fx_claim"
 
-	TypeMsgSendToExternal       = "send_to_external"
-	TypeMsgCancelSendToExternal = "cancel_send_to_external"
-	TypeMsgIncreaseBridgeFee    = "increase_bridge_fee"
-	TypeMsgSendToExternalClaim  = "send_to_external_claim"
+	TypeMsgSendToExternal        = "send_to_external"
+	TypeMsgCancelSendToExternal  = "cancel_send_to_external"
+	TypeMsgIncreaseBridgeFee     = "increase_bridge_fee"
+	TypeMsgAddPendingPoolRewards = "add_pending_pool_rewards"
+	TypeMsgSendToExternalClaim   = "send_to_external_claim"
 
 	TypeMsgBridgeCallClaim = "bridge_call_claim"
 
@@ -92,6 +93,8 @@ var (
 	_ CrossChainMsg = &MsgIncreaseBridgeFee{}
 	_ sdk.Msg       = &MsgSendToExternalClaim{}
 	_ CrossChainMsg = &MsgSendToExternalClaim{}
+	_ sdk.Msg       = &MsgAddPendingPoolRewards{}
+	_ CrossChainMsg = &MsgAddPendingPoolRewards{}
 
 	_ sdk.Msg       = &MsgRequestBatch{}
 	_ CrossChainMsg = &MsgRequestBatch{}
@@ -136,6 +139,7 @@ type MsgValidateBasic interface {
 	MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error)
 	MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error)
 	MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error)
+	MsgAddPendingPoolRewardsValidate(m *MsgAddPendingPoolRewards) (err error)
 
 	MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error)
 
@@ -511,6 +515,33 @@ func (m *MsgIncreaseBridgeFee) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgIncreaseBridgeFee) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
+}
+
+// MsgAddPendingPoolRewards
+
+// Route should return the name of the module
+func (m *MsgAddPendingPoolRewards) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgAddPendingPoolRewards) Type() string { return TypeMsgAddPendingPoolRewards }
+
+// ValidateBasic performs stateless checks
+func (m *MsgAddPendingPoolRewards) ValidateBasic() (err error) {
+	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	} else {
+		return router.MsgAddPendingPoolRewardsValidate(m)
+	}
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgAddPendingPoolRewards) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgAddPendingPoolRewards) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 

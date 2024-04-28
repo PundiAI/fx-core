@@ -2434,8 +2434,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingPoolSendToExternal() 
 		helpers.GenerateAddressByModule(suite.chainName), sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())),
 		sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())), sdk.NewCoins())
 
-	suite.Keeper().AddPendingTx(suite.ctx, &tx1)
-	suite.Keeper().AddPendingTx(suite.ctx, &tx2)
+	suite.Keeper().SetPendingTx(suite.ctx, &tx1)
+	suite.Keeper().SetPendingTx(suite.ctx, &tx2)
 	actual, err := suite.Keeper().GetPendingPoolSendToExternal(ctx, &types.QueryPendingPoolSendToExternalRequest{
 		ChainName:     suite.chainName,
 		SenderAddress: sender.String(),

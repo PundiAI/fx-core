@@ -638,6 +638,43 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	return &types.MsgBridgeCallResponse{}, nil
 }
 
+func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPendingPoolRewards) (*types.MsgAddPendingPoolRewardsResponse, error) {
+	// 0. validate rewards coin, only support stake coin.
+	if len(msg.Rewards) != 1 {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "only support one coin")
+	}
+	reward := msg.Rewards[0]
+	if reward.Denom != fxtypes.DefaultDenom {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "only support %s coin", fxtypes.DefaultDenom)
+	}
+
+	// 1. find the pending pool tx by txID
+	ctx := sdk.UnwrapSDKContext(c)
+	pendingPoolTx, found := s.Keeper.GetPendingPoolTxById(ctx, msg.TransactionId)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrUnknown, "pending pool tx")
+	}
+
+	// 2. transfer coins to module
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
+	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, s.moduleName, sdk.NewCoins(reward)); err != nil {
+		return nil, err
+	}
+
+	// 3. update pending pool tx reward
+	pendingPoolTx.Rewards = sdk.NewCoins(pendingPoolTx.GetRewards()...).Add(reward)
+	s.Keeper.SetPendingTx(ctx, pendingPoolTx)
+
+	// 4. emit event
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
+
+	return &types.MsgAddPendingPoolRewardsResponse{}, nil
+}
+
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
 func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)

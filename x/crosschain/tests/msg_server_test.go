@@ -1451,6 +1451,70 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestAddPendingPoolRewards() {
+	txId := tmrand.Uint64()
+	initRewards := sdk.NewCoins()
+	addRewards := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)))
+	tx := types.NewPendingOutgoingTx(txId, helpers.GenerateAddress().Bytes(), helpers.GenerateAddressByModule(suite.chainName),
+		tmrand.Str(40), sdk.NewCoin("test", sdkmath.NewInt(100)), sdk.NewCoin("test", sdkmath.NewInt(100)),
+		initRewards)
+	suite.Keeper().SetPendingTx(suite.ctx, &tx)
+
+	// mint add reward coins to sender.
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, suite.chainName, addRewards))
+	suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, suite.chainName, sender, addRewards))
+
+	testCases := []struct {
+		name         string
+		malleate     func() *types.MsgAddPendingPoolRewards
+		pass         bool
+		err          error
+		expectReward sdk.Coins
+	}{
+		{
+			name: "pass",
+			malleate: func() *types.MsgAddPendingPoolRewards {
+				return &types.MsgAddPendingPoolRewards{
+					ChainName:     suite.chainName,
+					TransactionId: txId,
+					Sender:        sender.String(),
+					Rewards:       sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
+				}
+			},
+			pass:         true,
+			expectReward: initRewards.Add(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1)))...),
+		},
+		{
+			name: "err - rewards not FX denom",
+			malleate: func() *types.MsgAddPendingPoolRewards {
+				return &types.MsgAddPendingPoolRewards{
+					ChainName:     suite.chainName,
+					TransactionId: txId,
+					Sender:        sender.String(),
+					Rewards:       sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(1))),
+				}
+			},
+			pass: false,
+			err:  errorsmod.Wrapf(types.ErrInvalid, "only support %s coin", fxtypes.DefaultDenom),
+		},
+	}
+
+	for _, testCase := range testCases {
+		suite.T().Run(testCase.name, func(t *testing.T) {
+			msg := testCase.malleate()
+
+			_, err := suite.MsgServer().AddPendingPoolRewards(sdk.WrapSDKContext(suite.ctx), msg)
+			if testCase.pass {
+				require.NoError(suite.T(), err)
+			} else {
+				require.NotNil(suite.T(), err)
+				require.Equal(suite.T(), err.Error(), testCase.err.Error())
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) bondedOracle() {
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
 		OracleAddress:    suite.oracleAddrs[0].String(),

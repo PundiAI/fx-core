@@ -205,3 +205,11 @@ func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, e
 	}
 	return msgServerRouter.GetRoute(chainName).MsgServer, nil
 }
+
+func (k msgServer) AddPendingPoolRewards(ctx context.Context, msg *types.MsgAddPendingPoolRewards) (*types.MsgAddPendingPoolRewardsResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.AddPendingPoolRewards(ctx, msg)
+	}
+}
