@@ -128,7 +128,7 @@ message PendingOutgoingTransferTx {
 message SnapshotOracle {
   uint64 oracle_set_nonce = 1;
   repeated BridgeValidator members = 2 [(gogoproto.nullable) = false];
-  repeated uint64 event_nonces = 3;
+  repeated uint64 nonces = 3;
 }
 
 // ERC20Token unique identifier for an Ethereum ERC20 token.

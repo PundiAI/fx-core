@@ -521,13 +521,23 @@ func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, t
 
 func NewSnapshotOracle(oracleSet *OracleSet, nonce uint64) *SnapshotOracle {
 	return &SnapshotOracle{
-		EventNonces:    []uint64{nonce},
+		Nonces:         []uint64{nonce},
 		OracleSetNonce: oracleSet.Nonce,
 		Members:        oracleSet.Members,
 	}
 }
 
 func (m *SnapshotOracle) AppendNonce(nonce uint64) *SnapshotOracle {
-	m.EventNonces = append(m.EventNonces, nonce)
+	m.Nonces = append(m.Nonces, nonce)
+	return m
+}
+
+func (m *SnapshotOracle) RemoveNonce(nonce uint64) *SnapshotOracle {
+	for i, n := range m.Nonces {
+		if n == nonce {
+			m.Nonces = append(m.Nonces[:i], m.Nonces[i+1:]...)
+			break
+		}
+	}
 	return m
 }
