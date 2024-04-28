@@ -546,3 +546,41 @@ func (m *SnapshotOracle) RemoveNonce(nonce uint64) *SnapshotOracle {
 func NewBridgeDenom(moduleName string, token string) string {
 	return fmt.Sprintf("%s%s", moduleName, token)
 }
+
+func ExternalAddressToAccAddress(chainName, addr string) sdk.AccAddress {
+	router, ok := msgValidateBasicRouter[chainName]
+	if !ok {
+		panic("unrecognized cross chain name")
+	}
+	accAddr, err := router.ExternalAddressToAccAddress(addr)
+	if err != nil {
+		panic(err)
+	}
+	return accAddr
+}
+
+func NewERC20Tokens(module string, tokenAddrs []gethcommon.Address, tokenAmounts []*big.Int) ([]ERC20Token, error) {
+	if len(tokenAddrs) != len(tokenAmounts) {
+		return nil, fmt.Errorf("invalid length")
+	}
+	tokens := make([]ERC20Token, 0)
+	for i := 0; i < len(tokenAddrs); i++ {
+		contractAddr := fxtypes.AddressToStr(tokenAddrs[i].Bytes(), module)
+		amount := sdkmath.NewIntFromBigInt(tokenAmounts[i])
+		found := false
+		for j := 0; j < len(tokens); j++ {
+			if contractAddr == tokens[j].Contract {
+				tokens[j].Amount = tokens[j].Amount.Add(amount)
+				found = true
+				break
+			}
+		}
+		if !found {
+			tokens = append(tokens, ERC20Token{
+				Contract: contractAddr,
+				Amount:   amount,
+			})
+		}
+	}
+	return tokens, nil
+}
