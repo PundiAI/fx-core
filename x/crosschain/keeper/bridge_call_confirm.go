@@ -32,22 +32,16 @@ func (k Keeper) DeleteSnapshotOracle(ctx sdk.Context, nonce uint64) {
 	store.Delete(types.GetSnapshotOracleKey(nonce))
 }
 
-func (k Keeper) RemoveEventSnapshotOracle(ctx sdk.Context, oracleNonce, eventNonce uint64) {
-	oracle, found := k.GetSnapshotOracle(ctx, oracleNonce)
+func (k Keeper) RemoveEventSnapshotOracle(ctx sdk.Context, oracleSetNonce, nonce uint64) {
+	snapshotOracle, found := k.GetSnapshotOracle(ctx, oracleSetNonce)
 	if !found {
 		return
 	}
-
-	for i, nonce := range oracle.EventNonces {
-		if nonce == eventNonce {
-			oracle.EventNonces = append(oracle.EventNonces[:i], oracle.EventNonces[i+1:]...)
-			break
-		}
-	}
-	if len(oracle.EventNonces) == 0 {
-		k.DeleteSnapshotOracle(ctx, oracleNonce)
+	snapshotOracle.RemoveNonce(nonce)
+	if len(snapshotOracle.Nonces) == 0 {
+		k.DeleteSnapshotOracle(ctx, oracleSetNonce)
 	} else {
-		k.SetSnapshotOracle(ctx, oracle)
+		k.SetSnapshotOracle(ctx, snapshotOracle)
 	}
 }
 

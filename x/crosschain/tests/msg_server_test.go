@@ -1202,7 +1202,7 @@ func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 	require.NoError(suite.T(), err)
 	externalAddr := fxtypes.AddressToStr(externalKey.PubKey().Address().Bytes(), suite.chainName)
 	oracleSetNonce := uint64(tmrand.Int63n(10000))
-	eventNonce := uint64(tmrand.Int63n(10000))
+	nonce := uint64(tmrand.Int63n(10000))
 	suite.Keeper().SetSnapshotOracle(suite.ctx, &types.SnapshotOracle{
 		OracleSetNonce: oracleSetNonce,
 		Members: types.BridgeValidators{
@@ -1211,11 +1211,11 @@ func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 				ExternalAddress: externalAddr,
 			},
 		},
-		EventNonces: []uint64{eventNonce},
+		Nonces: []uint64{nonce},
 	})
 
 	outgoingBridgeCall := &types.OutgoingBridgeCall{
-		Nonce:          eventNonce,
+		Nonce:          nonce,
 		Sender:         helpers.GenerateAddressByModule(suite.chainName),
 		To:             helpers.GenerateAddressByModule(suite.chainName),
 		Receiver:       helpers.GenerateAddressByModule(suite.chainName),
@@ -1247,7 +1247,7 @@ func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 		{
 			name: "success",
 			msg: &types.MsgBridgeCallConfirm{
-				Nonce:           eventNonce,
+				Nonce:           nonce,
 				BridgerAddress:  suite.bridgerAddrs[0].String(),
 				ExternalAddress: externalAddr,
 				Signature:       hex.EncodeToString(signature),
@@ -1259,7 +1259,7 @@ func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 		{
 			name: "external address not in oracle set",
 			msg: &types.MsgBridgeCallConfirm{
-				Nonce:           eventNonce,
+				Nonce:           nonce,
 				BridgerAddress:  suite.bridgerAddrs[0].String(),
 				ExternalAddress: helpers.GenerateAddressByModule(suite.chainName),
 				Signature:       hex.EncodeToString(signature),
