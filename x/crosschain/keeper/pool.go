@@ -386,16 +386,14 @@ func (k Keeper) IteratorPendingOutgoingTx(ctx sdk.Context, cb func(pendingOutgoi
 
 func (k Keeper) GetPendingPoolTxById(ctx sdk.Context, txId uint64) (*types.PendingOutgoingTransferTx, bool) {
 	var tx types.PendingOutgoingTransferTx
-	found := false
 	k.IteratorPendingOutgoingTx(ctx, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
 		if pendingOutgoingTx.Id == txId {
 			tx = pendingOutgoingTx
-			found = true
 			return true
 		}
 		return false
 	})
-	return &tx, found
+	return &tx, tx.Id == txId
 }
 
 func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types.OutgoingTransferTx, sender sdk.AccAddress) (sdk.Coin, error) {
