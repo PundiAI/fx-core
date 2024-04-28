@@ -440,7 +440,10 @@ func (k Keeper) handleRemoveFromOutgoingPendingPoolAndRefund(ctx sdk.Context, tx
 	// 2. delete pending outgoing tx
 	k.RemovePendingOutgoingTx(ctx, tx.TokenContract, txId)
 
-	// TODO: 3. refund rewards
+	// 3. refund rewards
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, txSender, tx.Rewards); err != nil {
+		return sdk.Coin{}, err
+	}
 
 	// 4. refund token to sender
 	return k.handleCancelRefund(ctx, txId, sender, tx.TokenContract, tx.Token.Amount.Add(tx.Fee.Amount))
