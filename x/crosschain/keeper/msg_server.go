@@ -635,7 +635,7 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 	))
 
-	return nil, nil
+	return &types.MsgBridgeCallResponse{}, nil
 }
 
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
