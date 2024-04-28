@@ -65,4 +65,15 @@ contract ERC721TokenTest is
     {
         return super.tokenURI(tokenId);
     }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
 }
