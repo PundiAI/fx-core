@@ -43,6 +43,7 @@ service Msg {
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
   rpc IncreaseBridgeFee(MsgIncreaseBridgeFee) returns (MsgIncreaseBridgeFeeResponse);
+  rpc AddPendingPoolRewards(MsgAddPendingPoolRewards) returns (MsgAddPendingPoolRewardsResponse);
 
   rpc UpdateChainOracles(MsgUpdateChainOracles) returns (MsgUpdateChainOraclesResponse);
 }
@@ -386,3 +387,12 @@ message MsgBridgeCall {
 }
 
 message MsgBridgeCallResponse {}
+
+message MsgAddPendingPoolRewards {
+  string chain_name = 1;
+  uint64 transaction_id = 2;
+  string sender = 3;
+  repeated cosmos.base.v1beta1.Coin rewards = 4 [(gogoproto.nullable) = false];
+}
+
+message MsgAddPendingPoolRewardsResponse {}

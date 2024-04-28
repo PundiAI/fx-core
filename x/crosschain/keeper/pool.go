@@ -100,7 +100,7 @@ func (k Keeper) AddToOutgoingPendingPool(ctx sdk.Context, sender sdk.AccAddress,
 	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
 
 	pendingOutgoingTx := types.NewPendingOutgoingTx(nextTxID, sender, receiver, bridgeToken.Token, amount, fee, sdk.NewCoins())
-	k.AddPendingTx(ctx, &pendingOutgoingTx)
+	k.SetPendingTx(ctx, &pendingOutgoingTx)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternal,
@@ -181,7 +181,7 @@ func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.Outgoi
 	return nil
 }
 
-func (k Keeper) AddPendingTx(ctx sdk.Context, outgoing *types.PendingOutgoingTransferTx) {
+func (k Keeper) SetPendingTx(ctx sdk.Context, outgoing *types.PendingOutgoingTransferTx) {
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingPendingTxPoolKey(outgoing.TokenContract, outgoing.Id)
 	store.Set(idxKey, k.cdc.MustMarshal(outgoing))
@@ -384,6 +384,20 @@ func (k Keeper) IteratorPendingOutgoingTx(ctx sdk.Context, cb func(pendingOutgoi
 	}
 }
 
+func (k Keeper) GetPendingPoolTxById(ctx sdk.Context, txId uint64) (*types.PendingOutgoingTransferTx, bool) {
+	var tx types.PendingOutgoingTransferTx
+	found := false
+	k.IteratorPendingOutgoingTx(ctx, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
+		if pendingOutgoingTx.Id == txId {
+			tx = pendingOutgoingTx
+			found = true
+			return true
+		}
+		return false
+	})
+	return &tx, found
+}
+
 func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types.OutgoingTransferTx, sender sdk.AccAddress) (sdk.Coin, error) {
 	txId := tx.Id
 
@@ -414,24 +428,15 @@ func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types
 }
 
 func (k Keeper) handleRemoveFromOutgoingPendingPoolAndRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress) (sdk.Coin, error) {
-	var tx types.PendingOutgoingTransferTx
-	err := errorsmod.Wrap(types.ErrUnknown, "pool transaction")
 	// 1. find pending outgoing tx by txId, and check sender
-	k.IteratorPendingOutgoingTx(ctx, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
-		if pendingOutgoingTx.Id == txId {
-			tx = pendingOutgoingTx
-			err = nil
-			txSender := sdk.MustAccAddressFromBech32(tx.Sender)
-			if !txSender.Equals(sender) {
-				err = errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
-			}
-			return true
-		}
-		return false
-	})
+	tx, found := k.GetPendingPoolTxById(ctx, txId)
+	if !found {
+		return sdk.Coin{}, errorsmod.Wrap(types.ErrUnknown, "pool transaction")
+	}
 
-	if err != nil {
-		return sdk.Coin{}, err
+	txSender := sdk.MustAccAddressFromBech32(tx.Sender)
+	if !txSender.Equals(sender) {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
 	}
 
 	// 2. delete pending outgoing tx
