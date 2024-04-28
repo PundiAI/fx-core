@@ -140,11 +140,6 @@ message ERC20Token {
   ];
 }
 
-// IDSet represents a set of IDs
-message IDSet {
-  repeated uint64 ids = 1;
-}
-
 message BatchFees {
   string token_contract = 1;
   string total_fees = 2 [
