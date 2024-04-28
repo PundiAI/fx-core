@@ -1308,6 +1308,73 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgAddPendingPoolRewardsValidate_ValidateBasic(t *testing.T) {
+	moduleName := getRandModule()
+	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+
+	testCases := []struct {
+		testName    string
+		msg         *types.MsgAddPendingPoolRewards
+		expectPass  bool
+		err         error
+		errReason   string
+		expectPanic bool
+	}{
+		{
+			testName: "success",
+			msg: &types.MsgAddPendingPoolRewards{
+				ChainName:     moduleName,
+				Sender:        normalFxAddress,
+				TransactionId: 1,
+				Rewards:       sdk.NewCoins(sdk.NewCoin(helpers.NewRandDenom(), sdkmath.NewInt(1))),
+			},
+			expectPass: true,
+		},
+		{
+			testName: "err - duplicate coin",
+			msg: &types.MsgAddPendingPoolRewards{
+				ChainName:     moduleName,
+				Sender:        normalFxAddress,
+				TransactionId: 1,
+				Rewards:       []sdk.Coin{sdk.NewCoin("xxx", sdk.NewInt(1)), sdk.NewCoin("xxx", sdk.NewInt(2))},
+			},
+			expectPass:  false,
+			expectPanic: true,
+		},
+		{
+			testName: "err - empty coins",
+			msg: &types.MsgAddPendingPoolRewards{
+				ChainName:     moduleName,
+				Sender:        normalFxAddress,
+				TransactionId: 1,
+				Rewards:       []sdk.Coin{},
+			},
+			expectPass: false,
+			err:        errortypes.ErrInvalidRequest,
+			errReason:  "invalid rewards: invalid request",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			if testCase.expectPanic {
+				require.Panics(t, func() {
+					_ = testCase.msg.ValidateBasic()
+				})
+				return
+			}
+			err := testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err)
+				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
+				require.EqualValuesf(t, testCase.errReason, err.Error(), "%+v", testCase.msg)
+			}
+		})
+	}
+}
+
 func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)

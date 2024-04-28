@@ -293,6 +293,20 @@ func (b MsgValidate) MsgIncreaseBridgeFeeValidate(m *MsgIncreaseBridgeFee) (err 
 	return nil
 }
 
+func (b MsgValidate) MsgAddPendingPoolRewardsValidate(m *MsgAddPendingPoolRewards) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if m.TransactionId == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero transaction id")
+	}
+	rewards := sdk.NewCoins(m.Rewards...)
+	if rewards.Empty() || !rewards.IsValid() || !rewards.IsAllPositive() {
+		return errortypes.ErrInvalidRequest.Wrap("invalid rewards")
+	}
+	return nil
+}
+
 func (b MsgValidate) MsgRequestBatchValidate(m *MsgRequestBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
