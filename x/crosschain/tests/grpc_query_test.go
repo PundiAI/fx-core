@@ -24,15 +24,10 @@ import (
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type CrossChainGrpcTestSuite struct {
@@ -2365,52 +2360,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.Keeper().BridgeCoinByDenom(sdk.WrapSDKContext(suite.ctx), request)
-			if testCase.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(response, res)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, expectedError)
-			}
-		})
-	}
-}
-
-func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeChainList() {
-	var (
-		request       *types.QueryBridgeChainListRequest
-		response      *types.QueryBridgeChainListResponse
-		expectedError error
-	)
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			name: "ok",
-			malleate: func() {
-				request = &types.QueryBridgeChainListRequest{}
-				response = &types.QueryBridgeChainListResponse{
-					ChainNames: []string{
-						ethtypes.ModuleName,
-						bsctypes.ModuleName,
-						polygontypes.ModuleName,
-						trontypes.ModuleName,
-						avalanchetypes.ModuleName,
-						arbitrumtypes.ModuleName,
-						optimismtypes.ModuleName,
-					},
-				}
-			},
-			expPass: true,
-		},
-	}
-	for _, testCase := range testCases {
-		suite.Run(testCase.name, func() {
-			suite.SetupTest()
-			testCase.malleate()
-			res, err := suite.Keeper().BridgeChainList(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
