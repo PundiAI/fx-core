@@ -225,10 +225,6 @@ func GetBridgeCallConfirmKey(nonce uint64, addr sdk.AccAddress) []byte {
 	return append(BridgeCallConfirmKey, append(sdk.Uint64ToBigEndian(nonce), addr.Bytes()...)...)
 }
 
-func GetBridgeCallConfirmKeyByNonce(nonce uint64) []byte {
-	return append(BridgeCallConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
-}
-
 func GetBridgeCallConfirmNonceKey(nonce uint64) []byte {
 	return append(BridgeCallConfirmKey, sdk.Uint64ToBigEndian(nonce)...)
 }
