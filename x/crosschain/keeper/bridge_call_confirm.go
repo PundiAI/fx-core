@@ -78,7 +78,7 @@ func (k Keeper) IterBridgeCallConfirmByNonce(ctx sdk.Context, nonce uint64, cb f
 
 func (k Keeper) DeleteBridgeCallConfirm(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.GetBridgeCallConfirmKeyByNonce(nonce))
+	iterator := sdk.KVStorePrefixIterator(store, types.GetBridgeCallConfirmNonceKey(nonce))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
