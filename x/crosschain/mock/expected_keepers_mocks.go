@@ -346,21 +346,6 @@ func (mr *MockBankKeeperMockRecorder) GetAllBalances(ctx, addr any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllBalances", reflect.TypeOf((*MockBankKeeper)(nil).GetAllBalances), ctx, addr)
 }
 
-// GetDenomMetaData mocks base method.
-func (m *MockBankKeeper) GetDenomMetaData(ctx types.Context, denom string) (types0.Metadata, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDenomMetaData", ctx, denom)
-	ret0, _ := ret[0].(types0.Metadata)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetDenomMetaData indicates an expected call of GetDenomMetaData.
-func (mr *MockBankKeeperMockRecorder) GetDenomMetaData(ctx, denom any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDenomMetaData", reflect.TypeOf((*MockBankKeeper)(nil).GetDenomMetaData), ctx, denom)
-}
-
 // GetSupply mocks base method.
 func (m *MockBankKeeper) GetSupply(ctx types.Context, denom string) types.Coin {
 	m.ctrl.T.Helper()
@@ -387,6 +372,20 @@ func (m *MockBankKeeper) HasBalance(ctx types.Context, addr types.AccAddress, am
 func (mr *MockBankKeeperMockRecorder) HasBalance(ctx, addr, amt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasBalance", reflect.TypeOf((*MockBankKeeper)(nil).HasBalance), ctx, addr, amt)
+}
+
+// HasDenomMetaData mocks base method.
+func (m *MockBankKeeper) HasDenomMetaData(ctx types.Context, denom string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasDenomMetaData", ctx, denom)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// HasDenomMetaData indicates an expected call of HasDenomMetaData.
+func (mr *MockBankKeeperMockRecorder) HasDenomMetaData(ctx, denom any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasDenomMetaData", reflect.TypeOf((*MockBankKeeper)(nil).HasDenomMetaData), ctx, denom)
 }
 
 // IterateAllDenomMetaData mocks base method.
