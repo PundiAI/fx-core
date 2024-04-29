@@ -480,9 +480,13 @@ func (k Keeper) BridgeCallByNonce(c context.Context, req *types.QueryBridgeCallB
 	return &types.QueryBridgeCallByNonceResponse{BridgeCall: outgoingBridgeCall}, nil
 }
 
-func (k Keeper) BridgeCallByReceiver(c context.Context, req *types.QueryBridgeCallByReceiverRequest) (*types.QueryBridgeCallByReceiverResponse, error) {
-	// TODO implement me
-	panic("implement me")
+func (k Keeper) BridgeCallBySender(c context.Context, req *types.QueryBridgeCallBySenderRequest) (*types.QueryBridgeCallBySenderResponse, error) {
+	var outgoingBridgeCalls []*types.OutgoingBridgeCall
+	k.IterateOutgoingBridgeCallsByAddress(sdk.UnwrapSDKContext(c), req.GetSenderAddress(), func(outgoingBridgeCall *types.OutgoingBridgeCall) bool {
+		outgoingBridgeCalls = append(outgoingBridgeCalls, outgoingBridgeCall)
+		return false
+	})
+	return &types.QueryBridgeCallBySenderResponse{BridgeCalls: outgoingBridgeCalls}, nil
 }
 
 func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {

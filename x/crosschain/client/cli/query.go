@@ -857,20 +857,21 @@ func CmdGetBridgeCall(chainName string) *cobra.Command {
 
 func CmdBridgeCallByAddr(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bridge-call-by-receiver [address]",
-		Short: "Query bridge call by receiver",
+		Use:   "bridge-call-by-sender [address]",
+		Short: "Query bridge call by sender",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			receiver, err := getContractAddr(args[0])
+			senderAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.BridgeCallByReceiver(cmd.Context(), &types.QueryBridgeCallByReceiverRequest{
-				ChainName:       chainName,
-				ReceiverAddress: receiver,
+
+			res, err := queryClient.BridgeCallBySender(cmd.Context(), &types.QueryBridgeCallBySenderRequest{
+				ChainName:     chainName,
+				SenderAddress: senderAddr.String(),
 			})
 			if err != nil {
 				return err
