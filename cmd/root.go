@@ -42,6 +42,7 @@ import (
 	bsccli "github.com/functionx/fx-core/v7/x/bsc/client/cli"
 	crosschaincli "github.com/functionx/fx-core/v7/x/crosschain/client/cli"
 	ethcli "github.com/functionx/fx-core/v7/x/eth/client/cli"
+	layer2cli "github.com/functionx/fx-core/v7/x/layer2/client/cli"
 	optimismcli "github.com/functionx/fx-core/v7/x/optimism/client/cli"
 	polygoncli "github.com/functionx/fx-core/v7/x/polygon/client/cli"
 	troncli "github.com/functionx/fx-core/v7/x/tron/client/cli"
@@ -164,6 +165,7 @@ func queryCommand() *cobra.Command {
 			troncli.GetQueryCmd(),
 			arbitrumcli.GetQueryCmd(),
 			optimismcli.GetQueryCmd(),
+			layer2cli.GetQueryCmd(),
 		),
 	)
 
@@ -199,6 +201,7 @@ func txCommand() *cobra.Command {
 			troncli.GetTxCmd(),
 			arbitrumcli.GetTxCmd(),
 			optimismcli.GetTxCmd(),
+			layer2cli.GetTxCmd(),
 		),
 	)
 
