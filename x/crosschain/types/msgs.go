@@ -168,14 +168,6 @@ func ValidateModuleName(moduleName string) error {
 
 var msgValidateBasicRouter = make(map[string]MsgValidateBasic)
 
-func MustGetMsgValidateBasic(chainName string) MsgValidateBasic {
-	mvb, ok := msgValidateBasicRouter[chainName]
-	if !ok {
-		panic(fmt.Sprintf("chain %s validate basic not found", chainName))
-	}
-	return mvb
-}
-
 func GetValidateChains() []string {
 	chains := make([]string, 0, len(msgValidateBasicRouter))
 	for chainName := range msgValidateBasicRouter {
@@ -695,16 +687,9 @@ func (m *MsgBridgeCallClaim) MustMessage() []byte {
 }
 
 func (m *MsgBridgeCallClaim) MustTokensAddr() []common.Address {
-	router, ok := msgValidateBasicRouter[m.ChainName]
-	if !ok {
-		panic(fmt.Sprintf("unrecognized cross chain name %s", m.ChainName))
-	}
 	addrs := make([]common.Address, 0, len(m.TokenContracts))
 	for _, token := range m.TokenContracts {
-		addr, err := router.ExternalAddressToAccAddress(token)
-		if err != nil {
-			panic(err)
-		}
+		addr := ExternalAddressToAccAddress(m.ChainName, token)
 		addrs = append(addrs, common.BytesToAddress(addr))
 	}
 	return addrs
