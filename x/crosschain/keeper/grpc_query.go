@@ -14,14 +14,7 @@ import (
 
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -452,16 +445,7 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 }
 
 func (k Keeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
-	// TODO added new corsschain needs to be updated
-	return &types.QueryBridgeChainListResponse{ChainNames: []string{
-		ethtypes.ModuleName,
-		bsctypes.ModuleName,
-		polygontypes.ModuleName,
-		trontypes.ModuleName,
-		avalanchetypes.ModuleName,
-		arbitrumtypes.ModuleName,
-		optimismtypes.ModuleName,
-	}}, nil
+	return &types.QueryBridgeChainListResponse{ChainNames: types.GetValidateChains()}, nil
 }
 
 func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
