@@ -1,30 +1,32 @@
 package keeper
 
 import (
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
+func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) {
 	// check exist
 	if !k.DeleteIBCTransferRelation(ctx, channel, sequence) {
-		return nil
+		return
 	}
 	cacheCtx, commit := ctx.CacheContext()
-	if err := k.TransferAfter(cacheCtx, sender, common.BytesToAddress(sender.Bytes()).String(),
-		amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt()), false, false); err != nil {
-		return err
+	_, err := k.ConvertCoin(sdk.WrapSDKContext(cacheCtx), &types.MsgConvertCoin{
+		Coin:     amount,
+		Receiver: common.BytesToAddress(sender.Bytes()).String(),
+		Sender:   sender.String(),
+	})
+	if err != nil {
+		k.Logger(ctx).Info("refund after", "channel", channel, "sequence", sequence, "sender", sender, "error", err)
+		return
 	}
 	commit()
-	return nil
 }
 
-func (k Keeper) AckAfter(ctx sdk.Context, channel string, sequence uint64) error {
+func (k Keeper) AckAfter(ctx sdk.Context, channel string, sequence uint64) {
 	k.DeleteIBCTransferRelation(ctx, channel, sequence)
-	return nil
 }
 
 func (k Keeper) SetIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) {
@@ -33,16 +35,13 @@ func (k Keeper) SetIBCTransferRelation(ctx sdk.Context, channel string, sequence
 }
 
 func (k Keeper) DeleteIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool {
-	if !k.hasIBCTransferRelation(ctx, channel, sequence) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetIBCTransferKey(channel, sequence)
+	if !store.Has(key) {
 		return false
 	}
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetIBCTransferKey(channel, sequence))
+	store.Delete(key)
 	return true
-}
-
-func (k Keeper) hasIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool {
-	return ctx.KVStore(k.storeKey).Has(types.GetIBCTransferKey(channel, sequence))
 }
 
 func (k Keeper) HookOutgoingRefund(ctx sdk.Context, moduleName string, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error {
