@@ -52,7 +52,7 @@ type BankKeeper interface {
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	HasBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coin) bool
-	GetDenomMetaData(ctx sdk.Context, denom string) (bank.Metadata, bool)
+	HasDenomMetaData(ctx sdk.Context, denom string) bool
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	IterateAllDenomMetaData(ctx sdk.Context, cb func(bank.Metadata) bool)
 }

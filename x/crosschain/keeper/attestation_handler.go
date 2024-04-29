@@ -5,7 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"golang.org/x/exp/slices"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -74,52 +73,24 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 
 	case *types.MsgBridgeTokenClaim:
 		// Check if it already exists
-		isExist := k.HasBridgeToken(ctx, claim.TokenContract)
-		if isExist {
-			return errorsmod.Wrap(types.ErrInvalid, "bridge token is exist")
+		if has := k.HasBridgeToken(ctx, claim.TokenContract); has {
+			return types.ErrInvalid.Wrap("bridge token is exist")
 		}
-		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc)
+
+		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token",
+			claim.TokenContract, "channelIbc", claim.ChannelIbc)
 		if claim.Symbol == types.NativeDenom {
 			// Check if denom exists
-			metadata, found := k.bankKeeper.GetDenomMetaData(ctx, claim.Symbol)
-			if !found {
-				return errorsmod.Wrap(
-					types.ErrUnknown,
-					fmt.Sprintf("denom not found %s", claim.Symbol))
-			}
-
-			// Check if attributes of ERC20 match fx denom
-			if claim.Name != metadata.Name {
-				return errorsmod.Wrap(
-					types.ErrInvalid,
-					fmt.Sprintf("ERC20 name %s does not match denom display %s", claim.Name, metadata.Description))
-			}
-
-			if claim.Symbol != metadata.Symbol {
-				return errorsmod.Wrap(
-					types.ErrInvalid,
-					fmt.Sprintf("ERC20 symbol %s does not match denom display %s", claim.Symbol, metadata.Display))
+			if !k.bankKeeper.HasDenomMetaData(ctx, claim.Symbol) {
+				return types.ErrUnknown.Wrapf("denom not found %s", claim.Symbol)
 			}
 
 			if fxtypes.DenomUnit != uint32(claim.Decimals) {
-				return errorsmod.Wrap(
-					types.ErrInvalid,
-					fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, fxtypes.DenomUnit))
-			}
-			// first to add origin token, update alias first
-			if len(metadata.DenomUnits[0].Aliases) == 0 {
-				k.AddBridgeToken(ctx, claim.TokenContract, claim.Symbol)
-				return nil
+				return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d", types.NativeDenom,
+					claim.Decimals, fxtypes.DenomUnit)
 			}
 
-			// add more origin token
-			denom := types.NewBridgeDenom(k.moduleName, claim.TokenContract)
-			if !slices.Contains(metadata.DenomUnits[0].Aliases, denom) {
-				return errorsmod.Wrap(
-					types.ErrInvalid,
-					fmt.Sprintf("Token %s not exist in metadata", denom))
-			}
-			k.AddBridgeToken(ctx, claim.TokenContract, denom)
+			k.AddBridgeToken(ctx, claim.TokenContract, types.NativeDenom)
 			return nil
 		}
 
@@ -128,7 +99,6 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return err
 		}
 		k.AddBridgeToken(ctx, claim.TokenContract, denom)
-		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", denom, "channelIbc", claim.ChannelIbc)
 
 	case *types.MsgOracleSetUpdatedClaim:
 		observedOracleSet := &types.OracleSet{
