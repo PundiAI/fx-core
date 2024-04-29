@@ -88,8 +88,8 @@ service Query {
   rpc BridgeCallByNonce(QueryBridgeCallByNonceRequest) returns (QueryBridgeCallByNonceResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/bridge_call_by_nonce";
   }
-  rpc BridgeCallByReceiver(QueryBridgeCallByReceiverRequest) returns (QueryBridgeCallByReceiverResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/bridge_call_by_receiver";
+  rpc BridgeCallBySender(QueryBridgeCallBySenderRequest) returns (QueryBridgeCallBySenderResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_call_by_sender";
   }
   rpc LastPendingBridgeCallByAddr(QueryLastPendingBridgeCallByAddrRequest) returns (QueryLastPendingBridgeCallByAddrResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/last_pending_bridge_call_by_addr";
@@ -340,11 +340,11 @@ message QueryBridgeCallByNonceResponse {
   OutgoingBridgeCall bridge_call = 1;
 }
 
-message QueryBridgeCallByReceiverRequest {
+message QueryBridgeCallBySenderRequest {
   string chain_name = 1;
-  string receiver_address = 2;
+  string sender_address = 2;
 }
-message QueryBridgeCallByReceiverResponse {
+message QueryBridgeCallBySenderResponse {
   repeated OutgoingBridgeCall bridge_calls = 1;
 }
 

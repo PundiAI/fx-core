@@ -272,11 +272,11 @@ func (k RouterKeeper) BridgeCallByNonce(c context.Context, req *types.QueryBridg
 	}
 }
 
-func (k RouterKeeper) BridgeCallByReceiver(c context.Context, req *types.QueryBridgeCallByReceiverRequest) (*types.QueryBridgeCallByReceiverResponse, error) {
+func (k RouterKeeper) BridgeCallBySender(c context.Context, req *types.QueryBridgeCallBySenderRequest) (*types.QueryBridgeCallBySenderResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(ethtypes.ModuleName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.BridgeCallByReceiver(c, req)
+		return queryServer.BridgeCallBySender(c, req)
 	}
 }
 
