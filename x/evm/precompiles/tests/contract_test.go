@@ -343,7 +343,7 @@ func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID strin
 
 	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(portID, channelID), []string{connectionID}, ibctesting.DefaultChannelVersion)
 	suite.app.IBCKeeper.ChannelKeeper.SetChannel(suite.ctx, portID, channelID, channel)
-	suite.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.ctx, portID, channelID, uint64(tmrand.Intn(10000)))
+	suite.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.ctx, portID, channelID, uint64(tmrand.Intn(10000)+1))
 	suite.app.IBCKeeper.ChannelKeeper.SetNextChannelSequence(suite.ctx, channelSequence+1)
 	return portID, channelID
 }
