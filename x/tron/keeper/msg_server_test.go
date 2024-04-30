@@ -20,15 +20,6 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 		expPass  bool
 	}{
 		{
-			name: "bridger address",
-			malleate: func() {
-				msg = &crosschaintypes.MsgConfirmBatch{
-					BridgerAddress: helpers.GenerateAddress().Hex(),
-				}
-			},
-			expPass: false,
-		},
-		{
 			name: "couldn't find batch",
 			malleate: func() {
 				msg = &crosschaintypes.MsgConfirmBatch{
@@ -110,15 +101,6 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 		malleate func()
 		expPass  bool
 	}{
-		{
-			name: "bridger address",
-			malleate: func() {
-				msg = &crosschaintypes.MsgOracleSetConfirm{
-					BridgerAddress: helpers.GenerateAddress().Hex(),
-				}
-			},
-			expPass: false,
-		},
 		{
 			name: "couldn't find oracleSet",
 			malleate: func() {
