@@ -111,14 +111,14 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.SetLastObservedOracleSet(ctx, observedOracleSet)
 
 	case *types.MsgBridgeCallResultClaim:
+		outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, claim.Nonce)
+		if !found {
+			panic(fmt.Errorf("bridge call not found for nonce %d", claim.Nonce))
+		}
 		if !claim.GetResult() {
-			outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, claim.Nonce)
-			if !found {
-				panic(fmt.Errorf("bridge call not found for nonce %d", claim.Nonce))
-			}
 			k.HandleOutgoingBridgeCallRefund(ctx, outgoingBridgeCall)
 		}
-		k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce)
+		k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce, outgoingBridgeCall.OracleSetNonce)
 		return nil
 	default:
 		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())

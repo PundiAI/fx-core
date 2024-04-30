@@ -22,13 +22,16 @@ func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.Outg
 	}
 }
 
-func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, nonce uint64) {
+func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, bridgeCallNonce, oracleSetNonce uint64) {
 	// 1. delete bridge call
-	k.DeleteOutgoingBridgeCall(ctx, nonce)
+	k.DeleteOutgoingBridgeCall(ctx, bridgeCallNonce)
 
 	// 2. delete bridge call confirm
-	k.DeleteBridgeCallConfirm(ctx, nonce)
+	k.DeleteBridgeCallConfirm(ctx, bridgeCallNonce)
 
 	// 3. delete bridge call from msg
-	k.DeleteBridgeCallFromMsg(ctx, nonce)
+	k.DeleteBridgeCallFromMsg(ctx, bridgeCallNonce)
+
+	// 4. remove event snapshot oracle
+	k.RemoveEventSnapshotOracle(ctx, oracleSetNonce, bridgeCallNonce)
 }
