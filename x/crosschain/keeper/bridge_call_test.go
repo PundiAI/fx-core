@@ -112,8 +112,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			}
 
 			// call
-			err := s.crosschainKeeper.BridgeCallHandler(s.ctx, msg.MustSender(), msg.MustTo(), msg.MustReceiver(),
-				msg.MustTokensAddr(), msg.AmountsToBigInt(), msg.MustMessage(), msg.Value, msg.GasLimit, msg.EventNonce)
+			err := s.crosschainKeeper.BridgeCallHandler(s.ctx, msg)
 
 			// check
 			if len(t.error) > 0 {
