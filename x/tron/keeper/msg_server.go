@@ -27,11 +27,6 @@ func NewMsgServerImpl(keeper Keeper) crosschaintypes.MsgServer {
 
 // ConfirmBatch handles MsgConfirmBatch
 func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfirmBatch) (*crosschaintypes.MsgConfirmBatchResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
-	if err != nil {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "bridger address")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// fetch the outgoing batch given the nonce
@@ -45,7 +40,7 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "checkpoint generation")
 	}
 
-	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -66,11 +61,6 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 
 // OracleSetConfirm handles MsgOracleSetConfirm
 func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgOracleSetConfirm) (*crosschaintypes.MsgOracleSetConfirmResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
-	if err != nil {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "bridger address")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
@@ -81,7 +71,7 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 	if err != nil {
 		return nil, err
 	}
-	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +134,7 @@ func (s msgServer) BridgeCallConfirm(c context.Context, msg *crosschaintypes.Msg
 	return &crosschaintypes.MsgBridgeCallConfirmResponse{}, nil
 }
 
-func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
+func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "signature decoding")
@@ -163,7 +153,7 @@ func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddr
 	if oracle.ExternalAddress != signatureAddr {
 		return nil, errorsmod.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
 	}
-	if oracle.BridgerAddress != bridgerAddr.String() {
+	if oracle.BridgerAddress != bridgerAddr {
 		return nil, errorsmod.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
 	}
 	if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
