@@ -80,7 +80,7 @@ func (k Keeper) GetOracleByExternalAddr(c context.Context, req *crosschaintypes.
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleByExternalAddress(ctx, req.ExternalAddress)
+	oracleAddr, found := k.GetOracleAddrByExternalAddr(ctx, req.ExternalAddress)
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}

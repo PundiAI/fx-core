@@ -39,21 +39,26 @@ func (k Keeper) IsProposalOracle(ctx sdk.Context, oracleAddr string) bool {
 
 // --- ADDRESS Bridger --- //
 
-// SetOracleByBridger sets the bridger key for a given oracle
-func (k Keeper) SetOracleByBridger(ctx sdk.Context, bridgerAddr, oracleAddr sdk.AccAddress) {
+// SetOracleAddrByBridgerAddr sets the bridger key for a given oracle
+func (k Keeper) SetOracleAddrByBridgerAddr(ctx sdk.Context, bridgerAddr, oracleAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetOracleAddressByBridgerKey(bridgerAddr), oracleAddr.Bytes())
 }
 
-// GetOracleAddressByBridgerKey returns the oracle key associated with an bridger key
-func (k Keeper) GetOracleAddressByBridgerKey(ctx sdk.Context, bridgerAddr sdk.AccAddress) (sdk.AccAddress, bool) {
+// GetOracleAddrByBridgerAddr returns the oracle key associated with an bridger key
+func (k Keeper) GetOracleAddrByBridgerAddr(ctx sdk.Context, bridgerAddr sdk.AccAddress) (sdk.AccAddress, bool) {
 	store := ctx.KVStore(k.storeKey)
 	oracle := store.Get(types.GetOracleAddressByBridgerKey(bridgerAddr))
 	return oracle, oracle != nil
 }
 
-// DelOracleByBridger delete the bridger key for a given oracle
-func (k Keeper) DelOracleByBridger(ctx sdk.Context, bridgerAddr sdk.AccAddress) {
+func (k Keeper) HasOracleAddrByBridgerAddr(ctx sdk.Context, bridgerAddr sdk.AccAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetOracleAddressByBridgerKey(bridgerAddr))
+}
+
+// DelOracleAddrByBridgerAddr delete the bridger key for a given oracle
+func (k Keeper) DelOracleAddrByBridgerAddr(ctx sdk.Context, bridgerAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOracleAddressByBridgerKey(bridgerAddr)
 	if !store.Has(key) {
@@ -64,21 +69,26 @@ func (k Keeper) DelOracleByBridger(ctx sdk.Context, bridgerAddr sdk.AccAddress) 
 
 // --- External ADDRESS --- //
 
-// SetOracleByExternalAddress sets the external address for a given oracle
-func (k Keeper) SetOracleByExternalAddress(ctx sdk.Context, externalAddress string, oracleAddr sdk.AccAddress) {
+// SetOracleAddrByExternalAddr sets the external address for a given oracle
+func (k Keeper) SetOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string, oracleAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetOracleAddressByExternalKey(externalAddress), oracleAddr.Bytes())
 }
 
-// GetOracleByExternalAddress returns the external address for a given gravity oracle
-func (k Keeper) GetOracleByExternalAddress(ctx sdk.Context, externalAddress string) (sdk.AccAddress, bool) {
+// GetOracleAddrByExternalAddr returns the external address for a given gravity oracle
+func (k Keeper) GetOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) (sdk.AccAddress, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOracleAddressByExternalKey(externalAddress))
 	return bz, bz != nil
 }
 
-// DelOracleByExternalAddress delete the external address for a give oracle
-func (k Keeper) DelOracleByExternalAddress(ctk sdk.Context, externalAddress string) {
+func (k Keeper) HasOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetOracleAddressByExternalKey(externalAddress))
+}
+
+// DelOracleAddrByExternalAddr delete the external address for a give oracle
+func (k Keeper) DelOracleAddrByExternalAddr(ctk sdk.Context, externalAddress string) {
 	store := ctk.KVStore(k.storeKey)
 	oracleAddr := types.GetOracleAddressByExternalKey(externalAddress)
 	if !store.Has(oracleAddr) {

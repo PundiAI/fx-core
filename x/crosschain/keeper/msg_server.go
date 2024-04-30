@@ -47,15 +47,15 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 		return nil, types.ErrNoFoundOracle
 	}
 	// check oracle has set bridger address
-	if _, found := s.GetOracle(ctx, oracleAddr); found {
+	if s.HasOracle(ctx, oracleAddr) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle existed bridger address")
 	}
 	// check bridger address is bound to oracle
-	if _, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
+	if s.HasOracleAddrByBridgerAddr(ctx, bridgerAddr) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
 	}
 	// check external address is bound to oracle
-	if _, found := s.GetOracleByExternalAddress(ctx, msg.ExternalAddress); found {
+	if s.HasOracleAddrByExternalAddr(ctx, msg.ExternalAddress) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "external address is bound to oracle")
 	}
 	threshold := s.GetOracleDelegateThreshold(ctx)
@@ -89,8 +89,8 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	}
 
 	s.SetOracle(ctx, oracle)
-	s.SetOracleByBridger(ctx, bridgerAddr, oracleAddr)
-	s.SetOracleByExternalAddress(ctx, msg.ExternalAddress, oracleAddr)
+	s.SetOracleAddrByBridgerAddr(ctx, bridgerAddr, oracleAddr)
+	s.SetOracleAddrByExternalAddr(ctx, msg.ExternalAddress, oracleAddr)
 	s.CommonSetOracleTotalPower(ctx)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -231,13 +231,13 @@ func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*t
 	if oracle.BridgerAddress == msg.BridgerAddress {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is not changed")
 	}
-	if _, found := s.Keeper.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
+	if s.Keeper.HasOracleAddrByBridgerAddr(ctx, bridgerAddr) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
 	}
-	s.Keeper.DelOracleByBridger(ctx, oracle.GetBridger())
+	s.Keeper.DelOracleAddrByBridgerAddr(ctx, oracle.GetBridger())
 	oracle.BridgerAddress = msg.BridgerAddress
 	s.Keeper.SetOracle(ctx, oracle)
-	s.Keeper.SetOracleByBridger(ctx, bridgerAddr, oracleAddr)
+	s.Keeper.SetOracleAddrByBridgerAddr(ctx, bridgerAddr, oracleAddr)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -328,8 +328,8 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 		}
 	}
 
-	s.DelOracleByExternalAddress(ctx, oracle.ExternalAddress)
-	s.DelOracleByBridger(ctx, oracle.GetBridger())
+	s.DelOracleAddrByExternalAddr(ctx, oracle.ExternalAddress)
+	s.DelOracleAddrByBridgerAddr(ctx, oracle.GetBridger())
 	s.DelOracle(ctx, oracle.GetOracle())
 	s.DelLastEventNonceByOracle(ctx, oracleAddr)
 
@@ -429,8 +429,7 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
-	_, found := s.GetOracleAddressByBridgerKey(ctx, sender)
-	if !found {
+	if !s.HasOracleAddrByBridgerAddr(ctx, sender) {
 		if !s.IsProposalOracle(ctx, msg.Sender) {
 			return nil, errorsmod.Wrap(types.ErrEmpty, "sender must be oracle or bridger")
 		}
@@ -664,7 +663,7 @@ func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPen
 func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	for _, member := range msg.Members {
-		if _, found := s.GetOracleByExternalAddress(ctx, member.ExternalAddress); !found {
+		if !s.HasOracleAddrByExternalAddr(ctx, member.ExternalAddress) {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "external address")
 		}
 	}
@@ -698,7 +697,7 @@ func (s MsgServer) UpdateChainOracles(c context.Context, req *types.MsgUpdateCha
 }
 
 func (s MsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddr sdk.AccAddress) (oracleAddr sdk.AccAddress, err error) {
-	oracleAddr, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
+	oracleAddr, found := s.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
 	if !found {
 		return oracleAddr, types.ErrNoFoundOracle
 	}
@@ -742,7 +741,7 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr, signatureA
 		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
 	}
 
-	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
+	oracleAddr, found := s.GetOracleAddrByExternalAddr(ctx, signatureAddr)
 	if !found {
 		return nil, types.ErrNoFoundOracle
 	}

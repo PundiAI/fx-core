@@ -35,9 +35,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		// 0x12
 		k.SetOracle(ctx, oracle)
 		// 0x14
-		k.SetOracleByBridger(ctx, oracle.GetBridger(), oracle.GetOracle())
+		k.SetOracleAddrByBridgerAddr(ctx, oracle.GetBridger(), oracle.GetOracle())
 		// 0x13
-		k.SetOracleByExternalAddress(ctx, oracle.ExternalAddress, oracle.GetOracle())
+		k.SetOracleAddrByExternalAddr(ctx, oracle.ExternalAddress, oracle.GetOracle())
 	}
 	// 0x39
 	k.CommonSetOracleTotalPower(ctx)

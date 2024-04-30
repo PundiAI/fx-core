@@ -150,7 +150,7 @@ func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddr
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "signature decoding")
 	}
 
-	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
+	oracleAddr, found := s.GetOracleAddrByExternalAddr(ctx, signatureAddr)
 	if !found {
 		return nil, crosschaintypes.ErrNoFoundOracle
 	}

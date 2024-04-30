@@ -408,11 +408,11 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 	bridger := suite.bridgerAddrs[0]
 	externalAddress := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
 
-	oracleAddr, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
+	oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, bridger)
 	require.True(suite.T(), found)
 	require.EqualValues(suite.T(), oracle.String(), oracleAddr.String())
 
-	oracleAddr, found = suite.Keeper().GetOracleByExternalAddress(suite.ctx, externalAddress)
+	oracleAddr, found = suite.Keeper().GetOracleAddrByExternalAddr(suite.ctx, externalAddress)
 	require.True(suite.T(), found)
 	require.EqualValues(suite.T(), oracle.String(), oracleAddr.String())
 
@@ -439,11 +439,11 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
-	oracleAddr, found = suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
+	oracleAddr, found = suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, bridger)
 	require.True(suite.T(), found)
 	require.Equal(suite.T(), oracleAddr, oracle)
 
-	oracleAddr, found = suite.Keeper().GetOracleByExternalAddress(suite.ctx, externalAddress)
+	oracleAddr, found = suite.Keeper().GetOracleAddrByExternalAddr(suite.ctx, externalAddress)
 	require.True(suite.T(), found)
 	require.Equal(suite.T(), oracleAddr, oracle)
 

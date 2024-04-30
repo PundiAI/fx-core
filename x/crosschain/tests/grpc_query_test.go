@@ -262,7 +262,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 					BridgerAddress: suite.bridgerAddrs[0].String(),
 					Nonce:          3,
 				}
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracleAddrs[0], &types.MsgOracleSetConfirm{
 					Nonce:          3,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -333,7 +333,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirmsByNonce() {
 		{
 			name: "query nonce normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracleAddrs[0], &types.MsgOracleSetConfirm{
 					Nonce:          3,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -455,7 +455,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 		{
 			name: "not found oracle by oracle address",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				request = &types.QueryLastPendingOracleSetRequestByAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -483,7 +483,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 					Height: 100,
 				}
 
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:   suite.oracleAddrs[0].String(),
@@ -742,7 +742,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 		{
 			name: "not found oracle",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				request = &types.QueryLastPendingBatchRequestByAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -759,7 +759,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address().Bytes())
 				externalToken := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address().Bytes()), 0)
 
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:   suite.oracleAddrs[0].String(),
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
@@ -814,7 +814,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address().Bytes())
 				externalToken := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address().Bytes()), 0)
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:   suite.oracleAddrs[0].String(),
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
@@ -1107,7 +1107,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 		{
 			name: "query batch confirm normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 
 				suite.Keeper().SetBatchConfirm(suite.ctx, suite.oracleAddrs[0], &types.MsgConfirmBatch{
 					Nonce:          3,
@@ -1265,7 +1265,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 		{
 			name: "query last event nonce from lastObservedEventNonce",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				suite.Keeper().SetLastObservedEventNonce(suite.ctx, 5)
 
 				request = &types.QueryLastEventNonceByAddrRequest{
@@ -1279,7 +1279,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 		{
 			name: "query last event nonce not found",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				request = &types.QueryLastEventNonceByAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -1291,7 +1291,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 		{
 			name: "query last event nonce normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				suite.Keeper().SetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0], 3)
 
 				request = &types.QueryLastEventNonceByAddrRequest{
@@ -1578,7 +1578,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 		{
 			name: "query oracle by oracle address does not exist",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				request = &types.QueryOracleByBridgerAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -1590,7 +1590,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 		{
 			name: "query oracle by oracle address normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 				key, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(key.PubKey().Address().Bytes())
@@ -1673,7 +1673,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 				key, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(key.PubKey().Address().Bytes())
-				suite.Keeper().SetOracleByExternalAddress(suite.ctx, externalAcc.String(), suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByExternalAddr(suite.ctx, externalAcc.String(), suite.oracleAddrs[0])
 				request = &types.QueryOracleByExternalAddrRequest{
 					ChainName:       suite.chainName,
 					ExternalAddress: externalAcc.String(),
@@ -1688,7 +1688,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 				key, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(key.PubKey().Address().Bytes())
-				suite.Keeper().SetOracleByExternalAddress(suite.ctx, externalAcc.String(), suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByExternalAddr(suite.ctx, externalAcc.String(), suite.oracleAddrs[0])
 				newOracle := types.Oracle{
 					OracleAddress:   suite.oracleAddrs[0].String(),
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
@@ -1930,7 +1930,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 					BridgerAddress: suite.bridgerAddrs[0].String(),
 				}
 				suite.ctx = suite.ctx.WithBlockHeight(100)
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
 
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:  suite.oracleAddrs[0].String(),
