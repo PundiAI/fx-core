@@ -130,7 +130,7 @@ func (s msgServer) BridgeCallConfirm(c context.Context, msg *crosschaintypes.Msg
 	}
 
 	externalAddr := crosschaintypes.ExternalAddressToAccAddress(s.ModuleName(), msg.ExternalAddress)
-	if _, found = s.GetBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
+	if found = s.HasBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
 	s.SetBridgeCallConfirm(ctx, externalAddr, msg)
