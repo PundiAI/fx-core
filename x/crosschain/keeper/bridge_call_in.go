@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"math/big"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -15,24 +14,18 @@ import (
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-func (k Keeper) BridgeCallHandler(
-	ctx sdk.Context,
-	sender common.Address,
-	to *common.Address,
-	receiver sdk.AccAddress,
-	tokens []common.Address,
-	amounts []*big.Int,
-	message []byte,
-	value sdkmath.Int,
-	gasLimit, eventNonce uint64,
-) error {
-	erc20Token, err := types.NewERC20Tokens(k.moduleName, tokens, amounts)
+func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {
+	tokens := msg.MustTokensAddr()
+	erc20Token, err := types.NewERC20Tokens(k.moduleName, tokens, msg.AmountsToBigInt())
 	if err != nil {
 		return err
 	}
 	var errCause string
 	cacheCtx, commit := ctx.CacheContext()
-	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, to, erc20Token, message, value, gasLimit, eventNonce); err != nil {
+	sender := msg.MustSender()
+	receiver := msg.MustReceiver()
+	eventNonce := msg.EventNonce
+	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, msg.MustTo(), erc20Token, msg.MustMessage(), msg.Value, msg.GasLimit, eventNonce); err != nil {
 		errCause = err.Error()
 	} else {
 		commit()
