@@ -545,20 +545,16 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
-	sigBytes, err := hex.DecodeString(msg.Signature)
+	bridgerAddr := sdk.MustAccAddressFromBech32(msg.BridgerAddress)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
+		return nil, err
 	}
 
-	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, msg.ExternalAddress); err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", msg.ExternalAddress, hex.EncodeToString(checkpoint), sigBytes))
-	}
-
-	externalAddr := types.ExternalAddressToAccAddress(s.moduleName, msg.ExternalAddress)
-	if found = s.HasBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
+	if found = s.HasBridgeCallConfirm(ctx, msg.Nonce, oracleAddr); found {
 		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
-	s.SetBridgeCallConfirm(ctx, externalAddr, msg)
+	s.SetBridgeCallConfirm(ctx, oracleAddr, msg)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,

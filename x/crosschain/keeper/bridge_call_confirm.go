@@ -22,9 +22,9 @@ func (k Keeper) GetSnapshotOracle(ctx sdk.Context, oracleSetNonce uint64) (*type
 	return snapshotOracle, true
 }
 
-func (k Keeper) HasBridgeCallConfirm(ctx sdk.Context, nonce uint64, addr sdk.AccAddress) bool {
+func (k Keeper) HasBridgeCallConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetBridgeCallConfirmKey(nonce, addr))
+	return store.Has(types.GetBridgeCallConfirmKey(nonce, oracleAddr))
 }
 
 func (k Keeper) DeleteSnapshotOracle(ctx sdk.Context, nonce uint64) {
@@ -45,9 +45,9 @@ func (k Keeper) RemoveEventSnapshotOracle(ctx sdk.Context, oracleSetNonce, nonce
 	}
 }
 
-func (k Keeper) SetBridgeCallConfirm(ctx sdk.Context, addr sdk.AccAddress, msg *types.MsgBridgeCallConfirm) {
+func (k Keeper) SetBridgeCallConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, msg *types.MsgBridgeCallConfirm) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetBridgeCallConfirmKey(msg.Nonce, addr), k.cdc.MustMarshal(msg))
+	store.Set(types.GetBridgeCallConfirmKey(msg.Nonce, oracleAddr), k.cdc.MustMarshal(msg))
 }
 
 func (k Keeper) IterBridgeCallConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(msg *types.MsgBridgeCallConfirm) bool) {
