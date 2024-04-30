@@ -105,7 +105,7 @@ func (c *Contract) handlerTransferShares(
 		return nil, nil, errors.New("from has receiving redelegation")
 	}
 
-	shares := sdk.NewDecFromBigInt(sharesInt) // TODO share with sdk.Precision
+	shares := sdk.NewDecFromBigInt(sharesInt)
 	if fromDel.GetShares().LT(shares) {
 		return nil, nil, fmt.Errorf("insufficient shares(%s < %s)", fromDel.GetShares().TruncateInt().String(), shares.TruncateInt().String())
 	}

@@ -48,7 +48,6 @@ func QueryAccountRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 
 		account, height, err := accGetter.GetAccountWithHeight(clientCtx, addr)
 		if err != nil {
-			// TODO: Handle more appropriately based on the error type.
 			// Ref: https://github.com/cosmos/cosmos-sdk/issues/4923
 			if err := accGetter.EnsureExists(clientCtx, addr); err != nil {
 				clientCtx = clientCtx.WithHeight(height)

@@ -73,7 +73,6 @@ func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	// add delegate event
 	DelegateEmitEvents(ctx, sender, valAddr, amount, shares)
 
-	// TODO truncate shares, decimal 18
 	return DelegateMethod.Outputs.Pack(shares.TruncateInt().BigInt(), reward)
 }
 

@@ -51,7 +51,6 @@ func Test_TestnetUpgrade(t *testing.T) {
 	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
 		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		makeEncodingConfig, app.EmptyAppOptions{})
-	// todo default DefaultStoreLoader  New module verification failed
 	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v7.Upgrade.StoreUpgrades()))
 	err = myApp.LoadLatestVersion()
 	require.NoError(t, err)
