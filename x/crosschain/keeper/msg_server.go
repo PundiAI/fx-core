@@ -453,11 +453,6 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 }
 
 func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
-	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// fetch the outgoing batch given the nonce
@@ -471,7 +466,7 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
-	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -491,11 +486,6 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 }
 
 func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
-	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
@@ -506,7 +496,7 @@ func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
-	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -545,8 +535,7 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
-	bridgerAddr := sdk.MustAccAddressFromBech32(msg.BridgerAddress)
-	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -747,7 +736,7 @@ func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) 
 	return nil
 }
 
-func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
+func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
@@ -766,7 +755,7 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddr
 	if oracle.ExternalAddress != signatureAddr {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
 	}
-	if oracle.BridgerAddress != bridgerAddr.String() {
+	if oracle.BridgerAddress != bridgerAddr {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
 	}
 	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
