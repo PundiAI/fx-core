@@ -240,13 +240,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 // BlockedModuleAccountAddrs returns all the app's blocked module account
 // addresses.
 func (app *App) BlockedModuleAccountAddrs() map[string]bool {
-	modAccAddrs := app.ModuleAccountAddrs()
-
-	// remove module accounts that are ALLOWED to received funds
-	// TODO: Blocked on updating to v0.46.x
-	// delete(modAccAddrs, authtypes.NewModuleAddress(grouptypes.ModuleName).String())
-
-	return modAccAddrs
+	return app.ModuleAccountAddrs()
 }
 
 // InterfaceRegistry returns InterfaceRegistry

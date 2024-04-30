@@ -29,6 +29,5 @@ func (c *Contract) Delegation(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract,
 	}
 
 	delegationAmt := delegation.GetShares().MulInt(validator.GetTokens()).Quo(validator.GetDelegatorShares())
-	// TODO truncate shares, decimal 18
 	return DelegationMethod.Outputs.Pack(delegation.GetShares().TruncateInt().BigInt(), delegationAmt.TruncateInt().BigInt())
 }

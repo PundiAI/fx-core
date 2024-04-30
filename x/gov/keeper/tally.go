@@ -94,7 +94,6 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 	params := keeper.GetParams(ctx, fxgovtypes.ExtractMsgTypeURL(proposal.Messages))
 
 	tallyResults = govv1.NewTallyResultFromMap(results)
-	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
 	// If there is no staked coins, the proposal fails
 	if keeper.sk.TotalBondedTokens(ctx).IsZero() {
 		return false, false, tallyResults

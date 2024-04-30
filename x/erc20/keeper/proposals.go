@@ -118,7 +118,7 @@ func (k Keeper) RegisterNativeERC20(ctx sdk.Context, contract common.Address, al
 		k.SetAliasesDenom(ctx, base, aliases...)
 	}
 
-	_, isExist := k.bankKeeper.GetDenomMetaData(ctx, base) // TODO if register must be equal
+	_, isExist := k.bankKeeper.GetDenomMetaData(ctx, base)
 	if isExist {
 		// metadata already exists; exit
 		return nil, errorsmod.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
