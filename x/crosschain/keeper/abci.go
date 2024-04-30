@@ -201,17 +201,6 @@ func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) {
 	})
 }
 
-func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, nonce uint64) {
-	// 1. delete bridge call
-	k.DeleteOutgoingBridgeCall(ctx, nonce)
-
-	// 2. delete bridge call confirm
-	k.DeleteBridgeCallConfirm(ctx, nonce)
-
-	// 3. delete bridge call from msg
-	k.DeleteBridgeCallFromMsg(ctx, nonce)
-}
-
 func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
 	// Oracle set pruning
 	// prune all Oracle sets with a nonce less than the

@@ -98,7 +98,7 @@ func (k Keeper) GetLastSlashedBridgeCallNonce(ctx sdk.Context) uint64 {
 func (k Keeper) GetUnSlashedBridgeCalls(ctx sdk.Context, height uint64) []types.OutgoingBridgeCall {
 	nonce := k.GetLastSlashedBridgeCallNonce(ctx)
 	var bridgeCalls []types.OutgoingBridgeCall
-	k.IterateBridgeCallByNonce(ctx, nonce, func(bridgeCall *types.OutgoingBridgeCall) bool {
+	k.IterateOutgoingBridgeCallByNonce(ctx, nonce, func(bridgeCall *types.OutgoingBridgeCall) bool {
 		if bridgeCall.BlockHeight <= height {
 			bridgeCalls = append(bridgeCalls, *bridgeCall)
 			return false
