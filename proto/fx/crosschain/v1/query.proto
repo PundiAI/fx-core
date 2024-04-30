@@ -360,8 +360,8 @@ message QueryBridgeCallConfirmByNonceResponse {
 
 message QueryLastPendingBridgeCallByAddrRequest {
   string chain_name = 1;
-  string external_address = 2;
+  string bridger_address = 2;
 }
 message QueryLastPendingBridgeCallByAddrResponse {
-  repeated OutgoingBridgeCall bridge_call = 1;
+  repeated OutgoingBridgeCall bridge_calls = 1;
 }

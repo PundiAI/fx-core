@@ -911,20 +911,20 @@ func CmdBridgeCallConfirm(chainName string) *cobra.Command {
 
 func CmdLastPendingBridgeCall(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "last-pending-bridge-call [external-address]",
-		Short: "Query last pending bridge call for bridge address",
+		Use:   "last-pending-bridge-call [bridger-address]",
+		Short: "Query last pending bridge call for bridger address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			externalAddress, err := getContractAddr(args[0])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastPendingBridgeCallByAddr(cmd.Context(), &types.QueryLastPendingBridgeCallByAddrRequest{
-				ChainName:       chainName,
-				ExternalAddress: externalAddress,
+				ChainName:      chainName,
+				BridgerAddress: bridgerAddr.String(),
 			})
 			if err != nil {
 				return err

@@ -1212,6 +1212,19 @@ func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 		},
 		Nonces: []uint64{nonce},
 	})
+	oracle := types.Oracle{
+		OracleAddress:     suite.oracleAddrs[0].String(),
+		BridgerAddress:    suite.bridgerAddrs[0].String(),
+		ExternalAddress:   externalAddr,
+		DelegateAmount:    sdkmath.Int{},
+		StartHeight:       0,
+		Online:            true,
+		DelegateValidator: "",
+		SlashTimes:        0,
+	}
+	suite.Keeper().SetOracle(suite.ctx, oracle)
+	suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+	suite.Keeper().SetOracleByExternalAddress(suite.ctx, externalAddr, suite.oracleAddrs[0])
 
 	outgoingBridgeCall := &types.OutgoingBridgeCall{
 		Nonce:          nonce,

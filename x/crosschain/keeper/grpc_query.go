@@ -490,6 +490,30 @@ func (k Keeper) BridgeCallBySender(c context.Context, req *types.QueryBridgeCall
 }
 
 func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {
-	// TODO implement me
-	panic("implement me")
+	if len(req.GetBridgerAddress()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty external address")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	bridgerAddr := sdk.MustAccAddressFromBech32(req.GetBridgerAddress())
+	oracleAddr, found := k.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
+	if !found {
+		return nil, status.Error(codes.NotFound, "bridger address not found")
+	}
+	oracle, found := k.GetOracle(ctx, oracleAddr)
+	if !found {
+		return nil, status.Error(codes.NotFound, "oracle not found")
+	}
+
+	unsignedOutgoingBridgeCall := make([]*types.OutgoingBridgeCall, 0)
+	k.IterateOutgoingBridgeCalls(ctx, func(outgoingBridgeCall *types.OutgoingBridgeCall) bool {
+		if oracle.StartHeight > int64(outgoingBridgeCall.BlockHeight) {
+			return false
+		}
+		if k.HasBridgeCallConfirm(ctx, outgoingBridgeCall.Nonce, oracleAddr) {
+			return false
+		}
+		unsignedOutgoingBridgeCall = append(unsignedOutgoingBridgeCall, outgoingBridgeCall)
+		return len(unsignedOutgoingBridgeCall) == types.MaxResults
+	})
+	return &types.QueryLastPendingBridgeCallByAddrResponse{BridgeCalls: unsignedOutgoingBridgeCall}, nil
 }
