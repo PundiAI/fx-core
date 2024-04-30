@@ -148,23 +148,7 @@ func (k Keeper) IterateOutgoingBridgeCallsByAddress(ctx sdk.Context, addr string
 	}
 }
 
-func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) {
-	receiveAddr := types.ExternalAddressToAccAddress(k.moduleName, data.GetSender())
-	coins, err := k.bridgeCallTransferToSender(ctx, receiveAddr, data.Tokens)
-	if err != nil {
-		panic(err)
-	}
-
-	if k.HasBridgeCallFromMsg(ctx, data.Nonce) {
-		return
-	}
-	// precompile bridge call refund
-	if err = k.bridgeCallTransferToReceiver(ctx, receiveAddr, receiveAddr, coins); err != nil {
-		panic(err)
-	}
-}
-
-func (k Keeper) IterateBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(bridgeCall *types.OutgoingBridgeCall) bool) {
+func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(bridgeCall *types.OutgoingBridgeCall) bool) {
 	store := ctx.KVStore(k.storeKey)
 	startKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(startNonce)...)
 	endKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(math.MaxUint64)...)
