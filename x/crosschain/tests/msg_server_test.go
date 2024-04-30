@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 		{
 			name: "error - bridger address is bound",
 			preRun: func(msg *types.MsgBondedOracle) {
-				suite.Keeper().SetOracleByBridger(suite.ctx, sdk.MustAccAddressFromBech32(msg.BridgerAddress), sdk.MustAccAddressFromBech32(msg.OracleAddress))
+				suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, sdk.MustAccAddressFromBech32(msg.BridgerAddress), sdk.MustAccAddressFromBech32(msg.OracleAddress))
 			},
 			pass: false,
 			err:  "bridger address is bound to oracle: invalid",
@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 		{
 			name: "error - external address is bound",
 			preRun: func(msg *types.MsgBondedOracle) {
-				suite.Keeper().SetOracleByExternalAddress(suite.ctx, msg.ExternalAddress, sdk.MustAccAddressFromBech32(msg.OracleAddress))
+				suite.Keeper().SetOracleAddrByExternalAddr(suite.ctx, msg.ExternalAddress, sdk.MustAccAddressFromBech32(msg.OracleAddress))
 			},
 			pass: false,
 			err:  "external address is bound to oracle: invalid",
@@ -139,11 +139,11 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 			require.EqualValues(t, int64(0), oracle.SlashTimes)
 
 			// check relationship
-			oracleAddr, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, sdk.MustAccAddressFromBech32(msg.BridgerAddress))
+			oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, sdk.MustAccAddressFromBech32(msg.BridgerAddress))
 			suite.True(found)
 			suite.Require().EqualValues(msg.OracleAddress, oracleAddr.String())
 
-			oracleAddr, found = suite.Keeper().GetOracleByExternalAddress(suite.ctx, msg.ExternalAddress)
+			oracleAddr, found = suite.Keeper().GetOracleAddrByExternalAddr(suite.ctx, msg.ExternalAddress)
 			suite.True(found)
 			suite.Require().EqualValues(msg.OracleAddress, oracleAddr.String())
 
@@ -413,8 +413,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		}
 	}
 	for _, bridger := range suite.bridgerAddrs {
-		_, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
-		suite.False(found)
+		suite.False(suite.Keeper().HasOracleAddrByBridgerAddr(suite.ctx, bridger))
 	}
 
 	suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
@@ -1223,8 +1222,8 @@ func (suite *KeeperTestSuite) TestBridgeCallConfirm() {
 		SlashTimes:        0,
 	}
 	suite.Keeper().SetOracle(suite.ctx, oracle)
-	suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
-	suite.Keeper().SetOracleByExternalAddress(suite.ctx, externalAddr, suite.oracleAddrs[0])
+	suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0], suite.oracleAddrs[0])
+	suite.Keeper().SetOracleAddrByExternalAddr(suite.ctx, externalAddr, suite.oracleAddrs[0])
 
 	outgoingBridgeCall := &types.OutgoingBridgeCall{
 		Nonce:          nonce,

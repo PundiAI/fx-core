@@ -10,7 +10,7 @@ func (suite *KeeperTestSuite) TestOracleAndBridger() {
 	}
 
 	for _, bridger := range suite.bridgerAddrs {
-		oracle, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
+		oracle, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, bridger)
 		require.False(suite.T(), found)
 		require.Equal(suite.T(), "", oracle.String())
 	}

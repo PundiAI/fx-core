@@ -146,7 +146,7 @@ func (k Keeper) bridgeCallSlashing(ctx sdk.Context, signedWindow uint64) (hasSla
 
 		for _, members := range snapshotOracle.GetMembers() {
 			if _, ok := confirmOracleMap[members.ExternalAddress]; !ok {
-				oracle, found := k.GetOracleByExternalAddress(ctx, members.ExternalAddress)
+				oracle, found := k.GetOracleAddrByExternalAddr(ctx, members.ExternalAddress)
 				if !found {
 					k.Logger(ctx).Error("outgoing bridge call slashing", "oracle not found", members.ExternalAddress)
 					continue

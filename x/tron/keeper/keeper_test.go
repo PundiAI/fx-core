@@ -104,11 +104,11 @@ func (suite *KeeperTestSuite) NewOracleByBridger() (sdk.AccAddress, sdk.AccAddre
 		ExternalAddress: externalAddress,
 	}
 	suite.app.TronKeeper.SetOracle(suite.ctx, newOracle)
-	suite.app.TronKeeper.SetOracleByBridger(suite.ctx, bridger, oracle)
-	oracleAddress, found := suite.app.TronKeeper.GetOracleAddressByBridgerKey(suite.ctx, bridger)
+	suite.app.TronKeeper.SetOracleAddrByBridgerAddr(suite.ctx, bridger, oracle)
+	oracleAddress, found := suite.app.TronKeeper.GetOracleAddrByBridgerAddr(suite.ctx, bridger)
 	require.True(suite.T(), found)
 	require.EqualValues(suite.T(), oracle, oracleAddress)
-	suite.app.TronKeeper.SetOracleByExternalAddress(suite.ctx, externalAddress, oracle)
+	suite.app.TronKeeper.SetOracleAddrByExternalAddr(suite.ctx, externalAddress, oracle)
 	return oracle, bridger, externalKey
 }
 
