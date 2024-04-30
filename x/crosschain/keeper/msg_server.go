@@ -555,7 +555,7 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 	}
 
 	externalAddr := types.ExternalAddressToAccAddress(s.moduleName, msg.ExternalAddress)
-	if _, found = s.GetBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
+	if found = s.HasBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
 		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
 	s.SetBridgeCallConfirm(ctx, externalAddr, msg)
