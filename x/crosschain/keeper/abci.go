@@ -61,7 +61,7 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 	oracles := k.GetAllOracles(ctx, true)
 	oracleSetHasSlash := k.oracleSetSlashing(ctx, oracles, signedWindow)
 	batchHasSlash := k.batchSlashing(ctx, oracles, signedWindow)
-	bridgeCallHasSlash := k.bridgeCallSlashing(ctx, signedWindow)
+	bridgeCallHasSlash := k.bridgeCallSlashing(ctx, oracles, signedWindow)
 	if oracleSetHasSlash || batchHasSlash || bridgeCallHasSlash {
 		k.CommonSetOracleTotalPower(ctx)
 	}
@@ -122,41 +122,29 @@ func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Oracles, signedWind
 	return hasSlash
 }
 
-func (k Keeper) bridgeCallSlashing(ctx sdk.Context, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) bridgeCallSlashing(ctx sdk.Context, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashOutgoingBridgeCalls := k.GetUnSlashedBridgeCalls(ctx, maxHeight)
 
-	snapshotOracleMap := make(map[uint64]*types.SnapshotOracle)
 	for _, record := range unSlashOutgoingBridgeCalls {
-		confirmOracleMap := make(map[string]bool)
+		confirmOracleMap := make(map[string]struct{})
 		k.IterBridgeCallConfirmByNonce(ctx, record.Nonce, func(confirm *types.MsgBridgeCallConfirm) bool {
-			confirmOracleMap[confirm.ExternalAddress] = true
+			confirmOracleMap[confirm.ExternalAddress] = struct{}{}
 			return false
 		})
 
-		snapshotOracle, found := snapshotOracleMap[record.OracleSetNonce]
-		if !found {
-			snapshotOracle, found = k.GetSnapshotOracle(ctx, record.OracleSetNonce)
-			if !found {
-				k.Logger(ctx).Error("outgoing bridge call slashing", "oracle set not found", record.OracleSetNonce)
+		for i := 0; i < len(oracles); i++ {
+			if uint64(oracles[i].StartHeight) > record.BlockHeight {
 				continue
 			}
-			snapshotOracleMap[record.OracleSetNonce] = snapshotOracle
-		}
-
-		for _, members := range snapshotOracle.GetMembers() {
-			if _, ok := confirmOracleMap[members.ExternalAddress]; !ok {
-				oracle, found := k.GetOracleAddrByExternalAddr(ctx, members.ExternalAddress)
-				if !found {
-					k.Logger(ctx).Error("outgoing bridge call slashing", "oracle not found", members.ExternalAddress)
-					continue
-				}
-				k.Logger(ctx).Info("slash oracle by outgoing bridge call", "externalAddress", members.ExternalAddress,
-					"oracleAddress", oracle.String(), "nonce", record.Nonce, "blockHeight", ctx.BlockHeight())
-				k.SlashOracle(ctx, oracle.String())
+			if _, ok := confirmOracleMap[oracles[i].ExternalAddress]; !ok {
+				k.SlashOracle(ctx, oracles[i].String())
+				k.Logger(ctx).Info("slash oracle by outgoing bridge call", "oracleAddress", oracles[i].OracleAddress,
+					"nonce", record.Nonce, "bridgeCallHeight", record.BlockHeight, "blockHeight", ctx.BlockHeight())
 				hasSlash = true
 			}
 		}
+
 		k.SetLastSlashedBridgeCallNonce(ctx, record.Nonce)
 	}
 	return hasSlash
