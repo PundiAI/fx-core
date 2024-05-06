@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -101,7 +100,8 @@ func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*
 		if fee.BaseFee.IsNil() || fee.BaseFee.IsNegative() {
 			return nil, status.Error(codes.InvalidArgument, "base fee")
 		}
-		if err := contract.ValidateEthereumAddress(fee.TokenContract); err != nil {
+
+		if err := types.ValidateExternalAddress(req.ChainName, fee.TokenContract); err != nil {
 			return nil, status.Error(codes.InvalidArgument, "token contract")
 		}
 	}
@@ -145,7 +145,7 @@ func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBat
 }
 
 func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
-	if err := contract.ValidateEthereumAddress(req.GetTokenContract()); err != nil {
+	if err := types.ValidateExternalAddress(req.ChainName, req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
 	if req.GetNonce() <= 0 {
@@ -173,7 +173,7 @@ func (k Keeper) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequ
 
 // BatchConfirms returns the batch confirmations by nonce and token contract
 func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
-	if err := contract.ValidateEthereumAddress(req.GetTokenContract()); err != nil {
+	if err := types.ValidateExternalAddress(req.ChainName, req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
 	if req.GetNonce() <= 0 {
@@ -213,7 +213,7 @@ func (k Keeper) DenomToToken(c context.Context, req *types.QueryDenomToTokenRequ
 }
 
 func (k Keeper) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequest) (*types.QueryTokenToDenomResponse, error) {
-	if err := contract.ValidateEthereumAddress(req.Token); err != nil {
+	if err := types.ValidateExternalAddress(req.ChainName, req.GetToken()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
 	bridgeToken := k.GetBridgeTokenDenom(sdk.UnwrapSDKContext(c), req.Token)
@@ -247,7 +247,7 @@ func (k Keeper) GetOracleByBridgerAddr(c context.Context, req *types.QueryOracle
 }
 
 func (k Keeper) GetOracleByExternalAddr(c context.Context, req *types.QueryOracleByExternalAddrRequest) (*types.QueryOracleResponse, error) {
-	if err := contract.ValidateEthereumAddress(req.GetExternalAddress()); err != nil {
+	if err := types.ValidateExternalAddress(req.ChainName, req.GetExternalAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "external address")
 	}
 
