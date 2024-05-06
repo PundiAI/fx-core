@@ -522,13 +522,6 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find outgoing bridge call")
 	}
 
-	snapshotOracle, found := s.GetSnapshotOracle(ctx, outgoingBridgeCall.OracleSetNonce)
-	if !found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find snapshot oracle")
-	}
-	if !snapshotOracle.HasExternalAddress(msg.ExternalAddress) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "external address not in snapshot oracle")
-	}
 	checkpoint, err := outgoingBridgeCall.GetCheckpoint(s.GetGravityID(ctx), msg.ChainName)
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
@@ -539,7 +532,7 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 		return nil, err
 	}
 
-	if found = s.HasBridgeCallConfirm(ctx, msg.Nonce, oracleAddr); found {
+	if s.HasBridgeCallConfirm(ctx, msg.Nonce, oracleAddr) {
 		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
 	s.SetBridgeCallConfirm(ctx, oracleAddr, msg)

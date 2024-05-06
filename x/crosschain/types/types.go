@@ -473,41 +473,6 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 	return crypto.Keccak256Hash(abiEncodedBatch[4:]).Bytes(), nil
 }
 
-func (m *SnapshotOracle) HasExternalAddress(address string) bool {
-	if m == nil {
-		return false
-	}
-	for _, member := range m.Members {
-		if address == member.ExternalAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *SnapshotOracle) GetExternalAddressPower(address string) uint64 {
-	if m == nil {
-		return 0
-	}
-	for _, member := range m.Members {
-		if address == member.ExternalAddress {
-			return member.Power
-		}
-	}
-	return 0
-}
-
-func (m *SnapshotOracle) GetTotalPower() uint64 {
-	if m == nil {
-		return 0
-	}
-	totalPower := uint64(0)
-	for _, member := range m.Members {
-		totalPower = totalPower + member.Power
-	}
-	return totalPower
-}
-
 func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, tokenContract string, amount, fee sdk.Coin, rewawrds sdk.Coins) PendingOutgoingTransferTx {
 	return PendingOutgoingTransferTx{
 		Id:            txID,
@@ -518,29 +483,6 @@ func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, t
 		Fee:           fee,
 		Rewards:       rewawrds,
 	}
-}
-
-func NewSnapshotOracle(oracleSet *OracleSet, nonce uint64) *SnapshotOracle {
-	return &SnapshotOracle{
-		Nonces:         []uint64{nonce},
-		OracleSetNonce: oracleSet.Nonce,
-		Members:        oracleSet.Members,
-	}
-}
-
-func (m *SnapshotOracle) AppendNonce(nonce uint64) *SnapshotOracle {
-	m.Nonces = append(m.Nonces, nonce)
-	return m
-}
-
-func (m *SnapshotOracle) RemoveNonce(nonce uint64) *SnapshotOracle {
-	for i, n := range m.Nonces {
-		if n == nonce {
-			m.Nonces = append(m.Nonces[:i], m.Nonces[i+1:]...)
-			break
-		}
-	}
-	return m
 }
 
 func NewBridgeDenom(moduleName string, token string) string {

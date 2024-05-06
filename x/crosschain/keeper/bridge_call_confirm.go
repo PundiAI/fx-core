@@ -6,43 +6,9 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (k Keeper) SetSnapshotOracle(ctx sdk.Context, snapshotOracleKey *types.SnapshotOracle) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetSnapshotOracleKey(snapshotOracleKey.OracleSetNonce), k.cdc.MustMarshal(snapshotOracleKey))
-}
-
-func (k Keeper) GetSnapshotOracle(ctx sdk.Context, oracleSetNonce uint64) (*types.SnapshotOracle, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetSnapshotOracleKey(oracleSetNonce))
-	if bz == nil {
-		return nil, false
-	}
-	snapshotOracle := new(types.SnapshotOracle)
-	k.cdc.MustUnmarshal(bz, snapshotOracle)
-	return snapshotOracle, true
-}
-
 func (k Keeper) HasBridgeCallConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetBridgeCallConfirmKey(nonce, oracleAddr))
-}
-
-func (k Keeper) DeleteSnapshotOracle(ctx sdk.Context, nonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetSnapshotOracleKey(nonce))
-}
-
-func (k Keeper) RemoveEventSnapshotOracle(ctx sdk.Context, oracleSetNonce, nonce uint64) {
-	snapshotOracle, found := k.GetSnapshotOracle(ctx, oracleSetNonce)
-	if !found {
-		return
-	}
-	snapshotOracle.RemoveNonce(nonce)
-	if len(snapshotOracle.Nonces) == 0 {
-		k.DeleteSnapshotOracle(ctx, oracleSetNonce)
-	} else {
-		k.SetSnapshotOracle(ctx, snapshotOracle)
-	}
 }
 
 func (k Keeper) SetBridgeCallConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, msg *types.MsgBridgeCallConfirm) {
