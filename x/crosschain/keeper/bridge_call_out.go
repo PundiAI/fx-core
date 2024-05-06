@@ -58,25 +58,19 @@ func (k Keeper) AddOutgoingBridgeCall(
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge call timeout height")
 	}
 
-	oracleSet := k.GetLatestOracleSet(ctx)
-	if oracleSet == nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "no oracle set")
-	}
-
 	nextID := k.autoIncrementID(ctx, types.KeyLastBridgeCallID)
 
 	bridgeCall := &types.OutgoingBridgeCall{
-		Nonce:          nextID,
-		Timeout:        bridgeCallTimeout,
-		Sender:         fxtypes.AddressToStr(sender, k.moduleName),
-		Receiver:       receiver,
-		To:             to,
-		Tokens:         tokens,
-		Message:        message,
-		Value:          value,
-		GasLimit:       gasLimit,
-		OracleSetNonce: oracleSet.Nonce,
-		BlockHeight:    uint64(ctx.BlockHeight()),
+		Nonce:       nextID,
+		Timeout:     bridgeCallTimeout,
+		Sender:      fxtypes.AddressToStr(sender, k.moduleName),
+		Receiver:    receiver,
+		To:          to,
+		Tokens:      tokens,
+		Message:     message,
+		Value:       value,
+		GasLimit:    gasLimit,
+		BlockHeight: uint64(ctx.BlockHeight()),
 	}
 	k.SetOutgoingBridgeCall(ctx, bridgeCall)
 
