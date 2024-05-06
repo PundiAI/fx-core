@@ -490,11 +490,11 @@ func (k Keeper) BridgeCallBySender(c context.Context, req *types.QueryBridgeCall
 }
 
 func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {
-	if len(req.GetBridgerAddress()) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "empty external address")
+	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "bridger address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	bridgerAddr := sdk.MustAccAddressFromBech32(req.GetBridgerAddress())
 	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "bridger address not found")
