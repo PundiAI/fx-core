@@ -225,6 +225,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 				request = &types.QueryOracleSetConfirmRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: "fx1",
+					Nonce:          tmrand.Uint64() + 1,
 				}
 				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
@@ -250,7 +251,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 					Nonce:          3,
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found by bridger address")
 			},
 			expPass: false,
 		},
@@ -448,7 +449,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found by bridger address")
 			},
 			expPass: false,
 		},
@@ -460,12 +461,12 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found")
 			},
 			expPass: false,
 		},
 		{
-			name: "not found oracle by oracle address",
+			name: "ok",
 			malleate: func() {
 				key, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
@@ -735,7 +736,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found by bridger address")
 			},
 			expPass: false,
 		},
@@ -747,7 +748,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found")
 			},
 			expPass: false,
 		},
@@ -1100,7 +1101,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 					Nonce:          3,
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found by bridger address")
 			},
 			expPass: false,
 		},
@@ -1258,7 +1259,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found by bridger address")
 			},
 			expPass: false,
 		},
@@ -1496,7 +1497,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByAddr() {
 					ChainName:     suite.chainName,
 					OracleAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found")
 			},
 			expPass: false,
 		},
@@ -1571,7 +1572,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found by bridger address")
 			},
 			expPass: false,
 		},
@@ -1583,7 +1584,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found")
 			},
 			expPass: false,
 		},
@@ -1918,7 +1919,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
 				}
-				expectedError = status.Error(codes.NotFound, "oracle")
+				expectedError = status.Error(codes.NotFound, "oracle not found by bridger address")
 			},
 			false,
 		},

@@ -33,17 +33,13 @@ func (k Keeper) OracleSetRequest(c context.Context, req *types.QueryOracleSetReq
 }
 
 func (k Keeper) OracleSetConfirm(c context.Context, req *types.QueryOracleSetConfirmRequest) (*types.QueryOracleSetConfirmResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
 	return &types.QueryOracleSetConfirmResponse{Confirm: k.GetOracleSetConfirm(ctx, req.Nonce, oracleAddr)}, nil
 }
@@ -73,20 +69,12 @@ func (k Keeper) LastOracleSetRequests(c context.Context, _ *types.QueryLastOracl
 }
 
 func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.QueryLastPendingOracleSetRequestByAddrRequest) (*types.QueryLastPendingOracleSetRequestByAddrResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
-	oracle, found := k.GetOracle(ctx, oracleAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
-	}
+	oracleAddr := oracle.GetOracle()
 	var pendingOracleSetReq []*types.OracleSet
 	k.IterateOracleSets(ctx, false, func(oracleSet *types.OracleSet) bool {
 		if oracle.StartHeight > int64(oracleSet.Height) {
@@ -94,7 +82,7 @@ func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.
 		}
 		// found is true if the operatorAddr has signed the oracle set we are currently looking at
 		// if this oracle set has NOT been signed by oracleAddr, store it in pendingOracleSetReq and exit the loop
-		if found = k.GetOracleSetConfirm(ctx, oracleSet.Nonce, oracleAddr) != nil; !found {
+		if found := k.GetOracleSetConfirm(ctx, oracleSet.Nonce, oracleAddr) != nil; !found {
 			pendingOracleSetReq = append(pendingOracleSetReq, oracleSet)
 		}
 		// if we have more than 100 unconfirmed requests in
@@ -122,19 +110,12 @@ func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*
 }
 
 func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
 	ctx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
-	oracle, found := k.GetOracle(ctx, oracleAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
-	}
+	oracleAddr := oracle.GetOracle()
 	var pendingBatchReq *types.OutgoingTxBatch
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		// filter startHeight before confirm
@@ -178,17 +159,13 @@ func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequ
 }
 
 func (k Keeper) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.BridgerAddress)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
 	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, oracleAddr)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
@@ -212,17 +189,12 @@ func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRe
 
 // LastEventNonceByAddr returns the last event nonce for the given validator address, this allows eth oracles to figure out where they left off
 func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.BridgerAddress)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
 	ctx := sdk.UnwrapSDKContext(c)
-
-	oracle, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
-	lastEventNonce := k.GetLastEventNonceByOracle(ctx, oracle)
+	lastEventNonce := k.GetLastEventNonceByOracle(ctx, oracleAddr)
 	return &types.QueryLastEventNonceByAddrResponse{EventNonce: lastEventNonce}, nil
 }
 
@@ -260,25 +232,16 @@ func (k Keeper) GetOracleByAddr(c context.Context, req *types.QueryOracleByAddrR
 	}
 	oracle, found := k.GetOracle(sdk.UnwrapSDKContext(c), oracleAddr)
 	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+		return nil, status.Error(codes.NotFound, "oracle not found")
 	}
 	return &types.QueryOracleResponse{Oracle: &oracle}, nil
 }
 
 func (k Keeper) GetOracleByBridgerAddr(c context.Context, req *types.QueryOracleByBridgerAddrRequest) (*types.QueryOracleResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
 	ctx := sdk.UnwrapSDKContext(c)
-
-	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
-	}
-	oracle, found := k.GetOracle(ctx, oracleAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
 	return &types.QueryOracleResponse{Oracle: &oracle}, nil
 }
@@ -364,18 +327,13 @@ func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObs
 }
 
 func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
 	ctx := sdk.UnwrapSDKContext(c)
-
-	oracle, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle")
+	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
 
-	lastEventBlockHeight := k.GetLastEventBlockHeightByOracle(ctx, oracle)
+	lastEventBlockHeight := k.GetLastEventBlockHeightByOracle(ctx, oracleAddr)
 	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
 }
 
@@ -490,20 +448,13 @@ func (k Keeper) BridgeCallBySender(c context.Context, req *types.QueryBridgeCall
 }
 
 func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {
-	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "bridger address")
-	}
 	ctx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "bridger address not found")
-	}
-	oracle, found := k.GetOracle(ctx, oracleAddr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "oracle not found")
+	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
+	if err != nil {
+		return nil, err
 	}
 
+	oracleAddr := oracle.GetOracle()
 	unsignedOutgoingBridgeCall := make([]*types.OutgoingBridgeCall, 0)
 	k.IterateOutgoingBridgeCalls(ctx, func(outgoingBridgeCall *types.OutgoingBridgeCall) bool {
 		if oracle.StartHeight > int64(outgoingBridgeCall.BlockHeight) {
@@ -516,4 +467,28 @@ func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryL
 		return len(unsignedOutgoingBridgeCall) == types.MaxResults
 	})
 	return &types.QueryLastPendingBridgeCallByAddrResponse{BridgeCalls: unsignedOutgoingBridgeCall}, nil
+}
+
+func (k Keeper) BridgeAddrToOracleAddr(ctx sdk.Context, bridgeAddr string) (sdk.AccAddress, error) {
+	bridgerAddr, err := sdk.AccAddressFromBech32(bridgeAddr)
+	if err != nil {
+		return sdk.AccAddress{}, status.Error(codes.InvalidArgument, "bridger address")
+	}
+	oracleAddr, found := k.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
+	if !found {
+		return sdk.AccAddress{}, status.Error(codes.NotFound, "oracle not found by bridger address")
+	}
+	return oracleAddr, nil
+}
+
+func (k Keeper) BridgeAddrToOracle(ctx sdk.Context, bridgeAddr string) (types.Oracle, error) {
+	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, bridgeAddr)
+	if err != nil {
+		return types.Oracle{}, err
+	}
+	oracle, found := k.GetOracle(ctx, oracleAddr)
+	if !found {
+		return types.Oracle{}, status.Error(codes.NotFound, "oracle not found")
+	}
+	return oracle, nil
 }
