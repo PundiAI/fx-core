@@ -109,8 +109,6 @@ var (
 	// Deprecated: OutgoingTxRelationKey outgoing tx with evm
 	// OutgoingTxRelationKey = []byte{0x41}
 
-	SnapshotOracleKey = []byte{0x44}
-
 	BridgeCallConfirmKey = []byte{0x45}
 
 	// LastSlashedBridgeCallNonce indexes the latest slashed bridge call nonce
@@ -215,10 +213,6 @@ func GetDenomToTokenKey(tokenContract string) []byte {
 // GetTokenToDenomKey returns the following key format
 func GetTokenToDenomKey(denom string) []byte {
 	return append(TokenToDenomKey, []byte(denom)...)
-}
-
-func GetSnapshotOracleKey(oracleSetNonce uint64) []byte {
-	return append(SnapshotOracleKey, sdk.Uint64ToBigEndian(oracleSetNonce)...)
 }
 
 func GetBridgeCallConfirmKey(nonce uint64, addr sdk.AccAddress) []byte {

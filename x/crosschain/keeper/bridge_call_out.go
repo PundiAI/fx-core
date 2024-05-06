@@ -80,12 +80,6 @@ func (k Keeper) AddOutgoingBridgeCall(
 	}
 	k.SetOutgoingBridgeCall(ctx, bridgeCall)
 
-	if snapshotOracle, found := k.GetSnapshotOracle(ctx, oracleSet.Nonce); found {
-		k.SetSnapshotOracle(ctx, snapshotOracle.AppendNonce(nextID))
-	} else {
-		k.SetSnapshotOracle(ctx, types.NewSnapshotOracle(oracleSet, nextID))
-	}
-
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCall,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),

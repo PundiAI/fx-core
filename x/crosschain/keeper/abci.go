@@ -184,7 +184,7 @@ func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) {
 		k.HandleOutgoingBridgeCallRefund(ctx, data)
 
 		// 2. delete bridge call
-		k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce, data.OracleSetNonce)
+		k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce)
 		return false
 	})
 }

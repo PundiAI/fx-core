@@ -118,7 +118,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if !claim.GetResult() {
 			k.HandleOutgoingBridgeCallRefund(ctx, outgoingBridgeCall)
 		}
-		k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce, outgoingBridgeCall.OracleSetNonce)
+		k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce)
 		return nil
 	default:
 		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())

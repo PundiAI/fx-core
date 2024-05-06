@@ -98,32 +98,20 @@ func (s msgServer) BridgeCallConfirm(c context.Context, msg *crosschaintypes.Msg
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find outgoing bridge call")
 	}
 
-	snapshotOracle, found := s.GetSnapshotOracle(ctx, outgoingBridgeCall.OracleSetNonce)
-	if !found {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find snapshot oracle")
-	}
-	if !snapshotOracle.HasExternalAddress(msg.ExternalAddress) {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "external address not in snapshot oracle")
-	}
-
 	checkpoint, err := trontypes.GetCheckpointBridgeCall(outgoingBridgeCall, s.GetGravityID(ctx))
 	if err != nil {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, err.Error())
 	}
-	sigBytes, err := hex.DecodeString(msg.Signature)
+
+	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "signature decoding")
+		return nil, err
 	}
 
-	if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, msg.ExternalAddress); err != nil {
-		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", msg.ExternalAddress, hex.EncodeToString(checkpoint), sigBytes))
-	}
-
-	externalAddr := crosschaintypes.ExternalAddressToAccAddress(s.ModuleName(), msg.ExternalAddress)
-	if found = s.HasBridgeCallConfirm(ctx, msg.Nonce, externalAddr); found {
+	if s.HasBridgeCallConfirm(ctx, msg.Nonce, oracleAddr) {
 		return nil, errorsmod.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
-	s.SetBridgeCallConfirm(ctx, externalAddr, msg)
+	s.SetBridgeCallConfirm(ctx, oracleAddr, msg)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
