@@ -267,6 +267,5 @@ message OutgoingBridgeCall {
     (gogoproto.nullable) = false
   ];
   uint64 gas_limit = 9;
-  uint64 oracle_set_nonce = 10;
-  uint64 block_height = 11;
+  uint64 block_height = 10;
 }
