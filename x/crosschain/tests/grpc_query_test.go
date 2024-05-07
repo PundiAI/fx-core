@@ -58,7 +58,7 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
+	types.RegisterQueryServer(queryHelper, suite.app.CrosschainRouterKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
 	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))

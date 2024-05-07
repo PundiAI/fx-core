@@ -265,8 +265,8 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	gravitytypes.RegisterQueryServer(cfg.QueryServer(), gravitykeeper.NewQueryServerImpl(app.EthKeeper))
 	gravitytypes.RegisterMsgServer(cfg.MsgServer(), gravitykeeper.NewMsgServerImpl(app.EthKeeper))
 
-	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
-	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
+	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainRouterKeeper)
+	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainRouterKeeper))
 
 	fxauth.RegisterQueryServer(cfg.QueryServer(), fxauth.Querier{})
 }
