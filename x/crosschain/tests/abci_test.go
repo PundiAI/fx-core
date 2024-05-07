@@ -154,7 +154,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 	require.NotNil(suite.T(), attestation)
 	require.True(suite.T(), attestation.Observed)
 
-	proposalHandler := crosschain.NewCrosschainProposalHandler(suite.app.CrosschainKeeper)
+	proposalHandler := crosschain.NewCrosschainProposalHandler(suite.app.CrosschainRouterKeeper)
 
 	var newOracleList []string
 	for i := 0; i < 7; i++ {

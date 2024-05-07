@@ -129,7 +129,7 @@ type AppKeepers struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	CrosschainKeeper crosschainkeeper.RouterKeeper
+	CrosschainRouterKeeper crosschainkeeper.RouterKeeper
 	CrossChainKeepers
 
 	EvmKeeper       *fxevmkeeper.Keeper
@@ -461,7 +461,7 @@ func NewAppKeeper(
 		AddRoute(layer2types.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.Layer2Keeper)).
 		AddRoute(trontypes.ModuleName, tronkeeper.NewModuleHandler(appKeepers.TronKeeper))
 
-	appKeepers.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
+	appKeepers.CrosschainRouterKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
@@ -470,7 +470,7 @@ func NewAppKeeper(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(appKeepers.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(appKeepers.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(appKeepers.IBCKeeper.ClientKeeper)).
-		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrosschainProposalHandler(appKeepers.CrosschainKeeper)).
+		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrosschainProposalHandler(appKeepers.CrosschainRouterKeeper)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(appKeepers.Erc20Keeper))
 
 	govConfig := fxgovtypes.DefaultConfig()
