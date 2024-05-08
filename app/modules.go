@@ -76,14 +76,14 @@ import (
 )
 
 func init() {
-	crosschaintypes.RegisterValidateBasic(bsctypes.ModuleName, crosschaintypes.MsgValidate{})
-	crosschaintypes.RegisterValidateBasic(polygontypes.ModuleName, crosschaintypes.MsgValidate{})
-	crosschaintypes.RegisterValidateBasic(avalanchetypes.ModuleName, crosschaintypes.MsgValidate{})
-	crosschaintypes.RegisterValidateBasic(ethtypes.ModuleName, crosschaintypes.MsgValidate{})
-	crosschaintypes.RegisterValidateBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
-	crosschaintypes.RegisterValidateBasic(arbitrumtypes.ModuleName, crosschaintypes.MsgValidate{})
-	crosschaintypes.RegisterValidateBasic(optimismtypes.ModuleName, crosschaintypes.MsgValidate{})
-	crosschaintypes.RegisterValidateBasic(layer2types.ModuleName, crosschaintypes.MsgValidate{})
+	crosschaintypes.RegisterExternalAddress(bsctypes.ModuleName, crosschaintypes.EthereumAddress{})
+	crosschaintypes.RegisterExternalAddress(polygontypes.ModuleName, crosschaintypes.EthereumAddress{})
+	crosschaintypes.RegisterExternalAddress(avalanchetypes.ModuleName, crosschaintypes.EthereumAddress{})
+	crosschaintypes.RegisterExternalAddress(ethtypes.ModuleName, crosschaintypes.EthereumAddress{})
+	crosschaintypes.RegisterExternalAddress(trontypes.ModuleName, trontypes.TronAddress{})
+	crosschaintypes.RegisterExternalAddress(arbitrumtypes.ModuleName, crosschaintypes.EthereumAddress{})
+	crosschaintypes.RegisterExternalAddress(optimismtypes.ModuleName, crosschaintypes.EthereumAddress{})
+	crosschaintypes.RegisterExternalAddress(layer2types.ModuleName, crosschaintypes.EthereumAddress{})
 }
 
 // module account permissions

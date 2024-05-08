@@ -5,19 +5,16 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type Keeper struct {
 	crosschainkeeper.Keeper
-	erc20Keeper crosschaintypes.Erc20Keeper
 }
 
-func NewKeeper(keeper crosschainkeeper.Keeper, erc20Keeper crosschaintypes.Erc20Keeper) Keeper {
+func NewKeeper(keeper crosschainkeeper.Keeper) Keeper {
 	return Keeper{
-		Keeper:      keeper,
-		erc20Keeper: erc20Keeper,
+		Keeper: keeper,
 	}
 }
 
