@@ -403,7 +403,7 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 }
 
 func (k Keeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
-	return &types.QueryBridgeChainListResponse{ChainNames: types.GetValidateChains()}, nil
+	return &types.QueryBridgeChainListResponse{ChainNames: types.GetSupportChains()}, nil
 }
 
 func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {

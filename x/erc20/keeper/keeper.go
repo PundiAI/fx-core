@@ -54,7 +54,7 @@ func NewKeeper(
 		ibcTransferKeeper: ibcTransferKeeper,
 		moduleAddress:     common.BytesToAddress(ak.GetModuleAddress(types.ModuleName)),
 		authority:         authority,
-		chainsName:        crosschaintypes.GetValidateChains(),
+		chainsName:        crosschaintypes.GetSupportChains(),
 	}
 }
 

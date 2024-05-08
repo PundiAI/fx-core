@@ -447,7 +447,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	), appKeepers.Erc20Keeper)
+	))
 
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()

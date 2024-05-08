@@ -490,7 +490,7 @@ func NewBridgeDenom(moduleName string, token string) string {
 }
 
 func ExternalAddressToAccAddress(chainName, addr string) sdk.AccAddress {
-	router, ok := msgValidateBasicRouter[chainName]
+	router, ok := externalAddressRouter[chainName]
 	if !ok {
 		panic("unrecognized cross chain name")
 	}
@@ -502,7 +502,7 @@ func ExternalAddressToAccAddress(chainName, addr string) sdk.AccAddress {
 }
 
 func ValidateExternalAddress(chainName, addr string) error {
-	router, ok := msgValidateBasicRouter[chainName]
+	router, ok := externalAddressRouter[chainName]
 	if !ok {
 		return fmt.Errorf("unrecognized cross chain name")
 	}
