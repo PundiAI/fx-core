@@ -118,9 +118,6 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 
 	// bsc add FX token
 	newTokenContract = helpers.GenerateAddressByModule(bsctypes.ModuleName)
-	fxNewAlias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, newTokenContract)
-	resp, _ = suite.erc20.UpdateDenomAliasProposal(fxtypes.DefaultDenom, fxNewAlias)
-	suite.Equal(uint32(0), resp.Code)
 
 	bscChain.AddBridgeTokenClaim("Function X", "FX", 18, newTokenContract, "")
 	fxTokenBSC := newTokenContract
@@ -159,10 +156,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	bscChain.SendToFxClaimAndCheckBalance(fxTokenBSC, sdkmath.NewInt(100), "", sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100)))
 
 	bscBalances := suite.QueryBalances(authtypes.NewModuleAddress(bsctypes.ModuleName))
-	suite.Equal(initAmount.Sub(sdkmath.NewInt(100)), bscBalances.AmountOf(fxNewAlias))
-	fxAliasSupply, err := suite.GRPCClient().BankQuery().SupplyOf(suite.ctx, &banktypes.QuerySupplyOfRequest{Denom: fxNewAlias})
-	suite.NoError(err)
-	suite.Equal(fxAliasSupply.Amount.Amount, bscBalances.AmountOf(fxNewAlias))
+	suite.Equal(initAmount.Sub(sdkmath.NewInt(100)), bscBalances.AmountOf(fxtypes.DefaultDenom))
 
 	// pundix
 	ethChain.SendToFxClaimAndCheckBalance(ethPundixTokenAddress, sdkmath.NewInt(200), "", sdk.NewCoin(pundixMd.Base, sdkmath.NewInt(200)))
@@ -190,10 +184,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	bscChain.SendToExternalAndCheckBalance(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100)))
 
 	bscBalances = suite.QueryBalances(authtypes.NewModuleAddress(bsctypes.ModuleName))
-	suite.Equal(initAmount, bscBalances.AmountOf(fxNewAlias))
-	fxAliasSupply, err = suite.GRPCClient().BankQuery().SupplyOf(suite.ctx, &banktypes.QuerySupplyOfRequest{Denom: fxNewAlias})
-	suite.NoError(err)
-	suite.Equal(initAmount, fxAliasSupply.Amount.Amount)
+	suite.Equal(initAmount, bscBalances.AmountOf(fxtypes.DefaultDenom))
 
 	// pundix
 	ethChain.SendToExternalAndCheckBalance(sdk.NewCoin(pundixMd.Base, sdkmath.NewInt(100)))
