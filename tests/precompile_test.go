@@ -105,7 +105,7 @@ func (suite *IntegrationTest) PrecompileCrossChainConvertedDenomTest() {
 		ethChain.SendToTxClaimWithReceiver(receiver, ethFXTokenAddress, sdkmath.NewInt(100), "erc20")
 	})
 	suite.erc20.HandleWithCheckBalance(fxPair.GetERC20Contract(), receiverHex, big.NewInt(100), func() {
-		bscFXTokenAddress := bscChain.GetBridgeTokenByDenom(fxMd.DenomUnits[0].Aliases[0])
+		bscFXTokenAddress := bscChain.GetBridgeTokenByDenom(fxtypes.DefaultDenom)
 		bscChain.SendToTxClaimWithReceiver(receiver, bscFXTokenAddress, sdkmath.NewInt(100), "erc20")
 	})
 
