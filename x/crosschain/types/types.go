@@ -190,9 +190,10 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
-	checkpointBytes := []uint8("checkpoint")
-	var checkpoint [32]uint8
-	copy(checkpoint[:], checkpointBytes)
+	checkpoint, err := fxtypes.StrToByte32("checkpoint")
+	if err != nil {
+		return nil, err
+	}
 
 	memberAddresses := make([]gethcommon.Address, len(m.Members))
 	convertedPowers := make([]*big.Int, len(m.Members))
@@ -308,9 +309,10 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	}
 
 	// Create the methodName argument which salts the signature
-	methodNameBytes := []uint8("transactionBatch")
-	var batchMethodName [32]uint8
-	copy(batchMethodName[:], methodNameBytes)
+	batchMethodName, err := fxtypes.StrToByte32("transactionBatch")
+	if err != nil {
+		return nil, err
+	}
 
 	// Run through the elements of the batch and serialize them
 	txAmounts := make([]*big.Int, len(m.Transactions))
@@ -429,9 +431,10 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 	}
 
 	// Create the methodName argument which salts the signature
-	methodNameBytes := []uint8("bridgeCallCheckpoint")
-	var batchMethodName [32]uint8
-	copy(batchMethodName[:], methodNameBytes)
+	batchMethodName, err := fxtypes.StrToByte32("bridgeCallCheckpoint")
+	if err != nil {
+		return nil, err
+	}
 
 	messagesBytes, err := hex.DecodeString(m.Message)
 	if err != nil {
