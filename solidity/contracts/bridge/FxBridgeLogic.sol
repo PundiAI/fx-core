@@ -299,6 +299,11 @@ contract FxBridgeLogic is
         bytes calldata _message,
         uint256 _value
     ) external {
+        require(
+            _tokens.length > 0 || _message.length > 0,
+            "Token and message both empty"
+        );
+
         // transfer ERC20
         _transferERC20(_msgSender(), address(this), _tokens, _amounts);
 
@@ -524,6 +529,11 @@ contract FxBridgeLogic is
         );
 
         require(
+            _input.tokens.length > 0 || _input.message.length > 0,
+            "Token and message both empty"
+        );
+
+        require(
             _currentOracles.length == _currentPowers.length &&
                 _currentOracles.length == _v.length &&
                 _currentOracles.length == _r.length &&
@@ -706,6 +716,11 @@ contract FxBridgeLogic is
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal {
+        require(
+            _tokens.length == _amounts.length,
+            "Tokens and amounts not matched"
+        );
+
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(_amounts[i] > 0, "amount should be greater than zero");
             TokenStatus memory _tokenStatus = tokenStatus[_tokens[i]];
