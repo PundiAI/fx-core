@@ -598,7 +598,7 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 		return nil, err
 	}
 
-	outCall, err := s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Message, msg.Value, msg.GasLimit)
+	outCall, err := s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Message, msg.Value)
 	if err != nil {
 		return nil, err
 	}

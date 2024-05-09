@@ -1146,7 +1146,6 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 				To:             helpers.GenerateAddressByModule(suite.chainName),
 				Message:        "",
 				Value:          sdkmath.NewInt(0),
-				GasLimit:       3000000,
 				BlockHeight:    1,
 				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChainName:      suite.chainName,
@@ -1166,7 +1165,6 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		// 		To:             helpers.GenerateAddressByModule(suite.chainName),
 		// 		Message:        "",
 		// 		Value:          sdkmath.NewInt(0),
-		// 		GasLimit:       3000000,
 		// 		BlockHeight:    1,
 		// 		BridgerAddress: suite.bridgerAddrs[0].String(),
 		// 		ChainName:      suite.chainName,
@@ -1336,7 +1334,6 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 					Coins:     sdk.NewCoins(sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewInt(1e18))),
 					Message:   "",
 					Value:     sdkmath.ZeroInt(),
-					GasLimit:  0,
 				}
 			},
 			pass: true,

@@ -288,7 +288,6 @@ func (suite *CrosschainTestSuite) BridgeCallClaim(to string, tokens []string, am
 		To:             to,
 		Message:        "",
 		Value:          sdkmath.ZeroInt(),
-		GasLimit:       300000,
 		TokenContracts: tokens,
 		Amounts:        amounts,
 		EventNonce:     suite.queryFxLastEventNonce(),

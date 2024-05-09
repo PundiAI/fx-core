@@ -458,7 +458,6 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 		gethcommon.HexToAddress(m.Receiver),
 		m.Value.BigInt(),
 		big.NewInt(int64(m.Nonce)),
-		big.NewInt(int64(m.GasLimit)),
 		big.NewInt(int64(m.Timeout)),
 		messagesBytes,
 		contracts,

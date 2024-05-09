@@ -263,10 +263,6 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 			if !ok {
 				return sdkerrors.ErrInvalidRequest.Wrap("value")
 			}
-			gasLimit, err := cmd.Flags().GetUint64(FlagGasLimit)
-			if err != nil {
-				return errorsmod.Wrap(err, "gas-limit")
-			}
 
 			msg := types.MsgBridgeCall{
 				Sender:    cliCtx.GetFromAddress().String(),
@@ -276,7 +272,6 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 				Message:   message,
 				Value:     value,
 				ChainName: chainName,
-				GasLimit:  gasLimit,
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
@@ -284,7 +279,6 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 	cmd.Flags().String(FlagTo, "", "bridge call to address")
 	cmd.Flags().String(FlagMessage, "", "bridge call contract message")
 	cmd.Flags().String(FlagValue, "0", "bridge call value")
-	cmd.Flags().Uint64(FlagGasLimit, 0, "bridge call gas limit")
 	return cmd
 }
 

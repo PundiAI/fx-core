@@ -167,15 +167,14 @@ message MsgBridgeCallClaim {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  uint64 gasLimit = 7;
-  repeated string token_contracts = 8;
-  repeated string amounts = 9 [
+  repeated string token_contracts = 7;
+  repeated string amounts = 8 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  uint64 event_nonce = 10;
-  uint64 block_height = 11;
-  string bridger_address = 12;
+  uint64 event_nonce = 9;
+  uint64 block_height = 10;
+  string bridger_address = 11;
 }
 
 message MsgBridgeCallClaimResponse {}
@@ -379,8 +378,7 @@ message MsgBridgeCall {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  uint64 gas_limit = 7;
-  repeated cosmos.base.v1beta1.Coin coins = 8 [
+  repeated cosmos.base.v1beta1.Coin coins = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
