@@ -10,6 +10,8 @@ const (
 	AttributeKeyRoute        = "route"
 	AttributeKeyRouteError   = "error"
 
-	EventTypeIBCCall        = "ibc_call"
-	AttributeKeyIBCCallType = "ibc_call_type"
+	EventTypeIBCCall          = "ibc_call"
+	AttributeKeyIBCCallType   = "ibc_call_type"
+	AttributeKeyIBCCallError  = "ibc_call_error"
+	AttributeKeyIBCCallResult = "ibc_call_result"
 )

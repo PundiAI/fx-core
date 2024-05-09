@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strconv"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -19,8 +21,6 @@ func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string
 		return err
 	}
 
-	attr := sdk.NewAttribute(types.AttributeKeyIBCCallType, types.IbcCallType_name[int32(mp.GetType())])
-	ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeIBCCall, attr)})
 	switch packet := mp.(type) {
 	case *types.IbcCallEvmPacket:
 		hexSender := types.IntermediateSender(sourcePort, sourceChannel, data.Sender)
@@ -30,12 +30,27 @@ func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string
 	}
 }
 
-func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmData *types.IbcCallEvmPacket) error {
+func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPacket *types.IbcCallEvmPacket) error {
+	evmErr, evmResult := "", false
+	defer func() {
+		attrs := []sdk.Attribute{
+			sdk.NewAttribute(types.AttributeKeyIBCCallType, types.IbcCallType_name[int32(evmPacket.GetType())]),
+			sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
+			sdk.NewAttribute(types.AttributeKeyIBCCallResult, strconv.FormatBool(evmResult)),
+		}
+		if len(evmErr) > 0 {
+			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyIBCCallError, evmErr))
+		}
+		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeIBCCall, attrs...)})
+	}()
 	txResp, err := k.evmKeeper.CallEVM(ctx, sender,
-		evmData.MustGetToAddr(), evmData.Value.BigInt(), evmData.GasLimit, evmData.MustGetMessage(), true)
+		evmPacket.MustGetToAddr(), evmPacket.Value.BigInt(), evmPacket.GasLimit, evmPacket.MustGetMessage(), true)
 	if err != nil {
+		evmErr = err.Error()
 		return err
 	}
+	evmResult = !txResp.Failed()
+	evmErr = txResp.VmError
 	if txResp.Failed() {
 		return errorsmod.Wrap(evmtypes.ErrVMExecution, txResp.VmError)
 	}
