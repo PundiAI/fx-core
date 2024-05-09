@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -82,6 +83,7 @@ type IBCTransferKeeper interface {
 
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 }
 
 type (

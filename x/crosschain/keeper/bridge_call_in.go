@@ -8,6 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -65,6 +66,11 @@ func (k Keeper) bridgeCallFxCore(
 	value sdkmath.Int,
 	eventNonce uint64,
 ) error {
+	if senderAccount := k.ak.GetAccount(ctx, sender.Bytes()); senderAccount != nil {
+		if _, ok := senderAccount.(authtypes.ModuleAccountI); ok {
+			return errorsmod.Wrap(types.ErrInvalid, "sender is module account")
+		}
+	}
 	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens)
 	if err != nil {
 		return err
