@@ -406,6 +406,23 @@ func (k Keeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainList
 	return &types.QueryBridgeChainListResponse{ChainNames: types.GetSupportChains()}, nil
 }
 
+func (k Keeper) BridgeCalls(c context.Context, req *types.QueryBridgeCallsRequest) (*types.QueryBridgeCallsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	pendingStore := prefix.NewStore(store, types.OutgoingBridgeCallNonceKey)
+
+	datas, pageRes, err := query.GenericFilteredPaginate(k.cdc, pendingStore, req.Pagination, func(key []byte, data *types.OutgoingBridgeCall) (*types.OutgoingBridgeCall, error) {
+		return data, nil
+	}, func() *types.OutgoingBridgeCall {
+		return &types.OutgoingBridgeCall{}
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryBridgeCallsResponse{BridgeCalls: datas, Pagination: pageRes}, nil
+}
+
 func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
 	if req.GetEventNonce() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "event nonce")

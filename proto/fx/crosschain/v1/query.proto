@@ -82,6 +82,9 @@ service Query {
   rpc GetPendingPoolSendToExternal(QueryPendingPoolSendToExternalRequest) returns (QueryPendingPoolSendToExternalResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/pending_pool_send_to_external";
   }
+  rpc BridgeCalls(QueryBridgeCallsRequest) returns (QueryBridgeCallsResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_calls";
+  }
   rpc BridgeCallConfirmByNonce(QueryBridgeCallConfirmByNonceRequest) returns (QueryBridgeCallConfirmByNonceResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/bridge_call_confirm_by_nonce";
   }
@@ -330,6 +333,18 @@ message QueryBridgeCoinByDenomResponse {
 message QueryBridgeChainListRequest {}
 message QueryBridgeChainListResponse {
   repeated string chain_names = 1;
+}
+
+message QueryBridgeCallsRequest {
+  string chain_name = 1;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryBridgeCallsResponse {
+  repeated OutgoingBridgeCall bridge_calls = 1;
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryBridgeCallByNonceRequest {

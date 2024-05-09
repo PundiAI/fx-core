@@ -81,6 +81,7 @@ func GetQuerySubCmds(chainName string) []*cobra.Command {
 		CmdCovertBridgeToken(chainName),
 
 		// bridge call
+		CmdGetBridgeCalls(chainName),
 		CmdGetBridgeCall(chainName),
 		CmdBridgeCallByAddr(chainName),
 		CmdBridgeCallConfirm(chainName),
@@ -825,6 +826,35 @@ func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	return cmd
+}
+
+func CmdGetBridgeCalls(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bridge-calls",
+		Short: "Query bridge calls",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.BridgeCalls(cmd.Context(), &types.QueryBridgeCallsRequest{
+				ChainName:  chainName,
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddPaginationFlagsToCmd(cmd, "bridgecalls")
 	return cmd
 }
 
