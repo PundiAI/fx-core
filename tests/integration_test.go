@@ -78,6 +78,8 @@ func (suite *IntegrationTest) TestRun() {
 	suite.ERC20TokenERC20Test()
 	suite.ERC20IBCChainTokenERC20Test()
 
+	suite.BridgeCallToFxcoreTest()
+
 	suite.StakingTest()
 	suite.StakingContractTest()
 	suite.StakingSharesTest()

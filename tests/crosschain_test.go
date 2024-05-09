@@ -4,12 +4,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -210,4 +212,37 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	ethChain.CancelAllSendToExternal()
 	bscChain.CancelAllSendToExternal()
 	tronChain.CancelAllSendToExternal()
+}
+
+// BridgeCallToFxcoreTest run after erc20 register coin
+func (suite *IntegrationTest) BridgeCallToFxcoreTest() {
+	tokenPairs := suite.erc20.TokenPairs()
+	suite.Require().Greater(len(tokenPairs), 0)
+
+	// get crosschain token
+	for _, pair := range tokenPairs {
+		metadata := suite.GetMetadata(pair.Denom)
+		if len(metadata.DenomUnits[0].Aliases) == 0 || pair.IsNativeERC20() || !pair.GetEnabled() ||
+			len(metadata.DenomUnits[0].Aliases) > 0 && !strings.EqualFold(metadata.Base, metadata.Symbol) {
+			continue
+		}
+
+		for index := 0; index < len(suite.crosschain); index++ {
+			chain := suite.crosschain[index]
+			for _, alias := range metadata.DenomUnits[0].Aliases {
+				if !strings.HasPrefix(alias, chain.chainName) {
+					continue
+				}
+				bridgeToken := chain.GetBridgeTokenByDenom(alias)
+
+				randAmount := sdkmath.NewInt(int64(tmrand.Uint() + 1000))
+				balBefore := suite.evm.BalanceOf(pair.GetERC20Contract(), chain.HexAddress())
+				chain.BridgeCallClaim("", []string{bridgeToken}, []sdkmath.Int{randAmount})
+				suite.evm.CheckBalance(pair.GetERC20Contract(), chain.HexAddress(), big.NewInt(0).Add(balBefore, randAmount.BigInt()))
+
+				// clear balance
+				suite.evm.TransferERC20(chain.privKey, pair.GetERC20Contract(), helpers.GenerateAddress(), randAmount.BigInt())
+			}
+		}
+	}
 }

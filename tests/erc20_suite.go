@@ -56,6 +56,12 @@ func (suite *Erc20TestSuite) TokenPair(denom string) *erc20types.TokenPair {
 	return &pairResp.TokenPair
 }
 
+func (suite *Erc20TestSuite) TokenPairs() []erc20types.TokenPair {
+	pairsResp, err := suite.ERC20Query().TokenPairs(suite.ctx, &erc20types.QueryTokenPairsRequest{})
+	suite.NoError(err)
+	return pairsResp.TokenPairs
+}
+
 func (suite *Erc20TestSuite) Erc20TokenAddress(denom string) common.Address {
 	return suite.TokenPair(denom).GetERC20Contract()
 }

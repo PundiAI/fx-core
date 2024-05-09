@@ -92,6 +92,11 @@ func (suite *EvmTestSuite) BalanceOf(contractAddr, address common.Address) *big.
 	return balance
 }
 
+func (suite *EvmTestSuite) CheckBalance(contractAddr, address common.Address, balance *big.Int) {
+	balAfter := suite.BalanceOf(contractAddr, address)
+	suite.Equal(balAfter.String(), balance.String())
+}
+
 func (suite *EvmTestSuite) Symbol(contractAddr common.Address) string {
 	caller, err := contract.NewFIP20Upgradable(contractAddr, suite.EthClient())
 	suite.NoError(err)

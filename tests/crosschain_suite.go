@@ -280,6 +280,23 @@ func (suite *CrosschainTestSuite) SendToFxClaim(token string, amount sdkmath.Int
 	suite.SendToTxClaimWithReceiver(suite.AccAddress(), token, amount, targetIbc)
 }
 
+func (suite *CrosschainTestSuite) BridgeCallClaim(to string, tokens []string, amounts []sdkmath.Int) {
+	suite.BroadcastTx(suite.bridgerPrivKey, &crosschaintypes.MsgBridgeCallClaim{
+		ChainName:      suite.chainName,
+		Sender:         suite.HexAddressString(),
+		Receiver:       suite.HexAddressString(),
+		To:             to,
+		Message:        "",
+		Value:          sdkmath.ZeroInt(),
+		GasLimit:       300000,
+		TokenContracts: tokens,
+		Amounts:        amounts,
+		EventNonce:     suite.queryFxLastEventNonce(),
+		BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
+		BridgerAddress: suite.BridgerAddr().String(),
+	})
+}
+
 func (suite *CrosschainTestSuite) SendToTxClaimWithReceiver(receiver sdk.AccAddress, token string, amount sdkmath.Int, targetIbc string) {
 	suite.BroadcastTx(suite.bridgerPrivKey, &crosschaintypes.MsgSendToFxClaim{
 		EventNonce:     suite.queryFxLastEventNonce(),
