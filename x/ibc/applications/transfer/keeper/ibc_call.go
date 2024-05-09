@@ -26,11 +26,12 @@ func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string
 		hexSender := types.IntermediateSender(sourcePort, sourceChannel, data.Sender)
 		return k.HandlerIbcCallEvm(ctx, hexSender, packet)
 	default:
-		return types.ErrMemoNotSupport.Wrapf("invalid call type %s", mp.GetType())
+		return errorsmod.Wrapf(types.ErrMemoNotSupport, "invalid call type %s", mp.GetType())
 	}
 }
 
 func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPacket *types.IbcCallEvmPacket) error {
+	limit := ctx.ConsensusParams().GetBlock().GetMaxGas()
 	evmErr, evmResult := "", false
 	defer func() {
 		attrs := []sdk.Attribute{
@@ -44,7 +45,7 @@ func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPac
 		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeIBCCall, attrs...)})
 	}()
 	txResp, err := k.evmKeeper.CallEVM(ctx, sender,
-		evmPacket.MustGetToAddr(), evmPacket.Value.BigInt(), evmPacket.GasLimit, evmPacket.MustGetMessage(), true)
+		evmPacket.GetToAddress(), evmPacket.Value.BigInt(), uint64(limit), evmPacket.MustGetMessage(), true)
 	if err != nil {
 		evmErr = err.Error()
 		return err

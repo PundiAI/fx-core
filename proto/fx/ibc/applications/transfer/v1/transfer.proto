@@ -24,20 +24,3 @@ message FungibleTokenPacketData {
   // optional memo
   string memo = 7;
 }
-
-enum IbcCallType {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  IBC_CALL_TYPE_UNSPECIFIED = 0;
-  IBC_CALL_TYPE_EVM = 1;
-}
-
-message IbcCallEvmPacket {
-  string to = 1;
-  string value = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
-  uint64 gas_limit = 3;
-  string message = 4;
-}

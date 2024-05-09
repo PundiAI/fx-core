@@ -17,6 +17,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/abci/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/contract"
@@ -419,10 +420,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.NoError(ibcCallBaseAcc.SetSequence(0))
 				suite.GetApp(suite.chainA.App).AccountKeeper.SetAccount(suite.chainA.GetContext(), ibcCallBaseAcc)
 				evmPacket := fxtransfertypes.IbcCallEvmPacket{
-					To:       common.BigToAddress(big.NewInt(0)).String(),
-					Value:    sdkmath.ZeroInt(),
-					GasLimit: 300000,
-					Message:  "",
+					To:    common.BigToAddress(big.NewInt(0)).String(),
+					Value: sdkmath.ZeroInt(),
+					Data:  "",
 				}
 				cdc := suite.GetApp(suite.chainA.App).AppCodec()
 				bz, err := cdc.MarshalInterfaceJSON(&evmPacket)
@@ -453,6 +453,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			tc.malleate(&packet)
 
 			cacheCtx, writeFn := suite.chainA.GetContext().CacheContext()
+			cacheCtx = cacheCtx.WithConsensusParams(&types.ConsensusParams{Block: &types.BlockParams{MaxGas: 5000000}})
 			ackI := fxIBCMiddleware.OnRecvPacket(cacheCtx, packet, nil)
 			if ackI == nil || ackI.Success() {
 				// write application state changes for asynchronous and successful acknowledgements

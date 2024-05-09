@@ -94,30 +94,24 @@ func (icep IbcCallEvmPacket) GetType() IbcCallType {
 
 func (icep IbcCallEvmPacket) ValidateBasic() error {
 	if err := contract.ValidateEthereumAddress(icep.To); err != nil {
-		return ErrInvalidEvmData.Wrap("to")
+		return errortypes.ErrInvalidRequest.Wrapf("to address: %s", err.Error())
 	}
 	if icep.Value.IsNegative() {
-		return ErrInvalidEvmData.Wrap("value")
+		return errortypes.ErrInvalidRequest.Wrapf("value: %s", icep.Value.String())
 	}
-
-	// gas limit
-
-	if _, err := hex.DecodeString(icep.Message); err != nil {
-		return ErrInvalidEvmData.Wrap("message")
+	if _, err := hex.DecodeString(icep.Data); err != nil {
+		return errortypes.ErrInvalidRequest.Wrapf("data: %s", err.Error())
 	}
 	return nil
 }
 
-func (icep IbcCallEvmPacket) MustGetToAddr() *common.Address {
-	if err := contract.ValidateEthereumAddress(icep.To); err != nil {
-		panic(err)
-	}
+func (icep IbcCallEvmPacket) GetToAddress() *common.Address {
 	to := common.HexToAddress(icep.To)
 	return &to
 }
 
 func (icep IbcCallEvmPacket) MustGetMessage() []byte {
-	bz, err := hex.DecodeString(icep.Message)
+	bz, err := hex.DecodeString(icep.Data)
 	if err != nil {
 		panic(err)
 	}
