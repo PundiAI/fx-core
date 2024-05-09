@@ -15,16 +15,17 @@ import (
 	reflect "reflect"
 
 	types "github.com/cosmos/cosmos-sdk/types"
-	types0 "github.com/cosmos/cosmos-sdk/x/bank/types"
-	types1 "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/params/types"
-	types3 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	types4 "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	types0 "github.com/cosmos/cosmos-sdk/x/auth/types"
+	types1 "github.com/cosmos/cosmos-sdk/x/bank/types"
+	types2 "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	types3 "github.com/cosmos/cosmos-sdk/x/params/types"
+	types4 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	types5 "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
-	types5 "github.com/evmos/ethermint/x/evm/types"
-	types6 "github.com/functionx/fx-core/v7/types"
-	types7 "github.com/functionx/fx-core/v7/x/crosschain/types"
-	types8 "github.com/functionx/fx-core/v7/x/erc20/types"
+	types6 "github.com/evmos/ethermint/x/evm/types"
+	types7 "github.com/functionx/fx-core/v7/types"
+	types8 "github.com/functionx/fx-core/v7/x/crosschain/types"
+	types9 "github.com/functionx/fx-core/v7/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -80,10 +81,10 @@ func (mr *MockStakingKeeperMockRecorder) BeforeDelegationCreated(ctx, delAddr, v
 }
 
 // GetBondedValidatorsByPower mocks base method.
-func (m *MockStakingKeeper) GetBondedValidatorsByPower(ctx types.Context) []types3.Validator {
+func (m *MockStakingKeeper) GetBondedValidatorsByPower(ctx types.Context) []types4.Validator {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBondedValidatorsByPower", ctx)
-	ret0, _ := ret[0].([]types3.Validator)
+	ret0, _ := ret[0].([]types4.Validator)
 	return ret0
 }
 
@@ -94,10 +95,10 @@ func (mr *MockStakingKeeperMockRecorder) GetBondedValidatorsByPower(ctx any) *go
 }
 
 // GetDelegation mocks base method.
-func (m *MockStakingKeeper) GetDelegation(ctx types.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types3.Delegation, bool) {
+func (m *MockStakingKeeper) GetDelegation(ctx types.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types4.Delegation, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegation", ctx, delAddr, valAddr)
-	ret0, _ := ret[0].(types3.Delegation)
+	ret0, _ := ret[0].(types4.Delegation)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -109,10 +110,10 @@ func (mr *MockStakingKeeperMockRecorder) GetDelegation(ctx, delAddr, valAddr any
 }
 
 // GetUnbondingDelegation mocks base method.
-func (m *MockStakingKeeper) GetUnbondingDelegation(ctx types.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types3.UnbondingDelegation, bool) {
+func (m *MockStakingKeeper) GetUnbondingDelegation(ctx types.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types4.UnbondingDelegation, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUnbondingDelegation", ctx, delAddr, valAddr)
-	ret0, _ := ret[0].(types3.UnbondingDelegation)
+	ret0, _ := ret[0].(types4.UnbondingDelegation)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -124,10 +125,10 @@ func (mr *MockStakingKeeperMockRecorder) GetUnbondingDelegation(ctx, delAddr, va
 }
 
 // GetValidator mocks base method.
-func (m *MockStakingKeeper) GetValidator(ctx types.Context, addr types.ValAddress) (types3.Validator, bool) {
+func (m *MockStakingKeeper) GetValidator(ctx types.Context, addr types.ValAddress) (types4.Validator, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidator", ctx, addr)
-	ret0, _ := ret[0].(types3.Validator)
+	ret0, _ := ret[0].(types4.Validator)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -139,7 +140,7 @@ func (mr *MockStakingKeeperMockRecorder) GetValidator(ctx, addr any) *gomock.Cal
 }
 
 // RemoveDelegation mocks base method.
-func (m *MockStakingKeeper) RemoveDelegation(ctx types.Context, delegation types3.Delegation) error {
+func (m *MockStakingKeeper) RemoveDelegation(ctx types.Context, delegation types4.Delegation) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDelegation", ctx, delegation)
 	ret0, _ := ret[0].(error)
@@ -176,10 +177,10 @@ func (m *MockStakingMsgServer) EXPECT() *MockStakingMsgServerMockRecorder {
 }
 
 // BeginRedelegate mocks base method.
-func (m *MockStakingMsgServer) BeginRedelegate(goCtx context.Context, msg *types3.MsgBeginRedelegate) (*types3.MsgBeginRedelegateResponse, error) {
+func (m *MockStakingMsgServer) BeginRedelegate(goCtx context.Context, msg *types4.MsgBeginRedelegate) (*types4.MsgBeginRedelegateResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BeginRedelegate", goCtx, msg)
-	ret0, _ := ret[0].(*types3.MsgBeginRedelegateResponse)
+	ret0, _ := ret[0].(*types4.MsgBeginRedelegateResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -191,10 +192,10 @@ func (mr *MockStakingMsgServerMockRecorder) BeginRedelegate(goCtx, msg any) *gom
 }
 
 // Delegate mocks base method.
-func (m *MockStakingMsgServer) Delegate(goCtx context.Context, msg *types3.MsgDelegate) (*types3.MsgDelegateResponse, error) {
+func (m *MockStakingMsgServer) Delegate(goCtx context.Context, msg *types4.MsgDelegate) (*types4.MsgDelegateResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delegate", goCtx, msg)
-	ret0, _ := ret[0].(*types3.MsgDelegateResponse)
+	ret0, _ := ret[0].(*types4.MsgDelegateResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -206,10 +207,10 @@ func (mr *MockStakingMsgServerMockRecorder) Delegate(goCtx, msg any) *gomock.Cal
 }
 
 // Undelegate mocks base method.
-func (m *MockStakingMsgServer) Undelegate(goCtx context.Context, msg *types3.MsgUndelegate) (*types3.MsgUndelegateResponse, error) {
+func (m *MockStakingMsgServer) Undelegate(goCtx context.Context, msg *types4.MsgUndelegate) (*types4.MsgUndelegateResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Undelegate", goCtx, msg)
-	ret0, _ := ret[0].(*types3.MsgUndelegateResponse)
+	ret0, _ := ret[0].(*types4.MsgUndelegateResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -244,10 +245,10 @@ func (m *MockDistributionKeeper) EXPECT() *MockDistributionKeeperMockRecorder {
 }
 
 // GetDelegatorStartingInfo mocks base method.
-func (m *MockDistributionKeeper) GetDelegatorStartingInfo(ctx types.Context, val types.ValAddress, del types.AccAddress) types1.DelegatorStartingInfo {
+func (m *MockDistributionKeeper) GetDelegatorStartingInfo(ctx types.Context, val types.ValAddress, del types.AccAddress) types2.DelegatorStartingInfo {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegatorStartingInfo", ctx, val, del)
-	ret0, _ := ret[0].(types1.DelegatorStartingInfo)
+	ret0, _ := ret[0].(types2.DelegatorStartingInfo)
 	return ret0
 }
 
@@ -281,10 +282,10 @@ func (m *MockDistributionMsgServer) EXPECT() *MockDistributionMsgServerMockRecor
 }
 
 // WithdrawDelegatorReward mocks base method.
-func (m *MockDistributionMsgServer) WithdrawDelegatorReward(goCtx context.Context, msg *types1.MsgWithdrawDelegatorReward) (*types1.MsgWithdrawDelegatorRewardResponse, error) {
+func (m *MockDistributionMsgServer) WithdrawDelegatorReward(goCtx context.Context, msg *types2.MsgWithdrawDelegatorReward) (*types2.MsgWithdrawDelegatorRewardResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithdrawDelegatorReward", goCtx, msg)
-	ret0, _ := ret[0].(*types1.MsgWithdrawDelegatorRewardResponse)
+	ret0, _ := ret[0].(*types2.MsgWithdrawDelegatorRewardResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -389,7 +390,7 @@ func (mr *MockBankKeeperMockRecorder) HasDenomMetaData(ctx, denom any) *gomock.C
 }
 
 // IterateAllDenomMetaData mocks base method.
-func (m *MockBankKeeper) IterateAllDenomMetaData(ctx types.Context, cb func(types0.Metadata) bool) {
+func (m *MockBankKeeper) IterateAllDenomMetaData(ctx types.Context, cb func(types1.Metadata) bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "IterateAllDenomMetaData", ctx, cb)
 }
@@ -480,10 +481,10 @@ func (m *MockErc20Keeper) EXPECT() *MockErc20KeeperMockRecorder {
 }
 
 // ConvertCoin mocks base method.
-func (m *MockErc20Keeper) ConvertCoin(goCtx context.Context, msg *types8.MsgConvertCoin) (*types8.MsgConvertCoinResponse, error) {
+func (m *MockErc20Keeper) ConvertCoin(goCtx context.Context, msg *types9.MsgConvertCoin) (*types9.MsgConvertCoinResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertCoin", goCtx, msg)
-	ret0, _ := ret[0].(*types8.MsgConvertCoinResponse)
+	ret0, _ := ret[0].(*types9.MsgConvertCoinResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -495,7 +496,7 @@ func (mr *MockErc20KeeperMockRecorder) ConvertCoin(goCtx, msg any) *gomock.Call 
 }
 
 // ConvertDenomToTarget mocks base method.
-func (m *MockErc20Keeper) ConvertDenomToTarget(ctx types.Context, from types.AccAddress, coin types.Coin, fxTarget types6.FxTarget) (types.Coin, error) {
+func (m *MockErc20Keeper) ConvertDenomToTarget(ctx types.Context, from types.AccAddress, coin types.Coin, fxTarget types7.FxTarget) (types.Coin, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertDenomToTarget", ctx, from, coin, fxTarget)
 	ret0, _ := ret[0].(types.Coin)
@@ -576,7 +577,7 @@ func (mr *MockErc20KeeperMockRecorder) SetOutgoingTransferRelation(ctx, moduleNa
 }
 
 // ToTargetDenom mocks base method.
-func (m *MockErc20Keeper) ToTargetDenom(ctx types.Context, denom, base string, aliases []string, fxTarget types6.FxTarget) string {
+func (m *MockErc20Keeper) ToTargetDenom(ctx types.Context, denom, base string, aliases []string, fxTarget types7.FxTarget) string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToTargetDenom", ctx, denom, base, aliases, fxTarget)
 	ret0, _ := ret[0].(string)
@@ -627,10 +628,10 @@ func (m *MockEVMKeeper) EXPECT() *MockEVMKeeperMockRecorder {
 }
 
 // CallEVM mocks base method.
-func (m *MockEVMKeeper) CallEVM(ctx types.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types5.MsgEthereumTxResponse, error) {
+func (m *MockEVMKeeper) CallEVM(ctx types.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types6.MsgEthereumTxResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CallEVM", ctx, from, contract, value, gasLimit, data, commit)
-	ret0, _ := ret[0].(*types5.MsgEthereumTxResponse)
+	ret0, _ := ret[0].(*types6.MsgEthereumTxResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -665,7 +666,7 @@ func (m *MockIBCTransferKeeper) EXPECT() *MockIBCTransferKeeperMockRecorder {
 }
 
 // SetDenomTrace mocks base method.
-func (m *MockIBCTransferKeeper) SetDenomTrace(ctx types.Context, denomTrace types4.DenomTrace) {
+func (m *MockIBCTransferKeeper) SetDenomTrace(ctx types.Context, denomTrace types5.DenomTrace) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetDenomTrace", ctx, denomTrace)
 }
@@ -677,10 +678,10 @@ func (mr *MockIBCTransferKeeperMockRecorder) SetDenomTrace(ctx, denomTrace any) 
 }
 
 // Transfer mocks base method.
-func (m *MockIBCTransferKeeper) Transfer(goCtx context.Context, msg *types4.MsgTransfer) (*types4.MsgTransferResponse, error) {
+func (m *MockIBCTransferKeeper) Transfer(goCtx context.Context, msg *types5.MsgTransfer) (*types5.MsgTransferResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Transfer", goCtx, msg)
-	ret0, _ := ret[0].(*types4.MsgTransferResponse)
+	ret0, _ := ret[0].(*types5.MsgTransferResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -712,6 +713,20 @@ func NewMockAccountKeeper(ctrl *gomock.Controller) *MockAccountKeeper {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAccountKeeper) EXPECT() *MockAccountKeeperMockRecorder {
 	return m.recorder
+}
+
+// GetAccount mocks base method.
+func (m *MockAccountKeeper) GetAccount(ctx types.Context, addr types.AccAddress) types0.AccountI {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccount", ctx, addr)
+	ret0, _ := ret[0].(types0.AccountI)
+	return ret0
+}
+
+// GetAccount indicates an expected call of GetAccount.
+func (mr *MockAccountKeeperMockRecorder) GetAccount(ctx, addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).GetAccount), ctx, addr)
 }
 
 // GetModuleAddress mocks base method.
@@ -752,7 +767,7 @@ func (m *MockSubspace) EXPECT() *MockSubspaceMockRecorder {
 }
 
 // GetParamSet mocks base method.
-func (m *MockSubspace) GetParamSet(ctx types.Context, ps types7.ParamSet) {
+func (m *MockSubspace) GetParamSet(ctx types.Context, ps types8.ParamSet) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "GetParamSet", ctx, ps)
 }
@@ -778,10 +793,10 @@ func (mr *MockSubspaceMockRecorder) HasKeyTable() *gomock.Call {
 }
 
 // WithKeyTable mocks base method.
-func (m *MockSubspace) WithKeyTable(table types2.KeyTable) types2.Subspace {
+func (m *MockSubspace) WithKeyTable(table types3.KeyTable) types3.Subspace {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithKeyTable", table)
-	ret0, _ := ret[0].(types2.Subspace)
+	ret0, _ := ret[0].(types3.Subspace)
 	return ret0
 }
 
