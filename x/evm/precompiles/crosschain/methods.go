@@ -158,5 +158,8 @@ func (args *BridgeCallArgs) Validate() error {
 	if len(args.Tokens) != len(args.Amounts) {
 		return errors.New("token not match amount")
 	}
+	if len(args.Tokens) == 0 && len(args.Message) == 0 {
+		return errors.New("token and message both empty")
+	}
 	return nil
 }
