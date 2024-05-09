@@ -1,0 +1,22 @@
+syntax = "proto3";
+package fx.ibc.applications.transfer.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/types";
+
+enum IbcCallType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  IBC_CALL_TYPE_UNSPECIFIED = 0;
+  IBC_CALL_TYPE_EVM = 1;
+}
+
+message IbcCallEvmPacket {
+  string to = 1;
+  string data = 2;
+  string value = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
