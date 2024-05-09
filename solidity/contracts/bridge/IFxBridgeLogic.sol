@@ -51,7 +51,7 @@ interface IFxBridgeLogic {
         address to;
         address[] tokens;
         uint256[] amounts;
-        bytes message;
+        bytes data;
         uint256 value;
         uint256 timeout;
         uint256 gasLimit;
@@ -93,7 +93,7 @@ interface IFxBridgeLogic {
         address _to,
         address[] memory _tokens,
         uint256[] memory _amounts,
-        bytes calldata _message,
+        bytes calldata _data,
         uint256 _value
     ) external;
 
@@ -197,7 +197,7 @@ interface IFxBridgeLogic {
         uint256 _nonce,
         uint256 _gasLimit,
         uint256 _timeout,
-        bytes calldata _message,
+        bytes calldata _data,
         address[] memory _tokens,
         uint256[] memory _amounts
     ) external returns (bytes32);
@@ -242,7 +242,7 @@ interface IFxBridgeLogic {
         uint256 _eventNonce,
         string _dstChain,
         uint256 _gasLimit,
-        bytes _message,
+        bytes _data,
         uint256 _value
     );
 
