@@ -67,7 +67,7 @@ contract FxBridgeLogic is
         address to;
         address[] tokens;
         uint256[] amounts;
-        bytes message;
+        bytes data;
         uint256 value;
         uint256 timeout;
         uint256 gasLimit;
@@ -296,12 +296,12 @@ contract FxBridgeLogic is
         address _to,
         address[] memory _tokens,
         uint256[] memory _amounts,
-        bytes calldata _message,
+        bytes calldata _data,
         uint256 _value
     ) external {
         require(
-            _tokens.length > 0 || _message.length > 0,
-            "Token and message both empty"
+            _tokens.length > 0 || _data.length > 0,
+            "Token and data both empty"
         );
 
         // transfer ERC20
@@ -320,7 +320,7 @@ contract FxBridgeLogic is
             state_lastEventNonce,
             _dstChain,
             _gasLimit,
-            _message,
+            _data,
             _value
         );
     }
@@ -497,7 +497,7 @@ contract FxBridgeLogic is
             nonce,
             input.gasLimit,
             input.timeout,
-            input.message,
+            input.data,
             input.tokens,
             input.amounts
         );
@@ -529,8 +529,8 @@ contract FxBridgeLogic is
         );
 
         require(
-            _input.tokens.length > 0 || _input.message.length > 0,
-            "Token and message both empty"
+            _input.tokens.length > 0 || _input.data.length > 0,
+            "Token and data both empty"
         );
 
         require(
@@ -576,14 +576,14 @@ contract FxBridgeLogic is
             );
         }
 
-        if (_input.message.length > 0) {
+        if (_input.data.length > 0) {
             IBridgeCallback(_input.to).bridgeCallback{gas: _input.gasLimit}(
                 _input.sender,
                 _input.receiver,
                 _input.to,
                 _input.tokens,
                 _input.amounts,
-                _input.message,
+                _input.data,
                 _input.value,
                 _input.timeout,
                 _input.gasLimit
@@ -805,7 +805,7 @@ contract FxBridgeLogic is
         uint256 _eventNonce,
         string _dstChain,
         uint256 _gasLimit,
-        bytes _message,
+        bytes _data,
         uint256 _value
     );
 
