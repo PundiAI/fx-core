@@ -49,7 +49,6 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			To:        "",
 			Message:   "",
 			Value:     sdkmath.NewInt(0),
-			GasLimit:  0,
 			TokenContracts: []string{
 				helpers.GenerateAddressByModule(s.moduleName),
 				helpers.GenerateAddressByModule(s.moduleName),

@@ -68,7 +68,6 @@ func (k Keeper) PrecompileBridgeCall(
 		tokens,
 		hex.EncodeToString(message),
 		sdkmath.NewIntFromBigInt(value),
-		gasLimit,
 	)
 	if err != nil {
 		return 0, err

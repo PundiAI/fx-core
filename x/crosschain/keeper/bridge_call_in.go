@@ -26,14 +26,14 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	sender := msg.MustSender()
 	receiver := msg.MustReceiver()
 	eventNonce := msg.EventNonce
-	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, msg.MustTo(), erc20Token, msg.MustMessage(), msg.Value, msg.GasLimit, eventNonce); err != nil {
+	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, msg.MustTo(), erc20Token, msg.MustMessage(), msg.Value, eventNonce); err != nil {
 		errCause = err.Error()
 	} else {
 		commit()
 	}
 	if len(errCause) > 0 && len(tokens) > 0 {
 		// new outgoing bridge call to refund
-		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), common.Address{}.String(), erc20Token, "", sdkmath.ZeroInt(), 0)
+		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), common.Address{}.String(), erc20Token, "", sdkmath.ZeroInt())
 		if err != nil {
 			return err
 		}
@@ -63,7 +63,6 @@ func (k Keeper) bridgeCallFxCore(
 	tokens []types.ERC20Token,
 	message []byte,
 	value sdkmath.Int,
-	gasLimit uint64,
 	eventNonce uint64,
 ) error {
 	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens)
@@ -85,7 +84,8 @@ func (k Keeper) bridgeCallFxCore(
 			}
 			ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvent, attrs...)})
 		}()
-		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, message, true)
+		gasLimit := ctx.ConsensusParams().GetBlock().GetMaxGas()
+		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), uint64(gasLimit), message, true)
 		if err != nil {
 			evmErr = err.Error()
 			return err
