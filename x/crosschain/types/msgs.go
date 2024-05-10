@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"regexp"
-	"sort"
 
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -117,49 +115,6 @@ var (
 	_ sdk.Msg       = &MsgUpdateChainOracles{}
 	_ CrossChainMsg = &MsgUpdateChainOracles{}
 )
-
-type ExternalAddress interface {
-	ValidateExternalAddress(addr string) error
-	ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error)
-}
-
-var reModuleName *regexp.Regexp
-
-func init() {
-	reModuleNameString := `[a-zA-Z][a-zA-Z0-9/]{1,32}`
-	reModuleName = regexp.MustCompile(fmt.Sprintf(`^%s$`, reModuleNameString))
-}
-
-// ValidateModuleName is the default validation function for crosschain moduleName.
-func ValidateModuleName(moduleName string) error {
-	if !reModuleName.MatchString(moduleName) {
-		return fmt.Errorf("invalid module name: %s", moduleName)
-	}
-	return nil
-}
-
-var externalAddressRouter = make(map[string]ExternalAddress)
-
-func GetSupportChains() []string {
-	chains := make([]string, 0, len(externalAddressRouter))
-	for chainName := range externalAddressRouter {
-		chains = append(chains, chainName)
-	}
-	sort.SliceStable(chains, func(i, j int) bool {
-		return chains[i] < chains[j]
-	})
-	return chains
-}
-
-func RegisterExternalAddress(chainName string, validate ExternalAddress) {
-	if err := ValidateModuleName(chainName); err != nil {
-		panic(errortypes.ErrInvalidRequest.Wrapf("invalid chain name: %s", chainName))
-	}
-	if _, ok := externalAddressRouter[chainName]; ok {
-		panic(fmt.Sprintf("duplicate registry msg validateBasic! chainName: %s", chainName))
-	}
-	externalAddressRouter[chainName] = validate
-}
 
 // MsgBondedOracle
 
@@ -616,18 +571,18 @@ func (m *MsgBridgeCallClaim) ClaimHash() []byte {
 }
 
 func (m *MsgBridgeCallClaim) MustSender() common.Address {
-	return common.BytesToAddress(ExternalAddressToAccAddress(m.ChainName, m.Sender).Bytes())
+	return common.BytesToAddress(ExternalAddrToAccAddr(m.ChainName, m.Sender).Bytes())
 }
 
 func (m *MsgBridgeCallClaim) MustReceiver() sdk.AccAddress {
-	return ExternalAddressToAccAddress(m.ChainName, m.Receiver)
+	return ExternalAddrToAccAddr(m.ChainName, m.Receiver)
 }
 
 func (m *MsgBridgeCallClaim) MustTo() *common.Address {
 	if len(m.To) == 0 {
 		return nil
 	}
-	addr := common.BytesToAddress(ExternalAddressToAccAddress(m.ChainName, m.To).Bytes())
+	addr := common.BytesToAddress(ExternalAddrToAccAddr(m.ChainName, m.To).Bytes())
 	return &addr
 }
 
@@ -645,7 +600,7 @@ func (m *MsgBridgeCallClaim) MustData() []byte {
 func (m *MsgBridgeCallClaim) MustTokensAddr() []common.Address {
 	addrs := make([]common.Address, 0, len(m.TokenContracts))
 	for _, token := range m.TokenContracts {
-		addr := ExternalAddressToAccAddress(m.ChainName, token)
+		addr := ExternalAddrToAccAddr(m.ChainName, token)
 		addrs = append(addrs, common.BytesToAddress(addr))
 	}
 	return addrs

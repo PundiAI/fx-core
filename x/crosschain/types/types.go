@@ -491,26 +491,6 @@ func NewBridgeDenom(moduleName string, token string) string {
 	return fmt.Sprintf("%s%s", moduleName, token)
 }
 
-func ExternalAddressToAccAddress(chainName, addr string) sdk.AccAddress {
-	router, ok := externalAddressRouter[chainName]
-	if !ok {
-		panic("unrecognized cross chain name")
-	}
-	accAddr, err := router.ExternalAddressToAccAddress(addr)
-	if err != nil {
-		panic(err)
-	}
-	return accAddr
-}
-
-func ValidateExternalAddress(chainName, addr string) error {
-	router, ok := externalAddressRouter[chainName]
-	if !ok {
-		return fmt.Errorf("unrecognized cross chain name")
-	}
-	return router.ValidateExternalAddress(addr)
-}
-
 func NewERC20Tokens(module string, tokenAddrs []gethcommon.Address, tokenAmounts []*big.Int) ([]ERC20Token, error) {
 	if len(tokenAddrs) != len(tokenAmounts) {
 		return nil, fmt.Errorf("invalid length")

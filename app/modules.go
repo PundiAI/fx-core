@@ -52,7 +52,6 @@ import (
 	"github.com/functionx/fx-core/v7/x/bsc"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	crosschainclient "github.com/functionx/fx-core/v7/x/crosschain/client"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20"
 	erc20client "github.com/functionx/fx-core/v7/x/erc20/client"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
@@ -74,17 +73,6 @@ import (
 	"github.com/functionx/fx-core/v7/x/tron"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
-
-func init() {
-	crosschaintypes.RegisterExternalAddress(bsctypes.ModuleName, crosschaintypes.EthereumAddress{})
-	crosschaintypes.RegisterExternalAddress(polygontypes.ModuleName, crosschaintypes.EthereumAddress{})
-	crosschaintypes.RegisterExternalAddress(avalanchetypes.ModuleName, crosschaintypes.EthereumAddress{})
-	crosschaintypes.RegisterExternalAddress(ethtypes.ModuleName, crosschaintypes.EthereumAddress{})
-	crosschaintypes.RegisterExternalAddress(trontypes.ModuleName, trontypes.TronAddress{})
-	crosschaintypes.RegisterExternalAddress(arbitrumtypes.ModuleName, crosschaintypes.EthereumAddress{})
-	crosschaintypes.RegisterExternalAddress(optimismtypes.ModuleName, crosschaintypes.EthereumAddress{})
-	crosschaintypes.RegisterExternalAddress(layer2types.ModuleName, crosschaintypes.EthereumAddress{})
-}
 
 // module account permissions
 var maccPerms = map[string][]string{

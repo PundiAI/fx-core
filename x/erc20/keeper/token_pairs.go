@@ -229,7 +229,7 @@ func (k Keeper) checkConvertedDenom(baseDenom string) bool {
 
 	for _, chainName := range k.chainsName {
 		if len(baseDenom) > len(chainName) && strings.HasPrefix(baseDenom, chainName) &&
-			crosschaintypes.ValidateExternalAddress(chainName, strings.TrimPrefix(baseDenom, chainName)) == nil {
+			crosschaintypes.ValidateExternalAddr(chainName, strings.TrimPrefix(baseDenom, chainName)) == nil {
 			return true
 		}
 	}

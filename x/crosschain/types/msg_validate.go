@@ -14,7 +14,7 @@ func MsgBondedOracleValidate(m *MsgBondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.ExternalAddress); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if !m.DelegateAmount.IsValid() || m.DelegateAmount.IsNegative() {
@@ -77,7 +77,7 @@ func MsgOracleSetConfirmValidate(m *MsgOracleSetConfirm) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.ExternalAddress); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if len(m.Signature) == 0 {
@@ -97,7 +97,7 @@ func MsgOracleSetUpdatedClaimValidate(m *MsgOracleSetUpdatedClaim) (err error) {
 		return errortypes.ErrInvalidRequest.Wrap("empty members")
 	}
 	for _, member := range m.Members {
-		if err = ValidateExternalAddress(m.ChainName, member.ExternalAddress); err != nil {
+		if err = ValidateExternalAddr(m.ChainName, member.ExternalAddress); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 		}
 		if member.Power == 0 {
@@ -117,7 +117,7 @@ func MsgBridgeTokenClaimValidate(m *MsgBridgeTokenClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.TokenContract); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err = hex.DecodeString(m.ChannelIbc); len(m.ChannelIbc) > 0 && err != nil {
@@ -142,7 +142,7 @@ func MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.TokenContract); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if m.EventNonce == 0 {
@@ -161,10 +161,10 @@ func MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.Sender); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.TokenContract); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Receiver); err != nil {
@@ -189,15 +189,15 @@ func MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.Sender); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if len(m.To) > 0 {
-		if err = ValidateExternalAddress(m.ChainName, m.To); err != nil {
+		if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
 		}
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.Receiver); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
@@ -221,15 +221,15 @@ func MsgBridgeCallResultClaimValidate(m *MsgBridgeCallResultClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.Sender); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if len(m.To) > 0 {
-		if err = ValidateExternalAddress(m.ChainName, m.To); err != nil {
+		if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
 		}
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.Receiver); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if m.Nonce == 0 {
@@ -248,7 +248,7 @@ func MsgSendToExternalValidate(m *MsgSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.Dest); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Dest); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid dest address: %s", err)
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
@@ -310,7 +310,7 @@ func MsgRequestBatchValidate(m *MsgRequestBatch) (err error) {
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid minimum fee")
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.FeeReceive); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.FeeReceive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid fee receive address: %s", err)
 	}
 	if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
@@ -323,10 +323,10 @@ func MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.ExternalAddress); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.TokenContract); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if len(m.Signature) == 0 {
@@ -342,7 +342,7 @@ func MsgBridgeCallConfirmValidate(m *MsgBridgeCallConfirm) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.ExternalAddress); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if len(m.Signature) == 0 {
@@ -358,10 +358,10 @@ func MsgBridgeCallValidate(m *MsgBridgeCall) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.Receiver); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
-	if err = ValidateExternalAddress(m.ChainName, m.To); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
