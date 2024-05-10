@@ -51,7 +51,7 @@ func (k Keeper) PrecompileBridgeCall(
 	ctx sdk.Context,
 	sender, receiver, to common.Address,
 	coins sdk.Coins,
-	message []byte,
+	data []byte,
 	value *big.Int,
 	gasLimit uint64,
 ) (eventNonce uint64, err error) {
@@ -66,7 +66,7 @@ func (k Keeper) PrecompileBridgeCall(
 		fxtypes.AddressToStr(receiver.Bytes(), k.moduleName),
 		fxtypes.AddressToStr(to.Bytes(), k.moduleName),
 		tokens,
-		hex.EncodeToString(message),
+		hex.EncodeToString(data),
 		sdkmath.NewIntFromBigInt(value),
 	)
 	if err != nil {

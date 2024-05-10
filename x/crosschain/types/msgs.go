@@ -611,7 +611,7 @@ func (m *MsgBridgeCallClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgBridgeCallClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Receiver, m.To, m.TokenContracts, m.Amounts, m.Message, m.Value.String())
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Receiver, m.To, m.TokenContracts, m.Amounts, m.Data, m.Value.String())
 	return tmhash.Sum([]byte(path))
 }
 
@@ -631,11 +631,11 @@ func (m *MsgBridgeCallClaim) MustTo() *common.Address {
 	return &addr
 }
 
-func (m *MsgBridgeCallClaim) MustMessage() []byte {
-	if len(m.Message) == 0 {
+func (m *MsgBridgeCallClaim) MustData() []byte {
+	if len(m.Data) == 0 {
 		return []byte{}
 	}
-	bz, err := hex.DecodeString(m.Message)
+	bz, err := hex.DecodeString(m.Data)
 	if err != nil {
 		panic(err)
 	}

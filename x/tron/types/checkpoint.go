@@ -92,9 +92,9 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse checkpoint")
 	}
-	messagesBytes, err := hex.DecodeString(bridgeCall.Message)
+	dataBytes, err := hex.DecodeString(bridgeCall.Data)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse message")
+		return nil, errorsmod.Wrap(err, "parse data")
 	}
 	contracts := make([]string, 0, len(bridgeCall.Tokens))
 	amounts := make([]*big.Int, 0, len(bridgeCall.Tokens))
@@ -113,7 +113,7 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 		{"uint256": big.NewInt(int64(bridgeCall.Nonce))},
 		{"uint256": big.NewInt(int64(bridgeCall.Timeout))},
 		{"string": ModuleName},
-		{"bytes": messagesBytes},
+		{"bytes": dataBytes},
 		{"address[]": contracts},
 		{"uint256[]": amounts},
 	}

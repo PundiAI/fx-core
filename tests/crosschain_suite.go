@@ -286,7 +286,7 @@ func (suite *CrosschainTestSuite) BridgeCallClaim(to string, tokens []string, am
 		Sender:         suite.HexAddressString(),
 		Receiver:       suite.HexAddressString(),
 		To:             to,
-		Message:        "",
+		Data:           "",
 		Value:          sdkmath.ZeroInt(),
 		TokenContracts: tokens,
 		Amounts:        amounts,

@@ -436,9 +436,9 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 		return nil, err
 	}
 
-	messagesBytes, err := hex.DecodeString(m.Message)
+	dataBytes, err := hex.DecodeString(m.Data)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse message")
+		return nil, errorsmod.Wrap(err, "parse data")
 	}
 	contracts := make([]gethcommon.Address, 0, len(m.Tokens))
 	amounts := make([]*big.Int, 0, len(m.Tokens))
@@ -459,7 +459,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 		m.Value.BigInt(),
 		big.NewInt(int64(m.Nonce)),
 		big.NewInt(int64(m.Timeout)),
-		messagesBytes,
+		dataBytes,
 		contracts,
 		amounts,
 	)

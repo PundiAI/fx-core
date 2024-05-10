@@ -110,7 +110,7 @@ func (icep IbcCallEvmPacket) GetToAddress() *common.Address {
 	return &to
 }
 
-func (icep IbcCallEvmPacket) MustGetMessage() []byte {
+func (icep IbcCallEvmPacket) MustGetData() []byte {
 	bz, err := hex.DecodeString(icep.Data)
 	if err != nil {
 		panic(err)

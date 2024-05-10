@@ -140,7 +140,7 @@ type BridgeCallArgs struct {
 	To       common.Address   `abi:"_to"`
 	Tokens   []common.Address `abi:"_tokens"`
 	Amounts  []*big.Int       `abi:"_amounts"`
-	Message  []byte           `abi:"_message"`
+	Data     []byte           `abi:"_data"`
 	Value    *big.Int         `abi:"_value"`
 }
 
@@ -158,8 +158,8 @@ func (args *BridgeCallArgs) Validate() error {
 	if len(args.Tokens) != len(args.Amounts) {
 		return errors.New("token not match amount")
 	}
-	if len(args.Tokens) == 0 && len(args.Message) == 0 {
-		return errors.New("token and message both empty")
+	if len(args.Tokens) == 0 && len(args.Data) == 0 {
+		return errors.New("token and data both empty")
 	}
 	return nil
 }

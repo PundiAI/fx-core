@@ -245,13 +245,13 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 				}
 			}
 
-			message, err := cmd.Flags().GetString(FlagMessage)
+			data, err := cmd.Flags().GetString(FlagData)
 			if err != nil {
-				return errorsmod.Wrap(err, "message")
+				return errorsmod.Wrap(err, "data")
 			}
-			if message != "" {
-				if _, err = hex.DecodeString(message); err != nil {
-					return errorsmod.Wrap(err, "message")
+			if data != "" {
+				if _, err = hex.DecodeString(data); err != nil {
+					return errorsmod.Wrap(err, "data")
 				}
 			}
 
@@ -269,7 +269,7 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 				Receiver:  receiverAddr,
 				To:        toAddr,
 				Coins:     coins,
-				Message:   message,
+				Data:      data,
 				Value:     value,
 				ChainName: chainName,
 			}
@@ -277,7 +277,7 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 		},
 	}
 	cmd.Flags().String(FlagTo, "", "bridge call to address")
-	cmd.Flags().String(FlagMessage, "", "bridge call contract message")
+	cmd.Flags().String(FlagData, "", "bridge call contract data")
 	cmd.Flags().String(FlagValue, "0", "bridge call value")
 	return cmd
 }
