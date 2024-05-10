@@ -26,7 +26,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	}
 
 	if _, found := k.GetTokenPair(ctx, fxtypes.DefaultDenom); !found {
-		_, err := k.RegisterNativeCoin(ctx, fxtypes.GetFXMetaData(fxtypes.DefaultDenom))
+		_, err := k.RegisterNativeCoin(ctx, fxtypes.GetFXMetaData())
 		if err != nil {
 			panic(fmt.Sprintf("register default denom error %s", err.Error()))
 		}

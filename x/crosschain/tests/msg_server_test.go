@@ -1115,7 +1115,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	suite.registerCoin(types.NewBridgeDenom(suite.chainName, tokenContract))
 
 	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
-	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData(fxtypes.DefaultDenom))
+	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData())
 
 	// fxAsset, err := contract.PackERC20AssetWithType(
 	// 	[]common.Address{

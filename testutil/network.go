@@ -88,7 +88,7 @@ func NoSupplyGenesisState(cdc codec.Codec) app.GenesisState {
 
 	// reset supply
 	bankState := banktypes.DefaultGenesisState()
-	bankState.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData(fxtypes.DefaultDenom)}
+	bankState.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData()}
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
 
 	var govGenState govv1beta1.GenesisState

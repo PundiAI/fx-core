@@ -7,19 +7,19 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-func GetFXMetaData(denom string) banktypes.Metadata {
+func GetFXMetaData() banktypes.Metadata {
 	return banktypes.Metadata{
 		Description: "The native staking token of the Function X",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    denom,
+				Denom:    DefaultDenom,
 				Exponent: 0,
 			},
 		},
-		Base:    denom,
-		Display: denom,
+		Base:    DefaultDenom,
+		Display: DefaultDenom,
 		Name:    "Function X",
-		Symbol:  denom,
+		Symbol:  DefaultDenom,
 	}
 }
 

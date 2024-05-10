@@ -749,7 +749,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "FX, alias to base denom",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				md := fxtypes.GetFXMetaData("FX")
+				md := fxtypes.GetFXMetaData()
 				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
@@ -759,7 +759,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "FX, base denom to alias",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				md := fxtypes.GetFXMetaData("FX")
+				md := fxtypes.GetFXMetaData()
 				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
@@ -769,7 +769,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "FX, default denom",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				md := fxtypes.GetFXMetaData("FX")
+				md := fxtypes.GetFXMetaData()
 				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 

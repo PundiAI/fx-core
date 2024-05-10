@@ -75,7 +75,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 
 		if chain.chainName == ethtypes.ModuleName {
 			fxTokenAddress := helpers.GenerateAddress().Hex()
-			fxMD := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+			fxMD := fxtypes.GetFXMetaData()
 			chain.AddBridgeTokenClaim(fxMD.Name, fxMD.Symbol, fxtypes.DenomUnit, fxTokenAddress, "")
 
 			// send fx to chain
