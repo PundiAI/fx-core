@@ -215,9 +215,9 @@ func CmdGetOracle(chainName string) *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			if externalAddress, err := getContractAddr(args[0]); err == nil {
+			if err := types.ValidateExternalAddr(chainName, args[0]); err == nil {
 				res, err := queryClient.GetOracleByExternalAddr(cmd.Context(), &types.QueryOracleByExternalAddrRequest{
-					ExternalAddress: externalAddress,
+					ExternalAddress: args[0],
 					ChainName:       chainName,
 				})
 				if err != nil {
@@ -448,8 +448,8 @@ func CmdBatchConfirm(chainName string) *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			tokenContract, err := getContractAddr(args[0])
-			if err != nil {
+			tokenContract := args[0]
+			if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
 				return err
 			}
 			nonce, err := strconv.ParseUint(args[1], 10, 64)
@@ -484,8 +484,8 @@ func CmdBatchConfirms(chainName string) *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			tokenContract, err := getContractAddr(args[0])
-			if err != nil {
+			tokenContract := args[0]
+			if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
 				return err
 			}
 			nonce, err := strconv.Atoi(args[1])
@@ -515,8 +515,8 @@ func CmdBatchRequestByNonce(chainName string) *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			tokenContract, err := getContractAddr(args[0])
-			if err != nil {
+			tokenContract := args[0]
+			if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
 				return err
 			}
 			nonce, err := strconv.ParseUint(args[1], 10, 64)
@@ -682,13 +682,13 @@ func CmdGetExternalTokenToDenom(chainName string) *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			tokenAddress, err := getContractAddr(args[0])
-			if err != nil {
+			tokenContract := args[0]
+			if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
 				return err
 			}
 			res, err := queryClient.TokenToDenom(cmd.Context(), &types.QueryTokenToDenomRequest{
 				ChainName: chainName,
-				Token:     tokenAddress,
+				Token:     tokenContract,
 			})
 			if err != nil {
 				return err
@@ -780,8 +780,8 @@ func CmdCovertBridgeToken(chainName string) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			tokenContract, err := getContractAddr(args[0])
-			if err != nil {
+			tokenContract := args[0]
+			if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
 				return err
 			}
 			channelIbc := args[1]
