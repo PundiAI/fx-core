@@ -295,8 +295,9 @@ contract FxBridgeLogic is
         address _to,
         address[] memory _tokens,
         uint256[] memory _amounts,
-        bytes calldata _data,
-        uint256 _value
+        bytes memory _data,
+        uint256 _value,
+        bytes memory _memo
     ) external {
         require(
             _tokens.length > 0 || _data.length > 0,
@@ -319,7 +320,8 @@ contract FxBridgeLogic is
             state_lastEventNonce,
             _dstChain,
             _data,
-            _value
+            _value,
+            _memo
         );
     }
 
@@ -803,7 +805,8 @@ contract FxBridgeLogic is
         uint256 _eventNonce,
         string _dstChain,
         bytes _data,
-        uint256 _value
+        uint256 _value,
+        bytes _memo
     );
 
     event SubmitBridgeCallEvent(
