@@ -7,15 +7,22 @@ import (
 	"github.com/functionx/fx-core/v7/contract"
 )
 
+var _ ExternalAddress = EthereumAddress{}
+
 type EthereumAddress struct{}
 
-func (b EthereumAddress) ValidateExternalAddress(addr string) error {
+func (b EthereumAddress) ValidateExternalAddr(addr string) error {
 	return contract.ValidateEthereumAddress(addr)
 }
 
-func (b EthereumAddress) ExternalAddressToAccAddress(addr string) (sdk.AccAddress, error) {
-	if err := contract.ValidateEthereumAddress(addr); err != nil {
-		return nil, err
-	}
-	return common.HexToAddress(addr).Bytes(), nil
+func (b EthereumAddress) ExternalAddrToAccAddr(addr string) sdk.AccAddress {
+	return common.HexToAddress(addr).Bytes()
+}
+
+func (b EthereumAddress) ExternalAddrToHexAddr(addr string) common.Address {
+	return common.HexToAddress(addr)
+}
+
+func (b EthereumAddress) ExternalAddrToStr(bz []byte) string {
+	return common.BytesToAddress(bz).String()
 }

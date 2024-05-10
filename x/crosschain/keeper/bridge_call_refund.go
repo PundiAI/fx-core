@@ -7,7 +7,7 @@ import (
 )
 
 func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) {
-	receiveAddr := types.ExternalAddressToAccAddress(k.moduleName, data.GetSender())
+	receiveAddr := types.ExternalAddrToAccAddr(k.moduleName, data.GetSender())
 	coins, err := k.bridgeCallTransferToSender(ctx, receiveAddr, data.Tokens)
 	if err != nil {
 		panic(err)

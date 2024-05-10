@@ -1119,7 +1119,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 
 	// fxAsset, err := contract.PackERC20AssetWithType(
 	// 	[]common.Address{
-	// 		common.BytesToAddress(types.ExternalAddressToAccAddress(suite.chainName, fxTokenContract).Bytes()),
+	// 		common.BytesToAddress(types.ExternalAddrToAccAddr(suite.chainName, fxTokenContract).Bytes()),
 	// 	}, []*big.Int{
 	// 		big.NewInt(100),
 	// 	},
