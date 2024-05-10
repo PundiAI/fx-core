@@ -11,6 +11,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 // AddToOutgoingPool
@@ -496,4 +497,77 @@ func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccA
 	))
 
 	return targetCoin, nil
+}
+
+func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.AccAddress, eventNonce uint64, bridgeToken *types.BridgeToken) {
+	cacheContext, commit := ctx.CacheContext()
+
+	erc20ModuleAddress := k.ak.GetModuleAddress(erc20types.ModuleName)
+	var err error
+	var txId uint64
+	var provideLiquidityTxIds []uint64
+	var rewards sdk.Coins
+	// iterator pending outgoing tx by bridgeToken contract address
+	k.IteratorPendingOutgoingTxByBridgeTokenContractAddr(cacheContext, bridgeToken.Token, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
+		// 1. check erc20 module has enough balance
+		transferCoin := sdk.NewCoin(bridgeToken.Denom, pendingOutgoingTx.Token.Amount.Add(pendingOutgoingTx.Fee.Amount))
+		if !k.bankKeeper.HasBalance(ctx, erc20ModuleAddress, transferCoin) {
+			return true
+		}
+
+		// 2. transfer coin from erc20 module to sender
+		sender := sdk.MustAccAddressFromBech32(pendingOutgoingTx.Sender)
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, erc20types.ModuleName, sender, sdk.NewCoins(transferCoin)); err != nil {
+			k.Logger(ctx).Info("failed to transfer coin from erc20 module to sender", "error", err)
+			return true
+		}
+
+		// 3. remove pending outgoing tx
+		k.RemovePendingOutgoingTx(cacheContext, bridgeToken.Token, pendingOutgoingTx.Id)
+
+		// 4. add to outgoing tx
+		if txId, err = k.AddToOutgoingPool(cacheContext, sender, pendingOutgoingTx.DestAddress, pendingOutgoingTx.Token, pendingOutgoingTx.Fee); err != nil {
+			k.Logger(ctx).Info("failed to add to outgoing pool", "error", err)
+			return true
+		}
+		provideLiquidityTxIds = append(provideLiquidityTxIds, txId)
+		for _, reward := range pendingOutgoingTx.Rewards {
+			rewards = rewards.Add(reward)
+		}
+		return false
+	})
+
+	if len(provideLiquidityTxIds) > 0 && err == nil {
+		// 5. transfer rewards
+		if !rewards.Empty() {
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, liquidityProvider, rewards); err != nil {
+				k.Logger(ctx).Info("failed to transfer rewards", "error", err)
+				return
+			}
+
+			for _, reward := range rewards {
+				if _, err = k.erc20Keeper.ConvertDenomToTarget(ctx, liquidityProvider, reward, fxtypes.ParseFxTarget(fxtypes.ERC20Target)); err != nil {
+					k.Logger(ctx).Info("failed to convert reward to target coin", "error", err)
+					return
+				}
+			}
+		}
+
+		// 6. emit event & commit
+		var eventIds string
+		for _, id := range provideLiquidityTxIds {
+			eventIds += fmt.Sprintf("%d,", id)
+		}
+
+		if len(eventIds) > 0 {
+			eventIds = eventIds[:len(eventIds)-1]
+			cacheContext.EventManager().EmitEvent(
+				sdk.NewEvent(types.EventTypeProvideLiquidity,
+					sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", eventNonce)),
+					sdk.NewAttribute(types.AttributeKeyProvideLiquidityTxIds, eventIds),
+				))
+		}
+
+		commit()
+	}
 }

@@ -69,18 +69,18 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 
 		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token",
 			claim.TokenContract, "channelIbc", claim.ChannelIbc)
-		if claim.Symbol == types.NativeDenom {
+		if claim.Symbol == fxtypes.DefaultDenom {
 			// Check if denom exists
 			if !k.bankKeeper.HasDenomMetaData(ctx, claim.Symbol) {
 				return types.ErrUnknown.Wrapf("denom not found %s", claim.Symbol)
 			}
 
-			if fxtypes.DenomUnit != uint32(claim.Decimals) {
-				return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d", types.NativeDenom,
+			if uint64(fxtypes.DenomUnit) != claim.Decimals {
+				return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d", fxtypes.DefaultDenom,
 					claim.Decimals, fxtypes.DenomUnit)
 			}
 
-			k.AddBridgeToken(ctx, claim.TokenContract, types.NativeDenom)
+			k.AddBridgeToken(ctx, claim.TokenContract, fxtypes.DefaultDenom)
 			return nil
 		}
 

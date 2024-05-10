@@ -19,7 +19,7 @@ import (
 )
 
 func NewDelegateAmount(amount sdkmath.Int) sdk.Coin {
-	return sdk.NewCoin(OracleDelegateDenom, amount)
+	return sdk.NewCoin(fxtypes.DefaultDenom, amount)
 }
 
 // --- ERC20Token --- //
