@@ -92,8 +92,9 @@ interface IFxBridgeLogic {
         address _to,
         address[] memory _tokens,
         uint256[] memory _amounts,
-        bytes calldata _data,
-        uint256 _value
+        bytes memory _data,
+        uint256 _value,
+        bytes memory _memo
     ) external;
 
     function submitBatch(
@@ -241,7 +242,8 @@ interface IFxBridgeLogic {
         uint256 _eventNonce,
         string _dstChain,
         bytes _data,
-        uint256 _value
+        uint256 _value,
+        bytes _memo
     );
 
     event SubmitBridgeCallEvent(
