@@ -107,7 +107,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			// mock msg
 			mockBridgeCallFn(msg)
 
-			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), msg.MustSender().Bytes()).Return(nil).Times(1)
+			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), msg.GetSenderAddr().Bytes()).Return(nil).Times(1)
 			if t.mock != nil {
 				t.mock(msg)
 			}

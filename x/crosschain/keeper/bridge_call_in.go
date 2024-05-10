@@ -17,17 +17,17 @@ import (
 )
 
 func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {
-	tokens := msg.MustTokensAddr()
-	erc20Token, err := types.NewERC20Tokens(k.moduleName, tokens, msg.AmountsToBigInt())
+	tokens := msg.GetTokensAddr()
+	erc20Token, err := types.NewERC20Tokens(k.moduleName, tokens, msg.GetAmounts())
 	if err != nil {
 		return err
 	}
 	var errCause string
 	cacheCtx, commit := ctx.CacheContext()
-	sender := msg.MustSender()
-	receiver := msg.MustReceiver()
+	sender := msg.GetSenderAddr()
+	receiver := msg.GetReceiverAddr()
 	eventNonce := msg.EventNonce
-	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, msg.MustTo(), erc20Token, msg.MustData(), msg.Value, eventNonce); err != nil {
+	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, msg.GetToAddr(), erc20Token, msg.MustData(), msg.Value, eventNonce); err != nil {
 		errCause = err.Error()
 	} else {
 		commit()
