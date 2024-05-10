@@ -570,15 +570,15 @@ func (m *MsgBridgeCallClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
-func (m *MsgBridgeCallClaim) MustSender() common.Address {
+func (m *MsgBridgeCallClaim) GetSenderAddr() common.Address {
 	return common.BytesToAddress(ExternalAddrToAccAddr(m.ChainName, m.Sender).Bytes())
 }
 
-func (m *MsgBridgeCallClaim) MustReceiver() sdk.AccAddress {
+func (m *MsgBridgeCallClaim) GetReceiverAddr() sdk.AccAddress {
 	return ExternalAddrToAccAddr(m.ChainName, m.Receiver)
 }
 
-func (m *MsgBridgeCallClaim) MustTo() *common.Address {
+func (m *MsgBridgeCallClaim) GetToAddr() *common.Address {
 	if len(m.To) == 0 {
 		return nil
 	}
@@ -597,7 +597,7 @@ func (m *MsgBridgeCallClaim) MustData() []byte {
 	return bz
 }
 
-func (m *MsgBridgeCallClaim) MustTokensAddr() []common.Address {
+func (m *MsgBridgeCallClaim) GetTokensAddr() []common.Address {
 	addrs := make([]common.Address, 0, len(m.TokenContracts))
 	for _, token := range m.TokenContracts {
 		addr := ExternalAddrToAccAddr(m.ChainName, token)
@@ -606,7 +606,7 @@ func (m *MsgBridgeCallClaim) MustTokensAddr() []common.Address {
 	return addrs
 }
 
-func (m *MsgBridgeCallClaim) AmountsToBigInt() []*big.Int {
+func (m *MsgBridgeCallClaim) GetAmounts() []*big.Int {
 	amts := make([]*big.Int, 0, len(m.Amounts))
 	for _, a := range m.Amounts {
 		amts = append(amts, a.BigInt())
