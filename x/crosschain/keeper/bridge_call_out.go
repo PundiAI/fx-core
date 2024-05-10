@@ -5,7 +5,6 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gogotypes "github.com/gogo/protobuf/types"
 
@@ -48,8 +47,11 @@ func (k Keeper) bridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddre
 
 func (k Keeper) AddOutgoingBridgeCall(
 	ctx sdk.Context,
-	sender sdk.AccAddress, receiver, to string,
-	tokens []types.ERC20Token, data string, value sdkmath.Int,
+	sender sdk.AccAddress,
+	receiver string,
+	tokens []types.ERC20Token,
+	to string,
+	data string,
 	memo string,
 ) (*types.OutgoingBridgeCall, error) {
 	params := k.GetParams(ctx)
@@ -63,13 +65,12 @@ func (k Keeper) AddOutgoingBridgeCall(
 	bridgeCall := &types.OutgoingBridgeCall{
 		Nonce:       nextID,
 		Timeout:     bridgeCallTimeout,
+		BlockHeight: uint64(ctx.BlockHeight()),
 		Sender:      types.ExternalAddrToStr(k.moduleName, sender),
 		Receiver:    receiver,
-		To:          to,
 		Tokens:      tokens,
+		To:          to,
 		Data:        data,
-		Value:       value,
-		BlockHeight: uint64(ctx.BlockHeight()),
 		Memo:        memo,
 	}
 	k.SetOutgoingBridgeCall(ctx, bridgeCall)

@@ -431,7 +431,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	}
 
 	// Create the methodName argument which salts the signature
-	batchMethodName, err := fxtypes.StrToByte32("bridgeCallCheckpoint")
+	bridgeCallMethodName, err := fxtypes.StrToByte32("bridgeCall")
 	if err != nil {
 		return nil, err
 	}
@@ -439,6 +439,10 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	dataBytes, err := hex.DecodeString(m.Data)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse data")
+	}
+	memoBytes, err := hex.DecodeString(m.Memo)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse memo")
 	}
 	contracts := make([]gethcommon.Address, 0, len(m.Tokens))
 	amounts := make([]*big.Int, 0, len(m.Tokens))
@@ -452,17 +456,16 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	// it gets encoded as a function name which we must then discard.
 	abiEncodedBatch, err := contract.GetFxBridgeABI().Pack("bridgeCallCheckpoint",
 		gravityID,
-		batchMethodName,
+		bridgeCallMethodName,
 		gethcommon.HexToAddress(m.Sender),
-		gethcommon.HexToAddress(m.To),
 		gethcommon.HexToAddress(m.Receiver),
-		m.Value.BigInt(),
-		big.NewInt(int64(m.Nonce)),
-		big.NewInt(int64(m.Timeout)),
-		dataBytes,
 		contracts,
 		amounts,
-		m.Memo,
+		gethcommon.HexToAddress(m.To),
+		dataBytes,
+		memoBytes,
+		big.NewInt(int64(m.Nonce)),
+		big.NewInt(int64(m.Timeout)),
 	)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.

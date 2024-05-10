@@ -27,14 +27,14 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	sender := msg.GetSenderAddr()
 	receiver := msg.GetReceiverAddr()
 	eventNonce := msg.EventNonce
-	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, msg.GetToAddr(), erc20Token, msg.MustData(), msg.Value, eventNonce); err != nil {
+	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.Value, eventNonce); err != nil {
 		errCause = err.Error()
 	} else {
 		commit()
 	}
 	if len(errCause) > 0 && len(tokens) > 0 {
 		// new outgoing bridge call to refund
-		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), common.Address{}.String(), erc20Token, "", sdkmath.ZeroInt(), "")
+		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), erc20Token, common.Address{}.String(), "", "")
 		if err != nil {
 			return err
 		}
@@ -60,8 +60,8 @@ func (k Keeper) bridgeCallFxCore(
 	ctx sdk.Context,
 	sender common.Address,
 	receiver sdk.AccAddress,
-	to *common.Address,
 	tokens []types.ERC20Token,
+	to *common.Address,
 	data []byte,
 	value sdkmath.Int,
 	eventNonce uint64,

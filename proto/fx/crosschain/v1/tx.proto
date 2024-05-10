@@ -159,22 +159,22 @@ message MsgSendToFxClaimResponse {}
 
 message MsgBridgeCallClaim {
   string chain_name = 1;
-  string sender = 2;
-  string receiver = 3;
-  string to = 4;
-  string data = 5;
-  string value = 6 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
+  string bridger_address = 2;
+  uint64 event_nonce = 3;
+  uint64 block_height = 4;
+  string sender = 5;
+  string receiver = 6;
   repeated string token_contracts = 7;
   repeated string amounts = 8 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  uint64 event_nonce = 9;
-  uint64 block_height = 10;
-  string bridger_address = 11;
+  string to = 9;
+  string data = 10;
+  string value = 11 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
   string memo = 12;
   string tx_origin = 13;
 }
@@ -182,16 +182,16 @@ message MsgBridgeCallClaim {
 message MsgBridgeCallClaimResponse {}
 
 message MsgBridgeCallResultClaim {
-  string sender = 1;
-  string receiver = 2;
-  string to = 3;
-  uint64 nonce = 5;
-  uint64 eventNonce = 6;
-  bool result = 7;
-  uint64 block_height = 8;
-  string bridger_address = 9;
-  string chain_name = 10;
-  string tx_origin = 11;
+  string chain_name = 1;
+  string bridger_address = 2;
+  uint64 event_nonce = 3;
+  uint64 block_height = 4;
+  string sender = 5;
+  string receiver = 6;
+  string to = 7;
+  bool result = 8;
+  uint64 nonce = 9;
+  string tx_origin = 10;
 }
 
 message MsgBridgeCallResultClaimResponse {}
@@ -307,11 +307,11 @@ message MsgBridgeTokenClaim {
 message MsgBridgeTokenClaimResponse {}
 
 message MsgBridgeCallConfirm {
-  uint64 nonce = 1;
-  string bridger_address = 3;
-  string external_address = 4;
+  string chain_name = 1;
+  string bridger_address = 2;
+  string external_address = 3;
+  uint64 nonce = 4;
   string signature = 5;
-  string chain_name = 6;
 }
 
 message MsgBridgeCallConfirmResponse {}
@@ -375,15 +375,15 @@ message MsgBridgeCall {
   string chain_name = 1;
   string sender = 2;
   string receiver = 3;
-  string to = 4;
-  string data = 5;
-  string value = 6 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
-  repeated cosmos.base.v1beta1.Coin coins = 7 [
+  repeated cosmos.base.v1beta1.Coin coins = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  string to = 5;
+  string data = 6;
+  string value = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
   ];
   string memo = 8;
 }

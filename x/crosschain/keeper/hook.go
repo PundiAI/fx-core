@@ -2,9 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
-	"math/big"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
@@ -48,10 +46,11 @@ func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender
 
 func (k Keeper) PrecompileBridgeCall(
 	ctx sdk.Context,
-	sender, receiver, to common.Address,
+	sender common.Address,
+	receiver common.Address,
 	coins sdk.Coins,
+	to common.Address,
 	data []byte,
-	value *big.Int,
 	memo string,
 ) (eventNonce uint64, err error) {
 	tokens, err := k.bridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
@@ -63,10 +62,9 @@ func (k Keeper) PrecompileBridgeCall(
 		ctx,
 		sender.Bytes(),
 		types.ExternalAddrToStr(k.moduleName, receiver.Bytes()),
-		types.ExternalAddrToStr(k.moduleName, to.Bytes()),
 		tokens,
+		types.ExternalAddrToStr(k.moduleName, to.Bytes()),
 		hex.EncodeToString(data),
-		sdkmath.NewIntFromBigInt(value),
 		memo,
 	)
 	if err != nil {

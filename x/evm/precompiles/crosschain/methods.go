@@ -136,9 +136,9 @@ func (args *IncreaseBridgeFeeArgs) Validate() error {
 type BridgeCallArgs struct {
 	DstChain string           `abi:"_dstChain"`
 	Receiver common.Address   `abi:"_receiver"`
-	To       common.Address   `abi:"_to"`
 	Tokens   []common.Address `abi:"_tokens"`
 	Amounts  []*big.Int       `abi:"_amounts"`
+	To       common.Address   `abi:"_to"`
 	Data     []byte           `abi:"_data"`
 	Value    *big.Int         `abi:"_value"`
 	Memo     string           `abi:"_memo"`
@@ -146,10 +146,10 @@ type BridgeCallArgs struct {
 
 // Validate validates the args
 func (args *BridgeCallArgs) Validate() error {
-	if len(args.DstChain) == 0 {
-		return errors.New("empty dst chain")
+	if err := crosschaintypes.ValidateModuleName(args.DstChain); err != nil {
+		return err
 	}
-	if args.Value.Cmp(big.NewInt(0)) == -1 {
+	if args.Value.Sign() != 0 {
 		return errors.New("invalid value")
 	}
 	if len(args.Tokens) != len(args.Amounts) {

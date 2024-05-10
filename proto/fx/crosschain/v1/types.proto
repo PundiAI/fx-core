@@ -255,17 +255,13 @@ message UpdateChainOraclesProposal {
 }
 
 message OutgoingBridgeCall {
-  uint64 nonce = 1;
-  uint64 timeout = 2;
-  string sender = 3;
-  string receiver = 4;
-  string to = 5;
-  repeated ERC20Token tokens = 6 [(gogoproto.nullable) = false];
-  string data = 7;
-  string value = 8 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
+  string sender = 1;
+  string receiver = 2;
+  repeated ERC20Token tokens = 3 [(gogoproto.nullable) = false];
+  string to = 4;
+  string data = 5;
+  string memo = 6;
+  uint64 nonce = 7;
+  uint64 timeout = 8;
   uint64 block_height = 9;
-  string memo = 10;
 }
