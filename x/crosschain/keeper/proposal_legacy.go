@@ -17,5 +17,5 @@ var _ proposalServer = Keeper{}
 // Deprecated: v0.46 gov execution models is based on sdk.Msgs
 func (k Keeper) UpdateChainOraclesProposal(ctx sdk.Context, proposal *types.UpdateChainOraclesProposal) error { // nolint:staticcheck
 	k.Logger(ctx).Info("handle update chain oracles proposal", "proposal", proposal.String())
-	return k.UpdateChainOracles(ctx, proposal.Oracles)
+	return k.UpdateProposalOracles(ctx, proposal.Oracles)
 }

@@ -3,17 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
@@ -103,154 +98,6 @@ func (k Keeper) GetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.
 	return sdk.BigEndianToUint64(data)
 }
 
-func (k Keeper) UpdateChainOracles(ctx sdk.Context, oracles []string) error {
-	if len(oracles) > types.MaxOracleSize {
-		return errorsmod.Wrapf(types.ErrInvalid,
-			fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
-	}
-
-	newOracleMap := make(map[string]bool, len(oracles))
-	for _, oracle := range oracles {
-		newOracleMap[oracle] = true
-	}
-
-	var unbondedOracleList []types.Oracle
-	totalPower, deleteTotalPower := sdkmath.ZeroInt(), sdkmath.ZeroInt()
-
-	allOracles := k.GetAllOracles(ctx, false)
-	proposalOracle, _ := k.GetProposalOracle(ctx)
-	oldOracleMap := make(map[string]bool, len(oracles))
-	for _, oracle := range proposalOracle.Oracles {
-		oldOracleMap[oracle] = true
-	}
-
-	for _, oracle := range allOracles {
-		if oracle.Online {
-			totalPower = totalPower.Add(oracle.GetPower())
-		}
-		// oracle in new proposal
-		if _, ok := newOracleMap[oracle.OracleAddress]; ok {
-			continue
-		}
-		// oracle not in new proposal and oracle in old proposal
-		if _, ok := oldOracleMap[oracle.OracleAddress]; ok {
-			unbondedOracleList = append(unbondedOracleList, oracle)
-			if oracle.Online {
-				deleteTotalPower = deleteTotalPower.Add(oracle.GetPower())
-			}
-		}
-	}
-
-	maxChangePowerThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(100))
-	k.Logger(ctx).Info("update chain oracles proposal",
-		"maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
-	if deleteTotalPower.GT(sdkmath.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
-		return errorsmod.Wrapf(types.ErrInvalid, "max change power, "+
-			"maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
-	}
-
-	// update proposal oracle
-	k.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: oracles})
-
-	for _, unbondedOracle := range unbondedOracleList {
-		if err := k.UnbondedOracleFromProposal(ctx, unbondedOracle); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (k Keeper) UnbondedOracleFromProposal(ctx sdk.Context, oracle types.Oracle) error {
-	delegateAddr := oracle.GetDelegateAddress(k.moduleName)
-	valAddr := oracle.GetValidator()
-	getOracleDelegateToken, err := k.GetOracleDelegateToken(ctx, delegateAddr, valAddr)
-	if err != nil {
-		return err
-	}
-	msgUndelegate := stakingtypes.NewMsgUndelegate(delegateAddr, valAddr, types.NewDelegateAmount(getOracleDelegateToken))
-	if _, err = k.stakingMsgServer.Undelegate(sdk.WrapSDKContext(ctx), msgUndelegate); err != nil {
-		return err
-	}
-
-	oracle.Online = false
-	k.SetOracle(ctx, oracle)
-
-	return nil
-}
-
 func (k Keeper) ModuleName() string {
 	return k.moduleName
-}
-
-func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.AccAddress, eventNonce uint64, bridgeToken *types.BridgeToken) {
-	cacheContext, commit := ctx.CacheContext()
-
-	erc20ModuleAddress := k.ak.GetModuleAddress(erc20types.ModuleName)
-	var err error
-	var txId uint64
-	var provideLiquidityTxIds []uint64
-	var rewards sdk.Coins
-	// iterator pending outgoing tx by bridgeToken contract address
-	k.IteratorPendingOutgoingTxByBridgeTokenContractAddr(cacheContext, bridgeToken.Token, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
-		// 1. check erc20 module has enough balance
-		transferCoin := sdk.NewCoin(bridgeToken.Denom, pendingOutgoingTx.Token.Amount.Add(pendingOutgoingTx.Fee.Amount))
-		if !k.bankKeeper.HasBalance(ctx, erc20ModuleAddress, transferCoin) {
-			return true
-		}
-
-		// 2. transfer coin from erc20 module to sender
-		sender := sdk.MustAccAddressFromBech32(pendingOutgoingTx.Sender)
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, erc20types.ModuleName, sender, sdk.NewCoins(transferCoin)); err != nil {
-			k.Logger(ctx).Info("failed to transfer coin from erc20 module to sender", "error", err)
-			return true
-		}
-
-		// 3. remove pending outgoing tx
-		k.RemovePendingOutgoingTx(cacheContext, bridgeToken.Token, pendingOutgoingTx.Id)
-
-		// 4. add to outgoing tx
-		if txId, err = k.AddToOutgoingPool(cacheContext, sender, pendingOutgoingTx.DestAddress, pendingOutgoingTx.Token, pendingOutgoingTx.Fee); err != nil {
-			k.Logger(ctx).Info("failed to add to outgoing pool", "error", err)
-			return true
-		}
-		provideLiquidityTxIds = append(provideLiquidityTxIds, txId)
-		for _, reward := range pendingOutgoingTx.Rewards {
-			rewards = rewards.Add(reward)
-		}
-		return false
-	})
-
-	if len(provideLiquidityTxIds) > 0 && err == nil {
-		// 5. transfer rewards
-		if !rewards.Empty() {
-			if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, liquidityProvider, rewards); err != nil {
-				k.Logger(ctx).Info("failed to transfer rewards", "error", err)
-				return
-			}
-
-			for _, reward := range rewards {
-				if _, err = k.erc20Keeper.ConvertDenomToTarget(ctx, liquidityProvider, reward, fxtypes.ParseFxTarget(fxtypes.ERC20Target)); err != nil {
-					k.Logger(ctx).Info("failed to convert reward to target coin", "error", err)
-					return
-				}
-			}
-		}
-
-		// 6. emit event & commit
-		var eventIds string
-		for _, id := range provideLiquidityTxIds {
-			eventIds += fmt.Sprintf("%d,", id)
-		}
-
-		if len(eventIds) > 0 {
-			eventIds = eventIds[:len(eventIds)-1]
-			cacheContext.EventManager().EmitEvent(
-				sdk.NewEvent(types.EventTypeProvideLiquidity,
-					sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", eventNonce)),
-					sdk.NewAttribute(types.AttributeKeyProvideLiquidityTxIds, eventIds),
-				))
-		}
-
-		commit()
-	}
 }

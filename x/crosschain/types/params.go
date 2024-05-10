@@ -21,11 +21,6 @@ const (
 )
 
 var (
-	OracleDelegateDenom = fxtypes.DefaultDenom
-	NativeDenom         = fxtypes.DefaultDenom
-)
-
-var (
 	// AttestationVotesPowerThreshold threshold of votes power to succeed
 	AttestationVotesPowerThreshold = sdkmath.NewInt(66)
 
@@ -88,7 +83,7 @@ func (m *Params) ValidateBasic() error {
 	if !m.DelegateThreshold.IsValid() || !m.DelegateThreshold.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
-	if m.DelegateThreshold.Denom != OracleDelegateDenom {
+	if m.DelegateThreshold.Denom != fxtypes.DefaultDenom {
 		return fmt.Errorf("oracle delegate denom must FX")
 	}
 	if m.DelegateMultiple <= 0 {

@@ -200,7 +200,7 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 	}
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	valSrcAddress := oracle.GetValidator()
-	delegateToken, err := s.Keeper.GetOracleDelegateToken(ctx, delegateAddr, valSrcAddress)
+	delegateToken, err := s.GetOracleDelegateToken(ctx, delegateAddr, valSrcAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -231,13 +231,13 @@ func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*t
 	if oracle.BridgerAddress == msg.BridgerAddress {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is not changed")
 	}
-	if s.Keeper.HasOracleAddrByBridgerAddr(ctx, bridgerAddr) {
+	if s.HasOracleAddrByBridgerAddr(ctx, bridgerAddr) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
 	}
-	s.Keeper.DelOracleAddrByBridgerAddr(ctx, oracle.GetBridger())
+	s.DelOracleAddrByBridgerAddr(ctx, oracle.GetBridger())
 	oracle.BridgerAddress = msg.BridgerAddress
-	s.Keeper.SetOracle(ctx, oracle)
-	s.Keeper.SetOracleAddrByBridgerAddr(ctx, bridgerAddr, oracleAddr)
+	s.SetOracle(ctx, oracle)
+	s.SetOracleAddrByBridgerAddr(ctx, bridgerAddr, oracleAddr)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -593,18 +593,18 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	tokens, err := s.Keeper.bridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
+	tokens, err := s.bridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
 	if err != nil {
 		return nil, err
 	}
 
-	outCall, err := s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Data, msg.Value, msg.Memo)
+	outCall, err := s.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Data, msg.Value, msg.Memo)
 	if err != nil {
 		return nil, err
 	}
 
 	// bridge call from msg
-	s.Keeper.SetBridgeCallFromMsg(ctx, outCall.Nonce)
+	s.SetBridgeCallFromMsg(ctx, outCall.Nonce)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -627,7 +627,7 @@ func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPen
 
 	// 1. find the pending pool tx by txID
 	ctx := sdk.UnwrapSDKContext(c)
-	pendingPoolTx, found := s.Keeper.GetPendingPoolTxById(ctx, msg.TransactionId)
+	pendingPoolTx, found := s.GetPendingPoolTxById(ctx, msg.TransactionId)
 	if !found {
 		return nil, errorsmod.Wrap(types.ErrUnknown, "pending pool tx")
 	}
@@ -640,7 +640,7 @@ func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPen
 
 	// 3. update pending pool tx reward
 	pendingPoolTx.Rewards = sdk.NewCoins(pendingPoolTx.GetRewards()...).Add(reward)
-	s.Keeper.SetPendingTx(ctx, pendingPoolTx)
+	s.SetPendingTx(ctx, pendingPoolTx)
 
 	// 4. emit event
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -683,7 +683,7 @@ func (s MsgServer) UpdateChainOracles(c context.Context, req *types.MsgUpdateCha
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.Keeper.UpdateChainOracles(ctx, req.Oracles); err != nil {
+	if err := s.UpdateProposalOracles(ctx, req.Oracles); err != nil {
 		return nil, err
 	}
 	return &types.MsgUpdateChainOraclesResponse{}, nil
