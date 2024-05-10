@@ -75,13 +75,12 @@ contract FxBridgeLogicETH is
     struct BridgeCallData {
         address sender;
         address receiver;
-        address to;
         address[] tokens;
         uint256[] amounts;
-        bytes message;
-        uint256 value;
+        address to;
+        bytes data;
+        bytes memo;
         uint256 timeout;
-        uint256 gasLimit;
     }
 
     /* =============== INIT =============== */
@@ -327,14 +326,19 @@ contract FxBridgeLogicETH is
 
     function bridgeCall(
         string memory _dstChain,
-        uint256 _gasLimit,
         address _receiver,
-        address _to,
         address[] memory _tokens,
         uint256[] memory _amounts,
-        bytes calldata _message,
-        uint256 _value
+        address _to,
+        bytes memory _data,
+        uint256 _value,
+        bytes memory _memo
     ) external {
+        require(
+            _tokens.length > 0 || _data.length > 0,
+            "Token and data both empty"
+        );
+
         // transfer ERC20
         _transferERC20(_msgSender(), address(this), _tokens, _amounts);
 
@@ -346,13 +350,15 @@ contract FxBridgeLogicETH is
             _msgSender(),
             _receiver,
             _to,
-            _tokens,
-            _amounts,
+            // solhint-disable-next-line avoid-tx-origin
+            tx.origin,
+            _value,
             state_lastEventNonce,
             _dstChain,
-            _gasLimit,
-            _message,
-            _value
+            _tokens,
+            _amounts,
+            _data,
+            _memo
         );
     }
 
@@ -506,6 +512,8 @@ contract FxBridgeLogicETH is
                 _input.sender,
                 _input.receiver,
                 _input.to,
+                // solhint-disable-next-line avoid-tx-origin
+                tx.origin,
                 _nonceArray[1],
                 state_lastEventNonce,
                 result
@@ -522,15 +530,14 @@ contract FxBridgeLogicETH is
             // bytes32 encoding of "bridgeCall"
             0x62726964676543616c6c00000000000000000000000000000000000000000000,
             input.sender,
-            input.to,
             input.receiver,
-            input.value,
-            nonce,
-            input.gasLimit,
-            input.timeout,
-            input.message,
             input.tokens,
-            input.amounts
+            input.amounts,
+            input.to,
+            input.data,
+            input.memo,
+            nonce,
+            input.timeout
         );
         return keccak256(data);
     }
@@ -557,6 +564,11 @@ contract FxBridgeLogicETH is
         require(
             _input.tokens.length == _input.amounts.length,
             "Token not match amount"
+        );
+
+        require(
+            _input.tokens.length > 0 || _input.data.length > 0,
+            "Token and data both empty"
         );
 
         require(
@@ -602,17 +614,16 @@ contract FxBridgeLogicETH is
             );
         }
 
-        if (_input.message.length > 0) {
-            IBridgeCallback(_input.to).bridgeCallbackV1{gas: _input.gasLimit}(
+        if (_input.data.length > 0) {
+            IBridgeCallback(_input.to).bridgeCallback(
                 _input.sender,
                 _input.receiver,
-                _input.to,
                 _input.tokens,
                 _input.amounts,
-                _input.message,
-                _input.value,
-                _input.timeout,
-                _input.gasLimit
+                _input.to,
+                _input.data,
+                _input.memo,
+                _input.timeout
             );
         }
     }
@@ -738,6 +749,11 @@ contract FxBridgeLogicETH is
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal {
+        require(
+            _tokens.length == _amounts.length,
+            "Tokens and amounts not matched"
+        );
+
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(_amounts[i] > 0, "amount should be greater than zero");
             TokenStatus memory _tokenStatus = tokenStatus[_tokens[i]];
@@ -825,19 +841,21 @@ contract FxBridgeLogicETH is
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
-        address[] _tokens,
-        uint256[] _amounts,
+        address _txOrigin,
+        uint256 _value,
         uint256 _eventNonce,
         string _dstChain,
-        uint256 _gasLimit,
-        bytes _message,
-        uint256 _value
+        address[] _tokens,
+        uint256[] _amounts,
+        bytes _data,
+        bytes _memo
     );
 
     event SubmitBridgeCallEvent(
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        address _txOrigin,
         uint256 _nonce,
         uint256 _eventNonce,
         bool _result

@@ -12,16 +12,4 @@ interface IBridgeCallback {
         bytes memory,
         uint256
     ) external;
-
-    function bridgeCallbackV1(
-        address,
-        address,
-        address,
-        address[] memory,
-        uint256[] memory,
-        bytes memory,
-        uint256,
-        uint256,
-        uint256
-    ) external;
 }
