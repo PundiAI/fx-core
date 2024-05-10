@@ -88,13 +88,17 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
-	transactionBatch, err := fxtypes.StrToByte32("bridgeCallCheckpoint")
+	bridgeCallMethodName, err := fxtypes.StrToByte32("bridgeCall")
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse checkpoint")
 	}
 	dataBytes, err := hex.DecodeString(bridgeCall.Data)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse data")
+	}
+	memeBytes, err := hex.DecodeString(bridgeCall.Memo)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse memo")
 	}
 	contracts := make([]string, 0, len(bridgeCall.Tokens))
 	amounts := make([]*big.Int, 0, len(bridgeCall.Tokens))
@@ -105,17 +109,16 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 
 	params := []abi.Param{
 		{"bytes32": gravityID},
-		{"bytes32": transactionBatch},
+		{"bytes32": bridgeCallMethodName},
 		{"address": bridgeCall.Sender},
-		{"address": bridgeCall.To},
 		{"address": bridgeCall.Receiver},
-		{"uint256": bridgeCall.Value.BigInt()},
-		{"uint256": big.NewInt(int64(bridgeCall.Nonce))},
-		{"uint256": big.NewInt(int64(bridgeCall.Timeout))},
-		{"string": ModuleName},
-		{"bytes": dataBytes},
 		{"address[]": contracts},
 		{"uint256[]": amounts},
+		{"address": bridgeCall.To},
+		{"bytes": dataBytes},
+		{"bytes": memeBytes},
+		{"uint256": big.NewInt(int64(bridgeCall.Nonce))},
+		{"uint256": big.NewInt(int64(bridgeCall.Timeout))},
 	}
 
 	encode, err := abi.GetPaddedParam(params)
