@@ -203,9 +203,9 @@ func MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error) {
 	if m.Value.IsNil() || m.Value.IsNegative() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid value")
 	}
-	if len(m.Message) > 0 {
-		if _, err := hex.DecodeString(m.Message); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid message")
+	if len(m.Data) > 0 {
+		if _, err = hex.DecodeString(m.Data); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid data")
 		}
 	}
 	if m.EventNonce == 0 {
@@ -370,9 +370,9 @@ func MsgBridgeCallValidate(m *MsgBridgeCall) (err error) {
 	if err = m.Coins.Validate(); err != nil {
 		return errortypes.ErrInvalidCoins.Wrap(err.Error())
 	}
-	if len(m.Message) > 0 {
-		if _, err = hex.DecodeString(m.Message); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid message")
+	if len(m.Data) > 0 {
+		if _, err = hex.DecodeString(m.Data); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid data")
 		}
 	}
 	return nil

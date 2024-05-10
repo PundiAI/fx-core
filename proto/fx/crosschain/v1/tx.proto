@@ -162,7 +162,7 @@ message MsgBridgeCallClaim {
   string sender = 2;
   string receiver = 3;
   string to = 4;
-  string message = 5;
+  string data = 5;
   string value = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
@@ -373,7 +373,7 @@ message MsgBridgeCall {
   string sender = 2;
   string receiver = 3;
   string to = 4;
-  string message = 5;
+  string data = 5;
   string value = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false

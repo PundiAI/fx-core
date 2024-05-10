@@ -41,14 +41,14 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		return nil, errors.New("invalid target")
 	}
 	eventNonce, err := route.PrecompileBridgeCall(ctx, sender,
-		args.Receiver, args.To, tokens, args.Message, args.Value, args.GasLimit.Uint64())
+		args.Receiver, args.To, tokens, args.Data, args.Value, args.GasLimit.Uint64())
 	if err != nil {
 		return nil, err
 	}
 
 	// add event log
 	if err = c.AddLog(evm, BridgeCallEvent, []common.Hash{sender.Hash(), args.Receiver.Hash(), args.To.Hash()}, sdkmath.NewIntFromUint64(eventNonce).BigInt(),
-		args.DstChain, args.GasLimit, args.Value, args.Message, args.Tokens, args.Amounts); err != nil {
+		args.DstChain, args.GasLimit, args.Value, args.Data, args.Tokens, args.Amounts); err != nil {
 		return nil, err
 	}
 	return BridgeCallMethod.Outputs.Pack(true)
