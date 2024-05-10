@@ -18,7 +18,7 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func NewMnemonic() string {
@@ -99,13 +99,13 @@ func GenerateAddress() common.Address {
 // GenerateAddressByModule generates an Ethereum or Tron address.
 func GenerateAddressByModule(module string) string {
 	addr := GenerateAddress()
-	return fxtypes.AddressToStr(addr.Bytes(), module)
+	return types.ExternalAddrToStr(module, addr.Bytes())
 }
 
 // GenerateZeroAddressByModule generates an Ethereum or Tron zero address.
 func GenerateZeroAddressByModule(module string) string {
 	addr := common.Address{}
-	return fxtypes.AddressToStr(addr.Bytes(), module)
+	return types.ExternalAddrToStr(module, addr.Bytes())
 }
 
 func HexAddrToTronAddr(str string) string {

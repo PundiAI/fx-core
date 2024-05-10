@@ -63,7 +63,7 @@ func (k Keeper) AddOutgoingBridgeCall(
 	bridgeCall := &types.OutgoingBridgeCall{
 		Nonce:       nextID,
 		Timeout:     bridgeCallTimeout,
-		Sender:      fxtypes.AddressToStr(sender, k.moduleName),
+		Sender:      types.ExternalAddrToStr(k.moduleName, sender),
 		Receiver:    receiver,
 		To:          to,
 		Tokens:      tokens,
