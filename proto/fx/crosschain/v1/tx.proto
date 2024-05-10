@@ -175,6 +175,8 @@ message MsgBridgeCallClaim {
   uint64 event_nonce = 9;
   uint64 block_height = 10;
   string bridger_address = 11;
+  string memo = 12;
+  string tx_origin = 13;
 }
 
 message MsgBridgeCallClaimResponse {}
@@ -189,6 +191,7 @@ message MsgBridgeCallResultClaim {
   uint64 block_height = 8;
   string bridger_address = 9;
   string chain_name = 10;
+  string tx_origin = 11;
 }
 
 message MsgBridgeCallResultClaimResponse {}
@@ -382,6 +385,7 @@ message MsgBridgeCall {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+  string memo = 8;
 }
 
 message MsgBridgeCallResponse {}

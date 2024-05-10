@@ -420,7 +420,7 @@ func (bs OutgoingTransferTxs) TotalFee() sdkmath.Int {
 }
 
 // GetCheckpoint gets the checkpoint signature from the given outgoing bridge call
-func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([]byte, error) {
+func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
@@ -462,6 +462,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString, chainName string) ([
 		dataBytes,
 		contracts,
 		amounts,
+		m.Memo,
 	)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.

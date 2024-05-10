@@ -55,6 +55,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.HandlePendingOutgoingTx(ctx, receiveAddr, externalClaim.GetEventNonce(), bridgeToken)
 
 	case *types.MsgBridgeCallClaim:
+		k.CreateBridgeAccount(ctx, claim.TxOrigin)
 		return k.BridgeCallHandler(ctx, claim)
 
 	case *types.MsgSendToExternalClaim:
@@ -111,6 +112,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.SetLastObservedOracleSet(ctx, observedOracleSet)
 
 	case *types.MsgBridgeCallResultClaim:
+		k.CreateBridgeAccount(ctx, claim.TxOrigin)
 		outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, claim.Nonce)
 		if !found {
 			panic(fmt.Errorf("bridge call not found for nonce %d", claim.Nonce))

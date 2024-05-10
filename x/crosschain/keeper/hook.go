@@ -53,6 +53,7 @@ func (k Keeper) PrecompileBridgeCall(
 	coins sdk.Coins,
 	data []byte,
 	value *big.Int,
+	memo string,
 ) (eventNonce uint64, err error) {
 	tokens, err := k.bridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
 	if err != nil {
@@ -67,6 +68,7 @@ func (k Keeper) PrecompileBridgeCall(
 		tokens,
 		hex.EncodeToString(data),
 		sdkmath.NewIntFromBigInt(value),
+		memo,
 	)
 	if err != nil {
 		return 0, err
