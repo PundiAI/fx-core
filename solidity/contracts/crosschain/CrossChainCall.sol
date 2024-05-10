@@ -137,23 +137,25 @@ library Encode {
 
     function bridgeCall(
         string memory _dstChainId,
-        uint256 _gasLimit,
         address _receiver,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
         address _to,
-        bytes calldata _message,
+        bytes memory _data,
         uint256 _value,
-        bytes memory _asset
+        bytes memory _memo
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSignature(
-                "bridgeCall(string,uint256,address,address,bytes,uint256,bytes)",
+                "bridgeCall(string,address,address[],uint256[],address,bytes,uint256,bytes)",
                 _dstChainId,
-                _gasLimit,
                 _receiver,
+                _tokens,
+                _amounts,
                 _to,
-                _message,
+                _data,
                 _value,
-                _asset
+                _memo
             );
     }
 }
@@ -240,24 +242,26 @@ library CrossChainCall {
 
     function bridgeCall(
         string memory _dstChainId,
-        uint256 _gasLimit,
         address _receiver,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
         address _to,
-        bytes calldata _message,
+        bytes memory _data,
         uint256 _value,
-        bytes memory _asset
+        bytes memory _memo
     ) internal returns (bool) {
         (bool result, bytes memory data) = CROSS_CHAIN_ADDRESS.call{
             value: msg.value
         }(
             Encode.bridgeCall(
                 _dstChainId,
-                _gasLimit,
                 _receiver,
+                _tokens,
+                _amounts,
                 _to,
-                _message,
+                _data,
                 _value,
-                _asset
+                _memo
             )
         );
         Decode.ok(result, data, "bridge call failed");

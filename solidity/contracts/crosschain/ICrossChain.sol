@@ -41,13 +41,13 @@ interface ICrossChain {
 
     function bridgeCall(
         string memory _dstChain,
-        uint256 _gasLimit,
         address _receiver,
-        address _to,
         address[] memory _tokens,
         uint256[] memory _amounts,
-        bytes calldata _message,
-        uint256 _value
+        address _to,
+        bytes memory _data,
+        uint256 _value,
+        bytes memory _memo
     ) external payable returns (bool _result);
 
     event CrossChain(
@@ -79,12 +79,13 @@ interface ICrossChain {
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        address _txOrigin,
+        uint256 _value,
         uint256 _eventNonce,
         string _dstChain,
-        uint256 _gasLimit,
-        uint256 _value,
-        bytes _message,
         address[] _tokens,
-        uint256[] _amounts
+        uint256[] _amounts,
+        bytes _data,
+        bytes _memo
     );
 }
