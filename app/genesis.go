@@ -107,7 +107,7 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case banktypes.ModuleName:
 			state := banktypes.DefaultGenesisState()
-			state.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData(denom)}
+			state.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData()}
 
 			state.Supply = sdk.NewCoins(sdk.NewCoin(denom, fxTotalSupply))
 			state.Balances = append(state.Balances, banktypes.Balance{

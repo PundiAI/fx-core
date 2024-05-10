@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 		{
 			"fx",
 			func() {
-				metadata = fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+				metadata = fxtypes.GetFXMetaData()
 			},
 			false,
 			"coin denomination already registered: FX: token pair already exists",
