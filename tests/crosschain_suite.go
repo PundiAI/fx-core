@@ -59,7 +59,7 @@ func (suite *CrosschainTestSuite) OracleAddr() sdk.AccAddress {
 
 func (suite *CrosschainTestSuite) ExternalAddr() string {
 	address := ethcrypto.PubkeyToAddress(suite.externalPrivKey.PublicKey)
-	return fxtypes.AddressToStr(address.Bytes(), suite.chainName)
+	return crosschaintypes.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
 func (suite *CrosschainTestSuite) BridgerAddr() sdk.AccAddress {
@@ -75,7 +75,7 @@ func (suite *CrosschainTestSuite) HexAddress() gethcommon.Address {
 }
 
 func (suite *CrosschainTestSuite) HexAddressString() string {
-	return fxtypes.AddressToStr(suite.HexAddress().Bytes(), suite.chainName)
+	return crosschaintypes.ExternalAddrToStr(suite.chainName, suite.HexAddress().Bytes())
 }
 
 func (suite *CrosschainTestSuite) CrosschainQuery() crosschaintypes.QueryClient {
@@ -539,5 +539,5 @@ func (suite *CrosschainTestSuite) AddBridgeToken(md banktypes.Metadata) (string,
 }
 
 func (suite *CrosschainTestSuite) FormatAddress(address gethcommon.Address) string {
-	return fxtypes.AddressToStr(address.Bytes(), suite.chainName)
+	return crosschaintypes.ExternalAddrToStr(suite.chainName, address.Bytes())
 }

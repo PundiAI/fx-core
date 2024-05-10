@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
 	address := crypto.PubkeyToAddress(publicKey)
-	return fxtypes.AddressToStr(address.Bytes(), suite.chainName)
+	return types.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
 func (suite *KeeperTestSuite) Commit(block ...int64) {

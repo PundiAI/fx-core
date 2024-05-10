@@ -226,7 +226,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				unknownChain := "chainabc"
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(unknownChain),
+					helpers.GenerateAddress().String(),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(unknownChain),
@@ -478,7 +478,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				unknownChain := "chainabc"
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(unknownChain),
+					helpers.GenerateAddress().String(),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(unknownChain),

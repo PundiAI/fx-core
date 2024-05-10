@@ -20,7 +20,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.Commit()
 
 	bridgeToken := helpers.GenerateAddress()
-	bridgeTokenStr := fxtypes.AddressToStr(bridgeToken.Bytes(), suite.chainName)
+	bridgeTokenStr := types.ExternalAddrToStr(suite.chainName, bridgeToken.Bytes())
 	suite.addBridgeToken(bridgeTokenStr, fxtypes.GetCrossChainMetadataManyToOne("test token", "TTT", 18))
 
 	suite.registerCoin(types.NewBridgeDenom(suite.chainName, bridgeTokenStr))
@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		BlockHeight:    uint64(randomBlock),
 		TokenContract:  bridgeTokenStr,
 		Amount:         sdk.NewInt(randomAmount),
-		Sender:         fxtypes.AddressToStr(helpers.GenerateAddress().Bytes(), suite.chainName),
+		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenerateAddress().Bytes()),
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      "",
 		BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.Equal(sdkmath.NewInt(0), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 
 	var outgoingBridgeCall *types.OutgoingBridgeCall
-	suite.Keeper().IterateOutgoingBridgeCallsByAddress(suite.ctx, fxtypes.AddressToStr(fxAddr1.Bytes(), suite.chainName), func(value *types.OutgoingBridgeCall) bool {
+	suite.Keeper().IterateOutgoingBridgeCallsByAddress(suite.ctx, types.ExternalAddrToStr(suite.chainName, fxAddr1.Bytes()), func(value *types.OutgoingBridgeCall) bool {
 		outgoingBridgeCall = value
 		return true
 	})
@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		BlockHeight:    outgoingBridgeCall.Timeout,
 		TokenContract:  bridgeTokenStr,
 		Amount:         sdk.NewInt(randomAmount),
-		Sender:         fxtypes.AddressToStr(helpers.GenerateAddress().Bytes(), suite.chainName),
+		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenerateAddress().Bytes()),
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      hex.EncodeToString([]byte(fxtypes.ERC20Target)),
 		BridgerAddress: suite.bridgerAddrs[0].String(),

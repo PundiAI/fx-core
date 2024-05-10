@@ -9,7 +9,6 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -63,8 +62,8 @@ func (k Keeper) PrecompileBridgeCall(
 	outCall, err := k.AddOutgoingBridgeCall(
 		ctx,
 		sender.Bytes(),
-		fxtypes.AddressToStr(receiver.Bytes(), k.moduleName),
-		fxtypes.AddressToStr(to.Bytes(), k.moduleName),
+		types.ExternalAddrToStr(k.moduleName, receiver.Bytes()),
+		types.ExternalAddrToStr(k.moduleName, to.Bytes()),
 		tokens,
 		hex.EncodeToString(data),
 		sdkmath.NewIntFromBigInt(value),

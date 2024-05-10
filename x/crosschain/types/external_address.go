@@ -58,7 +58,7 @@ func RegisterExternalAddress(chainName string, validate ExternalAddress) {
 func ValidateExternalAddr(chainName, addr string) error {
 	router, ok := externalAddressRouter[chainName]
 	if !ok {
-		return fmt.Errorf("unrecognized cross chain name")
+		return fmt.Errorf("unrecognized cross chain name: %s", chainName)
 	}
 	return router.ValidateExternalAddr(addr)
 }
@@ -66,7 +66,7 @@ func ValidateExternalAddr(chainName, addr string) error {
 func ExternalAddrToAccAddr(chainName, addr string) sdk.AccAddress {
 	router, ok := externalAddressRouter[chainName]
 	if !ok {
-		panic("unrecognized cross chain name")
+		panic("unrecognized cross chain name: " + chainName)
 	}
 	return router.ExternalAddrToAccAddr(addr)
 }
@@ -74,7 +74,7 @@ func ExternalAddrToAccAddr(chainName, addr string) sdk.AccAddress {
 func ExternalAddrToHexAddr(chainName, addr string) common.Address {
 	router, ok := externalAddressRouter[chainName]
 	if !ok {
-		panic("unrecognized cross chain name")
+		panic("unrecognized cross chain name: " + chainName)
 	}
 	return router.ExternalAddrToHexAddr(addr)
 }
@@ -82,7 +82,7 @@ func ExternalAddrToHexAddr(chainName, addr string) common.Address {
 func ExternalAddrToStr(chainName string, bz []byte) string {
 	router, ok := externalAddressRouter[chainName]
 	if !ok {
-		panic("unrecognized cross chain name")
+		panic("unrecognized cross chain name: " + chainName)
 	}
 	return router.ExternalAddrToStr(bz)
 }

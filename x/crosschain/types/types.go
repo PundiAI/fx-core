@@ -498,7 +498,7 @@ func NewERC20Tokens(module string, tokenAddrs []gethcommon.Address, tokenAmounts
 	}
 	tokens := make([]ERC20Token, 0)
 	for i := 0; i < len(tokenAddrs); i++ {
-		contractAddr := fxtypes.AddressToStr(tokenAddrs[i].Bytes(), module)
+		contractAddr := ExternalAddrToStr(module, tokenAddrs[i].Bytes())
 		amount := sdkmath.NewIntFromBigInt(tokenAmounts[i])
 		found := false
 		for j := 0; j < len(tokens); j++ {
