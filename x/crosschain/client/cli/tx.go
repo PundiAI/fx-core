@@ -17,9 +17,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	troncommon "github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/spf13/cobra"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -501,20 +499,4 @@ func recoveryPrivateKeyByKeystore(privateKey string) (*ecdsa.PrivateKey, error) 
 		ethPrivateKey = key
 	}
 	return ethPrivateKey, nil
-}
-
-func getContractAddr(addr string) (string, error) {
-	if strings.HasPrefix(addr, "0x") {
-		if !gethcommon.IsHexAddress(addr) {
-			return "", fmt.Errorf("invalid address: %s", addr)
-		}
-		addr = gethcommon.HexToAddress(addr).Hex()
-	} else {
-		tronAddr, err := troncommon.DecodeCheck(addr)
-		if err != nil {
-			return "", fmt.Errorf("doesn't pass format validation: %s", addr)
-		}
-		addr = troncommon.EncodeCheck(tronAddr)
-	}
-	return addr, nil
 }
