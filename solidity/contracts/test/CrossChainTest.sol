@@ -81,23 +81,25 @@ contract CrossChainTest {
     }
 
     function bridgeCall(
-        string memory _dstChainId,
-        uint256 _gasLimit,
+        string memory _dstChain,
         address _receiver,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
         address _to,
-        bytes calldata _message,
+        bytes memory _data,
         uint256 _value,
-        bytes memory _asset
+        bytes memory _memo
     ) internal returns (bool) {
         return
             CrossChainCall.bridgeCall(
-                _dstChainId,
-                _gasLimit,
+                _dstChain,
                 _receiver,
+                _tokens,
+                _amounts,
                 _to,
-                _message,
+                _data,
                 _value,
-                _asset
+                _memo
             );
     }
 }
