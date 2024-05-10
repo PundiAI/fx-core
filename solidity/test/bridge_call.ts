@@ -68,7 +68,7 @@ describe("bridge call tests", function () {
             const lastEventNonce = await fxBridge.state_lastEventNonce()
 
             // bridge call
-            await fxBridge.bridgeCall(fxcoreChainId, user1.address, user1.address, tokens, amounts, "0x", 0, "0x")
+            await fxBridge.bridgeCall(fxcoreChainId, user1.address, tokens, amounts, user1.address, "0x", 0, "0x")
 
             // check nonce
             const lastEventNonceAfter = await fxBridge.state_lastEventNonce()
@@ -112,7 +112,7 @@ describe("bridge call tests", function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress()]
                 const amounts = [BigInt(1), BigInt(2)]
 
-                await fxBridge.bridgeCall(fxcoreChainId, user1.address, user1.address, tokens, amounts, "0x", 0, "0x")
+                await fxBridge.bridgeCall(fxcoreChainId, user1.address, tokens, amounts, user1.address, "0x", 0, "0x")
 
                 const balance1 = await token1.balanceOf(deploy.address)
                 const balance2 = await token2.balanceOf(deploy.address)
@@ -128,13 +128,13 @@ describe("bridge call tests", function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress()]
                 const amounts = [BigInt(1), BigInt(2), BigInt(3)]
 
-                await fxBridge.bridgeCall(fxcoreChainId, user1.address, user1.address, tokens, amounts, "0x", 0, "0x")
+                await fxBridge.bridgeCall(fxcoreChainId, user1.address, tokens, amounts, user1.address, "0x", 0, "0x")
             })
             it("bridge call transfer 4 token", async function () {
                 const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress(), await token4.getAddress()]
                 const amounts = [BigInt(1), BigInt(2), BigInt(3), BigInt(4)]
 
-                await fxBridge.bridgeCall(fxcoreChainId, user1.address, user1.address, tokens, amounts, "0x", 0, "0x")
+                await fxBridge.bridgeCall(fxcoreChainId, user1.address, tokens, amounts, user1.address, "0x", 0, "0x")
             })
         })
     })
