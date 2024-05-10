@@ -64,13 +64,12 @@ contract FxBridgeLogic is
     struct BridgeCallData {
         address sender;
         address receiver;
-        address to;
         address[] tokens;
         uint256[] amounts;
+        address to;
         bytes data;
-        uint256 value;
+        bytes memo;
         uint256 timeout;
-        uint256 gasLimit;
     }
 
     /* =============== INIT =============== */
@@ -477,6 +476,8 @@ contract FxBridgeLogic is
                 _input.sender,
                 _input.receiver,
                 _input.to,
+                // solhint-disable-next-line avoid-tx-origin
+                tx.origin,
                 _nonceArray[1],
                 state_lastEventNonce,
                 result
@@ -493,15 +494,14 @@ contract FxBridgeLogic is
             // bytes32 encoding of "bridgeCall"
             0x62726964676543616c6c00000000000000000000000000000000000000000000,
             input.sender,
-            input.to,
             input.receiver,
-            input.value,
-            nonce,
-            input.gasLimit,
-            input.timeout,
-            input.data,
             input.tokens,
-            input.amounts
+            input.amounts,
+            input.to,
+            input.data,
+            input.memo,
+            nonce,
+            input.timeout
         );
         return keccak256(data);
     }
@@ -579,16 +579,15 @@ contract FxBridgeLogic is
         }
 
         if (_input.data.length > 0) {
-            IBridgeCallback(_input.to).bridgeCallback{gas: _input.gasLimit}(
+            IBridgeCallback(_input.to).bridgeCallback(
                 _input.sender,
                 _input.receiver,
-                _input.to,
                 _input.tokens,
                 _input.amounts,
+                _input.to,
                 _input.data,
-                _input.value,
-                _input.timeout,
-                _input.gasLimit
+                _input.memo,
+                _input.timeout
             );
         }
     }
@@ -816,6 +815,7 @@ contract FxBridgeLogic is
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        address _txOrigin,
         uint256 _nonce,
         uint256 _eventNonce,
         bool _result

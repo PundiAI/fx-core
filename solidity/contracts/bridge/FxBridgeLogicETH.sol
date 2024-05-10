@@ -603,7 +603,7 @@ contract FxBridgeLogicETH is
         }
 
         if (_input.message.length > 0) {
-            IBridgeCallback(_input.to).bridgeCallback{gas: _input.gasLimit}(
+            IBridgeCallback(_input.to).bridgeCallbackV1{gas: _input.gasLimit}(
                 _input.sender,
                 _input.receiver,
                 _input.to,

@@ -5,6 +5,17 @@ interface IBridgeCallback {
     function bridgeCallback(
         address,
         address,
+        address[] memory,
+        uint256[] memory,
+        address,
+        bytes memory,
+        bytes memory,
+        uint256
+    ) external;
+
+    function bridgeCallbackV1(
+        address,
+        address,
         address,
         address[] memory,
         uint256[] memory,

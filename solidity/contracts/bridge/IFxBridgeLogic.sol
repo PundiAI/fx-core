@@ -48,13 +48,12 @@ interface IFxBridgeLogic {
     struct BridgeCallData {
         address sender;
         address receiver;
-        address to;
         address[] tokens;
         uint256[] amounts;
+        address to;
         bytes data;
-        uint256 value;
+        bytes memo;
         uint256 timeout;
-        uint256 gasLimit;
     }
 
     function addBridgeToken(
@@ -191,15 +190,14 @@ interface IFxBridgeLogic {
         bytes32 _fxbridgeId,
         bytes32 _methodName,
         address _sender,
-        address _to,
         address _receiver,
-        uint256 _value,
-        uint256 _nonce,
-        uint256 _gasLimit,
-        uint256 _timeout,
-        bytes calldata _data,
         address[] memory _tokens,
-        uint256[] memory _amounts
+        uint256[] memory _amounts,
+        address _to,
+        bytes memory _data,
+        bytes memory _memo,
+        uint256 _nonce,
+        uint256 _timeout
     ) external returns (bytes32);
 
     /* =============== EVENTS =============== */
@@ -251,6 +249,7 @@ interface IFxBridgeLogic {
         address indexed _sender,
         address indexed _receiver,
         address indexed _to,
+        address _txOrigin,
         uint256 _nonce,
         uint256 _eventNonce,
         bool _result
