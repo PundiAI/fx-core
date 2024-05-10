@@ -141,6 +141,7 @@ type BridgeCallArgs struct {
 	Amounts  []*big.Int       `abi:"_amounts"`
 	Data     []byte           `abi:"_data"`
 	Value    *big.Int         `abi:"_value"`
+	Memo     string           `abi:"_memo"`
 }
 
 // Validate validates the args

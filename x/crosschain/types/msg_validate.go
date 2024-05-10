@@ -214,6 +214,9 @@ func MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error) {
 	if m.BlockHeight == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
+	if err = ValidateExternalAddr(m.ChainName, m.TxOrigin); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
+	}
 	return nil
 }
 
@@ -240,6 +243,9 @@ func MsgBridgeCallResultClaimValidate(m *MsgBridgeCallResultClaim) (err error) {
 	}
 	if m.BlockHeight == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	if err = ValidateExternalAddr(m.ChainName, m.TxOrigin); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
 	}
 	return nil
 }

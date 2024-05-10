@@ -743,6 +743,20 @@ func (mr *MockAccountKeeperMockRecorder) GetModuleAddress(name any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetModuleAddress", reflect.TypeOf((*MockAccountKeeper)(nil).GetModuleAddress), name)
 }
 
+// NewAccountWithAddress mocks base method.
+func (m *MockAccountKeeper) NewAccountWithAddress(ctx types.Context, addr types.AccAddress) types0.AccountI {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewAccountWithAddress", ctx, addr)
+	ret0, _ := ret[0].(types0.AccountI)
+	return ret0
+}
+
+// NewAccountWithAddress indicates an expected call of NewAccountWithAddress.
+func (mr *MockAccountKeeperMockRecorder) NewAccountWithAddress(ctx, addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewAccountWithAddress", reflect.TypeOf((*MockAccountKeeper)(nil).NewAccountWithAddress), ctx, addr)
+}
+
 // MockSubspace is a mock of Subspace interface.
 type MockSubspace struct {
 	ctrl     *gomock.Controller

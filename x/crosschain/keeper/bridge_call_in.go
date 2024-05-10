@@ -34,7 +34,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	}
 	if len(errCause) > 0 && len(tokens) > 0 {
 		// new outgoing bridge call to refund
-		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), common.Address{}.String(), erc20Token, "", sdkmath.ZeroInt())
+		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), common.Address{}.String(), erc20Token, "", sdkmath.ZeroInt(), "")
 		if err != nil {
 			return err
 		}

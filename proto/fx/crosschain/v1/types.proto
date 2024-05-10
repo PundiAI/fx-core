@@ -267,4 +267,5 @@ message OutgoingBridgeCall {
     (gogoproto.nullable) = false
   ];
   uint64 block_height = 9;
+  string memo = 10;
 }

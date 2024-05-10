@@ -1149,6 +1149,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 				BlockHeight:    1,
 				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChainName:      suite.chainName,
+				TxOrigin:       helpers.GenerateAddressByModule(suite.chainName),
 			},
 			err:       nil,
 			errReason: "",
@@ -1179,6 +1180,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		err := testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
 		ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+		require.NoError(suite.T(), testData.msg.ValidateBasic())
 		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)
 		require.ErrorIs(suite.T(), err, testData.err, testData.name)
 		if testData.err == nil {

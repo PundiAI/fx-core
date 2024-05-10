@@ -522,7 +522,7 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find outgoing bridge call")
 	}
 
-	checkpoint, err := outgoingBridgeCall.GetCheckpoint(s.GetGravityID(ctx), msg.ChainName)
+	checkpoint, err := outgoingBridgeCall.GetCheckpoint(s.GetGravityID(ctx))
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
@@ -598,7 +598,7 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 		return nil, err
 	}
 
-	outCall, err := s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Data, msg.Value)
+	outCall, err := s.Keeper.AddOutgoingBridgeCall(ctx, sender, msg.Receiver, msg.To, tokens, msg.Data, msg.Value, msg.Memo)
 	if err != nil {
 		return nil, err
 	}

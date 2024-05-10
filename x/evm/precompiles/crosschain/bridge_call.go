@@ -41,7 +41,7 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		return nil, errors.New("invalid target")
 	}
 	eventNonce, err := route.PrecompileBridgeCall(ctx, sender,
-		args.Receiver, args.To, tokens, args.Data, args.Value)
+		args.Receiver, args.To, tokens, args.Data, args.Value, args.Memo)
 	if err != nil {
 		return nil, err
 	}

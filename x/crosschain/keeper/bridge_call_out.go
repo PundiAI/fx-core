@@ -50,6 +50,7 @@ func (k Keeper) AddOutgoingBridgeCall(
 	ctx sdk.Context,
 	sender sdk.AccAddress, receiver, to string,
 	tokens []types.ERC20Token, data string, value sdkmath.Int,
+	memo string,
 ) (*types.OutgoingBridgeCall, error) {
 	params := k.GetParams(ctx)
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, params, params.BridgeCallTimeout)
@@ -69,6 +70,7 @@ func (k Keeper) AddOutgoingBridgeCall(
 		Data:        data,
 		Value:       value,
 		BlockHeight: uint64(ctx.BlockHeight()),
+		Memo:        memo,
 	}
 	k.SetOutgoingBridgeCall(ctx, bridgeCall)
 
