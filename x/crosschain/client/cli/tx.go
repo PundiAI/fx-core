@@ -22,7 +22,6 @@ import (
 	troncommon "github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/spf13/cobra"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -74,27 +73,15 @@ func CmdBoundedOracle(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			valAddr, err := sdk.ValAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-			externalAddress, err := getContractAddr(args[2])
-			if err != nil {
-				return err
-			}
 			amount, err := sdk.ParseCoinNormalized(args[3])
 			if err != nil {
 				return err
 			}
 			msg := types.MsgBondedOracle{
 				OracleAddress:    cliCtx.GetFromAddress().String(),
-				BridgerAddress:   bridgerAddr.String(),
-				ExternalAddress:  externalAddress,
-				ValidatorAddress: valAddr.String(),
+				ValidatorAddress: args[0],
+				BridgerAddress:   args[1],
+				ExternalAddress:  args[2],
 				DelegateAmount:   amount,
 				ChainName:        chainName,
 			}
@@ -161,13 +148,9 @@ func CmdReDelegate(chainName string) *cobra.Command {
 				return err
 			}
 
-			valAddress, err := sdk.ValAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
 			msg := types.MsgReDelegate{
 				OracleAddress:    cliCtx.GetFromAddress().String(),
-				ValidatorAddress: valAddress.String(),
+				ValidatorAddress: args[0],
 				ChainName:        chainName,
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
@@ -187,10 +170,6 @@ func CmdSendToExternal(chainName string) *cobra.Command {
 				return err
 			}
 
-			externalDestAddr, err := getContractAddr(args[0])
-			if err != nil {
-				return err
-			}
 			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return errorsmod.Wrap(err, "amount")
@@ -202,7 +181,7 @@ func CmdSendToExternal(chainName string) *cobra.Command {
 
 			msg := types.MsgSendToExternal{
 				Sender:    cliCtx.GetFromAddress().String(),
-				Dest:      externalDestAddr,
+				Dest:      args[0],
 				Amount:    amount,
 				BridgeFee: bridgeFee,
 				ChainName: chainName,
@@ -217,59 +196,34 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bridge-call [receiver] [coins]",
 		Short: "Adds a new entry to the bridge call pool",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
+			viper := cliCtx.Viper
 
-			receiverAddr, err := getContractAddr(args[0])
-			if err != nil {
-				return err
-			}
-			coins, err := sdk.ParseCoinsNormalized(args[1])
-			if err != nil {
-				return errorsmod.Wrap(err, "coins")
-			}
-
-			toAddr, err := cmd.Flags().GetString(FlagTo)
-			if err != nil {
-				return errorsmod.Wrap(err, "to")
-			}
-			if toAddr == "" {
-				toAddr = fxtypes.AddressToStr(gethcommon.Address{}.Bytes(), chainName)
-			} else {
-				if _, err = getContractAddr(toAddr); err != nil {
-					return err
+			var receiver string
+			var coins sdk.Coins
+			if len(args) == 2 {
+				receiver = args[0]
+				coins, err = sdk.ParseCoinsNormalized(args[1])
+				if err != nil {
+					return errorsmod.Wrap(err, "coins")
 				}
 			}
-
-			data, err := cmd.Flags().GetString(FlagData)
-			if err != nil {
-				return errorsmod.Wrap(err, "data")
-			}
-			if data != "" {
-				if _, err = hex.DecodeString(data); err != nil {
-					return errorsmod.Wrap(err, "data")
-				}
-			}
-
-			valueStr, err := cmd.Flags().GetString(FlagValue)
-			if err != nil {
-				return errorsmod.Wrap(err, "value")
-			}
-			value, ok := sdkmath.NewIntFromString(valueStr)
-			if !ok {
-				return sdkerrors.ErrInvalidRequest.Wrap("value")
+			value, ok := sdk.NewIntFromString(viper.GetString(FlagValue))
+			if viper.GetString(FlagValue) != "" && !ok {
+				return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, viper.GetString(FlagValue))
 			}
 
 			msg := types.MsgBridgeCall{
 				Sender:    cliCtx.GetFromAddress().String(),
-				Receiver:  receiverAddr,
-				To:        toAddr,
+				Receiver:  receiver,
+				To:        viper.GetString(FlagTo),
 				Coins:     coins,
-				Data:      data,
+				Data:      viper.GetString(FlagData),
 				Value:     value,
 				ChainName: chainName,
 			}
@@ -341,39 +295,32 @@ func CmdIncreaseBridgeFee(chainName string) *cobra.Command {
 
 func CmdRequestBatch(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "build-batch [token-denom] [minimum-fee] [base-fee] [external-fee-receive]",
+		Use:   "build-batch [token-denom] [minimum-fee] [external-fee-receive] [base-fee]",
 		Short: "Build a new batch on the fx side for pooled withdrawal transactions",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.RangeArgs(3, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			denom := args[0]
 
 			minimumFee, ok := sdkmath.NewIntFromString(args[1])
 			if !ok || minimumFee.IsNegative() {
 				return fmt.Errorf("miniumu fee is valid, %v", args[1])
 			}
 			baseFee := sdkmath.ZeroInt()
-			if len(args[2]) > 0 {
-				baseFee, ok = sdkmath.NewIntFromString(args[2])
+			if len(args) == 4 {
+				baseFee, ok = sdkmath.NewIntFromString(args[3])
 				if !ok {
-					return fmt.Errorf("invalid base fee: %v", args[2])
+					return fmt.Errorf("invalid base fee: %v", args[3])
 				}
 			}
-			feeReceive := args[3]
-			if strings.HasPrefix(feeReceive, "0x") {
-				if !gethcommon.IsHexAddress(feeReceive) {
-					return fmt.Errorf("invalid feeReceive address: %v", feeReceive)
-				}
-				feeReceive = gethcommon.HexToAddress(feeReceive).Hex()
-			}
+
 			msg := &types.MsgRequestBatch{
 				Sender:     clientCtx.GetFromAddress().String(),
-				Denom:      denom,
+				Denom:      args[0],
 				MinimumFee: minimumFee,
-				FeeReceive: feeReceive,
+				FeeReceive: args[2],
 				ChainName:  chainName,
 				BaseFee:    baseFee,
 			}
@@ -395,10 +342,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			}
 			fromAddress := clientCtx.GetFromAddress()
 
-			tokenContract, err := getContractAddr(args[0])
-			if err != nil {
-				return err
-			}
+			tokenContract := args[0]
 			nonce, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
