@@ -53,7 +53,6 @@ func (k Keeper) PrecompileBridgeCall(
 	coins sdk.Coins,
 	data []byte,
 	value *big.Int,
-	gasLimit uint64,
 ) (eventNonce uint64, err error) {
 	tokens, err := k.bridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
 	if err != nil {

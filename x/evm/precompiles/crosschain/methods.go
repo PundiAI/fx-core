@@ -135,7 +135,6 @@ func (args *IncreaseBridgeFeeArgs) Validate() error {
 
 type BridgeCallArgs struct {
 	DstChain string           `abi:"_dstChain"`
-	GasLimit *big.Int         `abi:"_gasLimit"`
 	Receiver common.Address   `abi:"_receiver"`
 	To       common.Address   `abi:"_to"`
 	Tokens   []common.Address `abi:"_tokens"`
@@ -148,9 +147,6 @@ type BridgeCallArgs struct {
 func (args *BridgeCallArgs) Validate() error {
 	if len(args.DstChain) == 0 {
 		return errors.New("empty dst chain")
-	}
-	if args.GasLimit.Cmp(big.NewInt(0)) == -1 || !args.GasLimit.IsUint64() {
-		return errors.New("invalid gas limit")
 	}
 	if args.Value.Cmp(big.NewInt(0)) == -1 {
 		return errors.New("invalid value")
