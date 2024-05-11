@@ -56,7 +56,7 @@ describe("bridge call tests", function () {
     })
 
     describe("BridgeCallUpgradeable test", function () {
-        const fxcoreChainId = "530";
+        const fxcoreChainId = "";
 
         it("should bridge call erc20", async function () {
             const tokens = [await erc20Token.getAddress()]
