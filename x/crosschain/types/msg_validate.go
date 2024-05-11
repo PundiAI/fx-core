@@ -252,6 +252,11 @@ func MsgBridgeCallResultClaimValidate(m *MsgBridgeCallResultClaim) (err error) {
 	if err = ValidateExternalAddr(m.ChainName, m.TxOrigin); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
 	}
+	if len(m.Cause) > 0 {
+		if _, err = hex.DecodeString(m.Cause); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid cause")
+		}
+	}
 	return nil
 }
 

@@ -189,9 +189,10 @@ message MsgBridgeCallResultClaim {
   string sender = 5;
   string receiver = 6;
   string to = 7;
-  bool result = 8;
-  uint64 nonce = 9;
-  string tx_origin = 10;
+  uint64 nonce = 8;
+  string tx_origin = 9;
+  bool success = 10;
+  string cause = 11;
 }
 
 message MsgBridgeCallResultClaimResponse {}
