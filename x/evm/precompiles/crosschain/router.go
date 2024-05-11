@@ -11,7 +11,7 @@ type Precompile interface {
 	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken, insufficientLiquidity bool) error
 	PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
 	PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
-	PrecompileBridgeCall(ctx sdk.Context, sender, receiver common.Address, coins sdk.Coins, to common.Address, data []byte, memo string) (uint64, error)
+	PrecompileBridgeCall(ctx sdk.Context, sender, receiver common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (uint64, error)
 }
 
 type Router struct {
