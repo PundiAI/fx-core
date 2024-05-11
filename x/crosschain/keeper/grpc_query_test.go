@@ -22,7 +22,7 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCalls() {
 
 	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data1)
 	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data2)
-	actual, err := s.crosschainKeeper.BridgeCalls(ctx, &types.QueryBridgeCallsRequest{
+	actual, err := s.queryClient.BridgeCalls(ctx, &types.QueryBridgeCallsRequest{
 		ChainName: s.moduleName,
 		Pagination: &query.PageRequest{
 			Offset:     0,
@@ -33,7 +33,7 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCalls() {
 	s.NoError(err)
 	s.Equal(len(actual.BridgeCalls), 1)
 
-	actual, err = s.crosschainKeeper.BridgeCalls(ctx, &types.QueryBridgeCallsRequest{
+	actual, err = s.queryClient.BridgeCalls(ctx, &types.QueryBridgeCallsRequest{
 		ChainName: s.moduleName,
 		Pagination: &query.PageRequest{
 			Offset:     0,

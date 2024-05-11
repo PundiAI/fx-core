@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 		suite.Keeper().SetOracle(suite.ctx, oracle)
 		suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, testCase.BridgerAddress, oracle.GetOracle())
 
-		response, err := suite.Keeper().LastPendingBatchRequestByAddr(wrapSDKContext,
+		response, err := suite.QueryClient().LastPendingBatchRequestByAddr(wrapSDKContext,
 			&types.QueryLastPendingBatchRequestByAddrRequest{
 				BridgerAddress: testCase.BridgerAddress.String(),
 			})

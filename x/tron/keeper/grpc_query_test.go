@@ -159,7 +159,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 			suite.SetupTest()
 			ctx := sdk.WrapSDKContext(suite.ctx)
 			testCase.malleate()
-			res, err := suite.app.TronKeeper.BatchFees(ctx, request)
+			res, err := suite.queryServer.BatchFees(ctx, request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.BatchFees, res.BatchFees)
@@ -282,7 +282,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.app.TronKeeper.BatchRequestByNonce(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryServer.BatchRequestByNonce(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.Batch, res.Batch)
@@ -371,7 +371,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 			ctx := sdk.WrapSDKContext(suite.ctx)
 			testCase.malleate()
 
-			res, err := suite.app.TronKeeper.BatchConfirms(ctx, request)
+			res, err := suite.queryServer.BatchConfirms(ctx, request)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
@@ -449,7 +449,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 			ctx := sdk.WrapSDKContext(suite.ctx)
 			testCase.malleate()
 
-			res, err := suite.app.TronKeeper.TokenToDenom(ctx, request)
+			res, err := suite.queryServer.TokenToDenom(ctx, request)
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
@@ -513,7 +513,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetOracleByExternalAddr() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.app.TronKeeper.GetOracleByExternalAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryServer.GetOracleByExternalAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.Oracle, res.Oracle)

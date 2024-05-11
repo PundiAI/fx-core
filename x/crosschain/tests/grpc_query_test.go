@@ -58,6 +58,7 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{})
 
+	suite.ctx = suite.ctx.WithBlockHeight(1000)
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.CrosschainRouterKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -88,7 +89,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_CurrentOracleSet() {
 		{
 			name: "no oracle set",
 			malleate: func() *types.QueryCurrentOracleSetResponse {
-				return &types.QueryCurrentOracleSetResponse{OracleSet: types.NewOracleSet(1, 0, nil)}
+				return &types.QueryCurrentOracleSetResponse{OracleSet: types.NewOracleSet(1, 1000, nil)}
 			},
 			expPass: true,
 		},
@@ -121,7 +122,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_CurrentOracleSet() {
 					}
 				}
 				suite.ctx = suite.ctx.WithBlockHeight(100)
-				newOracleSet.Height = 100
+				newOracleSet.Height = 1000
 				suite.Keeper().SetLatestOracleSetNonce(suite.ctx, 10)
 				newOracleSet.Nonce = 11
 				return &types.QueryCurrentOracleSetResponse{OracleSet: newOracleSet}
@@ -132,7 +133,10 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_CurrentOracleSet() {
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
 			response := testCase.malleate()
-			res, err := suite.Keeper().CurrentOracleSet(sdk.WrapSDKContext(suite.ctx), nil)
+			res, err := suite.queryClient.CurrentOracleSet(
+				sdk.WrapSDKContext(suite.ctx),
+				&types.QueryCurrentOracleSetRequest{ChainName: suite.chainName},
+			)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.OracleSet.Members, res.OracleSet.Members)
@@ -161,7 +165,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetRequest() {
 			name: "oracle set nonce does not exist",
 			malleate: func() {
 				request = &types.QueryOracleSetRequestRequest{
-					Nonce: 1,
+					ChainName: suite.chainName,
+					Nonce:     1,
 				}
 				response = &types.QueryCurrentOracleSetResponse{OracleSet: nil}
 			},
@@ -177,7 +182,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetRequest() {
 					},
 				}
 				request = &types.QueryOracleSetRequestRequest{
-					Nonce: 3,
+					ChainName: suite.chainName,
+					Nonce:     3,
 				}
 				suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
 					Nonce:   3,
@@ -196,7 +202,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetRequest() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().OracleSetRequest(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.OracleSetRequest(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.OracleSet, res.OracleSet)
@@ -286,7 +292,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -360,7 +366,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirmsByNonce() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().OracleSetConfirmsByNonce(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.OracleSetConfirmsByNonce(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -408,7 +414,10 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastOracleSetRequest() {
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
 			response := testCase.malleate()
-			res, err := suite.Keeper().LastOracleSetRequests(sdk.WrapSDKContext(suite.ctx), nil)
+			res, err := suite.queryClient.LastOracleSetRequests(
+				sdk.WrapSDKContext(suite.ctx),
+				&types.QueryLastOracleSetRequestsRequest{ChainName: suite.chainName},
+			)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.OracleSets, res.OracleSets)
@@ -510,7 +519,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().LastPendingOracleSetRequestByAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.LastPendingOracleSetRequestByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -695,7 +704,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().BatchFees(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.BatchFees(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.BatchFees, res.BatchFees)
@@ -862,7 +871,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().LastPendingBatchRequestByAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.LastPendingBatchRequestByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.Batch, res.Batch)
@@ -946,7 +955,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			response := testCase.malleate()
-			res, err := suite.Keeper().OutgoingTxBatches(sdk.WrapSDKContext(suite.ctx), nil)
+			res, err := suite.queryClient.OutgoingTxBatches(sdk.WrapSDKContext(suite.ctx), &types.QueryOutgoingTxBatchesRequest{ChainName: suite.chainName})
 			suite.Require().NoError(err)
 			if testCase.expPass {
 				suite.Require().True(len(res.Batches) <= 100)
@@ -1046,7 +1055,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().BatchRequestByNonce(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.BatchRequestByNonce(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1135,7 +1144,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().BatchConfirm(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.BatchConfirm(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1219,7 +1228,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirms() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().BatchConfirms(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.BatchConfirms(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.Confirms, res.Confirms)
@@ -1310,7 +1319,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().LastEventNonceByAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.LastEventNonceByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1383,7 +1392,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().DenomToToken(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.DenomToToken(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1457,7 +1466,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().TokenToDenom(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.TokenToDenom(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1530,7 +1539,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByAddr() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().GetOracleByAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.GetOracleByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1620,7 +1629,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().GetOracleByBridgerAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.GetOracleByBridgerAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1715,7 +1724,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().GetOracleByExternalAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.GetOracleByExternalAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1878,7 +1887,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.TransfersInBatches, res.TransfersInBatches)
@@ -1963,7 +1972,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().LastEventBlockHeightByAddr(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.LastEventBlockHeightByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -2022,7 +2031,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastObservedBlockHeight() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().LastObservedBlockHeight(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.LastObservedBlockHeight(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -2137,7 +2146,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().Oracles(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.Oracles(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.Oracles, res.Oracles)
@@ -2183,16 +2192,19 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_ProjectedBatchTimeoutHeight() {
 				heights := suite.Keeper().GetLastObservedBlockHeight(suite.ctx)
 				suite.Assert().Equal(uint64(99), heights.ExternalBlockHeight)
 				suite.Assert().Equal(uint64(100), heights.BlockHeight)
-				params := suite.Keeper().GetParams(suite.ctx)
-				suite.ctx = suite.ctx.WithBlockHeight(1000)
-				projectedMillis := (1000 - heights.BlockHeight) * params.AverageBlockTime
-				projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
-				blocksToAdd := params.ExternalBatchTimeout / params.AverageExternalBlockTime
+
 				request = &types.QueryProjectedBatchTimeoutHeightRequest{
 					ChainName: suite.chainName,
 				}
+				var timeoutHeight uint64
+				switch suite.chainName {
+				case ethtypes.ModuleName:
+					timeoutHeight = 3399
+				case bsctypes.ModuleName:
+					timeoutHeight = 16599
+				}
 				response = &types.QueryProjectedBatchTimeoutHeightResponse{
-					TimeoutHeight: projectedCurrentEthereumHeight + blocksToAdd,
+					TimeoutHeight: timeoutHeight,
 				}
 			},
 			expPass: true,
@@ -2203,7 +2215,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_ProjectedBatchTimeoutHeight() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().ProjectedBatchTimeoutHeight(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.ProjectedBatchTimeoutHeight(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -2261,7 +2273,10 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			response := testCase.malleate()
-			res, err := suite.Keeper().BridgeTokens(sdk.WrapSDKContext(suite.ctx), nil)
+			res, err := suite.queryClient.BridgeTokens(
+				sdk.WrapSDKContext(suite.ctx),
+				&types.QueryBridgeTokensRequest{ChainName: suite.chainName},
+			)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().ElementsMatch(response.BridgeTokens, res.BridgeTokens)
@@ -2328,7 +2343,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 					ChannelIbc:     hex.EncodeToString([]byte("")),
 				})
 				suite.Require().NoError(err)
-				denom, err := suite.Keeper().TokenToDenom(suite.ctx, &types.QueryTokenToDenomRequest{
+				denom, err := suite.queryClient.TokenToDenom(suite.ctx, &types.QueryTokenToDenomRequest{
 					ChainName: suite.chainName,
 					Token:     token,
 				})
@@ -2361,7 +2376,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.Keeper().BridgeCoinByDenom(sdk.WrapSDKContext(suite.ctx), request)
+			res, err := suite.queryClient.BridgeCoinByDenom(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -2386,7 +2401,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingPoolSendToExternal() 
 
 	suite.Keeper().SetPendingTx(suite.ctx, &tx1)
 	suite.Keeper().SetPendingTx(suite.ctx, &tx2)
-	actual, err := suite.Keeper().GetPendingPoolSendToExternal(ctx, &types.QueryPendingPoolSendToExternalRequest{
+	actual, err := suite.queryClient.GetPendingPoolSendToExternal(ctx, &types.QueryPendingPoolSendToExternalRequest{
 		ChainName:     suite.chainName,
 		SenderAddress: sender.String(),
 		Pagination: &query.PageRequest{
@@ -2398,7 +2413,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingPoolSendToExternal() 
 	suite.NoError(err)
 	suite.Equal(len(actual.Txs), 1)
 
-	actual, err = suite.Keeper().GetPendingPoolSendToExternal(ctx, &types.QueryPendingPoolSendToExternalRequest{
+	actual, err = suite.queryClient.GetPendingPoolSendToExternal(ctx, &types.QueryPendingPoolSendToExternalRequest{
 		ChainName:     suite.chainName,
 		SenderAddress: sender.String(),
 		Pagination: &query.PageRequest{

@@ -1,7 +1,6 @@
 package tests_test
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -44,9 +43,12 @@ import (
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	crossethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type PrecompileTestSuite struct {
@@ -175,19 +177,19 @@ func (suite *PrecompileTestSuite) DeployFXRelayToken() (types.TokenPair, banktyp
 	return *pair, fxToken
 }
 
-func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]CrossChainKeeper {
+func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeeper.Keeper {
 	value := reflect.ValueOf(suite.app.CrossChainKeepers)
-	keepers := make(map[string]CrossChainKeeper)
+	keepers := make(map[string]crosschainkeeper.Keeper)
 	for i := 0; i < value.NumField(); i++ {
 		res := value.Field(i).MethodByName("GetGravityID").Call([]reflect.Value{reflect.ValueOf(suite.ctx)})
 		gravityID := res[0].String()
 		chainName := strings.TrimSuffix(strings.TrimPrefix(gravityID, "fx-"), "-bridge")
-		cck := value.Field(i).Interface().(CrossChainKeeper)
 		if chainName == "bridge-eth" {
-			// keepers["gravity"] = cck
-			keepers["eth"] = cck
+			keepers["eth"] = value.Field(i).Interface().(crosschainkeeper.Keeper)
+		} else if chainName == trontypes.ModuleName {
+			keepers[trontypes.ModuleName] = value.Field(i).Interface().(tronkeeper.Keeper).Keeper
 		} else {
-			keepers[chainName] = cck
+			keepers[chainName] = value.Field(i).Interface().(crosschainkeeper.Keeper)
 		}
 	}
 	return keepers
@@ -446,19 +448,6 @@ func (m Metadata) GetDenom(moduleName string) string {
 
 func (m Metadata) GetMetadata() banktypes.Metadata {
 	return m.metadata
-}
-
-type CrossChainKeeper interface {
-	ModuleName() string
-	AddBridgeToken(ctx sdk.Context, token, denom string)
-	GetDenomBridgeToken(ctx sdk.Context, denom string) *crosschaintypes.BridgeToken
-	SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error)
-	GetPendingSendToExternal(c context.Context, req *crosschaintypes.QueryPendingSendToExternalRequest) (*crosschaintypes.QueryPendingSendToExternalResponse, error)
-	GetPendingPoolSendToExternal(c context.Context, req *crosschaintypes.QueryPendingPoolSendToExternalRequest) (*crosschaintypes.QueryPendingPoolSendToExternalResponse, error)
-	AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error)
-	BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive string, maxElements uint, minimumFee, baseFee sdkmath.Int) (*crosschaintypes.OutgoingTxBatch, error)
-	SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight, blockHeight uint64)
-	OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, batchNonce uint64)
 }
 
 const testJsonABI = `

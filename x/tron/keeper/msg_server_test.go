@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			malleate: func() {
 				newOutgoingTx := suite.NewOutgoingTxBatch()
 				_, bridger, externalKey := suite.NewOracleByBridger()
-				params, err := suite.app.TronKeeper.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
+				params, err := suite.queryServer.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				suite.Require().NoError(err)
 				batchHash, err := trontypes.GetCheckpointConfirmBatch(newOutgoingTx, params.Params.GravityId)
 				suite.Require().NoError(err)
@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 				newOracleSet := suite.NewOracleSet(externalKey)
 				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
 				suite.Require().NoError(err)
-				params, err := suite.app.TronKeeper.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
+				params, err := suite.queryServer.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				suite.Require().NoError(err)
 				oracleSetHash, err := trontypes.GetCheckpointOracleSet(newOracleSet, params.Params.GravityId)
 				suite.Require().NoError(err)

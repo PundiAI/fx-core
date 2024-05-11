@@ -41,7 +41,7 @@ type ModuleHandler struct {
 
 func NewModuleHandler(keeper Keeper) *ModuleHandler {
 	return &ModuleHandler{
-		QueryServer:    keeper,
+		QueryServer:    NewQueryServerImpl(keeper),
 		MsgServer:      NewMsgServerImpl(keeper),
 		ProposalServer: keeper,
 	}
