@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -117,10 +118,17 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if !found {
 			panic(fmt.Errorf("bridge call not found for nonce %d", claim.Nonce))
 		}
-		if !claim.GetResult() {
+		if !claim.Success {
 			k.HandleOutgoingBridgeCallRefund(ctx, outgoingBridgeCall)
 		}
 		k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce)
+
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeBridgeCallResult,
+			sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatInt(int64(claim.Nonce), 10)),
+			sdk.NewAttribute(types.AttributeKeyStateSuccess, strconv.FormatBool(claim.Success)),
+			sdk.NewAttribute(types.AttributeKeyErrCause, claim.Cause),
+		))
 		return nil
 	default:
 		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
