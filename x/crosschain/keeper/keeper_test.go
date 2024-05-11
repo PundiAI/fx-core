@@ -9,6 +9,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 	"go.uber.org/mock/gomock"
@@ -20,7 +21,7 @@ import (
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v7/x/crosschain/mock"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
 	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
@@ -28,14 +29,16 @@ import (
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
+const BlockGasLimit = 1_000_000
+
 type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx        sdk.Context
 	moduleName string
 
-	queryClient crosschaintypes.QueryClient
-	msgServer   crosschaintypes.MsgServer
+	queryClient types.QueryClient
+	msgServer   types.MsgServer
 
 	crosschainKeeper  crosschainkeeper.Keeper
 	stakingKeeper     *mock.MockStakingKeeper
@@ -78,9 +81,16 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	testCtx := testutil.DefaultContextWithDB(s.T(), key, sdk.NewTransientStoreKey("transient_test"))
 	s.ctx = testCtx.Ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
+	s.ctx = testCtx.Ctx.WithConsensusParams(
+		&abci.ConsensusParams{
+			Block: &abci.BlockParams{
+				MaxGas: BlockGasLimit,
+			},
+		},
+	)
 
 	encCfg := testutil.MakeTestEncodingConfig()
-	crosschaintypes.RegisterInterfaces(encCfg.InterfaceRegistry)
+	types.RegisterInterfaces(encCfg.InterfaceRegistry)
 
 	ctrl := gomock.NewController(s.T())
 	s.stakingKeeper = mock.NewMockStakingKeeper(ctrl)
@@ -109,15 +119,15 @@ func (s *KeeperTestSuite) SetupTest() {
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	crosschaintypes.RegisterInterfaces(encCfg.InterfaceRegistry)
+	types.RegisterInterfaces(encCfg.InterfaceRegistry)
 
 	crosschainRouter := crosschainkeeper.NewRouter()
 	crosschainRouter.AddRoute(s.moduleName, crosschainkeeper.NewModuleHandler(s.crosschainKeeper))
 	crosschainRouterKeeper := crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, encCfg.InterfaceRegistry)
-	crosschaintypes.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
-	s.queryClient = crosschaintypes.NewQueryClient(queryHelper)
+	types.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
+	s.queryClient = types.NewQueryClient(queryHelper)
 	s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
 
 	// set params
@@ -125,7 +135,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.NoError(s.crosschainKeeper.SetParams(s.ctx, &params))
 }
 
-func (s *KeeperTestSuite) CrossChainParams() crosschaintypes.Params {
+func (s *KeeperTestSuite) CrossChainParams() types.Params {
 	switch s.moduleName {
 	case ethtypes.ModuleName:
 		return ethtypes.DefaultGenesisState().Params
@@ -151,7 +161,16 @@ func (s *KeeperTestSuite) CrossChainParams() crosschaintypes.Params {
 func (s *KeeperTestSuite) SetOracleSet(nonce, power, height uint64) string {
 	s.crosschainKeeper.SetLatestOracleSetNonce(s.ctx, nonce)
 	external := helpers.GenerateAddressByModule(s.moduleName)
-	bridgeValidator := crosschaintypes.BridgeValidator{Power: power, ExternalAddress: external}
-	s.crosschainKeeper.StoreOracleSet(s.ctx, crosschaintypes.NewOracleSet(nonce, height, crosschaintypes.BridgeValidators{bridgeValidator}))
+	bridgeValidator := types.BridgeValidator{Power: power, ExternalAddress: external}
+	s.crosschainKeeper.StoreOracleSet(s.ctx, types.NewOracleSet(nonce, height, types.BridgeValidators{bridgeValidator}))
 	return external
+}
+
+func (s *KeeperTestSuite) AddBridgeToken(contract string) (bridgeToken *types.BridgeToken) {
+	denom := types.NewBridgeDenom(s.moduleName, contract)
+	s.crosschainKeeper.AddBridgeToken(s.ctx, contract, denom)
+	return &types.BridgeToken{
+		Token: contract,
+		Denom: denom,
+	}
 }
