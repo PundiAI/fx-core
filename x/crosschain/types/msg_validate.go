@@ -217,6 +217,11 @@ func MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error) {
 	if err = ValidateExternalAddr(m.ChainName, m.TxOrigin); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
 	}
+	if len(m.Memo) > 0 {
+		if _, err = hex.DecodeString(m.Memo); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid memo")
+		}
+	}
 	return nil
 }
 
@@ -379,6 +384,11 @@ func MsgBridgeCallValidate(m *MsgBridgeCall) (err error) {
 	if len(m.Data) > 0 {
 		if _, err = hex.DecodeString(m.Data); err != nil {
 			return errortypes.ErrInvalidRequest.Wrap("invalid data")
+		}
+	}
+	if len(m.Memo) > 0 {
+		if _, err = hex.DecodeString(m.Memo); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid memo")
 		}
 	}
 	return nil
