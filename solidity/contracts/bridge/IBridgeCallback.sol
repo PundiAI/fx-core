@@ -7,9 +7,7 @@ interface IBridgeCallback {
         address,
         address[] memory,
         uint256[] memory,
-        address,
         bytes memory,
-        bytes memory,
-        uint256
+        bytes memory
     ) external;
 }

@@ -298,6 +298,8 @@ contract FxBridgeLogic is
         uint256 _value,
         bytes memory _memo
     ) external {
+        require(bytes(_dstChain).length == 0, "Invalid dstChain");
+
         require(
             _tokens.length > 0 || _data.length > 0,
             "Token and data both empty"
@@ -584,10 +586,8 @@ contract FxBridgeLogic is
                 _input.receiver,
                 _input.tokens,
                 _input.amounts,
-                _input.to,
                 _input.data,
-                _input.memo,
-                _input.timeout
+                _input.memo
             );
         }
     }
