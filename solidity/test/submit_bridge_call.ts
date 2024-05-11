@@ -44,7 +44,6 @@ describe("submit bridge call tests", function () {
     let deploy: HardhatEthersSigner;
     let admin: HardhatEthersSigner;
     let user1: HardhatEthersSigner;
-    let oracle: HardhatEthersSigner;
     let erc20Token: ERC20TokenTest;
     let fxBridge: FxBridgeLogic;
 
@@ -52,7 +51,7 @@ describe("submit bridge call tests", function () {
     let totalSupply = "10000"
     const gravityId: string = encodeBytes32String("eth-fxcore");
     const powerThreshold = 6666;
-    const powers: number[] = [10000];
+    const powers: number[] = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000];
 
     let validators: any;
     let valAddresses: any;
@@ -61,10 +60,10 @@ describe("submit bridge call tests", function () {
         const signers = await ethers.getSigners()
         deploy = signers[0]
         admin = signers[1]
-        oracle = signers[2]
-        user1 = signers[3]
+        user1 = signers[2]
 
-        validators = [oracle];
+
+        validators = [signers[3], signers[4], signers[5], signers[6], signers[7], signers[8], signers[9], signers[10], signers[11], signers[12]];
         valAddresses = await getSignerAddresses(validators);
 
         const erc20TokenFactory = await ethers.getContractFactory('ERC20TokenTest')
@@ -85,38 +84,83 @@ describe("submit bridge call tests", function () {
 
         await fxBridge.init(gravityId, powerThreshold, valAddresses, powers)
         await fxBridge.addBridgeToken(erc20TokenAddress, encodeBytes32String(""), true)
+
+        await erc20Token.transferOwnership(await fxBridge.getAddress())
     })
 
-    it("should submit bridge call", async function () {
-        const erc20TokenAddress = await erc20Token.getAddress()
-        const amount = "1000";
-        const timeout = await ethers.provider.getBlockNumber() + 1000;
-
-        const digest = makeSubmitBridgeCallHash(
-            gravityId,user1.address,user1.address,[erc20TokenAddress],
-            [amount], ZeroAddress,"0x","0x",1,timeout)
+    async function submitBridgeCall(tokens: string[], amounts: string[], timeout: number) {
+        const digest = makeSubmitBridgeCallHash(gravityId,user1.address,user1.address,tokens,
+            amounts, ZeroAddress,"0x","0x",1,timeout)
 
         const {v, r, s} = await signHash(validators, digest)
 
         const bridgeCallData: FxBridgeLogic.BridgeCallDataStruct = {
             sender: user1.address,
             receiver: user1.address,
-            tokens: [erc20TokenAddress],
-            amounts: [amount],
+            tokens: tokens,
+            amounts: amounts,
             to: ZeroAddress,
             data: "0x",
             memo: "0x",
             timeout: timeout
         };
+        await fxBridge.submitBridgeCall(valAddresses, powers, v, r, s, [0, 1], bridgeCallData);
+    }
 
-        await fxBridge.submitBridgeCall(
-            valAddresses,
-            powers,
-            v,
-            r,
-            s,
-            [0, 1],
-            bridgeCallData
-        );
+    it("should submit bridge call", async function () {
+        const erc20TokenAddress = await erc20Token.getAddress()
+        const amount = "1000";
+        const timeout = await ethers.provider.getBlockNumber() + 1000;
+
+        await submitBridgeCall([erc20TokenAddress], [amount], timeout)
+    })
+
+    describe("submit bridge call batch test", function () {
+        let token1: ERC20TokenTest;
+        let token2: ERC20TokenTest;
+        let token3: ERC20TokenTest;
+        let token4: ERC20TokenTest;
+
+        beforeEach(async function () {
+            const erc2TokenFactory = await ethers.getContractFactory('ERC20TokenTest')
+            token1 = await erc2TokenFactory.deploy("Token1", "T", "18", ethers.parseEther(totalSupply))
+            token2 = await erc2TokenFactory.deploy("Token2", "TT", "18", ethers.parseEther(totalSupply))
+            token3 = await erc2TokenFactory.deploy("Token3", "TTT", "18", ethers.parseEther(totalSupply))
+            token4 = await erc2TokenFactory.deploy("Token4", "TTTT", "18", ethers.parseEther(totalSupply))
+
+            await fxBridge.addBridgeToken(await token1.getAddress(), encodeBytes32String(""), true)
+            await fxBridge.addBridgeToken(await token2.getAddress(), encodeBytes32String(""), true)
+            await fxBridge.addBridgeToken(await token3.getAddress(), encodeBytes32String(""), true)
+            await fxBridge.addBridgeToken(await token4.getAddress(), encodeBytes32String(""), true)
+
+            await token1.transferOwnership(await fxBridge.getAddress())
+            await token2.transferOwnership(await fxBridge.getAddress())
+            await token3.transferOwnership(await fxBridge.getAddress())
+            await token4.transferOwnership(await fxBridge.getAddress())
+        })
+
+        it("submit bridge call 2 token", async function () {
+            const tokens = [await token1.getAddress(), await token2.getAddress()]
+            const amounts = ["1", "2"]
+            const timeout = await ethers.provider.getBlockNumber() + 1000;
+
+            await submitBridgeCall(tokens, amounts, timeout)
+        })
+
+        it("submit bridge call 3 token", async function () {
+            const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress()]
+            const amounts = ["1", "2", "3"]
+            const timeout = await ethers.provider.getBlockNumber() + 1000;
+
+            await submitBridgeCall(tokens, amounts, timeout)
+        })
+
+        it("submit bridge call 4 token", async function () {
+            const tokens = [await token1.getAddress(), await token2.getAddress(), await token3.getAddress(), await token4.getAddress()]
+            const amounts = ["1", "2", "3", "4"]
+            const timeout = await ethers.provider.getBlockNumber() + 1000;
+
+            await submitBridgeCall(tokens, amounts, timeout)
+        })
     })
 })
