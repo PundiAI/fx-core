@@ -502,11 +502,18 @@ contract FxBridgeLogicETH is
 
         state_lastBridgeCallNonces[_nonceArray[1]] = true;
 
-        bool result = false;
+        bool success = false;
+        bytes memory cause = new bytes(0);
         try this._transferAndBridgeCallback(_input) {
-            result = true;
+            success = true;
             // solhint-disable-next-line no-empty-blocks
-        } catch {}
+        } catch Error(string memory reason) {
+            // catch failing revert() and require()
+            cause = bytes(reason);
+        } catch (bytes memory reason) {
+            // catch failing assert()
+            cause = reason;
+        }
 
         {
             state_lastEventNonce = state_lastEventNonce.add(1);
@@ -518,7 +525,8 @@ contract FxBridgeLogicETH is
                 tx.origin,
                 _nonceArray[1],
                 state_lastEventNonce,
-                result
+                success,
+                cause
             );
         }
     }
@@ -858,6 +866,7 @@ contract FxBridgeLogicETH is
         address _txOrigin,
         uint256 _nonce,
         uint256 _eventNonce,
-        bool _result
+        bool _success,
+        bytes _cause
     );
 }

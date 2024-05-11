@@ -252,6 +252,7 @@ interface IFxBridgeLogic {
         address _txOrigin,
         uint256 _nonce,
         uint256 _eventNonce,
-        bool _result
+        bool _success,
+        bytes _cause
     );
 }
