@@ -32,26 +32,26 @@ func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string
 
 func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPacket *types.IbcCallEvmPacket) error {
 	limit := ctx.ConsensusParams().GetBlock().GetMaxGas()
-	evmErr, evmResult := "", false
+	evmErrCause, evmSuccess := "", false
 	defer func() {
 		attrs := []sdk.Attribute{
 			sdk.NewAttribute(types.AttributeKeyIBCCallType, types.IbcCallType_name[int32(evmPacket.GetType())]),
 			sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
-			sdk.NewAttribute(types.AttributeKeyIBCCallResult, strconv.FormatBool(evmResult)),
+			sdk.NewAttribute(types.AttributeKeyIBCCallSuccess, strconv.FormatBool(evmSuccess)),
 		}
-		if len(evmErr) > 0 {
-			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyIBCCallError, evmErr))
+		if len(evmErrCause) > 0 {
+			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyIBCCallErrCause, evmErrCause))
 		}
 		ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeIBCCall, attrs...)})
 	}()
 	txResp, err := k.evmKeeper.CallEVM(ctx, sender,
 		evmPacket.GetToAddress(), evmPacket.Value.BigInt(), uint64(limit), evmPacket.MustGetData(), true)
 	if err != nil {
-		evmErr = err.Error()
+		evmErrCause = err.Error()
 		return err
 	}
-	evmResult = !txResp.Failed()
-	evmErr = txResp.VmError
+	evmSuccess = !txResp.Failed()
+	evmErrCause = txResp.VmError
 	if txResp.Failed() {
 		return errorsmod.Wrap(evmtypes.ErrVMExecution, txResp.VmError)
 	}
