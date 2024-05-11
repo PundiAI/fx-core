@@ -79,27 +79,27 @@ func (k Keeper) bridgeCallFxCore(
 		return err
 	}
 	if len(data) > 0 || to != nil {
-		evmErr, evmResult := "", false
+		evmErrCause, evmSuccess := "", false
 		defer func() {
 			attrs := []sdk.Attribute{
 				sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatUint(eventNonce, 10)),
-				sdk.NewAttribute(types.AttributeKeyBridgeCallResult, strconv.FormatBool(evmResult)),
+				sdk.NewAttribute(types.AttributeKeyBridgeCallSuccess, strconv.FormatBool(evmSuccess)),
 			}
-			if len(evmErr) > 0 {
-				attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyBridgeCallError, evmErr))
+			if len(evmErrCause) > 0 {
+				attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyBridgeCallErrCause, evmErrCause))
 			}
 			ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvent, attrs...)})
 		}()
 		gasLimit := ctx.ConsensusParams().GetBlock().GetMaxGas()
 		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), uint64(gasLimit), data, true)
 		if err != nil {
-			evmErr = err.Error()
+			evmErrCause = err.Error()
 			return err
 		}
-		evmResult = !txResp.Failed()
-		evmErr = txResp.VmError
+		evmSuccess = !txResp.Failed()
+		evmErrCause = txResp.VmError
 		if txResp.Failed() {
-			return errorsmod.Wrap(types.ErrInvalid, evmErr)
+			return errorsmod.Wrap(types.ErrInvalid, evmErrCause)
 		}
 	}
 	return nil
