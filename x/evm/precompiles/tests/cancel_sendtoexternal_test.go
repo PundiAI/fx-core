@@ -19,6 +19,7 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -74,7 +75,8 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	refundPackFunc := func(moduleName string, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
-		externalTx, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+		externalTx, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 			&crosschaintypes.QueryPendingSendToExternalRequest{
 				ChainName:     moduleName,
 				SenderAddress: signer.AccAddress().String(),
@@ -363,7 +365,8 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			pair, moduleName, originToken := tc.prepare(pair, moduleName, signer, randMint)
 
 			if len(originToken) > 0 && originToken != fxtypes.DefaultDenom {
-				petxs, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
+				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+				petxs, err := queryServer.GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
 					ChainName:     moduleName,
 					SenderAddress: signer.AccAddress().String(),
 				})
@@ -499,7 +502,8 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 	suite.Require().False(res.Failed(), res.VmError)
 
 	// get crosschain pending tx
-	petxs, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
+	queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+	petxs, err := queryServer.GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
 		ChainName:     moduleName,
 		SenderAddress: signer.AccAddress().String(),
 	})

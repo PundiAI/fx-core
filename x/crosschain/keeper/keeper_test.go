@@ -110,10 +110,15 @@ func (s *KeeperTestSuite) SetupTest() {
 	)
 
 	crosschaintypes.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+	crosschainRouter := crosschainkeeper.NewRouter()
+	crosschainRouter.AddRoute(s.moduleName, crosschainkeeper.NewModuleHandler(s.crosschainKeeper))
+	crosschainRouterKeeper := crosschainkeeper.NewRouterKeeper(crosschainRouter)
+
 	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, encCfg.InterfaceRegistry)
-	crosschaintypes.RegisterQueryServer(queryHelper, s.crosschainKeeper)
+	crosschaintypes.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
 	s.queryClient = crosschaintypes.NewQueryClient(queryHelper)
-	s.msgServer = crosschainkeeper.NewMsgServerImpl(s.crosschainKeeper)
+	s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
 
 	// set params
 	params := s.CrossChainParams()

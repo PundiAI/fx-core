@@ -91,11 +91,7 @@ func (suite *KeeperTestSuite) MsgServer() types.MsgServer {
 
 func (suite *KeeperTestSuite) QueryClient() types.QueryClient {
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	if suite.chainName == trontypes.ModuleName {
-		types.RegisterQueryServer(queryHelper, suite.app.TronKeeper)
-		return types.NewQueryClient(queryHelper)
-	}
-	types.RegisterQueryServer(queryHelper, suite.Keeper())
+	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.Keeper()))
 	return types.NewQueryClient(queryHelper)
 }
 

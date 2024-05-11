@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -17,6 +18,7 @@ import (
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
 )
@@ -24,9 +26,11 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app       *app.App
-	ctx       sdk.Context
-	msgServer crosschaintypes.MsgServer
+	app *app.App
+	ctx sdk.Context
+
+	queryServer crosschaintypes.QueryClient
+	msgServer   crosschaintypes.MsgServer
 
 	signer *helpers.Signer
 }
@@ -60,6 +64,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 		BridgeCallTimeout: crosschaintypes.DefaultBridgeCallTimeout,
 	})
 	suite.Require().NoError(err)
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	crosschaintypes.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.app.TronKeeper.Keeper))
+	suite.queryServer = crosschaintypes.NewQueryClient(queryHelper)
+
 	suite.msgServer = tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))

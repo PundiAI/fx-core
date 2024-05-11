@@ -16,22 +16,30 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = QueryServer{}
 
-func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+type QueryServer struct {
+	Keeper
+}
+
+func NewQueryServerImpl(keeper Keeper) types.QueryServer {
+	return &QueryServer{Keeper: keeper}
+}
+
+func (k QueryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	params := k.GetParams(sdk.UnwrapSDKContext(c))
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
-func (k Keeper) CurrentOracleSet(c context.Context, _ *types.QueryCurrentOracleSetRequest) (*types.QueryCurrentOracleSetResponse, error) {
+func (k QueryServer) CurrentOracleSet(c context.Context, _ *types.QueryCurrentOracleSetRequest) (*types.QueryCurrentOracleSetResponse, error) {
 	return &types.QueryCurrentOracleSetResponse{OracleSet: k.GetCurrentOracleSet(sdk.UnwrapSDKContext(c))}, nil
 }
 
-func (k Keeper) OracleSetRequest(c context.Context, req *types.QueryOracleSetRequestRequest) (*types.QueryOracleSetRequestResponse, error) {
+func (k QueryServer) OracleSetRequest(c context.Context, req *types.QueryOracleSetRequestRequest) (*types.QueryOracleSetRequestResponse, error) {
 	return &types.QueryOracleSetRequestResponse{OracleSet: k.GetOracleSet(sdk.UnwrapSDKContext(c), req.Nonce)}, nil
 }
 
-func (k Keeper) OracleSetConfirm(c context.Context, req *types.QueryOracleSetConfirmRequest) (*types.QueryOracleSetConfirmResponse, error) {
+func (k QueryServer) OracleSetConfirm(c context.Context, req *types.QueryOracleSetConfirmRequest) (*types.QueryOracleSetConfirmResponse, error) {
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
@@ -43,7 +51,7 @@ func (k Keeper) OracleSetConfirm(c context.Context, req *types.QueryOracleSetCon
 	return &types.QueryOracleSetConfirmResponse{Confirm: k.GetOracleSetConfirm(ctx, req.Nonce, oracleAddr)}, nil
 }
 
-func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOracleSetConfirmsByNonceRequest) (*types.QueryOracleSetConfirmsByNonceResponse, error) {
+func (k QueryServer) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOracleSetConfirmsByNonceRequest) (*types.QueryOracleSetConfirmsByNonceResponse, error) {
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
@@ -55,7 +63,7 @@ func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOrac
 	return &types.QueryOracleSetConfirmsByNonceResponse{Confirms: confirms}, nil
 }
 
-func (k Keeper) LastOracleSetRequests(c context.Context, _ *types.QueryLastOracleSetRequestsRequest) (*types.QueryLastOracleSetRequestsResponse, error) {
+func (k QueryServer) LastOracleSetRequests(c context.Context, _ *types.QueryLastOracleSetRequestsRequest) (*types.QueryLastOracleSetRequestsResponse, error) {
 	var oraclesSets []*types.OracleSet
 	k.IterateOracleSets(sdk.UnwrapSDKContext(c), true, func(oracleSet *types.OracleSet) bool {
 		if len(oraclesSets) >= types.MaxOracleSetRequestsResults {
@@ -67,7 +75,7 @@ func (k Keeper) LastOracleSetRequests(c context.Context, _ *types.QueryLastOracl
 	return &types.QueryLastOracleSetRequestsResponse{OracleSets: oraclesSets}, nil
 }
 
-func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.QueryLastPendingOracleSetRequestByAddrRequest) (*types.QueryLastPendingOracleSetRequestByAddrResponse, error) {
+func (k QueryServer) LastPendingOracleSetRequestByAddr(c context.Context, req *types.QueryLastPendingOracleSetRequestByAddrRequest) (*types.QueryLastPendingOracleSetRequestByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
 	if err != nil {
@@ -92,7 +100,7 @@ func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.
 }
 
 // BatchFees queries the batch fees from unbatched pool
-func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
+func (k QueryServer) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
 	if req.GetMinBatchFees() == nil {
 		req.MinBatchFees = make([]types.MinBatchFee, 0)
 	}
@@ -109,7 +117,7 @@ func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*
 	return &types.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
 }
 
-func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
+func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
 	if err != nil {
@@ -132,7 +140,7 @@ func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.Quer
 	return &types.QueryLastPendingBatchRequestByAddrResponse{Batch: pendingBatchReq}, nil
 }
 
-func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
+func (k QueryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
 	var batches []*types.OutgoingTxBatch
 	k.IterateOutgoingTxBatches(sdk.UnwrapSDKContext(c), func(batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
@@ -144,7 +152,7 @@ func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBat
 	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
 }
 
-func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
+func (k QueryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
@@ -158,7 +166,7 @@ func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequ
 	return &types.QueryBatchRequestByNonceResponse{Batch: foundBatch}, nil
 }
 
-func (k Keeper) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
+func (k QueryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
@@ -172,7 +180,7 @@ func (k Keeper) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequ
 }
 
 // BatchConfirms returns the batch confirmations by nonce and token contract
-func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
+func (k QueryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
@@ -188,7 +196,7 @@ func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRe
 }
 
 // LastEventNonceByAddr returns the last event nonce for the given validator address, this allows eth oracles to figure out where they left off
-func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
+func (k QueryServer) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, req.GetBridgerAddress())
 	if err != nil {
@@ -198,7 +206,7 @@ func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEven
 	return &types.QueryLastEventNonceByAddrResponse{EventNonce: lastEventNonce}, nil
 }
 
-func (k Keeper) DenomToToken(c context.Context, req *types.QueryDenomToTokenRequest) (*types.QueryDenomToTokenResponse, error) {
+func (k QueryServer) DenomToToken(c context.Context, req *types.QueryDenomToTokenRequest) (*types.QueryDenomToTokenResponse, error) {
 	if len(req.GetDenom()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
@@ -212,7 +220,7 @@ func (k Keeper) DenomToToken(c context.Context, req *types.QueryDenomToTokenRequ
 	}, nil
 }
 
-func (k Keeper) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequest) (*types.QueryTokenToDenomResponse, error) {
+func (k QueryServer) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequest) (*types.QueryTokenToDenomResponse, error) {
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetToken()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
@@ -225,7 +233,7 @@ func (k Keeper) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequ
 	}, nil
 }
 
-func (k Keeper) GetOracleByAddr(c context.Context, req *types.QueryOracleByAddrRequest) (*types.QueryOracleResponse, error) {
+func (k QueryServer) GetOracleByAddr(c context.Context, req *types.QueryOracleByAddrRequest) (*types.QueryOracleResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(req.OracleAddress)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "oracle address")
@@ -237,7 +245,7 @@ func (k Keeper) GetOracleByAddr(c context.Context, req *types.QueryOracleByAddrR
 	return &types.QueryOracleResponse{Oracle: &oracle}, nil
 }
 
-func (k Keeper) GetOracleByBridgerAddr(c context.Context, req *types.QueryOracleByBridgerAddrRequest) (*types.QueryOracleResponse, error) {
+func (k QueryServer) GetOracleByBridgerAddr(c context.Context, req *types.QueryOracleByBridgerAddrRequest) (*types.QueryOracleResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
 	if err != nil {
@@ -246,7 +254,7 @@ func (k Keeper) GetOracleByBridgerAddr(c context.Context, req *types.QueryOracle
 	return &types.QueryOracleResponse{Oracle: &oracle}, nil
 }
 
-func (k Keeper) GetOracleByExternalAddr(c context.Context, req *types.QueryOracleByExternalAddrRequest) (*types.QueryOracleResponse, error) {
+func (k QueryServer) GetOracleByExternalAddr(c context.Context, req *types.QueryOracleByExternalAddrRequest) (*types.QueryOracleResponse, error) {
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetExternalAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "external address")
 	}
@@ -263,7 +271,7 @@ func (k Keeper) GetOracleByExternalAddr(c context.Context, req *types.QueryOracl
 	return &types.QueryOracleResponse{Oracle: &oracle}, nil
 }
 
-func (k Keeper) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
+func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
 	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "sender address")
 	}
@@ -294,7 +302,7 @@ func (k Keeper) GetPendingSendToExternal(c context.Context, req *types.QueryPend
 	return res, nil
 }
 
-func (k Keeper) GetPendingPoolSendToExternal(c context.Context, req *types.QueryPendingPoolSendToExternalRequest) (*types.QueryPendingPoolSendToExternalResponse, error) {
+func (k QueryServer) GetPendingPoolSendToExternal(c context.Context, req *types.QueryPendingPoolSendToExternalRequest) (*types.QueryPendingPoolSendToExternalResponse, error) {
 	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "sender address")
 	}
@@ -318,7 +326,7 @@ func (k Keeper) GetPendingPoolSendToExternal(c context.Context, req *types.Query
 	return &types.QueryPendingPoolSendToExternalResponse{Txs: txs, Pagination: pageRes}, nil
 }
 
-func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
+func (k QueryServer) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
 	blockHeight := k.GetLastObservedBlockHeight(sdk.UnwrapSDKContext(c))
 	return &types.QueryLastObservedBlockHeightResponse{
 		ExternalBlockHeight: blockHeight.ExternalBlockHeight,
@@ -326,7 +334,7 @@ func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObs
 	}, nil
 }
 
-func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
+func (k QueryServer) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, req.GetBridgerAddress())
 	if err != nil {
@@ -337,19 +345,19 @@ func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLa
 	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
 }
 
-func (k Keeper) Oracles(c context.Context, _ *types.QueryOraclesRequest) (*types.QueryOraclesResponse, error) {
+func (k QueryServer) Oracles(c context.Context, _ *types.QueryOraclesRequest) (*types.QueryOraclesResponse, error) {
 	oracles := k.GetAllOracles(sdk.UnwrapSDKContext(c), false)
 	return &types.QueryOraclesResponse{Oracles: oracles}, nil
 }
 
-func (k Keeper) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
+func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := k.GetParams(ctx)
 	timeout := k.CalExternalTimeoutHeight(ctx, params, params.ExternalBatchTimeout)
 	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: timeout}, nil
 }
 
-func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
+func (k QueryServer) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
 	bridgeTokens := make([]*types.BridgeToken, 0)
 	k.IterateBridgeTokenToDenom(sdk.UnwrapSDKContext(c), func(token *types.BridgeToken) bool {
 		bridgeTokens = append(bridgeTokens, token)
@@ -358,7 +366,7 @@ func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensReques
 	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
 }
 
-func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
+func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
 	if len(req.GetDenom()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
@@ -402,11 +410,11 @@ func (k Keeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinB
 	return &types.QueryBridgeCoinByDenomResponse{Coin: supply}, nil
 }
 
-func (k Keeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
+func (k QueryServer) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
 	return &types.QueryBridgeChainListResponse{ChainNames: types.GetSupportChains()}, nil
 }
 
-func (k Keeper) BridgeCalls(c context.Context, req *types.QueryBridgeCallsRequest) (*types.QueryBridgeCallsResponse, error) {
+func (k QueryServer) BridgeCalls(c context.Context, req *types.QueryBridgeCallsRequest) (*types.QueryBridgeCallsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	store := ctx.KVStore(k.storeKey)
 	pendingStore := prefix.NewStore(store, types.OutgoingBridgeCallNonceKey)
@@ -423,7 +431,7 @@ func (k Keeper) BridgeCalls(c context.Context, req *types.QueryBridgeCallsReques
 	return &types.QueryBridgeCallsResponse{BridgeCalls: datas, Pagination: pageRes}, nil
 }
 
-func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
+func (k QueryServer) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBridgeCallConfirmByNonceRequest) (*types.QueryBridgeCallConfirmByNonceResponse, error) {
 	if req.GetEventNonce() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "event nonce")
 	}
@@ -447,7 +455,7 @@ func (k Keeper) BridgeCallConfirmByNonce(c context.Context, req *types.QueryBrid
 	return &types.QueryBridgeCallConfirmByNonceResponse{Confirms: bridgeCallConfirms, EnoughPower: enoughPower}, nil
 }
 
-func (k Keeper) BridgeCallByNonce(c context.Context, req *types.QueryBridgeCallByNonceRequest) (*types.QueryBridgeCallByNonceResponse, error) {
+func (k QueryServer) BridgeCallByNonce(c context.Context, req *types.QueryBridgeCallByNonceRequest) (*types.QueryBridgeCallByNonceResponse, error) {
 	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(sdk.UnwrapSDKContext(c), req.GetEventNonce())
 	if !found {
 		return nil, status.Error(codes.NotFound, "outgoing bridge call not found")
@@ -455,7 +463,7 @@ func (k Keeper) BridgeCallByNonce(c context.Context, req *types.QueryBridgeCallB
 	return &types.QueryBridgeCallByNonceResponse{BridgeCall: outgoingBridgeCall}, nil
 }
 
-func (k Keeper) BridgeCallBySender(c context.Context, req *types.QueryBridgeCallBySenderRequest) (*types.QueryBridgeCallBySenderResponse, error) {
+func (k QueryServer) BridgeCallBySender(c context.Context, req *types.QueryBridgeCallBySenderRequest) (*types.QueryBridgeCallBySenderResponse, error) {
 	var outgoingBridgeCalls []*types.OutgoingBridgeCall
 	k.IterateOutgoingBridgeCallsByAddress(sdk.UnwrapSDKContext(c), req.GetSenderAddress(), func(outgoingBridgeCall *types.OutgoingBridgeCall) bool {
 		outgoingBridgeCalls = append(outgoingBridgeCalls, outgoingBridgeCall)
@@ -464,7 +472,7 @@ func (k Keeper) BridgeCallBySender(c context.Context, req *types.QueryBridgeCall
 	return &types.QueryBridgeCallBySenderResponse{BridgeCalls: outgoingBridgeCalls}, nil
 }
 
-func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {
+func (k QueryServer) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryLastPendingBridgeCallByAddrRequest) (*types.QueryLastPendingBridgeCallByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
 	if err != nil {
@@ -486,7 +494,7 @@ func (k Keeper) LastPendingBridgeCallByAddr(c context.Context, req *types.QueryL
 	return &types.QueryLastPendingBridgeCallByAddrResponse{BridgeCalls: unsignedOutgoingBridgeCall}, nil
 }
 
-func (k Keeper) BridgeAddrToOracleAddr(ctx sdk.Context, bridgeAddr string) (sdk.AccAddress, error) {
+func (k QueryServer) BridgeAddrToOracleAddr(ctx sdk.Context, bridgeAddr string) (sdk.AccAddress, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(bridgeAddr)
 	if err != nil {
 		return sdk.AccAddress{}, status.Error(codes.InvalidArgument, "bridger address")
@@ -498,7 +506,7 @@ func (k Keeper) BridgeAddrToOracleAddr(ctx sdk.Context, bridgeAddr string) (sdk.
 	return oracleAddr, nil
 }
 
-func (k Keeper) BridgeAddrToOracle(ctx sdk.Context, bridgeAddr string) (types.Oracle, error) {
+func (k QueryServer) BridgeAddrToOracle(ctx sdk.Context, bridgeAddr string) (types.Oracle, error) {
 	oracleAddr, err := k.BridgeAddrToOracleAddr(ctx, bridgeAddr)
 	if err != nil {
 		return types.Oracle{}, err

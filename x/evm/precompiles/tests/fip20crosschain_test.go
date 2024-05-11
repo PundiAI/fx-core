@@ -21,6 +21,7 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -321,7 +322,8 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			packData, newPair, value, moduleName, errArgs := tc.malleate(pair, md, signer, randMint)
 
 			if len(moduleName) > 0 {
-				resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -367,15 +369,16 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 					suite.Require().Equal(coin.Amount.String(), expect.String(), coin.Denom)
 				}
 
+				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
 				if tc.isPendingPool {
-					resp, err := suite.CrossChainKeepers()[moduleName].GetPendingPoolSendToExternal(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryPendingPoolSendToExternalRequest{
+					resp, err := queryServer.GetPendingPoolSendToExternal(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryPendingPoolSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
 					})
 					suite.Require().NoError(err)
 					suite.Require().Equal(1, len(resp.Txs))
 				} else {
-					resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+					resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 						&crosschaintypes.QueryPendingSendToExternalRequest{
 							ChainName:     moduleName,
 							SenderAddress: signer.AccAddress().String(),
@@ -574,8 +577,9 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 
 			packData, newPair, value, moduleName, errArgs := tc.malleate(pair, md, signer, randMint)
 
+			queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
 			if len(moduleName) > 0 {
-				resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -629,7 +633,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 					}
 				}
 
-				resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),

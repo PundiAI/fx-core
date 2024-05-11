@@ -19,6 +19,7 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -75,7 +76,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
-		pendingTx, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+		pendingTx, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 			&crosschaintypes.QueryPendingSendToExternalRequest{
 				ChainName:     moduleName,
 				SenderAddress: signer.AccAddress().String(),
@@ -459,7 +461,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				pendingTx, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+				pendingTx, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -544,7 +547,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
-		pendingTx, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+		pendingTx, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 			&crosschaintypes.QueryPendingSendToExternalRequest{
 				ChainName:     moduleName,
 				SenderAddress: signer.AccAddress().String(),
@@ -795,7 +799,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				pendingTx, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+				pendingTx, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),

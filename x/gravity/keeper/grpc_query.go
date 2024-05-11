@@ -12,17 +12,17 @@ import (
 )
 
 type queryServer struct {
-	crosschainkeeper.Keeper
+	server crosschaintypes.QueryServer
 }
 
 func NewQueryServerImpl(keeper crosschainkeeper.Keeper) types.QueryServer {
-	return &queryServer{Keeper: keeper}
+	return &queryServer{server: crosschainkeeper.NewQueryServerImpl(keeper)}
 }
 
 var _ types.QueryServer = queryServer{}
 
 func (k queryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	response, err := k.Keeper.Params(c, &crosschaintypes.QueryParamsRequest{ChainName: ethtypes.ModuleName})
+	response, err := k.server.Params(c, &crosschaintypes.QueryParamsRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (k queryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*ty
 }
 
 func (k queryServer) CurrentValset(c context.Context, _ *types.QueryCurrentValsetRequest) (*types.QueryCurrentValsetResponse, error) {
-	response, err := k.Keeper.CurrentOracleSet(c, &crosschaintypes.QueryCurrentOracleSetRequest{ChainName: ethtypes.ModuleName})
+	response, err := k.server.CurrentOracleSet(c, &crosschaintypes.QueryCurrentOracleSetRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (k queryServer) CurrentValset(c context.Context, _ *types.QueryCurrentValse
 }
 
 func (k queryServer) ValsetRequest(c context.Context, req *types.QueryValsetRequestRequest) (*types.QueryValsetRequestResponse, error) {
-	response, err := k.Keeper.OracleSetRequest(c, &crosschaintypes.QueryOracleSetRequestRequest{
+	response, err := k.server.OracleSetRequest(c, &crosschaintypes.QueryOracleSetRequestRequest{
 		ChainName: ethtypes.ModuleName,
 		Nonce:     req.Nonce,
 	})
@@ -87,7 +87,7 @@ func (k queryServer) ValsetRequest(c context.Context, req *types.QueryValsetRequ
 }
 
 func (k queryServer) ValsetConfirm(c context.Context, req *types.QueryValsetConfirmRequest) (*types.QueryValsetConfirmResponse, error) {
-	response, err := k.Keeper.OracleSetConfirm(c, &crosschaintypes.QueryOracleSetConfirmRequest{
+	response, err := k.server.OracleSetConfirm(c, &crosschaintypes.QueryOracleSetConfirmRequest{
 		ChainName:      ethtypes.ModuleName,
 		BridgerAddress: req.Address,
 		Nonce:          req.Nonce,
@@ -104,7 +104,7 @@ func (k queryServer) ValsetConfirm(c context.Context, req *types.QueryValsetConf
 }
 
 func (k queryServer) ValsetConfirmsByNonce(c context.Context, req *types.QueryValsetConfirmsByNonceRequest) (*types.QueryValsetConfirmsByNonceResponse, error) {
-	response, err := k.Keeper.OracleSetConfirmsByNonce(c, &crosschaintypes.QueryOracleSetConfirmsByNonceRequest{
+	response, err := k.server.OracleSetConfirmsByNonce(c, &crosschaintypes.QueryOracleSetConfirmsByNonceRequest{
 		ChainName: ethtypes.ModuleName,
 		Nonce:     req.Nonce,
 	})
@@ -124,7 +124,7 @@ func (k queryServer) ValsetConfirmsByNonce(c context.Context, req *types.QueryVa
 }
 
 func (k queryServer) LastValsetRequests(c context.Context, _ *types.QueryLastValsetRequestsRequest) (*types.QueryLastValsetRequestsResponse, error) {
-	response, err := k.Keeper.LastOracleSetRequests(c, &crosschaintypes.QueryLastOracleSetRequestsRequest{ChainName: ethtypes.ModuleName})
+	response, err := k.server.LastOracleSetRequests(c, &crosschaintypes.QueryLastOracleSetRequestsRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (k queryServer) LastValsetRequests(c context.Context, _ *types.QueryLastVal
 }
 
 func (k queryServer) LastPendingValsetRequestByAddr(c context.Context, req *types.QueryLastPendingValsetRequestByAddrRequest) (*types.QueryLastPendingValsetRequestByAddrResponse, error) {
-	response, err := k.Keeper.LastPendingOracleSetRequestByAddr(c, &crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
+	response, err := k.server.LastPendingOracleSetRequestByAddr(c, &crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
 		ChainName:      ethtypes.ModuleName,
 		BridgerAddress: req.Address,
 	})
@@ -179,7 +179,7 @@ func (k queryServer) BatchFees(c context.Context, req *types.QueryBatchFeeReques
 			BaseFee:       req.MinBatchFees[i].BaseFee,
 		}
 	}
-	response, err := k.Keeper.BatchFees(c, &crosschaintypes.QueryBatchFeeRequest{
+	response, err := k.server.BatchFees(c, &crosschaintypes.QueryBatchFeeRequest{
 		ChainName:    ethtypes.ModuleName,
 		MinBatchFees: minBatchFees,
 	})
@@ -199,7 +199,7 @@ func (k queryServer) BatchFees(c context.Context, req *types.QueryBatchFeeReques
 }
 
 func (k queryServer) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
-	response, err := k.Keeper.LastPendingBatchRequestByAddr(c, &crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{
+	response, err := k.server.LastPendingBatchRequestByAddr(c, &crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{
 		ChainName:      ethtypes.ModuleName,
 		BridgerAddress: req.Address,
 	})
@@ -234,7 +234,7 @@ func (k queryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 }
 
 func (k queryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
-	response, err := k.Keeper.OutgoingTxBatches(c, &crosschaintypes.QueryOutgoingTxBatchesRequest{ChainName: ethtypes.ModuleName})
+	response, err := k.server.OutgoingTxBatches(c, &crosschaintypes.QueryOutgoingTxBatchesRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func (k queryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoing
 }
 
 func (k queryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
-	response, err := k.Keeper.BatchRequestByNonce(c, &crosschaintypes.QueryBatchRequestByNonceRequest{
+	response, err := k.server.BatchRequestByNonce(c, &crosschaintypes.QueryBatchRequestByNonceRequest{
 		ChainName:     ethtypes.ModuleName,
 		TokenContract: req.TokenContract,
 		Nonce:         req.Nonce,
@@ -303,7 +303,7 @@ func (k queryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatc
 }
 
 func (k queryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
-	response, err := k.Keeper.BatchConfirm(c, &crosschaintypes.QueryBatchConfirmRequest{
+	response, err := k.server.BatchConfirm(c, &crosschaintypes.QueryBatchConfirmRequest{
 		ChainName:      ethtypes.ModuleName,
 		TokenContract:  req.TokenContract,
 		BridgerAddress: req.Address,
@@ -322,7 +322,7 @@ func (k queryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfir
 }
 
 func (k queryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
-	response, err := k.Keeper.BatchConfirms(c, &crosschaintypes.QueryBatchConfirmsRequest{
+	response, err := k.server.BatchConfirms(c, &crosschaintypes.QueryBatchConfirmsRequest{
 		ChainName:     ethtypes.ModuleName,
 		TokenContract: req.TokenContract,
 		Nonce:         req.Nonce,
@@ -344,7 +344,7 @@ func (k queryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfi
 }
 
 func (k queryServer) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
-	response, err := k.Keeper.LastEventNonceByAddr(c, &crosschaintypes.QueryLastEventNonceByAddrRequest{
+	response, err := k.server.LastEventNonceByAddr(c, &crosschaintypes.QueryLastEventNonceByAddrRequest{
 		ChainName:      ethtypes.ModuleName,
 		BridgerAddress: req.Address,
 	})
@@ -355,7 +355,7 @@ func (k queryServer) LastEventNonceByAddr(c context.Context, req *types.QueryLas
 }
 
 func (k queryServer) DenomToERC20(c context.Context, req *types.QueryDenomToERC20Request) (*types.QueryDenomToERC20Response, error) {
-	response, err := k.Keeper.DenomToToken(c, &crosschaintypes.QueryDenomToTokenRequest{
+	response, err := k.server.DenomToToken(c, &crosschaintypes.QueryDenomToTokenRequest{
 		ChainName: ethtypes.ModuleName,
 		Denom:     req.Denom,
 	})
@@ -366,7 +366,7 @@ func (k queryServer) DenomToERC20(c context.Context, req *types.QueryDenomToERC2
 }
 
 func (k queryServer) ERC20ToDenom(c context.Context, req *types.QueryERC20ToDenomRequest) (*types.QueryERC20ToDenomResponse, error) {
-	response, err := k.Keeper.TokenToDenom(c, &crosschaintypes.QueryTokenToDenomRequest{
+	response, err := k.server.TokenToDenom(c, &crosschaintypes.QueryTokenToDenomRequest{
 		ChainName: ethtypes.ModuleName,
 		Token:     req.Erc20,
 	})
@@ -377,7 +377,7 @@ func (k queryServer) ERC20ToDenom(c context.Context, req *types.QueryERC20ToDeno
 }
 
 func (k queryServer) GetDelegateKeyByValidator(c context.Context, req *types.QueryDelegateKeyByValidatorRequest) (*types.QueryDelegateKeyByValidatorResponse, error) {
-	response, err := k.Keeper.GetOracleByAddr(c, &crosschaintypes.QueryOracleByAddrRequest{
+	response, err := k.server.GetOracleByAddr(c, &crosschaintypes.QueryOracleByAddrRequest{
 		ChainName:     ethtypes.ModuleName,
 		OracleAddress: req.ValidatorAddress,
 	})
@@ -391,7 +391,7 @@ func (k queryServer) GetDelegateKeyByValidator(c context.Context, req *types.Que
 }
 
 func (k queryServer) GetDelegateKeyByOrchestrator(c context.Context, req *types.QueryDelegateKeyByOrchestratorRequest) (*types.QueryDelegateKeyByOrchestratorResponse, error) {
-	response, err := k.Keeper.GetOracleByBridgerAddr(c, &crosschaintypes.QueryOracleByBridgerAddrRequest{
+	response, err := k.server.GetOracleByBridgerAddr(c, &crosschaintypes.QueryOracleByBridgerAddrRequest{
 		ChainName:      ethtypes.ModuleName,
 		BridgerAddress: req.OrchestratorAddress,
 	})
@@ -405,7 +405,7 @@ func (k queryServer) GetDelegateKeyByOrchestrator(c context.Context, req *types.
 }
 
 func (k queryServer) GetDelegateKeyByEth(c context.Context, req *types.QueryDelegateKeyByEthRequest) (*types.QueryDelegateKeyByEthResponse, error) {
-	response, err := k.Keeper.GetOracleByExternalAddr(c, &crosschaintypes.QueryOracleByExternalAddrRequest{
+	response, err := k.server.GetOracleByExternalAddr(c, &crosschaintypes.QueryOracleByExternalAddrRequest{
 		ChainName:       ethtypes.ModuleName,
 		ExternalAddress: req.EthAddress,
 	})
@@ -419,7 +419,7 @@ func (k queryServer) GetDelegateKeyByEth(c context.Context, req *types.QueryDele
 }
 
 func (k queryServer) GetPendingSendToEth(c context.Context, req *types.QueryPendingSendToEthRequest) (*types.QueryPendingSendToEthResponse, error) {
-	response, err := k.Keeper.GetPendingSendToExternal(c, &crosschaintypes.QueryPendingSendToExternalRequest{
+	response, err := k.server.GetPendingSendToExternal(c, &crosschaintypes.QueryPendingSendToExternalRequest{
 		ChainName:     ethtypes.ModuleName,
 		SenderAddress: req.SenderAddress,
 	})
@@ -466,7 +466,7 @@ func (k queryServer) GetPendingSendToEth(c context.Context, req *types.QueryPend
 }
 
 func (k queryServer) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
-	response, err := k.Keeper.LastObservedBlockHeight(c, &crosschaintypes.QueryLastObservedBlockHeightRequest{ChainName: ethtypes.ModuleName})
+	response, err := k.server.LastObservedBlockHeight(c, &crosschaintypes.QueryLastObservedBlockHeightRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
 		return nil, err
 	}
@@ -474,7 +474,7 @@ func (k queryServer) LastObservedBlockHeight(c context.Context, _ *types.QueryLa
 }
 
 func (k queryServer) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
-	response, err := k.Keeper.LastEventBlockHeightByAddr(c, &crosschaintypes.QueryLastEventBlockHeightByAddrRequest{
+	response, err := k.server.LastEventBlockHeightByAddr(c, &crosschaintypes.QueryLastEventBlockHeightByAddrRequest{
 		ChainName:      ethtypes.ModuleName,
 		BridgerAddress: req.Address,
 	})
@@ -485,7 +485,7 @@ func (k queryServer) LastEventBlockHeightByAddr(c context.Context, req *types.Qu
 }
 
 func (k queryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
-	response, err := k.Keeper.ProjectedBatchTimeoutHeight(c, &crosschaintypes.QueryProjectedBatchTimeoutHeightRequest{ChainName: ethtypes.ModuleName})
+	response, err := k.server.ProjectedBatchTimeoutHeight(c, &crosschaintypes.QueryProjectedBatchTimeoutHeightRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
 		return nil, err
 	}
@@ -493,7 +493,7 @@ func (k queryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.Que
 }
 
 func (k queryServer) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
-	response, err := k.Keeper.BridgeTokens(c, &crosschaintypes.QueryBridgeTokensRequest{ChainName: ethtypes.ModuleName})
+	response, err := k.server.BridgeTokens(c, &crosschaintypes.QueryBridgeTokensRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
 		return nil, err
 	}

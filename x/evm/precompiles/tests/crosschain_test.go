@@ -23,6 +23,7 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -883,7 +884,8 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				addrQuery = suite.crosschain
 			}
 
-			resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+			queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+			resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 				&crosschaintypes.QueryPendingSendToExternalRequest{
 					ChainName:     moduleName,
 					SenderAddress: sdk.AccAddress(addrQuery.Bytes()).String(),
@@ -953,7 +955,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				}
 
 				// pending send to external
-				resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: sdk.AccAddress(addrQuery.Bytes()).String(),
@@ -1315,7 +1317,8 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				addrQuery = suite.crosschain
 			}
 
-			resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+			queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
+			resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 				&crosschaintypes.QueryPendingSendToExternalRequest{
 					ChainName:     moduleName,
 					SenderAddress: sdk.AccAddress(addrQuery.Bytes()).String(),
@@ -1366,7 +1369,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				}
 
 				// pending send to external
-				resp, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: sdk.AccAddress(addrQuery.Bytes()).String(),
