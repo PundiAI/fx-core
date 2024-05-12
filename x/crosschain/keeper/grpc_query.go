@@ -451,7 +451,7 @@ func (k QueryServer) BridgeCallConfirmByNonce(c context.Context, req *types.Quer
 	})
 	totalPower := currentOracleSet.GetTotalPower()
 	requiredPower := types.AttestationVotesPowerThreshold.Mul(sdkmath.NewIntFromUint64(totalPower)).Quo(sdkmath.NewInt(100))
-	enoughPower := requiredPower.GTE(sdkmath.NewIntFromUint64(confirmPowers))
+	enoughPower := sdkmath.NewIntFromUint64(confirmPowers).GTE(requiredPower)
 	return &types.QueryBridgeCallConfirmByNonceResponse{Confirms: bridgeCallConfirms, EnoughPower: enoughPower}, nil
 }
 
