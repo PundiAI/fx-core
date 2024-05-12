@@ -79,24 +79,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 				t.initMsg(msg)
 			}
 
-			if len(msg.TokenContracts) != 0 {
-				s.accountKeeper.EXPECT().GetModuleAddress(erc20types.ModuleName).Return(authtypes.NewEmptyModuleAccount(erc20types.ModuleName).GetAddress()).AnyTimes()
-
-				s.erc20Keeper.EXPECT().IsOriginOrConvertedDenom(gomock.Any(), gomock.Any()).Return(false).Times(len(msg.TokenContracts))
-				s.bankKeeper.EXPECT().MintCoins(gomock.Any(), msg.ChainName, gomock.Any()).Return(nil).Times(1)
-				s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), msg.ChainName, gomock.Any(), gomock.Any()).Return(nil).Times(1)
-
-				for i, contract := range msg.TokenContracts {
-					amount := msg.Amounts[i]
-					baseDenom := helpers.NewRandDenom()
-					bridgeToken := s.AddBridgeToken(contract)
-					bridgeCoin := sdk.NewCoin(bridgeToken.Denom, amount)
-					targetCoin := sdk.NewCoin(baseDenom, amount)
-
-					s.erc20Keeper.EXPECT().ConvertDenomToTarget(gomock.Any(), gomock.Any(), bridgeCoin, gomock.Any()).Return(targetCoin, nil).Times(1)
-					s.erc20Keeper.EXPECT().ConvertCoin(gomock.Any(), gomock.Any()).Return(&erc20types.MsgConvertCoinResponse{}, nil).Times(1)
-				}
-			}
+			s.MockBridgeCallToken(msg.GetERC20Tokens())
 
 			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), msg.GetSenderAddr().Bytes()).Return(nil).Times(1)
 
@@ -121,5 +104,26 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 				s.True(refundEvent)
 			}
 		})
+	}
+}
+
+func (s *KeeperTestSuite) MockBridgeCallToken(erc20Tokens []types.ERC20Token) {
+	if len(erc20Tokens) == 0 {
+		return
+	}
+	s.accountKeeper.EXPECT().GetModuleAddress(erc20types.ModuleName).Return(authtypes.NewEmptyModuleAccount(erc20types.ModuleName).GetAddress()).AnyTimes()
+
+	s.erc20Keeper.EXPECT().IsOriginOrConvertedDenom(gomock.Any(), gomock.Any()).Return(false).Times(len(erc20Tokens))
+	s.bankKeeper.EXPECT().MintCoins(gomock.Any(), s.moduleName, gomock.Any()).Return(nil).Times(1)
+	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), s.moduleName, gomock.Any(), gomock.Any()).Return(nil).Times(1)
+
+	for _, erc20Token := range erc20Tokens {
+		baseDenom := helpers.NewRandDenom()
+		bridgeToken := s.AddBridgeToken(erc20Token.Contract)
+		bridgeCoin := sdk.NewCoin(bridgeToken.Denom, erc20Token.Amount)
+		targetCoin := sdk.NewCoin(baseDenom, erc20Token.Amount)
+
+		s.erc20Keeper.EXPECT().ConvertDenomToTarget(gomock.Any(), gomock.Any(), bridgeCoin, gomock.Any()).Return(targetCoin, nil).Times(1)
+		s.erc20Keeper.EXPECT().ConvertCoin(gomock.Any(), gomock.Any()).Return(&erc20types.MsgConvertCoinResponse{}, nil).Times(1)
 	}
 }
