@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"math"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -83,6 +84,26 @@ func (k Keeper) AddOutgoingBridgeCall(
 	))
 
 	return bridgeCall, nil
+}
+
+func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeCallResultClaim) {
+	k.CreateBridgeAccount(ctx, claim.TxOrigin)
+
+	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, claim.Nonce)
+	if !found {
+		panic(fmt.Errorf("bridge call not found for nonce %d", claim.Nonce))
+	}
+	if !claim.Success {
+		k.HandleOutgoingBridgeCallRefund(ctx, outgoingBridgeCall)
+	}
+	k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeBridgeCallResult,
+		sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatInt(int64(claim.Nonce), 10)),
+		sdk.NewAttribute(types.AttributeKeyStateSuccess, strconv.FormatBool(claim.Success)),
+		sdk.NewAttribute(types.AttributeKeyErrCause, claim.Cause),
+	))
 }
 
 func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, out *types.OutgoingBridgeCall) {

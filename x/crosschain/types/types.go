@@ -520,3 +520,14 @@ func NewERC20Tokens(module string, tokenAddrs []gethcommon.Address, tokenAmounts
 	}
 	return tokens, nil
 }
+
+func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {
+	erc20Tokens := make([]ERC20Token, 0, len(m.TokenContracts))
+	for i, tokenContract := range m.TokenContracts {
+		erc20Tokens = append(erc20Tokens, ERC20Token{
+			Contract: tokenContract,
+			Amount:   m.Amounts[i],
+		})
+	}
+	return erc20Tokens
+}
