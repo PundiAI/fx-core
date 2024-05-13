@@ -1,6 +1,7 @@
 package crosschain
 
 import (
+	"bytes"
 	"errors"
 	"math/big"
 
@@ -150,13 +151,18 @@ func (args *BridgeCallArgs) Validate() error {
 		return err
 	}
 	if args.Value.Sign() != 0 {
-		return errors.New("invalid value")
+		return errors.New("value must be zero")
 	}
 	if len(args.Tokens) != len(args.Amounts) {
-		return errors.New("token not match amount")
+		return errors.New("tokens and amounts not match")
+	}
+	if len(args.Amounts) > 0 {
+		if bytes.Equal(args.Receiver.Bytes(), common.Address{}.Bytes()) {
+			return errors.New("receiver cannot be empty")
+		}
 	}
 	if len(args.Tokens) == 0 && len(args.Data) == 0 {
-		return errors.New("token and data both empty")
+		return errors.New("tokens and data cannot be empty at the same time")
 	}
 	return nil
 }

@@ -1162,17 +1162,22 @@ func (m *MsgBridgeCall) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	if len(m.To) > 0 {
+		if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
+		}
 	}
-	if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
-	}
-	if m.Value.IsNil() || m.Value.IsNegative() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+	if m.Value.Sign() != 0 {
+		return errortypes.ErrInvalidRequest.Wrap("value must be zero")
 	}
 	if err = m.Coins.Validate(); err != nil {
 		return errortypes.ErrInvalidCoins.Wrap(err.Error())
+	}
+	// if bridge coins is not empty, check receiver
+	if m.Coins.Len() > 0 {
+		if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		}
 	}
 	if len(m.Data) > 0 {
 		if _, err = hex.DecodeString(m.Data); err != nil {
@@ -1183,6 +1188,9 @@ func (m *MsgBridgeCall) ValidateBasic() (err error) {
 		if _, err = hex.DecodeString(m.Memo); err != nil {
 			return errortypes.ErrInvalidRequest.Wrap("invalid memo")
 		}
+	}
+	if m.Coins.Len() == 0 && len(m.Data) == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("coins and data cannot be empty at the same time")
 	}
 	return nil
 }
