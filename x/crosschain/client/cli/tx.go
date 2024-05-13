@@ -15,10 +15,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -200,7 +200,6 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			viper := cliCtx.Viper
 
 			var receiver string
 			var coins sdk.Coins
@@ -211,26 +210,29 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 					return errorsmod.Wrap(err, "coins")
 				}
 			}
-			value, ok := sdk.NewIntFromString(viper.GetString(FlagValue))
-			if viper.GetString(FlagValue) != "" && !ok {
-				return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, viper.GetString(FlagValue))
+			to, err := cmd.Flags().GetString(FlagTo)
+			if err != nil {
+				return err
+			}
+			data := viper.GetString(FlagData)
+			if err != nil {
+				return err
 			}
 
 			msg := types.MsgBridgeCall{
 				Sender:    cliCtx.GetFromAddress().String(),
 				Receiver:  receiver,
-				To:        viper.GetString(FlagTo),
+				To:        to,
 				Coins:     coins,
-				Data:      viper.GetString(FlagData),
-				Value:     value,
+				Data:      data,
+				Value:     sdkmath.NewInt(0),
 				ChainName: chainName,
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
-	cmd.Flags().String(FlagTo, "", "bridge call to address")
+	cmd.Flags().String(FlagTo, "", "bridge call contract address")
 	cmd.Flags().String(FlagData, "", "bridge call contract data")
-	cmd.Flags().String(FlagValue, "0", "bridge call value")
 	return cmd
 }
 

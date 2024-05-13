@@ -11,16 +11,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	_ "github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
@@ -1944,6 +1941,109 @@ func TestMsgBridgeCallConfirm_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
+	moduleName := getRandModule()
+	type fields struct {
+		ChainName string
+		Sender    string
+		Receiver  string
+		Coins     sdk.Coins
+		To        string
+		Data      string
+		Value     sdkmath.Int
+		Memo      string
+	}
+	tests := []struct {
+		name          string
+		fields        fields
+		expectedError string
+	}{
+		{
+			name: "success",
+			fields: fields{
+				ChainName: moduleName,
+				Sender:    helpers.GenAccAddress().String(),
+				Receiver:  helpers.GenExternalAddr(moduleName),
+				Coins:     sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				To:        helpers.GenExternalAddr(moduleName),
+				Data:      "00",
+				Value:     sdk.NewInt(0),
+				Memo:      "00",
+			},
+		},
+		{
+			name: "err - empty chain name",
+			fields: fields{
+				ChainName: "",
+			},
+			expectedError: "unrecognized cross chain name: invalid request",
+		},
+		{
+			name: "err - coins and to are empty",
+			fields: fields{
+				ChainName: moduleName,
+				Sender:    helpers.GenAccAddress().String(),
+				Receiver:  "",
+				Coins:     sdk.Coins{},
+				To:        "",
+				Data:      "",
+				Value:     sdkmath.NewInt(0),
+				Memo:      "00",
+			},
+			expectedError: "coins and data cannot be empty at the same time: invalid request",
+		},
+		{
+			name: "err - invalid receiver address",
+			fields: fields{
+				ChainName: moduleName,
+				Sender:    helpers.GenAccAddress().String(),
+				Receiver:  "",
+				Coins:     sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				To:        "",
+				Data:      "",
+				Value:     sdkmath.NewInt(0),
+				Memo:      "",
+			},
+			expectedError: "invalid receiver address: empty: invalid address",
+		},
+		{
+			name: "err - value must be zero",
+			fields: fields{
+				ChainName: moduleName,
+				Sender:    helpers.GenAccAddress().String(),
+				Receiver:  helpers.GenExternalAddr(moduleName),
+				Coins:     nil,
+				To:        "",
+				Data:      "",
+				Value:     sdkmath.NewInt(1),
+				Memo:      "",
+			},
+			expectedError: "value must be zero: invalid request",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &types.MsgBridgeCall{
+				ChainName: tt.fields.ChainName,
+				Sender:    tt.fields.Sender,
+				Receiver:  tt.fields.Receiver,
+				Coins:     tt.fields.Coins,
+				To:        tt.fields.To,
+				Data:      tt.fields.Data,
+				Value:     tt.fields.Value,
+				Memo:      tt.fields.Memo,
+			}
+			err := m.ValidateBasic()
+			if len(tt.expectedError) > 0 {
+				require.NotNil(t, err, "ValidateBasic()")
+				assert.Equal(t, tt.expectedError, err.Error(), "ValidateBasic()")
+			} else {
+				assert.NoError(t, err, "ValidateBasic()")
+			}
+		})
+	}
+}
+
 // externalAddressToUpper for test case address to upper
 func externalAddressToUpper(address string) string {
 	if strings.HasPrefix(address, "0x") {
@@ -1959,6 +2059,6 @@ func externalAddressToUpper(address string) string {
 }
 
 func getRandModule() string {
-	modules := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName}
+	modules := types.GetSupportChains()
 	return modules[tmrand.Intn(len(modules))]
 }

@@ -1,7 +1,6 @@
 package cli
 
 const (
-	FlagTo    = "to"
-	FlagData  = "data"
-	FlagValue = "value"
+	FlagTo   = "to"
+	FlagData = "data"
 )
