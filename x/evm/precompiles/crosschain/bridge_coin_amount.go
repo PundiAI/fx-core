@@ -14,7 +14,7 @@ import (
 
 func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
-	// parse args
+
 	var args BridgeCoinAmountArgs
 	if err := types.ParseMethodArgs(BridgeCoinAmountMethod, &args, contractAddr.Input[4:]); err != nil {
 		return nil, err

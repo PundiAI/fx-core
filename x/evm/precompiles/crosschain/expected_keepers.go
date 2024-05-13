@@ -8,7 +8,6 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
@@ -25,10 +24,6 @@ type Erc20Keeper interface {
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (types.TokenPair, bool)
 	IsOriginDenom(ctx sdk.Context, denom string) bool
 	HasDenomAlias(ctx sdk.Context, denom string) (bank.Metadata, bool)
-}
-
-type EvmKeeper interface {
-	GetParams(ctx sdk.Context) (params evmtypes.Params)
 }
 
 type BankKeeper interface {

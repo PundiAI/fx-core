@@ -18,9 +18,8 @@ import (
 	types0 "github.com/cosmos/cosmos-sdk/x/bank/types"
 	types1 "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
-	types2 "github.com/evmos/ethermint/x/evm/types"
-	types3 "github.com/functionx/fx-core/v7/types"
-	types4 "github.com/functionx/fx-core/v7/x/erc20/types"
+	types2 "github.com/functionx/fx-core/v7/types"
+	types3 "github.com/functionx/fx-core/v7/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -48,7 +47,7 @@ func (m *MockErc20Keeper) EXPECT() *MockErc20KeeperMockRecorder {
 }
 
 // ConvertDenomToTarget mocks base method.
-func (m *MockErc20Keeper) ConvertDenomToTarget(ctx types.Context, from types.AccAddress, coin types.Coin, fxTarget types3.FxTarget) (types.Coin, error) {
+func (m *MockErc20Keeper) ConvertDenomToTarget(ctx types.Context, from types.AccAddress, coin types.Coin, fxTarget types2.FxTarget) (types.Coin, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertDenomToTarget", ctx, from, coin, fxTarget)
 	ret0, _ := ret[0].(types.Coin)
@@ -77,10 +76,10 @@ func (mr *MockErc20KeeperMockRecorder) GetIbcTimeout(ctx any) *gomock.Call {
 }
 
 // GetTokenPair mocks base method.
-func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types4.TokenPair, bool) {
+func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types3.TokenPair, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenPair", ctx, tokenOrDenom)
-	ret0, _ := ret[0].(types4.TokenPair)
+	ret0, _ := ret[0].(types3.TokenPair)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -92,10 +91,10 @@ func (mr *MockErc20KeeperMockRecorder) GetTokenPair(ctx, tokenOrDenom any) *gomo
 }
 
 // GetTokenPairByAddress mocks base method.
-func (m *MockErc20Keeper) GetTokenPairByAddress(ctx types.Context, address common.Address) (types4.TokenPair, bool) {
+func (m *MockErc20Keeper) GetTokenPairByAddress(ctx types.Context, address common.Address) (types3.TokenPair, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenPairByAddress", ctx, address)
-	ret0, _ := ret[0].(types4.TokenPair)
+	ret0, _ := ret[0].(types3.TokenPair)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -176,7 +175,7 @@ func (mr *MockErc20KeeperMockRecorder) SetIBCTransferRelation(ctx, channel, sequ
 }
 
 // ToTargetDenom mocks base method.
-func (m *MockErc20Keeper) ToTargetDenom(ctx types.Context, denom, base string, aliases []string, fxTarget types3.FxTarget) string {
+func (m *MockErc20Keeper) ToTargetDenom(ctx types.Context, denom, base string, aliases []string, fxTarget types2.FxTarget) string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToTargetDenom", ctx, denom, base, aliases, fxTarget)
 	ret0, _ := ret[0].(string)
@@ -187,43 +186,6 @@ func (m *MockErc20Keeper) ToTargetDenom(ctx types.Context, denom, base string, a
 func (mr *MockErc20KeeperMockRecorder) ToTargetDenom(ctx, denom, base, aliases, fxTarget any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToTargetDenom", reflect.TypeOf((*MockErc20Keeper)(nil).ToTargetDenom), ctx, denom, base, aliases, fxTarget)
-}
-
-// MockEvmKeeper is a mock of EvmKeeper interface.
-type MockEvmKeeper struct {
-	ctrl     *gomock.Controller
-	recorder *MockEvmKeeperMockRecorder
-}
-
-// MockEvmKeeperMockRecorder is the mock recorder for MockEvmKeeper.
-type MockEvmKeeperMockRecorder struct {
-	mock *MockEvmKeeper
-}
-
-// NewMockEvmKeeper creates a new mock instance.
-func NewMockEvmKeeper(ctrl *gomock.Controller) *MockEvmKeeper {
-	mock := &MockEvmKeeper{ctrl: ctrl}
-	mock.recorder = &MockEvmKeeperMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockEvmKeeper) EXPECT() *MockEvmKeeperMockRecorder {
-	return m.recorder
-}
-
-// GetParams mocks base method.
-func (m *MockEvmKeeper) GetParams(ctx types.Context) types2.Params {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types2.Params)
-	return ret0
-}
-
-// GetParams indicates an expected call of GetParams.
-func (mr *MockEvmKeeperMockRecorder) GetParams(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockEvmKeeper)(nil).GetParams), ctx)
 }
 
 // MockBankKeeper is a mock of BankKeeper interface.
