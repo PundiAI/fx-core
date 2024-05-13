@@ -154,7 +154,7 @@ func (args *BridgeCallArgs) Validate() error {
 		return errors.New("value must be zero")
 	}
 	if len(args.Tokens) != len(args.Amounts) {
-		return errors.New("tokens and amounts not match")
+		return errors.New("tokens and amounts do not match")
 	}
 	if len(args.Amounts) > 0 {
 		if bytes.Equal(args.Receiver.Bytes(), common.Address{}.Bytes()) {

@@ -701,10 +701,10 @@ func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
-	return msgBridgeCallClaimValidateBasic(m)
+	return m.validateBasic()
 }
 
-func msgBridgeCallClaimValidateBasic(m *MsgBridgeCallClaim) (err error) {
+func (m *MsgBridgeCallClaim) validateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
@@ -1159,6 +1159,10 @@ func (m *MsgBridgeCall) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
+	return m.validateBasic()
+}
+
+func (m *MsgBridgeCall) validateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
@@ -1174,7 +1178,7 @@ func (m *MsgBridgeCall) ValidateBasic() (err error) {
 		return errortypes.ErrInvalidCoins.Wrap(err.Error())
 	}
 	// if bridge coins is not empty, check receiver
-	if m.Coins.Len() > 0 {
+	if m.Coins.Len() > 0 || len(m.Receiver) > 0 {
 		if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 		}
