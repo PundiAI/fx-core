@@ -15,36 +15,35 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	if readonly {
 		return nil, errors.New("bridge call method not readonly")
 	}
+	if c.router == nil {
+		return nil, errors.New("bridge call router is empty")
+	}
 
-	// args
 	var args BridgeCallArgs
 	if err := types.ParseMethodArgs(BridgeCallMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
+	route, has := c.router.GetRoute(args.DstChain)
+	if !has {
+		return nil, errors.New("invalid dstChain")
+	}
 	sender := contract.Caller()
 
 	// NOTE: current only support erc20 token
-	tokens := sdk.NewCoins()
+	coins := sdk.NewCoins()
 	for i, token := range args.Tokens {
-		tokenDenom, err := c.handlerERC20Token(ctx, evm, token, sender, args.Amounts[i])
+		coin, err := c.handlerERC20Token(ctx, evm, sender, token, args.Amounts[i])
 		if err != nil {
 			return nil, err
 		}
-		tokens = tokens.Add(sdk.NewCoin(tokenDenom, sdkmath.NewIntFromBigInt(args.Amounts[i])))
+		coins = coins.Add(coin)
 	}
 
-	if c.router == nil {
-		return nil, errors.New("cross chain router empty")
-	}
-	route, has := c.router.GetRoute(args.DstChain)
-	if !has {
-		return nil, errors.New("invalid target")
-	}
 	eventNonce, err := route.PrecompileBridgeCall(
 		ctx,
 		sender,
 		args.Receiver,
-		tokens,
+		coins,
 		args.To,
 		args.Data,
 		args.Memo,
@@ -53,7 +52,6 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		return nil, err
 	}
 
-	// add event log
 	if err = c.AddLog(evm, BridgeCallEvent,
 		[]common.Hash{sender.Hash(), args.Receiver.Hash(), args.To.Hash()},
 		evm.Origin,

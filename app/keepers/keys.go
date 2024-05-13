@@ -100,7 +100,6 @@ func (appKeepers *AppKeepers) EvmPrecompiled() {
 		return precompilescrosschain.NewPrecompiledContract(
 			ctx,
 			appKeepers.BankKeeper,
-			appKeepers.EvmKeeper,
 			appKeepers.Erc20Keeper,
 			appKeepers.IBCTransferKeeper,
 			appKeepers.AccountKeeper,

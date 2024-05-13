@@ -16,7 +16,6 @@ type Contract struct {
 	ctx               sdk.Context
 	router            *Router
 	bankKeeper        BankKeeper
-	evmKeeper         EvmKeeper
 	erc20Keeper       Erc20Keeper
 	ibcTransferKeeper IBCTransferKeeper
 	accountKeeper     AccountKeeper
@@ -25,7 +24,6 @@ type Contract struct {
 func NewPrecompiledContract(
 	ctx sdk.Context,
 	bankKeeper BankKeeper,
-	evmKeeper EvmKeeper,
 	erc20Keeper Erc20Keeper,
 	ibcTransferKeeper IBCTransferKeeper,
 	accountKeeper AccountKeeper,
@@ -34,7 +32,6 @@ func NewPrecompiledContract(
 	return &Contract{
 		ctx:               ctx,
 		bankKeeper:        bankKeeper,
-		evmKeeper:         evmKeeper,
 		erc20Keeper:       erc20Keeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		accountKeeper:     accountKeeper,

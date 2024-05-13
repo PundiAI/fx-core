@@ -22,16 +22,14 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contractAddr 
 	if readonly {
 		return nil, errors.New("increase bridge fee method not readonly")
 	}
+	if c.router == nil {
+		return nil, errors.New("cross chain router empty")
+	}
 
-	// args
 	var args IncreaseBridgeFeeArgs
 	err := types.ParseMethodArgs(IncreaseBridgeFeeMethod, &args, contractAddr.Input[4:])
 	if err != nil {
 		return nil, err
-	}
-
-	if c.router == nil {
-		return nil, errors.New("cross chain router empty")
 	}
 
 	fxTarget := fxtypes.ParseFxTarget(args.Chain)
@@ -42,35 +40,35 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contractAddr 
 
 	value := contractAddr.Value()
 	sender := contractAddr.Caller()
-	crossChainDenom := ""
+	totalCoin := sdk.Coin{}
 	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == contract.EmptyEvmAddress {
 		if args.Fee.Cmp(value) != 0 {
 			return nil, errors.New("add bridge fee not equal msg.value")
 		}
-		crossChainDenom, err = c.handlerOriginToken(ctx, evm, sender, args.Fee)
+		totalCoin, err = c.handlerOriginToken(ctx, evm, sender, args.Fee)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		crossChainDenom, err = c.handlerERC20Token(ctx, evm, args.Token, sender, args.Fee)
+		totalCoin, err = c.handlerERC20Token(ctx, evm, sender, args.Token, args.Fee)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// convert token to bridge fee token
-	feeCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(args.Fee))
+	feeCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
 	addBridgeFee, err := c.erc20Keeper.ConvertDenomToTarget(ctx, sender.Bytes(), feeCoin, fxTarget)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := route.PrecompileIncreaseBridgeFee(ctx, args.TxID.Uint64(), sender.Bytes(), addBridgeFee); err != nil {
+	if err = route.PrecompileIncreaseBridgeFee(ctx, args.TxID.Uint64(), sender.Bytes(), addBridgeFee); err != nil {
 		return nil, err
 	}
 
 	// add event log
-	if err := c.AddLog(evm, IncreaseBridgeFeeEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+	if err = c.AddLog(evm, IncreaseBridgeFeeEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
 		args.Chain, args.TxID, args.Fee); err != nil {
 		return nil, err
 	}

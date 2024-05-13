@@ -47,9 +47,8 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 
 	// NOTE: if user call evm denom transferCrossChain with msg.value
 	// we need transfer msg.value from sender to contract in bank keeper
-	evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
-	if tokenPair.GetDenom() == evmDenom {
-		balance := c.bankKeeper.GetBalance(ctx, tokenContract.Bytes(), evmDenom)
+	if tokenPair.GetDenom() == fxtypes.DefaultDenom {
+		balance := c.bankKeeper.GetBalance(ctx, tokenContract.Bytes(), fxtypes.DefaultDenom)
 		evmBalance := evm.StateDB.GetBalance(tokenContract)
 
 		cmp := evmBalance.Cmp(balance.Amount.BigInt())
@@ -59,7 +58,7 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 		if cmp == 1 {
 			// sender call transferCrossChain with msg.value, the msg.value evm denom should send to contract
 			value := big.NewInt(0).Sub(evmBalance, balance.Amount.BigInt())
-			valueCoin := sdk.NewCoins(sdk.NewCoin(evmDenom, sdkmath.NewIntFromBigInt(value)))
+			valueCoin := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value)))
 			if err := c.bankKeeper.SendCoins(ctx, args.Sender.Bytes(), tokenContract.Bytes(), valueCoin); err != nil {
 				return nil, fmt.Errorf("send coin: %s", err.Error())
 			}
@@ -97,20 +96,17 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Con
 		return nil, errors.New("cross chain method not readonly")
 	}
 
-	// args
 	var args CrossChainArgs
 	err := types.ParseMethodArgs(CrossChainMethod, &args, contractAddr.Input[4:])
 	if err != nil {
 		return nil, err
 	}
 
-	// call param
 	value := contractAddr.Value()
 	sender := contractAddr.Caller()
 
-	// cross chain param
 	originToken := false
-	crossChainDenom := ""
+	totalCoin := sdk.Coin{}
 
 	// cross-chain origin token
 	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == contract.EmptyEvmAddress {
@@ -119,7 +115,7 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Con
 			return nil, errors.New("amount + fee not equal msg.value")
 		}
 
-		crossChainDenom, err = c.handlerOriginToken(ctx, evm, sender, totalAmount)
+		totalCoin, err = c.handlerOriginToken(ctx, evm, sender, totalAmount)
 		if err != nil {
 			return nil, err
 		}
@@ -127,65 +123,65 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Con
 		// origin token flag is true when cross chain evm denom
 		originToken = true
 	} else {
-		crossChainDenom, err = c.handlerERC20Token(ctx, evm, args.Token, sender, big.NewInt(0).Add(args.Amount, args.Fee))
+		totalCoin, err = c.handlerERC20Token(ctx, evm, sender, args.Token, big.NewInt(0).Add(args.Amount, args.Fee))
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
-	amountCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(args.Amount))
-	feeCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(args.Fee))
+	amountCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Amount))
+	feeCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
 
-	if err := c.handlerCrossChain(ctx, sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, originToken); err != nil {
+	if err = c.handlerCrossChain(ctx, sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, originToken); err != nil {
 		return nil, err
 	}
 
 	// add event log
-	if err := c.AddLog(evm, CrossChainEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
-		crossChainDenom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
+	if err = c.AddLog(evm, CrossChainEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+		amountCoin.Denom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
 		return nil, err
 	}
 
 	// add cross chain events
 	crossChainEvents(ctx, sender, args.Token, args.Receipt, fxtypes.Byte32ToString(args.Target),
-		crossChainDenom, args.Memo, args.Amount, args.Fee)
+		amountCoin.Denom, args.Memo, args.Amount, args.Fee)
 
 	return CrossChainMethod.Outputs.Pack(true)
 }
 
-func (c *Contract) handlerOriginToken(ctx sdk.Context, evm *vm.EVM, sender common.Address, amount *big.Int) (string, error) {
-	crossChainDenom := c.evmKeeper.GetParams(ctx).EvmDenom
+func (c *Contract) handlerOriginToken(ctx sdk.Context, evm *vm.EVM, sender common.Address, amount *big.Int) (sdk.Coin, error) {
 	// NOTE: stateDB sub sender balance,but bank keeper not update.
 	// so mint token to crosschain, end of stateDB commit will sub balance from bank keeper.
-	// if only allow depth 1, the sender is origin sender, we can sub balance from bank keeper and not need burn/mint coin
+	// if only allow depth 1, the sender is origin sender, we can sub balance from bank keeper and not need burn/mint denom
 	evm.StateDB.SubBalance(c.Address(), amount)
-	totalCoin := sdk.NewCoins(sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(amount)))
+	totalCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amount))
+	totalCoins := sdk.NewCoins(totalCoin)
 
-	if err := c.bankKeeper.MintCoins(ctx, evmtypes.ModuleName, totalCoin); err != nil {
-		return "", fmt.Errorf("mint: %s", err.Error())
+	if err := c.bankKeeper.MintCoins(ctx, evmtypes.ModuleName, totalCoins); err != nil {
+		return sdk.Coin{}, err
 	}
-	if err := c.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender.Bytes(), totalCoin); err != nil {
-		return "", fmt.Errorf("send account: %s", err.Error())
+	if err := c.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender.Bytes(), totalCoins); err != nil {
+		return sdk.Coin{}, err
 	}
-	return crossChainDenom, nil
+	return totalCoin, nil
 }
 
-func (c *Contract) handlerERC20Token(ctx sdk.Context, evm *vm.EVM, token, sender common.Address, amount *big.Int) (string, error) {
-	// contract token
+func (c *Contract) handlerERC20Token(ctx sdk.Context, evm *vm.EVM, sender, token common.Address, amount *big.Int) (sdk.Coin, error) {
 	tokenPair, found := c.erc20Keeper.GetTokenPairByAddress(ctx, token)
 	if !found {
-		return "", fmt.Errorf("token pair not found: %s", token.String())
+		return sdk.Coin{}, fmt.Errorf("token pair not found: %s", token.String())
 	}
-	crossChainDenom := tokenPair.GetDenom()
+	baseDenom := tokenPair.GetDenom()
+
 	// transferFrom to erc20 module
 	if err := NewContractCall(ctx, evm, c.Address(), token).ERC20TransferFrom(sender, c.erc20Keeper.ModuleAddress(), amount); err != nil {
-		return "", err
+		return sdk.Coin{}, err
 	}
-	if err := c.convertERC20(ctx, evm, tokenPair, sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(amount)), sender); err != nil {
-		return "", err
+	if err := c.convertERC20(ctx, evm, tokenPair, sdk.NewCoin(baseDenom, sdkmath.NewIntFromBigInt(amount)), sender); err != nil {
+		return sdk.Coin{}, err
 	}
-	return crossChainDenom, nil
+	return sdk.NewCoin(baseDenom, sdkmath.NewIntFromBigInt(amount)), nil
 }
 
 func (c *Contract) convertERC20(
@@ -193,10 +189,11 @@ func (c *Contract) convertERC20(
 	evm *vm.EVM,
 	tokenPair erc20types.TokenPair,
 	amount sdk.Coin,
-	receiver common.Address,
+	sender common.Address,
 ) error {
 	if tokenPair.IsNativeCoin() {
-		err := NewContractCall(ctx, evm, c.erc20Keeper.ModuleAddress(), tokenPair.GetERC20Contract()).ERC20Burn(amount.Amount.BigInt())
+		contractCall := NewContractCall(ctx, evm, c.erc20Keeper.ModuleAddress(), tokenPair.GetERC20Contract())
+		err := contractCall.ERC20Burn(amount.Amount.BigInt())
 		if err != nil {
 			return err
 		}
@@ -204,9 +201,9 @@ func (c *Contract) convertERC20(
 			// cache token contract balance
 			evm.StateDB.GetBalance(tokenPair.GetERC20Contract())
 
-			err := c.bankKeeper.SendCoinsFromAccountToModule(ctx, tokenPair.GetERC20Contract().Bytes(), erc20types.ModuleName, sdk.NewCoins(amount))
+			err = c.bankKeeper.SendCoinsFromAccountToModule(ctx, tokenPair.GetERC20Contract().Bytes(), erc20types.ModuleName, sdk.NewCoins(amount))
 			if err != nil {
-				return fmt.Errorf("send module: %s", err.Error())
+				return err
 			}
 
 			// evm stateDB sub token contract balance
@@ -214,19 +211,16 @@ func (c *Contract) convertERC20(
 		}
 
 	} else if tokenPair.IsNativeERC20() {
-		err := c.bankKeeper.MintCoins(ctx, erc20types.ModuleName, sdk.NewCoins(amount))
-		if err != nil {
-			return fmt.Errorf("mint: %s", err.Error())
+		if err := c.bankKeeper.MintCoins(ctx, erc20types.ModuleName, sdk.NewCoins(amount)); err != nil {
+			return err
 		}
 	} else {
 		return erc20types.ErrUndefinedOwner
 	}
 
-	sendAddr := sdk.AccAddress(receiver.Bytes())
-	if err := c.bankKeeper.SendCoinsFromModuleToAccount(ctx, erc20types.ModuleName, sendAddr, sdk.NewCoins(amount)); err != nil {
-		return fmt.Errorf("send account: %s", err.Error())
+	if err := c.bankKeeper.SendCoinsFromModuleToAccount(ctx, erc20types.ModuleName, sender.Bytes(), sdk.NewCoins(amount)); err != nil {
+		return err
 	}
-
 	return nil
 }
 
