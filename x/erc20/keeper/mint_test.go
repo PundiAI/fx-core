@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -23,21 +22,21 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 				params.EnableErc20 = false
 				err := suite.app.Erc20Keeper.SetParams(suite.ctx, &params)
 				suite.Require().NoError(err)
-				return types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				return types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 			},
 			false,
 		},
 		{
 			"token pair not found",
 			func() types.TokenPair {
-				return types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				return types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 			},
 			false,
 		},
 		{
 			"intrarelaying is disabled for the given pair",
 			func() types.TokenPair {
-				expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				expPair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 				expPair.Enabled = false
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
 				return expPair
@@ -47,7 +46,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 		{
 			"token transfers are disabled",
 			func() types.TokenPair {
-				expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				expPair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 				expPair.Enabled = true
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
 
@@ -63,7 +62,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 		{
 			"ok",
 			func() types.TokenPair {
-				expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				expPair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
 				return expPair
 			},
@@ -77,7 +76,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 
 			expPair := tc.malleate()
 
-			receiver := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+			receiver := helpers.GenAccAddress()
 			pair, err := suite.app.Erc20Keeper.MintingEnabled(suite.ctx, receiver, expPair.Erc20Address)
 			if tc.expPass {
 				suite.Require().NoError(err)

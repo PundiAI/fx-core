@@ -9,15 +9,15 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (s *KeeperTestSuite) TestKeeper_BridgeCalls() {
+func (s *KeeperTestSuite) TestQueryServer_BridgeCalls() {
 	ctx := sdk.WrapSDKContext(s.ctx)
 	data1 := types.OutgoingBridgeCall{
 		Nonce:  tmrand.Uint64(),
-		Sender: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		Sender: helpers.GenAccAddress().String(),
 	}
 	data2 := types.OutgoingBridgeCall{
 		Nonce:  tmrand.Uint64(),
-		Sender: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		Sender: helpers.GenAccAddress().String(),
 	}
 
 	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data1)

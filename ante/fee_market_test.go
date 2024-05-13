@@ -25,8 +25,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			func() sdk.Tx {
 				denom := evmtypes.DefaultEVMDenom
 				testMsg := banktypes.MsgSend{
-					FromAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-					ToAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					FromAddress: helpers.GenAccAddress().String(),
+					ToAddress:   helpers.GenAccAddress().String(),
 					Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(10), Denom: denom}},
 				}
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(10), "stake", &testMsg)
@@ -38,7 +38,7 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			TestGasLimit,
 			func() sdk.Tx {
 				signer := helpers.NewSigner(helpers.NewEthPrivKey())
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), nil, nil, nil)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
 			},
@@ -48,7 +48,7 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			TestGasLimit,
 			func() sdk.Tx {
 				signer := helpers.NewSigner(helpers.NewEthPrivKey())
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				emptyAccessList := ethtypes.AccessList{}
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), nil, nil, &emptyAccessList)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
@@ -59,7 +59,7 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			TestGasLimit,
 			func() sdk.Tx {
 				signer := helpers.NewSigner(helpers.NewEthPrivKey())
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				emptyAccessList := ethtypes.AccessList{}
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), big.NewInt(100), big.NewInt(50), &emptyAccessList)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)

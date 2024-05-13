@@ -7,8 +7,8 @@ import (
 )
 
 func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) {
-	receiveAddr := types.ExternalAddrToAccAddr(k.moduleName, data.GetSender())
-	coins, err := k.bridgeCallTransferToSender(ctx, receiveAddr, data.Tokens)
+	sender := types.ExternalAddrToAccAddr(k.moduleName, data.GetSender())
+	coins, err := k.bridgeCallTransferToSender(ctx, sender, data.Tokens)
 	if err != nil {
 		panic(err)
 	}
@@ -16,8 +16,8 @@ func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.Outg
 	if k.HasBridgeCallFromMsg(ctx, data.Nonce) {
 		return
 	}
-	// precompile bridge call refund
-	if err = k.bridgeCallTransferToReceiver(ctx, receiveAddr, receiveAddr, coins); err != nil {
+	// precompile bridge call, refund to evm
+	if err = k.bridgeCallTransferToReceiver(ctx, sender, sender, coins); err != nil {
 		panic(err)
 	}
 }

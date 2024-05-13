@@ -73,13 +73,13 @@ func TestValidateEthereumAddress(t *testing.T) {
 			"zero address", common.Address{}.String(), false,
 		},
 		{
-			"valid address", helpers.GenerateAddress().Hex(), false,
+			"valid address", helpers.GenHexAddress().Hex(), false,
 		},
 		{
-			"invalid address - upper address", strings.ToUpper(helpers.GenerateAddress().Hex()), true,
+			"invalid address - upper address", strings.ToUpper(helpers.GenHexAddress().Hex()), true,
 		},
 		{
-			"invalid address - lower address", strings.ToLower(helpers.GenerateAddress().Hex()), true,
+			"invalid address - lower address", strings.ToLower(helpers.GenHexAddress().Hex()), true,
 		},
 	}
 

@@ -63,7 +63,7 @@ func (k Keeper) AddOutgoingBridgeCall(
 
 	nextID := k.autoIncrementID(ctx, types.KeyLastBridgeCallID)
 
-	bridgeCall := &types.OutgoingBridgeCall{
+	outCall := &types.OutgoingBridgeCall{
 		Nonce:       nextID,
 		Timeout:     bridgeCallTimeout,
 		BlockHeight: uint64(ctx.BlockHeight()),
@@ -74,16 +74,16 @@ func (k Keeper) AddOutgoingBridgeCall(
 		Data:        data,
 		Memo:        memo,
 	}
-	k.SetOutgoingBridgeCall(ctx, bridgeCall)
+	k.SetOutgoingBridgeCall(ctx, outCall)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCall,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, bridgeCall.Sender),
-		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(bridgeCall.Nonce)),
+		sdk.NewAttribute(sdk.AttributeKeySender, outCall.Sender),
+		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(outCall.Nonce)),
 	))
 
-	return bridgeCall, nil
+	return outCall, nil
 }
 
 func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeCallResultClaim) {
@@ -106,11 +106,14 @@ func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeC
 	))
 }
 
-func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, out *types.OutgoingBridgeCall) {
+func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, outCall *types.OutgoingBridgeCall) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetOutgoingBridgeCallNonceKey(out.Nonce), k.cdc.MustMarshal(out))
+	store.Set(types.GetOutgoingBridgeCallNonceKey(outCall.Nonce), k.cdc.MustMarshal(outCall))
 	// value is just a placeholder
-	store.Set(types.GetOutgoingBridgeCallAddressAndNonceKey(out.Sender, out.Nonce), k.cdc.MustMarshal(&gogotypes.BoolValue{Value: true}))
+	store.Set(
+		types.GetOutgoingBridgeCallAddressAndNonceKey(outCall.Sender, outCall.Nonce),
+		k.cdc.MustMarshal(&gogotypes.BoolValue{Value: true}),
+	)
 }
 
 func (k Keeper) GetOutgoingBridgeCallByNonce(ctx sdk.Context, nonce uint64) (*types.OutgoingBridgeCall, bool) {
@@ -119,9 +122,9 @@ func (k Keeper) GetOutgoingBridgeCallByNonce(ctx sdk.Context, nonce uint64) (*ty
 	if bz == nil {
 		return nil, false
 	}
-	var out types.OutgoingBridgeCall
-	k.cdc.MustUnmarshal(bz, &out)
-	return &out, true
+	var outCall types.OutgoingBridgeCall
+	k.cdc.MustUnmarshal(bz, &outCall)
+	return &outCall, true
 }
 
 func (k Keeper) DeleteOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
@@ -129,36 +132,36 @@ func (k Keeper) DeleteOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
 	store.Delete(types.GetOutgoingBridgeCallNonceKey(nonce))
 }
 
-func (k Keeper) IterateOutgoingBridgeCalls(ctx sdk.Context, cb func(*types.OutgoingBridgeCall) bool) {
+func (k Keeper) IterateOutgoingBridgeCalls(ctx sdk.Context, cb func(outCall *types.OutgoingBridgeCall) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.OutgoingBridgeCallNonceKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var value types.OutgoingBridgeCall
-		k.cdc.MustUnmarshal(iterator.Value(), &value)
-		if cb(&value) {
+		var outCall types.OutgoingBridgeCall
+		k.cdc.MustUnmarshal(iterator.Value(), &outCall)
+		if cb(&outCall) {
 			break
 		}
 	}
 }
 
-func (k Keeper) IterateOutgoingBridgeCallsByAddress(ctx sdk.Context, addr string, cb func(record *types.OutgoingBridgeCall) bool) {
+func (k Keeper) IterateOutgoingBridgeCallsByAddress(ctx sdk.Context, senderAddr string, cb func(outCall *types.OutgoingBridgeCall) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.GetOutgoingBridgeCallAddressKey(addr))
+	iterator := sdk.KVStorePrefixIterator(store, types.GetOutgoingBridgeCallAddressKey(senderAddr))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		nonce := types.ParseOutgoingBridgeCallNonce(iterator.Key(), addr)
-		record, found := k.GetOutgoingBridgeCallByNonce(ctx, nonce)
+		nonce := types.ParseOutgoingBridgeCallNonce(iterator.Key(), senderAddr)
+		outCall, found := k.GetOutgoingBridgeCallByNonce(ctx, nonce)
 		if !found {
 			continue
 		}
-		if cb(record) {
+		if cb(outCall) {
 			break
 		}
 	}
 }
 
-func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(bridgeCall *types.OutgoingBridgeCall) bool) {
+func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(outCall *types.OutgoingBridgeCall) bool) {
 	store := ctx.KVStore(k.storeKey)
 	startKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(startNonce)...)
 	endKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(math.MaxUint64)...)
@@ -166,9 +169,9 @@ func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uin
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		value := new(types.OutgoingBridgeCall)
-		k.cdc.MustUnmarshal(iter.Value(), value)
-		if cb(value) {
+		outCall := new(types.OutgoingBridgeCall)
+		k.cdc.MustUnmarshal(iter.Value(), outCall)
+		if cb(outCall) {
 			break
 		}
 	}

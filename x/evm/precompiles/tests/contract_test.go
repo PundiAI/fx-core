@@ -84,7 +84,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
 
-	suite.app.EthKeeper.AddBridgeToken(suite.ctx, helpers.GenerateAddressByModule(crossethtypes.ModuleName), fxtypes.DefaultDenom)
+	suite.app.EthKeeper.AddBridgeToken(suite.ctx, helpers.GenExternalAddr(crossethtypes.ModuleName), fxtypes.DefaultDenom)
 
 	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrossChainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
 	suite.Require().NoError(err)
@@ -206,7 +206,7 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 	denoms := make([]string, len(modules))
 	denomModules := make([]string, len(modules))
 	for index, m := range modules {
-		address := helpers.GenerateAddressByModule(m)
+		address := helpers.GenExternalAddr(m)
 
 		denom := crosschaintypes.NewBridgeDenom(m, address)
 		denoms[index] = denom
@@ -223,7 +223,7 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 }
 
 func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata, amt sdkmath.Int) sdk.Coin {
-	generateAddress := helpers.GenerateAddress()
+	generateAddress := helpers.GenHexAddress()
 
 	count := 1
 	if len(md.DenomUnits) > 0 && len(md.DenomUnits[0].Aliases) > 0 {
@@ -306,7 +306,7 @@ func (suite *PrecompileTestSuite) TransferERC20TokenToModuleWithoutHook(contract
 
 func (suite *PrecompileTestSuite) RandPrefixAndAddress() (string, string) {
 	if tmrand.Intn(10)%2 == 0 {
-		return "0x", helpers.GenerateAddress().Hex()
+		return "0x", helpers.GenHexAddress().Hex()
 	}
 	prefix := strings.ToLower(tmrand.Str(5))
 	accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
@@ -360,7 +360,7 @@ func (suite *PrecompileTestSuite) AddIBCToken(portID, channelID string) string {
 }
 
 func (suite *PrecompileTestSuite) AddTokenToModule(module string, amt sdk.Coins) {
-	tmpAddr := helpers.GenerateAddress()
+	tmpAddr := helpers.GenHexAddress()
 	helpers.AddTestAddr(suite.app, suite.ctx, tmpAddr.Bytes(), amt)
 	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, tmpAddr.Bytes(), module, amt)
 	suite.Require().NoError(err)

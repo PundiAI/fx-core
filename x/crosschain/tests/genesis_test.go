@@ -19,7 +19,7 @@ import (
 func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 	bridgeTokens := make([]types.BridgeToken, 10)
 	for i := 0; i < len(bridgeTokens); i++ {
-		contractAddress := helpers.GenerateAddress().Hex()
+		contractAddress := helpers.GenHexAddress().Hex()
 		bridgeToken := types.BridgeToken{
 			Token: contractAddress,
 			Denom: types.NewBridgeDenom(suite.chainName, contractAddress),

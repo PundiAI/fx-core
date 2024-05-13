@@ -15,21 +15,21 @@ import (
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	allowances := []types.Allowance{
 		{
-			ValidatorAddress: sdk.ValAddress(helpers.GenerateAddress().Bytes()).String(),
-			OwnerAddress:     sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-			SpenderAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+			ValidatorAddress: sdk.ValAddress(helpers.GenHexAddress().Bytes()).String(),
+			OwnerAddress:     helpers.GenAccAddress().String(),
+			SpenderAddress:   helpers.GenAccAddress().String(),
 			Allowance:        sdkmath.NewIntFromUint64(tmrand.Uint64()),
 		},
 		{
-			ValidatorAddress: sdk.ValAddress(helpers.GenerateAddress().Bytes()).String(),
-			OwnerAddress:     sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-			SpenderAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+			ValidatorAddress: sdk.ValAddress(helpers.GenHexAddress().Bytes()).String(),
+			OwnerAddress:     helpers.GenAccAddress().String(),
+			SpenderAddress:   helpers.GenAccAddress().String(),
 			Allowance:        sdkmath.NewIntFromUint64(tmrand.Uint64()),
 		},
 		{
-			ValidatorAddress: sdk.ValAddress(helpers.GenerateAddress().Bytes()).String(),
-			OwnerAddress:     sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-			SpenderAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+			ValidatorAddress: sdk.ValAddress(helpers.GenHexAddress().Bytes()).String(),
+			OwnerAddress:     helpers.GenAccAddress().String(),
+			SpenderAddress:   helpers.GenAccAddress().String(),
 			Allowance:        sdkmath.NewIntFromUint64(tmrand.Uint64()),
 		},
 	}
@@ -68,21 +68,21 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 func (suite *KeeperTestSuite) TestExpGenesis() {
 	allowances := []types.Allowance{
 		{
-			ValidatorAddress: sdk.ValAddress(helpers.GenerateAddress().Bytes()).String(),
-			OwnerAddress:     sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-			SpenderAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+			ValidatorAddress: sdk.ValAddress(helpers.GenHexAddress().Bytes()).String(),
+			OwnerAddress:     helpers.GenAccAddress().String(),
+			SpenderAddress:   helpers.GenAccAddress().String(),
 			Allowance:        sdkmath.NewIntFromUint64(tmrand.Uint64()),
 		},
 		{
-			ValidatorAddress: sdk.ValAddress(helpers.GenerateAddress().Bytes()).String(),
-			OwnerAddress:     sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-			SpenderAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+			ValidatorAddress: sdk.ValAddress(helpers.GenHexAddress().Bytes()).String(),
+			OwnerAddress:     helpers.GenAccAddress().String(),
+			SpenderAddress:   helpers.GenAccAddress().String(),
 			Allowance:        sdkmath.NewIntFromUint64(tmrand.Uint64()),
 		},
 		{
-			ValidatorAddress: sdk.ValAddress(helpers.GenerateAddress().Bytes()).String(),
-			OwnerAddress:     sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-			SpenderAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+			ValidatorAddress: sdk.ValAddress(helpers.GenHexAddress().Bytes()).String(),
+			OwnerAddress:     helpers.GenAccAddress().String(),
+			SpenderAddress:   helpers.GenAccAddress().String(),
 			Allowance:        sdkmath.NewIntFromUint64(tmrand.Uint64()),
 		},
 	}

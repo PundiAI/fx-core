@@ -366,7 +366,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 		},
 		{
 			funcName: "QueryBalance",
-			params:   []interface{}{sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(), fxtypes.DefaultDenom},
+			params:   []interface{}{helpers.GenAccAddress().String(), fxtypes.DefaultDenom},
 			wantRes: []interface{}{
 				sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,

@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 		{
 			"denom already registered",
 			func() {
-				regPair := types.NewTokenPair(helpers.GenerateAddress(), metadata.Base, true, types.OWNER_MODULE)
+				regPair := types.NewTokenPair(helpers.GenHexAddress(), metadata.Base, true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, regPair)
 			},
 			false,
@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 		{
 			"alias already registered denom",
 			func() {
-				regPair := types.NewTokenPair(helpers.GenerateAddress(), metadata.DenomUnits[0].Aliases[0], true, types.OWNER_MODULE)
+				regPair := types.NewTokenPair(helpers.GenHexAddress(), metadata.DenomUnits[0].Aliases[0], true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, regPair)
 			},
 			false,
@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 
 //gocyclo:ignore
 func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
-	denom := fmt.Sprintf("test%s", helpers.GenerateAddress().Hex())
+	denom := fmt.Sprintf("test%s", helpers.GenHexAddress().Hex())
 	metadata := newMetadata()
 
 	testCases := []struct {
@@ -562,7 +562,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinConversionInvariant() {
 func (suite *KeeperTestSuite) TestRegisterERC20ConversionInvariant() {
 	contact, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.signer.Address(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
-	tokenPair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, contact, crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenerateAddress().String()))
+	tokenPair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, contact, crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenHexAddress().String()))
 	suite.Require().NoError(err)
 	suite.Require().True(tokenPair.Enabled)
 	suite.Require().EqualValues(tokenPair.Erc20Address, contact.String())

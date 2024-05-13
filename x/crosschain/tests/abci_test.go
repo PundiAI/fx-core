@@ -33,8 +33,8 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
-	bridgeToken := helpers.GenerateAddressByModule(suite.chainName)
-	sendToFxSendAddr := helpers.GenerateAddressByModule(suite.chainName)
+	bridgeToken := helpers.GenExternalAddr(suite.chainName)
+	sendToFxSendAddr := helpers.GenExternalAddr(suite.chainName)
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 		EventNonce:     1,
 		BlockHeight:    1000,
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		TokenContract:  bridgeToken,
 		Amount:         sdkmath.NewInt(1234),
 		Sender:         sendToFxSendAddr,
-		Receiver:       sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		Receiver:       helpers.GenAccAddress().String(),
 		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
 		BridgerAddress: suite.bridgerAddrs[0].String(),
 		ChainName:      suite.chainName,
@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	trace, err := fxtypes.GetIbcDenomTrace(denom, addBridgeTokenClaim.ChannelIbc)
 	suite.NoError(err)
 	denom = trace.IBCDenom()
-	require.EqualValues(suite.T(), fmt.Sprintf("%s%s", sendToFxClaim.Amount.String(), denom), allBalances.String())
+	require.EqualValues(suite.T(), sdk.Coin{Amount: sendToFxClaim.Amount, Denom: denom}.String(), allBalances.String())
 }
 
 func (suite *KeeperTestSuite) TestOracleUpdate() {
@@ -105,7 +105,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
-	bridgeToken := helpers.GenerateAddressByModule(suite.chainName)
+	bridgeToken := helpers.GenExternalAddr(suite.chainName)
 
 	for i := 0; i < 6; i++ {
 		addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		firstBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 			EventNonce:     1,
 			BlockHeight:    1000,
-			TokenContract:  helpers.GenerateAddressByModule(suite.chainName),
+			TokenContract:  helpers.GenExternalAddr(suite.chainName),
 			Name:           "Test Token",
 			Symbol:         "TEST",
 			Decimals:       18,
@@ -259,7 +259,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		secondBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 			EventNonce:     2,
 			BlockHeight:    1001,
-			TokenContract:  helpers.GenerateAddressByModule(suite.chainName),
+			TokenContract:  helpers.GenExternalAddr(suite.chainName),
 			Name:           "Test Token2",
 			Symbol:         "TEST2",
 			Decimals:       18,

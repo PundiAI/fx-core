@@ -26,7 +26,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 		suite.crosschain[index].Init()
 		chain := suite.crosschain[index]
 
-		tokenAddress := helpers.GenerateAddressByModule(chain.chainName)
+		tokenAddress := helpers.GenExternalAddr(chain.chainName)
 		metadata := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), 18)
 
 		bridgeDenom := crosschaintypes.NewBridgeDenom(chain.chainName, tokenAddress)
@@ -74,7 +74,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdkmath.NewInt(40)))
 
 		if chain.chainName == ethtypes.ModuleName {
-			fxTokenAddress := helpers.GenerateAddress().Hex()
+			fxTokenAddress := helpers.GenHexAddress().Hex()
 			fxMD := fxtypes.GetFXMetaData()
 			chain.AddBridgeTokenClaim(fxMD.Name, fxMD.Symbol, fxtypes.DenomUnit, fxTokenAddress, "")
 
@@ -91,7 +91,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 			suite.Equal(big.NewInt(0).Add(erc20Balance, big.NewInt(100)), suite.erc20.BalanceOf(fxPair.GetERC20Contract(), chain.HexAddress()))
 
 			// add pundix token
-			pundixAddress := helpers.GenerateAddressByModule(chain.chainName)
+			pundixAddress := helpers.GenExternalAddr(chain.chainName)
 			pundixDenom := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, pundixAddress)
 			pundixMetadata := fxtypes.GetCrossChainMetadataOneToOne("test token", pundixDenom, "PUNDIX", 18)
 			suite.erc20.RegisterCoinProposal(pundixMetadata)
@@ -110,7 +110,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	// eth add purse token
 	purseMd := ethChain.SelectTokenMetadata("ibc/")
 
-	newTokenContract := helpers.GenerateAddressByModule(ethtypes.ModuleName)
+	newTokenContract := helpers.GenExternalAddr(ethtypes.ModuleName)
 	purseNewAlias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, newTokenContract)
 	resp, _ := suite.erc20.UpdateDenomAliasProposal(purseMd.Base, purseNewAlias)
 	suite.Equal(uint32(0), resp.Code)
@@ -119,7 +119,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	purseTokenEth := newTokenContract
 
 	// bsc add FX token
-	newTokenContract = helpers.GenerateAddressByModule(bsctypes.ModuleName)
+	newTokenContract = helpers.GenExternalAddr(bsctypes.ModuleName)
 
 	bscChain.AddBridgeTokenClaim("Function X", "FX", 18, newTokenContract, "")
 	fxTokenBSC := newTokenContract
@@ -127,7 +127,7 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	// polygon add pundix token
 	pundixMd := tronChain.SelectTokenMetadata("eth")
 
-	newTokenContract = helpers.GenerateAddressByModule(trontypes.ModuleName)
+	newTokenContract = helpers.GenExternalAddr(trontypes.ModuleName)
 	pundixAlias := crosschaintypes.NewBridgeDenom(trontypes.ModuleName, newTokenContract)
 	resp, _ = suite.erc20.UpdateDenomAliasProposal(pundixMd.Base, pundixAlias)
 	suite.Equal(uint32(0), resp.Code)
@@ -241,7 +241,7 @@ func (suite *IntegrationTest) BridgeCallToFxcoreTest() {
 				suite.evm.CheckBalance(pair.GetERC20Contract(), chain.HexAddress(), big.NewInt(0).Add(balBefore, randAmount.BigInt()))
 
 				// clear balance
-				suite.evm.TransferERC20(chain.privKey, pair.GetERC20Contract(), helpers.GenerateAddress(), randAmount.BigInt())
+				suite.evm.TransferERC20(chain.privKey, pair.GetERC20Contract(), helpers.GenHexAddress(), randAmount.BigInt())
 			}
 		}
 	}

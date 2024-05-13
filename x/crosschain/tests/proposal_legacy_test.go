@@ -1,7 +1,6 @@
 package tests_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
@@ -29,7 +28,7 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	updateOracle.Oracles = []string{}
 	number := tmrand.Intn(100)
 	for i := 0; i < number; i++ {
-		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
+		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, updateOracle)
 	require.NoError(suite.T(), err)
@@ -37,7 +36,7 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	updateOracle.Oracles = []string{}
 	number = tmrand.Intn(2) + 101
 	for i := 0; i < number; i++ {
-		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
+		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, updateOracle)
 	require.Error(suite.T(), err)

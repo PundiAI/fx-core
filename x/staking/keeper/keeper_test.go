@@ -200,7 +200,7 @@ func (suite *KeeperTestSuite) Commit(count ...int) {
 }
 
 func (suite *KeeperTestSuite) CreateValidatorJailed() ([]abci.ValidatorUpdate, sdk.AccAddress, sdk.ConsAddress) {
-	accAddr := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	accAddr := helpers.GenAccAddress()
 	initBalance := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
 	helpers.AddTestAddr(suite.app, suite.ctx, accAddr, initBalance)
 
@@ -250,7 +250,7 @@ func (suite *KeeperTestSuite) CreateValidatorJailed() ([]abci.ValidatorUpdate, s
 
 func (suite *KeeperTestSuite) TestHasValidatorGrant() {
 	val := sdk.ValAddress(suite.valAccounts[0].GetAddress())
-	addr := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	addr := helpers.GenAccAddress()
 
 	auth := suite.app.StakingKeeper.HasValidatorGrant(suite.ctx, addr, val)
 	suite.Require().False(auth)
@@ -268,8 +268,8 @@ func (suite *KeeperTestSuite) TestHasValidatorGrant() {
 }
 
 func (suite *KeeperTestSuite) TestGrantRevokeAuthorization() {
-	addr1 := sdk.AccAddress(helpers.GenerateAddress().Bytes())
-	addr2 := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	addr1 := helpers.GenAccAddress()
+	addr2 := helpers.GenAccAddress()
 
 	getAuths, err := suite.app.AuthzKeeper.GetAuthorizations(suite.ctx, addr2, addr1)
 	suite.Require().NoError(err)
@@ -296,8 +296,8 @@ func (suite *KeeperTestSuite) TestGrantRevokeAuthorization() {
 
 func (suite *KeeperTestSuite) TestValidatorOperator() {
 	val := sdk.ValAddress(suite.valAccounts[0].GetAddress())
-	addr1 := sdk.AccAddress(helpers.GenerateAddress().Bytes())
-	addr2 := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	addr1 := helpers.GenAccAddress()
+	addr2 := helpers.GenAccAddress()
 
 	found := suite.app.StakingKeeper.HasValidatorOperator(suite.ctx, val)
 	suite.Require().False(found)

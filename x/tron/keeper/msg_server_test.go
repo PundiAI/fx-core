@@ -24,8 +24,8 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			malleate: func() {
 				msg = &crosschaintypes.MsgConfirmBatch{
 					Nonce:          tmrand.Uint64(),
-					TokenContract:  helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
-					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					TokenContract:  helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
+					BridgerAddress: helpers.GenAccAddress().String(),
 				}
 			},
 			expPass: false,
@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 				msg = &crosschaintypes.MsgConfirmBatch{
 					Nonce:          newOutgoingTx.BatchNonce,
 					TokenContract:  newOutgoingTx.TokenContract,
-					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					BridgerAddress: helpers.GenAccAddress().String(),
 				}
 			},
 			expPass: false,
@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 					TokenContract:   newOutgoingTx.TokenContract,
 					BridgerAddress:  bridger.String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),
-					Signature:       helpers.GenerateAddress().Hex(),
+					Signature:       helpers.GenHexAddress().Hex(),
 				}
 			},
 			expPass: false,
@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 			malleate: func() {
 				msg = &crosschaintypes.MsgOracleSetConfirm{
 					Nonce:          tmrand.Uint64(),
-					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					BridgerAddress: helpers.GenAccAddress().String(),
 				}
 			},
 			expPass: false,
@@ -117,8 +117,8 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 				newOracleSet := suite.NewOracleSet(helpers.NewEthPrivKey())
 				msg = &crosschaintypes.MsgOracleSetConfirm{
 					Nonce:           newOracleSet.Nonce,
-					BridgerAddress:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+					BridgerAddress:  helpers.GenAccAddress().String(),
+					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 				}
 			},
 			expPass: false,
@@ -131,8 +131,8 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 				msg = &crosschaintypes.MsgOracleSetConfirm{
 					Nonce:           newOracleSet.Nonce,
 					BridgerAddress:  bridger.String(),
-					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
-					Signature:       helpers.GenerateAddress().Hex(),
+					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
+					Signature:       helpers.GenHexAddress().Hex(),
 				}
 			},
 			expPass: false,

@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 	suite.Equal(uint64(1715899), rsp.GasUsed)
 	contractAddress := crypto.CreateAddress(suite.signer.Address(), nonce)
 
-	args, err = contract.GetFIP20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenerateAddress())
+	args, err = contract.GetFIP20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenHexAddress())
 	suite.Require().NoError(err)
 
 	msg = ethtypes.NewMessage(

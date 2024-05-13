@@ -70,7 +70,7 @@ func (suite *AnteTestSuite) SetupTest() {
 		WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.signer = helpers.NewSigner(helpers.NewPriKey())
 
-	valAddr := helpers.GenerateAddress().Bytes()
+	valAddr := helpers.GenHexAddress().Bytes()
 	validator, err := stakingtypes.NewValidator(valAddr, valConsPriv.PubKey(), stakingtypes.Description{})
 	suite.Require().NoError(err)
 
@@ -170,7 +170,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		{
 			"success - DeliverTx",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -193,7 +193,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		{
 			"success - CheckTx",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -216,7 +216,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		{
 			"success - ReCheckTx",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -239,7 +239,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		{
 			"success - CheckTx (cosmos tx not signed)",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -262,7 +262,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		{
 			"fail - CheckTx (cosmos tx is not valid)",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -287,7 +287,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		{
 			"fail - CheckTx (memo too long)",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -311,7 +311,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		{
 			"fail - CheckTx (ExtensionOptionsEthereumTx not set)",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -338,7 +338,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			func(signer helpers.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -363,7 +363,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			func(signer helpers.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -389,7 +389,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			func(signer helpers.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -415,7 +415,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			func(signer helpers.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -448,7 +448,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
 
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -604,7 +604,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		{
 			"success - DeliverTx",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -628,7 +628,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		{
 			"success - CheckTx",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -652,7 +652,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		{
 			"success - ReCheckTx",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -676,7 +676,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		{
 			"success - CheckTx (cosmos tx not signed)",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -700,7 +700,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		{
 			"fail - CheckTx (cosmos tx is not valid)",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -726,7 +726,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		{
 			"fail - CheckTx (memo too long)",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -869,7 +869,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 		{
 			"fail - EVM Call Disabled",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -893,7 +893,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 		{
 			"success - EVM Call Enabled",
 			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,

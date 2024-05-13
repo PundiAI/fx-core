@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetBatchConfirmKey(t *testing.T) {
-	tokenContract := helpers.GenerateAddress().Hex()
+	tokenContract := helpers.GenHexAddress().Hex()
 	batchNonce := tmrand.Uint64()
 	keys1 := append(types.BatchConfirmKey, append([]byte(tokenContract), sdk.Uint64ToBigEndian(batchNonce)...)...)
 	keys2 := types.GetBatchConfirmKey(tokenContract, batchNonce, []byte{})

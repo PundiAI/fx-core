@@ -631,7 +631,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			buildMsg: func() types.ExternalClaim {
 				return &types.MsgBridgeTokenClaim{
 					BlockHeight:   tmrand.Uint64(),
-					TokenContract: helpers.GenerateAddress().String(),
+					TokenContract: helpers.GenHexAddress().String(),
 					Name:          tmrand.Str(10),
 					Symbol:        tmrand.Str(10),
 					Decimals:      uint64(tmrand.Int63n(18) + 1),
@@ -659,9 +659,9 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			buildMsg: func() types.ExternalClaim {
 				return &types.MsgSendToFxClaim{
 					BlockHeight:   tmrand.Uint64(),
-					TokenContract: helpers.GenerateAddress().String(),
+					TokenContract: helpers.GenHexAddress().String(),
 					Amount:        sdkmath.NewInt(tmrand.Int63n(100000) + 1).MulRaw(1e18),
-					Sender:        helpers.GenerateAddressByModule(suite.chainName),
+					Sender:        helpers.GenExternalAddr(suite.chainName),
 					Receiver:      sdk.AccAddress(tmrand.Bytes(20)).String(),
 					TargetIbc:     "",
 					ChainName:     suite.chainName,
@@ -727,7 +727,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				return &types.MsgSendToExternalClaim{
 					BlockHeight:   tmrand.Uint64(),
 					BatchNonce:    tmrand.Uint64(),
-					TokenContract: helpers.GenerateAddress().String(),
+					TokenContract: helpers.GenHexAddress().String(),
 					ChainName:     suite.chainName,
 				}
 			},
@@ -1091,7 +1091,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 	updateOracle.Oracles = []string{}
 	number := tmrand.Intn(100)
 	for i := 0; i < number; i++ {
-		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
+		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
 	require.NoError(suite.T(), err)
@@ -1099,7 +1099,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 	updateOracle.Oracles = []string{}
 	number = tmrand.Intn(2) + 101
 	for i := 0; i < number; i++ {
-		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
+		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
 	require.Error(suite.T(), err)
@@ -1108,13 +1108,13 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	suite.bondedOracle()
 
-	tokenContract := helpers.GenerateAddressByModule(suite.chainName)
+	tokenContract := helpers.GenExternalAddr(suite.chainName)
 
 	suite.addBridgeToken(tokenContract, fxtypes.GetCrossChainMetadataManyToOne("test token", "TT", 18))
 
 	suite.registerCoin(types.NewBridgeDenom(suite.chainName, tokenContract))
 
-	fxTokenContract := helpers.GenerateAddressByModule(suite.chainName)
+	fxTokenContract := helpers.GenExternalAddr(suite.chainName)
 	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData())
 
 	// fxAsset, err := contract.PackERC20AssetWithType(
@@ -1139,17 +1139,17 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			name: "success",
 			msg: &types.MsgBridgeCallClaim{
 				EventNonce:     oracleLastEventNonce + 1,
-				Sender:         helpers.GenerateAddressByModule(suite.chainName),
+				Sender:         helpers.GenExternalAddr(suite.chainName),
 				TokenContracts: []string{tokenContract},
 				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)},
-				Receiver:       helpers.GenerateAddressByModule(suite.chainName),
-				To:             helpers.GenerateAddressByModule(suite.chainName),
+				Receiver:       helpers.GenExternalAddr(suite.chainName),
+				To:             helpers.GenExternalAddr(suite.chainName),
 				Data:           "",
 				Value:          sdkmath.NewInt(0),
 				BlockHeight:    1,
 				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChainName:      suite.chainName,
-				TxOrigin:       helpers.GenerateAddressByModule(suite.chainName),
+				TxOrigin:       helpers.GenExternalAddr(suite.chainName),
 			},
 			err:       nil,
 			errReason: "",
@@ -1160,10 +1160,10 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 		// 	msg: &types.MsgBridgeCallClaim{
 		// 		DstChainId:     "530",
 		// 		EventNonce:     oracleLastEventNonce + 2,
-		// 		Sender:         helpers.GenerateAddressByModule(suite.chainName),
+		// 		Sender:         helpers.GenExternalAddr(suite.chainName),
 		// 		Asset:          fxAsset,
-		// 		Receiver:       helpers.GenerateAddressByModule(suite.chainName),
-		// 		To:             helpers.GenerateAddressByModule(suite.chainName),
+		// 		Receiver:       helpers.GenExternalAddr(suite.chainName),
+		// 		To:             helpers.GenExternalAddr(suite.chainName),
 		// 		Data:           "",
 		// 		Value:          sdkmath.NewInt(0),
 		// 		BlockHeight:    1,
@@ -1331,8 +1331,8 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 				return &types.MsgBridgeCall{
 					ChainName: suite.chainName,
 					Sender:    sendToFxReceiveAddr.String(),
-					Receiver:  helpers.GenerateAddressByModule(suite.chainName),
-					To:        helpers.GenerateAddressByModule(suite.chainName),
+					Receiver:  helpers.GenExternalAddr(suite.chainName),
+					To:        helpers.GenExternalAddr(suite.chainName),
 					Coins:     sdk.NewCoins(sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewInt(1e18))),
 					Data:      "",
 					Value:     sdkmath.ZeroInt(),
@@ -1361,13 +1361,13 @@ func (suite *KeeperTestSuite) TestAddPendingPoolRewards() {
 	txId := tmrand.Uint64()
 	initRewards := sdk.NewCoins()
 	addRewards := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)))
-	tx := types.NewPendingOutgoingTx(txId, helpers.GenerateAddress().Bytes(), helpers.GenerateAddressByModule(suite.chainName),
+	tx := types.NewPendingOutgoingTx(txId, helpers.GenHexAddress().Bytes(), helpers.GenExternalAddr(suite.chainName),
 		tmrand.Str(40), sdk.NewCoin("test", sdkmath.NewInt(100)), sdk.NewCoin("test", sdkmath.NewInt(100)),
 		initRewards)
 	suite.Keeper().SetPendingTx(suite.ctx, &tx)
 
 	// mint add reward coins to sender.
-	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	sender := helpers.GenAccAddress()
 	suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, suite.chainName, addRewards))
 	suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, suite.chainName, sender, addRewards))
 

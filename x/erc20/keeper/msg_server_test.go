@@ -563,7 +563,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module)))
 				}
 				base := denom
 				return denom, base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom
@@ -578,7 +578,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module)))
 				}
 				base := denom
 				return denom, base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), denom
@@ -594,7 +594,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				i, idx, idxModule, idxDenom := 0, tmrand.Intn(len(keepers)), "", ""
 				aliases := make([]string, 0)
 				for module := range keepers {
-					randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module))
+					randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module))
 					aliases = append(aliases, randToken)
 					if i == idx {
 						idxModule = module
@@ -619,7 +619,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					if i == idx {
 						idxModule = module
 					} else {
-						randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module))
+						randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module))
 						aliases = append(aliases, randToken)
 					}
 					i++
@@ -636,7 +636,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module)))
 				}
 				base := helpers.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom // #nosec G602
@@ -651,7 +651,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				keepers := suite.CrossChainKeepers()
 
 				for module := range keepers {
-					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module)))
 				}
 				base := helpers.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), base // #nosec G602
@@ -670,7 +670,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				}
 				aliases := make([]string, 0)
 				for module := range keepers {
-					randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module))
+					randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module))
 					aliases = append(aliases, randToken)
 					if i == idx {
 						idxModule = module
@@ -698,7 +698,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					if i == idx {
 						idxModule = module
 					} else {
-						randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenerateAddressByModule(module))
+						randToken := crosschaintypes.NewBridgeDenom(module, helpers.GenExternalAddr(module))
 						aliases = append(aliases, randToken)
 					}
 					i++
@@ -714,7 +714,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				ibcDenom := suite.AddIBCToken(portID, channelID)
 
 				md := fxtypes.GetCrossChainMetadataOneToOne("PURSE Token", ibcDenom, "PURSE", 18)
-				alias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenerateAddressByModule(ethtypes.ModuleName))
+				alias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenExternalAddr(ethtypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
 				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(types.ModuleName), md.Base
@@ -727,7 +727,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				ibcDenom := suite.AddIBCToken(portID, channelID)
 
 				md := fxtypes.GetCrossChainMetadataOneToOne("PURSE Token", ibcDenom, "PURSE", 18)
-				alias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenerateAddressByModule(ethtypes.ModuleName))
+				alias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenExternalAddr(ethtypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
 				return md.Base, md.Base, []string{alias}, fxtypes.ParseFxTarget(ethtypes.ModuleName), alias
@@ -740,7 +740,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				ibcDenom := suite.AddIBCToken(portID, channelID)
 
 				md := fxtypes.GetCrossChainMetadataOneToOne("PURSE Token", ibcDenom, "PURSE", 18)
-				alias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenerateAddressByModule(ethtypes.ModuleName))
+				alias := crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenExternalAddr(ethtypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
 				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(bsctypes.ModuleName), md.Base
@@ -750,7 +750,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			name: "FX, alias to base denom",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				md := fxtypes.GetFXMetaData()
-				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
+				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenExternalAddr(bsctypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
 				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(types.ModuleName), md.Base
@@ -760,7 +760,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			name: "FX, base denom to alias",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				md := fxtypes.GetFXMetaData()
-				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
+				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenExternalAddr(bsctypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
 				return md.Base, md.Base, []string{alias}, fxtypes.ParseFxTarget(bsctypes.ModuleName), alias
@@ -770,7 +770,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			name: "FX, default denom",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				md := fxtypes.GetFXMetaData()
-				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddressByModule(bsctypes.ModuleName))
+				alias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenExternalAddr(bsctypes.ModuleName))
 				md.DenomUnits[0].Aliases = []string{alias}
 
 				return alias, md.Base, []string{alias}, fxtypes.ParseFxTarget(ethtypes.ModuleName), md.Base
@@ -1052,7 +1052,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 
 				module := md.RandModule()
 				k := suite.CrossChainKeepers()[module]
-				tokenContract := helpers.GenerateAddressByModule(module)
+				tokenContract := helpers.GenExternalAddr(module)
 				newAlias := crosschaintypes.NewBridgeDenom(module, tokenContract)
 				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)
 
@@ -1086,7 +1086,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 
 				moduleName := md.RandModule()
 				k := suite.CrossChainKeepers()[moduleName]
-				tokenContract := helpers.GenerateAddressByModule(moduleName)
+				tokenContract := helpers.GenExternalAddr(moduleName)
 				newAlias := crosschaintypes.NewBridgeDenom(moduleName, tokenContract)
 				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)
 
@@ -1116,7 +1116,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				suite.True(found)
 
 				moduleName := bsctypes.ModuleName
-				tokenContract := helpers.GenerateAddressByModule(moduleName)
+				tokenContract := helpers.GenExternalAddr(moduleName)
 				newAlias := crosschaintypes.NewBridgeDenom(moduleName, tokenContract)
 				k := suite.CrossChainKeepers()[moduleName]
 				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)
@@ -1147,7 +1147,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				suite.True(found)
 
 				moduleName := bsctypes.ModuleName
-				tokenContract := helpers.GenerateAddressByModule(moduleName)
+				tokenContract := helpers.GenExternalAddr(moduleName)
 				newAlias := crosschaintypes.NewBridgeDenom(moduleName, tokenContract)
 				k := suite.CrossChainKeepers()[moduleName]
 				k.AddBridgeToken(suite.ctx, tokenContract, newAlias)

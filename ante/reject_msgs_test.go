@@ -84,7 +84,7 @@ func (suite *AnteTestSuite) TestRejectValidatorGranted() {
 			name: "eth - success",
 			malleate: func(addr sdk.AccAddress, val sdk.ValAddress, privs []cryptotypes.PrivKey, accNums, accSeqs []uint64) sdk.Tx {
 				from := common.BytesToAddress(addr.Bytes())
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				emptyAccessList := ethtypes.AccessList{}
 
 				helpers.AddTestAddr(suite.app, suite.ctx, addr, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e18))))
@@ -98,7 +98,7 @@ func (suite *AnteTestSuite) TestRejectValidatorGranted() {
 			name: "eth - failed tx",
 			malleate: func(addr sdk.AccAddress, val sdk.ValAddress, privs []cryptotypes.PrivKey, accNums, accSeqs []uint64) sdk.Tx {
 				from := common.BytesToAddress(addr.Bytes())
-				to := helpers.GenerateAddress()
+				to := helpers.GenHexAddress()
 				emptyAccessList := ethtypes.AccessList{}
 
 				err := suite.app.StakingKeeper.DisableValidatorAddress(suite.ctx, sdk.ValAddress(addr))

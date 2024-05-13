@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				req := &types.QueryTokenPairsRequest{
 					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
 				}
-				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 				fxPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
@@ -62,8 +62,8 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 			"metadata +2 pairs registered wo/pagination",
 			func() (*types.QueryTokenPairsRequest, *types.QueryTokenPairsResponse) {
 				req := &types.QueryTokenPairsRequest{}
-				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
-				pair2 := types.NewTokenPair(helpers.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
+				pair2 := types.NewTokenPair(helpers.GenHexAddress(), "coin2", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 			"token pair not found",
 			func() (*types.QueryTokenPairRequest, *types.QueryTokenPairResponse) {
 				req := &types.QueryTokenPairRequest{
-					Token: helpers.GenerateAddress().Hex(),
+					Token: helpers.GenHexAddress().Hex(),
 				}
 				expRes := &types.QueryTokenPairResponse{}
 				return req, expRes
@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 		{
 			"token pair found",
 			func() (*types.QueryTokenPairRequest, *types.QueryTokenPairResponse) {
-				addr := helpers.GenerateAddress()
+				addr := helpers.GenHexAddress()
 				pair := types.NewTokenPair(addr, "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 			func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse) {
 				req := &types.QueryDenomAliasesRequest{Denom: "usdt"}
 				expRes := &types.QueryDenomAliasesResponse{}
-				pair := types.NewTokenPair(helpers.GenerateAddress(), "usdt", true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(helpers.GenHexAddress(), "usdt", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 				return req, expRes
 			},
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 				req := &types.QueryDenomAliasesRequest{Denom: "usdt"}
 				expRes := &types.QueryDenomAliasesResponse{}
 
-				pair := types.NewTokenPair(helpers.GenerateAddress(), "usdt", true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(helpers.GenHexAddress(), "usdt", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, banktypes.Metadata{
@@ -226,7 +226,7 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 				req := &types.QueryDenomAliasesRequest{Denom: metadata.Base}
 				expRes := &types.QueryDenomAliasesResponse{Aliases: metadata.DenomUnits[0].Aliases}
 
-				pair := types.NewTokenPair(helpers.GenerateAddress(), metadata.Base, true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(helpers.GenHexAddress(), metadata.Base, true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
@@ -271,7 +271,7 @@ func (suite *KeeperTestSuite) TestAliasDenom() {
 		{
 			"ok without denom alias",
 			func() (*types.QueryAliasDenomRequest, *types.QueryAliasDenomResponse) {
-				denom := fmt.Sprintf("test%s", helpers.GenerateAddress().String())
+				denom := fmt.Sprintf("test%s", helpers.GenHexAddress().String())
 				req := &types.QueryAliasDenomRequest{Alias: denom}
 				expRes := &types.QueryAliasDenomResponse{}
 				return req, expRes
@@ -281,7 +281,7 @@ func (suite *KeeperTestSuite) TestAliasDenom() {
 		{
 			"ok",
 			func() (*types.QueryAliasDenomRequest, *types.QueryAliasDenomResponse) {
-				denom := fmt.Sprintf("test%s", helpers.GenerateAddress().String())
+				denom := fmt.Sprintf("test%s", helpers.GenHexAddress().String())
 				req := &types.QueryAliasDenomRequest{Alias: denom}
 				expRes := &types.QueryAliasDenomResponse{Denom: "usdt"}
 

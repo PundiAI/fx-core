@@ -19,7 +19,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestGrantPrivilege() {
-	addrNotExist := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	addrNotExist := helpers.GenAccAddress()
 	testCase := []struct {
 		name       string
 		malleate   func() *types.MsgGrantPrivilege

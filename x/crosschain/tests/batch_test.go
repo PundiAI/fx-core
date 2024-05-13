@@ -48,8 +48,8 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 			BatchNonce: i,
 			Transactions: types.OutgoingTransferTxs{{
 				Id:          i,
-				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-				DestAddress: helpers.GenerateAddress().Hex(),
+				Sender:      helpers.GenAccAddress().String(),
+				DestAddress: helpers.GenHexAddress().Hex(),
 			}},
 		})
 		require.NoError(suite.T(), err)
@@ -78,15 +78,15 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
-	tokenContract := helpers.GenerateAddress().Hex()
+	tokenContract := helpers.GenHexAddress().Hex()
 	batch := &types.OutgoingTxBatch{
 		BatchNonce:   1,
 		BatchTimeout: 0,
 		Transactions: []*types.OutgoingTransferTx{
 			{
 				Id:          1,
-				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-				DestAddress: helpers.GenerateAddress().Hex(),
+				Sender:      helpers.GenAccAddress().String(),
+				DestAddress: helpers.GenHexAddress().Hex(),
 				Token: types.ERC20Token{
 					Contract: tokenContract,
 					Amount:   sdkmath.NewInt(1),
@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		},
 		TokenContract: tokenContract,
 		Block:         100,
-		FeeReceive:    helpers.GenerateAddress().Hex(),
+		FeeReceive:    helpers.GenHexAddress().Hex(),
 	}
 	suite.NoError(suite.Keeper().StoreBatch(suite.ctx, batch))
 
@@ -128,15 +128,15 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
 	index := tmrand.Intn(100)
 	for i := 1; i <= index; i++ {
-		tokenContract := helpers.GenerateAddress().Hex()
+		tokenContract := helpers.GenHexAddress().Hex()
 		batch := &types.OutgoingTxBatch{
 			BatchNonce:   1,
 			BatchTimeout: 0,
 			Transactions: []*types.OutgoingTransferTx{
 				{
 					Id:          1,
-					Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-					DestAddress: helpers.GenerateAddress().Hex(),
+					Sender:      helpers.GenAccAddress().String(),
+					DestAddress: helpers.GenHexAddress().Hex(),
 					Token: types.ERC20Token{
 						Contract: tokenContract,
 						Amount:   sdkmath.NewInt(1),
@@ -149,7 +149,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
 			},
 			TokenContract: tokenContract,
 			Block:         uint64(100 + i),
-			FeeReceive:    helpers.GenerateAddress().Hex(),
+			FeeReceive:    helpers.GenHexAddress().Hex(),
 		}
 		suite.NoError(suite.Keeper().StoreBatch(suite.ctx, batch))
 	}

@@ -34,7 +34,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		{
 			"invalid sender",
 			func() sdk.Tx {
-				addr := helpers.GenerateAddress()
+				addr := helpers.GenHexAddress()
 				return evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 1, &addr, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 			},
 			true,
@@ -78,7 +78,7 @@ func (suite *AnteTestSuite) NewTxContract() *evmtypes.MsgEthereumTx {
 }
 
 func (suite *AnteTestSuite) TestNewEthAccountVerificationDecorator() {
-	addr := helpers.GenerateAddress()
+	addr := helpers.GenHexAddress()
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
 
@@ -163,7 +163,7 @@ func (suite *AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
-	addr := helpers.GenerateAddress()
+	addr := helpers.GenHexAddress()
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
 
@@ -218,7 +218,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
-	addr := helpers.GenerateAddress()
+	addr := helpers.GenHexAddress()
 
 	txGasLimit := uint64(1000)
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), txGasLimit, big.NewInt(1), nil, nil, nil, nil)
@@ -445,7 +445,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 
 func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 	signer := helpers.NewSigner(helpers.NewEthPrivKey())
-	to := helpers.GenerateAddress()
+	to := helpers.GenHexAddress()
 
 	contract := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 0, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	contract.From = signer.Address().Hex()

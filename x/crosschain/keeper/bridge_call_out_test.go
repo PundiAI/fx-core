@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"go.uber.org/mock/gomock"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -21,14 +20,14 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 		s.Run(tt.name, func() {
 			msg := &types.MsgBridgeCallResultClaim{
 				ChainName:      s.moduleName,
-				BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				BridgerAddress: helpers.GenAccAddress().String(),
 				EventNonce:     1,
 				BlockHeight:    1,
-				Sender:         helpers.GenerateAddressByModule(s.moduleName),
-				Receiver:       helpers.GenerateAddressByModule(s.moduleName),
-				To:             helpers.GenerateAddressByModule(s.moduleName),
+				Sender:         helpers.GenExternalAddr(s.moduleName),
+				Receiver:       helpers.GenExternalAddr(s.moduleName),
+				To:             helpers.GenExternalAddr(s.moduleName),
 				Nonce:          1,
-				TxOrigin:       helpers.GenerateAddressByModule(s.moduleName),
+				TxOrigin:       helpers.GenExternalAddr(s.moduleName),
 				Success:        true,
 				Cause:          "",
 			}
@@ -41,7 +40,7 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 			s.accountKeeper.EXPECT().NewAccountWithAddress(gomock.Any(), gomock.Any()).Times(1)
 
 			s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &types.OutgoingBridgeCall{
-				Sender:      helpers.GenerateAddressByModule(s.moduleName),
+				Sender:      helpers.GenExternalAddr(s.moduleName),
 				Receiver:    "",
 				Tokens:      nil,
 				To:          "",

@@ -73,7 +73,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -105,7 +105,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -127,12 +127,12 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().Equal(randMint.String(), balance.Amount.BigInt().String())
 				moduleName := ethtypes.ModuleName
 
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					common.HexToAddress(contract.EmptyEvmAddress),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -151,7 +151,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			name: "ok - address - origin erc20 token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				moduleName := ethtypes.ModuleName
-				denomAddr := helpers.GenerateAddress().String()
+				denomAddr := helpers.GenHexAddress().String()
 				alias := crosschaintypes.NewBridgeDenom(moduleName, denomAddr)
 
 				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, denomAddr, alias)
@@ -171,7 +171,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -190,7 +190,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().True(found)
 
 				moduleName := ethtypes.ModuleName
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
@@ -210,7 +210,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -226,7 +226,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			name: "ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -264,7 +264,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(bsctypes.ModuleName),
+					helpers.GenExternalAddr(bsctypes.ModuleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(bsctypes.ModuleName),
@@ -280,7 +280,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			name: "ok - multiple chain transfer ibc token to outside",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				// add to bsc chain
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
@@ -324,7 +324,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(bsctypes.ModuleName),
+					helpers.GenExternalAddr(bsctypes.ModuleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(bsctypes.ModuleName),
@@ -340,7 +340,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			name: "ok - multiple chain transfer bridge token to outside",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				// add to bsc chain
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
@@ -388,7 +388,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(ethtypes.ModuleName),
+					helpers.GenExternalAddr(ethtypes.ModuleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(ethtypes.ModuleName),
@@ -409,7 +409,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
-				tokenContract := helpers.GenerateAddressByModule(bsctypes.ModuleName)
+				tokenContract := helpers.GenExternalAddr(bsctypes.ModuleName)
 				newAlias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, tokenContract)
 				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenContract, newAlias)
 				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, md.Base, newAlias)
@@ -433,7 +433,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -454,7 +454,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
-				tokenContract := helpers.GenerateAddressByModule(bsctypes.ModuleName)
+				tokenContract := helpers.GenExternalAddr(bsctypes.ModuleName)
 				newAlias := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, tokenContract)
 				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenContract, newAlias)
 				update, err := suite.app.Erc20Keeper.UpdateDenomAliases(suite.ctx, md.Base, newAlias)
@@ -483,7 +483,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -502,11 +502,11 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))))
 
 				moduleName := ethtypes.ModuleName
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					common.HexToAddress(contract.EmptyEvmAddress),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(1),
 					fxtypes.MustStrToByte32(moduleName),
@@ -536,11 +536,11 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
 
 				moduleName := md.RandModule()
-				token := helpers.GenerateAddress()
+				token := helpers.GenHexAddress()
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					token,
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -571,7 +571,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -609,7 +609,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -641,7 +641,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -660,12 +660,12 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))))
 
 				moduleName := ethtypes.ModuleName
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					common.HexToAddress(contract.EmptyEvmAddress),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -687,7 +687,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				suite.Require().True(found)
 
 				moduleName := ethtypes.ModuleName
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
@@ -707,7 +707,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -723,7 +723,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			name: "contract - ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -761,7 +761,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(bsctypes.ModuleName),
+					helpers.GenExternalAddr(bsctypes.ModuleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(bsctypes.ModuleName),
@@ -780,11 +780,11 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))))
 
 				moduleName := ethtypes.ModuleName
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					common.HexToAddress(contract.EmptyEvmAddress),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(1),
 					fxtypes.MustStrToByte32(moduleName),
@@ -811,7 +811,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					erc20Token,
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -842,7 +842,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -1042,7 +1042,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -1075,7 +1075,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -1104,11 +1104,11 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
 
 				moduleName := md.RandModule()
-				token := helpers.GenerateAddress()
+				token := helpers.GenHexAddress()
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					token,
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -1140,7 +1140,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				data, err := crosschain.GetABI().Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -1179,7 +1179,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -1212,7 +1212,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -1237,7 +1237,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					erc20Token,
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -1269,7 +1269,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				data, err := contract.MustABIJson(testcontract.CrossChainTestMetaData.ABI).Pack(
 					"crossChain",
 					pair.GetERC20Contract(),
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -1433,7 +1433,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			name: "ok",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -1489,7 +1489,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			name: "ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -1545,7 +1545,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			name: "ok - bsc purse token transfer ibc",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -1652,7 +1652,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				)
 				suite.Require().NoError(err)
 
-				return data, big.NewInt(0), sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), md.metadata.Base)}
+				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: md.metadata.Base}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
@@ -1663,7 +1663,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			name: "failed - not zero fee - ibc denom",
 			malleate: func(_ *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -1713,7 +1713,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				)
 				suite.Require().NoError(err)
 
-				return data, big.NewInt(0), sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), denom)}
+				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: denom}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
@@ -1742,7 +1742,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				)
 				suite.Require().NoError(err)
 
-				return data, randMint, sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), fxtypes.DefaultDenom)}
+				return data, randMint, sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: fxtypes.DefaultDenom}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
@@ -1784,7 +1784,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			name: "contract - ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -1887,7 +1887,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				)
 				suite.Require().NoError(err)
 
-				return data, big.NewInt(0), sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), md.metadata.Base)}
+				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: md.metadata.Base}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])
@@ -1898,7 +1898,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			name: "contract - failed - not zero fee - ibc denom",
 			malleate: func(_ *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -1948,7 +1948,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				)
 				suite.Require().NoError(err)
 
-				return data, big.NewInt(0), sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), denom)}
+				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: denom}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])
@@ -1977,7 +1977,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				)
 				suite.Require().NoError(err)
 
-				return data, randMint, sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), fxtypes.DefaultDenom)}
+				return data, randMint, sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: fxtypes.DefaultDenom}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])
@@ -2146,7 +2146,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 			name: "ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -2215,7 +2215,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 				)
 				suite.Require().NoError(err)
 
-				return data, big.NewInt(0), sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), pair.GetDenom())}
+				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: pair.GetDenom()}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
@@ -2259,7 +2259,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 			name: "contract - ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -2327,7 +2327,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 				)
 				suite.Require().NoError(err)
 
-				return data, big.NewInt(0), sourcePort, sourceChannel, []string{fmt.Sprintf("%s%s", fee.String(), pair.GetDenom())}
+				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: pair.GetDenom()}.String()}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])

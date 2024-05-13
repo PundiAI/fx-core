@@ -19,13 +19,13 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.bondedOracle()
 	suite.Commit()
 
-	bridgeToken := helpers.GenerateAddress()
+	bridgeToken := helpers.GenHexAddress()
 	bridgeTokenStr := types.ExternalAddrToStr(suite.chainName, bridgeToken.Bytes())
 	suite.addBridgeToken(bridgeTokenStr, fxtypes.GetCrossChainMetadataManyToOne("test token", "TTT", 18))
 
 	suite.registerCoin(types.NewBridgeDenom(suite.chainName, bridgeTokenStr))
 
-	fxAddr1 := helpers.GenerateAddress()
+	fxAddr1 := helpers.GenHexAddress()
 	randomBlock := tmrand.Int63n(1000000000)
 	randomAmount := tmrand.Int63n(1000000000)
 	_, err := suite.MsgServer().SendToFxClaim(suite.ctx, &types.MsgSendToFxClaim{
@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		BlockHeight:    uint64(randomBlock),
 		TokenContract:  bridgeTokenStr,
 		Amount:         sdk.NewInt(randomAmount),
-		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenerateAddress().Bytes()),
+		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenHexAddress().Bytes()),
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      "",
 		BridgerAddress: suite.bridgerAddrs[0].String(),
@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.NoError(err)
 	_, err = suite.MsgServer().BridgeCall(suite.ctx, &types.MsgBridgeCall{
 		Sender:   sdk.AccAddress(fxAddr1.Bytes()).String(),
-		Receiver: helpers.GenerateAddressByModule(suite.chainName),
+		Receiver: helpers.GenExternalAddr(suite.chainName),
 		Coins:    sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewInt(randomAmount))),
 		Value:    sdk.ZeroInt(),
 	})
@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		BlockHeight:    outgoingBridgeCall.Timeout,
 		TokenContract:  bridgeTokenStr,
 		Amount:         sdk.NewInt(randomAmount),
-		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenerateAddress().Bytes()),
+		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenHexAddress().Bytes()),
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      hex.EncodeToString([]byte(fxtypes.ERC20Target)),
 		BridgerAddress: suite.bridgerAddrs[0].String(),

@@ -160,7 +160,7 @@ func (s *KeeperTestSuite) CrossChainParams() types.Params {
 
 func (s *KeeperTestSuite) SetOracleSet(nonce, power, height uint64) string {
 	s.crosschainKeeper.SetLatestOracleSetNonce(s.ctx, nonce)
-	external := helpers.GenerateAddressByModule(s.moduleName)
+	external := helpers.GenExternalAddr(s.moduleName)
 	bridgeValidator := types.BridgeValidator{Power: power, ExternalAddress: external}
 	s.crosschainKeeper.StoreOracleSet(s.ctx, types.NewOracleSet(nonce, height, types.BridgeValidators{bridgeValidator}))
 	return external
