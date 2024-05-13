@@ -8,7 +8,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestKeeper_SetAccount() {
-	address := helpers.GenerateAddress()
+	address := helpers.GenHexAddress()
 	suite.Nil(suite.app.AccountKeeper.GetAccount(suite.ctx, address.Bytes()))
 
 	acc := suite.app.EvmKeeper.GetAccountOrEmpty(suite.ctx, address)

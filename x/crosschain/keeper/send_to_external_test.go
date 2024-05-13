@@ -12,10 +12,10 @@ import (
 )
 
 func (s *KeeperTestSuite) TestSendToExternal() {
-	bridgeTokenAddress := helpers.GenerateAddress().String()
+	bridgeTokenAddress := helpers.GenHexAddress().String()
 	bridgeToken := s.AddBridgeToken(bridgeTokenAddress)
 
-	senderAddr := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	senderAddr := helpers.GenAccAddress()
 	sendMsg := types.MsgSendToExternal{
 		Sender:    senderAddr.String(),
 		Amount:    sdk.NewCoin("usdt", sdk.NewInt(int64(tmrand.Uint32()))),
@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestSendToExternal() {
 	require.EqualValues(s.T(), sendMsg.BridgeFee, pendingSendToExternal.Fee)
 
 	// add liquidity
-	erc20ModuleAddr := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	erc20ModuleAddr := helpers.GenAccAddress()
 	s.accountKeeper.EXPECT().GetModuleAddress(erc20types.ModuleName).Return(erc20ModuleAddr).Times(1)
 	sendToken := sdk.NewCoin(bridgeToken.Denom, sendMsg.Amount.Amount.Add(sendMsg.BridgeFee.Amount))
 	s.bankKeeper.EXPECT().HasBalance(gomock.Any(), erc20ModuleAddr, sendToken).Return(true).Times(1)
@@ -45,7 +45,7 @@ func (s *KeeperTestSuite) TestSendToExternal() {
 	s.bankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), senderAddr, s.moduleName, sdk.NewCoins(sendToken)).Return(nil).Times(1)
 	s.bankKeeper.EXPECT().BurnCoins(gomock.Any(), s.moduleName, sdk.NewCoins(sendToken)).Return(nil).Times(1)
 
-	s.crosschainKeeper.HandlePendingOutgoingTx(s.ctx, helpers.GenerateAddress().Bytes(), 1, bridgeToken)
+	s.crosschainKeeper.HandlePendingOutgoingTx(s.ctx, helpers.GenHexAddress().Bytes(), 1, bridgeToken)
 
 	// check pending send to external tx is removed
 	_, found = s.crosschainKeeper.GetPendingPoolTxById(s.ctx, external.OutgoingTxId)

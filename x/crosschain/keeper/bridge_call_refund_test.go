@@ -19,19 +19,19 @@ func (s *KeeperTestSuite) TestKeeper_HandleOutgoingBridgeCallRefund() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			outgoingBridgeCall := &types.OutgoingBridgeCall{
-				Sender:   helpers.GenerateAddressByModule(s.moduleName),
-				Receiver: helpers.GenerateAddressByModule(s.moduleName),
+				Sender:   helpers.GenExternalAddr(s.moduleName),
+				Receiver: helpers.GenExternalAddr(s.moduleName),
 				Tokens: []types.ERC20Token{
 					{
-						Contract: helpers.GenerateAddressByModule(s.moduleName),
+						Contract: helpers.GenExternalAddr(s.moduleName),
 						Amount:   sdkmath.NewInt(1),
 					},
 					{
-						Contract: helpers.GenerateAddressByModule(s.moduleName),
+						Contract: helpers.GenExternalAddr(s.moduleName),
 						Amount:   sdkmath.NewInt(2),
 					},
 				},
-				To:          helpers.GenerateAddressByModule(s.moduleName),
+				To:          helpers.GenExternalAddr(s.moduleName),
 				Data:        "",
 				Memo:        "",
 				Nonce:       1,

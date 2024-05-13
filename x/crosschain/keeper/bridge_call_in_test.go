@@ -17,7 +17,7 @@ import (
 func (s *KeeperTestSuite) TestBridgeCallHandler() {
 	tests := []struct {
 		name       string
-		initMsg    func(msg *types.MsgBridgeCallClaim)
+		initData   func(msg *types.MsgBridgeCallClaim)
 		customMock func(msg *types.MsgBridgeCallClaim)
 		error      string
 		refund     bool
@@ -27,15 +27,15 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 		},
 		{
 			name: "ok - pass - no token",
-			initMsg: func(msg *types.MsgBridgeCallClaim) {
+			initData: func(msg *types.MsgBridgeCallClaim) {
 				msg.TokenContracts = []string{}
 				msg.Amounts = []sdkmath.Int{}
 			},
 		},
 		{
 			name: "ok - call evm error refund",
-			initMsg: func(msg *types.MsgBridgeCallClaim) {
-				msg.To = helpers.GenerateAddressByModule(s.moduleName)
+			initData: func(msg *types.MsgBridgeCallClaim) {
+				msg.To = helpers.GenExternalAddr(s.moduleName)
 			},
 			customMock: func(msg *types.MsgBridgeCallClaim) {
 				s.crosschainKeeper.SetLastObservedBlockHeight(s.ctx, 1000, msg.BlockHeight-1)
@@ -58,14 +58,14 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 		s.Run(t.name, func() {
 			msg := &types.MsgBridgeCallClaim{
 				ChainName: s.moduleName,
-				Sender:    helpers.GenerateAddressByModule(s.moduleName),
-				Receiver:  helpers.GenerateAddressByModule(s.moduleName),
+				Sender:    helpers.GenExternalAddr(s.moduleName),
+				Receiver:  helpers.GenExternalAddr(s.moduleName),
 				To:        "",
 				Data:      "",
 				Value:     sdkmath.NewInt(0),
 				TokenContracts: []string{
-					helpers.GenerateAddressByModule(s.moduleName),
-					helpers.GenerateAddressByModule(s.moduleName),
+					helpers.GenExternalAddr(s.moduleName),
+					helpers.GenExternalAddr(s.moduleName),
 				},
 				Amounts: []sdkmath.Int{
 					sdkmath.NewInt(1e18),
@@ -73,10 +73,10 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 				},
 				EventNonce:     10,
 				BlockHeight:    100,
-				BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				BridgerAddress: helpers.GenAccAddress().String(),
 			}
-			if t.initMsg != nil {
-				t.initMsg(msg)
+			if t.initData != nil {
+				t.initData(msg)
 			}
 
 			s.MockBridgeCallToken(msg.GetERC20Tokens())

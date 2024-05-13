@@ -12,7 +12,7 @@ import (
 
 func (suite *AnteTestSuite) TestSignatures() {
 	privKey := helpers.NewEthPrivKey()
-	to := helpers.GenerateAddress()
+	to := helpers.GenHexAddress()
 	from := common.BytesToAddress(privKey.PubKey().Address())
 
 	acc := statedb.NewEmptyAccount()

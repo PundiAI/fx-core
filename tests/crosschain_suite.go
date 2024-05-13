@@ -529,7 +529,7 @@ func (suite *CrosschainTestSuite) CancelAllSendToExternal() {
 }
 
 func (suite *CrosschainTestSuite) AddBridgeToken(md banktypes.Metadata) (string, crosschaintypes.BridgeToken) {
-	bridgeTokenAddr := helpers.GenerateAddressByModule(suite.chainName)
+	bridgeTokenAddr := helpers.GenExternalAddr(suite.chainName)
 	suite.AddBridgeTokenClaim(md.Name, md.Symbol, uint64(md.DenomUnits[1].Exponent), bridgeTokenAddr, "")
 	bridgeTokenDenom := suite.GetBridgeDenomByToken(bridgeTokenAddr)
 	return bridgeTokenDenom, crosschaintypes.BridgeToken{

@@ -9,7 +9,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestGetTokenPair() {
-	pair := types.NewTokenPair(helpers.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(helpers.GenHexAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
 	suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
 	testCases := []struct {
@@ -19,7 +19,7 @@ func (suite *KeeperTestSuite) TestGetTokenPair() {
 	}{
 		{"nil token", "", nil},
 		{"valid token", pair.Erc20Address, pair.GetID()},
-		{"invalid token", helpers.GenerateAddress().String(), nil},
+		{"invalid token", helpers.GenHexAddress().String(), nil},
 	}
 	for _, tc := range testCases {
 		tokenPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, tc.token)
@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestGetTokenPair() {
 }
 
 func (suite *KeeperTestSuite) TestIsERC20Registered() {
-	pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 	suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
 	testCases := []struct {
@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 }
 
 func (suite *KeeperTestSuite) TestIsDenomRegistered() {
-	pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 	suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
 	testCases := []struct {

@@ -12,8 +12,8 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
-	sender := helpers.GenerateAddress().Bytes()
-	bridgeToken := helpers.GenerateAddress().Hex()
+	sender := helpers.GenHexAddress().Bytes()
+	bridgeToken := helpers.GenHexAddress().Hex()
 	denom := types.NewBridgeDenom(suite.chainName, bridgeToken)
 	suite.Equal(sdk.NewCoin(denom, sdkmath.ZeroInt()), suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 
@@ -27,7 +27,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom) // nolint:staticcheck
 
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
-	receiver := helpers.GenerateAddress().Hex()
+	receiver := helpers.GenHexAddress().Hex()
 	amount := sdk.NewCoin(denom, sendAmount.Amount.QuoRaw(2))
 	txId, err := suite.Keeper().AddToOutgoingPool(suite.ctx, sender, receiver, amount, amount)
 	suite.NoError(err)
@@ -43,8 +43,8 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
-	sender := helpers.GenerateAddress().Bytes()
-	bridgeToken := helpers.GenerateAddress().Hex()
+	sender := helpers.GenHexAddress().Bytes()
+	bridgeToken := helpers.GenHexAddress().Hex()
 	denom := fxtypes.DefaultDenom
 	supply := suite.app.BankKeeper.GetSupply(suite.ctx, denom)
 
@@ -59,7 +59,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
 	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom) // nolint:staticcheck
 
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
-	receiver := helpers.GenerateAddress().Hex()
+	receiver := helpers.GenHexAddress().Hex()
 	amount := sdk.NewCoin(denom, sendAmount.Amount.QuoRaw(2))
 	txId, err := suite.Keeper().AddToOutgoingPool(suite.ctx, sender, receiver, amount, amount)
 	suite.NoError(err)

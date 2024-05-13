@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					ChainName: trontypes.ModuleName,
 					MinBatchFees: []types.MinBatchFee{
 						{
-							TokenContract: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+							TokenContract: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 							BaseFee:       sdkmath.NewInt(-1),
 						},
 					},
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					ChainName: trontypes.ModuleName,
 					MinBatchFees: []types.MinBatchFee{
 						{
-							TokenContract: helpers.GenerateAddress().Hex(),
+							TokenContract: helpers.GenHexAddress().Hex(),
 						},
 					},
 				}
@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 		{
 			name: "baseFee normal",
 			malleate: func() {
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: bridgeToken[0].Token,
@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					_, err := suite.app.TronKeeper.AddToOutgoingPool(
 						suite.ctx,
 						suite.signer.AccAddress(),
-						helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 					suite.Require().NoError(err)
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					_, err := suite.app.TronKeeper.AddToOutgoingPool(
 						suite.ctx,
 						suite.signer.AccAddress(),
-						helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 		{
 			name: "batch fee mul normal",
 			malleate: func() {
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: bridgeToken[0].Token,
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					_, err := suite.app.TronKeeper.AddToOutgoingPool(
 						suite.ctx,
 						suite.signer.AccAddress(),
-						helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 				_, err := suite.app.TronKeeper.AddToOutgoingPool(
 					suite.ctx,
 					suite.signer.AccAddress(),
-					helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+					helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
 					sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 				suite.Require().NoError(err)
@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					_, err = suite.app.TronKeeper.AddToOutgoingPool(
 						suite.ctx,
 						suite.signer.AccAddress(),
-						helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
 						sdk.NewCoin(bridgeToken[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))))
 					suite.Require().NoError(err)
@@ -183,8 +183,8 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		{
 			name: "store normal batch",
 			malleate: func() {
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
-				feeReceive := helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
+				feeReceive := helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex())
 				request = &types.QueryBatchRequestByNonceRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: bridgeToken[0].Token,
@@ -237,7 +237,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 			malleate: func() {
 				request = &types.QueryBatchRequestByNonceRequest{
 					ChainName:     trontypes.ModuleName,
-					TokenContract: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+					TokenContract: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					Nonce:         0,
 				}
 			},
@@ -248,7 +248,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 			malleate: func() {
 				request = &types.QueryBatchRequestByNonceRequest{
 					ChainName:     trontypes.ModuleName,
-					TokenContract: helpers.GenerateAddress().Hex(),
+					TokenContract: helpers.GenHexAddress().Hex(),
 					Nonce:         8,
 				}
 			},
@@ -257,7 +257,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		{
 			name: "request nonexistent nonce",
 			malleate: func() {
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				request = &types.QueryBatchRequestByNonceRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: bridgeToken[0].Token,
@@ -271,7 +271,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 			malleate: func() {
 				request = &types.QueryBatchRequestByNonceRequest{
 					ChainName:     trontypes.ModuleName,
-					TokenContract: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+					TokenContract: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					Nonce:         8,
 				}
 			},
@@ -308,7 +308,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 			func() {
 				request = &types.QueryBatchConfirmsRequest{
 					ChainName:     trontypes.ModuleName,
-					TokenContract: helpers.GenerateAddress().Hex(),
+					TokenContract: helpers.GenHexAddress().Hex(),
 				}
 			},
 			false,
@@ -318,7 +318,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 			func() {
 				request = &types.QueryBatchConfirmsRequest{
 					ChainName:     trontypes.ModuleName,
-					TokenContract: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+					TokenContract: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					Nonce:         0,
 				}
 			},
@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 		{
 			name: "request confirm nonexistent nonce",
 			malleate: func() {
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				request = &types.QueryBatchConfirmsRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: bridgeToken[0].Token,
@@ -344,7 +344,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 			"set correct batch confirm",
 			func() {
 				_, bridger, externalKey := suite.NewOracleByBridger()
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				request = &types.QueryBatchConfirmsRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: bridgeToken[0].Token,
@@ -356,7 +356,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 					TokenContract:   bridgeToken[0].Token,
 					BridgerAddress:  bridger.String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),
-					Signature:       helpers.GenerateAddress().Hex(),
+					Signature:       helpers.GenHexAddress().Hex(),
 				}
 				suite.app.TronKeeper.SetBatchConfirm(suite.ctx, suite.signer.AccAddress(), newConfirmBatch)
 				response = &types.QueryBatchConfirmsResponse{Confirms: []*types.MsgConfirmBatch{newConfirmBatch}}
@@ -398,7 +398,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 			malleate: func() {
 				request = &types.QueryTokenToDenomRequest{
 					ChainName: trontypes.ModuleName,
-					Token:     helpers.GenerateAddress().Hex(),
+					Token:     helpers.GenHexAddress().Hex(),
 				}
 			},
 			expPass: false,
@@ -408,7 +408,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 			malleate: func() {
 				request = &types.QueryTokenToDenomRequest{
 					ChainName: trontypes.ModuleName,
-					Token:     helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+					Token:     helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 				}
 			},
 			expPass: false,
@@ -416,7 +416,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 		{
 			name: "token normal",
 			malleate: func() {
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				request = &types.QueryTokenToDenomRequest{
 					ChainName: trontypes.ModuleName,
 					Token:     bridgeToken[0].Token,
@@ -430,7 +430,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 		{
 			name: "token is channel ibc normal",
 			malleate: func() {
-				bridgeToken := suite.NewBridgeToken(helpers.GenerateAddress().Bytes())
+				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				request = &types.QueryTokenToDenomRequest{
 					ChainName: trontypes.ModuleName,
 					Token:     bridgeToken[2].Token,
@@ -476,7 +476,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetOracleByExternalAddr() {
 			malleate: func() {
 				request = &types.QueryOracleByExternalAddrRequest{
 					ChainName:       trontypes.ModuleName,
-					ExternalAddress: helpers.GenerateAddress().Hex(),
+					ExternalAddress: helpers.GenHexAddress().Hex(),
 				}
 			},
 			expPass: false,
@@ -486,7 +486,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetOracleByExternalAddr() {
 			malleate: func() {
 				request = &types.QueryOracleByExternalAddrRequest{
 					ChainName:       trontypes.ModuleName,
-					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 				}
 			},
 			expPass: false,

@@ -297,10 +297,10 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 
 			tc.pretransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 
-			fromWithdrawAddr := helpers.GenerateAddress()
+			fromWithdrawAddr := helpers.GenHexAddress()
 			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
-			toWithdrawAddr := helpers.GenerateAddress()
+			toWithdrawAddr := helpers.GenHexAddress()
 			err = suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 
@@ -674,10 +674,10 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 			tc.pretransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 
-			fromWithdrawAddr := helpers.GenerateAddress()
+			fromWithdrawAddr := helpers.GenHexAddress()
 			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
-			toWithdrawAddr := helpers.GenerateAddress()
+			toWithdrawAddr := helpers.GenHexAddress()
 			err = suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 

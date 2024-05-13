@@ -19,7 +19,6 @@ func (k RouterKeeper) getQueryServerByChainName(chainName string) (types.QuerySe
 	return k.router.GetRoute(chainName).QueryServer, nil
 }
 
-// Params queries the params of the bsc module
 func (k RouterKeeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -28,7 +27,6 @@ func (k RouterKeeper) Params(c context.Context, req *types.QueryParamsRequest) (
 	}
 }
 
-// CurrentOracleSet queries the CurrentOracleSet of the bsc module
 func (k RouterKeeper) CurrentOracleSet(c context.Context, req *types.QueryCurrentOracleSetRequest) (*types.QueryCurrentOracleSetResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -37,7 +35,6 @@ func (k RouterKeeper) CurrentOracleSet(c context.Context, req *types.QueryCurren
 	}
 }
 
-// OracleSetRequest queries the OracleSetRequest of the bsc module
 func (k RouterKeeper) OracleSetRequest(c context.Context, req *types.QueryOracleSetRequestRequest) (*types.QueryOracleSetRequestResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -46,7 +43,6 @@ func (k RouterKeeper) OracleSetRequest(c context.Context, req *types.QueryOracle
 	}
 }
 
-// OracleSetConfirm queries the OracleSetConfirm of the bsc module
 func (k RouterKeeper) OracleSetConfirm(c context.Context, req *types.QueryOracleSetConfirmRequest) (*types.QueryOracleSetConfirmResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -55,7 +51,6 @@ func (k RouterKeeper) OracleSetConfirm(c context.Context, req *types.QueryOracle
 	}
 }
 
-// OracleSetConfirmsByNonce queries the OracleSetConfirmsByNonce of the bsc module
 func (k RouterKeeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOracleSetConfirmsByNonceRequest) (*types.QueryOracleSetConfirmsByNonceResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -64,7 +59,6 @@ func (k RouterKeeper) OracleSetConfirmsByNonce(c context.Context, req *types.Que
 	}
 }
 
-// LastOracleSetRequests queries the LastOracleSetRequests of the bsc module
 func (k RouterKeeper) LastOracleSetRequests(c context.Context, req *types.QueryLastOracleSetRequestsRequest) (*types.QueryLastOracleSetRequestsResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -73,7 +67,6 @@ func (k RouterKeeper) LastOracleSetRequests(c context.Context, req *types.QueryL
 	}
 }
 
-// LastPendingOracleSetRequestByAddr queries the LastPendingOracleSetRequestByAddr of the bsc module
 func (k RouterKeeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.QueryLastPendingOracleSetRequestByAddrRequest) (*types.QueryLastPendingOracleSetRequestByAddrResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -82,7 +75,6 @@ func (k RouterKeeper) LastPendingOracleSetRequestByAddr(c context.Context, req *
 	}
 }
 
-// BatchFees queries the batch fees from unbatched pool
 func (k RouterKeeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -91,7 +83,6 @@ func (k RouterKeeper) BatchFees(c context.Context, req *types.QueryBatchFeeReque
 	}
 }
 
-// LastPendingBatchRequestByAddr queries the LastPendingBatchRequestByAddr of the bsc module
 func (k RouterKeeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -100,7 +91,6 @@ func (k RouterKeeper) LastPendingBatchRequestByAddr(c context.Context, req *type
 	}
 }
 
-// OutgoingTxBatches queries the OutgoingTxBatches of the bsc module
 func (k RouterKeeper) OutgoingTxBatches(c context.Context, req *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -109,7 +99,6 @@ func (k RouterKeeper) OutgoingTxBatches(c context.Context, req *types.QueryOutgo
 	}
 }
 
-// BatchRequestByNonce queries the BatchRequestByNonce of the bsc module
 func (k RouterKeeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -126,7 +115,6 @@ func (k RouterKeeper) BatchConfirm(c context.Context, req *types.QueryBatchConfi
 	}
 }
 
-// BatchConfirms returns the batch confirmations by nonce and token contract
 func (k RouterKeeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -135,7 +123,6 @@ func (k RouterKeeper) BatchConfirms(c context.Context, req *types.QueryBatchConf
 	}
 }
 
-// LastEventNonceByAddr returns the last event nonce for the given validator address, this allows eth oracles to figure out where they left off
 func (k RouterKeeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err

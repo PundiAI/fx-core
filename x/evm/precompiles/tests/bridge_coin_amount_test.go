@@ -71,7 +71,7 @@ func (suite *PrecompileTestSuite) TestBridgeCoinAmount() {
 			name:    "failed - invalid token",
 			prepare: prepareFunc,
 			malleate: func(_ common.Address, target string) ([]byte, []string) {
-				token := helpers.GenerateAddress()
+				token := helpers.GenHexAddress()
 				pack, err := crosschain.GetABI().Pack(crosschain.BridgeCoinAmountMethodName, token, fxtypes.MustStrToByte32(target))
 				suite.Require().NoError(err)
 				return pack, []string{token.String()}

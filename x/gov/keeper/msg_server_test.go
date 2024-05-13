@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 			content: distributiontypes.NewCommunityPoolSpendProposal(
 				"community Pool Spend Proposal",
 				"description",
-				sdk.AccAddress(helpers.GenerateAddress().Bytes()),
+				helpers.GenAccAddress(),
 				sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(2000 * 1e3).MulRaw(1e18)}},
 			),
 			initialDeposit: sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
@@ -283,7 +283,7 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 	for _, tc := range testCases {
 		spendProposal := distributiontypes.NewCommunityPoolSpendProposal(
 			"community Pool Spend Proposal", "description",
-			sdk.AccAddress(helpers.GenerateAddress().Bytes()), tc.amount)
+			helpers.GenAccAddress(), tc.amount)
 		LegacyContentMsg, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)
 		suite.NoError(err)
 		testProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{LegacyContentMsg},

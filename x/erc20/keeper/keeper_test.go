@@ -177,7 +177,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	denoms := make([]string, len(modules))
 	denomModules := make([]string, len(modules))
 	for index, m := range modules {
-		address := helpers.GenerateAddressByModule(m)
+		address := helpers.GenExternalAddr(m)
 
 		denom := crosschaintypes.NewBridgeDenom(m, address)
 		denoms[index] = denom
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 }
 
 func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata, amt sdkmath.Int) *big.Int {
-	generateAddress := helpers.GenerateAddress()
+	generateAddress := helpers.GenHexAddress()
 
 	count := 1
 	if len(md.DenomUnits) > 0 && len(md.DenomUnits[0].Aliases) > 0 {
@@ -263,7 +263,7 @@ func (suite *KeeperTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr
 
 func (suite *KeeperTestSuite) RandPrefixAndAddress() (string, string) {
 	if tmrand.Intn(10)%2 == 0 {
-		return "0x", helpers.GenerateAddress().Hex()
+		return "0x", helpers.GenHexAddress().Hex()
 	}
 	prefix := strings.ToLower(tmrand.Str(5))
 	accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
@@ -375,9 +375,9 @@ func newMetadata() banktypes.Metadata {
 				Denom:    "usdt",
 				Exponent: uint32(0),
 				Aliases: []string{
-					crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenerateAddress().String()),
-					crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenerateAddress().String()),
-					// fmt.Sprintf("%s%s", "ibc/", helpers.GenerateAddress().String()),
+					crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, helpers.GenHexAddress().String()),
+					crosschaintypes.NewBridgeDenom(ethtypes.ModuleName, helpers.GenHexAddress().String()),
+					// fmt.Sprintf("%s%s", "ibc/", helpers.GenHexAddress().String()),
 				},
 			}, {
 				Denom:    "USDT",

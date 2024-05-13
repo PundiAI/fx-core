@@ -260,32 +260,32 @@ func (m *OracleSet) GetBridgePower(externalAddress string) (uint64, bool) {
 
 type OracleSets []*OracleSet
 
-func (v OracleSets) Len() int {
-	return len(v)
+func (s OracleSets) Len() int {
+	return len(s)
 }
 
-func (v OracleSets) Less(i, j int) bool {
-	return v[i].Nonce > v[j].Nonce
+func (s OracleSets) Less(i, j int) bool {
+	return s[i].Nonce > s[j].Nonce
 }
 
-func (v OracleSets) Swap(i, j int) {
-	v[i], v[j] = v[j], v[i]
+func (s OracleSets) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 // --- OutgoingTxBatch --- //
 
 type OutgoingTxBatches []*OutgoingTxBatch
 
-func (v OutgoingTxBatches) Len() int {
-	return len(v)
+func (b OutgoingTxBatches) Len() int {
+	return len(b)
 }
 
-func (v OutgoingTxBatches) Less(i, j int) bool {
-	return v[i].BatchNonce > v[j].BatchNonce
+func (b OutgoingTxBatches) Less(i, j int) bool {
+	return b[i].BatchNonce > b[j].BatchNonce
 }
 
-func (v OutgoingTxBatches) Swap(i, j int) {
-	v[i], v[j] = v[j], v[i]
+func (b OutgoingTxBatches) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
 }
 
 // GetFees returns the total fees contained within a given batch
@@ -386,16 +386,16 @@ func (m *Oracle) GetDelegateAddress(moduleName string) sdk.AccAddress {
 
 type Oracles []Oracle
 
-func (v Oracles) Len() int {
-	return len(v)
+func (o Oracles) Len() int {
+	return len(o)
 }
 
-func (v Oracles) Less(i, j int) bool {
-	return v[i].DelegateAmount.Sub(v[j].DelegateAmount).IsPositive()
+func (o Oracles) Less(i, j int) bool {
+	return o[i].DelegateAmount.Sub(o[j].DelegateAmount).IsPositive()
 }
 
-func (v Oracles) Swap(i, j int) {
-	v[i], v[j] = v[j], v[i]
+func (o Oracles) Swap(i, j int) {
+	o[i], o[j] = o[j], o[i]
 }
 
 func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdkmath.Int {
@@ -411,9 +411,9 @@ func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdkmath.Int {
 
 type OutgoingTransferTxs []*OutgoingTransferTx
 
-func (bs OutgoingTransferTxs) TotalFee() sdkmath.Int {
+func (txs OutgoingTransferTxs) TotalFee() sdkmath.Int {
 	totalFee := sdkmath.NewInt(0)
-	for _, tx := range bs {
+	for _, tx := range txs {
 		totalFee = totalFee.Add(tx.Fee.Amount)
 	}
 	return totalFee

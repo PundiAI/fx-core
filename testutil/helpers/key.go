@@ -10,15 +10,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
-	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 func NewMnemonic() string {
@@ -91,26 +92,31 @@ func NewEthPrivKey() cryptotypes.PrivKey {
 	return privkey
 }
 
-// GenerateAddress generates an Ethereum address.
-func GenerateAddress() common.Address {
+// GenHexAddress generates an Ethereum address.
+func GenHexAddress() common.Address {
 	return common.BytesToAddress(NewEthPrivKey().PubKey().Address())
 }
 
-// GenerateAddressByModule generates an Ethereum or Tron address.
-func GenerateAddressByModule(module string) string {
-	addr := GenerateAddress()
+// GenAccAddress generates an cosmos-sdk accAddress
+func GenAccAddress() sdk.AccAddress {
+	return NewPriKey().PubKey().Address().Bytes()
+}
+
+// GenExternalAddr generates an Ethereum or Tron address.
+func GenExternalAddr(module string) string {
+	addr := GenHexAddress()
 	return types.ExternalAddrToStr(module, addr.Bytes())
 }
 
-// GenerateZeroAddressByModule generates an Ethereum or Tron zero address.
-func GenerateZeroAddressByModule(module string) string {
+// GenZeroExternalAddr generates an Ethereum or Tron zero address.
+func GenZeroExternalAddr(module string) string {
 	addr := common.Address{}
 	return types.ExternalAddrToStr(module, addr.Bytes())
 }
 
+// HexAddrToTronAddr returns a Tron address from an hex string.
 func HexAddrToTronAddr(str string) string {
-	addr := common.FromHex(str)
-	return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, addr...)).String()
+	return types.ExternalAddrToStr(trontypes.ModuleName, common.FromHex(str))
 }
 
 // NewPubKeyFromHex returns a PubKey from a hex string.

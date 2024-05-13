@@ -45,7 +45,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		data, err := crosschain.GetABI().Pack(
 			"crossChain",
 			contact,
-			helpers.GenerateAddressByModule(moduleName),
+			helpers.GenExternalAddr(moduleName),
 			amount,
 			fee,
 			fxtypes.MustStrToByte32(moduleName),
@@ -62,7 +62,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
 		data, err := contract.GetFIP20().ABI.Pack(
 			"transferCrossChain",
-			helpers.GenerateAddressByModule(moduleName),
+			helpers.GenExternalAddr(moduleName),
 			amount,
 			fee,
 			fxtypes.MustStrToByte32(moduleName),
@@ -146,7 +146,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				moduleName := ethtypes.ModuleName
 				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), pair.GetDenom())
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), pair.GetDenom())
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
@@ -165,7 +165,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				moduleName := ethtypes.ModuleName
 
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
@@ -186,7 +186,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		{
 			name: "ok - address + origin token",
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), pair.GetDenom())
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), pair.GetDenom())
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
@@ -218,7 +218,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
@@ -246,7 +246,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			name: "ok - address + ibc token",
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -493,7 +493,7 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 	fee := big.NewInt(1)
 	amount := big.NewInt(0).Sub(randMint, fee)
 	data, err := crosschain.GetABI().Pack("crossChain", pair.GetERC20Contract(),
-		helpers.GenerateAddressByModule(moduleName), amount, fee, fxtypes.MustStrToByte32(moduleName), "")
+		helpers.GenExternalAddr(moduleName), amount, fee, fxtypes.MustStrToByte32(moduleName), "")
 	suite.Require().NoError(err)
 	tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), data)
 	suite.Require().NoError(err)

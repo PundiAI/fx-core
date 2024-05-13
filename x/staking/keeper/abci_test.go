@@ -584,7 +584,7 @@ func (suite *KeeperTestSuite) TestEditPubKeyUnboundValidator() {
 
 func (suite *KeeperTestSuite) TestEditPubKeyDeleteWithoutSigningInfo() {
 	initBalance := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
-	accAddr1 := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	accAddr1 := helpers.GenAccAddress()
 	helpers.AddTestAddr(suite.app, suite.ctx, accAddr1, initBalance)
 
 	selfDelegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e17))

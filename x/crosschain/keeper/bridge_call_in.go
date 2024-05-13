@@ -105,7 +105,7 @@ func (k Keeper) bridgeCallFxCore(
 	return nil
 }
 
-func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, receiver sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {
+func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, sender sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {
 	mintCoins := sdk.NewCoins()
 	unlockCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
@@ -129,14 +129,14 @@ func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, receiver sdk.AccAddr
 		}
 	}
 	if unlockCoins.IsAllPositive() {
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiver, unlockCoins); err != nil {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, unlockCoins); err != nil {
 			return nil, errorsmod.Wrap(err, "transfer vouchers")
 		}
 	}
 
 	targetCoins := sdk.NewCoins()
 	for _, coin := range unlockCoins {
-		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "convert to target coin")
 		}

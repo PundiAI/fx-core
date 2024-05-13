@@ -21,7 +21,7 @@ import (
 func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
 	contractAddr := suite.DeployERC20Contract()
 
-	recipient := helpers.GenerateAddress()
+	recipient := helpers.GenHexAddress()
 	amount := big.NewInt(10)
 	data, err := contract.GetFIP20().ABI.Pack("transfer", recipient, amount)
 	suite.Require().NoError(err)
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_EthereumTx2() {
-	recipient := helpers.GenerateAddress()
+	recipient := helpers.GenHexAddress()
 	amount := big.NewInt(10)
 
 	chanId := suite.app.EvmKeeper.ChainID()

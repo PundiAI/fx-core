@@ -62,7 +62,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				amount := big.NewInt(0).Sub(randMint, fee)
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -83,13 +83,13 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 
 				moduleName := ethtypes.ModuleName
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
 				data, err := contract.GetWFX().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -104,7 +104,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			name: "ok - ibc token",
 			malleate: func(_ *types.TokenPair, _ Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				sourcePort, sourceChannel := suite.RandTransferChannel()
-				tokenAddress := helpers.GenerateAddress()
+				tokenAddress := helpers.GenHexAddress()
 				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
 					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
 				suite.Require().NoError(err)
@@ -139,7 +139,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(bsctypes.ModuleName),
+					helpers.GenExternalAddr(bsctypes.ModuleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32("chain/"+bsctypes.ModuleName),
@@ -162,7 +162,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				moduleName := md.RandModule()
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(1),
 					fxtypes.MustStrToByte32(moduleName),
@@ -196,7 +196,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					addAmount,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -204,8 +204,8 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				suite.Require().NoError(err)
 
 				return data, pair, big.NewInt(0), moduleName, []string{
-					fmt.Sprintf("%s%s", big.NewInt(0).Sub(addAmount, big.NewInt(1)).String(), md.GetDenom(expectedModuleName)),
-					fmt.Sprintf("%s%s", addAmount.String(), md.GetDenom(expectedModuleName)),
+					sdk.Coin{Denom: md.GetDenom(expectedModuleName), Amount: sdkmath.NewIntFromBigInt(big.NewInt(0).Sub(addAmount, big.NewInt(1)))}.String(),
+					sdk.Coin{Denom: md.GetDenom(expectedModuleName), Amount: sdkmath.NewIntFromBigInt(addAmount)}.String(),
 				}
 			},
 			error: func(args []string) string {
@@ -227,7 +227,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				unknownChain := "chainabc"
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddress().String(),
+					helpers.GenHexAddress().String(),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(unknownChain),
@@ -252,7 +252,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				randDenom := helpers.NewRandDenom()
 				moduleName := md.RandModule()
-				aliasDenom := crosschaintypes.NewBridgeDenom(moduleName, helpers.GenerateAddressByModule(moduleName))
+				aliasDenom := crosschaintypes.NewBridgeDenom(moduleName, helpers.GenExternalAddr(moduleName))
 				newPair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
 					Description: "New Token",
 					DenomUnits: []*banktypes.DenomUnit{
@@ -287,7 +287,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -429,7 +429,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				amount := big.NewInt(0).Sub(randMint, fee)
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -453,7 +453,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				moduleName := md.RandModule()
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(1),
 					fxtypes.MustStrToByte32(moduleName),
@@ -481,7 +481,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				unknownChain := "chainabc"
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddress().String(),
+					helpers.GenHexAddress().String(),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(unknownChain),
@@ -504,7 +504,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 
 				randDenom := helpers.NewRandDenom()
 				moduleName := md.RandModule()
-				aliasDenom := crosschaintypes.NewBridgeDenom(moduleName, helpers.GenerateAddressByModule(moduleName))
+				aliasDenom := crosschaintypes.NewBridgeDenom(moduleName, helpers.GenExternalAddr(moduleName))
 				newPair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
 					Description: "New Token",
 					DenomUnits: []*banktypes.DenomUnit{
@@ -539,7 +539,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 
 				data, err := contract.GetFIP20().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					randMint,
 					big.NewInt(0),
 					fxtypes.MustStrToByte32(moduleName),
@@ -728,13 +728,13 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 
 				moduleName := ethtypes.ModuleName
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenerateAddress().String(), fxtypes.DefaultDenom)
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
 				data, err := contract.GetWFX().ABI.Pack(
 					"transferCrossChain",
-					helpers.GenerateAddressByModule(moduleName),
+					helpers.GenExternalAddr(moduleName),
 					amount,
 					fee,
 					fxtypes.MustStrToByte32(moduleName),
@@ -843,7 +843,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				})
 				suite.Require().NoError(err)
 
-				prefix, recipient := "px", helpers.GenerateAddress().Hex()
+				prefix, recipient := "px", helpers.GenHexAddress().Hex()
 				ibcTarget := fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(sourceChannel, ibcchanneltypes.ChannelPrefix), prefix)
 
 				data, err := contract.GetFIP20().ABI.Pack(

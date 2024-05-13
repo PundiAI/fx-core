@@ -6,7 +6,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {
-	tokenContract := helpers.GenerateAddress().Hex()
+	tokenContract := helpers.GenHexAddress().Hex()
 	denom, err := suite.Keeper().SetIbcDenomTrace(suite.ctx, tokenContract, "")
 	suite.NoError(err)
 	suite.Equal(types.NewBridgeDenom(suite.chainName, tokenContract), denom)

@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 			Nonce: uint64(i),
 			Members: types.BridgeValidators{{
 				Power:           tmrand.Uint64(),
-				ExternalAddress: helpers.GenerateAddress().Hex(),
+				ExternalAddress: helpers.GenHexAddress().Hex(),
 			}},
 			Height: uint64(height + i),
 		})
@@ -105,8 +105,8 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 			suite.Keeper().SetOracleSetConfirm(suite.ctx, oracle,
 				&types.MsgOracleSetConfirm{
 					Nonce:           i,
-					BridgerAddress:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-					ExternalAddress: helpers.GenerateAddress().Hex(),
+					BridgerAddress:  helpers.GenAccAddress().String(),
+					ExternalAddress: helpers.GenHexAddress().Hex(),
 					Signature:       "",
 					ChainName:       suite.chainName,
 				},

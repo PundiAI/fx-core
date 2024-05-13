@@ -896,7 +896,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 				newBatchList := make([]*types.OutgoingTxBatch, 0)
 				for i := 0; i < 10; i++ {
 					suite.ctx = suite.ctx.WithBlockHeight(int64(i + 3))
-					token := helpers.GenerateAddress().String()
+					token := helpers.GenHexAddress().String()
 					newOutgoingTx := &types.OutgoingTxBatch{
 						BatchNonce:   uint64(i + 3),
 						BatchTimeout: uint64(1000),
@@ -904,14 +904,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 							{
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-								DestAddress: helpers.GenerateAddress().String(),
+								DestAddress: helpers.GenHexAddress().String(),
 								Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
 								Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
 						TokenContract: token,
 						Block:         uint64(i + 3),
-						FeeReceive:    helpers.GenerateAddress().String(),
+						FeeReceive:    helpers.GenHexAddress().String(),
 					}
 					err := suite.Keeper().StoreBatch(suite.ctx, newOutgoingTx)
 					suite.Require().NoError(err)
@@ -926,7 +926,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 			malleate: func() *types.QueryOutgoingTxBatchesResponse {
 				for i := 1; i < 110; i++ {
 					suite.ctx = suite.ctx.WithBlockHeight(int64(i))
-					token := helpers.GenerateAddress().String()
+					token := helpers.GenHexAddress().String()
 					newOutgoingTx := &types.OutgoingTxBatch{
 						BatchNonce:   uint64(i),
 						BatchTimeout: uint64(1000 + i),
@@ -934,14 +934,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 							{
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-								DestAddress: helpers.GenerateAddress().String(),
+								DestAddress: helpers.GenHexAddress().String(),
 								Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
 								Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
 						TokenContract: token,
 						Block:         uint64(i),
-						FeeReceive:    helpers.GenerateAddress().String(),
+						FeeReceive:    helpers.GenHexAddress().String(),
 					}
 					err := suite.Keeper().StoreBatch(suite.ctx, newOutgoingTx)
 					suite.Require().NoError(err)
@@ -1952,7 +1952,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 				_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), &types.MsgBridgeTokenClaim{
 					EventNonce:     1,
 					BlockHeight:    100,
-					TokenContract:  helpers.GenerateAddress().String(),
+					TokenContract:  helpers.GenHexAddress().String(),
 					Name:           "test token",
 					Symbol:         "tt",
 					Decimals:       18,
@@ -2302,7 +2302,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 		{
 			name: "bridge token not exist",
 			malleate: func() {
-				denom := helpers.GenerateAddress().Hex()
+				denom := helpers.GenHexAddress().Hex()
 				request = &types.QueryBridgeCoinByDenomRequest{
 					ChainName: suite.chainName,
 					Denom:     denom,
@@ -2314,7 +2314,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 		{
 			name: "bridge token exist",
 			malleate: func() {
-				token := helpers.GenerateAddress().Hex()
+				token := helpers.GenHexAddress().Hex()
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, banktypes.Metadata{
 					Description: "The cross chain token of the Function X",
 					DenomUnits: []*banktypes.DenomUnit{
@@ -2354,11 +2354,11 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 				}
 				amount := sdk.NewInt(int64(tmrand.Uint32() + 1))
 				err = suite.Keeper().AttestationHandler(suite.ctx, &types.MsgSendToFxClaim{
-					Sender:        helpers.GenerateAddressByModule(suite.chainName),
+					Sender:        helpers.GenExternalAddr(suite.chainName),
 					ChainName:     suite.chainName,
 					TokenContract: token,
 					Amount:        amount,
-					Receiver:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					Receiver:      helpers.GenAccAddress().String(),
 					TargetIbc:     hex.EncodeToString([]byte("")),
 				})
 				suite.Require().NoError(err)
@@ -2390,13 +2390,13 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 
 func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingPoolSendToExternal() {
 	ctx := sdk.WrapSDKContext(suite.ctx)
-	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	sender := helpers.GenAccAddress()
 	randomNonce := tmrand.Uint64()
-	tx1 := types.NewPendingOutgoingTx(randomNonce, sender, helpers.GenerateAddressByModule(suite.chainName),
-		helpers.GenerateAddressByModule(suite.chainName), sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())),
+	tx1 := types.NewPendingOutgoingTx(randomNonce, sender, helpers.GenExternalAddr(suite.chainName),
+		helpers.GenExternalAddr(suite.chainName), sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())),
 		sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())), sdk.NewCoins())
-	tx2 := types.NewPendingOutgoingTx(randomNonce+1, sender, helpers.GenerateAddressByModule(suite.chainName),
-		helpers.GenerateAddressByModule(suite.chainName), sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())),
+	tx2 := types.NewPendingOutgoingTx(randomNonce+1, sender, helpers.GenExternalAddr(suite.chainName),
+		helpers.GenExternalAddr(suite.chainName), sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())),
 		sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())), sdk.NewCoins())
 
 	suite.Keeper().SetPendingTx(suite.ctx, &tx1)

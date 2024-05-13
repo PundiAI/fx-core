@@ -75,13 +75,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBatch {
 	batchNonce := tmrand.Uint64()
-	tokenContract := helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex())
+	tokenContract := helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex())
 	newOutgoingTx := &crosschaintypes.OutgoingTxBatch{
 		BatchNonce: batchNonce,
 		Transactions: []*crosschaintypes.OutgoingTransferTx{
 			{
 				Sender:      suite.signer.AccAddress().String(),
-				DestAddress: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+				DestAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 				Token: crosschaintypes.ERC20Token{
 					Contract: tokenContract,
 					Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBa
 			},
 		},
 		TokenContract: tokenContract,
-		FeeReceive:    helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex()),
+		FeeReceive:    helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 		Block:         batchNonce,
 	}
 	err := suite.app.TronKeeper.StoreBatch(suite.ctx, newOutgoingTx)
@@ -102,8 +102,8 @@ func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBa
 }
 
 func (suite *KeeperTestSuite) NewOracleByBridger() (sdk.AccAddress, sdk.AccAddress, cryptotypes.PrivKey) {
-	oracle := sdk.AccAddress(helpers.GenerateAddress().Bytes())
-	bridger := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	oracle := helpers.GenAccAddress()
+	bridger := helpers.GenAccAddress()
 	externalKey := helpers.NewEthPrivKey()
 	externalAddress := helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String())
 	newOracle := crosschaintypes.Oracle{
@@ -134,7 +134,7 @@ func (suite *KeeperTestSuite) NewOracleSet(externalKey cryptotypes.PrivKey) *cro
 func (suite *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []crosschaintypes.BridgeToken {
 	bridgeTokens := make([]crosschaintypes.BridgeToken, 0)
 	for i := 0; i < 3; i++ {
-		bridgeTokens = append(bridgeTokens, crosschaintypes.BridgeToken{Token: helpers.HexAddrToTronAddr(helpers.GenerateAddress().Hex())})
+		bridgeTokens = append(bridgeTokens, crosschaintypes.BridgeToken{Token: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex())})
 		channelIBC := ""
 		if i == 2 {
 			channelIBC = hex.EncodeToString([]byte("transfer/channel-0"))
