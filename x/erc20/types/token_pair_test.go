@@ -1,10 +1,12 @@
-package types
+package types_test
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
 func TestTokenPair_GetID(t *testing.T) {
@@ -12,7 +14,7 @@ func TestTokenPair_GetID(t *testing.T) {
 		Erc20Address  string
 		Denom         string
 		Enabled       bool
-		ContractOwner Owner
+		ContractOwner types.Owner
 	}
 	tests := []struct {
 		name   string
@@ -30,7 +32,7 @@ func TestTokenPair_GetID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tp := TokenPair{
+			tp := types.TokenPair{
 				Erc20Address:  tt.fields.Erc20Address,
 				Denom:         tt.fields.Denom,
 				Enabled:       tt.fields.Enabled,
