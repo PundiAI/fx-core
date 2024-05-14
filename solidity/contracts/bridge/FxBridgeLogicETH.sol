@@ -12,7 +12,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
-import {IBridgeCallback} from "./IBridgeCallback.sol";
+import {IBridgeCallback, IRefundCallback} from "./ICallback.sol";
 
 /* solhint-disable custom-errors */
 
@@ -81,6 +81,7 @@ contract FxBridgeLogicETH is
         bytes data;
         bytes memo;
         uint256 timeout;
+        uint256 eventNonce;
     }
 
     /* =============== INIT =============== */
@@ -333,7 +334,7 @@ contract FxBridgeLogicETH is
         bytes memory _data,
         uint256 _value,
         bytes memory _memo
-    ) external {
+    ) external returns (uint256) {
         require(bytes(_dstChain).length == 0, "Invalid dstChain");
 
         require(
@@ -362,6 +363,8 @@ contract FxBridgeLogicETH is
             _data,
             _memo
         );
+
+        return state_lastEventNonce;
     }
 
     function submitBatch(
@@ -547,7 +550,8 @@ contract FxBridgeLogicETH is
             input.data,
             input.memo,
             nonce,
-            input.timeout
+            input.timeout,
+            input.eventNonce
         );
         return keccak256(data);
     }
@@ -616,12 +620,29 @@ contract FxBridgeLogicETH is
         BridgeCallData memory _input
     ) public onlySelf {
         if (_input.tokens.length > 0) {
-            _transferERC20(
-                address(this),
-                _input.receiver,
-                _input.tokens,
-                _input.amounts
-            );
+            // refund token
+            if (_input.eventNonce > 0) {
+                _transferERC20(
+                    address(this),
+                    _input.sender,
+                    _input.tokens,
+                    _input.amounts
+                );
+                if (_input.sender.isContract()) {
+                    IRefundCallback(_input.sender).refundCallback(
+                        _input.eventNonce,
+                        _input.tokens,
+                        _input.amounts
+                    );
+                }
+            } else {
+                _transferERC20(
+                    address(this),
+                    _input.receiver,
+                    _input.tokens,
+                    _input.amounts
+                );
+            }
         }
 
         if (_input.data.length > 0) {

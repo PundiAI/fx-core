@@ -54,6 +54,7 @@ interface IFxBridgeLogic {
         bytes data;
         bytes memo;
         uint256 timeout;
+        uint256 eventNonce;
     }
 
     function addBridgeToken(
@@ -94,7 +95,7 @@ interface IFxBridgeLogic {
         bytes memory _data,
         uint256 _value,
         bytes memory _memo
-    ) external;
+    ) external returns (uint256);
 
     function submitBatch(
         address[] memory _currentOracles,
@@ -197,7 +198,8 @@ interface IFxBridgeLogic {
         bytes memory _data,
         bytes memory _memo,
         uint256 _nonce,
-        uint256 _timeout
+        uint256 _timeout,
+        uint256 _eventNonce
     ) external returns (bytes32);
 
     /* =============== EVENTS =============== */
