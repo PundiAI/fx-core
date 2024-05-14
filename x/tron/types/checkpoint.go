@@ -119,6 +119,7 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 		{"bytes": memeBytes},
 		{"uint256": big.NewInt(int64(bridgeCall.Nonce))},
 		{"uint256": big.NewInt(int64(bridgeCall.Timeout))},
+		{"uint256": big.NewInt(int64(bridgeCall.EventNonce))},
 	}
 
 	encode, err := abi.GetPaddedParam(params)
