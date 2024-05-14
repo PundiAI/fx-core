@@ -17,5 +17,5 @@ updates:
     schedule:
       interval: "weekly"
       day: "friday"
-      time: "10:00"
+      time: "09:00"
     open-pull-requests-limit: 0
