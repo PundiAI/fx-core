@@ -293,6 +293,7 @@ func (suite *CrosschainTestSuite) BridgeCallClaim(to string, tokens []string, am
 		EventNonce:     suite.queryFxLastEventNonce(),
 		BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
 		BridgerAddress: suite.BridgerAddr().String(),
+		TxOrigin:       suite.HexAddressString(),
 	})
 }
 
