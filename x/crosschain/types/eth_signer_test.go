@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"encoding/hex"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func TestOracleSetConfirmSig(t *testing.T) {
@@ -73,7 +75,7 @@ func TestOracleSetConfirmSig(t *testing.T) {
 			sigBytes, err := hex.DecodeString(spec.srcSignature)
 			require.NoError(t, err)
 
-			err = ValidateEthereumSignature(hashBytes, sigBytes, spec.srcETHAddr)
+			err = types.ValidateEthereumSignature(hashBytes, sigBytes, spec.srcETHAddr)
 			if spec.expErr {
 				assert.Error(t, err)
 				return

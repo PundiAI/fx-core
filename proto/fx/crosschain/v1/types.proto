@@ -222,6 +222,7 @@ message Params {
   cosmos.base.v1beta1.Coin delegate_threshold = 10 [(gogoproto.nullable) = false];
   int64 delegate_multiple = 11;
   uint64 bridge_call_timeout = 12;
+  uint64 bridge_call_max_gas_limit = 13;
 }
 
 // Deprecated: after block 5713000

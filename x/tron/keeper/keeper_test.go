@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		DelegateThreshold: sdk.NewCoin(fxtypes.DefaultDenom,
 			sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
 		DelegateMultiple:  10,
-		BridgeCallTimeout: crosschaintypes.DefaultBridgeCallTimeout,
+		BridgeCallTimeout: crosschaintypes.DefBridgeCallTimeout,
 	})
 	suite.Require().NoError(err)
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())

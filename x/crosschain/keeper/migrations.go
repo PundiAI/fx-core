@@ -18,7 +18,8 @@ func NewMigrator(k Keeper) Migrator {
 
 func (m Migrator) Migrate(ctx sdk.Context) error {
 	params := m.keeper.GetParams(ctx)
-	params.BridgeCallTimeout = types.DefaultBridgeCallTimeout
+	params.BridgeCallTimeout = types.DefBridgeCallTimeout
+	params.BridgeCallMaxGasLimit = types.MaxGasLimit
 	if err := m.keeper.SetParams(ctx, &params); err != nil {
 		return err
 	}

@@ -17,7 +17,8 @@ const (
 	MaxResults                     = 100
 	MaxOracleSetRequestsResults    = 5
 	MaxKeepEventSize               = 100
-	DefaultBridgeCallTimeout       = 604_800_000 // 7 * 24 * 3600 * 1000
+	DefBridgeCallTimeout           = 604_800_000 // 7 * 24 * 3600 * 1000
+	MaxGasLimit                    = 30_000_000
 )
 
 var (
@@ -39,7 +40,8 @@ func DefaultParams() Params {
 		IbcTransferTimeoutHeight:          20_000,
 		DelegateThreshold:                 NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 		DelegateMultiple:                  DefaultOracleDelegateThreshold,
-		BridgeCallTimeout:                 DefaultBridgeCallTimeout,
+		BridgeCallTimeout:                 DefBridgeCallTimeout,
+		BridgeCallMaxGasLimit:             MaxGasLimit,
 		Oracles:                           nil,
 	}
 }
