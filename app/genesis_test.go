@@ -11,7 +11,6 @@ import (
 )
 
 func TestNewDefaultGenesisByDenom(t *testing.T) {
-	// bank -> denom_metadata  ->  "uri":"",   "uri_hash":""
 	const genesisData = `{
   "arbitrum": {
 	"params": {
@@ -29,7 +28,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -84,7 +84,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -167,7 +168,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -246,7 +248,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -396,7 +399,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -453,7 +457,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -496,7 +501,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {
@@ -575,7 +581,8 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		"amount": "10000000000000000000000"
 	  },
 	  "delegate_multiple": "10",
-	  "bridge_call_timeout": "604800000"
+	  "bridge_call_timeout": "604800000",
+	  "bridge_call_max_gas_limit": "30000000"
 	},
 	"last_observed_event_nonce": "0",
 	"last_observed_block_height": {

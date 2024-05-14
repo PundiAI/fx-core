@@ -27,7 +27,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	sender := msg.GetSenderAddr()
 	receiver := msg.GetReceiverAddr()
 	eventNonce := msg.EventNonce
-	if err = k.bridgeCallFxCore(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.Value, eventNonce); err != nil {
+	if err = k.BridgeCallEvm(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.Value, eventNonce); err != nil {
 		errCause = err.Error()
 	} else {
 		commit()
@@ -56,7 +56,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	return nil
 }
 
-func (k Keeper) bridgeCallFxCore(
+func (k Keeper) BridgeCallEvm(
 	ctx sdk.Context,
 	sender common.Address,
 	receiver sdk.AccAddress,
@@ -90,8 +90,8 @@ func (k Keeper) bridgeCallFxCore(
 			}
 			ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvent, attrs...)})
 		}()
-		gasLimit := ctx.ConsensusParams().GetBlock().GetMaxGas()
-		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), uint64(gasLimit), data, true)
+		gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
+		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, data, true)
 		if err != nil {
 			evmErrCause = err.Error()
 			return err

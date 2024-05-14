@@ -46,7 +46,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 					sender,
 					&contract,
 					big.NewInt(0),
-					uint64(BlockGasLimit),
+					uint64(types.MaxGasLimit),
 					[]byte{},
 					true,
 				).Return(nil, errors.New("call evm error")).Times(1)

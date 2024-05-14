@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"bytes"
@@ -13,16 +13,18 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func TestOracleSet_Checkpoint(t *testing.T) {
-	bridgeValidators := BridgeValidators{
+	bridgeValidators := types.BridgeValidators{
 		{
 			Power:           6667,
 			ExternalAddress: "0x4D449a236D2Ff82C7De7E394c713517Ab2956995",
 		},
 	}
-	oracleSet := NewOracleSet(1, 100, bridgeValidators)
+	oracleSet := types.NewOracleSet(1, 100, bridgeValidators)
 
 	ourHash, err := oracleSet.GetCheckpoint("gravity-id")
 	require.NoError(t, err)
@@ -36,16 +38,16 @@ func TestOutgoingTxBatch_Checkpoint(t *testing.T) {
 	require.NoError(t, err)
 	erc20Addr := common.HexToAddress("0x8c15Ef5b4B21951d50E53E4fbdA8298FFAD25057")
 
-	outgoingTxBatch := OutgoingTxBatch{
+	outgoingTxBatch := types.OutgoingTxBatch{
 		BatchNonce:   1,
 		BatchTimeout: 100,
-		Transactions: []*OutgoingTransferTx{
+		Transactions: []*types.OutgoingTransferTx{
 			{
 				Id:          0x1,
 				Sender:      senderAddr.String(),
 				DestAddress: "0x4D449a236D2Ff82C7De7E394c713517Ab2956995",
-				Token:       NewERC20Token(sdkmath.NewInt(0x1), erc20Addr.String()),
-				Fee:         NewERC20Token(sdkmath.NewInt(0x1), erc20Addr.String()),
+				Token:       types.NewERC20Token(sdkmath.NewInt(0x1), erc20Addr.String()),
+				Fee:         types.NewERC20Token(sdkmath.NewInt(0x1), erc20Addr.String()),
 			},
 		},
 		TokenContract: erc20Addr.String(),
@@ -61,10 +63,10 @@ func TestOutgoingTxBatch_Checkpoint(t *testing.T) {
 }
 
 func TestOutgoingBridgeCall_Checkpoint(t *testing.T) {
-	outgoingBridgeCall := OutgoingBridgeCall{
+	outgoingBridgeCall := types.OutgoingBridgeCall{
 		Sender:   "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
 		Receiver: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-		Tokens: []ERC20Token{
+		Tokens: []types.ERC20Token{
 			{
 				Contract: "0x1429859428C0aBc9C2C47C8Ee9FBaf82cFA0F20f",
 				Amount:   sdkmath.NewInt(1000),
@@ -87,17 +89,17 @@ func TestOutgoingBridgeCall_Checkpoint(t *testing.T) {
 
 func TestBridgeValidators_PowerDiff(t *testing.T) {
 	specs := map[string]struct {
-		start BridgeValidators
-		diff  BridgeValidators
+		start types.BridgeValidators
+		diff  types.BridgeValidators
 		exp   float64
 	}{
 		"no diff": {
-			start: BridgeValidators{
+			start: types.BridgeValidators{
 				{Power: 1, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
 				{Power: 2, ExternalAddress: "0x8E91960d704Df3fF24ECAb78AB9df1B5D9144140"},
 				{Power: 3, ExternalAddress: "0xF14879a175A2F1cEFC7c616f35b6d9c2b0Fd8326"},
 			},
-			diff: BridgeValidators{
+			diff: types.BridgeValidators{
 				{Power: 1, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
 				{Power: 2, ExternalAddress: "0x8E91960d704Df3fF24ECAb78AB9df1B5D9144140"},
 				{Power: 3, ExternalAddress: "0xF14879a175A2F1cEFC7c616f35b6d9c2b0Fd8326"},
@@ -105,12 +107,12 @@ func TestBridgeValidators_PowerDiff(t *testing.T) {
 			exp: 0.0,
 		},
 		"one": {
-			start: BridgeValidators{
+			start: types.BridgeValidators{
 				{Power: 1073741823, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
 				{Power: 1073741823, ExternalAddress: "0x8E91960d704Df3fF24ECAb78AB9df1B5D9144140"},
 				{Power: 2147483646, ExternalAddress: "0xF14879a175A2F1cEFC7c616f35b6d9c2b0Fd8326"},
 			},
-			diff: BridgeValidators{
+			diff: types.BridgeValidators{
 				{Power: 858993459, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
 				{Power: 858993459, ExternalAddress: "0x8E91960d704Df3fF24ECAb78AB9df1B5D9144140"},
 				{Power: 2576980377, ExternalAddress: "0xF14879a175A2F1cEFC7c616f35b6d9c2b0Fd8326"},
@@ -118,7 +120,7 @@ func TestBridgeValidators_PowerDiff(t *testing.T) {
 			exp: 0.2,
 		},
 		"real world": {
-			start: BridgeValidators{
+			start: types.BridgeValidators{
 				{Power: 678509841, ExternalAddress: "0x6db48cBBCeD754bDc760720e38E456144e83269b"},
 				{Power: 671724742, ExternalAddress: "0x8E91960d704Df3fF24ECAb78AB9df1B5D9144140"},
 				{Power: 685294939, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
@@ -128,7 +130,7 @@ func TestBridgeValidators_PowerDiff(t *testing.T) {
 				{Power: 6785098, ExternalAddress: "0x37A0603dA2ff6377E5C7f75698dabA8EE4Ba97B8"},
 				{Power: 291759231, ExternalAddress: "0xF14879a175A2F1cEFC7c616f35b6d9c2b0Fd8326"},
 			},
-			diff: BridgeValidators{
+			diff: types.BridgeValidators{
 				{Power: 642345266, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
 				{Power: 678509841, ExternalAddress: "0x6db48cBBCeD754bDc760720e38E456144e83269b"},
 				{Power: 671724742, ExternalAddress: "0x0A7254b318dd742A3086882321C27779B4B642a6"},
@@ -154,28 +156,28 @@ func TestBridgeValidators_Sort(t *testing.T) {
 	address3 := common.BytesToAddress(bytes.Repeat([]byte{byte(3)}, 20)).String()
 
 	specs := map[string]struct {
-		src BridgeValidators
-		exp BridgeValidators
+		src types.BridgeValidators
+		exp types.BridgeValidators
 	}{
 		"by power desc": {
-			src: BridgeValidators{
+			src: types.BridgeValidators{
 				{Power: 1, ExternalAddress: address3},
 				{Power: 2, ExternalAddress: address1},
 				{Power: 3, ExternalAddress: address2},
 			},
-			exp: BridgeValidators{
+			exp: types.BridgeValidators{
 				{Power: 3, ExternalAddress: address2},
 				{Power: 2, ExternalAddress: address1},
 				{Power: 1, ExternalAddress: address3},
 			},
 		},
 		"by eth addr on same power": {
-			src: BridgeValidators{
+			src: types.BridgeValidators{
 				{Power: 1, ExternalAddress: address2},
 				{Power: 1, ExternalAddress: address1},
 				{Power: 1, ExternalAddress: address3},
 			},
-			exp: BridgeValidators{
+			exp: types.BridgeValidators{
 				{Power: 1, ExternalAddress: address1},
 				{Power: 1, ExternalAddress: address2},
 				{Power: 1, ExternalAddress: address3},
@@ -185,7 +187,7 @@ func TestBridgeValidators_Sort(t *testing.T) {
 		// you MUST go change this in gravity_utils/types.rs as well. You will also break all
 		// bridges in production when they try to migrate so use extreme caution!
 		"real world": {
-			src: BridgeValidators{
+			src: types.BridgeValidators{
 				{Power: 678509841, ExternalAddress: "0x6db48cBBCeD754bDc760720e38E456144e83269b"},
 				{Power: 671724742, ExternalAddress: "0x8E91960d704Df3fF24ECAb78AB9df1B5D9144140"},
 				{Power: 685294939, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
@@ -195,7 +197,7 @@ func TestBridgeValidators_Sort(t *testing.T) {
 				{Power: 6785098, ExternalAddress: "0x37A0603dA2ff6377E5C7f75698dabA8EE4Ba97B8"},
 				{Power: 291759231, ExternalAddress: "0xF14879a175A2F1cEFC7c616f35b6d9c2b0Fd8326"},
 			},
-			exp: BridgeValidators{
+			exp: types.BridgeValidators{
 				{Power: 685294939, ExternalAddress: "0x479FFc856Cdfa0f5D1AE6Fa61915b01351A7773D"},
 				{Power: 678509841, ExternalAddress: "0x6db48cBBCeD754bDc760720e38E456144e83269b"},
 				{Power: 671724742, ExternalAddress: "0x0A7254b318dd742A3086882321C27779B4B642a6"},
@@ -223,7 +225,7 @@ func TestBridgeValidators_Sort(t *testing.T) {
 
 func TestOutgoingTxBatch_GetFees(t *testing.T) {
 	type fields struct {
-		Transactions []*OutgoingTransferTx
+		Transactions []*types.OutgoingTransferTx
 	}
 	tests := []struct {
 		name   string
@@ -232,15 +234,15 @@ func TestOutgoingTxBatch_GetFees(t *testing.T) {
 	}{
 		{
 			name: "test 1",
-			fields: fields{Transactions: []*OutgoingTransferTx{
+			fields: fields{Transactions: []*types.OutgoingTransferTx{
 				{
-					Fee: NewERC20Token(sdkmath.NewInt(0), ""),
+					Fee: types.NewERC20Token(sdkmath.NewInt(0), ""),
 				},
 				{
-					Fee: NewERC20Token(sdkmath.NewInt(1), ""),
+					Fee: types.NewERC20Token(sdkmath.NewInt(1), ""),
 				},
 				{
-					Fee: NewERC20Token(sdkmath.NewInt(1), ""),
+					Fee: types.NewERC20Token(sdkmath.NewInt(1), ""),
 				},
 			}},
 			want: sdkmath.NewInt(2),
@@ -248,7 +250,7 @@ func TestOutgoingTxBatch_GetFees(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := OutgoingTxBatch{
+			m := types.OutgoingTxBatch{
 				Transactions: tt.fields.Transactions,
 			}
 			if got := m.GetFees(); !reflect.DeepEqual(got, tt.want) {
@@ -260,9 +262,11 @@ func TestOutgoingTxBatch_GetFees(t *testing.T) {
 
 func BenchmarkName(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		outgoingTxBatch := OutgoingTxBatch{Transactions: []*OutgoingTransferTx{{
-			Fee: NewERC20Token(sdkmath.NewInt(1), ""),
-		}}}
+		outgoingTxBatch := types.OutgoingTxBatch{
+			Transactions: []*types.OutgoingTransferTx{{
+				Fee: types.NewERC20Token(sdkmath.NewInt(1), ""),
+			}},
+		}
 		fees := outgoingTxBatch.GetFees()
 		assert.Equal(b, fees, sdkmath.NewInt(1))
 	}

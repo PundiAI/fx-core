@@ -29,8 +29,6 @@ import (
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
-const BlockGasLimit = 1_000_000
-
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -84,7 +82,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.ctx = testCtx.Ctx.WithConsensusParams(
 		&abci.ConsensusParams{
 			Block: &abci.BlockParams{
-				MaxGas: BlockGasLimit,
+				MaxGas: types.MaxGasLimit,
 			},
 		},
 	)
