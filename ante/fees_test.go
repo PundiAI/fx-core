@@ -11,10 +11,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/evmos/ethermint/tests"
 
 	"github.com/functionx/fx-core/v7/ante"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
@@ -81,8 +82,9 @@ var execTypes = []struct {
 
 func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 	denom := fxtypes.DefaultDenom
-	from, privKey := tests.NewAddrKey()
-	to := tests.GenerateAddress()
+	privKey := helpers.NewEthPrivKey()
+	from := common.BytesToAddress(privKey.PubKey().Address().Bytes())
+	to := helpers.GenHexAddress()
 	emptyAccessList := ethtypes.AccessList{}
 
 	testCases := []struct {
