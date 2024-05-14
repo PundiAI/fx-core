@@ -66,6 +66,7 @@ func (k Keeper) PrecompileBridgeCall(
 		types.ExternalAddrToStr(k.moduleName, to.Bytes()),
 		hex.EncodeToString(data),
 		hex.EncodeToString(memo),
+		0,
 	)
 	if err != nil {
 		return 0, err

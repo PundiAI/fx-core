@@ -264,4 +264,5 @@ message OutgoingBridgeCall {
   uint64 nonce = 7;
   uint64 timeout = 8;
   uint64 block_height = 9;
+  uint64 event_nonce = 10;
 }

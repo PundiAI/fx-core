@@ -54,6 +54,7 @@ func (k Keeper) AddOutgoingBridgeCall(
 	to string,
 	data string,
 	memo string,
+	eventNonce uint64,
 ) (*types.OutgoingBridgeCall, error) {
 	params := k.GetParams(ctx)
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, params, params.BridgeCallTimeout)
@@ -73,6 +74,7 @@ func (k Keeper) AddOutgoingBridgeCall(
 		To:          to,
 		Data:        data,
 		Memo:        memo,
+		EventNonce:  eventNonce,
 	}
 	k.SetOutgoingBridgeCall(ctx, outCall)
 
