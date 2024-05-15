@@ -13,7 +13,7 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (k Keeper) bridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, error) {
+func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, error) {
 	tokens := make([]types.ERC20Token, 0, len(coins))
 	for _, coin := range coins {
 		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, coin, fxtypes.ParseFxTarget(k.moduleName))

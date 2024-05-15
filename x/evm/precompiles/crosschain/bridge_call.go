@@ -2,6 +2,7 @@ package crosschain
 
 import (
 	"errors"
+	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,7 +30,6 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 	sender := contract.Caller()
 
-	// NOTE: current only support erc20 token
 	coins := sdk.NewCoins()
 	for i, token := range args.Tokens {
 		coin, err := c.handlerERC20Token(ctx, evm, sender, token, args.Amounts[i])
@@ -37,6 +37,14 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 			return nil, err
 		}
 		coins = coins.Add(coin)
+	}
+	value := contract.Value()
+	if value.Cmp(big.NewInt(0)) == 1 {
+		totalCoin, err := c.handlerOriginToken(ctx, evm, sender, value)
+		if err != nil {
+			return nil, err
+		}
+		coins = coins.Add(totalCoin)
 	}
 
 	eventNonce, err := route.PrecompileBridgeCall(

@@ -593,7 +593,7 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	tokens, err := s.bridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
+	tokens, err := s.BridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
 	if err != nil {
 		return nil, err
 	}
