@@ -16,6 +16,7 @@ import (
 
 	"github.com/functionx/fx-core/v7/testutil"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
@@ -32,8 +33,9 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	ctx        sdk.Context
-	moduleName string
+	ctx          sdk.Context
+	moduleName   string
+	wfxTokenAddr string
 
 	queryClient types.QueryClient
 	msgServer   types.MsgServer
@@ -66,7 +68,10 @@ func TestKeeperTestSuite(t *testing.T) {
 		}...)
 	}
 	for _, moduleName := range subModules {
-		suite.Run(t, &KeeperTestSuite{moduleName: moduleName})
+		suite.Run(t, &KeeperTestSuite{
+			moduleName:   moduleName,
+			wfxTokenAddr: helpers.GenHexAddress().String(),
+		})
 	}
 }
 
@@ -128,9 +133,10 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.queryClient = types.NewQueryClient(queryHelper)
 	s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
 
-	// set params
 	params := s.CrossChainParams()
 	s.NoError(s.crosschainKeeper.SetParams(s.ctx, &params))
+
+	s.crosschainKeeper.AddBridgeToken(s.ctx, s.wfxTokenAddr, fxtypes.DefaultDenom)
 }
 
 func (s *KeeperTestSuite) CrossChainParams() types.Params {
