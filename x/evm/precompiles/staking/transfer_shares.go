@@ -35,13 +35,13 @@ func (c *Contract) TransferShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Con
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.ModuleName),
 			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(contract.Caller().Bytes()).String()),
 		),
-	})
+	)
 	return TransferSharesMethod.Outputs.Pack(token, reward)
 }
 
@@ -65,13 +65,13 @@ func (c *Contract) TransferFromShares(ctx sdk.Context, evm *vm.EVM, contract *vm
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.ModuleName),
 			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(contract.Caller().Bytes()).String()),
 		),
-	})
+	)
 	return TransferFromSharesMethod.Outputs.Pack(token, reward)
 }
 
@@ -219,7 +219,7 @@ func TransferSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, from, r
 		}()
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			fxstakingtypes.EventTypeTransferShares,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, validator.String()),
@@ -228,5 +228,5 @@ func TransferSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, from, r
 			sdk.NewAttribute(fxstakingtypes.AttributeKeyShares, shares.String()),
 			sdk.NewAttribute(fxstakingtypes.AttributeKeyAmount, token.String()),
 		),
-	})
+	)
 }
