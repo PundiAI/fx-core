@@ -31,7 +31,7 @@ echo "===> Compiling contracts"
 [[ ! -d "$project_dir/contract/artifacts" ]] && mkdir -p "$project_dir/contract/artifacts"
 
 # add core contracts
-contracts=(WFXUpgradable FIP20Upgradable ICrossChain IStaking IFxBridgeLogic)
+contracts=(WFXUpgradable FIP20Upgradable ICrossChain IStaking IFxBridgeLogic IRefundCallback)
 contracts_test=(CrossChainTest StakingTest)
 # add 3rd party contracts
 contracts+=(ERC1967Proxy)

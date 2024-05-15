@@ -73,5 +73,5 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	); err != nil {
 		return nil, err
 	}
-	return BridgeCallMethod.Outputs.Pack(true)
+	return BridgeCallMethod.Outputs.Pack(eventNonce)
 }

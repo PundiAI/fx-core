@@ -97,7 +97,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			if t.refund {
 				refundEvent := false
 				for _, event := range s.ctx.EventManager().Events().ToABCIEvents() {
-					if event.Type == types.EventTypeBridgeCallRefund {
+					if event.Type == types.EventTypeBridgeCallRefundOut {
 						refundEvent = true
 					}
 				}

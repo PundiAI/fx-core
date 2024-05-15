@@ -6,6 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -26,7 +28,8 @@ type Keeper struct {
 	erc20Keeper        types.Erc20Keeper
 	evmKeeper          types.EVMKeeper
 
-	authority string
+	authority    string
+	callbackFrom common.Address
 }
 
 // NewKeeper returns a new instance of the gravity keeper
@@ -53,6 +56,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		erc20Keeper:        erc20Keeper,
 		evmKeeper:          evmKeeper,
 		authority:          authority,
+		callbackFrom:       common.BytesToAddress(crypto.Keccak256([]byte(types.ModuleName))),
 	}
 }
 

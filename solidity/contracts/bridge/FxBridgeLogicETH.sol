@@ -12,7 +12,8 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
-import {IBridgeCallback, IRefundCallback} from "./ICallback.sol";
+import {IBridgeCallback} from "./IBridgeCallback.sol";
+import {IRefundCallback} from "./IRefundCallback.sol";
 
 /* solhint-disable custom-errors */
 

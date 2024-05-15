@@ -43,6 +43,8 @@ var (
 	}
 
 	fxBridgeABI = MustABIJson(IFxBridgeLogicMetaData.ABI)
+
+	bridgeCallRefundCallback = MustABIJson(IRefundCallbackMetaData.ABI)
 )
 
 type Contract struct {
@@ -70,6 +72,10 @@ func GetERC1967Proxy() Contract {
 
 func GetFxBridgeABI() abi.ABI {
 	return fxBridgeABI
+}
+
+func GetBridgeCallRefundCallback() abi.ABI {
+	return bridgeCallRefundCallback
 }
 
 func MustDecodeHex(str string) []byte {
