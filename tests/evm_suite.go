@@ -336,7 +336,7 @@ func (suite *EvmTestSuite) DeployContract(privKey cryptotypes.PrivKey, contractB
 	suite.Require().NoError(err)
 	receipt := suite.SendTransaction(tx)
 
-	suite.Require().NotEqualf(contract.EmptyEvmAddress, receipt.ContractAddress.String(), "contract address is empty")
+	suite.Require().False(contract.IsZeroEthAddress(receipt.ContractAddress))
 	return receipt.ContractAddress, receipt.TxHash
 }
 

@@ -24,7 +24,7 @@ func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contractAddr *
 		return nil, fmt.Errorf("token not support: %s", args.Token.Hex())
 	}
 	// FX
-	if contract.IsZeroEthereumAddress(args.Token.Hex()) {
+	if contract.IsZeroEthAddress(args.Token) {
 		supply := c.bankKeeper.GetSupply(cacheCtx, fxtypes.DefaultDenom)
 		balance := c.bankKeeper.GetBalance(cacheCtx, c.accountKeeper.GetModuleAddress(ethtypes.ModuleName), fxtypes.DefaultDenom)
 		return BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.Sub(balance.Amount).BigInt())

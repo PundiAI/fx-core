@@ -322,7 +322,7 @@ func (suite *IntegrationTest) FIP20CodeCheckTest() {
 	suite.Require().NoError(err)
 	suite.Equal(contract.GetFIP20().Code, code, fmt.Sprintf("fip20 deployed code: %s", common.Bytes2Hex(code)))
 
-	deployedCode := bytes.ReplaceAll(code, contract.GetFIP20().Address.Bytes(), common.HexToAddress(contract.EmptyEvmAddress).Bytes())
+	deployedCode := bytes.ReplaceAll(code, contract.GetFIP20().Address.Bytes(), common.Address{}.Bytes())
 	suite.True(strings.HasSuffix(contract.FIP20UpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
 }
 
@@ -333,6 +333,6 @@ func (suite *IntegrationTest) WFXCodeCheckTest() {
 	suite.Require().NoError(err)
 	suite.Equal(contract.GetWFX().Code, code, fmt.Sprintf("wfx deployed code: %s", common.Bytes2Hex(code)))
 
-	deployedCode := bytes.ReplaceAll(code, contract.GetWFX().Address.Bytes(), common.HexToAddress(contract.EmptyEvmAddress).Bytes())
+	deployedCode := bytes.ReplaceAll(code, contract.GetWFX().Address.Bytes(), common.Address{}.Bytes())
 	suite.True(strings.HasSuffix(contract.WFXUpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
 }

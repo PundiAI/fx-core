@@ -41,7 +41,7 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contractAddr 
 	value := contractAddr.Value()
 	sender := contractAddr.Caller()
 	totalCoin := sdk.Coin{}
-	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == contract.EmptyEvmAddress {
+	if value.Cmp(big.NewInt(0)) == 1 && contract.IsZeroEthAddress(args.Token) {
 		if args.Fee.Cmp(value) != 0 {
 			return nil, errors.New("add bridge fee not equal msg.value")
 		}

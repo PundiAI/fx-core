@@ -30,7 +30,7 @@ func TestIsEmptyHash(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, contract.IsEmptyHash(tc.hash), tc.name)
+		require.Equal(t, tc.expEmpty, contract.IsEmptyHash(common.HexToHash(tc.hash)), tc.name)
 	}
 }
 
@@ -46,14 +46,16 @@ func TestIsZeroEthereumAddress(t *testing.T) {
 		{
 			"zero address", common.Address{}.String(), true,
 		},
-
+		{
+			"hex zero address", "0x0000000000000000000000000000000000000000", true,
+		},
 		{
 			"non-empty address", common.BytesToAddress([]byte{1, 2, 3, 4}).String(), false,
 		},
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, contract.IsZeroEthereumAddress(tc.address), tc.name)
+		require.Equal(t, tc.expEmpty, contract.IsZeroEthAddress(common.HexToAddress(tc.address)), tc.name)
 	}
 }
 

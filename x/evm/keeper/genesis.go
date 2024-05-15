@@ -54,7 +54,7 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, accountKeeper types.AccountKeeper,
 	// init logic contract
 	initContract := []contract.Contract{contract.GetFIP20(), contract.GetWFX()}
 	for _, contractAddr := range initContract {
-		if len(contractAddr.Code) == 0 || contractAddr.Address == common.HexToAddress(contract.EmptyEvmAddress) {
+		if len(contractAddr.Code) == 0 || contract.IsZeroEthAddress(contractAddr.Address) {
 			panic(fmt.Sprintf("invalid contract: %s", contractAddr.Address.String()))
 		}
 		if err := k.CreateContractWithCode(ctx, contractAddr.Address, contractAddr.Code); err != nil {

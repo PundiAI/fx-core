@@ -176,7 +176,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
 
-				crossChainTxFunc(signer, common.HexToAddress(contract.EmptyEvmAddress), moduleName, amount, fee, randMint)
+				crossChainTxFunc(signer, common.Address{}, moduleName, amount, fee, randMint)
 
 				return &pair, moduleName, fxtypes.DefaultDenom
 			},

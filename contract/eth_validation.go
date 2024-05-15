@@ -20,13 +20,13 @@ const (
 var ethereumAddressRegular = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 
 // IsEmptyHash returns true if the hash corresponds to an empty ethereum hex hash.
-func IsEmptyHash(hash string) bool {
-	return bytes.Equal(common.HexToHash(hash).Bytes(), common.Hash{}.Bytes())
+func IsEmptyHash(hash common.Hash) bool {
+	return bytes.Equal(hash.Bytes(), common.Hash{}.Bytes())
 }
 
-// IsZeroEthereumAddress returns true if the address corresponds to an empty ethereum hex address.
-func IsZeroEthereumAddress(address string) bool {
-	return bytes.Equal(common.HexToAddress(address).Bytes(), common.Address{}.Bytes())
+// IsZeroEthAddress returns true if the address corresponds to an empty ethereum address.
+func IsZeroEthAddress(address common.Address) bool {
+	return bytes.Equal(address.Bytes(), common.Address{}.Bytes())
 }
 
 // ValidateEthereumAddress validates the ethereum address strings
