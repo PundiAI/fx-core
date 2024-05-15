@@ -40,7 +40,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		}
 		// refund event
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeBridgeCallRefund,
+			types.EventTypeBridgeCallRefundOut,
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", eventNonce)),
 			sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCall.Nonce)),
 		))

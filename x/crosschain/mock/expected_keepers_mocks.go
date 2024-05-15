@@ -22,6 +22,7 @@ import (
 	types4 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	types5 "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
+	statedb "github.com/evmos/ethermint/x/evm/statedb"
 	types6 "github.com/evmos/ethermint/x/evm/types"
 	types7 "github.com/functionx/fx-core/v7/types"
 	types8 "github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -640,6 +641,20 @@ func (m *MockEVMKeeper) CallEVM(ctx types.Context, from common.Address, contract
 func (mr *MockEVMKeeperMockRecorder) CallEVM(ctx, from, contract, value, gasLimit, data, commit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallEVM", reflect.TypeOf((*MockEVMKeeper)(nil).CallEVM), ctx, from, contract, value, gasLimit, data, commit)
+}
+
+// GetAccount mocks base method.
+func (m *MockEVMKeeper) GetAccount(ctx types.Context, addr common.Address) *statedb.Account {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccount", ctx, addr)
+	ret0, _ := ret[0].(*statedb.Account)
+	return ret0
+}
+
+// GetAccount indicates an expected call of GetAccount.
+func (mr *MockEVMKeeperMockRecorder) GetAccount(ctx, addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockEVMKeeper)(nil).GetAccount), ctx, addr)
 }
 
 // MockIBCTransferKeeper is a mock of IBCTransferKeeper interface.

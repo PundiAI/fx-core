@@ -39,6 +39,24 @@ func (m *ERC20Token) ValidateBasic() error {
 	return nil
 }
 
+type ERC20Tokens []ERC20Token
+
+func (e ERC20Tokens) GetContracts() []gethcommon.Address {
+	contracts := make([]gethcommon.Address, 0, len(e))
+	for _, token := range e {
+		contracts = append(contracts, gethcommon.HexToAddress(token.Contract))
+	}
+	return contracts
+}
+
+func (e ERC20Tokens) GetAmounts() []sdkmath.Int {
+	amounts := make([]sdkmath.Int, 0, len(e))
+	for _, token := range e {
+		amounts = append(amounts, token.Amount)
+	}
+	return amounts
+}
+
 // --- BRIDGE VALIDATOR(S) --- //
 
 // ValidateBasic performs stateless checks on validity

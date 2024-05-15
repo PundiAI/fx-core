@@ -44,6 +44,8 @@ const (
 	EventTypeProvideLiquidity         = "provide_liquidity"
 	AttributeKeyProvideLiquidityTxIds = "provide_liquidity_tx_ids"
 
+	EventTypeBridgeCallRefundOut = "bridge_call_refund_out"
+
 	EventTypeBridgeCallRefund = "bridge_call_refund"
 
 	EventTypeBridgeCallResult = "bridge_call_result"
