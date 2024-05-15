@@ -41,7 +41,7 @@ func replayCodeAddress(codeBase64, addr, addrNew string) (code, codeNew []byte) 
 	addr1 := common.HexToAddress(addr)
 	addr2 := common.HexToAddress(addrNew)
 
-	bzZero := bytes.ReplaceAll(bz, addr1.Bytes(), common.HexToAddress(contract.EmptyEvmAddress).Bytes())
+	bzZero := bytes.ReplaceAll(bz, addr1.Bytes(), common.Address{}.Bytes())
 	bzNew := bytes.ReplaceAll(bz, addr1.Bytes(), addr2.Bytes())
 
 	return bzZero, bzNew

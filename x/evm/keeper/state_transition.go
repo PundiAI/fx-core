@@ -13,8 +13,6 @@ import (
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/evmos/ethermint/x/evm/types"
-
-	"github.com/functionx/fx-core/v7/contract"
 )
 
 // EVMConfig creates the EVMConfig based on current state
@@ -31,7 +29,7 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 			return nil, errorsmod.Wrap(err, "failed to obtain coinbase address")
 		}
 	} else {
-		coinbase = common.HexToAddress(contract.EmptyEvmAddress)
+		coinbase = common.Address{}
 	}
 
 	baseFee := k.GetBaseFee(ctx, ethCfg)

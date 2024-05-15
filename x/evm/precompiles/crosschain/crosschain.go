@@ -109,7 +109,7 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Con
 	totalCoin := sdk.Coin{}
 
 	// cross-chain origin token
-	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == contract.EmptyEvmAddress {
+	if value.Cmp(big.NewInt(0)) == 1 && contract.IsZeroEthAddress(args.Token) {
 		totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
 		if totalAmount.Cmp(value) != 0 {
 			return nil, errors.New("amount + fee not equal msg.value")
