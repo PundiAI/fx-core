@@ -88,7 +88,7 @@ func (k Keeper) BridgeCallEvm(
 			if len(evmErrCause) > 0 {
 				attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyBridgeCallErrCause, evmErrCause))
 			}
-			ctx.EventManager().EmitEvents(sdk.Events{sdk.NewEvent(types.EventTypeBridgeCallEvent, attrs...)})
+			ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, attrs...))
 		}()
 		gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
 		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, data, true)

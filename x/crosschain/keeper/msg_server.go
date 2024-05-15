@@ -167,13 +167,13 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	s.SetOracle(ctx, oracle)
 	s.CommonSetOracleTotalPower(ctx)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OracleAddress),
 		),
-	})
+	)
 
 	return &types.MsgAddDelegateResponse{}, nil
 }
