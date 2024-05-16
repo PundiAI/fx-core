@@ -99,7 +99,7 @@ func TestPublicAppConfig(t *testing.T) {
 	appConfig.Telemetry.PrometheusRetentionTime = 60
 	appConfig.API.Enable = true
 	appConfig.API.Swagger = true
-	appConfig.EVM.MaxTxGasWanted = 500000
+	appConfig.EVM.MaxTxGasWanted = 0
 	appConfig.Rosetta.DenomToSuggest = "FX"
 
 	fileName := fmt.Sprintf("%s/app.toml", t.TempDir())
