@@ -34,6 +34,7 @@ const (
 	TestnetBlockHeightV5  = 9_773_000
 	TestnetBlockHeightV6  = 11_701_000
 	TestnetBlockHeightV71 = 12_961_500
+	TestnetBlockHeightV72 = 14_369_500
 )
 
 var (
