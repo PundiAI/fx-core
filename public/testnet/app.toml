@@ -275,7 +275,7 @@ msg-max-gas-usage = 300000
 tracer = ""
 
 # MaxTxGasWanted defines the gas wanted for each eth tx returned in ante handler in check tx mode.
-max-tx-gas-wanted = 500000
+max-tx-gas-wanted = 0
 
 ###############################################################################
 ###                           JSON RPC Configuration                        ###

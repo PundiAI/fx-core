@@ -52,6 +52,9 @@ func updateConfig(cmd *cobra.Command, _ []string) error {
 	if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
 		return err
 	}
+
+	appConfig.EVM.MaxTxGasWanted = 0
+
 	fileName = filepath.Join(rootDir, "config", appFileName)
 	config.WriteConfigFile(fileName, appConfig)
 	serverCtx.Logger.Info("Update app.toml is successful", "fileName", fileName)
