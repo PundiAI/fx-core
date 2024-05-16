@@ -31,7 +31,7 @@ var (
 
 // IRefundCallbackMetaData contains all meta data concerning the IRefundCallback contract.
 var IRefundCallbackMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"name\":\"refundCallback\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"}],\"name\":\"refundCallback\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IRefundCallbackABI is the input ABI used to generate the binding from.
@@ -182,21 +182,21 @@ func (_IRefundCallback *IRefundCallbackTransactorRaw) Transact(opts *bind.Transa
 
 // RefundCallback is a paid mutator transaction binding the contract method 0x3a37fb2e.
 //
-// Solidity: function refundCallback(uint256 , address[] , uint256[] ) returns()
-func (_IRefundCallback *IRefundCallbackTransactor) RefundCallback(opts *bind.TransactOpts, arg0 *big.Int, arg1 []common.Address, arg2 []*big.Int) (*types.Transaction, error) {
-	return _IRefundCallback.contract.Transact(opts, "refundCallback", arg0, arg1, arg2)
+// Solidity: function refundCallback(uint256 _eventNonce, address[] _tokens, uint256[] _amounts) returns()
+func (_IRefundCallback *IRefundCallbackTransactor) RefundCallback(opts *bind.TransactOpts, _eventNonce *big.Int, _tokens []common.Address, _amounts []*big.Int) (*types.Transaction, error) {
+	return _IRefundCallback.contract.Transact(opts, "refundCallback", _eventNonce, _tokens, _amounts)
 }
 
 // RefundCallback is a paid mutator transaction binding the contract method 0x3a37fb2e.
 //
-// Solidity: function refundCallback(uint256 , address[] , uint256[] ) returns()
-func (_IRefundCallback *IRefundCallbackSession) RefundCallback(arg0 *big.Int, arg1 []common.Address, arg2 []*big.Int) (*types.Transaction, error) {
-	return _IRefundCallback.Contract.RefundCallback(&_IRefundCallback.TransactOpts, arg0, arg1, arg2)
+// Solidity: function refundCallback(uint256 _eventNonce, address[] _tokens, uint256[] _amounts) returns()
+func (_IRefundCallback *IRefundCallbackSession) RefundCallback(_eventNonce *big.Int, _tokens []common.Address, _amounts []*big.Int) (*types.Transaction, error) {
+	return _IRefundCallback.Contract.RefundCallback(&_IRefundCallback.TransactOpts, _eventNonce, _tokens, _amounts)
 }
 
 // RefundCallback is a paid mutator transaction binding the contract method 0x3a37fb2e.
 //
-// Solidity: function refundCallback(uint256 , address[] , uint256[] ) returns()
-func (_IRefundCallback *IRefundCallbackTransactorSession) RefundCallback(arg0 *big.Int, arg1 []common.Address, arg2 []*big.Int) (*types.Transaction, error) {
-	return _IRefundCallback.Contract.RefundCallback(&_IRefundCallback.TransactOpts, arg0, arg1, arg2)
+// Solidity: function refundCallback(uint256 _eventNonce, address[] _tokens, uint256[] _amounts) returns()
+func (_IRefundCallback *IRefundCallbackTransactorSession) RefundCallback(_eventNonce *big.Int, _tokens []common.Address, _amounts []*big.Int) (*types.Transaction, error) {
+	return _IRefundCallback.Contract.RefundCallback(&_IRefundCallback.TransactOpts, _eventNonce, _tokens, _amounts)
 }
