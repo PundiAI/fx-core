@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 interface IRefundCallback {
     function refundCallback(
-        uint256,
-        address[] memory,
-        uint256[] memory
+        uint256 _eventNonce,
+        address[] memory _tokens,
+        uint256[] memory _amounts
     ) external;
 }

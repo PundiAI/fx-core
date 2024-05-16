@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 interface IBridgeCallback {
     function bridgeCallback(
-        address,
-        address,
-        address[] memory,
-        uint256[] memory,
-        bytes memory,
-        bytes memory
+        address _sender,
+        address _receiver,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data,
+        bytes memory _memo
     ) external;
 }
