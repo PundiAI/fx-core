@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +18,15 @@ type BypassMinFee struct {
 	// will bypass minimum fee checks during CheckTx.
 	MsgTypes       []string `mapstructure:"msg-types"`
 	MsgMaxGasUsage uint64   `mapstructure:"msg-max-gas-usage"`
+}
+
+func (f BypassMinFee) Validate() error {
+	for _, msgType := range f.MsgTypes {
+		if strings.TrimSpace(msgType) != msgType || !strings.HasPrefix(msgType, "/") {
+			return fmt.Errorf("invalid message type: %s", msgType)
+		}
+	}
+	return nil
 }
 
 // DefaultBypassMinFee returns the default BypassMinFee configuration
@@ -52,6 +64,10 @@ func GetConfig(v *viper.Viper) (*Config, error) {
 
 // ValidateBasic returns an error any of the application configuration fields are invalid
 func (c *Config) ValidateBasic() error {
+	if err := c.BypassMinFee.Validate(); err != nil {
+		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid bypass-min-fee config value: %s", err.Error())
+	}
+
 	if err := c.EVM.Validate(); err != nil {
 		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid evm config value: %s", err.Error())
 	}
