@@ -600,6 +600,7 @@ contract FxBridgeLogic is
                         _input.amounts
                     );
                 }
+                return;
             } else {
                 _transferERC20(
                     address(this),
