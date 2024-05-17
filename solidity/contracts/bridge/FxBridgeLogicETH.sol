@@ -621,14 +621,19 @@ contract FxBridgeLogicETH is
         BridgeCallData memory _input
     ) public onlySelf {
         if (_input.tokens.length > 0) {
-            // refund token
-            if (_input.eventNonce > 0) {
-                _transferERC20(
-                    address(this),
-                    _input.sender,
-                    _input.tokens,
-                    _input.amounts
-                );
+            address _receiver = _input.receiver;
+            bool isRefund = _input.eventNonce > 0;
+            if (isRefund) {
+                _receiver = _input.sender;
+            }
+            _transferERC20(
+                address(this),
+                _receiver,
+                _input.tokens,
+                _input.amounts
+            );
+
+            if (isRefund) {
                 if (_input.sender.isContract()) {
                     IRefundCallback(_input.sender).refundCallback(
                         _input.eventNonce,
@@ -637,13 +642,6 @@ contract FxBridgeLogicETH is
                     );
                 }
                 return;
-            } else {
-                _transferERC20(
-                    address(this),
-                    _input.receiver,
-                    _input.tokens,
-                    _input.amounts
-                );
             }
         }
 
