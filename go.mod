@@ -41,7 +41,7 @@ require (
 	google.golang.org/grpc v1.62.1
 	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v2 v2.4.0
-	nhooyr.io/websocket v1.8.7
+	nhooyr.io/websocket v1.8.11
 )
 
 require (
