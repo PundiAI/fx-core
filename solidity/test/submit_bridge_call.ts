@@ -1,18 +1,24 @@
-import {ethers} from "hardhat";
-import {HardhatEthersSigner} from "@nomicfoundation/hardhat-ethers/signers";
-import {expect} from "chai";
-import {ERC20TokenTest, FxBridgeLogic} from "../typechain-types"
-import {ZeroAddress, encodeBytes32String, keccak256, AbiCoder, Signature} from "ethers"
-import {arrayify} from "@ethersproject/bytes";
+import { ethers } from "hardhat";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { expect } from "chai";
+import {
+    ERC20TokenTest,
+    FxBridgeLogic,
+    BridgeCallbackTest,
+    RefundCallbackTest,
+    DataCallbackTest
+} from "../typechain-types"
+import { ZeroAddress, MaxUint256, encodeBytes32String, keccak256, AbiCoder, Signature, Interface } from "ethers"
+import { arrayify } from "@ethersproject/bytes";
 
 export async function getSignerAddresses(signers: HardhatEthersSigner[]) {
     return await Promise.all(signers.map(signer => signer.getAddress()));
 }
 
 export function makeSubmitBridgeCallHash(
-    gravityId: string, sender: string,receiver: string, tokens: string[],amounts: string[],
+    gravityId: string, sender: string, receiver: string, tokens: string[], amounts: string[],
     to: string, data: string, memo: string, nonce: number | string, timeout: number | string, eventNonce: number | string
-){
+) {
     let methodName = encodeBytes32String("bridgeCall");
     let abiCoder = new AbiCoder()
     return keccak256(
@@ -37,8 +43,14 @@ export async function signHash(signers: HardhatEthersSigner[], hash: string) {
         r.push(signature.r);
         s.push(signature.s);
     }
-    return {v, r, s};
+    return { v, r, s };
 }
+
+export async function encodeFunctionData(abi: string, funcName: any, args: any[]) {
+    let iface = new Interface(abi);
+    return iface.encodeFunctionData(funcName, args);
+}
+
 
 describe("submit bridge call tests", function () {
     let deploy: HardhatEthersSigner;
@@ -46,6 +58,9 @@ describe("submit bridge call tests", function () {
     let user1: HardhatEthersSigner;
     let erc20Token: ERC20TokenTest;
     let fxBridge: FxBridgeLogic;
+    let bridgeCallback: BridgeCallbackTest;
+    let dataCallback: DataCallbackTest;
+    let refundCallback: RefundCallbackTest;
 
 
     let totalSupply = "10000"
@@ -86,35 +101,85 @@ describe("submit bridge call tests", function () {
         await fxBridge.addBridgeToken(erc20TokenAddress, encodeBytes32String(""), true)
 
         await erc20Token.transferOwnership(await fxBridge.getAddress())
+
+        const bridgeCallbackFactory = await ethers.getContractFactory('BridgeCallbackTest')
+        bridgeCallback = await bridgeCallbackFactory.connect(admin).deploy(await fxBridge.getAddress())
+
+        const dataCallbackFactory = await ethers.getContractFactory('DataCallbackTest')
+        dataCallback = await dataCallbackFactory.deploy(await bridgeCallback.getAddress())
+
+        await bridgeCallback.addWhiteList(await dataCallback.getAddress())
+
+        const refundCallbackFactory = await ethers.getContractFactory('RefundCallbackTest')
+        refundCallback = await refundCallbackFactory.connect(admin).deploy(await fxBridge.getAddress())
     })
 
-    async function submitBridgeCall(tokens: string[], amounts: string[], timeout: number, eventNonce: number) {
-        const digest = makeSubmitBridgeCallHash(gravityId,user1.address,user1.address,tokens,
-            amounts, ZeroAddress,"0x","0x",1,timeout, eventNonce)
+    async function submitBridgeCall(
+        sender: string, receiver: string, to: string, data: string, memo: string,
+        tokens: string[], amounts: string[], timeout: number, eventNonce: number) {
+        const digest = makeSubmitBridgeCallHash(gravityId, sender, receiver, tokens,
+            amounts, to, data, memo, 1, timeout, eventNonce)
 
-        const {v, r, s} = await signHash(validators, digest)
+        const { v, r, s } = await signHash(validators, digest)
 
         const bridgeCallData: FxBridgeLogic.BridgeCallDataStruct = {
-            sender: user1.address,
-            receiver: user1.address,
+            sender: sender,
+            receiver: receiver,
             tokens: tokens,
             amounts: amounts,
-            to: ZeroAddress,
-            data: "0x",
-            memo: "0x",
+            to: to,
+            data: data,
+            memo: memo,
             timeout: timeout,
             eventNonce: eventNonce
         };
-        await fxBridge.submitBridgeCall(valAddresses, powers, v, r, s, [0, 1], bridgeCallData);
+        return await fxBridge.submitBridgeCall(valAddresses, powers, v, r, s, [0, 1], bridgeCallData);
     }
 
-    it("should submit bridge call", async function () {
+    it("submit bridge call", async function () {
         const erc20TokenAddress = await erc20Token.getAddress()
         const amount = "1000";
         const timeout = await ethers.provider.getBlockNumber() + 1000;
 
-        await submitBridgeCall([erc20TokenAddress], [amount], timeout,0)
+        await submitBridgeCall(user1.address, user1.address, ZeroAddress, "0x", "0x", [erc20TokenAddress], [amount], timeout, 0)
     })
+
+    it("submit bridge call with bridge callback", async function () {
+        const erc20TokenAddress = await erc20Token.getAddress()
+        const amount = "1000";
+        const timeout = await ethers.provider.getBlockNumber() + 1000;
+        const bridgeCallbackAddress = await bridgeCallback.getAddress()
+        const dataCall = await encodeFunctionData(dataCallback.interface.formatJson(), 'setID', [99])
+        const data = new AbiCoder().encode(['address', 'bytes'], [await dataCallback.getAddress(), dataCall])
+
+        await erc20Token.transfer(await fxBridge.getAddress(), ethers.parseEther("1"))
+        await erc20Token.connect(user1).approve(bridgeCallbackAddress, MaxUint256)
+
+        const ownerBal1 = await erc20Token.balanceOf(bridgeCallbackAddress);
+        expect(await dataCallback.id()).to.be.equal(0)
+        await submitBridgeCall(user1.address, user1.address, bridgeCallbackAddress, data, "0x", [erc20TokenAddress], [amount], timeout, 0)
+        const ownerBal2 = await erc20Token.balanceOf(bridgeCallbackAddress);
+        expect(ownerBal2).to.equal(ownerBal1 + amount)
+        expect(await dataCallback.id()).to.be.equal(99)
+    })
+
+    it("submit bridge call with refund callback", async function () {
+        const erc20TokenAddress = await erc20Token.getAddress()
+        const amount = "1000";
+        const timeout = await ethers.provider.getBlockNumber() + 1000;
+        const refundCallbackAddress = await refundCallback.getAddress()
+        const eventNonce = "1"
+
+        await erc20Token.transfer(await fxBridge.getAddress(), ethers.parseEther("1"))
+
+        await refundCallback.setEventNonceRefund(eventNonce, admin.address)
+
+        const ownerBal1 = await erc20Token.balanceOf(admin.address);
+        await submitBridgeCall(refundCallbackAddress, user1.address, ZeroAddress, "0x", "0x", [erc20TokenAddress], [amount], timeout, 1)
+        const ownerBal2 = await erc20Token.balanceOf(admin.address);
+        expect(ownerBal2).to.equal(ownerBal1 + amount)
+    })
+
 
     describe("submit bridge call batch test", function () {
         let token1: ERC20TokenTest;
@@ -145,7 +210,7 @@ describe("submit bridge call tests", function () {
             const amounts = ["1", "2"]
             const timeout = await ethers.provider.getBlockNumber() + 1000;
 
-            await submitBridgeCall(tokens, amounts, timeout,0)
+            await submitBridgeCall(user1.address, user1.address, ZeroAddress, "0x", "0x", tokens, amounts, timeout, 0)
         })
 
         it("submit bridge call 3 token", async function () {
@@ -153,7 +218,7 @@ describe("submit bridge call tests", function () {
             const amounts = ["1", "2", "3"]
             const timeout = await ethers.provider.getBlockNumber() + 1000;
 
-            await submitBridgeCall(tokens, amounts, timeout,0)
+            await submitBridgeCall(user1.address, user1.address, ZeroAddress, "0x", "0x", tokens, amounts, timeout, 0)
         })
 
         it("submit bridge call 4 token", async function () {
@@ -161,7 +226,7 @@ describe("submit bridge call tests", function () {
             const amounts = ["1", "2", "3", "4"]
             const timeout = await ethers.provider.getBlockNumber() + 1000;
 
-            await submitBridgeCall(tokens, amounts, timeout,0)
+            await submitBridgeCall(user1.address, user1.address, ZeroAddress, "0x", "0x", tokens, amounts, timeout, 0)
         })
     })
 })
