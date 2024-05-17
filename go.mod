@@ -25,7 +25,7 @@ require (
 	github.com/rs/cors v1.11.0
 	github.com/rs/zerolog v1.31.0
 	github.com/shirou/gopsutil/v3 v3.24.4
-	github.com/spf13/cast v1.5.0
+	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.9.0
