@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -56,7 +56,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		erc20Keeper:        erc20Keeper,
 		evmKeeper:          evmKeeper,
 		authority:          authority,
-		callbackFrom:       common.BytesToAddress(crypto.Keccak256([]byte(types.ModuleName))),
+		callbackFrom:       common.BytesToAddress(autytypes.NewModuleAddress(types.ModuleName)),
 	}
 }
 
