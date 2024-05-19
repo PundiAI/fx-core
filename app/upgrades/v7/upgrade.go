@@ -27,6 +27,8 @@ func CreateUpgradeHandler(
 		}
 
 		UpdateWFXLogicCode(cacheCtx, app.EvmKeeper)
+		UpdateFIP20LogicCode(cacheCtx, app.EvmKeeper)
+
 		commit()
 		ctx.Logger().Info("Upgrade complete")
 		return toVM, nil
@@ -39,4 +41,12 @@ func UpdateWFXLogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
 		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
 	}
 	ctx.Logger().Info("update WFX contract", "module", "upgrade", "codeHash", wfx.CodeHash())
+}
+
+func UpdateFIP20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
+	fip20 := contract.GetFIP20()
+	if err := keeper.UpdateContractCode(ctx, fip20.Address, fip20.Code); err != nil {
+		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
+	}
+	ctx.Logger().Info("update WFX contract", "module", "upgrade", "codeHash", fip20.CodeHash())
 }
