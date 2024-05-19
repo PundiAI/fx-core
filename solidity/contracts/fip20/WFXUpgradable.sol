@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol";
 
-import "../crosschain/CrossChainCall.sol";
+import "../crosschain/CrossChainCallV1.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
@@ -147,7 +147,7 @@ contract WFXUpgradable is
     UUPSUpgradeable,
     OwnableUpgradeable
 {
-    using CrossChainCall for *;
+    using CrossChainCallV1 for *;
 
     string private _name;
     string private _symbol;
@@ -360,7 +360,7 @@ contract WFXUpgradable is
 
         _transfer(sender, _module, amount + fee);
 
-        CrossChainCall.fip20CrossChain(
+        CrossChainCallV1.fip20CrossChain(
             sender,
             recipient,
             amount,
