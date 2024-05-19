@@ -20,7 +20,7 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
-		ctx.Logger().Info("start to run v7 migrations...", "module", "upgrade")
+		ctx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
 			return fromVM, err
@@ -28,7 +28,7 @@ func CreateUpgradeHandler(
 
 		UpdateWFXLogicCode(cacheCtx, app.EvmKeeper)
 		commit()
-		ctx.Logger().Info("Upgrade complete")
+		ctx.Logger().Info("Upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
 }

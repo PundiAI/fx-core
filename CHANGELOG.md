@@ -35,6 +35,26 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v7.1.0-rc1]
+
+### Features
+
+* Support bridge call auto refund and `refundCallback` interface (#554) (#576)
+* Support for pre-compiled contracts to call bridgeCall 
+* Support IBC bridge call to fxCore-EVM
+* Support for adding crosschain requests to pending pool when liquidity is low (#420)
+* Implement liquidity provider rewards on crosschain (#339)
+
+### Improvements
+
+* Improved bridge call fxCore-EVM contracts on evm heterogeneous chains 
+
+### Bug Fixes
+
+* Add validate for BypassMinFee (#587)
+* Update max-tx-gas-wanted to 0 on upgrade (#585)
+* Add layer2 module to crosschain cli (#438)
+
 ## [v7.0.1-rc0]
 
 ### Bug Fixes

@@ -41,7 +41,8 @@ func NewKeeper(
 	ibcTransferKeeper types.IBCTransferKeeper,
 	authority string,
 ) Keeper {
-	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
+	moduleAddress := ak.GetModuleAddress(types.ModuleName)
+	if moduleAddress == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
@@ -52,7 +53,7 @@ func NewKeeper(
 		bankKeeper:        bk,
 		evmKeeper:         evmKeeper,
 		ibcTransferKeeper: ibcTransferKeeper,
-		moduleAddress:     common.BytesToAddress(ak.GetModuleAddress(types.ModuleName)),
+		moduleAddress:     common.BytesToAddress(moduleAddress),
 		authority:         authority,
 		chainsName:        crosschaintypes.GetSupportChains(),
 	}
