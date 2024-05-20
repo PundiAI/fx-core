@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/big"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -47,7 +46,7 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		coins = coins.Add(totalCoin)
 	}
 
-	eventNonce, err := route.PrecompileBridgeCall(
+	nonce, err := route.PrecompileBridgeCall(
 		ctx,
 		sender,
 		args.Receiver,
@@ -60,11 +59,12 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		return nil, err
 	}
 
+	nonceNonce := big.NewInt(0).SetUint64(nonce)
 	if err = c.AddLog(evm, BridgeCallEvent,
 		[]common.Hash{sender.Hash(), args.Receiver.Hash(), args.To.Hash()},
 		evm.Origin,
 		args.Value,
-		sdkmath.NewIntFromUint64(eventNonce).BigInt(),
+		nonceNonce,
 		args.DstChain,
 		args.Tokens,
 		args.Amounts,
@@ -73,5 +73,5 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	); err != nil {
 		return nil, err
 	}
-	return BridgeCallMethod.Outputs.Pack(eventNonce)
+	return BridgeCallMethod.Outputs.Pack(nonceNonce)
 }
