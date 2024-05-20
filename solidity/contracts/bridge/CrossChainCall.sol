@@ -34,8 +34,8 @@ library Decode {
         return amount;
     }
 
-    function bridgeCall(bytes memory data) internal pure returns (bool) {
-        return abi.decode(data, (bool));
+    function bridgeCall(bytes memory data) internal pure returns (uint256) {
+        return abi.decode(data, (uint256));
     }
 
     function ok(
@@ -249,7 +249,7 @@ library CrossChainCall {
         bytes memory _data,
         uint256 _value,
         bytes memory _memo
-    ) internal returns (bool) {
+    ) internal returns (uint256) {
         (bool result, bytes memory data) = CROSS_CHAIN_ADDRESS.call{
             value: msg.value
         }(
