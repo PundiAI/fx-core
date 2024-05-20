@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-interface IFxBridgeLogic {
+import {IBridgeCall} from "./IBridgeCall.sol";
+
+interface IFxBridgeLogic is IBridgeCall {
     /* solhint-disable func-name-mixedcase */
     function state_fxBridgeId() external view returns (bytes32);
     function state_powerThreshold() external view returns (uint256);
@@ -85,17 +87,6 @@ interface IFxBridgeLogic {
         bytes32 _targetIBC,
         uint256 _amount
     ) external;
-
-    function bridgeCall(
-        string memory _dstChain,
-        address _receiver,
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        address _to,
-        bytes memory _data,
-        uint256 _value,
-        bytes memory _memo
-    ) external returns (uint256);
 
     function submitBatch(
         address[] memory _currentOracles,

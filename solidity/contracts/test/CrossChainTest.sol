@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 /* solhint-disable no-global-import */
-import "../crosschain/CrossChainCall.sol";
+import "../bridge/CrossChainCall.sol";
 import "../fip20/IFIP20Upgradable.sol";
 
 /* solhint-enable no-global-import */
@@ -89,7 +89,7 @@ contract CrossChainTest {
         bytes memory _data,
         uint256 _value,
         bytes memory _memo
-    ) internal returns (bool) {
+    ) internal returns (uint256) {
         return
             CrossChainCall.bridgeCall(
                 _dstChain,

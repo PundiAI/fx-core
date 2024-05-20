@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-interface ICrossChain {
+import {IBridgeCall} from "./IBridgeCall.sol";
+
+interface ICrossChain is IBridgeCall {
     function crossChain(
         address _token,
         string memory _receipt,
@@ -38,17 +40,6 @@ interface ICrossChain {
         address _token,
         bytes32 _target
     ) external view returns (uint256 _amount);
-
-    function bridgeCall(
-        string memory _dstChain,
-        address _receiver,
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        address _to,
-        bytes memory _data,
-        uint256 _value,
-        bytes memory _memo
-    ) external payable returns (bool _result);
 
     event CrossChain(
         address indexed sender,

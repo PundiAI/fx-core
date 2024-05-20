@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol";
 
-import "../crosschain/CrossChainCallV1.sol";
+import "../bridge/CrossChainCallV1.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
