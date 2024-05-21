@@ -52,7 +52,7 @@ func (k Keeper) PrecompileBridgeCall(
 	to common.Address,
 	data []byte,
 	memo []byte,
-) (eventNonce uint64, err error) {
+) (nonce uint64, err error) {
 	tokens, err := k.BridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
 	if err != nil {
 		return 0, err
