@@ -7,7 +7,7 @@ import (
 )
 
 var Upgrade = upgrades.Upgrade{
-	UpgradeName:          "v7.1.x",
+	UpgradeName:          "v7.2.x",
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: func() *storetypes.StoreUpgrades {
 		return &storetypes.StoreUpgrades{}

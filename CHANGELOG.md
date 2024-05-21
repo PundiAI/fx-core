@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v7.2.0-rc2]
+
+### Bug Fixes
+
+* Fixed the pre-compiled `BridgeCall` interface return value type
+
 ## [v7.1.0-rc1]
 
 ### Features
