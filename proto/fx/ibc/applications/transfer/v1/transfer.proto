@@ -1,8 +1,6 @@
 syntax = "proto3";
 package fx.ibc.applications.transfer.v1;
 
-import "gogoproto/gogo.proto";
-
 option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/types";
 
 // FungibleTokenPacketData defines a struct for the packet payload
