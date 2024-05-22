@@ -1,12 +1,13 @@
 import {ethers} from "hardhat";
 import {expect} from "chai";
-import {FxBridgeLogicETH} from "../typechain-types";
+import {IFxBridgeLogic} from "../typechain-types";
 import {AbiCoder, TransactionRequest} from "ethers"
 
 describe("fork network and fx bridge test", function () {
     let gasAddress: string
     let bridgeAddress: string
     let adminAddress: string
+    let bridgeContractName: string
     const abiCode = new AbiCoder;
 
     beforeEach(async function () {
@@ -19,11 +20,19 @@ describe("fork network and fx bridge test", function () {
                 gasAddress = "0x00000000219ab540356cBB839Cbe05303d7705Fa"
                 bridgeAddress = "0x6f1D09Fed11115d65E1071CD2109eDb300D80A27"
                 adminAddress = "0x0F413055AdEF9b61e9507928c6856F438d690882"
+                bridgeContractName = "FxBridgeLogicETH"
                 break
             case "11155111":
                 gasAddress = "0x6Cc9397c3B38739daCbfaA68EaD5F5D77Ba5F455"
                 bridgeAddress = "0xd384a8e8822Ea845e83eb5AA2877239150615C18"
                 adminAddress = "0xcF8049f0B918650614D5bf18CF15af080eFdDEe1"
+                bridgeContractName = "FxBridgeLogicETH"
+                break
+            case "84532":
+                gasAddress = "0x4200000000000000000000000000000000000016"
+                bridgeAddress = "0x9164D153b8Af6D94d41E7876E814DD3Db1AEC320"
+                adminAddress = "0xcF8049f0B918650614D5bf18CF15af080eFdDEe1"
+                bridgeContractName = "FxBridgeLogic"
                 break
             default:
                 throw new Error("Unsupported network")
@@ -38,21 +47,21 @@ describe("fork network and fx bridge test", function () {
         })
         const adminSigner = await ethers.getImpersonatedSigner(adminAddress)
 
-        const bridgeFactory = await ethers.getContractFactory("FxBridgeLogicETH")
+        const bridgeFactory = await ethers.getContractFactory(bridgeContractName)
 
-        const bridgeContractV1 = bridgeFactory.attach(bridgeAddress) as FxBridgeLogicETH
+        const bridgeContract = bridgeFactory.attach(bridgeAddress) as IFxBridgeLogic
 
-        const oldFxBridgeId = await bridgeContractV1.state_fxBridgeId()
-        const oldPowerThreshold = await bridgeContractV1.state_powerThreshold()
-        const oldLastEventNonce = await bridgeContractV1.state_lastEventNonce()
-        const oldCheckpoint = await bridgeContractV1.state_lastOracleSetCheckpoint()
-        const oldOracleSetNonce = await bridgeContractV1.state_lastOracleSetNonce()
-        const oldBridgeTokens = await bridgeContractV1.getBridgeTokenList()
+        const oldFxBridgeId = await bridgeContract.state_fxBridgeId()
+        const oldPowerThreshold = await bridgeContract.state_powerThreshold()
+        const oldLastEventNonce = await bridgeContract.state_lastEventNonce()
+        const oldCheckpoint = await bridgeContract.state_lastOracleSetCheckpoint()
+        const oldOracleSetNonce = await bridgeContract.state_lastOracleSetNonce()
+        const oldBridgeTokens = await bridgeContract.getBridgeTokenList()
 
         let oldTokenStatus = new Map();
         for (const bridgeToken of oldBridgeTokens) {
-            const status = await bridgeContractV1.tokenStatus(bridgeToken.addr)
-            const batchNonce = await bridgeContractV1.state_lastBatchNonces(bridgeToken.addr)
+            const status = await bridgeContract.tokenStatus(bridgeToken.addr)
+            const batchNonce = await bridgeContract.state_lastBatchNonces(bridgeToken.addr)
             oldTokenStatus.set(bridgeToken.addr.toString(), {batchNonce: batchNonce, status: status})
         }
 
@@ -74,12 +83,12 @@ describe("fork network and fx bridge test", function () {
         const upgradeTx = await adminSigner.sendTransaction(transaction)
         await upgradeTx.wait()
 
-        const fxBridgeId = await bridgeContractV1.state_fxBridgeId()
-        const powerThreshold = await bridgeContractV1.state_powerThreshold()
-        const lastEventNonce = await bridgeContractV1.state_lastEventNonce()
-        const checkpoint = await bridgeContractV1.state_lastOracleSetCheckpoint()
-        const oracleSetNonce = await bridgeContractV1.state_lastOracleSetNonce()
-        const bridgeTokens = await bridgeContractV1.getBridgeTokenList()
+        const fxBridgeId = await bridgeContract.state_fxBridgeId()
+        const powerThreshold = await bridgeContract.state_powerThreshold()
+        const lastEventNonce = await bridgeContract.state_lastEventNonce()
+        const checkpoint = await bridgeContract.state_lastOracleSetCheckpoint()
+        const oracleSetNonce = await bridgeContract.state_lastOracleSetNonce()
+        const bridgeTokens = await bridgeContract.getBridgeTokenList()
 
         expect(fxBridgeId).to.equal(oldFxBridgeId)
         expect(powerThreshold.toString()).to.equal(oldPowerThreshold.toString())
@@ -88,13 +97,13 @@ describe("fork network and fx bridge test", function () {
         expect(oracleSetNonce.toString()).to.equal(oldOracleSetNonce.toString())
 
         for (const bridgeToken of bridgeTokens) {
-            const status = await bridgeContractV1.tokenStatus(bridgeToken.addr)
+            const status = await bridgeContract.tokenStatus(bridgeToken.addr)
             expect(status.isOriginated).to.equal(oldTokenStatus.get(bridgeToken.addr).status.isOriginated)
             expect(status.isActive).to.equal(oldTokenStatus.get(bridgeToken.addr).status.isActive)
             expect(status.isExist).to.equal(oldTokenStatus.get(bridgeToken.addr).status.isExist)
-            const batchNonce = await bridgeContractV1.state_lastBatchNonces(bridgeToken.addr)
+            const batchNonce = await bridgeContract.state_lastBatchNonces(bridgeToken.addr)
             expect(batchNonce.toString()).to.equal(oldTokenStatus.get(bridgeToken.addr).batchNonce.toString())
-            expect(await bridgeContractV1.state_lastBridgeCallNonces(1)).to.equal(false)
+            expect(await bridgeContract.state_lastBridgeCallNonces(1)).to.equal(false)
         }
     }).timeout(100000);
 });
