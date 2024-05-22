@@ -303,8 +303,10 @@ func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.Quer
 }
 
 func (k QueryServer) GetPendingPoolSendToExternal(c context.Context, req *types.QueryPendingPoolSendToExternalRequest) (*types.QueryPendingPoolSendToExternalResponse, error) {
-	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "sender address")
+	if len(req.GetSenderAddress()) > 0 {
+		if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
+			return nil, status.Error(codes.InvalidArgument, "sender address")
+		}
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -312,7 +314,7 @@ func (k QueryServer) GetPendingPoolSendToExternal(c context.Context, req *types.
 	pendingOutgoingStore := prefix.NewStore(store, types.PendingOutgoingTxPoolKey)
 
 	txs, pageRes, err := query.GenericFilteredPaginate(k.cdc, pendingOutgoingStore, req.Pagination, func(key []byte, tx *types.PendingOutgoingTransferTx) (*types.PendingOutgoingTransferTx, error) {
-		if tx.Sender != req.SenderAddress {
+		if len(req.SenderAddress) > 0 && tx.Sender != req.SenderAddress {
 			return nil, nil
 		}
 		return tx, nil
