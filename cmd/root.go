@@ -134,6 +134,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		fxserver.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
 		preUpgradeCmd(),
 		doctorCmd(),
+		exportDelegatesCmd(defaultNodeHome),
 	)
 }
 
