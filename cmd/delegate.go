@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"math/big"
 	"os"
 
@@ -9,17 +10,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tendermintos "github.com/tendermint/tendermint/libs/os"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v7/app"
 	v7 "github.com/functionx/fx-core/v7/app/upgrades/v7"
@@ -36,40 +40,33 @@ type output struct {
 
 func exportDelegatesCmd(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "export-delegates",
-		Short:   "Export all delegates and their shares",
-		Example: "fxcored export-delegates --contract-addr=0x1234567890abcdef --denom=FX --output=out.json --home=${fxcore snapshot path}",
+		Use:   "export-delegates",
+		Short: "Export all delegates and holders",
+		Example: fmt.Sprintf(`$ %s export-delegates --contract-addr=<token address> --height=<height> 
+--output=out.json --home=<snapshot path>`, version.AppName),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := sdkserver.GetServerContextFromCmd(cmd)
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			db, err := server.NewDatabase(serverCtx.Config, clientCtx.Codec, stakingtypes.StoreKey)
+			contractAddr := serverCtx.Viper.GetString("contract-addr")
+			denom := serverCtx.Viper.GetString("denom")
+			height := serverCtx.Viper.GetInt64("height")
+
+			db, err := server.NewDatabase(serverCtx.Config, clientCtx.Codec)
 			if err != nil {
 				return err
 			}
 
 			defer db.Close()
-			contractAddr, err := cmd.Flags().GetString("contract-addr")
+
+			myApp, ctx, err := buildApp(db.AppDB(), height)
 			if err != nil {
 				return err
 			}
 
-			denom, err := cmd.Flags().GetString("denom")
-			if err != nil {
-				return err
-			}
+			delegateData := allDelegates(myApp.CommitMultiStore().GetKVStore(myApp.GetKey(stakingtypes.StoreKey)), clientCtx.Codec)
 
-			delegateData := allDelegates(db.AppStore(), clientCtx.Codec)
-
-			myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
-				db.AppDB(), nil, false, map[int64]bool{}, defaultNodeHome, 0,
-				app.MakeEncodingConfig(), app.EmptyAppOptions{})
-			myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v7.Upgrade.StoreUpgrades()))
-			if err = myApp.LoadLatestVersion(); err != nil {
-				return err
-			}
-
-			denomHolders, contractHolders := allHolder(myApp, contractAddr, denom)
+			denomHolders, contractHolders := allHolder(ctx, myApp, contractAddr, denom)
 
 			outData := output{Delegates: delegateData, DenomHolders: denomHolders, ContractHolders: contractHolders}
 
@@ -78,10 +75,7 @@ func exportDelegatesCmd(defaultNodeHome string) *cobra.Command {
 				return err
 			}
 
-			out, err := cmd.Flags().GetString("output")
-			if err != nil {
-				return err
-			}
+			out := serverCtx.Viper.GetString("output")
 
 			return tendermintos.WriteFile(out, encoded, os.ModePerm)
 		},
@@ -89,13 +83,13 @@ func exportDelegatesCmd(defaultNodeHome string) *cobra.Command {
 	cmd.PersistentFlags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().String("contract-addr", "", "query contract holders, if empty, it will not query contract holders")
 	cmd.Flags().String("denom", fxtypes.DefaultDenom, "query denom holders, if empty, it will not query denom holders")
+	cmd.Flags().Int64("height", 0, "height to query")
 	cmd.Flags().String("output", "out.json", "location of the exported data file")
 	return cmd
 }
 
-func allDelegates(appStore *rootmulti.Store, codec codec.Codec) map[string]sdkmath.Int {
-	stakingStore := appStore.GetKVStore(appStore.StoreKeysByName()[stakingtypes.StoreKey])
-	iterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.DelegationKey)
+func allDelegates(kvStore types.KVStore, codec codec.Codec) map[string]sdkmath.Int {
+	iterator := sdk.KVStorePrefixIterator(kvStore, stakingtypes.DelegationKey)
 	defer iterator.Close()
 
 	delegations := make(map[string]sdkmath.Int)
@@ -112,12 +106,10 @@ func allDelegates(appStore *rootmulti.Store, codec codec.Codec) map[string]sdkma
 	return delegations
 }
 
-func allHolder(myApp *app.App, contractAddrStr string, denom string) (map[string]sdkmath.Int, map[string]sdkmath.Int) {
+func allHolder(ctx sdk.Context, myApp *app.App, contractAddrStr string, denom string) (map[string]sdkmath.Int, map[string]sdkmath.Int) {
 	denomHolder := map[string]sdkmath.Int{}
 	contractHolders := map[string]sdkmath.Int{}
-	ctx := myApp.NewUncachedContext(false, tmproto.Header{
-		ChainID: fxtypes.ChainId(), Height: myApp.LastBlockHeight(),
-	})
+
 	consAddr, err := myApp.StakingKeeper.GetValidators(ctx, 1)[0].GetConsAddr()
 	if err != nil {
 		panic(err)
@@ -158,4 +150,32 @@ func queryContractBalance(myApp *app.App, ctx sdk.Context, contractAddr, address
 		return
 	}
 	holders[address.Hex()] = sdkmath.NewIntFromBigInt(balanceRes.Value)
+}
+
+func buildApp(db dbm.DB, height int64) (*app.App, sdk.Context, error) {
+	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
+		db, nil, false, map[int64]bool{}, "", 0,
+		app.MakeEncodingConfig(), app.EmptyAppOptions{})
+
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v7.Upgrade.StoreUpgrades()))
+	if err := myApp.LoadLatestVersion(); err != nil {
+		return nil, sdk.Context{}, errors.Wrap(err, "failed to load latest version")
+	}
+	var multiStore types.CacheMultiStore
+
+	if height > 0 {
+		var err error
+		multiStore, err = myApp.CommitMultiStore().CacheMultiStoreWithVersion(height)
+		if err != nil {
+			return nil, sdk.Context{}, errors.Wrapf(err, "failed to load version %d", height)
+		}
+	} else {
+		multiStore = myApp.CommitMultiStore().CacheMultiStore()
+	}
+
+	ctx := myApp.NewUncachedContext(false, tmproto.Header{
+		ChainID: fxtypes.ChainId(), Height: myApp.LastBlockHeight(),
+	}).WithMultiStore(multiStore)
+
+	return myApp, ctx, nil
 }
