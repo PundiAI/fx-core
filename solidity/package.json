@@ -40,7 +40,7 @@
   "dependencies": {
     "@ethers-ext/signer-ledger": "^6.0.0-beta.1",
     "@ledgerhq/hw-transport-node-hid": "^6.28.1",
-    "@nomicfoundation/hardhat-verify": "^2.0.3",
+    "@nomicfoundation/hardhat-verify": "^2.0.7",
     "@openzeppelin/contracts": "^4.9.6",
     "@openzeppelin/contracts-upgradeable": "4.9.6",
     "@types/chai": "^4.3.9",

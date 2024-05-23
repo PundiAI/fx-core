@@ -76,6 +76,7 @@ const config: HardhatUserConfig = {
             sepolia: `${process.env.ETHERSCAN_API_KEY}`,
             arbitrumSepolia: `${process.env.ETHERSCAN_API_KEY}`,
             optimisticSepolia: `${process.env.ETHERSCAN_API_KEY}`,
+            baseSepolia: `${process.env.ETHERSCAN_API_KEY}`
         },
         customChains: [
             {
