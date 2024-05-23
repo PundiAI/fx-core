@@ -31,6 +31,10 @@ const config: HardhatUserConfig = {
             url: `${process.env.OPTIMISTIC_URL || "https://sepolia.optimism.io"}`,
             chainId: 11155420,
         },
+        baseSepolia: {
+            url: `${process.env.BASE_URL || "https://sepolia.base.org"}`,
+            chainId: 84532,
+        },
         localhost: {
             url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
         },
