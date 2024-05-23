@@ -31,7 +31,7 @@ type Database struct {
 	codec       codec.Codec
 }
 
-func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec) (*Database, error) {
+func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec, modules ...string) (*Database, error) {
 	dataDir := filepath.Join(cfg.RootDir, "data")
 
 	blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(cfg.DBBackend), dataDir)
@@ -50,7 +50,7 @@ func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	storeKeys := sdk.NewKVStoreKeys(upgradetypes.StoreKey)
+	storeKeys := sdk.NewKVStoreKeys(append(modules, upgradetypes.StoreKey)...)
 	appStore := rootmulti.NewStore(appDB, log.NewNopLogger())
 
 	for _, storeKey := range storeKeys {
@@ -68,6 +68,10 @@ func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec) (*Database, error) {
 		storeKeys:   storeKeys,
 		codec:       cdc,
 	}, err
+}
+
+func (d *Database) AppDB() dbm.DB {
+	return d.appDB
 }
 
 func (d *Database) AppStore() *rootmulti.Store {
