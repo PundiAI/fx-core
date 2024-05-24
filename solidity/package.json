@@ -15,7 +15,8 @@
     "lint:sol": "npx solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
     "typechain": "npx hardhat typechain",
     "fork": "npx hardhat node --fork ${NETWORK_URL}",
-    "fork:blocknumber": "npx hardhat node --fork ${NETWORK_URL} --fork-block-number ${BLOCK_NUMBER}"
+    "fork:blocknumber": "npx hardhat node --fork ${NETWORK_URL} --fork-block-number ${BLOCK_NUMBER}",
+    "format:ts": "prettier --write \"./**/*.{ts,tsx}\" && prettier --write \"./*.{ts,tsx}\""
   },
   "keywords": [
     "solidity",
