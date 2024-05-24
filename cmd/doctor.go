@@ -59,7 +59,7 @@ func doctorCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := checkUpgradeInfo(serverCtx.Config.RootDir); err != nil {
+			if err = checkUpgradeInfo(serverCtx.Config.RootDir); err != nil {
 				return err
 			}
 			bc, err := getBlockchain(clientCtx, serverCtx)
@@ -420,7 +420,10 @@ func checkCosmovisor(rootPath string, bc blockchain) error {
 		}
 		v := string(bytes.Trim(output, "\n"))
 		fmt.Printf("%s%s%sfxcored version: %s\n", SPACE, SPACE, SPACE, v)
-		if !(strings.HasPrefix(v, "release/v"+entry.Name()[len(entry.Name())-1:]) || strings.HasPrefix(v, "release/"+entry.Name())) {
+		semVer := strings.Split(entry.Name(), ".")
+		isFxV := len(semVer) == 1 && strings.HasPrefix(semVer[0], "fx") && strings.Contains(v, semVer[0][2:])
+		isSemVer := len(semVer) > 1 && strings.Contains(v, semVer[0]+"."+semVer[1])
+		if !isFxV && !isSemVer {
 			fmt.Printf("%s%s%sWarning: fxcored version is not match upgrade plan\n", SPACE, SPACE, SPACE)
 		}
 		upgradeInfoFile := filepath.Join(upgradesPath, entry.Name(), upgradetypes.UpgradeInfoFilename)
