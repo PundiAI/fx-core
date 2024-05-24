@@ -1,20 +1,7 @@
 #!/usr/bin/make -f
 
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-COMMIT := $(shell git log -1 --format='%H')
-
-# don't override user values
-ifeq (,$(VERSION))
-  ifeq ($(OS),Windows_NT)
-	VERSION := $(shell git describe --exact-match 2>$null)
-  else
-	VERSION := $(shell git describe --exact-match 2>/dev/null)
-  endif
-  # if VERSION is empty, then populate it with branch's name and raw commit hash
-  ifeq (,$(VERSION))
-    VERSION := $(BRANCH)-$(COMMIT)
-  endif
-endif
+VERSION := $(shell git describe --tags --always 2>/dev/null || echo 'unknown')
+COMMIT := $(shell git log -1 --format='%H' 2>/dev/null || echo 'unknown')
 
 LEDGER_ENABLED ?= true
 BUILDDIR ?= $(CURDIR)/build
