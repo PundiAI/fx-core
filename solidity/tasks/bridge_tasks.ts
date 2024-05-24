@@ -1,17 +1,17 @@
-import {task} from "hardhat/config";
-import {boolean, string} from "hardhat/internal/core/params/argumentTypes";
+import { task } from "hardhat/config";
+import { boolean, string } from "hardhat/internal/core/params/argumentTypes";
 import {
     AddTxParam,
     GetGravityId,
     GetOracleSet,
     SUB_CHECK_PRIVATE_KEY,
     SUB_CONFIRM_TRANSACTION,
-    SUB_CREATE_ASSET_DATA,
     SUB_CREATE_TRANSACTION,
     TransactionToJson,
     vote_power
 } from "./subtasks";
-import {bech32} from "bech32";
+import { bech32 } from "bech32";
+import { ZeroAddress } from "ethers";
 
 const sendToFx = task("send-to-fx", "call bridge contract sendToFx()")
     .addParam("bridgeContract", "bridge token address", undefined, string, false)
@@ -20,7 +20,7 @@ const sendToFx = task("send-to-fx", "call bridge contract sendToFx()")
     .addParam("destination", "destination address", undefined, string, false)
     .addParam("targetIbc", "target ibc address", "", string, true)
     .setAction(async (taskArgs, hre) => {
-        const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
+        const { wallet } = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
 
         const bridgeTokenContract = await hre.ethers.getContractAt("ERC20TokenTest", taskArgs.bridgeToken, wallet);
         const from = await wallet.getAddress();
@@ -43,7 +43,7 @@ const sendToFx = task("send-to-fx", "call bridge contract sendToFx()")
                 gasLimit: taskArgs.gasLimit,
             });
 
-            const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+            const { answer } = await hre.run(SUB_CONFIRM_TRANSACTION, {
                 message: `\n${TransactionToJson(tx)}\n`,
                 disableConfirm: taskArgs.disableConfirm,
             });
@@ -79,7 +79,7 @@ const sendToFx = task("send-to-fx", "call bridge contract sendToFx()")
             gasLimit: taskArgs.gasLimit,
         });
 
-        const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+        const { answer } = await hre.run(SUB_CONFIRM_TRANSACTION, {
             message: `\n${TransactionToJson(tx)}\n`,
             disableConfirm: taskArgs.disableConfirm,
         });
@@ -100,8 +100,8 @@ const initBridge = task("init-bridge", "init bridge contract")
     .addParam("restUrl", "fx node rest rpc url", undefined, string, false)
     .addParam("chainName", "init cross chain name", undefined, string, false)
     .setAction(async (taskArgs, hre) => {
-        const {bridgeLogic, bridgeContract, restUrl, chainName} = taskArgs;
-        const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
+        const { bridgeLogic, bridgeContract, restUrl, chainName } = taskArgs;
+        const { wallet } = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
         const from = await wallet.getAddress();
 
         const bridge_logic_factory = await hre.ethers.getContractFactory("FxBridgeLogic")
@@ -144,7 +144,7 @@ const initBridge = task("init-bridge", "init bridge contract")
             gasLimit: taskArgs.gasLimit,
         });
 
-        const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+        const { answer } = await hre.run(SUB_CONFIRM_TRANSACTION, {
             message: `\n${TransactionToJson(tx)}\n`,
             disableConfirm: taskArgs.disableConfirm,
         });
@@ -165,8 +165,8 @@ const addBridgeToken = task("add-bridge-token", "add bridge token into bridge co
     .addParam("isOriginal", "bridge token target ibc for bridge token", false, boolean, true)
     .addParam("targetIbc", "bridge token target ibc for bridge token", "", string, true)
     .setAction(async (taskArgs, hre) => {
-        const {bridgeContract, tokenContract, isOriginal, targetIbc} = taskArgs;
-        const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
+        const { bridgeContract, tokenContract, isOriginal, targetIbc } = taskArgs;
+        const { wallet } = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
         const from = await wallet.getAddress();
 
         const bridge_factory = await hre.ethers.getContractFactory("FxBridgeLogic")
@@ -182,7 +182,7 @@ const addBridgeToken = task("add-bridge-token", "add bridge token into bridge co
             gasLimit: taskArgs.gasLimit,
         });
 
-        const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+        const { answer } = await hre.run(SUB_CONFIRM_TRANSACTION, {
             message: `\n${TransactionToJson(tx)}\n`,
             disableConfirm: taskArgs.disableConfirm,
         });
@@ -197,44 +197,56 @@ const addBridgeToken = task("add-bridge-token", "add bridge token into bridge co
         }
     });
 
-const bridgeERC20Call = task("bridge-erc20-call", "bridge erc20 and call contract function")
+const bridgeCall = task("bridge-call", "bridge call function")
     .addParam("bridgeContract", "bridge contract address", undefined, string, false)
     .addParam("dstChainId", "destination chain id", undefined, string, false)
-    .addParam("callGasLimit", "call gas limit", "0", string, true)
     .addParam("receiver", "call receiver", undefined, string, false)
+    .addParam("tokens", "bridge token address list", undefined, string, false)
+    .addParam("amounts", "bridge token amount list", undefined, string, false)
     .addParam("to", "call to", undefined, string, false)
-    .addParam("message", "call message", undefined, string, false)
+    .addParam("data", "call data", undefined, string, false)
     .addParam("callValue", "call value", "0", string, true)
-    .addParam("bridgeTokens", "bridge token address list", undefined, string, false)
-    .addParam("bridgeAmounts", "bridge token amount list", undefined, string, false)
+    .addParam("memo", "call memo", undefined, string, false)
+
     .setAction(async (taskArgs, hre) => {
-        const {
+        let {
             bridgeContract,
             dstChainId,
-            callGasLimit,
             receiver,
+            tokens,
+            amounts,
             to,
-            message,
+            data,
             callValue,
-            bridgeTokens,
-            bridgeAmounts
+            memo
         } = taskArgs;
-        const {wallet} = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
+        const { wallet } = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
         const from = await wallet.getAddress();
 
-        const asset = await hre.run(SUB_CREATE_ASSET_DATA, {
-            bridgeTokens: bridgeTokens,
-            bridgeAmounts: bridgeAmounts,
-            assetType: "ERC20"
-        });
+        let tokenArr, amountArr;
+        if (tokens === "") {
+            tokenArr = []
+            amountArr = []
+        } else {
+            tokenArr = tokens.split(",")
+            amountArr = amounts.split(",")
+        }
+        if (tokenArr.length !== amountArr.length) {
+            console.log(`tokens and amounts do not match`)
+            return
+        }
+
+        if (to == "") {
+            to = ZeroAddress;
+        }
 
         const bridge_logic_factory = await hre.ethers.getContractFactory("FxBridgeLogic")
-        const data = bridge_logic_factory.interface.encodeFunctionData('bridgeCall', [
-            dstChainId, callGasLimit, receiver, to, message, callValue, asset
+        const bridgeCallData = bridge_logic_factory.interface.encodeFunctionData('bridgeCall', [
+            dstChainId, receiver, tokenArr, amountArr, to, data, callValue, memo
         ])
 
         const tx = await hre.run(SUB_CREATE_TRANSACTION, {
-            from: from, to: bridgeContract, data: data, value: taskArgs.value,
+            from: from, to: bridgeContract, data: bridgeCallData, value: taskArgs.value,
             gasPrice: taskArgs.gasPrice,
             maxFeePerGas: taskArgs.maxFeePerGas,
             maxPriorityFeePerGas: taskArgs.maxPriorityFeePerGas,
@@ -242,7 +254,7 @@ const bridgeERC20Call = task("bridge-erc20-call", "bridge erc20 and call contrac
             gasLimit: taskArgs.gasLimit,
         });
 
-        const {answer} = await hre.run(SUB_CONFIRM_TRANSACTION, {
+        const { answer } = await hre.run(SUB_CONFIRM_TRANSACTION, {
             message: `\n${TransactionToJson(tx)}\n`,
             disableConfirm: taskArgs.disableConfirm,
         });
@@ -257,4 +269,4 @@ const bridgeERC20Call = task("bridge-erc20-call", "bridge erc20 and call contrac
         }
     });
 
-AddTxParam([sendToFx, initBridge, addBridgeToken, bridgeERC20Call])
+AddTxParam([sendToFx, initBridge, addBridgeToken, bridgeCall])
