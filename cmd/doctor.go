@@ -59,7 +59,7 @@ func doctorCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := checkUpgradeInfo(serverCtx.Config.RootDir); err != nil {
+			if err = checkUpgradeInfo(serverCtx.Config.RootDir); err != nil {
 				return err
 			}
 			bc, err := getBlockchain(clientCtx, serverCtx)
@@ -418,13 +418,14 @@ func checkCosmovisor(rootPath string, bc blockchain) error {
 			fmt.Printf("%s%s%sWarning: %s\n", SPACE, SPACE, SPACE, err.Error())
 			continue
 		}
-		v := string(bytes.Trim(output, "\n"))
-		fmt.Printf("%s%s%sfxcored version: %s\n", SPACE, SPACE, SPACE, v)
-		if !(strings.HasPrefix(v, "release/v"+entry.Name()[len(entry.Name())-1:]) || strings.HasPrefix(v, "release/"+entry.Name())) {
+		outputVersion := string(bytes.Trim(output, "\n"))
+		fmt.Printf("%s%s%sfxcored version: %s\n", SPACE, SPACE, SPACE, outputVersion)
+
+		if checkVersionCompatibility(entry.Name(), outputVersion) {
 			fmt.Printf("%s%s%sWarning: fxcored version is not match upgrade plan\n", SPACE, SPACE, SPACE)
 		}
-		upgradeInfoFile := filepath.Join(upgradesPath, entry.Name(), upgradetypes.UpgradeInfoFilename)
 
+		upgradeInfoFile := filepath.Join(upgradesPath, entry.Name(), upgradetypes.UpgradeInfoFilename)
 		upgradeInfo, err := os.ReadFile(upgradeInfoFile)
 		if err != nil {
 			if !os.IsNotExist(err) {
@@ -447,6 +448,13 @@ func checkCosmovisor(rootPath string, bc blockchain) error {
 		fmt.Printf("%s%sWarning: current upgrade plan is not found in cosmovisor\n", SPACE, SPACE)
 	}
 	return nil
+}
+
+func checkVersionCompatibility(version, outputVersion string) bool {
+	semVer := strings.Split(version, ".")
+	isFxV := len(semVer) == 1 && strings.HasPrefix(semVer[0], "fx") && strings.Contains(outputVersion, semVer[0][2:])
+	isSemVer := len(semVer) > 1 && strings.Contains(outputVersion, semVer[0]+"."+semVer[1])
+	return !isFxV && !isSemVer
 }
 
 func printDirectory(path string, depth int, last []bool, tab string) error {
