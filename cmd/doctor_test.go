@@ -98,3 +98,37 @@ func Test_checkGenesis(t *testing.T) {
 		})
 	}
 }
+
+func Test_checkVersionCompatibility(t *testing.T) {
+	type args struct {
+		version       string
+		outputVersion string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "v1",
+			args: args{
+				version:       "fxv1",
+				outputVersion: "release/v1.0.1",
+			},
+			want: false,
+		},
+		{
+			name: "v5",
+			args: args{
+				version:       "v5.0.x",
+				outputVersion: "release/v5.0.1",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, checkVersionCompatibility(tt.args.version, tt.args.outputVersion), "checkVersionCompatibility(%v, %v)", tt.args.version, tt.args.outputVersion)
+		})
+	}
+}
