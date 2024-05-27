@@ -8,95 +8,13 @@ import {
   RefundCallbackTest,
   DataCallbackTest,
 } from "../typechain-types";
+import { ZeroAddress, MaxUint256, encodeBytes32String, AbiCoder } from "ethers";
 import {
-  ZeroAddress,
-  MaxUint256,
-  encodeBytes32String,
-  keccak256,
-  AbiCoder,
-  Signature,
-  Interface,
-} from "ethers";
-import { arrayify } from "@ethersproject/bytes";
-
-export async function getSignerAddresses(signers: HardhatEthersSigner[]) {
-  return await Promise.all(signers.map((signer) => signer.getAddress()));
-}
-
-export function makeSubmitBridgeCallHash(
-  gravityId: string,
-  sender: string,
-  receiver: string,
-  tokens: string[],
-  amounts: string[],
-  to: string,
-  data: string,
-  memo: string,
-  nonce: number | string,
-  timeout: number | string,
-  eventNonce: number | string
-) {
-  let methodName = encodeBytes32String("bridgeCall");
-  let abiCoder = new AbiCoder();
-  return keccak256(
-    abiCoder.encode(
-      [
-        "bytes32",
-        "bytes32",
-        "address",
-        "address",
-        "address[]",
-        "uint256[]",
-        "address",
-        "bytes",
-        "bytes",
-        "uint256",
-        "uint256",
-        "uint256",
-      ],
-      [
-        gravityId,
-        methodName,
-        sender,
-        receiver,
-        tokens,
-        amounts,
-        to,
-        data,
-        memo,
-        nonce,
-        timeout,
-        eventNonce,
-      ]
-    )
-  );
-}
-
-export async function signHash(signers: HardhatEthersSigner[], hash: string) {
-  let v: number[] = [];
-  let r: string[] = [];
-  let s: string[] = [];
-
-  const signMessage = arrayify(hash);
-  for (let i = 0; i < signers.length; i = i + 1) {
-    const sig = await signers[i].signMessage(signMessage);
-    const signature = Signature.from(sig);
-
-    v.push(signature.v);
-    r.push(signature.r);
-    s.push(signature.s);
-  }
-  return { v, r, s };
-}
-
-export async function encodeFunctionData(
-  abi: string,
-  funcName: any,
-  args: any[]
-) {
-  let iface = new Interface(abi);
-  return iface.encodeFunctionData(funcName, args);
-}
+  encodeFunctionData,
+  getSignerAddresses,
+  makeSubmitBridgeCallHash,
+  signHash,
+} from "./common";
 
 describe("submit bridge call tests", function () {
   let deploy: HardhatEthersSigner;
@@ -115,8 +33,8 @@ describe("submit bridge call tests", function () {
     1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
   ];
 
-  let validators: any;
-  let valAddresses: any;
+  let validators: HardhatEthersSigner[];
+  let valAddresses: string[];
 
   beforeEach(async function () {
     const signers = await ethers.getSigners();

@@ -2,29 +2,13 @@ import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ERC20TokenTest, FxBridgeLogic } from "../typechain-types";
-import { BigNumberish, encodeBytes32String, Interface } from "ethers";
+import { BigNumberish, encodeBytes32String } from "ethers";
 import { it } from "mocha";
-
-// total power 10000
-export function examplePowers(): number[] {
-  return [
-    3000, 2000, 900, 800, 700, 600, 500, 400, 300, 200, 200, 200, 200, 200, 200,
-    100, 100, 100, 100, 100,
-  ];
-}
-
-export async function getSignerAddresses(signers: HardhatEthersSigner[]) {
-  return await Promise.all(signers.map((signer) => signer.getAddress()));
-}
-
-export async function encodeFunctionData(
-  abi: string,
-  funcName: any,
-  args: any[]
-) {
-  let iface = new Interface(abi);
-  return iface.encodeFunctionData(funcName, args);
-}
+import {
+  encodeFunctionData,
+  examplePowers,
+  getSignerAddresses,
+} from "./common";
 
 describe("bridge call tests", function () {
   let deploy: HardhatEthersSigner;
