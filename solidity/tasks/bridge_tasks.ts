@@ -307,7 +307,8 @@ const bridgeCall = task("bridge-call", "bridge call function")
     const { wallet } = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
     const from = await wallet.getAddress();
 
-    let tokenArr, amountArr;
+    let tokenArr: string[];
+    let amountArr: string[];
     if (tokens === "") {
       tokenArr = [];
       amountArr = [];
@@ -316,11 +317,11 @@ const bridgeCall = task("bridge-call", "bridge call function")
       amountArr = amounts.split(",");
     }
     if (tokenArr.length !== amountArr.length) {
-      console.log(`tokens and amounts do not match`);
+      console.log("tokens and amounts do not match");
       return;
     }
 
-    if (to == "") {
+    if (to === "") {
       to = ZeroAddress;
     }
 
