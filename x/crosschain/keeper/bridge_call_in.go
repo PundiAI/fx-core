@@ -3,7 +3,6 @@ package keeper
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -27,18 +26,19 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	sender := msg.GetSenderAddr()
 	receiver := msg.GetReceiverAddr()
 	eventNonce := msg.EventNonce
-	if err = k.BridgeCallEvm(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.Value, eventNonce); err != nil {
+	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.Value, eventNonce); err != nil {
 		errCause = err.Error()
+		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, errCause)))
 	} else {
 		commit()
 	}
+
 	if len(errCause) > 0 && len(tokens) > 0 {
 		// new outgoing bridge call to refund
 		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), erc20Token, common.Address{}.String(), "", "", eventNonce)
 		if err != nil {
 			return err
 		}
-		// refund event
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeBridgeCallRefundOut,
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", eventNonce)),
@@ -56,7 +56,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	return nil
 }
 
-func (k Keeper) BridgeCallEvm(
+func (k Keeper) BridgeCallTransferAndCallEvm(
 	ctx sdk.Context,
 	sender common.Address,
 	receiver sdk.AccAddress,
@@ -79,27 +79,13 @@ func (k Keeper) BridgeCallEvm(
 		return err
 	}
 	if len(data) > 0 || to != nil {
-		evmErrCause, evmSuccess := "", false
-		defer func() {
-			attrs := []sdk.Attribute{
-				sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatUint(eventNonce, 10)),
-				sdk.NewAttribute(types.AttributeKeyBridgeCallSuccess, strconv.FormatBool(evmSuccess)),
-			}
-			if len(evmErrCause) > 0 {
-				attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyBridgeCallErrCause, evmErrCause))
-			}
-			ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, attrs...))
-		}()
 		gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
 		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, data, true)
 		if err != nil {
-			evmErrCause = err.Error()
 			return err
 		}
-		evmSuccess = !txResp.Failed()
-		evmErrCause = txResp.VmError
 		if txResp.Failed() {
-			return errorsmod.Wrap(types.ErrInvalid, evmErrCause)
+			return errorsmod.Wrap(types.ErrInvalid, txResp.VmError)
 		}
 	}
 	return nil

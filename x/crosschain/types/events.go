@@ -34,9 +34,7 @@ const (
 
 	EventTypeEvmTransfer = "evm_transfer"
 
-	EventTypeBridgeCallEvent       = "bridge_call_event"
-	AttributeKeyBridgeCallSuccess  = "bridge_call_success"
-	AttributeKeyBridgeCallErrCause = "bridge_call_err_cause"
+	EventTypeBridgeCallEvent = "bridge_call_event"
 
 	EventTypeBridgeCall         = "bridge_call"
 	AttributeKeyBridgeCallNonce = "bridge_call_nonce"
