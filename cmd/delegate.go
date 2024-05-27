@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -26,7 +25,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v7/app"
-	v7 "github.com/functionx/fx-core/v7/app/upgrades/v7"
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/server"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -157,7 +155,6 @@ func buildApp(db dbm.DB, height int64) (*app.App, sdk.Context, error) {
 		db, nil, false, map[int64]bool{}, "", 0,
 		app.MakeEncodingConfig(), app.EmptyAppOptions{})
 
-	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v7.Upgrade.StoreUpgrades()))
 	if err := myApp.LoadLatestVersion(); err != nil {
 		return nil, sdk.Context{}, errors.Wrap(err, "failed to load latest version")
 	}
