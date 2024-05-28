@@ -3,12 +3,17 @@ package v7
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v7/app/keepers"
 	"github.com/functionx/fx-core/v7/contract"
+	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	fxevmkeeper "github.com/functionx/fx-core/v7/x/evm/keeper"
 )
 
@@ -28,6 +33,7 @@ func CreateUpgradeHandler(
 
 		UpdateWFXLogicCode(cacheCtx, app.EvmKeeper)
 		UpdateFIP20LogicCode(cacheCtx, app.EvmKeeper)
+		CleanEthAttestations(ctx, app.AppCodec(), app.GetKey(ethtypes.ModuleName))
 
 		commit()
 		ctx.Logger().Info("Upgrade complete", "module", "upgrade")
@@ -49,4 +55,20 @@ func UpdateFIP20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
 		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
 	}
 	ctx.Logger().Info("update WFX contract", "module", "upgrade", "codeHash", fip20.CodeHash())
+}
+
+func CleanEthAttestations(ctx sdk.Context, cdc codec.Codec, storeKey storetypes.StoreKey) {
+	if ctx.ChainID() != fxtypes.TestnetChainId {
+		return
+	}
+	store := ctx.KVStore(storeKey)
+	iter := sdk.KVStorePrefixIterator(store, crosschaintypes.OracleAttestationKey)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		att := new(crosschaintypes.Attestation)
+		cdc.MustUnmarshal(iter.Value(), att)
+		if att.Observed && att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallClaim{}) {
+			store.Delete(iter.Key())
+		}
+	}
 }
