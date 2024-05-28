@@ -797,6 +797,17 @@ func (m *MsgBridgeCallClaim) MustData() []byte {
 	return bz
 }
 
+func (m *MsgBridgeCallClaim) MustMemo() []byte {
+	if len(m.Memo) == 0 {
+		return []byte{}
+	}
+	bz, err := hex.DecodeString(m.Memo)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
 func (m *MsgBridgeCallClaim) GetTokensAddr() []common.Address {
 	addrs := make([]common.Address, 0, len(m.TokenContracts))
 	for _, token := range m.TokenContracts {

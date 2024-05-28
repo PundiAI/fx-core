@@ -7,9 +7,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/mock/gomock"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
@@ -40,14 +42,15 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			customMock: func(msg *types.MsgBridgeCallClaim) {
 				s.crosschainKeeper.SetLastObservedBlockHeight(s.ctx, 1000, msg.BlockHeight-1)
 
-				sender := types.ExternalAddrToHexAddr(msg.ChainName, msg.Sender)
 				contract := types.ExternalAddrToHexAddr(msg.ChainName, msg.To)
+				s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), gomock.Any()).Return(erc20types.TokenPair{}, true).
+					Times(len(msg.TokenContracts))
 				s.evmKeeper.EXPECT().CallEVM(gomock.Any(),
-					sender,
+					s.crosschainKeeper.GetCallbackFrom(),
 					&contract,
 					big.NewInt(0),
 					uint64(types.MaxGasLimit),
-					[]byte{},
+					gomock.Any(),
 					true,
 				).Return(nil, errors.New("call evm error")).Times(1)
 			},
@@ -105,6 +108,27 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) Test_CoinsToBridgeCallTokens() {
+	input := sdk.Coins{
+		sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e18)),
+		sdk.NewCoin("aaa", sdk.NewInt(2e18)),
+	}
+	s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), "aaa").Return(erc20types.TokenPair{
+		Erc20Address: "0x0000000000000000000000000000000000000001",
+	}, true).Times(1)
+	tokens, amounts := s.crosschainKeeper.CoinsToBridgeCallTokens(s.ctx, input)
+	s.Require().EqualValues(len(tokens), len(amounts))
+	s.Len(tokens, input.Len())
+
+	expectTokens := []common.Address{
+		common.HexToAddress("0x0000000000000000000000000000000000000000"),
+		common.HexToAddress("0x0000000000000000000000000000000000000001"),
+	}
+	expectAmount := []*big.Int{big.NewInt(1e18), big.NewInt(2e18)}
+	s.Require().EqualValues(expectTokens, tokens)
+	s.Require().EqualValues(expectAmount, amounts)
 }
 
 func (s *KeeperTestSuite) MockBridgeCallToken(erc20Tokens []types.ERC20Token) {

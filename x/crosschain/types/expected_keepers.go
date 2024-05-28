@@ -69,6 +69,7 @@ type Erc20Keeper interface {
 	DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
 	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
+	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (erc20types.TokenPair, bool)
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on crosschain

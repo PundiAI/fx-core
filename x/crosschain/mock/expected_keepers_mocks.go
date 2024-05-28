@@ -523,6 +523,21 @@ func (mr *MockErc20KeeperMockRecorder) DeleteOutgoingTransferRelation(ctx, modul
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteOutgoingTransferRelation), ctx, moduleName, txID)
 }
 
+// GetTokenPair mocks base method.
+func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types9.TokenPair, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTokenPair", ctx, tokenOrDenom)
+	ret0, _ := ret[0].(types9.TokenPair)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetTokenPair indicates an expected call of GetTokenPair.
+func (mr *MockErc20KeeperMockRecorder) GetTokenPair(ctx, tokenOrDenom any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenPair", reflect.TypeOf((*MockErc20Keeper)(nil).GetTokenPair), ctx, tokenOrDenom)
+}
+
 // HasOutgoingTransferRelation mocks base method.
 func (m *MockErc20Keeper) HasOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) bool {
 	m.ctrl.T.Helper()

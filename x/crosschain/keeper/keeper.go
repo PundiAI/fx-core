@@ -64,6 +64,10 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
+func (k Keeper) GetCallbackFrom() common.Address {
+	return k.callbackFrom
+}
+
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+k.moduleName)
