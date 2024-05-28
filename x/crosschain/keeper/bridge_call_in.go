@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -26,7 +27,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	sender := msg.GetSenderAddr()
 	receiver := msg.GetReceiverAddr()
 	eventNonce := msg.EventNonce
-	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.Value, eventNonce); err != nil {
+	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), msg.Value); err != nil {
 		errCause = err.Error()
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, errCause)))
 	} else {
@@ -63,8 +64,8 @@ func (k Keeper) BridgeCallTransferAndCallEvm(
 	tokens []types.ERC20Token,
 	to *common.Address,
 	data []byte,
+	memo []byte,
 	value sdkmath.Int,
-	eventNonce uint64,
 ) error {
 	if senderAccount := k.ak.GetAccount(ctx, sender.Bytes()); senderAccount != nil {
 		if _, ok := senderAccount.(authtypes.ModuleAccountI); ok {
@@ -79,8 +80,13 @@ func (k Keeper) BridgeCallTransferAndCallEvm(
 		return err
 	}
 	if len(data) > 0 || to != nil {
+		callTokens, callAmounts := k.CoinsToBridgeCallTokens(ctx, coins)
+		args, err := types.PackBridgeCallback(sender, common.Address(receiver.Bytes()), callTokens, callAmounts, data, memo)
+		if err != nil {
+			return err
+		}
 		gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
-		txResp, err := k.evmKeeper.CallEVM(ctx, sender, to, value.BigInt(), gasLimit, data, true)
+		txResp, err := k.evmKeeper.CallEVM(ctx, k.callbackFrom, to, value.BigInt(), gasLimit, args, true)
 		if err != nil {
 			return err
 		}
@@ -151,4 +157,20 @@ func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddr
 		}
 	}
 	return nil
+}
+
+func (k Keeper) CoinsToBridgeCallTokens(ctx sdk.Context, coins sdk.Coins) ([]common.Address, []*big.Int) {
+	_tokens := make([]common.Address, 0, len(coins))
+	_amounts := make([]*big.Int, 0, len(coins))
+	for _, coin := range coins {
+		_amounts = append(_amounts, coin.Amount.BigInt())
+		if coin.Denom == fxtypes.DefaultDenom {
+			_tokens = append(_tokens, common.Address{})
+			continue
+		}
+		// bridgeCallTransferToReceiver().ConvertCoin hava already checked.
+		pair, _ := k.erc20Keeper.GetTokenPair(ctx, coin.Denom)
+		_tokens = append(_tokens, common.HexToAddress(pair.Erc20Address))
+	}
+	return _tokens, _amounts
 }
