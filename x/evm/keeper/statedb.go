@@ -57,3 +57,8 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 	)
 	return nil
 }
+
+func (k *Keeper) IsContract(ctx sdk.Context, account common.Address) bool {
+	acc := k.GetAccountWithoutBalance(ctx, account)
+	return acc != nil && acc.IsContract()
+}

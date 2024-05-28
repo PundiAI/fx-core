@@ -12,7 +12,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/evmos/ethermint/x/evm/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -75,7 +74,7 @@ type Erc20Keeper interface {
 // EVMKeeper defines the expected EVM keeper interface used on crosschain
 type EVMKeeper interface {
 	CallEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types.MsgEthereumTxResponse, error)
-	GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account
+	IsContract(ctx sdk.Context, account common.Address) bool
 }
 
 type IBCTransferKeeper interface {
