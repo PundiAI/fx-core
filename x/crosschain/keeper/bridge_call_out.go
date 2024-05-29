@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	gogotypes "github.com/gogo/protobuf/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -46,16 +48,7 @@ func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddre
 	return tokens, nil
 }
 
-func (k Keeper) AddOutgoingBridgeCall(
-	ctx sdk.Context,
-	sender sdk.AccAddress,
-	refundAddr string,
-	tokens []types.ERC20Token,
-	to string,
-	data string,
-	memo string,
-	eventNonce uint64,
-) (*types.OutgoingBridgeCall, error) {
+func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
 	params := k.GetParams(ctx)
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, params, params.BridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
@@ -68,12 +61,12 @@ func (k Keeper) AddOutgoingBridgeCall(
 		Nonce:       nextID,
 		Timeout:     bridgeCallTimeout,
 		BlockHeight: uint64(ctx.BlockHeight()),
-		Sender:      types.ExternalAddrToStr(k.moduleName, sender),
-		Refund:      refundAddr,
+		Sender:      types.ExternalAddrToStr(k.moduleName, sender.Bytes()),
+		Refund:      types.ExternalAddrToStr(k.moduleName, refundAddr.Bytes()),
 		Tokens:      tokens,
-		To:          to,
-		Data:        data,
-		Memo:        memo,
+		To:          types.ExternalAddrToStr(k.moduleName, to.Bytes()),
+		Data:        hex.EncodeToString(data),
+		Memo:        hex.EncodeToString(memo),
 		EventNonce:  eventNonce,
 	}
 	k.SetOutgoingBridgeCall(ctx, outCall)

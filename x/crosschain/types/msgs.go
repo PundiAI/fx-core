@@ -769,11 +769,11 @@ func (m *MsgBridgeCallClaim) ClaimHash() []byte {
 }
 
 func (m *MsgBridgeCallClaim) GetSenderAddr() common.Address {
-	return common.BytesToAddress(ExternalAddrToAccAddr(m.ChainName, m.Sender).Bytes())
+	return ExternalAddrToHexAddr(m.ChainName, m.Sender)
 }
 
-func (m *MsgBridgeCallClaim) GetRefundAddr() sdk.AccAddress {
-	return ExternalAddrToAccAddr(m.ChainName, m.Refund)
+func (m *MsgBridgeCallClaim) GetRefundAddr() common.Address {
+	return ExternalAddrToHexAddr(m.ChainName, m.Refund)
 }
 
 func (m *MsgBridgeCallClaim) GetToAddr() common.Address {
@@ -1143,7 +1143,9 @@ func (m *MsgUpdateChainOracles) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgBridgeCall) Route() string { return RouterKey }
-func (m *MsgBridgeCall) Type() string  { return TypeMsgBridgeCall }
+
+func (m *MsgBridgeCall) Type() string { return TypeMsgBridgeCall }
+
 func (m *MsgBridgeCall) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
@@ -1192,4 +1194,42 @@ func (m *MsgBridgeCall) validateBasic() (err error) {
 
 func (m *MsgBridgeCall) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
+}
+
+func (m *MsgBridgeCall) GetSenderAddr() common.Address {
+	return common.BytesToAddress(sdk.MustAccAddressFromBech32(m.Sender).Bytes())
+}
+
+func (m *MsgBridgeCall) GetRefundAddr() common.Address {
+	addr, _ := sdk.AccAddressFromBech32(m.Refund)
+	return common.BytesToAddress(addr.Bytes())
+}
+
+func (m *MsgBridgeCall) GetToAddr() common.Address {
+	if m.To == "" {
+		return common.Address{}
+	}
+	return ExternalAddrToHexAddr(m.ChainName, m.To)
+}
+
+func (m *MsgBridgeCall) MustData() []byte {
+	if len(m.Data) == 0 {
+		return []byte{}
+	}
+	bz, err := hex.DecodeString(m.Data)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+func (m *MsgBridgeCall) MustMemo() []byte {
+	if len(m.Memo) == 0 {
+		return []byte{}
+	}
+	bz, err := hex.DecodeString(m.Memo)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
