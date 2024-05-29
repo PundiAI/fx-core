@@ -13,7 +13,6 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
 import {IBridgeCallback} from "./IBridgeCallback.sol";
-import {IRefundCallback} from "./IRefundCallback.sol";
 
 /* solhint-disable custom-errors */
 
@@ -64,7 +63,7 @@ contract FxBridgeLogic is
 
     struct BridgeCallData {
         address sender;
-        address receiver;
+        address refund;
         address[] tokens;
         uint256[] amounts;
         address to;
@@ -292,7 +291,7 @@ contract FxBridgeLogic is
 
     function bridgeCall(
         string memory _dstChain,
-        address _receiver,
+        address _refund,
         address[] memory _tokens,
         uint256[] memory _amounts,
         address _to,
@@ -301,11 +300,9 @@ contract FxBridgeLogic is
         bytes memory _memo
     ) external returns (uint256) {
         require(bytes(_dstChain).length == 0, "Invalid dstChain");
-
-        require(
-            _tokens.length > 0 || _data.length > 0,
-            "Token and data both empty"
-        );
+        if (_tokens.length > 0) {
+            require(_refund != address(0), "Refund address is empty");
+        }
 
         // transfer ERC20
         _transferERC20(_msgSender(), address(this), _tokens, _amounts);
@@ -313,10 +310,9 @@ contract FxBridgeLogic is
         // last event nonce +1
         state_lastEventNonce = state_lastEventNonce.add(1);
 
-        // bridge call event
         emit BridgeCallEvent(
             _msgSender(),
-            _receiver,
+            _refund,
             _to,
             // solhint-disable-next-line avoid-tx-origin
             tx.origin,
@@ -458,7 +454,7 @@ contract FxBridgeLogic is
         uint256[2] memory _nonceArray,
         BridgeCallData memory _input
     ) public nonReentrant whenNotPaused {
-        verifyBridgeCall(
+        verifySubmitBridgeCall(
             _currentOracles,
             _currentPowers,
             _v,
@@ -486,9 +482,6 @@ contract FxBridgeLogic is
         {
             state_lastEventNonce = state_lastEventNonce.add(1);
             emit SubmitBridgeCallEvent(
-                _input.sender,
-                _input.receiver,
-                _input.to,
                 // solhint-disable-next-line avoid-tx-origin
                 tx.origin,
                 _nonceArray[1],
@@ -508,7 +501,7 @@ contract FxBridgeLogic is
             // bytes32 encoding of "bridgeCall"
             0x62726964676543616c6c00000000000000000000000000000000000000000000,
             input.sender,
-            input.receiver,
+            input.refund,
             input.tokens,
             input.amounts,
             input.to,
@@ -521,7 +514,7 @@ contract FxBridgeLogic is
         return keccak256(data);
     }
 
-    function verifyBridgeCall(
+    function verifySubmitBridgeCall(
         address[] memory _currentOracles,
         uint256[] memory _currentPowers,
         uint8[] memory _v,
@@ -543,11 +536,6 @@ contract FxBridgeLogic is
         require(
             _input.tokens.length == _input.amounts.length,
             "Token not match amount"
-        );
-
-        require(
-            _input.tokens.length > 0 || _input.data.length > 0,
-            "Token and data both empty"
         );
 
         require(
@@ -585,11 +573,13 @@ contract FxBridgeLogic is
         BridgeCallData memory _input
     ) public onlySelf {
         if (_input.tokens.length > 0) {
-            address _receiver = _input.receiver;
-            bool isRefund = _input.eventNonce > 0;
-            if (isRefund) {
-                _receiver = _input.sender;
+            require(_input.refund != address(0), "Refund address is empty");
+
+            address _receiver = _input.to;
+            if (_input.eventNonce > 0) {
+                _receiver = _input.refund;
             }
+
             _transferERC20(
                 address(this),
                 _receiver,
@@ -597,22 +587,15 @@ contract FxBridgeLogic is
                 _input.amounts
             );
 
-            if (isRefund) {
-                if (_input.sender.isContract()) {
-                    IRefundCallback(_input.sender).refundCallback(
-                        _input.eventNonce,
-                        _input.tokens,
-                        _input.amounts
-                    );
-                }
+            if (_input.eventNonce > 0) {
                 return;
             }
         }
 
-        if (_input.data.length > 0) {
+        if (_input.to.isContract()) {
             IBridgeCallback(_input.to).bridgeCallback(
                 _input.sender,
-                _input.receiver,
+                _input.refund,
                 _input.tokens,
                 _input.amounts,
                 _input.data,
@@ -828,7 +811,7 @@ contract FxBridgeLogic is
 
     event BridgeCallEvent(
         address indexed _sender,
-        address indexed _receiver,
+        address indexed _refund,
         address indexed _to,
         address _txOrigin,
         uint256 _value,
@@ -841,10 +824,7 @@ contract FxBridgeLogic is
     );
 
     event SubmitBridgeCallEvent(
-        address indexed _sender,
-        address indexed _receiver,
-        address indexed _to,
-        address _txOrigin,
+        address indexed _txOrigin,
         uint256 _nonce,
         uint256 _eventNonce,
         bool _success,

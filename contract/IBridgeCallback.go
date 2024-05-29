@@ -31,7 +31,7 @@ var (
 
 // IBridgeCallbackMetaData contains all meta data concerning the IBridgeCallback contract.
 var IBridgeCallbackMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_receiver\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"bridgeCallback\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"bridgeCallback\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IBridgeCallbackABI is the input ABI used to generate the binding from.
@@ -182,21 +182,21 @@ func (_IBridgeCallback *IBridgeCallbackTransactorRaw) Transact(opts *bind.Transa
 
 // BridgeCallback is a paid mutator transaction binding the contract method 0x13997566.
 //
-// Solidity: function bridgeCallback(address _sender, address _receiver, address[] _tokens, uint256[] _amounts, bytes _data, bytes _memo) returns()
-func (_IBridgeCallback *IBridgeCallbackTransactor) BridgeCallback(opts *bind.TransactOpts, _sender common.Address, _receiver common.Address, _tokens []common.Address, _amounts []*big.Int, _data []byte, _memo []byte) (*types.Transaction, error) {
-	return _IBridgeCallback.contract.Transact(opts, "bridgeCallback", _sender, _receiver, _tokens, _amounts, _data, _memo)
+// Solidity: function bridgeCallback(address _sender, address _refund, address[] _tokens, uint256[] _amounts, bytes _data, bytes _memo) returns()
+func (_IBridgeCallback *IBridgeCallbackTransactor) BridgeCallback(opts *bind.TransactOpts, _sender common.Address, _refund common.Address, _tokens []common.Address, _amounts []*big.Int, _data []byte, _memo []byte) (*types.Transaction, error) {
+	return _IBridgeCallback.contract.Transact(opts, "bridgeCallback", _sender, _refund, _tokens, _amounts, _data, _memo)
 }
 
 // BridgeCallback is a paid mutator transaction binding the contract method 0x13997566.
 //
-// Solidity: function bridgeCallback(address _sender, address _receiver, address[] _tokens, uint256[] _amounts, bytes _data, bytes _memo) returns()
-func (_IBridgeCallback *IBridgeCallbackSession) BridgeCallback(_sender common.Address, _receiver common.Address, _tokens []common.Address, _amounts []*big.Int, _data []byte, _memo []byte) (*types.Transaction, error) {
-	return _IBridgeCallback.Contract.BridgeCallback(&_IBridgeCallback.TransactOpts, _sender, _receiver, _tokens, _amounts, _data, _memo)
+// Solidity: function bridgeCallback(address _sender, address _refund, address[] _tokens, uint256[] _amounts, bytes _data, bytes _memo) returns()
+func (_IBridgeCallback *IBridgeCallbackSession) BridgeCallback(_sender common.Address, _refund common.Address, _tokens []common.Address, _amounts []*big.Int, _data []byte, _memo []byte) (*types.Transaction, error) {
+	return _IBridgeCallback.Contract.BridgeCallback(&_IBridgeCallback.TransactOpts, _sender, _refund, _tokens, _amounts, _data, _memo)
 }
 
 // BridgeCallback is a paid mutator transaction binding the contract method 0x13997566.
 //
-// Solidity: function bridgeCallback(address _sender, address _receiver, address[] _tokens, uint256[] _amounts, bytes _data, bytes _memo) returns()
-func (_IBridgeCallback *IBridgeCallbackTransactorSession) BridgeCallback(_sender common.Address, _receiver common.Address, _tokens []common.Address, _amounts []*big.Int, _data []byte, _memo []byte) (*types.Transaction, error) {
-	return _IBridgeCallback.Contract.BridgeCallback(&_IBridgeCallback.TransactOpts, _sender, _receiver, _tokens, _amounts, _data, _memo)
+// Solidity: function bridgeCallback(address _sender, address _refund, address[] _tokens, uint256[] _amounts, bytes _data, bytes _memo) returns()
+func (_IBridgeCallback *IBridgeCallbackTransactorSession) BridgeCallback(_sender common.Address, _refund common.Address, _tokens []common.Address, _amounts []*big.Int, _data []byte, _memo []byte) (*types.Transaction, error) {
+	return _IBridgeCallback.Contract.BridgeCallback(&_IBridgeCallback.TransactOpts, _sender, _refund, _tokens, _amounts, _data, _memo)
 }
