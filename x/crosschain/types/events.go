@@ -45,6 +45,7 @@ const (
 	EventTypeBridgeCallRefundOut = "bridge_call_refund_out"
 
 	EventTypeBridgeCallRefund = "bridge_call_refund"
+	AttributeKeyRefund        = "refund"
 
 	EventTypeBridgeCallResult = "bridge_call_result"
 )
