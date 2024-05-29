@@ -1946,7 +1946,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 	type fields struct {
 		ChainName string
 		Sender    string
-		Receiver  string
+		Refund    string
 		Coins     sdk.Coins
 		To        string
 		Data      string
@@ -1963,7 +1963,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
-				Receiver:  helpers.GenExternalAddr(moduleName),
+				Refund:    helpers.GenExternalAddr(moduleName),
 				Coins:     sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
 				To:        helpers.GenExternalAddr(moduleName),
 				Data:      "00",
@@ -1983,9 +1983,9 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
-				Receiver:  "",
+				Refund:    helpers.GenExternalAddr(moduleName),
 				Coins:     sdk.Coins{},
-				To:        "",
+				To:        helpers.GenExternalAddr(moduleName),
 				Data:      "",
 				Value:     sdkmath.NewInt(0),
 				Memo:      "00",
@@ -1993,27 +1993,27 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 			expectedError: "coins and data cannot be empty at the same time: invalid request",
 		},
 		{
-			name: "err - invalid receiver address",
+			name: "err - invalid refund address",
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
-				Receiver:  "",
+				Refund:    "",
 				Coins:     sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
-				To:        "",
+				To:        helpers.GenExternalAddr(moduleName),
 				Data:      "",
 				Value:     sdkmath.NewInt(0),
 				Memo:      "",
 			},
-			expectedError: "invalid receiver address: empty: invalid address",
+			expectedError: "invalid refund address: empty: invalid address",
 		},
 		{
 			name: "err - value must be zero",
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
-				Receiver:  helpers.GenExternalAddr(moduleName),
+				Refund:    helpers.GenExternalAddr(moduleName),
 				Coins:     nil,
-				To:        "",
+				To:        helpers.GenExternalAddr(moduleName),
 				Data:      "",
 				Value:     sdkmath.NewInt(1),
 				Memo:      "",
@@ -2026,7 +2026,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 			m := &types.MsgBridgeCall{
 				ChainName: tt.fields.ChainName,
 				Sender:    tt.fields.Sender,
-				Receiver:  tt.fields.Receiver,
+				Refund:    tt.fields.Refund,
 				Coins:     tt.fields.Coins,
 				To:        tt.fields.To,
 				Data:      tt.fields.Data,

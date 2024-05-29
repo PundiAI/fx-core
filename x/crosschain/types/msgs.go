@@ -715,7 +715,7 @@ func (m *MsgBridgeCallClaim) validateBasic() (err error) {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.Refund); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid value")
@@ -1171,10 +1171,8 @@ func (m *MsgBridgeCall) validateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if len(m.To) > 0 {
-		if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
-		}
+	if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
 	}
 	if m.Value.Sign() != 0 {
 		return errortypes.ErrInvalidRequest.Wrap("value must be zero")
@@ -1182,10 +1180,9 @@ func (m *MsgBridgeCall) validateBasic() (err error) {
 	if err = m.Coins.Validate(); err != nil {
 		return errortypes.ErrInvalidCoins.Wrap(err.Error())
 	}
-	// if bridge coins is not empty, check receiver
-	if m.Coins.Len() > 0 || len(m.Receiver) > 0 {
-		if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	if len(m.Coins) > 0 {
+		if err = ValidateExternalAddr(m.ChainName, m.Refund); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
 		}
 	}
 	if len(m.Data) > 0 {

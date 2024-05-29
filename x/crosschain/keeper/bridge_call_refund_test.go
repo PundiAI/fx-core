@@ -19,8 +19,8 @@ func (s *KeeperTestSuite) TestKeeper_HandleOutgoingBridgeCallRefund() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			outgoingBridgeCall := &types.OutgoingBridgeCall{
-				Sender:   helpers.GenExternalAddr(s.moduleName),
-				Receiver: helpers.GenExternalAddr(s.moduleName),
+				Sender: helpers.GenExternalAddr(s.moduleName),
+				Refund: helpers.GenExternalAddr(s.moduleName),
 				Tokens: []types.ERC20Token{
 					{
 						Contract: helpers.GenExternalAddr(s.moduleName),

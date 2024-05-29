@@ -64,8 +64,8 @@ func TestOutgoingTxBatch_Checkpoint(t *testing.T) {
 
 func TestOutgoingBridgeCall_Checkpoint(t *testing.T) {
 	outgoingBridgeCall := types.OutgoingBridgeCall{
-		Sender:   "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-		Receiver: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+		Sender: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+		Refund: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
 		Tokens: []types.ERC20Token{
 			{
 				Contract: "0x1429859428C0aBc9C2C47C8Ee9FBaf82cFA0F20f",

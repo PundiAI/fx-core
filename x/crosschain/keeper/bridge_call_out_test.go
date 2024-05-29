@@ -45,7 +45,7 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 
 			s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &types.OutgoingBridgeCall{
 				Sender:      helpers.GenExternalAddr(s.moduleName),
-				Receiver:    "",
+				Refund:      "",
 				Tokens:      nil,
 				To:          "",
 				Data:        "",
