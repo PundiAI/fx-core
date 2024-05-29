@@ -711,12 +711,10 @@ func (m *MsgBridgeCallClaim) validateBasic() (err error) {
 	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if len(m.To) > 0 {
-		if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
-		}
+	if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
 	}
-	if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
+	if err = ValidateExternalAddr(m.ChainName, m.Refund); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
@@ -766,7 +764,7 @@ func (m *MsgBridgeCallClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgBridgeCallClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Receiver, m.To, m.TokenContracts, m.Amounts, m.Data, m.Value.String())
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Refund, m.To, m.TokenContracts, m.Amounts, m.Data, m.Value.String())
 	return tmhash.Sum([]byte(path))
 }
 
@@ -774,16 +772,12 @@ func (m *MsgBridgeCallClaim) GetSenderAddr() common.Address {
 	return common.BytesToAddress(ExternalAddrToAccAddr(m.ChainName, m.Sender).Bytes())
 }
 
-func (m *MsgBridgeCallClaim) GetReceiverAddr() sdk.AccAddress {
-	return ExternalAddrToAccAddr(m.ChainName, m.Receiver)
+func (m *MsgBridgeCallClaim) GetRefundAddr() sdk.AccAddress {
+	return ExternalAddrToAccAddr(m.ChainName, m.Refund)
 }
 
-func (m *MsgBridgeCallClaim) GetToAddr() *common.Address {
-	if len(m.To) == 0 {
-		return nil
-	}
-	addr := common.BytesToAddress(ExternalAddrToAccAddr(m.ChainName, m.To).Bytes())
-	return &addr
+func (m *MsgBridgeCallClaim) GetToAddr() common.Address {
+	return ExternalAddrToHexAddr(m.ChainName, m.To)
 }
 
 func (m *MsgBridgeCallClaim) MustData() []byte {

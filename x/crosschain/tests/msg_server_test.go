@@ -1142,7 +1142,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 				Sender:         helpers.GenExternalAddr(suite.chainName),
 				TokenContracts: []string{tokenContract},
 				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)},
-				Receiver:       helpers.GenExternalAddr(suite.chainName),
+				Refund:         helpers.GenExternalAddr(suite.chainName),
 				To:             helpers.GenExternalAddr(suite.chainName),
 				Data:           "",
 				Value:          sdkmath.NewInt(0),

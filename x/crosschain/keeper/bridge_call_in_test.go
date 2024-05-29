@@ -26,12 +26,18 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 	}{
 		{
 			name: "ok - pass",
+			customMock: func(msg *types.MsgBridgeCallClaim) {
+				s.evmKeeper.EXPECT().IsContract(gomock.Any(), gomock.Any()).Return(false).Times(1)
+			},
 		},
 		{
 			name: "ok - pass - no token",
 			initData: func(msg *types.MsgBridgeCallClaim) {
 				msg.TokenContracts = []string{}
 				msg.Amounts = []sdkmath.Int{}
+			},
+			customMock: func(msg *types.MsgBridgeCallClaim) {
+				s.evmKeeper.EXPECT().IsContract(gomock.Any(), gomock.Any()).Return(false).Times(1)
 			},
 		},
 		{
@@ -40,11 +46,13 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 				msg.To = helpers.GenExternalAddr(s.moduleName)
 			},
 			customMock: func(msg *types.MsgBridgeCallClaim) {
+				// data = "transfer(address,uint256)" "0x0000000000000000000000000000000000000000" 1
+				msg.Data = "a9059cbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
 				s.crosschainKeeper.SetLastObservedBlockHeight(s.ctx, 1000, msg.BlockHeight-1)
 
-				contract := types.ExternalAddrToHexAddr(msg.ChainName, msg.To)
 				s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), gomock.Any()).Return(erc20types.TokenPair{}, true).
 					Times(len(msg.TokenContracts))
+				contract := types.ExternalAddrToHexAddr(msg.ChainName, msg.To)
 				s.evmKeeper.EXPECT().IsContract(gomock.Any(), contract).Return(true).Times(1)
 				s.evmKeeper.EXPECT().CallEVM(gomock.Any(),
 					s.crosschainKeeper.GetCallbackFrom(),
@@ -63,8 +71,8 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			msg := &types.MsgBridgeCallClaim{
 				ChainName: s.moduleName,
 				Sender:    helpers.GenExternalAddr(s.moduleName),
-				Receiver:  helpers.GenExternalAddr(s.moduleName),
-				To:        "",
+				Refund:    helpers.GenExternalAddr(s.moduleName),
+				To:        helpers.GenExternalAddr(s.moduleName),
 				Data:      "",
 				Value:     sdkmath.NewInt(0),
 				TokenContracts: []string{

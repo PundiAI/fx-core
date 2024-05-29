@@ -163,7 +163,7 @@ message MsgBridgeCallClaim {
   uint64 event_nonce = 3;
   uint64 block_height = 4;
   string sender = 5;
-  string receiver = 6;
+  string refund = 6;
   repeated string token_contracts = 7;
   repeated string amounts = 8 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
