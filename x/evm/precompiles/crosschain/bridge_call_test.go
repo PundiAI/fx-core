@@ -20,7 +20,7 @@ func TestContract_BridgeCall_Input(t *testing.T) {
 	inputs := crosschain.BridgeCallMethod.Inputs
 	type Args struct {
 		DstChain string
-		Receiver common.Address
+		Refund   common.Address
 		Tokens   []common.Address
 		Amounts  []*big.Int
 		To       common.Address
@@ -30,7 +30,7 @@ func TestContract_BridgeCall_Input(t *testing.T) {
 	}
 	args := Args{
 		DstChain: "eth",
-		Receiver: helpers.GenHexAddress(),
+		Refund:   helpers.GenHexAddress(),
 		Tokens: []common.Address{
 			helpers.GenHexAddress(),
 		},
@@ -44,7 +44,7 @@ func TestContract_BridgeCall_Input(t *testing.T) {
 	}
 	inputData, err := inputs.Pack(
 		args.DstChain,
-		args.Receiver,
+		args.Refund,
 		args.Tokens,
 		args.Amounts,
 		args.To,

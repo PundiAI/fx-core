@@ -2,12 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {IBridgeCallback} from "../bridge/IBridgeCallback.sol";
-import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
-import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 contract BridgeCallbackTest is IBridgeCallback {
-    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
-
     address public fxBridge;
     address public admin;
     mapping(address => bool) public whiteList;
@@ -23,20 +19,12 @@ contract BridgeCallbackTest is IBridgeCallback {
 
     function bridgeCallback(
         address,
-        address _receiver,
-        address[] memory _tokens,
-        uint256[] memory _amounts,
+        address,
+        address[] memory,
+        uint256[] memory,
         bytes memory _data,
         bytes memory
     ) external override onlyFxBridge {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            IERC20MetadataUpgradeable(_tokens[i]).transferFrom(
-                _receiver,
-                address(this),
-                _amounts[i]
-            );
-        }
-
         (address to, bytes memory data) = abi.decode(_data, (address, bytes));
         // solhint-disable custom-errors
         require(whiteList[to], "not in white list");

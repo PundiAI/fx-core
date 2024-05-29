@@ -49,7 +49,7 @@ interface IFxBridgeLogic is IBridgeCall {
 
     struct BridgeCallData {
         address sender;
-        address receiver;
+        address refund;
         address[] tokens;
         uint256[] amounts;
         address to;
@@ -182,7 +182,7 @@ interface IFxBridgeLogic is IBridgeCall {
         bytes32 _fxbridgeId,
         bytes32 _methodName,
         address _sender,
-        address _receiver,
+        address _refund,
         address[] memory _tokens,
         uint256[] memory _amounts,
         address _to,
@@ -226,7 +226,7 @@ interface IFxBridgeLogic is IBridgeCall {
 
     event BridgeCallEvent(
         address indexed _sender,
-        address indexed _receiver,
+        address indexed _refund,
         address indexed _to,
         address _txOrigin,
         uint256 _value,
@@ -239,10 +239,7 @@ interface IFxBridgeLogic is IBridgeCall {
     );
 
     event SubmitBridgeCallEvent(
-        address indexed _sender,
-        address indexed _receiver,
-        address indexed _to,
-        address _txOrigin,
+        address indexed _txOrigin,
         uint256 _nonce,
         uint256 _eventNonce,
         bool _success,

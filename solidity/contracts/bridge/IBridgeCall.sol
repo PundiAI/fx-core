@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 interface IBridgeCall {
     function bridgeCall(
         string memory _dstChain,
-        address _receiver,
+        address _refund,
         address[] memory _tokens,
         uint256[] memory _amounts,
         address _to,
