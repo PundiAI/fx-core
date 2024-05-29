@@ -73,11 +73,11 @@ func (k Keeper) BridgeCallTransferAndCallEvm(
 			return errorsmod.Wrap(types.ErrInvalid, "sender is module account")
 		}
 	}
-	coins, err := k.bridgeCallTransferToSender(ctx, to.Bytes(), tokens)
+	coins, err := k.bridgeCallTransferCoins(ctx, to.Bytes(), tokens)
 	if err != nil {
 		return err
 	}
-	if err = k.bridgeCallTransferToReceiver(ctx, to.Bytes(), to.Bytes(), coins); err != nil {
+	if err = k.bridgeCallTransferTokens(ctx, to.Bytes(), to.Bytes(), coins); err != nil {
 		return err
 	}
 	if !k.evmKeeper.IsContract(ctx, to) {
@@ -99,7 +99,7 @@ func (k Keeper) BridgeCallTransferAndCallEvm(
 	return nil
 }
 
-func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, sender sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {
+func (k Keeper) bridgeCallTransferCoins(ctx sdk.Context, sender sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {
 	mintCoins := sdk.NewCoins()
 	unlockCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
@@ -139,7 +139,7 @@ func (k Keeper) bridgeCallTransferToSender(ctx sdk.Context, sender sdk.AccAddres
 	return targetCoins, nil
 }
 
-func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddress, receiver []byte, coins sdk.Coins) error {
+func (k Keeper) bridgeCallTransferTokens(ctx sdk.Context, sender sdk.AccAddress, receiver []byte, coins sdk.Coins) error {
 	for _, coin := range coins {
 		if coin.Denom == fxtypes.DefaultDenom {
 			if bytes.Equal(sender, receiver) {
@@ -170,7 +170,7 @@ func (k Keeper) CoinsToBridgeCallTokens(ctx sdk.Context, coins sdk.Coins) ([]com
 			tokens = append(tokens, common.Address{})
 			continue
 		}
-		// bridgeCallTransferToReceiver().ConvertCoin hava already checked.
+		// bridgeCallTransferTokens().ConvertCoin hava already checked.
 		pair, _ := k.erc20Keeper.GetTokenPair(ctx, coin.Denom)
 		tokens = append(tokens, common.HexToAddress(pair.Erc20Address))
 	}
