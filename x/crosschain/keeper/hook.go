@@ -47,7 +47,7 @@ func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender
 func (k Keeper) PrecompileBridgeCall(
 	ctx sdk.Context,
 	sender common.Address,
-	receiver common.Address,
+	refund common.Address,
 	coins sdk.Coins,
 	to common.Address,
 	data []byte,
@@ -61,7 +61,7 @@ func (k Keeper) PrecompileBridgeCall(
 	outCall, err := k.AddOutgoingBridgeCall(
 		ctx,
 		sender.Bytes(),
-		types.ExternalAddrToStr(k.moduleName, receiver.Bytes()),
+		types.ExternalAddrToStr(k.moduleName, refund.Bytes()),
 		tokens,
 		types.ExternalAddrToStr(k.moduleName, to.Bytes()),
 		hex.EncodeToString(data),

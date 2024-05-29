@@ -49,7 +49,7 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	nonce, err := route.PrecompileBridgeCall(
 		ctx,
 		sender,
-		args.Receiver,
+		args.Refund,
 		coins,
 		args.To,
 		args.Data,
@@ -61,7 +61,7 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 
 	nonceNonce := big.NewInt(0).SetUint64(nonce)
 	if err = c.AddLog(evm, BridgeCallEvent,
-		[]common.Hash{sender.Hash(), args.Receiver.Hash(), args.To.Hash()},
+		[]common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()},
 		evm.Origin,
 		args.Value,
 		nonceNonce,

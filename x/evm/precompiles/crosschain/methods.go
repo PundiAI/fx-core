@@ -1,12 +1,12 @@
 package crosschain
 
 import (
-	"bytes"
 	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v7/contract"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -136,7 +136,7 @@ func (args *IncreaseBridgeFeeArgs) Validate() error {
 
 type BridgeCallArgs struct {
 	DstChain string           `abi:"_dstChain"`
-	Receiver common.Address   `abi:"_receiver"`
+	Refund   common.Address   `abi:"_refund"`
 	Tokens   []common.Address `abi:"_tokens"`
 	Amounts  []*big.Int       `abi:"_amounts"`
 	To       common.Address   `abi:"_to"`
@@ -156,13 +156,8 @@ func (args *BridgeCallArgs) Validate() error {
 	if len(args.Tokens) != len(args.Amounts) {
 		return errors.New("tokens and amounts do not match")
 	}
-	if len(args.Amounts) > 0 {
-		if bytes.Equal(args.Receiver.Bytes(), common.Address{}.Bytes()) {
-			return errors.New("receiver cannot be empty")
-		}
-	}
-	if len(args.Tokens) == 0 && len(args.Data) == 0 {
-		return errors.New("tokens and data cannot be empty at the same time")
+	if len(args.Amounts) > 0 && contract.IsZeroEthAddress(args.Refund) {
+		return errors.New("refund cannot be empty")
 	}
 	return nil
 }
