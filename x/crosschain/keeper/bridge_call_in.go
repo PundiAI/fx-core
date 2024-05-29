@@ -25,9 +25,10 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	var errCause string
 	cacheCtx, commit := ctx.CacheContext()
 	sender := msg.GetSenderAddr()
-	receiver := msg.GetReceiverAddr()
+	to := msg.GetToAddr()
+	refundAddr := msg.GetRefundAddr()
 	eventNonce := msg.EventNonce
-	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, sender, receiver, erc20Token, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), msg.Value); err != nil {
+	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, sender, refundAddr, erc20Token, to, msg.MustData(), msg.MustMemo(), msg.Value); err != nil {
 		errCause = err.Error()
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, errCause)))
 	} else {
@@ -36,7 +37,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	if len(errCause) > 0 && len(tokens) > 0 {
 		// new outgoing bridge call to refund
-		outCall, err := k.AddOutgoingBridgeCall(ctx, receiver, sender.String(), erc20Token, common.Address{}.String(), "", "", eventNonce)
+		outCall, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr.String(), erc20Token, common.Address{}.String(), "", "", eventNonce)
 		if err != nil {
 			return err
 		}
@@ -51,7 +52,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		for i := 0; i < len(erc20Token); i++ {
 			bridgeToken := k.GetBridgeTokenDenom(ctx, erc20Token[i].Contract)
 			// no need for a double check here, as the bridge token should exist
-			k.HandlePendingOutgoingTx(ctx, receiver, eventNonce, bridgeToken)
+			k.HandlePendingOutgoingTx(ctx, refundAddr, eventNonce, bridgeToken)
 		}
 	}
 	return nil
@@ -60,9 +61,9 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 func (k Keeper) BridgeCallTransferAndCallEvm(
 	ctx sdk.Context,
 	sender common.Address,
-	receiver sdk.AccAddress,
+	refundAddr sdk.AccAddress,
 	tokens []types.ERC20Token,
-	to *common.Address,
+	to common.Address,
 	data []byte,
 	memo []byte,
 	value sdkmath.Int,
@@ -72,24 +73,23 @@ func (k Keeper) BridgeCallTransferAndCallEvm(
 			return errorsmod.Wrap(types.ErrInvalid, "sender is module account")
 		}
 	}
-	coins, err := k.bridgeCallTransferToSender(ctx, sender.Bytes(), tokens)
+	coins, err := k.bridgeCallTransferToSender(ctx, to.Bytes(), tokens)
 	if err != nil {
 		return err
 	}
-	if err = k.bridgeCallTransferToReceiver(ctx, sender.Bytes(), receiver, coins); err != nil {
+	if err = k.bridgeCallTransferToReceiver(ctx, to.Bytes(), to.Bytes(), coins); err != nil {
 		return err
 	}
-
-	if to == nil || !k.evmKeeper.IsContract(ctx, *to) {
+	if !k.evmKeeper.IsContract(ctx, to) {
 		return nil
 	}
 	callTokens, callAmounts := k.CoinsToBridgeCallTokens(ctx, coins)
-	args, err := types.PackBridgeCallback(sender, common.Address(receiver.Bytes()), callTokens, callAmounts, data, memo)
+	args, err := types.PackBridgeCallback(sender, common.Address(refundAddr.Bytes()), callTokens, callAmounts, data, memo)
 	if err != nil {
 		return err
 	}
 	gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
-	txResp, err := k.evmKeeper.CallEVM(ctx, k.callbackFrom, to, value.BigInt(), gasLimit, args, true)
+	txResp, err := k.evmKeeper.CallEVM(ctx, k.callbackFrom, &to, value.BigInt(), gasLimit, args, true)
 	if err != nil {
 		return err
 	}
@@ -162,17 +162,17 @@ func (k Keeper) bridgeCallTransferToReceiver(ctx sdk.Context, sender sdk.AccAddr
 }
 
 func (k Keeper) CoinsToBridgeCallTokens(ctx sdk.Context, coins sdk.Coins) ([]common.Address, []*big.Int) {
-	_tokens := make([]common.Address, 0, len(coins))
-	_amounts := make([]*big.Int, 0, len(coins))
+	tokens := make([]common.Address, 0, len(coins))
+	amounts := make([]*big.Int, 0, len(coins))
 	for _, coin := range coins {
-		_amounts = append(_amounts, coin.Amount.BigInt())
+		amounts = append(amounts, coin.Amount.BigInt())
 		if coin.Denom == fxtypes.DefaultDenom {
-			_tokens = append(_tokens, common.Address{})
+			tokens = append(tokens, common.Address{})
 			continue
 		}
 		// bridgeCallTransferToReceiver().ConvertCoin hava already checked.
 		pair, _ := k.erc20Keeper.GetTokenPair(ctx, coin.Denom)
-		_tokens = append(_tokens, common.HexToAddress(pair.Erc20Address))
+		tokens = append(tokens, common.HexToAddress(pair.Erc20Address))
 	}
-	return _tokens, _amounts
+	return tokens, amounts
 }
