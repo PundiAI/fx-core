@@ -480,6 +480,9 @@ func migrateAttestation(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStor
 
 func migrateBridgeToken(gravityStore, ethStore sdk.KVStore) {
 	token := gravityStore.Get(append(types.DenomToERC20Key, []byte(fxtypes.DefaultDenom)...))
+	if token == nil {
+		return
+	}
 	ethStore.Set(crosschaintypes.GetTokenToDenomKey(fxtypes.DefaultDenom), token)
 	ethStore.Set(crosschaintypes.GetDenomToTokenKey(string(token)), []byte(fxtypes.DefaultDenom))
 	gravityStore.Delete(append(types.DenomToERC20Key, []byte(fxtypes.DefaultDenom)...))
