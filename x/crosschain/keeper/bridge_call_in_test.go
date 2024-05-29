@@ -45,6 +45,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 				contract := types.ExternalAddrToHexAddr(msg.ChainName, msg.To)
 				s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), gomock.Any()).Return(erc20types.TokenPair{}, true).
 					Times(len(msg.TokenContracts))
+				s.evmKeeper.EXPECT().IsContract(gomock.Any(), contract).Return(true).Times(1)
 				s.evmKeeper.EXPECT().CallEVM(gomock.Any(),
 					s.crosschainKeeper.GetCallbackFrom(),
 					&contract,

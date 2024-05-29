@@ -44,8 +44,7 @@ func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.Outg
 	}
 	if data.EventNonce > 0 {
 		contractAddr := common.BytesToAddress(sender.Bytes())
-		account := k.evmKeeper.GetAccount(ctx, contractAddr)
-		if !account.IsContract() {
+		if !k.evmKeeper.IsContract(ctx, contractAddr) {
 			return
 		}
 

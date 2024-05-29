@@ -79,20 +79,22 @@ func (k Keeper) BridgeCallTransferAndCallEvm(
 	if err = k.bridgeCallTransferToReceiver(ctx, sender.Bytes(), receiver, coins); err != nil {
 		return err
 	}
-	if len(data) > 0 || to != nil {
-		callTokens, callAmounts := k.CoinsToBridgeCallTokens(ctx, coins)
-		args, err := types.PackBridgeCallback(sender, common.Address(receiver.Bytes()), callTokens, callAmounts, data, memo)
-		if err != nil {
-			return err
-		}
-		gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
-		txResp, err := k.evmKeeper.CallEVM(ctx, k.callbackFrom, to, value.BigInt(), gasLimit, args, true)
-		if err != nil {
-			return err
-		}
-		if txResp.Failed() {
-			return errorsmod.Wrap(types.ErrInvalid, txResp.VmError)
-		}
+
+	if to == nil || !k.evmKeeper.IsContract(ctx, *to) {
+		return nil
+	}
+	callTokens, callAmounts := k.CoinsToBridgeCallTokens(ctx, coins)
+	args, err := types.PackBridgeCallback(sender, common.Address(receiver.Bytes()), callTokens, callAmounts, data, memo)
+	if err != nil {
+		return err
+	}
+	gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
+	txResp, err := k.evmKeeper.CallEVM(ctx, k.callbackFrom, to, value.BigInt(), gasLimit, args, true)
+	if err != nil {
+		return err
+	}
+	if txResp.Failed() {
+		return errorsmod.Wrap(types.ErrInvalid, txResp.VmError)
 	}
 	return nil
 }
