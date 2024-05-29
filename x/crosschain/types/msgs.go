@@ -834,17 +834,6 @@ func (m *MsgBridgeCallResultClaim) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
-	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
-	}
-	if len(m.To) > 0 {
-		if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
-		}
-	}
-	if err = ValidateExternalAddr(m.ChainName, m.Receiver); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
-	}
 	if m.Nonce == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero nonce")
 	}
@@ -887,7 +876,7 @@ func (m *MsgBridgeCallResultClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgBridgeCallResultClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%s/%s/%d/%t/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Receiver, m.To, m.Nonce, m.Success, m.Cause)
+	path := fmt.Sprintf("%d/%d/%d/%t/%s", m.BlockHeight, m.EventNonce, m.Nonce, m.Success, m.Cause)
 	return tmhash.Sum([]byte(path))
 }
 
