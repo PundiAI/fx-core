@@ -111,7 +111,7 @@ func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr 
 		{"bytes32": gravityID},
 		{"bytes32": bridgeCallMethodName},
 		{"address": bridgeCall.Sender},
-		{"address": bridgeCall.Receiver},
+		{"address": bridgeCall.Refund},
 		{"address[]": contracts},
 		{"uint256[]": amounts},
 		{"address": bridgeCall.To},

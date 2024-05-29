@@ -12,8 +12,8 @@ import (
 )
 
 func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) {
-	sender := types.ExternalAddrToAccAddr(k.moduleName, data.GetSender())
-	coins, err := k.bridgeCallTransferToSender(ctx, sender, data.Tokens)
+	refund := types.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
+	coins, err := k.bridgeCallTransferToSender(ctx, refund, data.Tokens)
 	if err != nil {
 		panic(err)
 	}
@@ -21,7 +21,7 @@ func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.Outg
 	evmErrCause, evmSuccess, isCallback := "", false, false
 	defer func() {
 		attrs := []sdk.Attribute{
-			sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, refund.String()),
 		}
 		if isCallback {
 			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyStateSuccess, strconv.FormatBool(evmSuccess)))
@@ -39,11 +39,11 @@ func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.Outg
 		return
 	}
 	// precompile bridge call, refund to evm
-	if err = k.bridgeCallTransferToReceiver(ctx, sender, sender, coins); err != nil {
+	if err = k.bridgeCallTransferToReceiver(ctx, refund, refund, coins); err != nil {
 		panic(err)
 	}
 	if data.EventNonce > 0 {
-		contractAddr := common.BytesToAddress(sender.Bytes())
+		contractAddr := common.BytesToAddress(refund.Bytes())
 		if !k.evmKeeper.IsContract(ctx, contractAddr) {
 			return
 		}

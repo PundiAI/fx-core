@@ -1331,7 +1331,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 				return &types.MsgBridgeCall{
 					ChainName: suite.chainName,
 					Sender:    sendToFxReceiveAddr.String(),
-					Receiver:  helpers.GenExternalAddr(suite.chainName),
+					Refund:    helpers.GenExternalAddr(suite.chainName),
 					To:        helpers.GenExternalAddr(suite.chainName),
 					Coins:     sdk.NewCoins(sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewInt(1e18))),
 					Data:      "",

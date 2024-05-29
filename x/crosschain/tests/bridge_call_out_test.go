@@ -45,11 +45,13 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 
 	suite.NoError(err)
+
+	bridgeCallRefundAddrByte := tmrand.Bytes(20)
 	_, err = suite.MsgServer().BridgeCall(suite.ctx, &types.MsgBridgeCall{
-		Sender:   sdk.AccAddress(fxAddr1.Bytes()).String(),
-		Receiver: helpers.GenExternalAddr(suite.chainName),
-		Coins:    sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewInt(randomAmount))),
-		Value:    sdk.ZeroInt(),
+		Sender: sdk.AccAddress(fxAddr1.Bytes()).String(),
+		Refund: types.ExternalAddrToStr(suite.chainName, bridgeCallRefundAddrByte),
+		Coins:  sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewInt(randomAmount))),
+		Value:  sdk.ZeroInt(),
 	})
 	suite.NoError(err)
 
@@ -76,7 +78,8 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.NoError(err)
 	// expect balance = sendToFx value + outgointBridgeCallRefund value
 	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount))
-	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
+	suite.Equal(sdkmath.NewInt(0), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
+	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, bridgeCallRefundAddrByte, pair.Denom).Amount)
 }
 
 func (suite *KeeperTestSuite) checkBalanceOf(contractAddr, address common.Address, expectBalance *big.Int) {

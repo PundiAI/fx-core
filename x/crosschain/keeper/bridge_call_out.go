@@ -49,7 +49,7 @@ func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddre
 func (k Keeper) AddOutgoingBridgeCall(
 	ctx sdk.Context,
 	sender sdk.AccAddress,
-	receiver string,
+	refundAddr string,
 	tokens []types.ERC20Token,
 	to string,
 	data string,
@@ -69,7 +69,7 @@ func (k Keeper) AddOutgoingBridgeCall(
 		Timeout:     bridgeCallTimeout,
 		BlockHeight: uint64(ctx.BlockHeight()),
 		Sender:      types.ExternalAddrToStr(k.moduleName, sender),
-		Receiver:    receiver,
+		Refund:      refundAddr,
 		Tokens:      tokens,
 		To:          to,
 		Data:        data,

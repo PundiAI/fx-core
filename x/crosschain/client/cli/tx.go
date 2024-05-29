@@ -192,28 +192,29 @@ func CmdSendToExternal(chainName string) *cobra.Command {
 
 func CmdBridgeCall(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bridge-call [receiver] [coins]",
+		Use:   "bridge-call [to] [coins] [refund] --data [data]",
 		Short: "Adds a new entry to the bridge call pool",
-		Args:  cobra.RangeArgs(0, 2),
+		Args:  cobra.RangeArgs(1, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			var receiver string
 			var coins sdk.Coins
-			if len(args) == 2 {
-				receiver = args[0]
+			var refund string
+			if len(args) >= 2 {
 				coins, err = sdk.ParseCoinsNormalized(args[1])
 				if err != nil {
 					return errorsmod.Wrap(err, "coins")
 				}
+
+				if len(args) != 3 {
+					return fmt.Errorf("refund address is required")
+				}
+				refund = args[2]
 			}
-			to, err := cmd.Flags().GetString(FlagTo)
-			if err != nil {
-				return err
-			}
+
 			data := viper.GetString(FlagData)
 			if err != nil {
 				return err
@@ -221,8 +222,8 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 
 			msg := types.MsgBridgeCall{
 				Sender:    cliCtx.GetFromAddress().String(),
-				Receiver:  receiver,
-				To:        to,
+				Refund:    refund,
+				To:        args[0],
 				Coins:     coins,
 				Data:      data,
 				Value:     sdkmath.NewInt(0),
@@ -231,7 +232,6 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
-	cmd.Flags().String(FlagTo, "", "bridge call contract address")
 	cmd.Flags().String(FlagData, "", "bridge call contract data")
 	return cmd
 }

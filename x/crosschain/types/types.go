@@ -476,7 +476,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 		gravityID,
 		bridgeCallMethodName,
 		gethcommon.HexToAddress(m.Sender),
-		gethcommon.HexToAddress(m.Receiver),
+		gethcommon.HexToAddress(m.Refund),
 		contracts,
 		amounts,
 		gethcommon.HexToAddress(m.To),

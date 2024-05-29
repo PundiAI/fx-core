@@ -257,7 +257,7 @@ message UpdateChainOraclesProposal {
 
 message OutgoingBridgeCall {
   string sender = 1;
-  string receiver = 2;
+  string refund = 2;
   repeated ERC20Token tokens = 3 [(gogoproto.nullable) = false];
   string to = 4;
   string data = 5;

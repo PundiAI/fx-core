@@ -375,7 +375,7 @@ message MsgUpdateChainOraclesResponse {}
 message MsgBridgeCall {
   string chain_name = 1;
   string sender = 2;
-  string receiver = 3;
+  string refund = 3;
   repeated cosmos.base.v1beta1.Coin coins = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
