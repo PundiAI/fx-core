@@ -29,21 +29,21 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 	sender := contract.Caller()
 
-	coins := sdk.NewCoins()
-	for i, token := range args.Tokens {
-		coin, err := c.handlerERC20Token(ctx, evm, sender, token, args.Amounts[i])
-		if err != nil {
-			return nil, err
-		}
-		coins = coins.Add(coin)
-	}
+	coins := make([]sdk.Coin, 0, len(args.Tokens)+1)
 	value := contract.Value()
 	if value.Cmp(big.NewInt(0)) == 1 {
 		totalCoin, err := c.handlerOriginToken(ctx, evm, sender, value)
 		if err != nil {
 			return nil, err
 		}
-		coins = coins.Add(totalCoin)
+		coins = append(coins, totalCoin)
+	}
+	for i, token := range args.Tokens {
+		coin, err := c.handlerERC20Token(ctx, evm, sender, token, args.Amounts[i])
+		if err != nil {
+			return nil, err
+		}
+		coins = append(coins, coin)
 	}
 
 	nonce, err := route.PrecompileBridgeCall(

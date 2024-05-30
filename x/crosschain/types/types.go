@@ -518,24 +518,12 @@ func NewERC20Tokens(module string, tokenAddrs []gethcommon.Address, tokenAmounts
 	if len(tokenAddrs) != len(tokenAmounts) {
 		return nil, fmt.Errorf("invalid length")
 	}
-	tokens := make([]ERC20Token, 0)
+	tokens := make([]ERC20Token, 0, len(tokenAddrs))
 	for i := 0; i < len(tokenAddrs); i++ {
-		contractAddr := ExternalAddrToStr(module, tokenAddrs[i].Bytes())
-		amount := sdkmath.NewIntFromBigInt(tokenAmounts[i])
-		found := false
-		for j := 0; j < len(tokens); j++ {
-			if contractAddr == tokens[j].Contract {
-				tokens[j].Amount = tokens[j].Amount.Add(amount)
-				found = true
-				break
-			}
-		}
-		if !found {
-			tokens = append(tokens, ERC20Token{
-				Contract: contractAddr,
-				Amount:   amount,
-			})
-		}
+		tokens = append(tokens, ERC20Token{
+			Contract: ExternalAddrToStr(module, tokenAddrs[i].Bytes()),
+			Amount:   sdkmath.NewIntFromBigInt(tokenAmounts[i]),
+		})
 	}
 	return tokens, nil
 }
