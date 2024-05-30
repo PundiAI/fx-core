@@ -1963,7 +1963,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
-				Refund:    helpers.GenExternalAddr(moduleName),
+				Refund:    helpers.GenAccAddress().String(),
 				Coins:     sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
 				To:        helpers.GenExternalAddr(moduleName),
 				Data:      "00",
@@ -1983,7 +1983,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
-				Refund:    helpers.GenExternalAddr(moduleName),
+				Refund:    helpers.GenAccAddress().String(),
 				Coins:     sdk.Coins{},
 				To:        helpers.GenExternalAddr(moduleName),
 				Data:      "",
@@ -1993,7 +1993,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 			expectedError: "coins and data cannot be empty at the same time: invalid request",
 		},
 		{
-			name: "err - invalid refund address",
+			name: "err - empty refund address",
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
@@ -2004,14 +2004,28 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 				Value:     sdkmath.NewInt(0),
 				Memo:      "",
 			},
-			expectedError: "invalid refund address: empty: invalid address",
+			expectedError: "invalid refund address: empty address string is not allowed: invalid address",
+		},
+		{
+			name: "err - invalid bech32 refund address",
+			fields: fields{
+				ChainName: moduleName,
+				Sender:    helpers.GenAccAddress().String(),
+				Refund:    "fx123",
+				Coins:     sdk.Coins{},
+				To:        helpers.GenExternalAddr(moduleName),
+				Data:      "",
+				Value:     sdkmath.NewInt(0),
+				Memo:      "",
+			},
+			expectedError: "invalid refund address: decoding bech32 failed: invalid bech32 string length 5: invalid addressit =a",
 		},
 		{
 			name: "err - value must be zero",
 			fields: fields{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
-				Refund:    helpers.GenExternalAddr(moduleName),
+				Refund:    helpers.GenAccAddress().String(),
 				Coins:     nil,
 				To:        helpers.GenExternalAddr(moduleName),
 				Data:      "",
