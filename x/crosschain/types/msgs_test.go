@@ -2018,7 +2018,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 				Value:     sdkmath.NewInt(0),
 				Memo:      "",
 			},
-			expectedError: "invalid refund address: decoding bech32 failed: invalid bech32 string length 5: invalid addressit =a",
+			expectedError: "invalid refund address: decoding bech32 failed: invalid bech32 string length 5: invalid address",
 		},
 		{
 			name: "err - value must be zero",
