@@ -44,7 +44,6 @@ var (
 
 	fxBridgeABI = MustABIJson(IFxBridgeLogicMetaData.ABI)
 
-	bridgeCallRefundCallback = MustABIJson(IRefundCallbackMetaData.ABI)
 	bridgeCallBridgeCallback = MustABIJson(IBridgeCallbackMetaData.ABI)
 )
 
@@ -73,10 +72,6 @@ func GetERC1967Proxy() Contract {
 
 func GetFxBridgeABI() abi.ABI {
 	return fxBridgeABI
-}
-
-func GetBridgeCallRefundCallback() abi.ABI {
-	return bridgeCallRefundCallback
 }
 
 func GetBridgeCallBridgeCallback() abi.ABI {
