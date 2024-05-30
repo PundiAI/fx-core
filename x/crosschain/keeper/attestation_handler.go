@@ -55,7 +55,6 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.HandlePendingOutgoingTx(ctx, receiveAddr, externalClaim.GetEventNonce(), bridgeToken)
 
 	case *types.MsgBridgeCallClaim:
-		k.CreateBridgeAccount(ctx, claim.TxOrigin)
 		return k.BridgeCallHandler(ctx, claim)
 
 	case *types.MsgSendToExternalClaim:

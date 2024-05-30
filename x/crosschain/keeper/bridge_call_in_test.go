@@ -86,10 +86,13 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 				EventNonce:     10,
 				BlockHeight:    100,
 				BridgerAddress: helpers.GenAccAddress().String(),
+				TxOrigin:       helpers.GenExternalAddr(s.moduleName),
 			}
 			if t.initData != nil {
 				t.initData(msg)
 			}
+			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			s.accountKeeper.EXPECT().NewAccountWithAddress(gomock.Any(), gomock.Any()).Times(1)
 
 			s.MockBridgeCallToken(msg.GetERC20Tokens())
 

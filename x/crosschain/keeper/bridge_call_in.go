@@ -17,18 +17,17 @@ import (
 )
 
 func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {
+	k.CreateBridgeAccount(ctx, msg.TxOrigin)
+
 	tokens := msg.GetTokensAddr()
 	erc20Token, err := types.NewERC20Tokens(k.moduleName, tokens, msg.GetAmounts())
 	if err != nil {
 		return err
 	}
 	var errCause string
-	cacheCtx, commit := ctx.CacheContext()
-	sender := msg.GetSenderAddr()
-	to := msg.GetToAddr()
 	refundAddr := msg.GetRefundAddr()
-	eventNonce := msg.EventNonce
-	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, sender, refundAddr, erc20Token, to, msg.MustData(), msg.MustMemo(), msg.Value); err != nil {
+	cacheCtx, commit := ctx.CacheContext()
+	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, msg.GetSenderAddr(), refundAddr, erc20Token, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), msg.Value); err != nil {
 		errCause = err.Error()
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, errCause)))
 	} else {
@@ -37,13 +36,13 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	if len(errCause) > 0 && len(tokens) > 0 {
 		// new outgoing bridge call to refund
-		outCall, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr.String(), erc20Token, common.Address{}.String(), "", "", eventNonce)
+		outCall, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, erc20Token, common.Address{}, nil, nil, msg.EventNonce)
 		if err != nil {
 			return err
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeBridgeCallRefundOut,
-			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", eventNonce)),
+			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", msg.EventNonce)),
 			sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCall.Nonce)),
 		))
 	}
@@ -52,22 +51,13 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		for i := 0; i < len(erc20Token); i++ {
 			bridgeToken := k.GetBridgeTokenDenom(ctx, erc20Token[i].Contract)
 			// no need for a double check here, as the bridge token should exist
-			k.HandlePendingOutgoingTx(ctx, refundAddr, eventNonce, bridgeToken)
+			k.HandlePendingOutgoingTx(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeToken)
 		}
 	}
 	return nil
 }
 
-func (k Keeper) BridgeCallTransferAndCallEvm(
-	ctx sdk.Context,
-	sender common.Address,
-	refundAddr sdk.AccAddress,
-	tokens []types.ERC20Token,
-	to common.Address,
-	data []byte,
-	memo []byte,
-	value sdkmath.Int,
-) error {
+func (k Keeper) BridgeCallTransferAndCallEvm(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, value sdkmath.Int) error {
 	if senderAccount := k.ak.GetAccount(ctx, sender.Bytes()); senderAccount != nil {
 		if _, ok := senderAccount.(authtypes.ModuleAccountI); ok {
 			return errorsmod.Wrap(types.ErrInvalid, "sender is module account")
@@ -84,7 +74,7 @@ func (k Keeper) BridgeCallTransferAndCallEvm(
 		return nil
 	}
 	callTokens, callAmounts := k.CoinsToBridgeCallTokens(ctx, coins)
-	args, err := types.PackBridgeCallback(sender, common.Address(refundAddr.Bytes()), callTokens, callAmounts, data, memo)
+	args, err := types.PackBridgeCallback(sender, refundAddr, callTokens, callAmounts, data, memo)
 	if err != nil {
 		return err
 	}

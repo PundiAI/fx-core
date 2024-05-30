@@ -18,7 +18,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -215,7 +214,11 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 				refund = args[2]
 			}
 
-			data := viper.GetString(FlagData)
+			data, err := cmd.Flags().GetString("data")
+			if err != nil {
+				return err
+			}
+			memo, err := cmd.Flags().GetString("memo")
 			if err != nil {
 				return err
 			}
@@ -228,11 +231,13 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 				Data:      data,
 				Value:     sdkmath.NewInt(0),
 				ChainName: chainName,
+				Memo:      memo,
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
-	cmd.Flags().String(FlagData, "", "bridge call contract data")
+	cmd.Flags().String("data", "", "bridge call contract data")
+	cmd.Flags().String("memo", "", "bridge call memo")
 	return cmd
 }
 
