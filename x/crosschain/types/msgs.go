@@ -1171,8 +1171,8 @@ func (m *MsgBridgeCall) validateBasic() (err error) {
 	if err = m.Coins.Validate(); err != nil {
 		return errortypes.ErrInvalidCoins.Wrap(err.Error())
 	}
-	if len(m.Coins) > 0 {
-		if err = ValidateExternalAddr(m.ChainName, m.Refund); err != nil {
+	if len(m.Coins) > 0 || len(m.Refund) > 0 {
+		if _, err = sdk.AccAddressFromBech32(m.Refund); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
 		}
 	}
@@ -1201,8 +1201,10 @@ func (m *MsgBridgeCall) GetSenderAddr() common.Address {
 }
 
 func (m *MsgBridgeCall) GetRefundAddr() common.Address {
-	addr, _ := sdk.AccAddressFromBech32(m.Refund)
-	return common.BytesToAddress(addr.Bytes())
+	if len(m.Refund) == 0 {
+		return common.Address{}
+	}
+	return common.BytesToAddress(sdk.MustAccAddressFromBech32(m.Refund).Bytes())
 }
 
 func (m *MsgBridgeCall) GetToAddr() common.Address {
