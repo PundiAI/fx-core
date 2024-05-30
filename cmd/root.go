@@ -37,15 +37,8 @@ import (
 	fxserver "github.com/functionx/fx-core/v7/server"
 	fxcfg "github.com/functionx/fx-core/v7/server/config"
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	arbitrumcli "github.com/functionx/fx-core/v7/x/arbitrum/client/cli"
-	avalanchecli "github.com/functionx/fx-core/v7/x/avalanche/client/cli"
-	bsccli "github.com/functionx/fx-core/v7/x/bsc/client/cli"
 	crosschaincli "github.com/functionx/fx-core/v7/x/crosschain/client/cli"
-	ethcli "github.com/functionx/fx-core/v7/x/eth/client/cli"
-	layer2cli "github.com/functionx/fx-core/v7/x/layer2/client/cli"
-	optimismcli "github.com/functionx/fx-core/v7/x/optimism/client/cli"
-	polygoncli "github.com/functionx/fx-core/v7/x/polygon/client/cli"
-	troncli "github.com/functionx/fx-core/v7/x/tron/client/cli"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -158,16 +151,7 @@ func queryCommand() *cobra.Command {
 		cli.QueryValidatorByConsAddr(),
 		cli.QueryBlockResultsCmd(),
 		cli.QueryGasPricesCmd(),
-		crosschaincli.GetQueryCmd(
-			avalanchecli.GetQueryCmd(),
-			bsccli.GetQueryCmd(),
-			ethcli.GetQueryCmd(),
-			polygoncli.GetQueryCmd(),
-			troncli.GetQueryCmd(),
-			arbitrumcli.GetQueryCmd(),
-			optimismcli.GetQueryCmd(),
-			layer2cli.GetQueryCmd(),
-		),
+		crosschaincli.GetQueryCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
@@ -194,16 +178,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		crosschaincli.GetTxCmd(
-			avalanchecli.GetTxCmd(),
-			bsccli.GetTxCmd(),
-			ethcli.GetTxCmd(),
-			polygoncli.GetTxCmd(),
-			troncli.GetTxCmd(),
-			arbitrumcli.GetTxCmd(),
-			optimismcli.GetTxCmd(),
-			layer2cli.GetTxCmd(),
-		),
+		crosschaincli.GetTxCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)

@@ -17,19 +17,24 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func GetQueryCmd(subCmd ...*cobra.Command) *cobra.Command {
+func GetQueryCmd(moduleName string, subNames ...string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the crosschain module",
+		Use:                        moduleName,
+		Short:                      fmt.Sprintf("Querying commands for the %s module", moduleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	cmd.AddCommand(subCmd...)
+	for _, chainName := range subNames {
+		cmd.AddCommand(GetQueryCmd(chainName))
+	}
+	if len(subNames) == 0 {
+		cmd.AddCommand(getQuerySubCmds(moduleName)...)
+	}
 	return cmd
 }
 
-func GetQuerySubCmds(chainName string) []*cobra.Command {
+func getQuerySubCmds(chainName string) []*cobra.Command {
 	cmds := []*cobra.Command{
 		// query module params
 		CmdGetParams(chainName),

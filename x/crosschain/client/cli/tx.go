@@ -22,19 +22,24 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func GetTxCmd(subCmd ...*cobra.Command) *cobra.Command {
+func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      "Crosschain transaction subcommands",
+		Use:                        moduleName,
+		Short:                      fmt.Sprintf("%s%s transaction subcommands", strings.ToUpper(moduleName[:1]), moduleName[1:]),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	cmd.AddCommand(subCmd...)
+	for _, chainName := range subNames {
+		cmd.AddCommand(GetTxCmd(chainName))
+	}
+	if len(subNames) == 0 {
+		cmd.AddCommand(getTxSubCmds(moduleName)...)
+	}
 	return cmd
 }
 
-func GetTxSubCmds(chainName string) []*cobra.Command {
+func getTxSubCmds(chainName string) []*cobra.Command {
 	cmds := []*cobra.Command{
 		CmdUpdateChainOraclesProposal(chainName),
 

@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v7/x/arbitrum/client/cli"
 	"github.com/functionx/fx-core/v7/x/arbitrum/types"
+	crosschaincli "github.com/functionx/fx-core/v7/x/crosschain/client/cli"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -62,12 +62,12 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.Ser
 
 // GetQueryCmd implements app module basic
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return crosschaincli.GetQueryCmd(types.ModuleName)
 }
 
 // GetTxCmd implements app module basic
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return crosschaincli.GetTxCmd(types.ModuleName)
 }
 
 // RegisterInterfaces implements app bmodule basic
