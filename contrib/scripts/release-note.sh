@@ -25,7 +25,13 @@ changelog="$(find_change_log "./CHANGELOG.md" "$version")"
 
 echo "writing release note for version $version"
 cat <<EOF >./release-note.md
-## ChangeLog
+<!-- Add upgrade instructions here -->
+
+## 🚀 Highlights
+
+<!-- Add any highlights of this release -->
+
 $changelog
-* See [CHANGELOG.md](https://github.com/FunctionX/fx-core/blob/$version/CHANGELOG.md) for details.
+
+**Full Changelog**: https://github.com/FunctionX/fx-core/commits/$version.
 EOF

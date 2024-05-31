@@ -3,28 +3,27 @@ name: Release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v[0-9]+\\.[0-9]+\\.[0-9]+"
+      - "v[0-9]+\\.[0-9]+\\.[0-9]+-rc[0-9]+"
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          submodules: true
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.21
-      - name: set tag env
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: generate release note
-        run: ./contrib/scripts/release-note.sh ${{ env.VERSION }}
-      - name: setup release environment
+          fetch-depth: 0
+      - name: Fetch tags
+        run: git fetch --force --tags
+      - name: Generate release note
+        run: |
+          chmod +x ./contrib/scripts/release-note.sh
+          ./contrib/scripts/release-note.sh ${GITHUB_REF#refs/*/}
+      - name: Setup release environment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |-
-          echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
-      - name: release publish
+        run: echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
+      - name: Release publish
         run: make release
