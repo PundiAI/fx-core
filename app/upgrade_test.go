@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -46,7 +47,7 @@ func Test_TestnetUpgrade(t *testing.T) {
 		},
 	}
 
-	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, "~/tmp/data")
+	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(os.Getenv("HOME"), "tmp/data"))
 	require.NoError(t, err)
 
 	makeEncodingConfig := app.MakeEncodingConfig()
