@@ -65,8 +65,8 @@ func CleanCrosschainAttestations(ctx sdk.Context, cdc codec.Codec, storeKey stor
 	for ; iter.Valid(); iter.Next() {
 		att := new(crosschaintypes.Attestation)
 		cdc.MustUnmarshal(iter.Value(), att)
-		if att.Observed && (att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallClaim{}) ||
-			att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallResultClaim{})) {
+		if att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallClaim{}) ||
+			att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallResultClaim{}) {
 			store.Delete(iter.Key())
 		}
 	}
