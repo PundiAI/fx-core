@@ -1,8 +1,6 @@
 #!/usr/bin/make -f
 
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
-GIT_TAGS := $(shell git describe --tags --always 2>/dev/null || echo 'unknown')
-VERSION := $(GIT_BRANCH)-$(GIT_TAGS)
+VERSION := $(shell git describe --tags --always 2>/dev/null || echo 'unknown')
 COMMIT := $(shell git log -1 --format='%H' 2>/dev/null || echo 'unknown')
 
 LEDGER_ENABLED ?= true
@@ -257,7 +255,7 @@ contract-publish:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME := github.com/functionx/fx-core/v7
+PACKAGE_NAME := $(shell go list -m)
 GOLANG_CROSS_VERSION := v1.21
 release-dry-run:
 	docker run --rm --privileged -e CGO_ENABLED=1 \
@@ -266,7 +264,7 @@ release-dry-run:
 		-v ${GOPATH}/pkg:/go/pkg \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --clean --skip-publish --snapshot
+		release --clean --skip=validate --skip=publish --snapshot
 
 release:
 	@if [ ! -f ".release-env" ]; then \
@@ -278,6 +276,6 @@ release:
 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --clean --skip-validate --release-notes ./release-note.md
+		release --clean --skip=validate --release-notes ./release-note.md
 
 .PHONY: release-dry-run release
