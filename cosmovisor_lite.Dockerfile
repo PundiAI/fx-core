@@ -17,7 +17,7 @@ FROM functionx/fx-core:7.2.0-rc2 as fxv7_2
 
 FROM alpine:3.18
 
-WORKDIR root
+WORKDIR /root
 
 ENV DAEMON_HOME=/root/.fxcore
 ENV DAEMON_NAME=fxcored

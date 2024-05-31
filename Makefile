@@ -1,8 +1,6 @@
 #!/usr/bin/make -f
 
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
-GIT_TAGS := $(shell git describe --tags --always 2>/dev/null || echo 'unknown')
-VERSION := $(GIT_BRANCH)-$(GIT_TAGS)
+VERSION := $(shell git describe --tags --always 2>/dev/null || echo 'unknown')
 COMMIT := $(shell git log -1 --format='%H' 2>/dev/null || echo 'unknown')
 
 LEDGER_ENABLED ?= true
