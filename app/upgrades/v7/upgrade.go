@@ -67,7 +67,8 @@ func CleanEthAttestations(ctx sdk.Context, cdc codec.Codec, storeKey storetypes.
 	for ; iter.Valid(); iter.Next() {
 		att := new(crosschaintypes.Attestation)
 		cdc.MustUnmarshal(iter.Value(), att)
-		if att.Observed && att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallClaim{}) {
+		if att.Observed && (att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallClaim{}) ||
+			att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallResultClaim{})) {
 			store.Delete(iter.Key())
 		}
 	}
