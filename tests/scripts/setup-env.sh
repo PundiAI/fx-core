@@ -132,6 +132,7 @@ function from_18() {
 function gen_cosmos_genesis() {
   $DAEMON init --chain-id="$CHAIN_ID" local-test --home "$NODE_HOME"
 
+  $DAEMON config app.toml minimum-gas-prices "$GAS_PRICES" --home "$NODE_HOME"
   $DAEMON config app.toml grpc-web.enable false --home "$NODE_HOME"
   $DAEMON config app.toml api.enable true --home "$NODE_HOME"
 
@@ -172,7 +173,7 @@ function gen_cosmos_genesis() {
 }
 
 function node_catching_up() {
-  local node_url=${1:-"$REST_RPC"}
+  local node_url=${1:-"$NODE_RPC"}
   local timeout=${2:-"10"}
   for i in $(seq "$timeout"); do
     sync_state=$(curl -s "$node_url/status" | jq -r '.result.sync_info.catching_up')
