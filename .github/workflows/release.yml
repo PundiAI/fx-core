@@ -5,6 +5,8 @@ on:
     tags:
       - "v*.*.*"
 
+permissions: write-all
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
