@@ -237,7 +237,7 @@ func (suite *IntegrationTest) BridgeCallToFxcoreTest() {
 
 				randAmount := sdkmath.NewInt(int64(tmrand.Uint() + 1000))
 				balBefore := suite.evm.BalanceOf(pair.GetERC20Contract(), chain.HexAddress())
-				chain.BridgeCallClaim("", []string{bridgeToken}, []sdkmath.Int{randAmount})
+				chain.BridgeCallClaim(chain.HexAddressString(), []string{bridgeToken}, []sdkmath.Int{randAmount})
 				suite.evm.CheckBalance(pair.GetERC20Contract(), chain.HexAddress(), big.NewInt(0).Add(balBefore, randAmount.BigInt()))
 
 				// clear balance
