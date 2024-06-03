@@ -31,13 +31,14 @@ ENV DAEMON_PREUPGRADE_MAX_RETRIES=3
 ENV COSMOVISOR_DISABLE_LOGS=false
 ENV COSMOVISOR_COLOR_LOGS=true
 
-COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
-COPY --from=builder /app/build/bin/fxcored /usr/bin/fxcored
-
 COPY --from=fxv6 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v6.0.x/bin/fxcored
 COPY --from=fxv7 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.0.x/bin/fxcored
 COPY --from=fxv7_1 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.1.x/bin/fxcored
 COPY --from=fxv7_2 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.2.x/bin/fxcored
+
+COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
+COPY --from=builder /app/build/bin/fxcored /usr/bin/fxcored
+COPY --from=builder /app/build/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.3.x/bin/fxcored
 
 RUN cosmovisor init /root/.fxcore/cosmovisor/upgrades/v6.0.x/bin/fxcored
 
