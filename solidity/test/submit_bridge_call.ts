@@ -5,15 +5,9 @@ import {
   ERC20TokenTest,
   FxBridgeLogic,
   BridgeCallbackTest,
-  DataCallbackTest,
 } from "../typechain-types";
-import { encodeBytes32String, AbiCoder } from "ethers";
-import {
-  encodeFunctionData,
-  getSignerAddresses,
-  makeSubmitBridgeCallHash,
-  signHash,
-} from "./common";
+import { encodeBytes32String } from "ethers";
+import { getSignerAddresses, submitBridgeCall } from "./common";
 
 describe("submit bridge call tests", function () {
   let deploy: HardhatEthersSigner;
@@ -22,7 +16,6 @@ describe("submit bridge call tests", function () {
   let erc20Token: ERC20TokenTest;
   let fxBridge: FxBridgeLogic;
   let bridgeCallback: BridgeCallbackTest;
-  let dataCallback: DataCallbackTest;
 
   let totalSupply = "10000";
   const gravityId: string = encodeBytes32String("eth-fxcore");
@@ -98,68 +91,10 @@ describe("submit bridge call tests", function () {
     const bridgeCallbackFactory = await ethers.getContractFactory(
       "BridgeCallbackTest"
     );
-    bridgeCallback = await bridgeCallbackFactory
-      .connect(admin)
-      .deploy(await fxBridge.getAddress());
-
-    const dataCallbackFactory = await ethers.getContractFactory(
-      "DataCallbackTest"
+    bridgeCallback = await bridgeCallbackFactory.deploy(
+      await fxBridge.getAddress()
     );
-    dataCallback = await dataCallbackFactory.deploy(
-      await bridgeCallback.getAddress()
-    );
-
-    await bridgeCallback.addWhiteList(await dataCallback.getAddress());
   });
-
-  async function submitBridgeCall(
-    sender: string,
-    refund: string,
-    to: string,
-    data: string,
-    memo: string,
-    tokens: string[],
-    amounts: string[],
-    timeout: number,
-    eventNonce: number
-  ) {
-    const digest = makeSubmitBridgeCallHash(
-      gravityId,
-      sender,
-      refund,
-      tokens,
-      amounts,
-      to,
-      data,
-      memo,
-      1,
-      timeout,
-      eventNonce
-    );
-
-    const { v, r, s } = await signHash(validators, digest);
-
-    const bridgeCallData: FxBridgeLogic.BridgeCallDataStruct = {
-      sender: sender,
-      refund: refund,
-      tokens: tokens,
-      amounts: amounts,
-      to: to,
-      data: data,
-      memo: memo,
-      timeout: timeout,
-      eventNonce: eventNonce,
-    };
-    return await fxBridge.submitBridgeCall(
-      valAddresses,
-      powers,
-      v,
-      r,
-      s,
-      [0, 1],
-      bridgeCallData
-    );
-  }
 
   it("submit bridge call", async function () {
     const erc20TokenAddress = await erc20Token.getAddress();
@@ -167,6 +102,7 @@ describe("submit bridge call tests", function () {
     const timeout = (await ethers.provider.getBlockNumber()) + 1000;
 
     await submitBridgeCall(
+      gravityId,
       user1.address,
       user1.address,
       user1.address,
@@ -174,8 +110,12 @@ describe("submit bridge call tests", function () {
       "0x",
       [erc20TokenAddress],
       [amount],
+      1,
       timeout,
-      0
+      0,
+      validators,
+      powers,
+      fxBridge
     );
   });
 
@@ -184,15 +124,6 @@ describe("submit bridge call tests", function () {
     const amount = "1000";
     const timeout = (await ethers.provider.getBlockNumber()) + 1000;
     const bridgeCallbackAddress = await bridgeCallback.getAddress();
-    const dataCall = await encodeFunctionData(
-      dataCallback.interface.formatJson(),
-      "setID",
-      [99]
-    );
-    const data = new AbiCoder().encode(
-      ["address", "bytes"],
-      [await dataCallback.getAddress(), dataCall]
-    );
 
     await erc20Token.transfer(
       await fxBridge.getAddress(),
@@ -200,21 +131,24 @@ describe("submit bridge call tests", function () {
     );
 
     const ownerBal1 = await erc20Token.balanceOf(bridgeCallbackAddress);
-    expect(await dataCallback.id()).to.be.equal(0);
     await submitBridgeCall(
+      gravityId,
       user1.address,
       user1.address,
       bridgeCallbackAddress,
-      data,
+      "0x",
       "0x",
       [erc20TokenAddress],
       [amount],
+      1,
       timeout,
-      0
+      0,
+      validators,
+      powers,
+      fxBridge
     );
     const ownerBal2 = await erc20Token.balanceOf(bridgeCallbackAddress);
     expect(ownerBal2).to.equal(ownerBal1 + BigInt(amount));
-    expect(await dataCallback.id()).to.be.equal(99);
   });
 
   it("submit bridge call with refund", async function () {
@@ -229,6 +163,7 @@ describe("submit bridge call tests", function () {
 
     const ownerBal1 = await erc20Token.balanceOf(user1.address);
     await submitBridgeCall(
+      gravityId,
       user1.address,
       user1.address,
       user1.address,
@@ -236,8 +171,12 @@ describe("submit bridge call tests", function () {
       "0x",
       [erc20TokenAddress],
       [amount],
+      1,
       timeout,
-      1
+      1,
+      validators,
+      powers,
+      fxBridge
     );
     const ownerBal2 = await erc20Token.balanceOf(user1.address);
     expect(ownerBal2).to.equal(ownerBal1 + amount);
@@ -311,6 +250,7 @@ describe("submit bridge call tests", function () {
       const timeout = (await ethers.provider.getBlockNumber()) + 1000;
 
       await submitBridgeCall(
+        gravityId,
         user1.address,
         user1.address,
         user1.address,
@@ -318,8 +258,12 @@ describe("submit bridge call tests", function () {
         "0x",
         tokens,
         amounts,
+        1,
         timeout,
-        0
+        0,
+        validators,
+        powers,
+        fxBridge
       );
     });
 
@@ -333,6 +277,7 @@ describe("submit bridge call tests", function () {
       const timeout = (await ethers.provider.getBlockNumber()) + 1000;
 
       await submitBridgeCall(
+        gravityId,
         user1.address,
         user1.address,
         user1.address,
@@ -340,8 +285,12 @@ describe("submit bridge call tests", function () {
         "0x",
         tokens,
         amounts,
+        1,
         timeout,
-        0
+        0,
+        validators,
+        powers,
+        fxBridge
       );
     });
 
@@ -356,6 +305,7 @@ describe("submit bridge call tests", function () {
       const timeout = (await ethers.provider.getBlockNumber()) + 1000;
 
       await submitBridgeCall(
+        gravityId,
         user1.address,
         user1.address,
         user1.address,
@@ -363,8 +313,12 @@ describe("submit bridge call tests", function () {
         "0x",
         tokens,
         amounts,
+        1,
         timeout,
-        0
+        0,
+        validators,
+        powers,
+        fxBridge
       );
     });
   });

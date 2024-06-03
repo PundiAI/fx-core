@@ -3,18 +3,15 @@ pragma solidity ^0.8.0;
 
 import {IBridgeCallback} from "../bridge/IBridgeCallback.sol";
 
+/* solhint-disable custom-errors */
+
 contract BridgeCallbackTest is IBridgeCallback {
     address public fxBridge;
-    address public admin;
-    mapping(address => bool) public whiteList;
+    bool public callFlag;
 
     constructor(address _fxBridge) {
         fxBridge = _fxBridge;
-        admin = msg.sender;
-    }
-
-    function addWhiteList(address _to) public onlyAdmin {
-        whiteList[_to] = true;
+        callFlag = false;
     }
 
     function bridgeCallback(
@@ -22,25 +19,14 @@ contract BridgeCallbackTest is IBridgeCallback {
         address,
         address[] memory,
         uint256[] memory,
-        bytes memory _data,
+        bytes memory,
         bytes memory
     ) external override onlyFxBridge {
-        (address to, bytes memory data) = abi.decode(_data, (address, bytes));
-        // solhint-disable custom-errors
-        require(whiteList[to], "not in white list");
-        // solhint-disable avoid-low-level-calls
-        (bool success, ) = to.call(data);
-        // solhint-disable custom-errors
-        require(success, "failed to call data");
+        callFlag = !callFlag;
     }
 
     modifier onlyFxBridge() {
         require(msg.sender == fxBridge, "only fx bridge");
-        _;
-    }
-
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "only admin");
         _;
     }
 }

@@ -767,6 +767,7 @@ contract FxBridgeLogicETH is
         );
 
         for (uint256 i = 0; i < _tokens.length; i++) {
+            require(_tokens[i] != address(0), "Invalid token address");
             require(_amounts[i] > 0, "amount should be greater than zero");
             TokenStatus memory _tokenStatus = tokenStatus[_tokens[i]];
             require(_tokenStatus.isExist, "Unsupported token address");
