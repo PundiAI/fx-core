@@ -284,7 +284,7 @@ const bridgeCall = task("bridge-call", "bridge call function")
     false
   )
   .addParam("dstChainId", "destination chain id", undefined, string, false)
-  .addParam("receiver", "call receiver", undefined, string, false)
+  .addParam("refund", "call receiver", undefined, string, false)
   .addParam("tokens", "bridge token address list", undefined, string, false)
   .addParam("amounts", "bridge token amount list", undefined, string, false)
   .addParam("to", "call to", undefined, string, false)
@@ -296,7 +296,7 @@ const bridgeCall = task("bridge-call", "bridge call function")
     let {
       bridgeContract,
       dstChainId,
-      receiver,
+      refund,
       tokens,
       amounts,
       to,
@@ -330,7 +330,7 @@ const bridgeCall = task("bridge-call", "bridge call function")
     );
     const bridgeCallData = bridge_logic_factory.interface.encodeFunctionData(
       "bridgeCall",
-      [dstChainId, receiver, tokenArr, amountArr, to, data, callValue, memo]
+      [dstChainId, refund, tokenArr, amountArr, to, data, callValue, memo]
     );
 
     const tx = await hre.run(SUB_CREATE_TRANSACTION, {

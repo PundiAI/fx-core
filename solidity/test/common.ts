@@ -7,6 +7,7 @@ import {
   Signature,
 } from "ethers";
 import { arrayify } from "@ethersproject/bytes";
+import { FxBridgeLogic } from "../typechain-types";
 
 export function examplePowers(): number[] {
   return [
@@ -92,4 +93,59 @@ export async function encodeFunctionData(
 ) {
   const iface = new Interface(abi);
   return iface.encodeFunctionData(funcName, args);
+}
+
+export async function submitBridgeCall(
+  gravityId: string,
+  sender: string,
+  refund: string,
+  to: string,
+  data: string,
+  memo: string,
+  tokens: string[],
+  amounts: string[],
+  nonce: number | string,
+  timeout: number,
+  eventNonce: number,
+  validators: HardhatEthersSigner[],
+  powers: number[],
+  fxBridge: FxBridgeLogic
+) {
+  const digest = makeSubmitBridgeCallHash(
+    gravityId,
+    sender,
+    refund,
+    tokens,
+    amounts,
+    to,
+    data,
+    memo,
+    nonce,
+    timeout,
+    eventNonce
+  );
+
+  const { v, r, s } = await signHash(validators, digest);
+
+  const valAddresses = await getSignerAddresses(validators);
+  const bridgeCallData: FxBridgeLogic.BridgeCallDataStruct = {
+    sender: sender,
+    refund: refund,
+    tokens: tokens,
+    amounts: amounts,
+    to: to,
+    data: data,
+    memo: memo,
+    timeout: timeout,
+    eventNonce: eventNonce,
+  };
+  return await fxBridge.submitBridgeCall(
+    valAddresses,
+    powers,
+    v,
+    r,
+    s,
+    [0, nonce],
+    bridgeCallData
+  );
 }
