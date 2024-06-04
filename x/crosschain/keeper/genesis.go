@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -12,6 +13,10 @@ import (
 func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	if err := k.SetParams(ctx, &state.Params); err != nil {
 		panic(err)
+	}
+	crosschainBridgeCallFrom := autytypes.NewModuleAddress(types.ModuleName)
+	if account := k.ak.GetAccount(ctx, crosschainBridgeCallFrom); account == nil {
+		k.ak.SetAccount(ctx, k.ak.NewAccountWithAddress(ctx, crosschainBridgeCallFrom))
 	}
 
 	// 0x24

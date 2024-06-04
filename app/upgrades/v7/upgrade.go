@@ -5,6 +5,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v7/app/keepers"
@@ -30,6 +31,10 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		UpdateFIP20LogicCode(cacheCtx, app.EvmKeeper)
 		CleanCrosschainAttestations(ctx, app.AppCodec(), app.GetKey(ethtypes.ModuleName))
 		CleanCrosschainAttestations(ctx, app.AppCodec(), app.GetKey(layer2types.ModuleName))
+		crosschainBridgeCallFrom := autytypes.NewModuleAddress(crosschaintypes.ModuleName)
+		if account := app.AccountKeeper.GetAccount(ctx, crosschainBridgeCallFrom); account == nil {
+			app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccountWithAddress(ctx, crosschainBridgeCallFrom))
+		}
 
 		commit()
 		ctx.Logger().Info("upgrade complete", "module", "upgrade")
