@@ -786,6 +786,18 @@ func (mr *MockAccountKeeperMockRecorder) NewAccountWithAddress(ctx, addr any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewAccountWithAddress", reflect.TypeOf((*MockAccountKeeper)(nil).NewAccountWithAddress), ctx, addr)
 }
 
+// SetAccount mocks base method.
+func (m *MockAccountKeeper) SetAccount(ctx types.Context, acc types0.AccountI) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetAccount", ctx, acc)
+}
+
+// SetAccount indicates an expected call of SetAccount.
+func (mr *MockAccountKeeperMockRecorder) SetAccount(ctx, acc any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).SetAccount), ctx, acc)
+}
+
 // MockSubspace is a mock of Subspace interface.
 type MockSubspace struct {
 	ctrl     *gomock.Controller
