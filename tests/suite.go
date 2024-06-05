@@ -115,6 +115,7 @@ func (suite *TestSuite) SetupSuite() {
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
+	suite.Require().NoError(err)
 
 	time.Sleep(timeoutCommit * 10)
 	for suite.BlockNumber() <= 3 {

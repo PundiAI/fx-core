@@ -98,6 +98,15 @@ func (suite *CrosschainTestSuite) QueryPendingUnbatchedTx(sender sdk.AccAddress)
 	return pendingTx.UnbatchedTransfers
 }
 
+func (suite *CrosschainTestSuite) QueryPendingPoolSendToExternal(sender sdk.AccAddress) []*crosschaintypes.PendingOutgoingTransferTx {
+	response, err := suite.CrosschainQuery().GetPendingPoolSendToExternal(suite.ctx, &crosschaintypes.QueryPendingPoolSendToExternalRequest{
+		ChainName:     suite.chainName,
+		SenderAddress: sender.String(),
+	})
+	suite.NoError(err)
+	return response.GetTxs()
+}
+
 func (suite *CrosschainTestSuite) queryFxLastEventNonce() uint64 {
 	lastEventNonce, err := suite.CrosschainQuery().LastEventNonceByAddr(suite.ctx,
 		&crosschaintypes.QueryLastEventNonceByAddrRequest{
@@ -344,7 +353,8 @@ func (suite *CrosschainTestSuite) SendToExternalAndResponse(count int, amount sd
 				continue
 			}
 			for _, attribute := range event.Attributes {
-				if attribute.Key != crosschaintypes.AttributeKeyOutgoingTxID {
+				if attribute.Key != crosschaintypes.AttributeKeyOutgoingTxID &&
+					attribute.Key != crosschaintypes.AttributeKeyPendingOutgoingTxID {
 					continue
 				}
 				txId, err := strconv.ParseUint(attribute.Value, 10, 64)

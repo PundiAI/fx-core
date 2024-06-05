@@ -246,3 +246,48 @@ func (suite *IntegrationTest) BridgeCallToFxcoreTest() {
 		}
 	}
 }
+
+func (suite *IntegrationTest) LiquidityTest() {
+	chainModules := []string{ethtypes.ModuleName, bsctypes.ModuleName}
+	tokenAliases := make([]string, 0, len(chainModules))
+	moduleTokenMap := make(map[string]string)
+	moduleDenomMap := make(map[string]string)
+	metadata := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), 18)
+	for _, chainName := range chainModules {
+		suiteChain := suite.GetCrossChainByName(chainName)
+		tokenAddress := helpers.GenExternalAddr(suiteChain.chainName)
+		moduleTokenMap[chainName] = tokenAddress
+		bridgeDenom := crosschaintypes.NewBridgeDenom(suiteChain.chainName, tokenAddress)
+		moduleDenomMap[chainName] = bridgeDenom
+		tokenAliases = append(tokenAliases, bridgeDenom)
+		suiteChain.AddBridgeTokenClaim(metadata.Name, metadata.Symbol, uint64(metadata.DenomUnits[1].Exponent), tokenAddress, "")
+	}
+	metadata.DenomUnits[0].Aliases = tokenAliases
+	suite.erc20.RegisterCoinProposal(metadata)
+
+	ethChain := suite.GetCrossChainByName(ethtypes.ModuleName)
+	bscChain := suite.GetCrossChainByName(bsctypes.ModuleName)
+
+	transferAmount := sdk.NewInt(100)
+	ethChain.SendToFxClaimAndCheckBalance(moduleTokenMap[ethtypes.ModuleName], transferAmount, "", sdk.NewCoin(metadata.Base, transferAmount))
+	ethChain.CheckBalance(ethChain.AccAddress(), sdk.NewCoin(metadata.Base, transferAmount))
+	ethChain.CheckBalance(ethChain.AccAddress(), sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName], sdkmath.NewInt(0)))
+
+	ethChain.Send(bscChain.AccAddress(), sdk.NewCoin(metadata.Base, transferAmount))
+	bscChain.SendToExternalAndCheckBalance(sdk.NewCoin(metadata.Base, transferAmount))
+	suite.Equal(0, len(bscChain.QueryPendingUnbatchedTx(bscChain.AccAddress())))
+
+	pendingPoolSendToExternal := bscChain.QueryPendingPoolSendToExternal(bscChain.AccAddress())
+	suite.Equal(1, len(pendingPoolSendToExternal))
+	outgoingTransferTx := pendingPoolSendToExternal[0]
+	suite.EqualValues(sdk.NewCoin(moduleDenomMap[bscChain.chainName], transferAmount), outgoingTransferTx.Token.Add(outgoingTransferTx.Fee))
+	suite.EqualValues(0, len(outgoingTransferTx.Rewards))
+
+	bscChain.SendToFxClaimAndCheckBalance(moduleTokenMap[bsctypes.ModuleName], transferAmount, "", sdk.NewCoin(metadata.Base, transferAmount))
+	suite.Equal(0, len(bscChain.QueryPendingPoolSendToExternal(bscChain.AccAddress())))
+
+	unbatchedTx := bscChain.QueryPendingUnbatchedTx(bscChain.AccAddress())
+	suite.Equal(1, len(unbatchedTx))
+	suite.EqualValues(transferAmount, unbatchedTx[0].Token.Amount.Add(unbatchedTx[0].Fee.Amount))
+	suite.EqualValues(moduleTokenMap[bscChain.chainName], unbatchedTx[0].Token.GetContract())
+}
