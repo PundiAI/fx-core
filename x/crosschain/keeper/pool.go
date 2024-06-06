@@ -25,26 +25,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
-	totalInVouchers := sdk.NewCoins(amount.Add(fee))
-
-	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
-	// If there is, lock the coins.
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, amount.Denom)
-	if isOriginOrConverted {
-		// lock coins in module
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, totalInVouchers); err != nil {
-			return 0, err
-		}
-	} else {
-		// If it is an external blockchain asset we burn it send coins to module in prep for burn
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, totalInVouchers); err != nil {
-			return 0, err
-		}
-
-		// burn vouchers to send them back to external blockchain
-		if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, totalInVouchers); err != nil {
-			return 0, err
-		}
+	if err := k.TransferBridgeCoinToExternal(ctx, sender, amount.Add(fee)); err != nil {
+		return 0, err
 	}
 
 	// get next tx id from keeper
