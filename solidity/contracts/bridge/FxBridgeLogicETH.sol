@@ -334,7 +334,7 @@ contract FxBridgeLogicETH is
         bytes memory _data,
         uint256 _value,
         bytes memory _memo
-    ) external returns (uint256) {
+    ) external nonReentrant whenNotPaused returns (uint256) {
         require(bytes(_dstChain).length == 0, "Invalid dstChain");
         if (_tokens.length > 0) {
             require(_refund != address(0), "Refund address is empty");
