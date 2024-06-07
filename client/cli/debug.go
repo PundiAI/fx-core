@@ -366,11 +366,15 @@ func AddrCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return PrintOutput(clientCtx, map[string]interface{}{
+			raw, err := json.Marshal(map[string]interface{}{
 				"base64": addr,
 				"hex":    hex.EncodeToString(addr),
 				"bech32": convertedAddress,
 			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintRaw(raw)
 		},
 	}
 	cmd.Flags().StringP("prefix", "p", "fx", "Bech32 Prefix to encode to")

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -12,8 +13,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
-
-	"github.com/functionx/fx-core/v7/client/cli"
 )
 
 func CmdHandler(cmd *cobra.Command, args []string) error {
@@ -133,10 +132,18 @@ func output(ctx client.Context, content interface{}) error {
 	var mapData map[string]interface{}
 	if err := mapstructure.Decode(content, &mapData); err != nil {
 		var data interface{}
-		if err := mapstructure.Decode(content, &data); err != nil {
+		if err = mapstructure.Decode(content, &data); err != nil {
 			return err
 		}
-		return cli.PrintOutput(ctx, data)
+		raw, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		return ctx.PrintRaw(raw)
 	}
-	return cli.PrintOutput(ctx, mapData)
+	raw, err := json.Marshal(mapData)
+	if err != nil {
+		return err
+	}
+	return ctx.PrintRaw(raw)
 }

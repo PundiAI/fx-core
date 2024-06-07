@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -89,7 +90,11 @@ func StatusCommand() *cobra.Command {
 					VotingPower: status.ValidatorInfo.VotingPower,
 				},
 			}
-			return PrintOutput(clientCtx, statusWithPk)
+			raw, err := json.Marshal(statusWithPk)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintRaw(raw)
 		},
 	}
 

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -87,7 +88,7 @@ $ %s query txs --%s 'message.sender=fx1...&message.module=distribution' --page 1
 			for i := 0; i < len(txsResult.Txs); i++ {
 				txsArray = append(txsArray, TxResponseToMap(clientCtx.Codec, txsResult.Txs[i]))
 			}
-			return PrintOutput(clientCtx, map[string]interface{}{
+			raw, err := json.Marshal(map[string]interface{}{
 				"total_count": txsResult.TotalCount,
 				"count":       txsResult.Count,
 				"page_number": txsResult.PageNumber,
@@ -95,6 +96,10 @@ $ %s query txs --%s 'message.sender=fx1...&message.module=distribution' --page 1
 				"limit":       txsResult.Limit,
 				"txs":         txsArray,
 			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintRaw(raw)
 		},
 	}
 
@@ -154,7 +159,11 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 								// This case means there's a bug somewhere else in the code. Should not happen.
 								return fmt.Errorf("found %d txs matching given ethereum tx hash", len(txs.Txs))
 							}
-							return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
+							raw, err := json.Marshal(TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
+							if err != nil {
+								return err
+							}
+							return clientCtx.PrintRaw(raw)
 						}
 						return err
 					}
@@ -162,7 +171,11 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 					if resp.Empty() {
 						return fmt.Errorf("no transaction found with hash %s", txHash)
 					}
-					return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, resp))
+					raw, err := json.Marshal(TxResponseToMap(clientCtx.Codec, resp))
+					if err != nil {
+						return err
+					}
+					return clientCtx.PrintRaw(raw)
 				}
 			case typeSig:
 				{
@@ -186,7 +199,11 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 						// This case means there's a bug somewhere else in the code. Should not happen.
 						return fmt.Errorf("found %d txs matching given signatures", len(txs.Txs))
 					}
-					return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
+					raw, err := json.Marshal(TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
+					if err != nil {
+						return err
+					}
+					return clientCtx.PrintRaw(raw)
 				}
 			case typeAccSeq:
 				{
@@ -208,8 +225,11 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 						// This case means there's a bug somewhere else in the code. Should not happen.
 						return fmt.Errorf("found %d txs matching given address and sequence combination", len(txs.Txs))
 					}
-
-					return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
+					raw, err := json.Marshal(TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
+					if err != nil {
+						return err
+					}
+					return clientCtx.PrintRaw(raw)
 				}
 			default:
 				return fmt.Errorf("unknown --%s value %s", flagType, typ)

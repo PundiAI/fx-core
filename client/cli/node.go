@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -54,10 +55,14 @@ func QueryStoreCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return PrintOutput(clientCtx, map[string]interface{}{
+			raw, err := json.Marshal(map[string]interface{}{
 				"block_height": height,
 				"data":         hex.EncodeToString(data),
 			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintRaw(raw)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
