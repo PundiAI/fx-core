@@ -63,30 +63,19 @@ func (k Keeper) BridgeCallTransferAndCallEvm(ctx sdk.Context, sender, refundAddr
 			return errorsmod.Wrap(types.ErrInvalid, "sender is module account")
 		}
 	}
-	coins, err := k.bridgeCallTransferCoins(ctx, to.Bytes(), tokens)
+	isMemoSendCallTo := types.IsMemoSendCallTo(memo)
+	receiverTokenAddr := to
+	if isMemoSendCallTo {
+		receiverTokenAddr = sender
+	}
+	coins, err := k.bridgeCallTransferCoins(ctx, receiverTokenAddr.Bytes(), tokens)
 	if err != nil {
 		return err
 	}
-	if err = k.bridgeCallTransferTokens(ctx, to.Bytes(), to.Bytes(), coins); err != nil {
+	if err = k.bridgeCallTransferTokens(ctx, receiverTokenAddr.Bytes(), receiverTokenAddr.Bytes(), coins); err != nil {
 		return err
 	}
-	if !k.evmKeeper.IsContract(ctx, to) {
-		return nil
-	}
-	callTokens, callAmounts := k.CoinsToBridgeCallTokens(ctx, coins)
-	args, err := types.PackBridgeCallback(sender, refundAddr, callTokens, callAmounts, data, memo)
-	if err != nil {
-		return err
-	}
-	gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
-	txResp, err := k.evmKeeper.CallEVM(ctx, k.callbackFrom, &to, value.BigInt(), gasLimit, args, true)
-	if err != nil {
-		return err
-	}
-	if txResp.Failed() {
-		return errorsmod.Wrap(types.ErrInvalid, txResp.VmError)
-	}
-	return nil
+	return k.BridgeCallEvm(ctx, sender, refundAddr, coins, to, data, memo, value, isMemoSendCallTo)
 }
 
 func (k Keeper) bridgeCallTransferCoins(ctx sdk.Context, sender sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {

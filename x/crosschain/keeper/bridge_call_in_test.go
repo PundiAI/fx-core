@@ -17,6 +17,23 @@ import (
 )
 
 func (s *KeeperTestSuite) TestBridgeCallHandler() {
+	callEvmMock := func(msg *types.MsgBridgeCallClaim, sender common.Address, getTokenPairTimes int) {
+		s.crosschainKeeper.SetLastObservedBlockHeight(s.ctx, 1000, msg.BlockHeight-1)
+
+		s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), gomock.Any()).Return(erc20types.TokenPair{}, true).
+			Times(getTokenPairTimes)
+		contract := types.ExternalAddrToHexAddr(msg.ChainName, msg.To)
+		s.evmKeeper.EXPECT().IsContract(gomock.Any(), contract).Return(true).Times(1)
+		s.evmKeeper.EXPECT().CallEVM(gomock.Any(),
+			sender,
+			&contract,
+			big.NewInt(0),
+			uint64(types.MaxGasLimit),
+			gomock.Any(),
+			true,
+		).Return(nil, errors.New("call evm error")).Times(1)
+	}
+
 	tests := []struct {
 		name       string
 		initData   func(msg *types.MsgBridgeCallClaim)
@@ -48,22 +65,20 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 			customMock: func(msg *types.MsgBridgeCallClaim) {
 				// data = "transfer(address,uint256)" "0x0000000000000000000000000000000000000000" 1
 				msg.Data = "a9059cbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
-				s.crosschainKeeper.SetLastObservedBlockHeight(s.ctx, 1000, msg.BlockHeight-1)
-
-				s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), gomock.Any()).Return(erc20types.TokenPair{}, true).
-					Times(len(msg.TokenContracts))
-				contract := types.ExternalAddrToHexAddr(msg.ChainName, msg.To)
-				s.evmKeeper.EXPECT().IsContract(gomock.Any(), contract).Return(true).Times(1)
-				s.evmKeeper.EXPECT().CallEVM(gomock.Any(),
-					s.crosschainKeeper.GetCallbackFrom(),
-					&contract,
-					big.NewInt(0),
-					uint64(types.MaxGasLimit),
-					gomock.Any(),
-					true,
-				).Return(nil, errors.New("call evm error")).Times(1)
+				callEvmMock(msg, s.crosschainKeeper.GetCallbackFrom(), len(msg.TokenContracts))
 			},
 			refund: true,
+		},
+		{
+			name: "ok - memo is send to call evm",
+			initData: func(msg *types.MsgBridgeCallClaim) {
+				msg.Memo = "0000000000000000000000000000000000000000000000000000000000010000"
+				// data = "transfer(address,uint256)" "0x0000000000000000000000000000000000000000" 1
+				msg.Data = "a9059cbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+			},
+			customMock: func(msg *types.MsgBridgeCallClaim) {
+				callEvmMock(msg, types.ExternalAddrToHexAddr(msg.ChainName, msg.Sender), 0)
+			},
 		},
 	}
 	for _, t := range tests {
@@ -74,6 +89,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 				Refund:    helpers.GenExternalAddr(s.moduleName),
 				To:        helpers.GenExternalAddr(s.moduleName),
 				Data:      "",
+				Memo:      "",
 				Value:     sdkmath.NewInt(0),
 				TokenContracts: []string{
 					helpers.GenExternalAddr(s.moduleName),
