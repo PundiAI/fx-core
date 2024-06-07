@@ -24,17 +24,15 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	if err != nil {
 		return err
 	}
-	var errCause string
 	refundAddr := msg.GetRefundAddr()
 	cacheCtx, commit := ctx.CacheContext()
 	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, msg.GetSenderAddr(), refundAddr, erc20Token, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), msg.Value); err != nil {
-		errCause = err.Error()
-		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, errCause)))
+		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
 	} else {
 		commit()
 	}
 
-	if len(errCause) > 0 && len(tokens) > 0 {
+	if err != nil && len(tokens) > 0 {
 		// new outgoing bridge call to refund
 		outCall, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, erc20Token, common.Address{}, nil, nil, msg.EventNonce)
 		if err != nil {
@@ -47,7 +45,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		))
 	}
 
-	if len(errCause) == 0 {
+	if err == nil {
 		for i := 0; i < len(erc20Token); i++ {
 			bridgeToken := k.GetBridgeTokenDenom(ctx, erc20Token[i].Contract)
 			// no need for a double check here, as the bridge token should exist
