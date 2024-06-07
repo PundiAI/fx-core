@@ -7,6 +7,37 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
+func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTokenClaim) error {
+	// Check if it already exists
+	if has := k.HasBridgeToken(ctx, claim.TokenContract); has {
+		return types.ErrInvalid.Wrap("bridge token is exist")
+	}
+
+	k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token",
+		claim.TokenContract, "channelIbc", claim.ChannelIbc)
+	if claim.Symbol == fxtypes.DefaultDenom {
+		// Check if denom exists
+		if !k.bankKeeper.HasDenomMetaData(ctx, claim.Symbol) {
+			return types.ErrUnknown.Wrapf("denom not found %s", claim.Symbol)
+		}
+
+		if uint64(fxtypes.DenomUnit) != claim.Decimals {
+			return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d", fxtypes.DefaultDenom,
+				claim.Decimals, fxtypes.DenomUnit)
+		}
+
+		k.AddBridgeToken(ctx, claim.TokenContract, fxtypes.DefaultDenom)
+		return nil
+	}
+
+	denom, err := k.SetIbcDenomTrace(ctx, claim.TokenContract, claim.ChannelIbc)
+	if err != nil {
+		return err
+	}
+	k.AddBridgeToken(ctx, claim.TokenContract, denom)
+	return nil
+}
+
 func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.GetDenomToTokenKey(tokenContract))

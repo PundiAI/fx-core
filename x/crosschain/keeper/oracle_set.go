@@ -4,11 +4,35 @@ import (
 	"fmt"
 	"math"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
+
+func (k Keeper) UpdateOracleSetExecuted(ctx sdk.Context, claim *types.MsgOracleSetUpdatedClaim) error {
+	observedOracleSet := &types.OracleSet{
+		Nonce:   claim.OracleSetNonce,
+		Members: claim.Members,
+	}
+	// check the contents of the validator set against the store
+	if claim.OracleSetNonce != 0 {
+		trustedOracleSet := k.GetOracleSet(ctx, claim.OracleSetNonce)
+		if trustedOracleSet == nil {
+			k.Logger(ctx).Error("Received attestation for a oracle set which does not exist in store", "oracleSetNonce", claim.OracleSetNonce, "claim", claim)
+			return errorsmod.Wrapf(types.ErrInvalid, "attested oracleSet (%v) does not exist in store", claim.OracleSetNonce)
+		}
+		// overwrite the height, since it's not part of the claim
+		observedOracleSet.Height = trustedOracleSet.Height
+
+		if _, err := trustedOracleSet.Equal(observedOracleSet); err != nil {
+			panic(fmt.Sprintf("Potential bridge highjacking: observed oracleSet (%+v) does not match stored oracleSet (%+v)! %s", observedOracleSet, trustedOracleSet, err.Error()))
+		}
+	}
+	k.SetLastObservedOracleSet(ctx, observedOracleSet)
+	return nil
+}
 
 // --- ORACLE SET REQUESTS --- //
 
