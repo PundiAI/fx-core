@@ -1,8 +1,6 @@
 package v7
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -11,10 +9,9 @@ import (
 	"github.com/functionx/fx-core/v7/app/keepers"
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	fxevmkeeper "github.com/functionx/fx-core/v7/x/evm/keeper"
-	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
 )
 
 func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
@@ -29,8 +26,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 
 		UpdateWFXLogicCode(cacheCtx, app.EvmKeeper)
 		UpdateFIP20LogicCode(cacheCtx, app.EvmKeeper)
-		CleanCrosschainAttestations(ctx, app.AppCodec(), app.GetKey(ethtypes.ModuleName))
-		CleanCrosschainAttestations(ctx, app.AppCodec(), app.GetKey(layer2types.ModuleName))
+		FixEthLastObservedEventNonce(ctx, app.EthKeeper)
 		crosschainBridgeCallFrom := autytypes.NewModuleAddress(crosschaintypes.ModuleName)
 		if account := app.AccountKeeper.GetAccount(ctx, crosschainBridgeCallFrom); account == nil {
 			app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccountWithAddress(ctx, crosschainBridgeCallFrom))
@@ -60,19 +56,9 @@ func UpdateFIP20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
 	}
 }
 
-func CleanCrosschainAttestations(ctx sdk.Context, cdc codec.Codec, storeKey storetypes.StoreKey) {
+func FixEthLastObservedEventNonce(ctx sdk.Context, keeper crosschainkeeper.Keeper) {
 	if ctx.ChainID() != fxtypes.TestnetChainId {
 		return
 	}
-	store := ctx.KVStore(storeKey)
-	iter := sdk.KVStorePrefixIterator(store, crosschaintypes.OracleAttestationKey)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		att := new(crosschaintypes.Attestation)
-		cdc.MustUnmarshal(iter.Value(), att)
-		if att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallClaim{}) ||
-			att.Claim.TypeUrl == sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallResultClaim{}) {
-			store.Delete(iter.Key())
-		}
-	}
+	keeper.SetLastObservedEventNonce(ctx, 15636)
 }
