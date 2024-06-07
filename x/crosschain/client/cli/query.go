@@ -51,13 +51,12 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetOracleSetRequest(chainName),
 
 		// need oracle consensus sign
-		// 1. oracle set change confirm
+		// oracle set change confirm
 		CmdGetLastOracleSetRequests(chainName),
 		CmdGetPendingOracleSetRequest(chainName),
 		CmdGetOracleSetConfirm(chainName),
 		CmdGetOracleSetConfirms(chainName),
-
-		// 2. request batch confirm
+		// request batch confirm
 		CmdGetPendingOutgoingTXBatchRequest(chainName),
 		CmdBatchConfirm(chainName),
 		CmdBatchConfirms(chainName),
@@ -76,14 +75,12 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetExternalTokenToDenom(chainName),
 		CmdGetBridgeTokens(chainName),
 		CmdGetBridgeCoinByDenom(chainName),
-
-		// 1. oracle event nonce
-		CmdGetOracleEventNonce(chainName),
-		// 2. event nonce block height
-		CmdGetOracleEventBlockHeight(chainName),
-
-		// help cmd.
 		CmdCovertBridgeToken(chainName),
+
+		// event nonce
+		CmdGetOracleEventNonce(chainName),
+		CmdGetOracleEventBlockHeight(chainName),
+		CmdGetLastObservedEventNonce(chainName),
 
 		// bridge call
 		CmdGetBridgeCalls(chainName),
@@ -746,6 +743,27 @@ func CmdGetOracleEventNonce(chainName string) *cobra.Command {
 				return err
 			}
 			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdGetLastObservedEventNonce(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "last-observed-nonce",
+		Short: "Query last observed event nonce",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryAbciResp, err := clientCtx.QueryABCI(abcitype.RequestQuery{
+				Path: fmt.Sprintf("store/%s/key", chainName),
+				Data: types.LastObservedEventNonceKey,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintString(fmt.Sprintf("%d\n", sdk.BigEndianToUint64(queryAbciResp.Value)))
 		},
 	}
 	return cmd
