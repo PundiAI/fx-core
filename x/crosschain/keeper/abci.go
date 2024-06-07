@@ -63,7 +63,7 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 	batchHasSlash := k.batchSlashing(ctx, oracles, signedWindow)
 	bridgeCallHasSlash := k.bridgeCallSlashing(ctx, oracles, signedWindow)
 	if oracleSetHasSlash || batchHasSlash || bridgeCallHasSlash {
-		k.CommonSetOracleTotalPower(ctx)
+		k.SetLastTotalPower(ctx)
 	}
 }
 

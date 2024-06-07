@@ -69,3 +69,7 @@ func (k Keeper) GetOracleSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
 func (k Keeper) GetBridgeCallTimeout(ctx sdk.Context) uint64 {
 	return k.GetParams(ctx).BridgeCallTimeout
 }
+
+func (k Keeper) GetBridgeCallMaxGasLimit(ctx sdk.Context) uint64 {
+	return k.GetParams(ctx).BridgeCallMaxGasLimit
+}

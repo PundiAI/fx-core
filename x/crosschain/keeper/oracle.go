@@ -37,7 +37,7 @@ func (k Keeper) IsProposalOracle(ctx sdk.Context, oracleAddr string) bool {
 	return false
 }
 
-// --- ADDRESS Bridger --- //
+// --- Bridger ADDRESS --- //
 
 // SetOracleAddrByBridgerAddr sets the bridger key for a given oracle
 func (k Keeper) SetOracleAddrByBridgerAddr(ctx sdk.Context, bridgerAddr, oracleAddr sdk.AccAddress) {
@@ -115,21 +115,17 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdkmath.Int {
 }
 
 // SetLastTotalPower Set the last total validator power.
-func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdkmath.Int) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastTotalPowerKey, k.cdc.MustMarshal(&sdk.IntProto{Int: power}))
-}
-
-func (k Keeper) CommonSetOracleTotalPower(ctx sdk.Context) {
+func (k Keeper) SetLastTotalPower(ctx sdk.Context) {
 	oracles := k.GetAllOracles(ctx, true)
 	totalPower := sdkmath.ZeroInt()
 	for _, oracle := range oracles {
 		totalPower = totalPower.Add(oracle.GetPower())
 	}
-	k.SetLastTotalPower(ctx, totalPower)
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.LastTotalPowerKey, k.cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
 }
 
-// --- ORACLES --- //
+// --- ORACLE --- //
 
 func (k Keeper) IterateOracle(ctx sdk.Context, cb func(oracle types.Oracle) bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -145,21 +141,19 @@ func (k Keeper) IterateOracle(ctx sdk.Context, cb func(oracle types.Oracle) bool
 	}
 }
 
-// SetOracle save Oracle data
 func (k Keeper) SetOracle(ctx sdk.Context, oracle types.Oracle) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetOracleKey(oracle.GetOracle()), k.cdc.MustMarshal(&oracle))
 }
 
-func (k Keeper) HasOracle(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
+func (k Keeper) HasOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) (found bool) {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetOracleKey(addr))
+	return store.Has(types.GetOracleKey(oracleAddr))
 }
 
-// GetOracle get Oracle data
-func (k Keeper) GetOracle(ctx sdk.Context, addr sdk.AccAddress) (oracle types.Oracle, found bool) {
+func (k Keeper) GetOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) (oracle types.Oracle, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.GetOracleKey(addr))
+	value := store.Get(types.GetOracleKey(oracleAddr))
 	if value == nil {
 		return oracle, false
 	}
@@ -167,9 +161,9 @@ func (k Keeper) GetOracle(ctx sdk.Context, addr sdk.AccAddress) (oracle types.Or
 	return oracle, true
 }
 
-func (k Keeper) DelOracle(ctx sdk.Context, oracle sdk.AccAddress) {
+func (k Keeper) DelOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetOracleKey(oracle)
+	key := types.GetOracleKey(oracleAddr)
 	if !store.Has(key) {
 		return
 	}
@@ -192,6 +186,8 @@ func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Ora
 	return oracles
 }
 
+// --- LAST ORACLE SLASH BLOCK HEIGHT --- //
+
 func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddrStr string) {
 	oracleAddr := sdk.MustAccAddressFromBech32(oracleAddrStr)
 	oracle, found := k.GetOracle(ctx, oracleAddr)
@@ -206,4 +202,20 @@ func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddrStr string) {
 	oracle.SlashTimes += 1
 	k.SetOracle(ctx, oracle)
 	k.SetLastOracleSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
+}
+
+// SetLastOracleSlashBlockHeight sets the last proposal block height
+func (k Keeper) SetLastOracleSlashBlockHeight(ctx sdk.Context, blockHeight uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.LastOracleSlashBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
+}
+
+// GetLastOracleSlashBlockHeight returns the last proposal block height
+func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	data := store.Get(types.LastOracleSlashBlockHeight)
+	if len(data) == 0 {
+		return 0
+	}
+	return sdk.BigEndianToUint64(data)
 }

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -75,41 +76,20 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+k.moduleName)
 }
 
-// SetLastOracleSlashBlockHeight sets the last proposal block height
-func (k Keeper) SetLastOracleSlashBlockHeight(ctx sdk.Context, blockHeight uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastOracleSlashBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
-}
-
-// GetLastOracleSlashBlockHeight returns the last proposal block height
-func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.LastOracleSlashBlockHeight)
-	if len(data) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(data)
-}
-
-// SetLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
-func (k Keeper) SetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, blockHeight uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventBlockHeightByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(blockHeight))
-}
-
-// GetLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
-func (k Keeper) GetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetLastEventBlockHeightByOracleKey(oracleAddr)
-	if !store.Has(key) {
-		return 0
-	}
-	data := store.Get(key)
-	return sdk.BigEndianToUint64(data)
-}
-
 func (k Keeper) ModuleName() string {
 	return k.moduleName
+}
+
+func (k Keeper) autoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(idKey)
+	var id uint64 = 1
+	if bz != nil {
+		id = binary.BigEndian.Uint64(bz)
+	}
+	bz = sdk.Uint64ToBigEndian(id + 1)
+	store.Set(idKey, bz)
+	return id
 }
 
 func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr common.Address, coins sdk.Coins, to common.Address, data, memo []byte, value sdkmath.Int, isMemoSendCallTo bool) error {
@@ -132,7 +112,7 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr common.Address
 		callEvmSender = k.GetCallbackFrom()
 	}
 
-	gasLimit := k.GetParams(ctx).BridgeCallMaxGasLimit
+	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
 	txResp, err := k.evmKeeper.CallEVM(ctx, callEvmSender, &to, value.BigInt(), gasLimit, args, true)
 	if err != nil {
 		return err

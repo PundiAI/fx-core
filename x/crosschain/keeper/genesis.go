@@ -45,7 +45,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		k.SetOracleAddrByExternalAddr(ctx, oracle.ExternalAddress, oracle.GetOracle())
 	}
 	// 0x39
-	k.CommonSetOracleTotalPower(ctx)
+	k.SetLastTotalPower(ctx)
 
 	latestOracleSetNonce := uint64(0)
 	for i := 0; i < len(state.OracleSets); i++ {
