@@ -91,7 +91,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	s.SetOracle(ctx, oracle)
 	s.SetOracleAddrByBridgerAddr(ctx, bridgerAddr, oracleAddr)
 	s.SetOracleAddrByExternalAddr(ctx, msg.ExternalAddress, oracleAddr)
-	s.CommonSetOracleTotalPower(ctx)
+	s.SetLastTotalPower(ctx)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -165,7 +165,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	oracle.SlashTimes = 0
 
 	s.SetOracle(ctx, oracle)
-	s.CommonSetOracleTotalPower(ctx)
+	s.SetLastTotalPower(ctx)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

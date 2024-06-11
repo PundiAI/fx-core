@@ -354,8 +354,7 @@ func (k QueryServer) Oracles(c context.Context, _ *types.QueryOraclesRequest) (*
 
 func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	params := k.GetParams(ctx)
-	timeout := k.CalExternalTimeoutHeight(ctx, params, params.ExternalBatchTimeout)
+	timeout := k.CalExternalTimeoutHeight(ctx, GetExternalBatchTimeout)
 	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: timeout}, nil
 }
 

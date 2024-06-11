@@ -131,6 +131,8 @@ func (k Keeper) processAttestation(ctx sdk.Context, claim types.ExternalClaim) e
 	return nil
 }
 
+// --- Attestation --- //
+
 // SetAttestation sets the attestation in the store
 func (k Keeper) SetAttestation(ctx sdk.Context, eventNonce uint64, claimHash []byte, att *types.Attestation) {
 	store := ctx.KVStore(k.storeKey)
@@ -193,47 +195,7 @@ func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(*types.Attestation)
 	}
 }
 
-// GetLastObservedEventNonce returns the latest observed event nonce
-func (k Keeper) GetLastObservedEventNonce(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	bytes := store.Get(types.LastObservedEventNonceKey)
-	if len(bytes) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(bytes)
-}
-
-// SetLastObservedEventNonce sets the latest observed event nonce
-func (k Keeper) SetLastObservedEventNonce(ctx sdk.Context, eventNonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedEventNonceKey, sdk.Uint64ToBigEndian(eventNonce))
-}
-
-// GetLastObservedBlockHeight height gets the block height to of the last observed attestation from
-// the store
-func (k Keeper) GetLastObservedBlockHeight(ctx sdk.Context) types.LastObservedBlockHeight {
-	store := ctx.KVStore(k.storeKey)
-	bytes := store.Get(types.LastObservedBlockHeightKey)
-	if len(bytes) == 0 {
-		return types.LastObservedBlockHeight{
-			ExternalBlockHeight: 0,
-			BlockHeight:         0,
-		}
-	}
-	height := types.LastObservedBlockHeight{}
-	k.cdc.MustUnmarshal(bytes, &height)
-	return height
-}
-
-// SetLastObservedBlockHeight sets the block height in the store.
-func (k Keeper) SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight, blockHeight uint64) {
-	store := ctx.KVStore(k.storeKey)
-	height := types.LastObservedBlockHeight{
-		ExternalBlockHeight: externalBlockHeight,
-		BlockHeight:         blockHeight,
-	}
-	store.Set(types.LastObservedBlockHeightKey, k.cdc.MustMarshal(&height))
-}
+// --- LAST EVENT NONCE BY ORACLE --- //
 
 // GetLastEventNonceByOracle returns the latest event nonce for a given oracle
 func (k Keeper) GetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
@@ -271,21 +233,21 @@ func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAdd
 	store.Set(types.GetLastEventNonceByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(eventNonce))
 }
 
-// CalExternalTimeoutHeight This gets the timeout height in External blocks.
-func (k Keeper) CalExternalTimeoutHeight(ctx sdk.Context, params types.Params, timeout uint64) uint64 {
-	currentFxHeight := ctx.BlockHeight()
-	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
-	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
-	heights := k.GetLastObservedBlockHeight(ctx)
-	if heights.ExternalBlockHeight == 0 {
+// --- LAST EVENT BLOCK HEIGHT BY ORACLE --- //
+
+// SetLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
+func (k Keeper) SetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, blockHeight uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetLastEventBlockHeightByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(blockHeight))
+}
+
+// GetLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
+func (k Keeper) GetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetLastEventBlockHeightByOracleKey(oracleAddr)
+	if !store.Has(key) {
 		return 0
 	}
-	// we project how long it has been in milliseconds since the last Ethereum block height was observed
-	projectedMillis := (uint64(currentFxHeight) - heights.BlockHeight) * params.AverageBlockTime
-	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
-	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
-	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to
-	// place on top of our projection of the current Ethereum block height.
-	blocksToAdd := timeout / params.AverageExternalBlockTime
-	return projectedCurrentEthereumHeight + blocksToAdd
+	data := store.Get(key)
+	return sdk.BigEndianToUint64(data)
 }

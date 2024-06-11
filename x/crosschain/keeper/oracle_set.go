@@ -34,7 +34,7 @@ func (k Keeper) UpdateOracleSetExecuted(ctx sdk.Context, claim *types.MsgOracleS
 	return nil
 }
 
-// --- ORACLE SET REQUESTS --- //
+// --- ORACLE SET --- //
 
 // GetCurrentOracleSet gets powers from the store and normalizes them
 // into an integer percentage with a resolution of uint32 Max meaning
@@ -80,14 +80,7 @@ func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 	}
 	k.StoreOracleSet(ctx, currentOracleSet)
 	k.SetLatestOracleSetNonce(ctx, currentOracleSet.Nonce)
-
-	k.CommonSetOracleTotalPower(ctx)
-
-	// checkpoint, err := currentOracleSet.GetCheckpoint(k.GetGravityID(ctx))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
+	k.SetLastTotalPower(ctx)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOracleSetUpdate,
@@ -114,22 +107,6 @@ func (k Keeper) DeleteOracleSet(ctx sdk.Context, nonce uint64) {
 	ctx.KVStore(k.storeKey).Delete(types.GetOracleSetKey(nonce))
 }
 
-// SetLatestOracleSetNonce sets the latest oracleSet nonce
-func (k Keeper) SetLatestOracleSetNonce(ctx sdk.Context, nonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LatestOracleSetNonce, sdk.Uint64ToBigEndian(nonce))
-}
-
-// GetLatestOracleSetNonce returns the latest oracleSet nonce
-func (k Keeper) GetLatestOracleSetNonce(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.LatestOracleSetNonce)
-	if len(data) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(data)
-}
-
 // GetOracleSet returns a oracleSet by nonce
 func (k Keeper) GetOracleSet(ctx sdk.Context, nonce uint64) *types.OracleSet {
 	store := ctx.KVStore(k.storeKey)
@@ -140,6 +117,21 @@ func (k Keeper) GetOracleSet(ctx sdk.Context, nonce uint64) *types.OracleSet {
 	var oracleSet types.OracleSet
 	k.cdc.MustUnmarshal(bz, &oracleSet)
 	return &oracleSet
+}
+
+// GetOracleSets used in testing
+func (k Keeper) GetOracleSets(ctx sdk.Context) (oracleSets types.OracleSets) {
+	k.IterateOracleSets(ctx, false, func(set *types.OracleSet) bool {
+		oracleSets = append(oracleSets, set)
+		return false
+	})
+	return
+}
+
+// GetLatestOracleSet returns the latest oracle set in state
+func (k Keeper) GetLatestOracleSet(ctx sdk.Context) *types.OracleSet {
+	latestOracleSetNonce := k.GetLatestOracleSetNonce(ctx)
+	return k.GetOracleSet(ctx, latestOracleSetNonce)
 }
 
 // IterateOracleSets returns all oracleSet
@@ -163,50 +155,6 @@ func (k Keeper) IterateOracleSets(ctx sdk.Context, reverse bool, cb func(*types.
 	}
 }
 
-// GetOracleSets used in testing
-func (k Keeper) GetOracleSets(ctx sdk.Context) (oracleSets types.OracleSets) {
-	k.IterateOracleSets(ctx, false, func(set *types.OracleSet) bool {
-		oracleSets = append(oracleSets, set)
-		return false
-	})
-	return
-}
-
-// GetLatestOracleSet returns the latest oracle set in state
-func (k Keeper) GetLatestOracleSet(ctx sdk.Context) *types.OracleSet {
-	latestOracleSetNonce := k.GetLatestOracleSetNonce(ctx)
-	return k.GetOracleSet(ctx, latestOracleSetNonce)
-}
-
-// SetLastSlashedOracleSetNonce sets the latest slashed oracleSet nonce
-func (k Keeper) SetLastSlashedOracleSetNonce(ctx sdk.Context, nonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastSlashedOracleSetNonce, sdk.Uint64ToBigEndian(nonce))
-}
-
-// GetLastSlashedOracleSetNonce returns the latest slashed oracleSet nonce
-func (k Keeper) GetLastSlashedOracleSetNonce(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.LastSlashedOracleSetNonce)
-	if len(data) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(data)
-}
-
-// GetUnSlashedOracleSets returns all the unSlashed oracle sets in state
-func (k Keeper) GetUnSlashedOracleSets(ctx sdk.Context, maxHeight uint64) (oracleSets types.OracleSets) {
-	lastSlashedOracleSetNonce := k.GetLastSlashedOracleSetNonce(ctx) + 1
-	k.IterateOracleSetByNonce(ctx, lastSlashedOracleSetNonce, func(oracleSet *types.OracleSet) bool {
-		if maxHeight > oracleSet.Height {
-			oracleSets = append(oracleSets, oracleSet)
-			return false
-		}
-		return true
-	})
-	return
-}
-
 // IterateOracleSetByNonce iterates through all oracleSet by nonce
 func (k Keeper) IterateOracleSetByNonce(ctx sdk.Context, startNonce uint64, cb func(*types.OracleSet) bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -225,71 +173,33 @@ func (k Keeper) IterateOracleSetByNonce(ctx sdk.Context, startNonce uint64, cb f
 	}
 }
 
-// --- ORACLE SET CONFIRMS --- //
+// --- LATEST ORACLE SET NONCE --- //
 
-// GetOracleSetConfirm returns a oracleSet confirmation by a nonce and external address
-func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) *types.MsgOracleSetConfirm {
+// SetLatestOracleSetNonce sets the latest oracleSet nonce
+func (k Keeper) SetLatestOracleSetNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	entity := store.Get(types.GetOracleSetConfirmKey(nonce, oracleAddr))
-	if entity == nil {
-		return nil
+	store.Set(types.LatestOracleSetNonce, sdk.Uint64ToBigEndian(nonce))
+}
+
+// GetLatestOracleSetNonce returns the latest oracleSet nonce
+func (k Keeper) GetLatestOracleSetNonce(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	data := store.Get(types.LatestOracleSetNonce)
+	if len(data) == 0 {
+		return 0
 	}
-	confirm := types.MsgOracleSetConfirm{}
-	k.cdc.MustUnmarshal(entity, &confirm)
-	return &confirm
+	return sdk.BigEndianToUint64(data)
 }
 
-// SetOracleSetConfirm sets a oracleSet confirmation
-func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm *types.MsgOracleSetConfirm) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetOracleSetConfirmKey(oracleSetConfirm.Nonce, oracleAddr)
-	store.Set(key, k.cdc.MustMarshal(oracleSetConfirm))
-}
-
-// IterateOracleSetConfirmByNonce iterates through all oracleSet confirms by nonce
-func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(*types.MsgOracleSetConfirm) bool) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetOracleSetConfirmKey(nonce, sdk.AccAddress{}))
-	defer iter.Close()
-
-	for ; iter.Valid(); iter.Next() {
-		confirm := new(types.MsgOracleSetConfirm)
-		k.cdc.MustUnmarshal(iter.Value(), confirm)
-		// cb returns true to stop early
-		if cb(confirm) {
-			break
+// GetUnSlashedOracleSets returns all the unSlashed oracle sets in state
+func (k Keeper) GetUnSlashedOracleSets(ctx sdk.Context, maxHeight uint64) (oracleSets types.OracleSets) {
+	lastSlashedOracleSetNonce := k.GetLastSlashedOracleSetNonce(ctx) + 1
+	k.IterateOracleSetByNonce(ctx, lastSlashedOracleSetNonce, func(oracleSet *types.OracleSet) bool {
+		if maxHeight > oracleSet.Height {
+			oracleSets = append(oracleSets, oracleSet)
+			return false
 		}
-	}
-}
-
-func (k Keeper) DeleteOracleSetConfirm(ctx sdk.Context, nonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetOracleSetConfirmKey(nonce, sdk.AccAddress{}))
-	defer iter.Close()
-
-	for ; iter.Valid(); iter.Next() {
-		store.Delete(iter.Key())
-	}
-}
-
-// GetLastObservedOracleSet retrieves the last observed oracle set from the store
-// WARNING: This value is not an up to date oracle set on Ethereum, it is a oracle set
-// that AT ONE POINT was the one in the bridge on Ethereum. If you assume that it's up
-// to date you may break the bridge
-func (k Keeper) GetLastObservedOracleSet(ctx sdk.Context) *types.OracleSet {
-	store := ctx.KVStore(k.storeKey)
-	bytes := store.Get(types.LastObservedOracleSetKey)
-
-	if len(bytes) == 0 {
-		return nil
-	}
-	oracleSet := types.OracleSet{}
-	k.cdc.MustUnmarshal(bytes, &oracleSet)
-	return &oracleSet
-}
-
-// SetLastObservedOracleSet updates the last observed oracle set in the store
-func (k Keeper) SetLastObservedOracleSet(ctx sdk.Context, oracleSet *types.OracleSet) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedOracleSetKey, k.cdc.MustMarshal(oracleSet))
+		return true
+	})
+	return
 }
