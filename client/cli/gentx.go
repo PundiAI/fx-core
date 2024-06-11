@@ -31,8 +31,6 @@ import (
 	"github.com/spf13/cobra"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 // GenTxCmd builds the application's gentx command.
@@ -335,7 +333,7 @@ func ValidateAccountInGenesis(
 	appGenesisState map[string]json.RawMessage, genBalIterator types.GenesisBalancesIterator,
 	addr sdk.Address, coins sdk.Coins, cdc codec.JSONCodec,
 ) error {
-	var stakingData fxstakingtypes.GenesisState
+	var stakingData stakingtypes.GenesisState
 	cdc.MustUnmarshalJSON(appGenesisState[stakingtypes.ModuleName], &stakingData)
 	bondDenom := stakingData.Params.BondDenom
 

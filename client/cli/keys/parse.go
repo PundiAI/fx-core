@@ -2,6 +2,7 @@ package keys
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -11,8 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/spf13/cobra"
-
-	"github.com/functionx/fx-core/v7/client/cli"
 )
 
 const prefixFlag = "prefix"
@@ -85,7 +84,11 @@ func ParseAddressCommand() *cobra.Command {
 				}
 			}
 
-			return cli.PrintOutput(clientCtx, outputMap)
+			raw, err := json.Marshal(outputMap)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintRaw(raw)
 		},
 	}
 	cmd.Flags().String(prefixFlag, "fx", "custom address prefix")

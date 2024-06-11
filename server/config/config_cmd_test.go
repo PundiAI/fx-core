@@ -200,7 +200,7 @@ func Test_configTomlConfig_output(t *testing.T) {
 		OutputFormat: "json",
 	}
 	assert.NoError(t, c.output(clientCtx))
-	assert.Equal(t, tmConfigJson, buf.String())
+	assert.JSONEq(t, tmConfigJson, buf.String())
 }
 
 func Test_appTomlConfig_output(t *testing.T) {
@@ -326,5 +326,5 @@ func Test_appTomlConfig_output(t *testing.T) {
 		OutputFormat: "json",
 	}
 	assert.NoError(t, c.output(clientCtx))
-	assert.Equal(t, appConfigJson, buf.String())
+	assert.JSONEq(t, appConfigJson, buf.String())
 }

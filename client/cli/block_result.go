@@ -53,7 +53,11 @@ func QueryBlockResultsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return PrintOutput(clientCtx, output)
+			raw, err := json.Marshal(output)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintRaw(raw)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
