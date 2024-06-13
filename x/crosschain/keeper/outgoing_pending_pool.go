@@ -42,12 +42,18 @@ func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.A
 	var txId uint64
 	var provideLiquidityTxIds []uint64
 	var rewards sdk.Coins
+	liquidationSize := 0
 	// iterator pending outgoing tx by bridgeToken contract address
 	k.IteratorPendingOutgoingTxByBridgeTokenContractAddr(cacheContext, bridgeToken.Token, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
+		// only allow to provide liquidity for MaxLiquidationSize times, avoid to exceed the limit
+		liquidationSize++
+		if liquidationSize >= types.MaxLiquidationSize {
+			return true
+		}
 		// 1. check erc20 module has enough balance
 		transferCoin := sdk.NewCoin(bridgeToken.Denom, pendingOutgoingTx.Token.Amount.Add(pendingOutgoingTx.Fee.Amount))
 		if !k.bankKeeper.HasBalance(ctx, erc20ModuleAddress, transferCoin) {
-			return true
+			return false
 		}
 
 		// 2. transfer coin from erc20 module to sender
