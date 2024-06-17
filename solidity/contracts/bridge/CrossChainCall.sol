@@ -160,6 +160,8 @@ library Encode {
     }
 }
 
+// NOTE: if using a version of solidity earlier than 0.8.10,
+// invoke the precompiled contract using the current library
 library CrossChainCall {
     address public constant CROSS_CHAIN_ADDRESS =
         address(0x0000000000000000000000000000000000001004);

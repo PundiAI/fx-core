@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.10;
 
+// NOTE: if using an interface to invoke the precompiled contract
+// need to use solidity version 0.8.10 and later.
 interface IBridgeCall {
     function bridgeCall(
         string memory _dstChain,
