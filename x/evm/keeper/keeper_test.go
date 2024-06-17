@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, nil, true)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp.VmError)
-	suite.Equal(uint64(1715899), rsp.GasUsed)
+	suite.Equal(uint64(1714861), rsp.GasUsed)
 	contractAddress := crypto.CreateAddress(suite.signer.Address(), nonce)
 
 	args, err = contract.GetFIP20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenHexAddress())

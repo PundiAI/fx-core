@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.10;
 
 import {IBridgeCall} from "./IBridgeCall.sol";
 
+// NOTE: if using an interface to invoke the precompiled contract
+// need to use solidity version 0.8.10 and later.
 interface ICrossChain is IBridgeCall {
     function crossChain(
         address _token,
