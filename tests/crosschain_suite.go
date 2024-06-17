@@ -440,7 +440,6 @@ func (suite *CrosschainTestSuite) CheckIncreaseBridgeFee(sender sdk.AccAddress, 
 }
 
 func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
-	msgList := make([]sdk.Msg, 0)
 	batchFeeResponse, err := suite.CrosschainQuery().BatchFees(suite.ctx, &crosschaintypes.QueryBatchFeeRequest{ChainName: suite.chainName})
 	suite.NoError(err)
 	suite.True(len(batchFeeResponse.BatchFees) >= 1)
@@ -453,6 +452,7 @@ func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
 		})
 		suite.NoError(err)
 
+		msgList := make([]sdk.Msg, 0)
 		msgList = append(msgList, &crosschaintypes.MsgRequestBatch{
 			Sender:     suite.BridgerAddr().String(),
 			Denom:      denomResponse.Denom,
@@ -460,8 +460,9 @@ func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
 			FeeReceive: suite.HexAddressString(),
 			ChainName:  suite.chainName,
 		})
+		suite.BroadcastTx(suite.bridgerPrivKey, msgList...)
+		suite.NoError(suite.network.WaitForNextBlock())
 	}
-	suite.BroadcastTx(suite.bridgerPrivKey, msgList...)
 }
 
 func (suite *CrosschainTestSuite) SendConfirmBatch() {
