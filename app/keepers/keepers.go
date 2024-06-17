@@ -500,6 +500,7 @@ func NewAppKeeper(
 		appCodec,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	initGovStoreSpace(appKeepers)
 
 	ibcTransferRouter := fxibctransfertypes.NewRouter().
 		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper).
@@ -593,5 +594,12 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable()) // nolint: staticcheck
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
 	paramsKeeper.Subspace(erc20types.ModuleName)
+
 	return paramsKeeper
+}
+
+func initGovStoreSpace(keepers *AppKeepers) {
+	for space, kvStore := range keepers.GetKVStoreKey() {
+		keepers.GovKeeper.StoreSpace(space, kvStore)
+	}
 }

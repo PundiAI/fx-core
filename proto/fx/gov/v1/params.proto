@@ -56,3 +56,12 @@ message EGFParams {
     (gogoproto.jsontag) = "claim_ratio,omitempty"
   ];
 }
+
+message UpdateStore {
+  option (gogoproto.goproto_stringer) = false;
+
+  string space = 1;
+  string key = 2;
+  string old_value = 3;
+  string value = 4;
+}

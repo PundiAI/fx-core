@@ -149,6 +149,23 @@ func (k msgServer) UpdateEGFParams(c context.Context, req *types.MsgUpdateEGFPar
 	return &types.MsgUpdateEGFParamsResponse{}, nil
 }
 
+func (k msgServer) UpdateStore(c context.Context, req *types.MsgUpdateStore) (*types.MsgUpdateStoreResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	for _, store := range req.Stores {
+		sp, ok := k.GetStoreSpace(store.Space)
+		if !ok {
+			return nil, errortypes.ErrInvalidRequest.Wrap("invalid store space")
+		}
+		if err := sp.Update(ctx, store.KeyToBytes(), store.OldValueToBytes(), store.ValueToBytes()); err != nil {
+			return nil, errortypes.ErrInvalidRequest.Wrap(err.Error())
+		}
+	}
+	return &types.MsgUpdateStoreResponse{}, nil
+}
+
 type LegacyMsgServer struct {
 	govAcct string
 	server  v1.MsgServer

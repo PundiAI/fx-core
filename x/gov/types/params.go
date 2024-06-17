@@ -1,12 +1,15 @@
 package types
 
 import (
+	"bytes"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -238,4 +241,28 @@ func CheckEGFProposalMsg(msgs []*codectypes.Any) (bool, sdk.Coins) {
 		}
 	}
 	return true, totalCommunityPoolSpendAmount
+}
+
+type StoreSpace struct {
+	key      string
+	storeKey storetypes.StoreKey
+}
+
+func NewStoreSpace(key string, storeKey storetypes.StoreKey) StoreSpace {
+	return StoreSpace{
+		key:      key,
+		storeKey: storeKey,
+	}
+}
+
+func (s StoreSpace) Update(ctx sdk.Context, key, oldValue, value []byte) error {
+	store := ctx.KVStore(s.storeKey)
+
+	storeValue := store.Get(key)
+	if !bytes.Equal(storeValue, oldValue) {
+		return fmt.Errorf("old value not equal store value: %s", hex.EncodeToString(storeValue))
+	}
+	store.Set(key, value)
+
+	return nil
 }
