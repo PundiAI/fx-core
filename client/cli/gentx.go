@@ -333,8 +333,14 @@ func ValidateAccountInGenesis(
 	appGenesisState map[string]json.RawMessage, genBalIterator types.GenesisBalancesIterator,
 	addr sdk.Address, coins sdk.Coins, cdc codec.JSONCodec,
 ) error {
-	var stakingData stakingtypes.GenesisState
-	cdc.MustUnmarshalJSON(appGenesisState[stakingtypes.ModuleName], &stakingData)
+	var stakingData struct {
+		Params struct {
+			BondDenom string `json:"bond_denom"`
+		} `json:"params"`
+	}
+	if err := json.Unmarshal(appGenesisState[stakingtypes.ModuleName], &stakingData); err != nil {
+		return err
+	}
 	bondDenom := stakingData.Params.BondDenom
 
 	var err error
