@@ -13,29 +13,55 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, error) {
+func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, sdk.Coins, error) {
 	tokens := make([]types.ERC20Token, 0, len(coins))
+	notLiquidCoins := sdk.NewCoins()
 	for _, coin := range coins {
 		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, coin, fxtypes.ParseFxTarget(k.moduleName))
-		if err != nil {
-			return nil, err
+		if err != nil && !erc20types.IsInsufficientLiquidityErr(err) {
+			return nil, nil, err
 		}
 		bridgeToken := k.GetDenomBridgeToken(ctx, targetCoin.Denom)
 		if bridgeToken == nil {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
-		}
-
-		if err = k.TransferBridgeCoinToExternal(ctx, sender, targetCoin); err != nil {
-			return nil, err
+			return nil, nil, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
 		}
 		tokens = append(tokens, types.NewERC20Token(targetCoin.Amount, bridgeToken.Token))
+		if erc20types.IsInsufficientLiquidityErr(err) {
+			notLiquidCoins = notLiquidCoins.Add(targetCoin)
+			continue
+		}
+		if err = k.TransferBridgeCoinToExternal(ctx, sender, targetCoin); err != nil {
+			return nil, nil, err
+		}
 	}
-	return tokens, nil
+	return tokens, notLiquidCoins, nil
 }
 
-func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
+func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error) {
+	outCall, err := k.BuildOutgoingBridgeCall(ctx, sender, refundAddr, tokens, to, data, memo, eventNonce)
+	if err != nil {
+		return 0, err
+	}
+	return k.AddOutgoingBridgeCallWithoutBuild(ctx, outCall), nil
+}
+
+func (k Keeper) AddOutgoingBridgeCallWithoutBuild(ctx sdk.Context, outCall *types.OutgoingBridgeCall) uint64 {
+	k.SetOutgoingBridgeCall(ctx, outCall)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeBridgeCall,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, outCall.Sender),
+		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(outCall.Nonce)),
+	))
+
+	return outCall.Nonce
+}
+
+func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender common.Address, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data []byte, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, GetBridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge call timeout height")
@@ -55,15 +81,6 @@ func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common
 		Memo:        hex.EncodeToString(memo),
 		EventNonce:  eventNonce,
 	}
-	k.SetOutgoingBridgeCall(ctx, outCall)
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeBridgeCall,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, outCall.Sender),
-		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(outCall.Nonce)),
-	))
-
 	return outCall, nil
 }
 

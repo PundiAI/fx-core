@@ -267,3 +267,13 @@ message OutgoingBridgeCall {
   uint64 block_height = 9;
   uint64 event_nonce = 10;
 }
+
+message PendingOutgoingBridgeCall {
+  OutgoingBridgeCall outgoin_bridge_call = 1;
+  NotLiquidCoins not_liquid_coins = 2 [(gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin rewards = 3 [(gogoproto.nullable) = false];
+}
+
+message NotLiquidCoins {
+  repeated cosmos.base.v1beta1.Coin not_liquid_coins = 1 [(gogoproto.nullable) = false];
+}

@@ -34,14 +34,14 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	if err != nil && len(tokens) > 0 {
 		// new outgoing bridge call to refund
-		outCall, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, erc20Token, common.Address{}, nil, nil, msg.EventNonce)
+		outCallNonce, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, erc20Token, common.Address{}, nil, nil, msg.EventNonce)
 		if err != nil {
 			return err
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeBridgeCallRefundOut,
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", msg.EventNonce)),
-			sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCall.Nonce)),
+			sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCallNonce)),
 		))
 	}
 
@@ -50,6 +50,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 			bridgeToken := k.GetBridgeTokenDenom(ctx, erc20Token[i].Contract)
 			// no need for a double check here, as the bridge token should exist
 			k.HandlePendingOutgoingTx(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeToken)
+			k.HandlePendingOutgoingBridgeCall(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeToken)
 		}
 	}
 	return nil

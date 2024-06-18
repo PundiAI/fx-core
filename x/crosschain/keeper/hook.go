@@ -43,15 +43,21 @@ func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender
 }
 
 func (k Keeper) PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (nonce uint64, err error) {
-	tokens, err := k.BridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
+	tokens, notLiquidCoins, err := k.BridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
 	if err != nil {
 		return 0, err
 	}
 
-	outCall, err := k.AddOutgoingBridgeCall(ctx, sender, refund, tokens, to, data, memo, 0)
+	var outCallNonce uint64
+	if len(notLiquidCoins) > 0 {
+		outCallNonce, err = k.AddPendingOutgoingBridgeCall(ctx, sender, refund, tokens, to, data, memo, 0, notLiquidCoins)
+	} else {
+		outCallNonce, err = k.AddOutgoingBridgeCall(ctx, sender, refund, tokens, to, data, memo, 0)
+	}
+
 	if err != nil {
 		return 0, err
 	}
 
-	return outCall.Nonce, nil
+	return outCallNonce, nil
 }

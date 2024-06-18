@@ -593,18 +593,23 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	tokens, err := s.BridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
+	tokens, notLiquidCoins, err := s.BridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
 	if err != nil {
 		return nil, err
 	}
 
-	outCall, err := s.AddOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0)
+	var outCallNonce uint64
+	if len(notLiquidCoins) > 0 {
+		outCallNonce, err = s.AddPendingOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0, notLiquidCoins)
+	} else {
+		outCallNonce, err = s.AddOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0)
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	// bridge call from msg
-	s.SetBridgeCallFromMsg(ctx, outCall.Nonce)
+	s.SetBridgeCallFromMsg(ctx, outCallNonce)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
