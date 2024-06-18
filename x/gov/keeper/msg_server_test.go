@@ -319,12 +319,12 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 func (suite *KeeperTestSuite) TestSubmitUpdateStoreProposal() {
 	testCases := []struct {
 		testName string
-		changes  []types.UpdateStore
+		stores   []types.UpdateStore
 		pass     bool
 	}{
 		{
 			testName: "success",
-			changes: []types.UpdateStore{
+			stores: []types.UpdateStore{
 				{
 					Space:    "eth",
 					Key:      hex.EncodeToString(crosschaintypes.LastObservedBlockHeightKey),
@@ -336,7 +336,7 @@ func (suite *KeeperTestSuite) TestSubmitUpdateStoreProposal() {
 		},
 		{
 			testName: "invalid store space",
-			changes: []types.UpdateStore{
+			stores: []types.UpdateStore{
 				{
 					Space:    "eth1",
 					Key:      hex.EncodeToString(crosschaintypes.LastObservedBlockHeightKey),
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestSubmitUpdateStoreProposal() {
 		},
 		{
 			testName: "invalid old value",
-			changes: []types.UpdateStore{
+			stores: []types.UpdateStore{
 				{
 					Space:    "eth1",
 					Key:      hex.EncodeToString(crosschaintypes.LastObservedBlockHeightKey),
@@ -359,7 +359,7 @@ func (suite *KeeperTestSuite) TestSubmitUpdateStoreProposal() {
 	}
 
 	for _, tc := range testCases {
-		msg := types.NewMsgUpdateStore(authtypes.NewModuleAddress(govtypes.ModuleName).String(), tc.changes)
+		msg := types.NewMsgUpdateStore(authtypes.NewModuleAddress(govtypes.ModuleName).String(), tc.stores)
 		_, err := suite.MsgServer.UpdateStore(sdk.WrapSDKContext(suite.ctx), msg)
 		if tc.pass {
 			suite.NoError(err)
