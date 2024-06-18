@@ -108,7 +108,7 @@ func (m *MsgUpdateStore) ValidateBasic() error {
 		return errorsmod.Wrap(err, "authority")
 	}
 	if len(m.Stores) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("submitted store changes are empty")
+		return sdkerrors.ErrInvalidRequest.Wrap("stores are empty")
 	}
 	for _, s := range m.Stores {
 		if len(s.Space) == 0 {

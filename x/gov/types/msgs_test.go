@@ -88,12 +88,12 @@ func TestNewMsgUpdateEGFParams(t *testing.T) {
 func TestNewMsgUpdateStore(t *testing.T) {
 	testCases := []struct {
 		Name       string
-		Changes    []types.UpdateStore
+		Stores     []types.UpdateStore
 		ExpectPass bool
 	}{
 		{
 			Name: "success",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "eth",
 				Key:      "01",
 				OldValue: "01",
@@ -103,7 +103,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 		{
 			Name: "empty store space",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "",
 				Key:      "01",
 				OldValue: "01",
@@ -113,7 +113,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 		{
 			Name: "empty key",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "eth",
 				Key:      "",
 				OldValue: "01",
@@ -123,7 +123,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 		{
 			Name: "invalid key",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "eth",
 				Key:      "-",
 				OldValue: "01",
@@ -133,7 +133,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 		{
 			Name: "empty old value",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "eth",
 				Key:      "01",
 				OldValue: "",
@@ -143,7 +143,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 		{
 			Name: "invalid old value",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "eth",
 				Key:      "01",
 				OldValue: "-",
@@ -153,7 +153,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 		{
 			Name: "empty value",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "eth",
 				Key:      "01",
 				OldValue: "01",
@@ -163,7 +163,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 		{
 			Name: "invalid value",
-			Changes: []types.UpdateStore{{
+			Stores: []types.UpdateStore{{
 				Space:    "eth",
 				Key:      "01",
 				OldValue: "01",
@@ -173,7 +173,7 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		msg := types.NewMsgUpdateStore(authtypes.NewModuleAddress(govtypes.ModuleName).String(), tc.Changes)
+		msg := types.NewMsgUpdateStore(authtypes.NewModuleAddress(govtypes.ModuleName).String(), tc.Stores)
 		if tc.ExpectPass {
 			require.NoError(t, msg.ValidateBasic(), "test: %s", tc.Name)
 		} else {
