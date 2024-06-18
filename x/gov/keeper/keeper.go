@@ -28,6 +28,8 @@ type Keeper struct {
 	cdc codec.BinaryCodec
 
 	authority string
+
+	storeSpaces map[string]*types.StoreSpace
 }
 
 func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key storetypes.StoreKey, gk govkeeper.Keeper, config types.Config, cdc codec.BinaryCodec, authority string) Keeper {
@@ -45,13 +47,14 @@ func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key storetypes
 		config.MaxMetadataLen = types.DefaultConfig().MaxMetadataLen
 	}
 	return Keeper{
-		storeKey:   key,
-		bankKeeper: bk,
-		sk:         sk,
-		Keeper:     gk,
-		config:     config,
-		cdc:        cdc,
-		authority:  authority,
+		storeKey:    key,
+		bankKeeper:  bk,
+		sk:          sk,
+		Keeper:      gk,
+		config:      config,
+		cdc:         cdc,
+		authority:   authority,
+		storeSpaces: make(map[string]*types.StoreSpace),
 	}
 }
 
@@ -171,4 +174,28 @@ func (keeper Keeper) InitFxGovParams(ctx sdk.Context) error {
 		return err
 	}
 	return nil
+}
+
+func (keeper Keeper) StoreSpace(s string, storeKey storetypes.StoreKey) types.StoreSpace {
+	_, ok := keeper.storeSpaces[s]
+	if ok {
+		panic("store space already occupied")
+	}
+
+	if s == "" {
+		panic("cannot use empty string for store space")
+	}
+
+	space := types.NewStoreSpace(s, storeKey)
+	keeper.storeSpaces[s] = &space
+
+	return space
+}
+
+func (keeper Keeper) GetStoreSpace(s string) (types.StoreSpace, bool) {
+	space, ok := keeper.storeSpaces[s]
+	if !ok {
+		return types.StoreSpace{}, false
+	}
+	return *space, ok
 }

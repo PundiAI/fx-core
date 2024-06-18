@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -18,6 +20,7 @@ import (
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	"github.com/functionx/fx-core/v7/x/gov/types"
 )
@@ -310,6 +313,60 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 			continue
 		}
 		suite.True(sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}.IsEqual(proposal.TotalDeposit))
+	}
+}
+
+func (suite *KeeperTestSuite) TestSubmitUpdateStoreProposal() {
+	testCases := []struct {
+		testName string
+		stores   []types.UpdateStore
+		pass     bool
+	}{
+		{
+			testName: "success",
+			stores: []types.UpdateStore{
+				{
+					Space:    "eth",
+					Key:      hex.EncodeToString(crosschaintypes.LastObservedBlockHeightKey),
+					OldValue: "",
+					Value:    "01",
+				},
+			},
+			pass: true,
+		},
+		{
+			testName: "invalid store space",
+			stores: []types.UpdateStore{
+				{
+					Space:    "eth1",
+					Key:      hex.EncodeToString(crosschaintypes.LastObservedBlockHeightKey),
+					OldValue: "",
+					Value:    "01",
+				},
+			},
+		},
+		{
+			testName: "invalid old value",
+			stores: []types.UpdateStore{
+				{
+					Space:    "eth1",
+					Key:      hex.EncodeToString(crosschaintypes.LastObservedBlockHeightKey),
+					OldValue: "01",
+					Value:    "01",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		msg := types.NewMsgUpdateStore(authtypes.NewModuleAddress(govtypes.ModuleName).String(), tc.stores)
+		_, err := suite.MsgServer.UpdateStore(sdk.WrapSDKContext(suite.ctx), msg)
+		if tc.pass {
+			suite.NoError(err)
+		} else {
+			suite.Error(err)
+		}
+
 	}
 }
 

@@ -34,13 +34,13 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	for typeURLMap.Next() {
 		count3++
 	}
-	assert.Equal(t, 274, count3)
+	assert.Equal(t, 276, count3)
 
 	govContent := encodingConfig.InterfaceRegistry.ListImplementations("cosmos.gov.v1beta1.Content")
 	assert.Equal(t, 14, len(govContent))
 
 	msgImplementations := encodingConfig.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName)
-	assert.Equal(t, 106, len(msgImplementations))
+	assert.Equal(t, 107, len(msgImplementations))
 
 	type govProposalMsg interface {
 		GetAuthority() string
@@ -54,5 +54,5 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 			govMsg = append(govMsg, implementation)
 		}
 	}
-	assert.Equal(t, 15, len(govMsg))
+	assert.Equal(t, 16, len(govMsg))
 }
