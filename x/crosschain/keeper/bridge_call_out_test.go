@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"go.uber.org/mock/gomock"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -147,4 +148,21 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestKeeper_DeleteOutgoingBridgeCall() {
+	outCall := &types.OutgoingBridgeCall{
+		Sender: helpers.GenHexAddress().String(),
+		Nonce:  tmrand.Uint64(),
+	}
+	outCallNonce := s.crosschainKeeper.AddOutgoingBridgeCallWithoutBuild(s.ctx, outCall)
+	s.Require().EqualValues(outCall.Nonce, outCallNonce)
+
+	s.Require().True(s.crosschainKeeper.HasOutgoingBridgeCall(s.ctx, outCall.Nonce))
+	s.Require().True(s.crosschainKeeper.HasOutgoingBridgeCallAddressAndNonce(s.ctx, outCall.Sender, outCall.Nonce))
+
+	s.crosschainKeeper.DeleteOutgoingBridgeCall(s.ctx, outCall.Nonce)
+
+	s.Require().False(s.crosschainKeeper.HasOutgoingBridgeCall(s.ctx, outCall.Nonce))
+	s.Require().False(s.crosschainKeeper.HasOutgoingBridgeCallAddressAndNonce(s.ctx, outCall.Sender, outCall.Nonce))
 }

@@ -114,6 +114,14 @@ func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, outCall *types.OutgoingBr
 	)
 }
 
+func (k Keeper) HasOutgoingBridgeCall(ctx sdk.Context, nonce uint64) bool {
+	return ctx.KVStore(k.storeKey).Has(types.GetOutgoingBridgeCallNonceKey(nonce))
+}
+
+func (k Keeper) HasOutgoingBridgeCallAddressAndNonce(ctx sdk.Context, sender string, nonce uint64) bool {
+	return ctx.KVStore(k.storeKey).Has(types.GetOutgoingBridgeCallAddressAndNonceKey(sender, nonce))
+}
+
 func (k Keeper) GetOutgoingBridgeCallByNonce(ctx sdk.Context, nonce uint64) (*types.OutgoingBridgeCall, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOutgoingBridgeCallNonceKey(nonce))
@@ -127,7 +135,12 @@ func (k Keeper) GetOutgoingBridgeCallByNonce(ctx sdk.Context, nonce uint64) (*ty
 
 func (k Keeper) DeleteOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
+	outCall, found := k.GetOutgoingBridgeCallByNonce(ctx, nonce)
+	if !found {
+		return
+	}
 	store.Delete(types.GetOutgoingBridgeCallNonceKey(nonce))
+	store.Delete(types.GetOutgoingBridgeCallAddressAndNonceKey(outCall.Sender, outCall.Nonce))
 }
 
 func (k Keeper) IterateOutgoingBridgeCalls(ctx sdk.Context, cb func(outCall *types.OutgoingBridgeCall) bool) {
