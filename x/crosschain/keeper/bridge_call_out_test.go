@@ -137,7 +137,7 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			want := tt.mock(tt.data)
-			got, err := s.crosschainKeeper.BridgeCallCoinsToERC20Token(s.ctx, tt.data.sender, sdk.NewCoins(tt.data.coin))
+			got, _, err := s.crosschainKeeper.BridgeCallCoinsToERC20Token(s.ctx, tt.data.sender, sdk.NewCoins(tt.data.coin))
 			if (err != nil) != tt.wantErr {
 				s.T().Errorf("BridgeCallCoinsToERC20Token() error = %v, wantErr %v", err, tt.wantErr)
 				return

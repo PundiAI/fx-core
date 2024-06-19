@@ -37,6 +37,7 @@ const (
 	EventTypeBridgeCallEvent = "bridge_call_event"
 
 	EventTypeBridgeCall         = "bridge_call"
+	EventTypePendingBridgeCall  = "pending_bridge_call"
 	AttributeKeyBridgeCallNonce = "bridge_call_nonce"
 
 	EventTypeProvideLiquidity         = "provide_liquidity"

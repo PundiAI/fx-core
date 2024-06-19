@@ -121,7 +121,10 @@ var (
 
 	PendingOutgoingTxPoolKey = []byte{0x50}
 
-	BridgeCallFromMsgKey = []byte{0x51}
+	BridgeCallFromMsgKey              = []byte{0x51}
+	PendingOutgoingBridgeCallNonceKey = []byte{0x52}
+
+	NotLiquidCoinsNonceKey = []byte{0x53}
 )
 
 // GetOracleKey returns the following key format
@@ -227,8 +230,20 @@ func GetOutgoingBridgeCallNonceKey(id uint64) []byte {
 	return append(OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(id)...)
 }
 
+func GetPendingOutgoingBridgeCallNonceKey(id uint64) []byte {
+	return append(PendingOutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(id)...)
+}
+
+func GetNotLiquidCoinWithIdKey(denom string, id uint64) []byte {
+	return append(GetNotLiquidCoinKey(denom), sdk.Uint64ToBigEndian(id)...)
+}
+
+func GetNotLiquidCoinKey(denom string) []byte {
+	return append(NotLiquidCoinsNonceKey, []byte(denom)...)
+}
+
 func GetOutgoingBridgeCallAddressAndNonceKey(address string, nonce uint64) []byte {
-	return append(OutgoingBridgeCallAddressAndNonceKey, append([]byte(address), sdk.Uint64ToBigEndian(nonce)...)...)
+	return append(GetOutgoingBridgeCallAddressKey(address), sdk.Uint64ToBigEndian(nonce)...)
 }
 
 func GetOutgoingBridgeCallAddressKey(address string) []byte {
@@ -238,6 +253,12 @@ func GetOutgoingBridgeCallAddressKey(address string) []byte {
 func ParseOutgoingBridgeCallNonce(key []byte, address string) (nonce uint64) {
 	addrNonce := bytes.TrimPrefix(key, OutgoingBridgeCallAddressAndNonceKey)
 	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
+	return sdk.BigEndianToUint64(nonceBytes)
+}
+
+func ParseBridgeCallNotLiquidNonce(key []byte, denom string) (nonce uint64) {
+	denomNonce := bytes.TrimPrefix(key, NotLiquidCoinsNonceKey)
+	nonceBytes := bytes.TrimPrefix(denomNonce, []byte(denom))
 	return sdk.BigEndianToUint64(nonceBytes)
 }
 
