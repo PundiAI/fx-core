@@ -35,6 +35,8 @@ service Msg {
   rpc BridgeCallClaim(MsgBridgeCallClaim) returns (MsgBridgeCallClaimResponse);
 
   rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
+  rpc CancelPendingBridgeCall(MsgCancelPendingBridgeCall) returns (MsgCancelPendingBridgeCallResponse);
+
   rpc BridgeCallConfirm(MsgBridgeCallConfirm) returns (MsgBridgeCallConfirmResponse);
   rpc BridgeCallResultClaim(MsgBridgeCallResultClaim) returns (MsgBridgeCallResultClaimResponse);
 
@@ -387,6 +389,14 @@ message MsgBridgeCall {
 }
 
 message MsgBridgeCallResponse {}
+
+message MsgCancelPendingBridgeCall {
+  uint64 nonce = 1;
+  string sender = 2;
+  string chain_name = 3;
+}
+
+message MsgCancelPendingBridgeCallResponse {}
 
 message MsgAddPendingPoolRewards {
   string chain_name = 1;

@@ -106,6 +106,37 @@ func (k Keeper) HandlePendingOutgoingBridgeCall(ctx sdk.Context, liquidityProvid
 	}
 }
 
+func (k Keeper) HandleCancelPendingOutgoingBridgeCall(ctx sdk.Context, nonce uint64, sender sdk.AccAddress) error {
+	pendingOutCall, found := k.GetPendingOutgoingBridgeCallByNonce(ctx, nonce)
+	if !found {
+		return types.ErrInvalid.Wrapf("not found, nonce: %d", nonce)
+	}
+
+	outCall := pendingOutCall.OutgoinBridgeCall
+	outCallSender := types.ExternalAddrToAccAddr(k.moduleName, outCall.Sender)
+	if !sender.Equals(outCallSender) {
+		return types.ErrInvalid.Wrapf("msg.sender %s is not bridge call sender %s", sender.String(), outCallSender.String())
+	}
+
+	// 1. reuse refund logic
+	outCall.Refund = outCall.Sender
+	k.HandleOutgoingBridgeCallRefund(ctx, outCall)
+
+	// 2. refund rewards
+	if !sdk.Coins(pendingOutCall.Rewards).IsZero() {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, pendingOutCall.Rewards); err != nil {
+			return err
+		}
+	}
+
+	// 3. delete pending outgoing bridge call
+	k.DeletePendingOutgoingBridgeCall(ctx, nonce)
+
+	// 4. delete bridge call from msg
+	k.DeleteBridgeCallFromMsg(ctx, nonce)
+	return nil
+}
+
 func (k Keeper) transferLiquidityProviderRewards(ctx sdk.Context, liquidityProvider []byte, eventNonce uint64, rewards sdk.Coins, provideLiquidityBridgeCallNonces []uint64) error {
 	// transfer rewards
 	if !rewards.Empty() {

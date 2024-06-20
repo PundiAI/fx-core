@@ -51,6 +51,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgConfirmBatch{},
 
 		&MsgBridgeCall{},
+		&MsgCancelPendingBridgeCall{},
 
 		&MsgBridgeCallClaim{},
 		&MsgBridgeCallConfirm{},
@@ -107,6 +108,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
 
 	cdc.RegisterConcrete(&MsgBridgeCall{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCall"), nil)
+	cdc.RegisterConcrete(&MsgCancelPendingBridgeCall{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCancelBridgeCall"), nil)
 
 	cdc.RegisterConcrete(&MsgBridgeCallClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallClaim"), nil)
 	cdc.RegisterConcrete(&MsgBridgeCallConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallConfirm"), nil)

@@ -198,6 +198,14 @@ func (k msgServer) BridgeCall(ctx context.Context, msg *types.MsgBridgeCall) (*t
 	}
 }
 
+func (k msgServer) CancelPendingBridgeCall(ctx context.Context, msg *types.MsgCancelPendingBridgeCall) (*types.MsgCancelPendingBridgeCallResponse, error) {
+	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return server.CancelPendingBridgeCall(ctx, msg)
+	}
+}
+
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {
