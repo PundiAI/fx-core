@@ -1257,7 +1257,7 @@ func (m *MsgCancelPendingBridgeCall) ValidateBasic() (err error) {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if m.Nonce == 0 {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid nonce: %d", m.Nonce)
+		return errortypes.ErrInvalidRequest.Wrapf("invalid nonce: %d", m.Nonce)
 	}
 	return nil
 }
