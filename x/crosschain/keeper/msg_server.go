@@ -620,6 +620,22 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	return &types.MsgBridgeCallResponse{}, nil
 }
 
+func (s MsgServer) CancelPendingBridgeCall(c context.Context, msg *types.MsgCancelPendingBridgeCall) (*types.MsgCancelPendingBridgeCallResponse, error) {
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
+	ctx := sdk.UnwrapSDKContext(c)
+
+	if err := s.HandleCancelPendingOutgoingBridgeCall(ctx, msg.Nonce, sender); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
+	return &types.MsgCancelPendingBridgeCallResponse{}, nil
+}
+
 func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPendingPoolRewards) (*types.MsgAddPendingPoolRewardsResponse, error) {
 	// 0. validate rewards coin, only support stake coin.
 	if len(msg.Rewards) != 1 {

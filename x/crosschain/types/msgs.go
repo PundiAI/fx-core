@@ -39,9 +39,10 @@ const (
 
 	TypeMsgBridgeCallClaim = "bridge_call_claim"
 
-	TypeMsgBridgeCall            = "bridge_call"
-	TypeMsgBridgeCallConfirm     = "bridge_call_confirm"
-	TypeMsgBridgeCallResultClaim = "bridge_call_result_claim"
+	TypeMsgBridgeCall              = "bridge_call"
+	TypeMsgCancelPendingBridgeCall = "cancel_pending_bridge_call"
+	TypeMsgBridgeCallConfirm       = "bridge_call_confirm"
+	TypeMsgBridgeCallResultClaim   = "bridge_call_result_claim"
 
 	TypeMsgRequestBatch = "request_batch"
 	TypeMsgConfirmBatch = "confirm_batch"
@@ -104,6 +105,9 @@ var (
 
 	_ sdk.Msg       = &MsgBridgeCall{}
 	_ CrossChainMsg = &MsgBridgeCall{}
+	_ sdk.Msg       = &MsgCancelPendingBridgeCall{}
+	_ CrossChainMsg = &MsgCancelPendingBridgeCall{}
+
 	_ sdk.Msg       = &MsgBridgeCallConfirm{}
 	_ CrossChainMsg = &MsgBridgeCallConfirm{}
 	_ sdk.Msg       = &MsgBridgeCallResultClaim{}
@@ -1234,4 +1238,30 @@ func (m *MsgBridgeCall) MustMemo() []byte {
 		panic(err)
 	}
 	return bz
+}
+
+func (m *MsgCancelPendingBridgeCall) Route() string { return RouterKey }
+
+func (m *MsgCancelPendingBridgeCall) Type() string { return TypeMsgCancelPendingBridgeCall }
+
+func (m *MsgCancelPendingBridgeCall) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgCancelPendingBridgeCall) ValidateBasic() (err error) {
+	if _, ok := externalAddressRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	}
+	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if m.Nonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrapf("invalid nonce: %d", m.Nonce)
+	}
+	return nil
+}
+
+func (m *MsgCancelPendingBridgeCall) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
