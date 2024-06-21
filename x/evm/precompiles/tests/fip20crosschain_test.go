@@ -25,14 +25,13 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	"github.com/functionx/fx-core/v7/x/evm/precompiles/crosschain"
 )
 
 func TestFIP20CrossChainABI(t *testing.T) {
-	crossChainABI := crosschain.GetABI()
+	crossChainABI := crosschaintypes.GetABI()
 
-	method := crossChainABI.Methods[crosschain.FIP20CrossChainMethod.Name]
-	require.Equal(t, method, crosschain.FIP20CrossChainMethod)
+	method := crossChainABI.Methods[crosschaintypes.FIP20CrossChainMethod.Name]
+	require.Equal(t, method, crosschaintypes.FIP20CrossChainMethod)
 	require.Equal(t, 6, len(method.Inputs))
 	require.Equal(t, 1, len(method.Outputs))
 }
@@ -1216,7 +1215,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 }
 
 func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
-	crossChainABI := crosschain.GetABI()
+	crossChainABI := crosschaintypes.GetABI()
 	otherABI := contract.MustABIJson(testJsonABI)
 
 	testCases := []struct {
@@ -1251,7 +1250,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 			name: "failed - call with address - pair not found",
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				data, err := crossChainABI.Pack(
-					crosschain.FIP20CrossChainMethod.Name,
+					crosschaintypes.FIP20CrossChainMethod.Name,
 					signer.Address(),
 					signer.Address().String(),
 					big.NewInt(10),
@@ -1273,9 +1272,9 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, types.NewTokenPair(signer.Address(), "abc", true, types.OWNER_MODULE))
 
-				method := otherABI.Methods[crosschain.FIP20CrossChainMethod.Name]
+				method := otherABI.Methods[crosschaintypes.FIP20CrossChainMethod.Name]
 				data, err := otherABI.Pack(
-					crosschain.FIP20CrossChainMethod.Name,
+					crosschaintypes.FIP20CrossChainMethod.Name,
 					signer.Address(),
 					signer.Address(),
 					signer.Address().String(),
@@ -1286,7 +1285,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 				suite.Require().NoError(err)
 
 				dateTrimPrefix := bytes.TrimPrefix(data, method.ID)
-				return append(crosschain.FIP20CrossChainMethod.ID, dateTrimPrefix...), []string{hex.EncodeToString(data)}
+				return append(crosschaintypes.FIP20CrossChainMethod.ID, dateTrimPrefix...), []string{hex.EncodeToString(data)}
 			},
 			error: func(args []string) string {
 				return "abi: cannot marshal in to go slice: offset"
@@ -1307,7 +1306,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 
 			packData, errArgs := tc.malleate(pair, md, signer, randMint)
 
-			tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), packData)
+			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
 			var res *evmtypes.MsgEthereumTxResponse
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)

@@ -23,19 +23,18 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	"github.com/functionx/fx-core/v7/x/evm/precompiles/crosschain"
 )
 
 func TestIncreaseBridgeFeeABI(t *testing.T) {
-	crossChainABI := crosschain.GetABI()
+	crossChainABI := crosschaintypes.GetABI()
 
-	method := crossChainABI.Methods[crosschain.IncreaseBridgeFeeMethodName]
-	require.Equal(t, method, crosschain.IncreaseBridgeFeeMethod)
+	method := crossChainABI.Methods[crosschaintypes.IncreaseBridgeFeeMethodName]
+	require.Equal(t, method, crosschaintypes.IncreaseBridgeFeeMethod)
 	require.Equal(t, 4, len(method.Inputs))
 	require.Equal(t, 1, len(method.Outputs))
 
-	event := crossChainABI.Events[crosschain.IncreaseBridgeFeeEventName]
-	require.Equal(t, event, crosschain.IncreaseBridgeFeeEvent)
+	event := crossChainABI.Events[crosschaintypes.IncreaseBridgeFeeEventName]
+	require.Equal(t, event, crosschaintypes.IncreaseBridgeFeeEvent)
 	require.Equal(t, 5, len(event.Inputs))
 }
 
@@ -43,7 +42,7 @@ func TestIncreaseBridgeFeeABI(t *testing.T) {
 func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 	randBridgeFee := big.NewInt(int64(tmrand.Uint32() + 10))
 	crossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := crosschain.GetABI().Pack(
+		data, err := crosschaintypes.GetABI().Pack(
 			"crossChain",
 			contact,
 			helpers.GenExternalAddr(moduleName),
@@ -54,7 +53,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		)
 		suite.Require().NoError(err)
 
-		tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), value, data)
+		tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), value, data)
 		suite.Require().NoError(err)
 		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 		suite.Require().NoError(err)
@@ -96,9 +95,9 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		})
 		suite.Require().NoError(err)
 
-		suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randBridgeFee)
+		suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randBridgeFee)
 
-		data, err := crosschain.GetABI().Pack(
+		data, err := crosschaintypes.GetABI().Pack(
 			"increaseBridgeFee",
 			moduleName,
 			big.NewInt(int64(pendingTx.UnbatchedTransfers[0].Id)),
@@ -128,7 +127,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				crossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, randMint, big.NewInt(0), big.NewInt(0))
 				return pair, moduleName, ""
@@ -246,7 +245,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
@@ -295,7 +294,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				crossChainTxFunc(signer, pair.GetERC20Contract(), bsctypes.ModuleName, randMint, big.NewInt(0), big.NewInt(0))
 
@@ -311,7 +310,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				chain := "123"
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					chain,
 					big.NewInt(1),
@@ -333,7 +332,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				txID := big.NewInt(0)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					txID,
@@ -355,7 +354,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				fee := big.NewInt(0)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					big.NewInt(1),
@@ -376,7 +375,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				return pair, moduleName, ""
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					big.NewInt(1),
@@ -406,10 +405,10 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randBridgeFee)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randBridgeFee)
 
 				txID := big.NewInt(10)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					txID,
@@ -451,7 +450,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			suite.Require().NoError(err)
 
 			packData, errArgs := tc.malleate(moduleName, pair, md, signer, randMint)
-			tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), packData)
+			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
 			var res *evmtypes.MsgEthereumTxResponse
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
@@ -488,11 +487,11 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschain.IncreaseBridgeFeeEvent.ID.String() {
-						suite.Require().Equal(log.Address, crosschain.GetAddress().String())
+					if log.Topics[0] == crosschaintypes.IncreaseBridgeFeeEvent.ID.String() {
+						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
 						suite.Require().Equal(log.Topics[2], pair.GetERC20Contract().Hash().String())
-						unpack, err := crosschain.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := crosschaintypes.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						chain := unpack[0].(string)
 						suite.Require().Equal(chain, moduleName)
@@ -514,7 +513,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 	randBridgeFee := big.NewInt(int64(tmrand.Uint32() + 10))
 	crossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := crosschain.GetABI().Pack(
+		data, err := crosschaintypes.GetABI().Pack(
 			"crossChain",
 			contact,
 			helpers.GenExternalAddr(moduleName),
@@ -525,7 +524,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		)
 		suite.Require().NoError(err)
 
-		tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), value, data)
+		tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), value, data)
 		suite.Require().NoError(err)
 		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 		suite.Require().NoError(err)
@@ -569,9 +568,9 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		})
 		suite.Require().NoError(err)
 
-		suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randBridgeFee)
+		suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randBridgeFee)
 
-		data, err := crosschain.GetABI().Pack(
+		data, err := crosschaintypes.GetABI().Pack(
 			"increaseBridgeFee",
 			moduleName,
 			big.NewInt(int64(pendingTx.UnbatchedTransfers[0].Id)),
@@ -604,7 +603,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				crossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, randMint, big.NewInt(0), big.NewInt(0))
 				return pair, moduleName, ""
@@ -642,7 +641,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				chain := "123"
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					chain,
 					big.NewInt(1),
@@ -664,7 +663,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				txID := big.NewInt(0)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					txID,
@@ -686,7 +685,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				fee := big.NewInt(0)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					big.NewInt(1),
@@ -707,7 +706,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				return pair, moduleName, ""
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					big.NewInt(1),
@@ -738,10 +737,10 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randBridgeFee)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randBridgeFee)
 
 				txID := big.NewInt(10)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"increaseBridgeFee",
 					moduleName,
 					txID,
@@ -789,7 +788,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			suite.Require().NoError(err)
 
 			packData, errArgs := tc.malleate(moduleName, pair, md, signer, randMint)
-			tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), packData)
+			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
 			var res *evmtypes.MsgEthereumTxResponse
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
@@ -828,11 +827,11 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschain.IncreaseBridgeFeeEvent.ID.String() {
-						suite.Require().Equal(log.Address, crosschain.GetAddress().String())
+					if log.Topics[0] == crosschaintypes.IncreaseBridgeFeeEvent.ID.String() {
+						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
 						suite.Require().Equal(log.Topics[2], pair.GetERC20Contract().Hash().String())
-						unpack, err := crosschain.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := crosschaintypes.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						chain := unpack[0].(string)
 						suite.Require().Equal(chain, moduleName)

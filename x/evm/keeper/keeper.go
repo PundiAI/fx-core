@@ -17,7 +17,7 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	fxserverconfig "github.com/functionx/fx-core/v7/server/config"
+	fxserverconfig "github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )

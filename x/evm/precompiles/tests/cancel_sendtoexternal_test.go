@@ -23,26 +23,25 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	"github.com/functionx/fx-core/v7/x/evm/precompiles/crosschain"
 )
 
 func TestCancelSendToExternalABI(t *testing.T) {
-	crossChainABI := crosschain.GetABI()
+	crossChainABI := crosschaintypes.GetABI()
 
-	method := crossChainABI.Methods[crosschain.CancelSendToExternalMethodName]
-	require.Equal(t, method, crosschain.CancelSendToExternalMethod)
+	method := crossChainABI.Methods[crosschaintypes.CancelSendToExternalMethodName]
+	require.Equal(t, method, crosschaintypes.CancelSendToExternalMethod)
 	require.Equal(t, 2, len(method.Inputs))
 	require.Equal(t, 1, len(method.Outputs))
 
-	event := crossChainABI.Events[crosschain.CancelSendToExternalEventName]
-	require.Equal(t, event, crosschain.CancelSendToExternalEvent)
+	event := crossChainABI.Events[crosschaintypes.CancelSendToExternalEventName]
+	require.Equal(t, event, crosschaintypes.CancelSendToExternalEvent)
 	require.Equal(t, 3, len(event.Inputs))
 }
 
 //gocyclo:ignore
 func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 	crossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := crosschain.GetABI().Pack(
+		data, err := crosschaintypes.GetABI().Pack(
 			"crossChain",
 			contact,
 			helpers.GenExternalAddr(moduleName),
@@ -53,7 +52,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		)
 		suite.Require().NoError(err)
 
-		tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), value, data)
+		tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), value, data)
 		suite.Require().NoError(err)
 		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 		suite.Require().NoError(err)
@@ -84,7 +83,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		suite.Require().NoError(err)
 		suite.Require().Equal(1, len(externalTx.UnbatchedTransfers))
 
-		data, err := crosschain.GetABI().Pack(
+		data, err := crosschaintypes.GetABI().Pack(
 			"cancelSendToExternal",
 			moduleName,
 			big.NewInt(int64(externalTx.UnbatchedTransfers[0].Id)),
@@ -112,7 +111,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				crossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, randMint, big.NewInt(0), big.NewInt(0))
 				return pair, moduleName, ""
@@ -230,7 +229,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
@@ -279,7 +278,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
-				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				crossChainTxFunc(signer, pair.GetERC20Contract(), bsctypes.ModuleName, randMint, big.NewInt(0), big.NewInt(0))
 
@@ -295,7 +294,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			},
 			malleate: func(moduleName string, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				chain := "123"
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"cancelSendToExternal",
 					chain,
 					big.NewInt(1),
@@ -315,7 +314,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			},
 			malleate: func(moduleName string, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				txID := big.NewInt(0)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"cancelSendToExternal",
 					moduleName,
 					txID,
@@ -335,7 +334,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			},
 			malleate: func(moduleName string, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				txID := big.NewInt(10)
-				data, err := crosschain.GetABI().Pack(
+				data, err := crosschaintypes.GetABI().Pack(
 					"cancelSendToExternal",
 					moduleName,
 					txID,
@@ -389,7 +388,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), packData)
+			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
 			var res *evmtypes.MsgEthereumTxResponse
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
@@ -449,10 +448,10 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschain.CancelSendToExternalEvent.ID.String() {
-						suite.Require().Equal(log.Address, crosschain.GetAddress().String())
+					if log.Topics[0] == crosschaintypes.CancelSendToExternalEvent.ID.String() {
+						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
-						unpack, err := crosschain.CancelSendToExternalEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := crosschaintypes.CancelSendToExternalEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						chain := unpack[0].(string)
 						suite.Require().Equal(chain, moduleName)
@@ -488,14 +487,14 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 	})
 	suite.Require().NoError(err)
 
-	suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetAddress(), randMint)
+	suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 	fee := big.NewInt(1)
 	amount := big.NewInt(0).Sub(randMint, fee)
-	data, err := crosschain.GetABI().Pack("crossChain", pair.GetERC20Contract(),
+	data, err := crosschaintypes.GetABI().Pack("crossChain", pair.GetERC20Contract(),
 		helpers.GenExternalAddr(moduleName), amount, fee, fxtypes.MustStrToByte32(moduleName), "")
 	suite.Require().NoError(err)
-	tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), data)
+	tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), data)
 	suite.Require().NoError(err)
 	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 	suite.Require().NoError(err)

@@ -1,4 +1,4 @@
-package crosschain
+package precompile
 
 import (
 	"errors"
@@ -8,7 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
@@ -19,8 +20,8 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		return nil, errors.New("bridge call router is empty")
 	}
 
-	var args BridgeCallArgs
-	if err := types.ParseMethodArgs(BridgeCallMethod, &args, contract.Input[4:]); err != nil {
+	var args crosschaintypes.BridgeCallArgs
+	if err := evmtypes.ParseMethodArgs(crosschaintypes.BridgeCallMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 	route, has := c.router.GetRoute(args.DstChain)
@@ -60,7 +61,7 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 
 	nonceNonce := big.NewInt(0).SetUint64(nonce)
-	if err = c.AddLog(evm, BridgeCallEvent,
+	if err = c.AddLog(evm, crosschaintypes.BridgeCallEvent,
 		[]common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()},
 		evm.Origin,
 		args.Value,
@@ -73,5 +74,5 @@ func (c *Contract) BridgeCall(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	); err != nil {
 		return nil, err
 	}
-	return BridgeCallMethod.Outputs.Pack(nonceNonce)
+	return crosschaintypes.BridgeCallMethod.Outputs.Pack(nonceNonce)
 }

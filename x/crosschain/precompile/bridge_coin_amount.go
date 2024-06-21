@@ -1,4 +1,4 @@
-package crosschain
+package precompile
 
 import (
 	"fmt"
@@ -8,15 +8,16 @@ import (
 
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
 
-	var args BridgeCoinAmountArgs
-	if err := types.ParseMethodArgs(BridgeCoinAmountMethod, &args, contractAddr.Input[4:]); err != nil {
+	var args crosschaintypes.BridgeCoinAmountArgs
+	if err := evmtypes.ParseMethodArgs(crosschaintypes.BridgeCoinAmountMethod, &args, contractAddr.Input[4:]); err != nil {
 		return nil, err
 	}
 	pair, has := c.erc20Keeper.GetTokenPair(cacheCtx, args.Token.Hex())
@@ -27,20 +28,21 @@ func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contractAddr *
 	if contract.IsZeroEthAddress(args.Token) {
 		supply := c.bankKeeper.GetSupply(cacheCtx, fxtypes.DefaultDenom)
 		balance := c.bankKeeper.GetBalance(cacheCtx, c.accountKeeper.GetModuleAddress(ethtypes.ModuleName), fxtypes.DefaultDenom)
-		return BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.Sub(balance.Amount).BigInt())
+		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.Sub(balance.Amount).BigInt())
 	}
 	// OriginDenom
 	if c.erc20Keeper.IsOriginDenom(cacheCtx, pair.GetDenom()) {
-		supply, err := NewContractCall(cacheCtx, evm, c.Address(), args.Token).ERC20TotalSupply()
+		erc20Call := contract.NewERC20Call(evm, c.Address(), args.Token, c.GetBlockGasLimit())
+		supply, err := erc20Call.TotalSupply()
 		if err != nil {
 			return nil, err
 		}
-		return BridgeCoinAmountMethod.Outputs.Pack(supply)
+		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(supply)
 	}
 	// one to one
 	_, has = c.erc20Keeper.HasDenomAlias(cacheCtx, pair.GetDenom())
 	if !has && pair.GetDenom() != fxtypes.DefaultDenom {
-		return BridgeCoinAmountMethod.Outputs.Pack(
+		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(
 			c.bankKeeper.GetSupply(cacheCtx, pair.GetDenom()).Amount.BigInt(),
 		)
 	}
@@ -60,7 +62,7 @@ func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contractAddr *
 	balance := c.bankKeeper.GetBalance(cacheCtx, c.erc20Keeper.ModuleAddress().Bytes(), pair.GetDenom())
 	supply := c.bankKeeper.GetSupply(cacheCtx, denom)
 	if balance.Amount.LT(supply.Amount) {
-		return BridgeCoinAmountMethod.Outputs.Pack(balance.Amount.BigInt())
+		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(balance.Amount.BigInt())
 	}
-	return BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.BigInt())
+	return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.BigInt())
 }

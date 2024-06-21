@@ -39,7 +39,6 @@ import (
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/contract"
-	fxserverconfig "github.com/functionx/fx-core/v7/server/config"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -91,10 +90,10 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.crosschain = stakingContract
 }
 
-func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contract common.Address, amount *big.Int, data []byte) (*evmtypes.MsgEthereumTx, error) {
+func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, to common.Address, amount *big.Int, data []byte) (*evmtypes.MsgEthereumTx, error) {
 	fromAddr := signer.Address()
 	value := hexutil.Big(*amount)
-	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &contract, From: &fromAddr, Data: (*hexutil.Bytes)(&data), Value: &value})
+	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &to, From: &fromAddr, Data: (*hexutil.Bytes)(&data), Value: &value})
 	suite.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -102,7 +101,7 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contrac
 	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
 		&evmtypes.EthCallRequest{
 			Args:    args,
-			GasCap:  fxserverconfig.DefaultGasCap,
+			GasCap:  contract.DefaultGasCap,
 			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
 		},
 	)
@@ -113,7 +112,7 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contrac
 	ethTx := evmtypes.NewTx(
 		fxtypes.EIP155ChainID(),
 		suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
-		&contract,
+		&to,
 		amount,
 		res.Gas,
 		nil,
@@ -394,7 +393,7 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
 		&evmtypes.EthCallRequest{
 			Args:    args,
-			GasCap:  fxserverconfig.DefaultGasCap,
+			GasCap:  contract.DefaultGasCap,
 			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
 		},
 	)

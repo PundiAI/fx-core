@@ -10,6 +10,8 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 	"github.com/spf13/viper"
+
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 // BypassMinFee defines custom that will bypass minimum fee checks during CheckTx.
@@ -120,7 +122,7 @@ func AppConfig(mintGasPrice sdk.Coin) (string, interface{}) {
 		TLS:          *ethermintconfig.DefaultTLSConfig(),
 	}
 
-	customAppConfig.JSONRPC.GasCap = DefaultGasCap
+	customAppConfig.JSONRPC.GasCap = contract.DefaultGasCap
 
 	customAppTemplate := DefaultConfigTemplate()
 
@@ -136,7 +138,7 @@ func DefaultConfig() *Config {
 		JSONRPC:      *ethermintconfig.DefaultJSONRPCConfig(),
 		TLS:          *ethermintconfig.DefaultTLSConfig(),
 	}
-	cfg.JSONRPC.GasCap = DefaultGasCap
+	cfg.JSONRPC.GasCap = contract.DefaultGasCap
 	return cfg
 }
 

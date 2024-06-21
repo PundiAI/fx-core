@@ -7,7 +7,3 @@ const (
 
 	BypassMinFeeMsgMaxGasUsageKey = "bypass-min-fee.msg-max-gas-usage" // #nosec G101
 )
-
-const (
-	DefaultGasCap uint64 = 30000000
-)

@@ -1,4 +1,4 @@
-package crosschain
+package precompile
 
 import (
 	"errors"
@@ -9,7 +9,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 type Contract struct {
@@ -40,7 +41,7 @@ func NewPrecompiledContract(
 }
 
 func (c *Contract) Address() common.Address {
-	return crossChainAddress
+	return crosschaintypes.GetAddress()
 }
 
 func (c *Contract) IsStateful() bool {
@@ -52,18 +53,18 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return 0
 	}
 	switch string(input[:4]) {
-	case string(FIP20CrossChainMethod.ID):
-		return FIP20CrossChainGas
-	case string(CrossChainMethod.ID):
-		return CrossChainGas
-	case string(CancelSendToExternalMethod.ID):
-		return CancelSendToExternalGas
-	case string(IncreaseBridgeFeeMethod.ID):
-		return IncreaseBridgeFeeGas
-	case string(BridgeCoinAmountMethod.ID):
-		return BridgeCoinAmountFeeGas
-	case string(BridgeCallMethod.ID):
-		return BridgeCallFeeGas
+	case string(crosschaintypes.FIP20CrossChainMethod.ID):
+		return crosschaintypes.FIP20CrossChainGas
+	case string(crosschaintypes.CrossChainMethod.ID):
+		return crosschaintypes.CrossChainGas
+	case string(crosschaintypes.CancelSendToExternalMethod.ID):
+		return crosschaintypes.CancelSendToExternalGas
+	case string(crosschaintypes.IncreaseBridgeFeeMethod.ID):
+		return crosschaintypes.IncreaseBridgeFeeGas
+	case string(crosschaintypes.BridgeCoinAmountMethod.ID):
+		return crosschaintypes.BridgeCoinAmountFeeGas
+	case string(crosschaintypes.BridgeCallMethod.ID):
+		return crosschaintypes.BridgeCallFeeGas
 	default:
 		return 0
 	}
@@ -71,7 +72,7 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 
 func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret []byte, err error) {
 	if len(contract.Input) <= 4 {
-		return types.PackRetError("invalid input")
+		return evmtypes.PackRetError("invalid input")
 	}
 
 	cacheCtx, commit := c.ctx.CacheContext()
@@ -79,17 +80,17 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 
 	// parse input
 	switch string(contract.Input[:4]) {
-	case string(FIP20CrossChainMethod.ID):
+	case string(crosschaintypes.FIP20CrossChainMethod.ID):
 		ret, err = c.FIP20CrossChain(cacheCtx, evm, contract, readonly)
-	case string(CrossChainMethod.ID):
+	case string(crosschaintypes.CrossChainMethod.ID):
 		ret, err = c.CrossChain(cacheCtx, evm, contract, readonly)
-	case string(CancelSendToExternalMethod.ID):
+	case string(crosschaintypes.CancelSendToExternalMethod.ID):
 		ret, err = c.CancelSendToExternal(cacheCtx, evm, contract, readonly)
-	case string(IncreaseBridgeFeeMethod.ID):
+	case string(crosschaintypes.IncreaseBridgeFeeMethod.ID):
 		ret, err = c.IncreaseBridgeFee(cacheCtx, evm, contract, readonly)
-	case string(BridgeCoinAmountMethod.ID):
+	case string(crosschaintypes.BridgeCoinAmountMethod.ID):
 		ret, err = c.BridgeCoinAmount(cacheCtx, evm, contract, readonly)
-	case string(BridgeCallMethod.ID):
+	case string(crosschaintypes.BridgeCallMethod.ID):
 		ret, err = c.BridgeCall(cacheCtx, evm, contract, readonly)
 
 	default:
@@ -99,7 +100,7 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 	if err != nil {
 		// revert evm state
 		evm.StateDB.RevertToSnapshot(snapshot)
-		return types.PackRetError(err.Error())
+		return evmtypes.PackRetError(err.Error())
 	}
 
 	// commit and append events
@@ -109,7 +110,7 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 }
 
 func (c *Contract) AddLog(evm *vm.EVM, event abi.Event, topics []common.Hash, args ...interface{}) error {
-	data, newTopic, err := types.PackTopicData(event, topics, args...)
+	data, newTopic, err := evmtypes.PackTopicData(event, topics, args...)
 	if err != nil {
 		return err
 	}
@@ -120,4 +121,12 @@ func (c *Contract) AddLog(evm *vm.EVM, event abi.Event, topics []common.Hash, ar
 		BlockNumber: evm.Context.BlockNumber.Uint64(),
 	})
 	return nil
+}
+
+func (c *Contract) GetBlockGasLimit() uint64 {
+	params := c.ctx.ConsensusParams()
+	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
+		return uint64(params.Block.MaxGas)
+	}
+	return 0
 }

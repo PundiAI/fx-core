@@ -1,4 +1,4 @@
-package crosschain_test
+package precompile_test
 
 import (
 	"math/big"
@@ -9,15 +9,15 @@ import (
 
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/evm/precompiles/crosschain"
+	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
 func TestContract_BridgeCall_Input(t *testing.T) {
-	assert.Equal(t, `bridgeCall(string,address,address[],uint256[],address,bytes,uint256,bytes)`, crosschain.BridgeCallMethod.Sig)
-	assert.Equal(t, "payable", crosschain.BridgeCallMethod.StateMutability)
-	assert.Equal(t, 8, len(crosschain.BridgeCallMethod.Inputs))
+	assert.Equal(t, `bridgeCall(string,address,address[],uint256[],address,bytes,uint256,bytes)`, types.BridgeCallMethod.Sig)
+	assert.Equal(t, "payable", types.BridgeCallMethod.StateMutability)
+	assert.Equal(t, 8, len(types.BridgeCallMethod.Inputs))
 
-	inputs := crosschain.BridgeCallMethod.Inputs
+	inputs := types.BridgeCallMethod.Inputs
 	type Args struct {
 		DstChain string
 		Refund   common.Address
@@ -67,9 +67,9 @@ func TestContract_BridgeCall_Input(t *testing.T) {
 }
 
 func TestContract_BridgeCall_Output(t *testing.T) {
-	assert.Equal(t, 1, len(crosschain.BridgeCallMethod.Outputs))
+	assert.Equal(t, 1, len(types.BridgeCallMethod.Outputs))
 
-	outputs := crosschain.BridgeCallMethod.Outputs
+	outputs := types.BridgeCallMethod.Outputs
 	eventNonce := big.NewInt(1)
 	outputData, err := outputs.Pack(eventNonce)
 	assert.NoError(t, err)
@@ -83,14 +83,14 @@ func TestContract_BridgeCall_Output(t *testing.T) {
 }
 
 func TestContract_BridgeCall_Event(t *testing.T) {
-	assert.Equal(t, `BridgeCallEvent(address,address,address,address,uint256,uint256,string,address[],uint256[],bytes,bytes)`, crosschain.BridgeCallEvent.Sig)
-	assert.Equal(t, "0x4a9b24da6150ef33e7c41038842b7c94fe89a4fff22dccb2c3fd79f0176062c6", crosschain.BridgeCallEvent.ID.String())
-	assert.Equal(t, 11, len(crosschain.BridgeCallEvent.Inputs))
-	assert.Equal(t, 8, len(crosschain.BridgeCallEvent.Inputs.NonIndexed()))
+	assert.Equal(t, `BridgeCallEvent(address,address,address,address,uint256,uint256,string,address[],uint256[],bytes,bytes)`, types.BridgeCallEvent.Sig)
+	assert.Equal(t, "0x4a9b24da6150ef33e7c41038842b7c94fe89a4fff22dccb2c3fd79f0176062c6", types.BridgeCallEvent.ID.String())
+	assert.Equal(t, 11, len(types.BridgeCallEvent.Inputs))
+	assert.Equal(t, 8, len(types.BridgeCallEvent.Inputs.NonIndexed()))
 	for i := 0; i < 3; i++ {
-		assert.Equal(t, true, crosschain.BridgeCallEvent.Inputs[i].Indexed)
+		assert.Equal(t, true, types.BridgeCallEvent.Inputs[i].Indexed)
 	}
-	inputs := crosschain.BridgeCallEvent.Inputs
+	inputs := types.BridgeCallEvent.Inputs
 
 	args := contract.ICrossChainBridgeCallEvent{
 		TxOrigin:   helpers.GenHexAddress(),

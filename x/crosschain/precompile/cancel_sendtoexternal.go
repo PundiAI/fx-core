@@ -1,4 +1,4 @@
-package crosschain
+package precompile
 
 import (
 	"errors"
@@ -9,7 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
@@ -20,8 +21,8 @@ func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *
 		return nil, errors.New("cross chain router is empty")
 	}
 
-	var args CancelSendToExternalArgs
-	if err := types.ParseMethodArgs(CancelSendToExternalMethod, &args, contract.Input[4:]); err != nil {
+	var args crosschaintypes.CancelSendToExternalArgs
+	if err := evmtypes.ParseMethodArgs(crosschaintypes.CancelSendToExternalMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 	sender := contract.Caller()
@@ -43,9 +44,9 @@ func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *
 	}
 
 	// add event log
-	if err = c.AddLog(evm, CancelSendToExternalEvent, []common.Hash{sender.Hash()}, args.Chain, args.TxID); err != nil {
+	if err = c.AddLog(evm, crosschaintypes.CancelSendToExternalEvent, []common.Hash{sender.Hash()}, args.Chain, args.TxID); err != nil {
 		return nil, err
 	}
 
-	return CancelSendToExternalMethod.Outputs.Pack(true)
+	return crosschaintypes.CancelSendToExternalMethod.Outputs.Pack(true)
 }

@@ -1,4 +1,4 @@
-package crosschain
+package precompile
 
 import (
 	"errors"
@@ -18,8 +18,9 @@ import (
 
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 // FIP20CrossChain only for fip20 contract transferCrossChain called
@@ -36,8 +37,8 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 		return nil, fmt.Errorf("token pair not found: %s", tokenContract.String())
 	}
 
-	var args FIP20CrossChainArgs
-	if err := types.ParseMethodArgs(FIP20CrossChainMethod, &args, contract.Input[4:]); err != nil {
+	var args crosschaintypes.FIP20CrossChainArgs
+	if err := fxevmtypes.ParseMethodArgs(crosschaintypes.FIP20CrossChainMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +77,7 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 	}
 
 	// add event log
-	if err := c.AddLog(evm, CrossChainEvent, []common.Hash{args.Sender.Hash(), tokenPair.GetERC20Contract().Hash()},
+	if err := c.AddLog(evm, crosschaintypes.CrossChainEvent, []common.Hash{args.Sender.Hash(), tokenPair.GetERC20Contract().Hash()},
 		tokenPair.GetDenom(), args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 	fip20CrossChainEvents(ctx, args.Sender, tokenPair.GetERC20Contract(), args.Receipt,
 		fxtypes.Byte32ToString(args.Target), tokenPair.GetDenom(), args.Amount, args.Fee)
 
-	return FIP20CrossChainMethod.Outputs.Pack(true)
+	return crosschaintypes.FIP20CrossChainMethod.Outputs.Pack(true)
 }
 
 // CrossChain called at any address(account or contract)
@@ -96,8 +97,8 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Con
 		return nil, errors.New("cross chain method not readonly")
 	}
 
-	var args CrossChainArgs
-	err := types.ParseMethodArgs(CrossChainMethod, &args, contractAddr.Input[4:])
+	var args crosschaintypes.CrossChainArgs
+	err := fxevmtypes.ParseMethodArgs(crosschaintypes.CrossChainMethod, &args, contractAddr.Input[4:])
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +139,7 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Con
 	}
 
 	// add event log
-	if err = c.AddLog(evm, CrossChainEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+	if err = c.AddLog(evm, crosschaintypes.CrossChainEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
 		amountCoin.Denom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Con
 	crossChainEvents(ctx, sender, args.Token, args.Receipt, fxtypes.Byte32ToString(args.Target),
 		amountCoin.Denom, args.Memo, args.Amount, args.Fee)
 
-	return CrossChainMethod.Outputs.Pack(true)
+	return crosschaintypes.CrossChainMethod.Outputs.Pack(true)
 }
 
 func (c *Contract) handlerOriginToken(ctx sdk.Context, evm *vm.EVM, sender common.Address, amount *big.Int) (sdk.Coin, error) {
@@ -175,7 +176,8 @@ func (c *Contract) handlerERC20Token(ctx sdk.Context, evm *vm.EVM, sender, token
 	baseDenom := tokenPair.GetDenom()
 
 	// transferFrom to erc20 module
-	if err := NewContractCall(ctx, evm, c.Address(), token).ERC20TransferFrom(sender, c.erc20Keeper.ModuleAddress(), amount); err != nil {
+	erc20Call := contract.NewERC20Call(evm, c.Address(), token, c.GetBlockGasLimit())
+	if err := erc20Call.TransferFrom(sender, c.erc20Keeper.ModuleAddress(), amount); err != nil {
 		return sdk.Coin{}, err
 	}
 	if err := c.convertERC20(ctx, evm, tokenPair, sdk.NewCoin(baseDenom, sdkmath.NewIntFromBigInt(amount)), sender); err != nil {
@@ -192,8 +194,8 @@ func (c *Contract) convertERC20(
 	sender common.Address,
 ) error {
 	if tokenPair.IsNativeCoin() {
-		contractCall := NewContractCall(ctx, evm, c.erc20Keeper.ModuleAddress(), tokenPair.GetERC20Contract())
-		err := contractCall.ERC20Burn(amount.Amount.BigInt())
+		erc20Call := contract.NewERC20Call(evm, c.erc20Keeper.ModuleAddress(), tokenPair.GetERC20Contract(), c.GetBlockGasLimit())
+		err := erc20Call.Burn(c.erc20Keeper.ModuleAddress(), amount.Amount.BigInt())
 		if err != nil {
 			return err
 		}
@@ -326,14 +328,14 @@ func (c *Contract) ibcTransfer(
 // Deprecated
 func fip20CrossChainEvents(ctx sdk.Context, from, token common.Address, recipient, target, denom string, amount, fee *big.Int) {
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		EventTypeRelayTransferCrossChain,
-		sdk.NewAttribute(AttributeKeyFrom, from.String()),
-		sdk.NewAttribute(AttributeKeyRecipient, recipient),
+		crosschaintypes.EventTypeRelayTransferCrossChain,
+		sdk.NewAttribute(crosschaintypes.AttributeKeyFrom, from.String()),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyRecipient, recipient),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 		sdk.NewAttribute(sdk.AttributeKeyFee, fee.String()),
-		sdk.NewAttribute(AttributeKeyTarget, target),
-		sdk.NewAttribute(AttributeKeyTokenAddress, token.String()),
-		sdk.NewAttribute(AttributeKeyDenom, denom),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyTarget, target),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyTokenAddress, token.String()),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyDenom, denom),
 	))
 
 	telemetry.IncrCounterWithLabels(
@@ -349,14 +351,14 @@ func fip20CrossChainEvents(ctx sdk.Context, from, token common.Address, recipien
 
 func crossChainEvents(ctx sdk.Context, from, token common.Address, recipient, target, denom, memo string, amount, fee *big.Int) {
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		EventTypeCrossChain,
-		sdk.NewAttribute(AttributeKeyFrom, from.String()),
-		sdk.NewAttribute(AttributeKeyRecipient, recipient),
+		crosschaintypes.EventTypeCrossChain,
+		sdk.NewAttribute(crosschaintypes.AttributeKeyFrom, from.String()),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyRecipient, recipient),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 		sdk.NewAttribute(sdk.AttributeKeyFee, fee.String()),
-		sdk.NewAttribute(AttributeKeyTarget, target),
-		sdk.NewAttribute(AttributeKeyTokenAddress, token.String()),
-		sdk.NewAttribute(AttributeKeyDenom, denom),
-		sdk.NewAttribute(AttributeKeyMemo, memo),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyTarget, target),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyTokenAddress, token.String()),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyDenom, denom),
+		sdk.NewAttribute(crosschaintypes.AttributeKeyMemo, memo),
 	))
 }
