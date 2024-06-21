@@ -103,6 +103,7 @@ interface IFIP20Upgradable {
      *
      * Emits a {TransferCrossChain} event.
      */
+    // Deprecated: use pre-compiled contract crossChain
     function transferCrossChain(
         string memory recipient,
         uint256 amount,

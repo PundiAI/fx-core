@@ -3,13 +3,16 @@
 pragma solidity ^0.8.0;
 
 /* solhint-disable no-global-import */
-import "../bridge/CrossChainCall.sol";
+import "../bridge/ICrossChain.sol";
 import "../fip20/IFIP20Upgradable.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
 
 contract CrossChainTest {
+    address public constant CROSS_CHAIN_ADDRESS =
+        address(0x0000000000000000000000000000000000001004);
+
     function crossChain(
         address _token,
         string memory _receipt,
@@ -25,7 +28,7 @@ contract CrossChainTest {
                 _amount + _fee
             );
             IFIP20Upgradable(_token).approve(
-                CrossChainCall.CROSS_CHAIN_ADDRESS,
+                CROSS_CHAIN_ADDRESS,
                 _amount + _fee
             );
         }
@@ -33,7 +36,7 @@ contract CrossChainTest {
         if (_token != address(0)) {
             uint256 allowance = IFIP20Upgradable(_token).allowance(
                 address(this),
-                CrossChainCall.CROSS_CHAIN_ADDRESS
+                CROSS_CHAIN_ADDRESS
             );
             require(
                 allowance == _amount + _fee,
@@ -47,7 +50,7 @@ contract CrossChainTest {
         }
 
         return
-            CrossChainCall.crossChain(
+            ICrossChain(CROSS_CHAIN_ADDRESS).crossChain{value: msg.value}(
                 _token,
                 _receipt,
                 _amount,
@@ -61,7 +64,11 @@ contract CrossChainTest {
         string memory _chain,
         uint256 _txID
     ) external returns (bool) {
-        return CrossChainCall.cancelSendToExternal(_chain, _txID);
+        return
+            ICrossChain(CROSS_CHAIN_ADDRESS).cancelSendToExternal(
+                _chain,
+                _txID
+            );
     }
 
     function increaseBridgeFee(
@@ -70,14 +77,21 @@ contract CrossChainTest {
         address _token,
         uint256 _fee
     ) external payable returns (bool) {
-        return CrossChainCall.increaseBridgeFee(_chain, _txID, _token, _fee);
+        return
+            ICrossChain(CROSS_CHAIN_ADDRESS).increaseBridgeFee(
+                _chain,
+                _txID,
+                _token,
+                _fee
+            );
     }
 
     function bridgeCoinAmount(
         address _token,
         bytes32 _target
     ) external view returns (uint256) {
-        return CrossChainCall.bridgeCoinAmount(_token, _target);
+        return
+            ICrossChain(CROSS_CHAIN_ADDRESS).bridgeCoinAmount(_token, _target);
     }
 
     function bridgeCall(
@@ -91,7 +105,7 @@ contract CrossChainTest {
         bytes memory _memo
     ) internal returns (uint256) {
         return
-            CrossChainCall.bridgeCall(
+            ICrossChain(CROSS_CHAIN_ADDRESS).bridgeCall(
                 _dstChain,
                 _receiver,
                 _tokens,

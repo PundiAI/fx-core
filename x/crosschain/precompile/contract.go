@@ -72,7 +72,7 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 
 func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret []byte, err error) {
 	if len(contract.Input) <= 4 {
-		return evmtypes.PackRetError("invalid input")
+		return evmtypes.PackRetErrV2("invalid input")
 	}
 
 	cacheCtx, commit := c.ctx.CacheContext()
@@ -100,7 +100,7 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 	if err != nil {
 		// revert evm state
 		evm.StateDB.RevertToSnapshot(snapshot)
-		return evmtypes.PackRetError(err.Error())
+		return evmtypes.PackRetErrV2(err.Error())
 	}
 
 	// commit and append events
