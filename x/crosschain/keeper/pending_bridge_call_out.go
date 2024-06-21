@@ -62,14 +62,14 @@ func (k Keeper) HandlePendingOutgoingBridgeCall(ctx sdk.Context, liquidityProvid
 
 		// 2. check bridgeCall notLiquidCoins has balances
 		pendingBridgeCall, found := k.GetPendingOutgoingBridgeCallByNonce(iterCtx, bridgeCallNonce)
-		if found {
+		if !found {
 			k.Logger(iterCtx).Error("no pending bridge call found", "nonce", bridgeCallNonce)
 			return false
 		}
 
 		// 3. transfer coin from erc20 module to sender
 		bridgeCall := pendingBridgeCall.OutgoinBridgeCall
-		sender := sdk.MustAccAddressFromBech32(bridgeCall.Sender)
+		sender := types.ExternalAddrToAccAddr(k.moduleName, bridgeCall.Sender)
 		if err = k.bankKeeper.SendCoinsFromModuleToAccount(iterCtx, erc20types.ModuleName, sender, notLiquidCoins); err != nil {
 			k.Logger(iterCtx).Info("failed to transfer coin from erc20 module to sender", "error", err)
 			return true

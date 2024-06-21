@@ -57,6 +57,7 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 	}
 
 	k.HandlePendingOutgoingTx(ctx, receiveAddr, claim.GetEventNonce(), bridgeToken)
+	k.HandlePendingOutgoingBridgeCall(ctx, receiveAddr, claim.GetEventNonce(), bridgeToken)
 	return nil
 }
 
