@@ -573,8 +573,8 @@ func (m *MsgAddPendingPoolRewards) ValidateBasic() (err error) {
 	if m.Id == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("id cannot be zero")
 	}
-	if m.Rewards.Empty() || !m.Rewards.IsValid() || !m.Rewards.IsAllPositive() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid rewards")
+	if m.Rewards.Empty() || !m.Rewards.IsValid() || !m.Rewards.IsAllPositive() || CheckRewardLimits(m.Rewards) != nil {
+		return errortypes.ErrInvalidRequest.Wrap("invalid or out-of-range rewards")
 	}
 	return nil
 }

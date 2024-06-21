@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/big"
 	"sort"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -546,12 +547,20 @@ func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {
 }
 
 func RewardValidator(rewards sdk.Coins) (sdk.Coin, error) {
+	if err := CheckRewardLimits(rewards); err != nil {
+		return sdk.Coin{}, err
+	}
+
+	return rewards[0], nil
+}
+
+func CheckRewardLimits(rewards sdk.Coins) error {
 	if len(rewards) != 1 {
-		return sdk.Coin{}, errors.ErrInvalidRequest.Wrap("only support one coin")
+		return errors.ErrInvalidRequest.Wrap("expected exactly one coin, got " + strconv.Itoa(len(rewards)))
 	}
-	reward := rewards[0]
-	if reward.Denom != fxtypes.DefaultDenom {
-		return sdk.Coin{}, errors.ErrInvalidRequest.Wrapf("only support %s coin", fxtypes.DefaultDenom)
+	if rewards[0].Denom != fxtypes.DefaultDenom {
+		return errors.ErrInvalidRequest.Wrapf("unsupported denomination %s, only %s is supported",
+			rewards[0].Denom, fxtypes.DefaultDenom)
 	}
-	return reward, nil
+	return nil
 }

@@ -17,6 +17,7 @@ import (
 
 	_ "github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -1322,7 +1323,7 @@ func TestMsgAddPendingPoolRewardsValidate_ValidateBasic(t *testing.T) {
 				ChainName: moduleName,
 				Sender:    normalFxAddress,
 				Id:        1,
-				Rewards:   sdk.NewCoins(sdk.NewCoin(helpers.NewRandDenom(), sdkmath.NewInt(1))),
+				Rewards:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
 			},
 			expectPass: true,
 		},
@@ -1336,7 +1337,7 @@ func TestMsgAddPendingPoolRewardsValidate_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid rewards: invalid request",
+			errReason:  "invalid or out-of-range rewards: invalid request",
 		},
 		{
 			testName: "err - empty coins",
@@ -1348,7 +1349,7 @@ func TestMsgAddPendingPoolRewardsValidate_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid rewards: invalid request",
+			errReason:  "invalid or out-of-range rewards: invalid request",
 		},
 	}
 
