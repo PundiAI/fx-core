@@ -1403,7 +1403,7 @@ func (suite *KeeperTestSuite) TestAddPendingPoolRewards() {
 				}
 			},
 			pass: false,
-			err:  errors.ErrInvalidRequest.Wrapf("only support %s coin", fxtypes.DefaultDenom),
+			err:  errors.ErrInvalidRequest.Wrapf("unsupported denomination %s, only %s is supported", "test", fxtypes.DefaultDenom),
 		},
 	}
 
