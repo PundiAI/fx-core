@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	gogotypes "github.com/gogo/protobuf/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -204,6 +205,10 @@ func (k Keeper) SetPendingOutgoingBridgeCall(ctx sdk.Context, pendingOutCall *ty
 func (k Keeper) SetPendingOutgoingBridgeCallWithoutNotLiquidCoins(ctx sdk.Context, pendingOutCall *types.PendingOutgoingBridgeCall) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetPendingOutgoingBridgeCallNonceKey(pendingOutCall.OutgoinBridgeCall.Nonce), k.cdc.MustMarshal(pendingOutCall))
+	store.Set(
+		types.GetPendingOutgoingBridgeCallAddressAndNonceKey(pendingOutCall.OutgoinBridgeCall.Sender, pendingOutCall.OutgoinBridgeCall.Nonce),
+		k.cdc.MustMarshal(&gogotypes.BoolValue{Value: true}),
+	)
 }
 
 func (k Keeper) DeletePendingOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
@@ -214,6 +219,8 @@ func (k Keeper) DeletePendingOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
 	}
 	outCallKey := types.GetPendingOutgoingBridgeCallNonceKey(nonce)
 	store.Delete(outCallKey)
+
+	store.Delete(types.GetPendingOutgoingBridgeCallAddressAndNonceKey(pendingOutCall.OutgoinBridgeCall.Sender, nonce))
 
 	for _, coin := range pendingOutCall.NotLiquidCoins.GetNotLiquidCoins() {
 		store.Delete(types.GetNotLiquidCoinWithIdKey(coin.Denom, nonce))
@@ -242,6 +249,22 @@ func (k Keeper) IteratorBridgeCallNotLiquidsByDenom(ctx sdk.Context, denom strin
 		var notLiquidCoins types.NotLiquidCoins
 		k.cdc.MustUnmarshal(iter.Value(), &notLiquidCoins)
 		if cb(bridgeCallNonce, notLiquidCoins.NotLiquidCoins) {
+			break
+		}
+	}
+}
+
+func (k Keeper) IteratePendingOutgoingBridgeCallsByAddress(ctx sdk.Context, senderAddr string, cb func(outCall *types.PendingOutgoingBridgeCall) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.GetPendingOutgoingBridgeCallAddressKey(senderAddr))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		nonce := types.ParsePendingOutgoingBridgeCallNonce(iterator.Key(), senderAddr)
+		outCall, found := k.GetPendingOutgoingBridgeCallByNonce(ctx, nonce)
+		if !found {
+			continue
+		}
+		if cb(outCall) {
 			break
 		}
 	}

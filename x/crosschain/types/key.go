@@ -121,8 +121,9 @@ var (
 
 	PendingOutgoingTxPoolKey = []byte{0x50}
 
-	BridgeCallFromMsgKey              = []byte{0x51}
-	PendingOutgoingBridgeCallNonceKey = []byte{0x52}
+	BridgeCallFromMsgKey                        = []byte{0x51}
+	PendingOutgoingBridgeCallNonceKey           = []byte{0x52}
+	PendingOutgoingBridgeCallAddressAndNonceKey = []byte{0x53}
 
 	NotLiquidCoinsNonceKey = []byte{0x53}
 )
@@ -234,6 +235,14 @@ func GetPendingOutgoingBridgeCallNonceKey(id uint64) []byte {
 	return append(PendingOutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(id)...)
 }
 
+func GetPendingOutgoingBridgeCallAddressAndNonceKey(address string, nonce uint64) []byte {
+	return append(GetPendingOutgoingBridgeCallAddressKey(address), sdk.Uint64ToBigEndian(nonce)...)
+}
+
+func GetPendingOutgoingBridgeCallAddressKey(address string) []byte {
+	return append(PendingOutgoingBridgeCallAddressAndNonceKey, []byte(address)...)
+}
+
 func GetNotLiquidCoinWithIdKey(denom string, id uint64) []byte {
 	return append(GetNotLiquidCoinKey(denom), sdk.Uint64ToBigEndian(id)...)
 }
@@ -252,6 +261,12 @@ func GetOutgoingBridgeCallAddressKey(address string) []byte {
 
 func ParseOutgoingBridgeCallNonce(key []byte, address string) (nonce uint64) {
 	addrNonce := bytes.TrimPrefix(key, OutgoingBridgeCallAddressAndNonceKey)
+	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
+	return sdk.BigEndianToUint64(nonceBytes)
+}
+
+func ParsePendingOutgoingBridgeCallNonce(key []byte, address string) (nonce uint64) {
+	addrNonce := bytes.TrimPrefix(key, PendingOutgoingBridgeCallAddressAndNonceKey)
 	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
 	return sdk.BigEndianToUint64(nonceBytes)
 }
