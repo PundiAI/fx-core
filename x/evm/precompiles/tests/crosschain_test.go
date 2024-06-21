@@ -821,7 +821,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				return data, pair, big.NewInt(0), moduleName, []string{erc20Token.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: cross-chain failed: token pair not found: %s", args[0])
+				return fmt.Sprintf("execution reverted: token pair not found: %s", args[0])
 			},
 			result: false,
 		},
@@ -1247,7 +1247,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				return data, pair, big.NewInt(0), moduleName, []string{erc20Token.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: cross-chain failed: token pair not found: %s", args[0])
+				return fmt.Sprintf("execution reverted: token pair not found: %s", args[0])
 			},
 			result: false,
 		},
@@ -1889,7 +1889,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: md.metadata.Base}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -1950,7 +1950,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: denom}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -1979,7 +1979,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				return data, randMint, sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: fxtypes.DefaultDenom}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -2329,7 +2329,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: pair.GetDenom()}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: cross-chain failed: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},

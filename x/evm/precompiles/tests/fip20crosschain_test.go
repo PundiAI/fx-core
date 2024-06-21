@@ -236,7 +236,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				return data, pair, big.NewInt(0), "", nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: fip-cross-chain failed: invalid target"
+				return "execution reverted: invalid target"
 			},
 			result: false,
 		},
@@ -296,7 +296,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				return data, newPair, big.NewInt(0), moduleName, []string{}
 			},
 			error: func(args []string) string {
-				return "execution reverted: fip-cross-chain failed: cross chain error: bridge token is not exist: invalid"
+				return "execution reverted: cross chain error: bridge token is not exist: invalid"
 			},
 			result: false,
 		},
@@ -490,7 +490,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				return data, pair, big.NewInt(0), "", nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: fip-cross-chain failed: invalid target"
+				return "execution reverted: invalid target"
 			},
 			result: false,
 		},
@@ -548,7 +548,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				return data, newPair, big.NewInt(0), moduleName, []string{}
 			},
 			error: func(args []string) string {
-				return "execution reverted: fip-cross-chain failed: cross chain error: bridge token is not exist: invalid"
+				return "execution reverted: cross chain error: bridge token is not exist: invalid"
 			},
 			result: false,
 		},
@@ -795,7 +795,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				return data, pair, big.NewInt(0), []string{sdk.NewCoin(aliasDenom, sdkmath.NewIntFromBigInt(fee)).String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: fip-cross-chain failed: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -826,7 +826,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				return data, pair, big.NewInt(0), []string{recipient}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: fip-cross-chain failed: invalid to address: %s", args[0])
+				return fmt.Sprintf("execution reverted: invalid to address: %s", args[0])
 			},
 			result: false,
 		},
@@ -857,7 +857,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				return data, pair, big.NewInt(0), []string{recipient}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: fip-cross-chain failed: invalid to address: %s", args[0])
+				return fmt.Sprintf("execution reverted: invalid to address: %s", args[0])
 			},
 			result: false,
 		},
@@ -1090,7 +1090,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 				return data, pair, big.NewInt(0), []string{sdk.NewCoin(aliasDenom, sdkmath.NewIntFromBigInt(fee)).String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: fip-cross-chain failed: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},

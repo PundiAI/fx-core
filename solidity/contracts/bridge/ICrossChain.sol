@@ -2,11 +2,12 @@
 
 pragma solidity ^0.8.10;
 
+import {IFIP20CrossChain} from "./IFIP20CrossChain.sol";
 import {IBridgeCall} from "./IBridgeCall.sol";
 
 // NOTE: if using an interface to invoke the precompiled contract
 // need to use solidity version 0.8.10 and later.
-interface ICrossChain is IBridgeCall {
+interface ICrossChain is IFIP20CrossChain, IBridgeCall {
     function crossChain(
         address _token,
         string memory _receipt,
@@ -15,16 +16,6 @@ interface ICrossChain is IBridgeCall {
         bytes32 _target,
         string memory _memo
     ) external payable returns (bool _result);
-
-    // Deprecated: for fip20 only
-    function fip20CrossChain(
-        address _sender,
-        string memory _receipt,
-        uint256 _amount,
-        uint256 _fee,
-        bytes32 _target,
-        string memory _memo
-    ) external returns (bool _result);
 
     function cancelSendToExternal(
         string memory _chain,

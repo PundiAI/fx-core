@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable
 import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol";
 
 import "./IFIP20Upgradable.sol";
-import "../bridge/CrossChainCallV1.sol";
+import "../bridge/IFIP20CrossChain.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
@@ -149,8 +149,6 @@ contract FIP20Upgradable is
     OwnableUpgradeable,
     IFIP20Upgradable
 {
-    using CrossChainCallV1 for *;
-
     string private _name;
     string private _symbol;
     uint8 private _decimals;
@@ -235,6 +233,7 @@ contract FIP20Upgradable is
         _burn(account, amount);
     }
 
+    // Deprecated: use pre-compiled contract crossChain
     function transferCrossChain(
         string memory recipient,
         uint256 amount,
@@ -320,14 +319,8 @@ contract FIP20Upgradable is
 
         _transfer(sender, _module, amount + fee);
 
-        CrossChainCallV1.fip20CrossChain(
-            sender,
-            recipient,
-            amount,
-            fee,
-            target,
-            ""
-        );
+        IFIP20CrossChain(0x0000000000000000000000000000000000001004)
+            .fip20CrossChain(sender, recipient, amount, fee, target, "");
     }
 
     // solhint-disable-next-line no-empty-blocks

@@ -24,3 +24,8 @@ func PackRetError(str string) ([]byte, error) {
 	pack, _ := abi.Arguments{{Type: contract.TypeString}}.Pack(str)
 	return pack, errors.New(str)
 }
+
+func PackRetErrV2(str string) ([]byte, error) {
+	pack, _ := contract.GetErrorABI().Pack("Error", str)
+	return pack, errors.New(str)
+}
