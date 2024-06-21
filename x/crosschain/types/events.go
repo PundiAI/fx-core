@@ -20,6 +20,10 @@ const (
 	AttributeKeyOutgoingTxID        = "outgoing_tx_id"
 	AttributeKeyPendingOutgoingTxID = "pending_outgoing_tx_id"
 	AttributeKeyIncreaseFee         = "increase_fee"
+	EventTypeAddPendingRewards      = "add_pending_rewards"
+	AttributeKeyPendingID           = "pending_id"
+	AttributeKeyPendingRewards      = "pending_rewards"
+	AttributeKeyPendingType         = "pending_type"
 
 	EventTypeOutgoingBatch           = "outgoing_batch"
 	EventTypeOutgoingBatchCanceled   = "outgoing_batch_canceled"

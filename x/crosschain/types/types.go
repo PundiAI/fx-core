@@ -11,11 +11,17 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+)
+
+const (
+	PendingTypeOutgoingBridgeCall = "outgoing_bridge_call"
+	PendingTypeOutgoingTransferTx = "outgoing_transfer_tx"
 )
 
 func NewDelegateAmount(amount sdkmath.Int) sdk.Coin {
@@ -537,4 +543,15 @@ func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {
 		})
 	}
 	return erc20Tokens
+}
+
+func RewardValidator(rewards sdk.Coins) (sdk.Coin, error) {
+	if len(rewards) != 1 {
+		return sdk.Coin{}, errors.ErrInvalidRequest.Wrap("only support one coin")
+	}
+	reward := rewards[0]
+	if reward.Denom != fxtypes.DefaultDenom {
+		return sdk.Coin{}, errors.ErrInvalidRequest.Wrapf("only support %s coin", fxtypes.DefaultDenom)
+	}
+	return reward, nil
 }

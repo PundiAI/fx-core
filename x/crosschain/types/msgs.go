@@ -570,11 +570,10 @@ func (m *MsgAddPendingPoolRewards) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
-	if m.TransactionId == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero transaction id")
+	if m.Id == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("id cannot be zero")
 	}
-	rewards := sdk.NewCoins(m.Rewards...)
-	if rewards.Empty() || !rewards.IsValid() || !rewards.IsAllPositive() {
+	if m.Rewards.Empty() || !m.Rewards.IsValid() || !m.Rewards.IsAllPositive() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid rewards")
 	}
 	return nil

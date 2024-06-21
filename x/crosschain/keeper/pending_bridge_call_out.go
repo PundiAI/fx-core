@@ -137,6 +137,26 @@ func (k Keeper) HandleCancelPendingOutgoingBridgeCall(ctx sdk.Context, nonce uin
 	return nil
 }
 
+func (k Keeper) HandleAddPendingBridgeCallRewards(ctx sdk.Context, nonce uint64, reward sdk.Coin) (success bool) {
+	// 1. find the pending outgoing bridge call by nonce
+	pendingBridgeCall, found := k.GetPendingOutgoingBridgeCallByNonce(ctx, nonce)
+	if !found {
+		return false
+	}
+
+	// 3. update rewards
+	pendingBridgeCall.Rewards = sdk.NewCoins(pendingBridgeCall.GetRewards()...).Add(reward)
+	k.SetPendingOutgoingBridgeCallWithoutNotLiquidCoins(ctx, pendingBridgeCall)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeAddPendingRewards,
+		sdk.NewAttribute(types.AttributeKeyPendingID, fmt.Sprintf("%d", nonce)),
+		sdk.NewAttribute(types.AttributeKeyPendingRewards, reward.String()),
+		sdk.NewAttribute(types.AttributeKeyPendingType, types.PendingTypeOutgoingBridgeCall),
+	))
+	return true
+}
+
 func (k Keeper) transferLiquidityProviderRewards(ctx sdk.Context, liquidityProvider []byte, eventNonce uint64, rewards sdk.Coins, provideLiquidityBridgeCallNonces []uint64) error {
 	// transfer rewards
 	if !rewards.Empty() {
@@ -171,14 +191,19 @@ func (k Keeper) transferLiquidityProviderRewards(ctx sdk.Context, liquidityProvi
 }
 
 func (k Keeper) SetPendingOutgoingBridgeCall(ctx sdk.Context, pendingOutCall *types.PendingOutgoingBridgeCall) {
+	k.SetPendingOutgoingBridgeCallWithoutNotLiquidCoins(ctx, pendingOutCall)
 	store := ctx.KVStore(k.storeKey)
 	nonce := pendingOutCall.OutgoinBridgeCall.Nonce
-	store.Set(types.GetPendingOutgoingBridgeCallNonceKey(nonce), k.cdc.MustMarshal(pendingOutCall))
 
 	notLiquidCoinsBytes := k.cdc.MustMarshal(&pendingOutCall.NotLiquidCoins)
 	for _, coin := range pendingOutCall.NotLiquidCoins.GetNotLiquidCoins() {
 		store.Set(types.GetNotLiquidCoinWithIdKey(coin.Denom, nonce), notLiquidCoinsBytes)
 	}
+}
+
+func (k Keeper) SetPendingOutgoingBridgeCallWithoutNotLiquidCoins(ctx sdk.Context, pendingOutCall *types.PendingOutgoingBridgeCall) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetPendingOutgoingBridgeCallNonceKey(pendingOutCall.OutgoinBridgeCall.Nonce), k.cdc.MustMarshal(pendingOutCall))
 }
 
 func (k Keeper) DeletePendingOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
