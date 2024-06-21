@@ -17,6 +17,7 @@ import (
 
 	_ "github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -1310,56 +1311,50 @@ func TestMsgAddPendingPoolRewardsValidate_ValidateBasic(t *testing.T) {
 	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 
 	testCases := []struct {
-		testName    string
-		msg         *types.MsgAddPendingPoolRewards
-		expectPass  bool
-		err         error
-		errReason   string
-		expectPanic bool
+		testName   string
+		msg        *types.MsgAddPendingPoolRewards
+		expectPass bool
+		err        error
+		errReason  string
 	}{
 		{
 			testName: "success",
 			msg: &types.MsgAddPendingPoolRewards{
-				ChainName:     moduleName,
-				Sender:        normalFxAddress,
-				TransactionId: 1,
-				Rewards:       sdk.NewCoins(sdk.NewCoin(helpers.NewRandDenom(), sdkmath.NewInt(1))),
+				ChainName: moduleName,
+				Sender:    normalFxAddress,
+				Id:        1,
+				Rewards:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
 			},
 			expectPass: true,
 		},
 		{
 			testName: "err - duplicate coin",
 			msg: &types.MsgAddPendingPoolRewards{
-				ChainName:     moduleName,
-				Sender:        normalFxAddress,
-				TransactionId: 1,
-				Rewards:       []sdk.Coin{sdk.NewCoin("xxx", sdk.NewInt(1)), sdk.NewCoin("xxx", sdk.NewInt(2))},
+				ChainName: moduleName,
+				Sender:    normalFxAddress,
+				Id:        1,
+				Rewards:   []sdk.Coin{sdk.NewCoin("xxx", sdk.NewInt(1)), sdk.NewCoin("xxx", sdk.NewInt(2))},
 			},
-			expectPass:  false,
-			expectPanic: true,
+			expectPass: false,
+			err:        errortypes.ErrInvalidRequest,
+			errReason:  "invalid or out-of-range rewards: invalid request",
 		},
 		{
 			testName: "err - empty coins",
 			msg: &types.MsgAddPendingPoolRewards{
-				ChainName:     moduleName,
-				Sender:        normalFxAddress,
-				TransactionId: 1,
-				Rewards:       []sdk.Coin{},
+				ChainName: moduleName,
+				Sender:    normalFxAddress,
+				Id:        1,
+				Rewards:   []sdk.Coin{},
 			},
 			expectPass: false,
 			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid rewards: invalid request",
+			errReason:  "invalid or out-of-range rewards: invalid request",
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.testName, func(t *testing.T) {
-			if testCase.expectPanic {
-				require.Panics(t, func() {
-					_ = testCase.msg.ValidateBasic()
-				})
-				return
-			}
 			err := testCase.msg.ValidateBasic()
 			if testCase.expectPass {
 				require.NoError(t, err)

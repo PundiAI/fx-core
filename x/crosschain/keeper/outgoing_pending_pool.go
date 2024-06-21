@@ -34,6 +34,24 @@ func (k Keeper) RemovePendingOutgoingTx(context sdk.Context, tokenContract strin
 	store.Delete(types.GetOutgoingPendingTxPoolKey(tokenContract, txId))
 }
 
+func (k Keeper) HandleAddPendingPoolReward(ctx sdk.Context, id uint64, reward sdk.Coin) (success bool) {
+	pendingPoolTx, found := k.GetPendingPoolTxById(ctx, id)
+	if !found {
+		return false
+	}
+
+	pendingPoolTx.Rewards = sdk.NewCoins(pendingPoolTx.GetRewards()...).Add(reward)
+	k.SetPendingTx(ctx, pendingPoolTx)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeAddPendingRewards,
+		sdk.NewAttribute(types.AttributeKeyPendingID, fmt.Sprintf("%d", id)),
+		sdk.NewAttribute(types.AttributeKeyPendingRewards, reward.String()),
+		sdk.NewAttribute(types.AttributeKeyPendingType, types.PendingTypeOutgoingTransferTx),
+	))
+	return true
+}
+
 func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.AccAddress, eventNonce uint64, bridgeToken *types.BridgeToken) {
 	cacheContext, commit := ctx.CacheContext()
 

@@ -7,15 +7,22 @@ import (
 	"math"
 	"math/big"
 	"sort"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+)
+
+const (
+	PendingTypeOutgoingBridgeCall = "outgoing_bridge_call"
+	PendingTypeOutgoingTransferTx = "outgoing_transfer_tx"
 )
 
 func NewDelegateAmount(amount sdkmath.Int) sdk.Coin {
@@ -537,4 +544,23 @@ func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {
 		})
 	}
 	return erc20Tokens
+}
+
+func RewardValidator(rewards sdk.Coins) (sdk.Coin, error) {
+	if err := CheckRewardLimits(rewards); err != nil {
+		return sdk.Coin{}, err
+	}
+
+	return rewards[0], nil
+}
+
+func CheckRewardLimits(rewards sdk.Coins) error {
+	if len(rewards) != 1 {
+		return errors.ErrInvalidRequest.Wrap("expected exactly one coin, got " + strconv.Itoa(len(rewards)))
+	}
+	if rewards[0].Denom != fxtypes.DefaultDenom {
+		return errors.ErrInvalidRequest.Wrapf("unsupported denomination %s, only %s is supported",
+			rewards[0].Denom, fxtypes.DefaultDenom)
+	}
+	return nil
 }

@@ -8,6 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -638,38 +639,35 @@ func (s MsgServer) CancelPendingBridgeCall(c context.Context, msg *types.MsgCanc
 
 func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPendingPoolRewards) (*types.MsgAddPendingPoolRewardsResponse, error) {
 	// 0. validate rewards coin, only support stake coin.
-	if len(msg.Rewards) != 1 {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "only support one coin")
-	}
-	reward := msg.Rewards[0]
-	if reward.Denom != fxtypes.DefaultDenom {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "only support %s coin", fxtypes.DefaultDenom)
-	}
-
-	// 1. find the pending pool tx by txID
-	ctx := sdk.UnwrapSDKContext(c)
-	pendingPoolTx, found := s.GetPendingPoolTxById(ctx, msg.TransactionId)
-	if !found {
-		return nil, errorsmod.Wrap(types.ErrUnknown, "pending pool tx")
-	}
-
-	// 2. transfer coins to module
-	sender := sdk.MustAccAddressFromBech32(msg.Sender)
-	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, s.moduleName, sdk.NewCoins(reward)); err != nil {
+	reward, err := types.RewardValidator(msg.Rewards)
+	if err != nil {
 		return nil, err
 	}
 
-	// 3. update pending pool tx reward
-	pendingPoolTx.Rewards = sdk.NewCoins(pendingPoolTx.GetRewards()...).Add(reward)
-	s.SetPendingTx(ctx, pendingPoolTx)
+	ctx := sdk.UnwrapSDKContext(c)
+	// 1. transfer coins to module
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
+	if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, s.moduleName, sdk.NewCoins(reward)); err != nil {
+		return nil, err
+	}
 
-	// 4. emit event
+	// 2. try to handle adding pending bridge call rewards
+	addSuccess := s.HandleAddPendingBridgeCallRewards(ctx, msg.Id, reward)
+
+	if !addSuccess {
+		// 3. try to handle adding pending pool rewards
+		addSuccess = s.HandleAddPendingPoolReward(ctx, msg.Id, reward)
+	}
+	if !addSuccess {
+		return nil, errors.ErrInvalidRequest.Wrap("not found pending record")
+	}
+
+	// 3. emit event
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 	))
-
 	return &types.MsgAddPendingPoolRewardsResponse{}, nil
 }
 

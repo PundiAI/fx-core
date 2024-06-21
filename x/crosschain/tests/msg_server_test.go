@@ -11,6 +11,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -1382,10 +1383,10 @@ func (suite *KeeperTestSuite) TestAddPendingPoolRewards() {
 			name: "pass",
 			malleate: func() *types.MsgAddPendingPoolRewards {
 				return &types.MsgAddPendingPoolRewards{
-					ChainName:     suite.chainName,
-					TransactionId: txId,
-					Sender:        sender.String(),
-					Rewards:       sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
+					ChainName: suite.chainName,
+					Id:        txId,
+					Sender:    sender.String(),
+					Rewards:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
 				}
 			},
 			pass:         true,
@@ -1395,14 +1396,14 @@ func (suite *KeeperTestSuite) TestAddPendingPoolRewards() {
 			name: "err - rewards not FX denom",
 			malleate: func() *types.MsgAddPendingPoolRewards {
 				return &types.MsgAddPendingPoolRewards{
-					ChainName:     suite.chainName,
-					TransactionId: txId,
-					Sender:        sender.String(),
-					Rewards:       sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(1))),
+					ChainName: suite.chainName,
+					Id:        txId,
+					Sender:    sender.String(),
+					Rewards:   sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(1))),
 				}
 			},
 			pass: false,
-			err:  errorsmod.Wrapf(types.ErrInvalid, "only support %s coin", fxtypes.DefaultDenom),
+			err:  errors.ErrInvalidRequest.Wrapf("unsupported denomination %s, only %s is supported", "test", fxtypes.DefaultDenom),
 		},
 	}
 
