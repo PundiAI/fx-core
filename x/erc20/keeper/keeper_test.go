@@ -40,7 +40,6 @@ import (
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/contract"
-	fxserverconfig "github.com/functionx/fx-core/v7/server/config"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
@@ -326,7 +325,7 @@ func (suite *KeeperTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr com
 	res, err := evm.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
 		&evm.EthCallRequest{
 			Args:    args,
-			GasCap:  fxserverconfig.DefaultGasCap,
+			GasCap:  contract.DefaultGasCap,
 			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
 		},
 	)

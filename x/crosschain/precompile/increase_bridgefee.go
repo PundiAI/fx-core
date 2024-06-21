@@ -1,4 +1,4 @@
-package crosschain
+package precompile
 
 import (
 	"errors"
@@ -12,7 +12,8 @@ import (
 
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 // IncreaseBridgeFee add bridge fee to unbatched tx
@@ -26,8 +27,8 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contractAddr 
 		return nil, errors.New("cross chain router empty")
 	}
 
-	var args IncreaseBridgeFeeArgs
-	err := types.ParseMethodArgs(IncreaseBridgeFeeMethod, &args, contractAddr.Input[4:])
+	var args crosschaintypes.IncreaseBridgeFeeArgs
+	err := evmtypes.ParseMethodArgs(crosschaintypes.IncreaseBridgeFeeMethod, &args, contractAddr.Input[4:])
 	if err != nil {
 		return nil, err
 	}
@@ -68,10 +69,10 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contractAddr 
 	}
 
 	// add event log
-	if err = c.AddLog(evm, IncreaseBridgeFeeEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+	if err = c.AddLog(evm, crosschaintypes.IncreaseBridgeFeeEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
 		args.Chain, args.TxID, args.Fee); err != nil {
 		return nil, err
 	}
 
-	return IncreaseBridgeFeeMethod.Outputs.Pack(true)
+	return crosschaintypes.IncreaseBridgeFeeMethod.Outputs.Pack(true)
 }

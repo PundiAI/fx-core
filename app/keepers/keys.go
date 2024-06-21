@@ -26,9 +26,10 @@ import (
 	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
+	crosschainprecompile "github.com/functionx/fx-core/v7/x/crosschain/precompile"
+	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	precompilescrosschain "github.com/functionx/fx-core/v7/x/evm/precompiles/crosschain"
 	precompilesstaking "github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
 	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
 	migratetypes "github.com/functionx/fx-core/v7/x/migrate/types"
@@ -87,7 +88,7 @@ func (appKeepers *AppKeepers) EvmPrecompiled() {
 	}
 
 	// cross chain precompile
-	crosschainRouter := precompilescrosschain.NewRouter().
+	crosschainRouter := crosschainprecompile.NewRouter().
 		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
@@ -96,8 +97,8 @@ func (appKeepers *AppKeepers) EvmPrecompiled() {
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
 		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
 		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper)
-	precompiled[precompilescrosschain.GetAddress()] = func(ctx sdk.Context) vm.PrecompiledContract {
-		return precompilescrosschain.NewPrecompiledContract(
+	precompiled[crosschaintypes.GetAddress()] = func(ctx sdk.Context) vm.PrecompiledContract {
+		return crosschainprecompile.NewPrecompiledContract(
 			ctx,
 			appKeepers.BankKeeper,
 			appKeepers.Erc20Keeper,
