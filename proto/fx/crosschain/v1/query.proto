@@ -97,6 +97,12 @@ service Query {
   rpc LastPendingBridgeCallByAddr(QueryLastPendingBridgeCallByAddrRequest) returns (QueryLastPendingBridgeCallByAddrResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/last_pending_bridge_call_by_addr";
   }
+  rpc PendingBridgeCalls(QueryPendingBridgeCallsRequest) returns (QueryPendingBridgeCallsResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/pending_bridge_calls";
+  }
+  rpc PendingBridgeCallByNonce(QueryPendingBridgeCallByNonceRequest) returns (QueryPendingBridgeCallByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/pending_bridge_call_by_nonce";
+  }
 
   // Validators queries all oracle that match the given status.
   rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
@@ -349,7 +355,7 @@ message QueryBridgeCallsResponse {
 
 message QueryBridgeCallByNonceRequest {
   string chain_name = 1;
-  uint64 event_nonce = 2;
+  uint64 nonce = 2;
 }
 message QueryBridgeCallByNonceResponse {
   OutgoingBridgeCall bridge_call = 1;
@@ -379,4 +385,23 @@ message QueryLastPendingBridgeCallByAddrRequest {
 }
 message QueryLastPendingBridgeCallByAddrResponse {
   repeated OutgoingBridgeCall bridge_calls = 1;
+}
+
+message QueryPendingBridgeCallsRequest {
+  string chain_name = 1;
+  string sender_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryPendingBridgeCallsResponse {
+  repeated PendingOutgoingBridgeCall pending_bridge_calls = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryPendingBridgeCallByNonceRequest {
+  string chain_name = 1;
+  uint64 nonce = 2;
+}
+message QueryPendingBridgeCallByNonceResponse {
+  PendingOutgoingBridgeCall bridge_call = 1;
 }

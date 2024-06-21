@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	sdkmath "cosmossdk.io/math"
@@ -9,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	gogotypes "github.com/gogo/protobuf/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -457,7 +459,7 @@ func (k QueryServer) BridgeCallConfirmByNonce(c context.Context, req *types.Quer
 }
 
 func (k QueryServer) BridgeCallByNonce(c context.Context, req *types.QueryBridgeCallByNonceRequest) (*types.QueryBridgeCallByNonceResponse, error) {
-	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(sdk.UnwrapSDKContext(c), req.GetEventNonce())
+	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(sdk.UnwrapSDKContext(c), req.GetNonce())
 	if !found {
 		return nil, status.Error(codes.NotFound, "outgoing bridge call not found")
 	}
@@ -493,6 +495,51 @@ func (k QueryServer) LastPendingBridgeCallByAddr(c context.Context, req *types.Q
 		return len(unsignedOutgoingBridgeCall) == types.MaxResults
 	})
 	return &types.QueryLastPendingBridgeCallByAddrResponse{BridgeCalls: unsignedOutgoingBridgeCall}, nil
+}
+
+func (k QueryServer) PendingBridgeCalls(c context.Context, req *types.QueryPendingBridgeCallsRequest) (*types.QueryPendingBridgeCallsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	var datas []*types.PendingOutgoingBridgeCall
+	var pageRes *query.PageResponse
+	var err error
+	if req.SenderAddress == "" {
+		pendingStore := prefix.NewStore(store, types.PendingOutgoingBridgeCallNonceKey)
+		datas, pageRes, err = query.GenericFilteredPaginate(k.cdc, pendingStore, req.Pagination, func(key []byte, data *types.PendingOutgoingBridgeCall) (*types.PendingOutgoingBridgeCall, error) {
+			return data, nil
+		}, func() *types.PendingOutgoingBridgeCall {
+			return &types.PendingOutgoingBridgeCall{}
+		})
+	} else {
+		if types.ValidateExternalAddr(k.moduleName, req.SenderAddress) != nil {
+			return nil, status.Error(codes.InvalidArgument, "sender address")
+		}
+		pendingStore := prefix.NewStore(store, types.GetPendingOutgoingBridgeCallAddressKey(req.SenderAddress))
+		datas, pageRes, err = query.GenericFilteredPaginate(k.cdc, pendingStore, req.Pagination, func(key []byte, _ *gogotypes.BoolValue) (*types.PendingOutgoingBridgeCall, error) {
+			nonce := sdk.BigEndianToUint64(key)
+			pendingOutCall, found := k.GetPendingOutgoingBridgeCallByNonce(ctx, nonce)
+			if !found {
+				return nil, status.Error(codes.NotFound, fmt.Sprintf("pending outgoing bridge call not found for nonce %d", nonce))
+			}
+			return pendingOutCall, nil
+		}, func() *gogotypes.BoolValue {
+			return &gogotypes.BoolValue{}
+		})
+	}
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryPendingBridgeCallsResponse{PendingBridgeCalls: datas, Pagination: pageRes}, nil
+}
+
+func (k QueryServer) PendingBridgeCallByNonce(c context.Context, req *types.QueryPendingBridgeCallByNonceRequest) (*types.QueryPendingBridgeCallByNonceResponse, error) {
+	pendingOutgoingBridgeCall, found := k.GetPendingOutgoingBridgeCallByNonce(sdk.UnwrapSDKContext(c), req.GetNonce())
+	if !found {
+		return nil, status.Error(codes.NotFound, "pending outgoing bridge call not found")
+	}
+	return &types.QueryPendingBridgeCallByNonceResponse{BridgeCall: pendingOutgoingBridgeCall}, nil
 }
 
 func (k QueryServer) BridgeAddrToOracleAddr(ctx sdk.Context, bridgeAddr string) (sdk.AccAddress, error) {

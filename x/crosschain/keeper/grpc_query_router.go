@@ -282,3 +282,19 @@ func (k RouterKeeper) LastPendingBridgeCallByAddr(c context.Context, req *types.
 		return queryServer.LastPendingBridgeCallByAddr(c, req)
 	}
 }
+
+func (k RouterKeeper) PendingBridgeCalls(c context.Context, req *types.QueryPendingBridgeCallsRequest) (*types.QueryPendingBridgeCallsResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.PendingBridgeCalls(c, req)
+	}
+}
+
+func (k RouterKeeper) PendingBridgeCallByNonce(c context.Context, req *types.QueryPendingBridgeCallByNonceRequest) (*types.QueryPendingBridgeCallByNonceResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.PendingBridgeCallByNonce(c, req)
+	}
+}
