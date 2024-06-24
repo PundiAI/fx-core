@@ -22,7 +22,7 @@ func (k Keeper) AddPendingOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr
 
 	pendingOutCall := &types.PendingOutgoingBridgeCall{
 		OutgoinBridgeCall: outCall,
-		NotLiquidCoins:    types.NotLiquidCoins{NotLiquidCoins: notLiquidCoins},
+		NotLiquidCoins:    notLiquidCoins,
 		Rewards:           sdk.NewCoins(),
 	}
 	k.SetPendingOutgoingBridgeCall(ctx, pendingOutCall)
@@ -124,7 +124,7 @@ func (k Keeper) HandleCancelPendingOutgoingBridgeCall(ctx sdk.Context, nonce uin
 	k.HandleOutgoingBridgeCallRefund(ctx, outCall)
 
 	// 2. refund rewards
-	if !sdk.Coins(pendingOutCall.Rewards).IsZero() {
+	if !pendingOutCall.Rewards.IsZero() {
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, pendingOutCall.Rewards); err != nil {
 			return err
 		}
@@ -196,9 +196,9 @@ func (k Keeper) SetPendingOutgoingBridgeCall(ctx sdk.Context, pendingOutCall *ty
 	store := ctx.KVStore(k.storeKey)
 	nonce := pendingOutCall.OutgoinBridgeCall.Nonce
 
-	notLiquidCoinsBytes := k.cdc.MustMarshal(&pendingOutCall.NotLiquidCoins)
-	for _, coin := range pendingOutCall.NotLiquidCoins.GetNotLiquidCoins() {
-		store.Set(types.GetNotLiquidCoinWithIdKey(coin.Denom, nonce), notLiquidCoinsBytes)
+	notLiquidBz := []byte(pendingOutCall.GetNotLiquidCoins().String())
+	for _, coin := range pendingOutCall.GetNotLiquidCoins() {
+		store.Set(types.GetNotLiquidCoinWithIdKey(coin.Denom, nonce), notLiquidBz)
 	}
 }
 
@@ -222,7 +222,7 @@ func (k Keeper) DeletePendingOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
 
 	store.Delete(types.GetPendingOutgoingBridgeCallAddressAndNonceKey(pendingOutCall.OutgoinBridgeCall.Sender, nonce))
 
-	for _, coin := range pendingOutCall.NotLiquidCoins.GetNotLiquidCoins() {
+	for _, coin := range pendingOutCall.GetNotLiquidCoins() {
 		store.Delete(types.GetNotLiquidCoinWithIdKey(coin.Denom, nonce))
 	}
 }
@@ -246,9 +246,11 @@ func (k Keeper) IteratorBridgeCallNotLiquidsByDenom(ctx sdk.Context, denom strin
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		bridgeCallNonce := types.ParseBridgeCallNotLiquidNonce(iter.Key(), denom)
-		var notLiquidCoins types.NotLiquidCoins
-		k.cdc.MustUnmarshal(iter.Value(), &notLiquidCoins)
-		if cb(bridgeCallNonce, notLiquidCoins.NotLiquidCoins) {
+		coins, err := sdk.ParseCoinsNormalized(string(iter.Value()))
+		if err != nil {
+			break
+		}
+		if cb(bridgeCallNonce, coins) {
 			break
 		}
 	}
