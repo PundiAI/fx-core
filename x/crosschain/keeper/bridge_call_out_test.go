@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"reflect"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"go.uber.org/mock/gomock"
@@ -165,4 +166,30 @@ func (s *KeeperTestSuite) TestKeeper_DeleteOutgoingBridgeCall() {
 
 	s.Require().False(s.crosschainKeeper.HasOutgoingBridgeCall(s.ctx, outCall.Nonce))
 	s.Require().False(s.crosschainKeeper.HasOutgoingBridgeCallAddressAndNonce(s.ctx, outCall.Sender, outCall.Nonce))
+}
+
+func (s *KeeperTestSuite) TestKeeper_IteratorBridgeCallNotLiquidsByDenom() {
+	expectCoins := sdk.NewCoins()
+	for i := 0; i < int(tmrand.Int63n(10))+1; i++ {
+		newCoin := sdk.NewCoin(types.NewBridgeDenom(s.moduleName, helpers.GenExternalAddr(s.moduleName)), sdkmath.NewInt(int64(tmrand.Uint32())))
+		expectCoins = expectCoins.Add(newCoin)
+	}
+	pendingOutCall := &types.PendingOutgoingBridgeCall{
+		OutgoinBridgeCall: &types.OutgoingBridgeCall{
+			Sender: helpers.GenHexAddress().String(),
+			Nonce:  tmrand.Uint64(),
+		},
+		NotLiquidCoins: expectCoins,
+	}
+	s.crosschainKeeper.SetPendingOutgoingBridgeCall(s.ctx, pendingOutCall)
+	for _, coin := range expectCoins {
+		count := 0
+		s.crosschainKeeper.IteratorBridgeCallNotLiquidsByDenom(s.ctx, coin.Denom, func(bridgeCallNonce uint64, notLiquidCoins sdk.Coins) bool {
+			count++
+			s.Require().EqualValues(expectCoins, notLiquidCoins)
+			s.Require().EqualValues(expectCoins.String(), notLiquidCoins.String())
+			return false
+		})
+		s.Require().EqualValues(1, count)
+	}
 }
