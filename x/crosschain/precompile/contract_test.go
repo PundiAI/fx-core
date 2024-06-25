@@ -1,4 +1,4 @@
-package tests_test
+package precompile_test
 
 import (
 	"encoding/json"
@@ -62,7 +62,6 @@ func TestPrecompileTestSuite(t *testing.T) {
 	suite.Run(t, new(PrecompileTestSuite))
 }
 
-// Test helpers
 func (suite *PrecompileTestSuite) SetupTest() {
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()

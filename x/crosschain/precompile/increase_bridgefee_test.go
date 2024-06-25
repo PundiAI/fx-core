@@ -1,4 +1,4 @@
-package tests_test
+package precompile_test
 
 import (
 	"encoding/hex"
@@ -20,22 +20,19 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
 func TestIncreaseBridgeFeeABI(t *testing.T) {
-	crossChainABI := crosschaintypes.GetABI()
+	increaseBridgeFee := precompile.NewIncreaseBridgeFeeMethod(nil)
 
-	method := crossChainABI.Methods[crosschaintypes.IncreaseBridgeFeeMethodName]
-	require.Equal(t, method, crosschaintypes.IncreaseBridgeFeeMethod)
-	require.Equal(t, 4, len(method.Inputs))
-	require.Equal(t, 1, len(method.Outputs))
+	require.Equal(t, 4, len(increaseBridgeFee.Method.Inputs))
+	require.Equal(t, 1, len(increaseBridgeFee.Method.Outputs))
 
-	event := crossChainABI.Events[crosschaintypes.IncreaseBridgeFeeEventName]
-	require.Equal(t, event, crosschaintypes.IncreaseBridgeFeeEvent)
-	require.Equal(t, 5, len(event.Inputs))
+	require.Equal(t, 5, len(increaseBridgeFee.Event.Inputs))
 }
 
 //gocyclo:ignore
@@ -427,7 +424,6 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
@@ -487,11 +483,12 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschaintypes.IncreaseBridgeFeeEvent.ID.String() {
+					event := crosschaintypes.GetABI().Events["IncreaseBridgeFee"]
+					if log.Topics[0] == event.ID.String() {
 						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
 						suite.Require().Equal(log.Topics[2], pair.GetERC20Contract().Hash().String())
-						unpack, err := crosschaintypes.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := event.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						chain := unpack[0].(string)
 						suite.Require().Equal(chain, moduleName)
@@ -827,11 +824,12 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschaintypes.IncreaseBridgeFeeEvent.ID.String() {
+					event := crosschaintypes.GetABI().Events["IncreaseBridgeFee"]
+					if log.Topics[0] == event.ID.String() {
 						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
 						suite.Require().Equal(log.Topics[2], pair.GetERC20Contract().Hash().String())
-						unpack, err := crosschaintypes.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := event.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						chain := unpack[0].(string)
 						suite.Require().Equal(chain, moduleName)

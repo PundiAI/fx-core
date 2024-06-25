@@ -1,4 +1,4 @@
-package tests_test
+package precompile_test
 
 import (
 	"encoding/hex"
@@ -24,22 +24,19 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
 func TestCrossChainABI(t *testing.T) {
-	crossChainABI := crosschaintypes.GetABI()
+	crossChain := precompile.NewCrossChainMethod(nil)
 
-	method := crossChainABI.Methods[crosschaintypes.CrossChainMethodName]
-	require.Equal(t, method, crosschaintypes.CrossChainMethod)
-	require.Equal(t, 6, len(method.Inputs))
-	require.Equal(t, 1, len(method.Outputs))
+	require.Equal(t, 6, len(crossChain.Method.Inputs))
+	require.Equal(t, 1, len(crossChain.Method.Outputs))
 
-	event := crossChainABI.Events[crosschaintypes.CrossChainEventName]
-	require.Equal(t, event, crosschaintypes.CrossChainEvent)
-	require.Equal(t, 8, len(event.Inputs))
+	require.Equal(t, 8, len(crossChain.Event.Inputs))
 }
 
 //gocyclo:ignore
@@ -972,12 +969,13 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschaintypes.CrossChainEvent.ID.String() {
+					event := crosschaintypes.GetABI().Events["IncreaseBridgeFee"]
+					if log.Topics[0] == event.ID.String() {
 						suite.Require().Equal(3, len(log.Topics))
 						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], addrQuery.Hash().String())
 
-						unpack, err := crosschaintypes.CrossChainEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := event.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						denom := unpack[0].(string)
 
@@ -1386,12 +1384,13 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschaintypes.CrossChainEvent.ID.String() {
+					event := crosschaintypes.GetABI().Events["IncreaseBridgeFee"]
+					if log.Topics[0] == event.ID.String() {
 						suite.Require().Equal(3, len(log.Topics))
 						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], addrQuery.Hash().String())
 
-						unpack, err := crosschaintypes.CrossChainEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := event.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						denom := unpack[0].(string)
 
