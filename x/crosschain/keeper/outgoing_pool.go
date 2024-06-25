@@ -230,19 +230,53 @@ func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccA
 	}
 
 	// 2. handler hook
-	// if not origin token, refund to contract token
-	if k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, txId) {
-		if err := k.erc20Keeper.HookOutgoingRefund(ctx, k.moduleName, txId, sender, targetCoin); err != nil {
-			return sdk.Coin{}, errorsmod.Wrap(err, "outgoing refund")
-		}
+	if err = k.handleOutgoingTransferRelation(ctx, txId, sender, targetCoin); err != nil {
+		return sdk.Coin{}, err
 	}
 
 	// 3. emit event
+	k.emitCancelEvent(ctx, txId)
+
+	return targetCoin, nil
+}
+
+func (k Keeper) handleCancelPendingPoolRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress, tokenContract string, refundAmount sdkmath.Int) (sdk.Coin, error) {
+	bridgeToken := k.GetBridgeTokenDenom(ctx, tokenContract)
+	if bridgeToken == nil {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tokenContract)
+	}
+	// 1. handler refund
+	targetCoin, err := k.erc20Keeper.RefundLiquidity(ctx, sender, sdk.NewCoin(bridgeToken.Denom, refundAmount))
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrap(err, "convert denom to erc20")
+	}
+
+	// 2. handler hook
+	if err = k.handleOutgoingTransferRelation(ctx, txId, sender, targetCoin); err != nil {
+		return sdk.Coin{}, err
+	}
+
+	// 3. emit event
+	k.emitCancelEvent(ctx, txId)
+
+	return targetCoin, nil
+}
+
+func (k Keeper) handleOutgoingTransferRelation(ctx sdk.Context, txId uint64, sender sdk.AccAddress, targetCoin sdk.Coin) error {
+	// if not origin token, refund to contract token
+	if !k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, txId) {
+		return nil
+	}
+	if err := k.erc20Keeper.HookOutgoingRefund(ctx, k.moduleName, txId, sender, targetCoin); err != nil {
+		return errorsmod.Wrap(err, "outgoing refund")
+	}
+	return nil
+}
+
+func (k Keeper) emitCancelEvent(ctx sdk.Context, txId uint64) {
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternalCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
 	))
-
-	return targetCoin, nil
 }

@@ -579,6 +579,21 @@ func (mr *MockErc20KeeperMockRecorder) IsOriginOrConvertedDenom(ctx, denom any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOriginOrConvertedDenom", reflect.TypeOf((*MockErc20Keeper)(nil).IsOriginOrConvertedDenom), ctx, denom)
 }
 
+// RefundLiquidity mocks base method.
+func (m *MockErc20Keeper) RefundLiquidity(ctx types.Context, from types.AccAddress, coin types.Coin) (types.Coin, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefundLiquidity", ctx, from, coin)
+	ret0, _ := ret[0].(types.Coin)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RefundLiquidity indicates an expected call of RefundLiquidity.
+func (mr *MockErc20KeeperMockRecorder) RefundLiquidity(ctx, from, coin any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefundLiquidity", reflect.TypeOf((*MockErc20Keeper)(nil).RefundLiquidity), ctx, from, coin)
+}
+
 // SetOutgoingTransferRelation mocks base method.
 func (m *MockErc20Keeper) SetOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) {
 	m.ctrl.T.Helper()

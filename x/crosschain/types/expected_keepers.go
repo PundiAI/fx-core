@@ -69,6 +69,7 @@ type Erc20Keeper interface {
 	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (erc20types.TokenPair, bool)
+	RefundLiquidity(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error)
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on crosschain

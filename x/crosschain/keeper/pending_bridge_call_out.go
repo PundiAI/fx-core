@@ -127,6 +127,31 @@ func (k Keeper) HandleCancelPendingOutgoingBridgeCall(ctx sdk.Context, nonce uin
 	}
 
 	// 1. reuse refund logic
+	notLiquidTargetCoins := sdk.NewCoins()
+	for _, coin := range pendingOutCall.NotLiquidCoins {
+		notLiquidTargetCoin, err := k.erc20Keeper.RefundLiquidity(ctx, outCallSender, coin)
+		if err != nil {
+			return types.ErrInvalid.Wrapf("refund liquidity failed, error: %s", err)
+		}
+		notLiquidTargetCoins = notLiquidTargetCoins.Add(notLiquidTargetCoin)
+		bridgeToken := k.GetDenomBridgeToken(ctx, coin.GetDenom())
+		if bridgeToken == nil {
+			return types.ErrInvalid.Wrapf("bridge token not found, denom: %s", coin.GetDenom())
+		}
+		for i := 0; i < len(outCall.Tokens); i++ {
+			if outCall.Tokens[i].Contract == bridgeToken.Token {
+				outCall.Tokens = append(outCall.Tokens[:i], outCall.Tokens[i+1:]...)
+				break
+			}
+		}
+	}
+
+	if !notLiquidTargetCoins.IsZero() && !k.HasBridgeCallFromMsg(ctx, nonce) {
+		if err := k.bridgeCallTransferTokens(ctx, outCallSender, outCallSender, notLiquidTargetCoins); err != nil {
+			panic(err)
+		}
+	}
+
 	outCall.Refund = outCall.Sender
 	k.HandleOutgoingBridgeCallRefund(ctx, outCall)
 
