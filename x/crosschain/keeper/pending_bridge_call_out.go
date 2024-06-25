@@ -75,6 +75,13 @@ func (k Keeper) HandlePendingOutgoingBridgeCall(ctx sdk.Context, liquidityProvid
 			return true
 		}
 
+		for _, coin := range notLiquidCoins {
+			if err = k.TransferBridgeCoinToExternal(iterCtx, sender, coin); err != nil {
+				k.Logger(iterCtx).Info("failed to transfer bridge coin to external", "error", err)
+				return true
+			}
+		}
+
 		// 4. remove pending outgoing tx
 		k.DeletePendingOutgoingBridgeCall(iterCtx, bridgeCall.Nonce)
 
@@ -167,6 +174,9 @@ func (k Keeper) transferLiquidityProviderRewards(ctx sdk.Context, liquidityProvi
 		}
 
 		for _, reward := range rewards {
+			if reward.Denom == fxtypes.DefaultDenom {
+				continue
+			}
 			if _, err := k.erc20Keeper.ConvertDenomToTarget(ctx, liquidityProvider, reward, fxtypes.ParseFxTarget(fxtypes.ERC20Target)); err != nil {
 				k.Logger(ctx).Info("failed to convert reward to target coin", "error", err)
 				return err
