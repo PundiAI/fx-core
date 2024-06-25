@@ -1938,24 +1938,15 @@ func TestMsgBridgeCallConfirm_ValidateBasic(t *testing.T) {
 
 func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 	moduleName := getRandModule()
-	type fields struct {
-		ChainName string
-		Sender    string
-		Refund    string
-		Coins     sdk.Coins
-		To        string
-		Data      string
-		Value     sdkmath.Int
-		Memo      string
-	}
+
 	tests := []struct {
 		name          string
-		fields        fields
+		msg           *types.MsgBridgeCall
 		expectedError string
 	}{
 		{
 			name: "success",
-			fields: fields{
+			msg: &types.MsgBridgeCall{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
 				Refund:    helpers.GenAccAddress().String(),
@@ -1968,14 +1959,14 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "err - empty chain name",
-			fields: fields{
+			msg: &types.MsgBridgeCall{
 				ChainName: "",
 			},
 			expectedError: "unrecognized cross chain name: invalid request",
 		},
 		{
 			name: "err - coins and to are empty",
-			fields: fields{
+			msg: &types.MsgBridgeCall{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
 				Refund:    helpers.GenAccAddress().String(),
@@ -1989,7 +1980,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "err - empty refund address",
-			fields: fields{
+			msg: &types.MsgBridgeCall{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
 				Refund:    "",
@@ -2003,7 +1994,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "err - invalid bech32 refund address",
-			fields: fields{
+			msg: &types.MsgBridgeCall{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
 				Refund:    "fx123",
@@ -2017,7 +2008,7 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "err - value must be zero",
-			fields: fields{
+			msg: &types.MsgBridgeCall{
 				ChainName: moduleName,
 				Sender:    helpers.GenAccAddress().String(),
 				Refund:    helpers.GenAccAddress().String(),
@@ -2032,17 +2023,47 @@ func TestMsgBridgeCall_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &types.MsgBridgeCall{
-				ChainName: tt.fields.ChainName,
-				Sender:    tt.fields.Sender,
-				Refund:    tt.fields.Refund,
-				Coins:     tt.fields.Coins,
-				To:        tt.fields.To,
-				Data:      tt.fields.Data,
-				Value:     tt.fields.Value,
-				Memo:      tt.fields.Memo,
+			err := tt.msg.ValidateBasic()
+			if len(tt.expectedError) > 0 {
+				require.NotNil(t, err, "ValidateBasic()")
+				assert.Equal(t, tt.expectedError, err.Error(), "ValidateBasic()")
+			} else {
+				assert.NoError(t, err, "ValidateBasic()")
 			}
-			err := m.ValidateBasic()
+		})
+	}
+}
+
+func TestMsgBridgeCallClaim_ValidateBasic(t *testing.T) {
+	moduleName := getRandModule()
+	tests := []struct {
+		name          string
+		msg           *types.MsgBridgeCallClaim
+		expectedError string
+	}{
+		{
+			name: "success",
+			msg: &types.MsgBridgeCallClaim{
+				ChainName:      moduleName,
+				BridgerAddress: helpers.GenAccAddress().String(),
+				EventNonce:     1,
+				BlockHeight:    100,
+				Sender:         helpers.GenExternalAddr(moduleName),
+				Refund:         helpers.GenExternalAddr(moduleName),
+				TokenContracts: []string{helpers.GenExternalAddr(moduleName)},
+				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)},
+				To:             helpers.GenExternalAddr(moduleName),
+				Data:           "",
+				Value:          sdk.NewInt(1),
+				Memo:           "",
+				TxOrigin:       helpers.GenExternalAddr(moduleName),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
 			if len(tt.expectedError) > 0 {
 				require.NotNil(t, err, "ValidateBasic()")
 				assert.Equal(t, tt.expectedError, err.Error(), "ValidateBasic()")

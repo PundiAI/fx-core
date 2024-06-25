@@ -704,6 +704,14 @@ func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
+	if len(m.TokenContracts) != len(m.Amounts) {
+		return errortypes.ErrInvalidRequest.Wrap("mismatched token contracts and amounts")
+	}
+	for _, contract := range m.TokenContracts {
+		if err = ValidateExternalAddr(m.ChainName, contract); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		}
+	}
 	return m.validateBasic()
 }
 
