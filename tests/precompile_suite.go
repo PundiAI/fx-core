@@ -14,6 +14,7 @@ import (
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -134,7 +135,7 @@ func (suite *PrecompileTestSuite) CrossChain(token common.Address, recipient str
 func (suite *PrecompileTestSuite) CancelSendToExternal(chain string, txId uint64) *ethtypes.Transaction {
 	privateKey := suite.privKey
 	crossChainContract := crosschaintypes.GetAddress()
-	pack, err := crosschaintypes.GetABI().Pack(crosschaintypes.CancelSendToExternalMethodName, chain, big.NewInt(int64(txId)))
+	pack, err := precompile.NewCancelSendToExternalMethod(nil).PackInput(chain, big.NewInt(int64(txId)))
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crossChainContract, nil, pack)
 	suite.Require().NoError(err, chain)
@@ -168,7 +169,7 @@ func (suite *PrecompileTestSuite) IncreaseBridgeFee(chain string, txId uint64, t
 	privateKey := suite.privKey
 	crossChainContract := crosschaintypes.GetAddress()
 	suite.ApproveERC20(privateKey, token, crossChainContract, fee)
-	pack, err := crosschaintypes.GetABI().Pack(crosschaintypes.IncreaseBridgeFeeMethodName, chain, big.NewInt(int64(txId)), token, fee)
+	pack, err := precompile.NewIncreaseBridgeFeeMethod(nil).PackInput(chain, big.NewInt(int64(txId)), token, fee)
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crossChainContract, nil, pack)
 	suite.Require().NoError(err, chain)

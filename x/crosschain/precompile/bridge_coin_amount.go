@@ -2,67 +2,124 @@ package precompile
 
 import (
 	"fmt"
+	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v7/contract"
+	fxcontract "github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
-func (c *Contract) BridgeCoinAmount(ctx sdk.Context, evm *vm.EVM, contractAddr *vm.Contract, _ bool) ([]byte, error) {
-	cacheCtx, _ := ctx.CacheContext()
+type BridgeCoinAmountMethod struct {
+	*Keeper
+	abi.Method
+}
 
-	var args crosschaintypes.BridgeCoinAmountArgs
-	if err := evmtypes.ParseMethodArgs(crosschaintypes.BridgeCoinAmountMethod, &args, contractAddr.Input[4:]); err != nil {
+func NewBridgeCoinAmountMethod(keeper *Keeper) *BridgeCoinAmountMethod {
+	return &BridgeCoinAmountMethod{
+		Keeper: keeper,
+		Method: crosschaintypes.GetABI().Methods["bridgeCoinAmount"],
+	}
+}
+
+func (m *BridgeCoinAmountMethod) IsReadonly() bool {
+	return true
+}
+
+func (m *BridgeCoinAmountMethod) GetMethodId() []byte {
+	return m.Method.ID
+}
+
+func (m *BridgeCoinAmountMethod) RequiredGas() uint64 {
+	return 10_000
+}
+
+func (m *BridgeCoinAmountMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	args, err := m.UnpackInput(contract.Input)
+	if err != nil {
 		return nil, err
 	}
-	pair, has := c.erc20Keeper.GetTokenPair(cacheCtx, args.Token.Hex())
+
+	pair, has := m.erc20Keeper.GetTokenPair(ctx, args.Token.Hex())
 	if !has {
 		return nil, fmt.Errorf("token not support: %s", args.Token.Hex())
 	}
 	// FX
-	if contract.IsZeroEthAddress(args.Token) {
-		supply := c.bankKeeper.GetSupply(cacheCtx, fxtypes.DefaultDenom)
-		balance := c.bankKeeper.GetBalance(cacheCtx, c.accountKeeper.GetModuleAddress(ethtypes.ModuleName), fxtypes.DefaultDenom)
-		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.Sub(balance.Amount).BigInt())
+	if fxcontract.IsZeroEthAddress(args.Token) {
+		supply := m.bankKeeper.GetSupply(ctx, fxtypes.DefaultDenom)
+		balance := m.bankKeeper.GetBalance(ctx, m.accountKeeper.GetModuleAddress(ethtypes.ModuleName), fxtypes.DefaultDenom)
+		return m.PackOutput(supply.Amount.Sub(balance.Amount).BigInt())
 	}
 	// OriginDenom
-	if c.erc20Keeper.IsOriginDenom(cacheCtx, pair.GetDenom()) {
-		erc20Call := contract.NewERC20Call(evm, c.Address(), args.Token, c.GetBlockGasLimit())
+	if m.erc20Keeper.IsOriginDenom(ctx, pair.GetDenom()) {
+		erc20Call := fxcontract.NewERC20Call(evm, crosschaintypes.GetAddress(), args.Token, m.RequiredGas())
 		supply, err := erc20Call.TotalSupply()
 		if err != nil {
 			return nil, err
 		}
-		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(supply)
+		return m.PackOutput(supply)
 	}
 	// one to one
-	_, has = c.erc20Keeper.HasDenomAlias(cacheCtx, pair.GetDenom())
+	_, has = m.erc20Keeper.HasDenomAlias(ctx, pair.GetDenom())
 	if !has && pair.GetDenom() != fxtypes.DefaultDenom {
-		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(
-			c.bankKeeper.GetSupply(cacheCtx, pair.GetDenom()).Amount.BigInt(),
+		return m.PackOutput(
+			m.bankKeeper.GetSupply(ctx, pair.GetDenom()).Amount.BigInt(),
 		)
 	}
 	// many to one
-	md, has := c.bankKeeper.GetDenomMetaData(cacheCtx, pair.GetDenom())
+	md, has := m.bankKeeper.GetDenomMetaData(ctx, pair.GetDenom())
 	if !has {
 		return nil, fmt.Errorf("denom not support: %s", pair.GetDenom())
 	}
-	denom := c.erc20Keeper.ToTargetDenom(
-		cacheCtx,
+	denom := m.erc20Keeper.ToTargetDenom(
+		ctx,
 		pair.GetDenom(),
 		md.GetBase(),
 		md.GetDenomUnits()[0].GetAliases(),
 		fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target)),
 	)
 
-	balance := c.bankKeeper.GetBalance(cacheCtx, c.erc20Keeper.ModuleAddress().Bytes(), pair.GetDenom())
-	supply := c.bankKeeper.GetSupply(cacheCtx, denom)
+	balance := m.bankKeeper.GetBalance(ctx, m.erc20Keeper.ModuleAddress().Bytes(), pair.GetDenom())
+	supply := m.bankKeeper.GetSupply(ctx, denom)
 	if balance.Amount.LT(supply.Amount) {
-		return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(balance.Amount.BigInt())
+		supply = balance
 	}
-	return crosschaintypes.BridgeCoinAmountMethod.Outputs.Pack(supply.Amount.BigInt())
+	return m.PackOutput(supply.Amount.BigInt())
+}
+
+func (m *BridgeCoinAmountMethod) PackInput(args crosschaintypes.BridgeCoinAmountArgs) ([]byte, error) {
+	arguments, err := m.Method.Inputs.Pack(args.Token, args.Target)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), arguments...), nil
+}
+
+func (m *BridgeCoinAmountMethod) UnpackInput(data []byte) (*crosschaintypes.BridgeCoinAmountArgs, error) {
+	args := new(crosschaintypes.BridgeCoinAmountArgs)
+	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
+		return nil, err
+	}
+	return args, nil
+}
+
+func (m *BridgeCoinAmountMethod) PackOutput(amount *big.Int) ([]byte, error) {
+	pack, err := m.Method.Outputs.Pack(amount)
+	if err != nil {
+		return nil, err
+	}
+	return pack, nil
+}
+
+func (m *BridgeCoinAmountMethod) UnpackOutput(data []byte) (*big.Int, error) {
+	amount, err := m.Method.Outputs.Unpack(data)
+	if err != nil {
+		return nil, err
+	}
+	return amount[0].(*big.Int), nil
 }

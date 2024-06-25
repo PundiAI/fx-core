@@ -1,4 +1,4 @@
-package tests_test
+package precompile_test
 
 import (
 	"encoding/hex"
@@ -20,22 +20,19 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
 func TestCancelSendToExternalABI(t *testing.T) {
-	crossChainABI := crosschaintypes.GetABI()
+	cancelSendToExternal := precompile.NewCancelSendToExternalMethod(nil)
 
-	method := crossChainABI.Methods[crosschaintypes.CancelSendToExternalMethodName]
-	require.Equal(t, method, crosschaintypes.CancelSendToExternalMethod)
-	require.Equal(t, 2, len(method.Inputs))
-	require.Equal(t, 1, len(method.Outputs))
+	require.Equal(t, 2, len(cancelSendToExternal.Method.Inputs))
+	require.Equal(t, 1, len(cancelSendToExternal.Method.Outputs))
 
-	event := crossChainABI.Events[crosschaintypes.CancelSendToExternalEventName]
-	require.Equal(t, event, crosschaintypes.CancelSendToExternalEvent)
-	require.Equal(t, 3, len(event.Inputs))
+	require.Equal(t, 3, len(cancelSendToExternal.Event.Inputs))
 }
 
 //gocyclo:ignore
@@ -351,7 +348,6 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
@@ -448,10 +444,11 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				}
 
 				for _, log := range res.Logs {
-					if log.Topics[0] == crosschaintypes.CancelSendToExternalEvent.ID.String() {
+					event := crosschaintypes.GetABI().Events["CancelSendToExternal"]
+					if log.Topics[0] == event.ID.String() {
 						suite.Require().Equal(log.Address, crosschaintypes.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
-						unpack, err := crosschaintypes.CancelSendToExternalEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := event.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						chain := unpack[0].(string)
 						suite.Require().Equal(chain, moduleName)

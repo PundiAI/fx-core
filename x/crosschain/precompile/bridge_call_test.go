@@ -6,18 +6,28 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
 )
 
-func TestContract_BridgeCall_Input(t *testing.T) {
-	assert.Equal(t, `bridgeCall(string,address,address[],uint256[],address,bytes,uint256,bytes)`, types.BridgeCallMethod.Sig)
-	assert.Equal(t, "payable", types.BridgeCallMethod.StateMutability)
-	assert.Equal(t, 8, len(types.BridgeCallMethod.Inputs))
+func TestBridgeCallABI(t *testing.T) {
+	bridgeCall := precompile.NewBridgeCallMethod(nil)
 
-	inputs := types.BridgeCallMethod.Inputs
+	require.Equal(t, 8, len(bridgeCall.Method.Inputs))
+	require.Equal(t, 1, len(bridgeCall.Method.Outputs))
+}
+
+func TestContract_BridgeCall_Input(t *testing.T) {
+	bridgeCall := precompile.NewBridgeCallMethod(nil)
+
+	assert.Equal(t, `bridgeCall(string,address,address[],uint256[],address,bytes,uint256,bytes)`, bridgeCall.Method.Sig)
+	assert.Equal(t, "payable", bridgeCall.Method.StateMutability)
+	assert.Equal(t, 8, len(bridgeCall.Method.Inputs))
+
+	inputs := bridgeCall.Method.Inputs
 	type Args struct {
 		DstChain string
 		Refund   common.Address
@@ -67,9 +77,10 @@ func TestContract_BridgeCall_Input(t *testing.T) {
 }
 
 func TestContract_BridgeCall_Output(t *testing.T) {
-	assert.Equal(t, 1, len(types.BridgeCallMethod.Outputs))
+	bridgeCall := precompile.NewBridgeCallMethod(nil)
+	assert.Equal(t, 1, len(bridgeCall.Method.Outputs))
 
-	outputs := types.BridgeCallMethod.Outputs
+	outputs := bridgeCall.Method.Outputs
 	eventNonce := big.NewInt(1)
 	outputData, err := outputs.Pack(eventNonce)
 	assert.NoError(t, err)
@@ -83,14 +94,16 @@ func TestContract_BridgeCall_Output(t *testing.T) {
 }
 
 func TestContract_BridgeCall_Event(t *testing.T) {
-	assert.Equal(t, `BridgeCallEvent(address,address,address,address,uint256,uint256,string,address[],uint256[],bytes,bytes)`, types.BridgeCallEvent.Sig)
-	assert.Equal(t, "0x4a9b24da6150ef33e7c41038842b7c94fe89a4fff22dccb2c3fd79f0176062c6", types.BridgeCallEvent.ID.String())
-	assert.Equal(t, 11, len(types.BridgeCallEvent.Inputs))
-	assert.Equal(t, 8, len(types.BridgeCallEvent.Inputs.NonIndexed()))
+	bridgeCall := precompile.NewBridgeCallMethod(nil)
+
+	assert.Equal(t, `BridgeCallEvent(address,address,address,address,uint256,uint256,string,address[],uint256[],bytes,bytes)`, bridgeCall.Event.Sig)
+	assert.Equal(t, "0x4a9b24da6150ef33e7c41038842b7c94fe89a4fff22dccb2c3fd79f0176062c6", bridgeCall.Event.ID.String())
+	assert.Equal(t, 11, len(bridgeCall.Event.Inputs))
+	assert.Equal(t, 8, len(bridgeCall.Event.Inputs.NonIndexed()))
 	for i := 0; i < 3; i++ {
-		assert.Equal(t, true, types.BridgeCallEvent.Inputs[i].Indexed)
+		assert.Equal(t, true, bridgeCall.Event.Inputs[i].Indexed)
 	}
-	inputs := types.BridgeCallEvent.Inputs
+	inputs := bridgeCall.Event.Inputs
 
 	args := contract.ICrossChainBridgeCallEvent{
 		TxOrigin:   helpers.GenHexAddress(),

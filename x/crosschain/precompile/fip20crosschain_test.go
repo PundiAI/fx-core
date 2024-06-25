@@ -1,4 +1,4 @@
-package tests_test
+package precompile_test
 
 import (
 	"bytes"
@@ -22,18 +22,17 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
 func TestFIP20CrossChainABI(t *testing.T) {
-	crossChainABI := crosschaintypes.GetABI()
+	fip20CrossChain := precompile.NewFIP20CrossChainMethod(nil)
 
-	method := crossChainABI.Methods[crosschaintypes.FIP20CrossChainMethod.Name]
-	require.Equal(t, method, crosschaintypes.FIP20CrossChainMethod)
-	require.Equal(t, 6, len(method.Inputs))
-	require.Equal(t, 1, len(method.Outputs))
+	require.Equal(t, 6, len(fip20CrossChain.Method.Inputs))
+	require.Equal(t, 1, len(fip20CrossChain.Method.Outputs))
 }
 
 func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
@@ -304,7 +303,6 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
@@ -865,7 +863,6 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// set port channel
 			sourcePort, sourceChannel := suite.RandTransferChannel()
@@ -1250,7 +1247,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 			name: "failed - call with address - pair not found",
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				data, err := crossChainABI.Pack(
-					crosschaintypes.FIP20CrossChainMethod.Name,
+					"fip20CrossChain",
 					signer.Address(),
 					signer.Address().String(),
 					big.NewInt(10),
@@ -1272,9 +1269,9 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, types.NewTokenPair(signer.Address(), "abc", true, types.OWNER_MODULE))
 
-				method := otherABI.Methods[crosschaintypes.FIP20CrossChainMethod.Name]
+				method := otherABI.Methods["fip20CrossChain"]
 				data, err := otherABI.Pack(
-					crosschaintypes.FIP20CrossChainMethod.Name,
+					"fip20CrossChain",
 					signer.Address(),
 					signer.Address(),
 					signer.Address().String(),
@@ -1285,7 +1282,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 				suite.Require().NoError(err)
 
 				dateTrimPrefix := bytes.TrimPrefix(data, method.ID)
-				return append(crosschaintypes.FIP20CrossChainMethod.ID, dateTrimPrefix...), []string{hex.EncodeToString(data)}
+				return append(crosschaintypes.GetABI().Methods["fip20CrossChain"].ID, dateTrimPrefix...), []string{hex.EncodeToString(data)}
 			},
 			error: func(args []string) string {
 				return "abi: cannot marshal in to go slice: offset"
@@ -1295,7 +1292,6 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()

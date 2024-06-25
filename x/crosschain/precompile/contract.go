@@ -1,25 +1,21 @@
 package precompile
 
 import (
-	"errors"
+	"bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	"github.com/functionx/fx-core/v7/contract"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
 
 type Contract struct {
-	ctx               sdk.Context
-	router            *Router
-	bankKeeper        BankKeeper
-	erc20Keeper       Erc20Keeper
-	ibcTransferKeeper IBCTransferKeeper
-	accountKeeper     AccountKeeper
+	ctx     sdk.Context
+	methods []contract.PrecompileMethod
 }
 
 func NewPrecompiledContract(
@@ -30,13 +26,24 @@ func NewPrecompiledContract(
 	accountKeeper AccountKeeper,
 	router *Router,
 ) *Contract {
-	return &Contract{
-		ctx:               ctx,
+	keeper := &Keeper{
 		bankKeeper:        bankKeeper,
 		erc20Keeper:       erc20Keeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		accountKeeper:     accountKeeper,
 		router:            router,
+	}
+	return &Contract{
+		ctx: ctx,
+		methods: []contract.PrecompileMethod{
+			NewBridgeCoinAmountMethod(keeper),
+
+			NewCancelSendToExternalMethod(keeper),
+			NewIncreaseBridgeFeeMethod(keeper),
+			NewFIP20CrossChainMethod(keeper),
+			NewCrossChainMethod(keeper),
+			NewBridgeCallMethod(keeper),
+		},
 	}
 }
 
@@ -52,22 +59,12 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 	if len(input) <= 4 {
 		return 0
 	}
-	switch string(input[:4]) {
-	case string(crosschaintypes.FIP20CrossChainMethod.ID):
-		return crosschaintypes.FIP20CrossChainGas
-	case string(crosschaintypes.CrossChainMethod.ID):
-		return crosschaintypes.CrossChainGas
-	case string(crosschaintypes.CancelSendToExternalMethod.ID):
-		return crosschaintypes.CancelSendToExternalGas
-	case string(crosschaintypes.IncreaseBridgeFeeMethod.ID):
-		return crosschaintypes.IncreaseBridgeFeeGas
-	case string(crosschaintypes.BridgeCoinAmountMethod.ID):
-		return crosschaintypes.BridgeCoinAmountFeeGas
-	case string(crosschaintypes.BridgeCallMethod.ID):
-		return crosschaintypes.BridgeCallFeeGas
-	default:
-		return 0
+	for _, method := range c.methods {
+		if bytes.Equal(method.GetMethodId(), input[:4]) {
+			return method.RequiredGas()
+		}
 	}
+	return 0
 }
 
 func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret []byte, err error) {
@@ -75,58 +72,33 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		return evmtypes.PackRetErrV2("invalid input")
 	}
 
-	cacheCtx, commit := c.ctx.CacheContext()
-	snapshot := evm.StateDB.Snapshot()
-
-	// parse input
-	switch string(contract.Input[:4]) {
-	case string(crosschaintypes.FIP20CrossChainMethod.ID):
-		ret, err = c.FIP20CrossChain(cacheCtx, evm, contract, readonly)
-	case string(crosschaintypes.CrossChainMethod.ID):
-		ret, err = c.CrossChain(cacheCtx, evm, contract, readonly)
-	case string(crosschaintypes.CancelSendToExternalMethod.ID):
-		ret, err = c.CancelSendToExternal(cacheCtx, evm, contract, readonly)
-	case string(crosschaintypes.IncreaseBridgeFeeMethod.ID):
-		ret, err = c.IncreaseBridgeFee(cacheCtx, evm, contract, readonly)
-	case string(crosschaintypes.BridgeCoinAmountMethod.ID):
-		ret, err = c.BridgeCoinAmount(cacheCtx, evm, contract, readonly)
-	case string(crosschaintypes.BridgeCallMethod.ID):
-		ret, err = c.BridgeCall(cacheCtx, evm, contract, readonly)
-
-	default:
-		err = errors.New("unknown method")
+	for _, method := range c.methods {
+		if bytes.Equal(method.GetMethodId(), contract.Input[:4]) {
+			if readonly && !method.IsReadonly() {
+				return evmtypes.PackRetErrV2("write protection")
+			}
+			cacheCtx, commit := c.ctx.CacheContext()
+			snapshot := evm.StateDB.Snapshot()
+			ret, err = method.Run(cacheCtx, evm, contract)
+			if err != nil {
+				// revert evm state
+				evm.StateDB.RevertToSnapshot(snapshot)
+				return evmtypes.PackRetErrV2(err.Error())
+			}
+			if !method.IsReadonly() {
+				commit()
+			}
+			return ret, nil
+		}
 	}
-
-	if err != nil {
-		// revert evm state
-		evm.StateDB.RevertToSnapshot(snapshot)
-		return evmtypes.PackRetErrV2(err.Error())
-	}
-
-	// commit and append events
-	commit()
-
-	return ret, nil
+	return evmtypes.PackRetErrV2("unknown method")
 }
 
-func (c *Contract) AddLog(evm *vm.EVM, event abi.Event, topics []common.Hash, args ...interface{}) error {
-	data, newTopic, err := evmtypes.PackTopicData(event, topics, args...)
-	if err != nil {
-		return err
-	}
+func EmitEvent(evm *vm.EVM, data []byte, topics []common.Hash) {
 	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     c.Address(),
-		Topics:      newTopic,
+		Address:     crosschaintypes.GetAddress(),
+		Topics:      topics,
 		Data:        data,
 		BlockNumber: evm.Context.BlockNumber.Uint64(),
 	})
-	return nil
-}
-
-func (c *Contract) GetBlockGasLimit() uint64 {
-	params := c.ctx.ConsensusParams()
-	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
-		return uint64(params.Block.MaxGas)
-	}
-	return 0
 }

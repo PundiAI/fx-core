@@ -54,11 +54,3 @@ const (
 
 	EventTypeBridgeCallResult = "bridge_call_result"
 )
-
-// precompile contract events
-var (
-	CancelSendToExternalEvent = GetABI().Events[CancelSendToExternalEventName]
-	CrossChainEvent           = GetABI().Events[CrossChainEventName]
-	IncreaseBridgeFeeEvent    = GetABI().Events[IncreaseBridgeFeeEventName]
-	BridgeCallEvent           = GetABI().Events[BridgeCallEventName]
-)

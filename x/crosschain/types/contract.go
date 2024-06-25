@@ -10,42 +10,6 @@ import (
 	"github.com/functionx/fx-core/v7/contract"
 )
 
-const (
-	FIP20CrossChainGas      = 40_000 // 80000 - 160000
-	CrossChainGas           = 40_000 // 70000 - 155000
-	CancelSendToExternalGas = 30_000 // 70000 - 126000
-	IncreaseBridgeFeeGas    = 40_000 // 70000 - 140000
-	BridgeCoinAmountFeeGas  = 10_000 // 9000
-	BridgeCallFeeGas        = 50_000 // 50000
-
-	FIP20CrossChainMethodName      = "fip20CrossChain"
-	CrossChainMethodName           = "crossChain"
-	CancelSendToExternalMethodName = "cancelSendToExternal"
-	IncreaseBridgeFeeMethodName    = "increaseBridgeFee"
-	BridgeCoinAmountMethodName     = "bridgeCoinAmount"
-	BridgeCallMethodName           = "bridgeCall"
-
-	CrossChainEventName           = "CrossChain"
-	CancelSendToExternalEventName = "CancelSendToExternal"
-	IncreaseBridgeFeeEventName    = "IncreaseBridgeFee"
-	BridgeCallEventName           = "BridgeCallEvent"
-)
-
-const (
-	// EventTypeRelayTransferCrossChain
-	// Deprecated
-	EventTypeRelayTransferCrossChain = "relay_transfer_cross_chain"
-	// EventTypeCrossChain new cross chain event type
-	EventTypeCrossChain = "cross_chain"
-
-	AttributeKeyDenom        = "coin"
-	AttributeKeyTokenAddress = "token_address"
-	AttributeKeyFrom         = "from"
-	AttributeKeyRecipient    = "recipient"
-	AttributeKeyTarget       = "target"
-	AttributeKeyMemo         = "memo"
-)
-
 var (
 	crossChainAddress = common.HexToAddress(contract.CrossChainAddress)
 	crossChainABI     = contract.MustABIJson(contract.ICrossChainMetaData.ABI)
@@ -59,33 +23,11 @@ func GetABI() abi.ABI {
 	return crossChainABI
 }
 
-var (
-	// BridgeCoinAmountMethod query the amount of bridge coin
-	BridgeCoinAmountMethod = GetABI().Methods[BridgeCoinAmountMethodName]
-
-	// CancelSendToExternalMethod cancel send to external tx
-	CancelSendToExternalMethod = GetABI().Methods[CancelSendToExternalMethodName]
-
-	// FIP20CrossChainMethod cross chain with FIP20 token, only for FIP20 token
-	// Deprecated: use CrossChainMethod instead
-	FIP20CrossChainMethod = GetABI().Methods[FIP20CrossChainMethodName]
-
-	// CrossChainMethod cross chain with FIP20 token
-	CrossChainMethod = GetABI().Methods[CrossChainMethodName]
-
-	// IncreaseBridgeFeeMethod increase bridge fee
-	IncreaseBridgeFeeMethod = GetABI().Methods[IncreaseBridgeFeeMethodName]
-
-	// BridgeCallMethod bridge call other chain
-	BridgeCallMethod = GetABI().Methods[BridgeCallMethodName]
-)
-
 type BridgeCoinAmountArgs struct {
 	Token  common.Address `abi:"_token"`
 	Target [32]byte       `abi:"_target"`
 }
 
-// Validate validates the args
 func (args *BridgeCoinAmountArgs) Validate() error {
 	if args.Target == [32]byte{} {
 		return errors.New("empty target")
@@ -98,7 +40,6 @@ type CancelSendToExternalArgs struct {
 	TxID  *big.Int `abi:"_txID"`
 }
 
-// Validate validates the args
 func (args *CancelSendToExternalArgs) Validate() error {
 	if err := ValidateModuleName(args.Chain); err != nil {
 		return err
@@ -118,7 +59,6 @@ type FIP20CrossChainArgs struct {
 	Memo    string         `abi:"_memo"`
 }
 
-// Validate validates the args
 func (args *FIP20CrossChainArgs) Validate() error {
 	if args.Receipt == "" {
 		return errors.New("empty receipt")
@@ -144,7 +84,6 @@ type CrossChainArgs struct {
 	Memo    string         `abi:"_memo"`
 }
 
-// Validate validates the args
 func (args *CrossChainArgs) Validate() error {
 	if args.Receipt == "" {
 		return errors.New("empty receipt")
@@ -168,7 +107,6 @@ type IncreaseBridgeFeeArgs struct {
 	Fee   *big.Int       `abi:"_fee"`
 }
 
-// Validate validates the args
 func (args *IncreaseBridgeFeeArgs) Validate() error {
 	if err := ValidateModuleName(args.Chain); err != nil {
 		return err
@@ -194,7 +132,6 @@ type BridgeCallArgs struct {
 	Memo     []byte           `abi:"_memo"`
 }
 
-// Validate validates the args
 func (args *BridgeCallArgs) Validate() error {
 	if err := ValidateModuleName(args.DstChain); err != nil {
 		return err
