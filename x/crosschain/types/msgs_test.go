@@ -2059,6 +2059,63 @@ func TestMsgBridgeCallClaim_ValidateBasic(t *testing.T) {
 				TxOrigin:       helpers.GenExternalAddr(moduleName),
 			},
 		},
+		{
+			name: "error - empty bridger address",
+			msg: &types.MsgBridgeCallClaim{
+				ChainName:      moduleName,
+				BridgerAddress: "",
+				EventNonce:     1,
+				BlockHeight:    100,
+				Sender:         helpers.GenExternalAddr(moduleName),
+				Refund:         helpers.GenExternalAddr(moduleName),
+				TokenContracts: []string{helpers.GenExternalAddr(moduleName)},
+				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)},
+				To:             helpers.GenExternalAddr(moduleName),
+				Data:           "",
+				Value:          sdk.NewInt(1),
+				Memo:           "",
+				TxOrigin:       helpers.GenExternalAddr(moduleName),
+			},
+			expectedError: "invalid bridger address: empty address string is not allowed: invalid address",
+		},
+		{
+			name: "error - mismatched tokenContracts and amounts",
+			msg: &types.MsgBridgeCallClaim{
+				ChainName:      moduleName,
+				BridgerAddress: helpers.GenAccAddress().String(),
+				EventNonce:     1,
+				BlockHeight:    100,
+				Sender:         helpers.GenExternalAddr(moduleName),
+				Refund:         helpers.GenExternalAddr(moduleName),
+				TokenContracts: []string{helpers.GenExternalAddr(moduleName), helpers.GenExternalAddr(moduleName)},
+				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)}, // Only one amount provided
+				To:             helpers.GenExternalAddr(moduleName),
+				Data:           "",
+				Value:          sdk.NewInt(1),
+				Memo:           "",
+				TxOrigin:       helpers.GenExternalAddr(moduleName),
+			},
+			expectedError: "mismatched token contracts and amounts: invalid request",
+		},
+		{
+			name: "error - zero event nonce",
+			msg: &types.MsgBridgeCallClaim{
+				ChainName:      moduleName,
+				BridgerAddress: helpers.GenAccAddress().String(),
+				EventNonce:     0, // Zero event nonce
+				BlockHeight:    100,
+				Sender:         helpers.GenExternalAddr(moduleName),
+				Refund:         helpers.GenExternalAddr(moduleName),
+				TokenContracts: []string{helpers.GenExternalAddr(moduleName)},
+				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)},
+				To:             helpers.GenExternalAddr(moduleName),
+				Data:           "",
+				Value:          sdk.NewInt(1),
+				Memo:           "",
+				TxOrigin:       helpers.GenExternalAddr(moduleName),
+			},
+			expectedError: "zero event nonce: invalid request",
+		},
 	}
 
 	for _, tt := range tests {
