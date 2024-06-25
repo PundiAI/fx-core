@@ -390,6 +390,29 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 	return targetCoin, nil
 }
 
+func (k Keeper) RefundLiquidity(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
+	targetCoin, metadata := k.GetTargetCoin(ctx, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+	if coin.Denom == targetCoin.Denom {
+		return targetCoin, nil
+	}
+
+	if err := k.convertDenomToContractOwner(ctx, targetCoin, coin, metadata); err != nil {
+		return sdk.Coin{}, err
+	}
+	// send target denom to from addr
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)); err != nil {
+		return sdk.Coin{}, err
+	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRefundLiquid,
+		sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
+	))
+	return targetCoin, nil
+}
+
 func (k Keeper) convertDenomToContractOwner(ctx sdk.Context, targetCoin, coin sdk.Coin, metadata banktypes.Metadata) error {
 	pair, found := k.GetTokenPair(ctx, metadata.Base)
 	if !found {

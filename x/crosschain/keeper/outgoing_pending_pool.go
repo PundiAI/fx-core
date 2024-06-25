@@ -152,7 +152,7 @@ func (k Keeper) handleRemoveFromOutgoingPendingPoolAndRefund(ctx sdk.Context, tx
 	}
 
 	// 4. refund token to sender
-	return k.handleCancelRefund(ctx, txId, sender, tx.TokenContract, tx.Token.Amount.Add(tx.Fee.Amount))
+	return k.handleCancelPendingPoolRefund(ctx, txId, sender, tx.TokenContract, tx.Token.Amount.Add(tx.Fee.Amount))
 }
 
 func (k Keeper) SetPendingTx(ctx sdk.Context, outgoing *types.PendingOutgoingTransferTx) {
