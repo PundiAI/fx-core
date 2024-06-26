@@ -17,6 +17,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -290,4 +291,122 @@ func (suite *IntegrationTest) LiquidityTest() {
 	suite.Equal(1, len(unbatchedTx))
 	suite.EqualValues(transferAmount, unbatchedTx[0].Token.Amount.Add(unbatchedTx[0].Fee.Amount))
 	suite.EqualValues(moduleTokenMap[bscChain.chainName], unbatchedTx[0].Token.GetContract())
+}
+
+func (suite *IntegrationTest) BridgeCallTest() {
+	chainModules := []string{ethtypes.ModuleName, bsctypes.ModuleName}
+	tokenAliasesMap := make(map[string][]string)
+	moduleTokenMap := make(map[string]string)
+	moduleDenomMap := make(map[string]string)
+	token1 := "one"
+	token2 := "two"
+	tokenMetaDatasMap := map[string]banktypes.Metadata{
+		token1: fxtypes.GetCrossChainMetadataManyToOne("one", helpers.NewRandSymbol(), 18),
+		token2: fxtypes.GetCrossChainMetadataManyToOne("two", helpers.NewRandSymbol(), 18),
+	}
+	for _, chainName := range chainModules {
+		suiteChain := suite.GetCrossChainByName(chainName)
+		for _, metadata := range tokenMetaDatasMap {
+			tokenAddress := helpers.GenExternalAddr(suiteChain.chainName)
+			moduleTokenMap[chainName+metadata.Name] = tokenAddress
+			bridgeDenom := crosschaintypes.NewBridgeDenom(suiteChain.chainName, tokenAddress)
+			moduleDenomMap[chainName+metadata.Name] = bridgeDenom
+			suiteChain.AddBridgeTokenClaim(metadata.Name, metadata.Symbol, uint64(metadata.DenomUnits[1].Exponent), tokenAddress, "")
+			tokenAliasesMap[metadata.Base] = append(tokenAliasesMap[metadata.Base], bridgeDenom)
+		}
+	}
+
+	suite.T().Logf("moduleTokenMap: %+v", moduleTokenMap)
+	suite.T().Logf("moduleDenomMap: %+v", moduleDenomMap)
+
+	for _, metadata := range tokenMetaDatasMap {
+		metadata.DenomUnits[0].Aliases = tokenAliasesMap[metadata.Base]
+		suite.erc20.RegisterCoinProposal(metadata)
+		suite.T().Logf("metadata: %+v", metadata)
+	}
+
+	ethChain := suite.GetCrossChainByName(ethtypes.ModuleName)
+	bscChain := suite.GetCrossChainByName(bsctypes.ModuleName)
+
+	transferAmount := sdk.NewInt(100)
+	ethChain.SendToFxClaimAndCheckBalance(moduleTokenMap[ethtypes.ModuleName+token1], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token1].Base, transferAmount))
+	ethChain.SendToFxClaimAndCheckBalance(moduleTokenMap[ethtypes.ModuleName+token2], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token2].Base, transferAmount))
+	bscChain.SendToFxClaimAndCheckBalance(moduleTokenMap[bsctypes.ModuleName+token2], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token2].Base, transferAmount))
+
+	erc20ModuleAddr := suite.QueryModuleAccountByName(erc20types.ModuleName)
+	bridgeCallCoins := sdk.NewCoins(
+		sdk.NewCoin(tokenMetaDatasMap[token1].Base, transferAmount),
+		sdk.NewCoin(tokenMetaDatasMap[token2].Base, transferAmount),
+	)
+	ethChain.Send(bscChain.AccAddress(), bridgeCallCoins...)
+
+	// case 1: bridge call with two tokens, expect is pending bridge call
+	nonce := bscChain.BridgeCall(bridgeCallCoins)
+	pendingBridgeCalls := bscChain.QueryPendingBridgeCallByNonce(nonce)
+	suite.EqualValues(nonce, pendingBridgeCalls.GetOutgoinBridgeCall().Nonce)
+	suite.EqualValues(1, len(pendingBridgeCalls.NotLiquidCoins))
+
+	suite.True(
+		sdk.NewCoins(
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
+		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+
+	// case 2: cancel first pending bridge call
+	bscChain.CancelBridgeCall([]uint64{nonce})
+	suite.True(
+		sdk.NewCoins(
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
+			sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token2], transferAmount),
+		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+
+	// case 3: send bridge call again + add pending rewards + provide liquidity + confirm + claim with failed
+	nonce = bscChain.BridgeCall(bridgeCallCoins)
+	pendingPoolReward := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))
+	bscChain.AddPendingPoolRewards(nonce, pendingPoolReward)
+
+	pendingBridgeCalls = bscChain.QueryPendingBridgeCallByNonce(nonce)
+	suite.True(sdk.NewCoins(
+		sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token1], transferAmount),
+	).IsEqual(pendingBridgeCalls.NotLiquidCoins))
+	suite.True(sdk.NewCoins(pendingPoolReward).IsEqual(pendingBridgeCalls.Rewards))
+
+	// provide liquidity
+	bscChain.SendToFxClaimAndCheckBalance(moduleTokenMap[bsctypes.ModuleName+token1], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token1].Base, transferAmount), pendingPoolReward)
+	bridgeCalls := bscChain.QueryBridgeCallByNonce(nonce)
+	suite.EqualValues(nonce, bridgeCalls.Nonce)
+	suite.EqualValues(2, len(bridgeCalls.Tokens))
+
+	suite.True(
+		sdk.NewCoins(
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
+		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+
+	//  bridge call result confirm with failed, refund tokens
+	bscChain.BridgeCallConfirm(nonce, false)
+	suite.True(sdk.NewCoins(
+		sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
+		sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
+		sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token1], transferAmount),
+		sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token2], transferAmount),
+	).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+
+	// case 4: bridge call result confirm with success.
+	nonce = bscChain.BridgeCall(bridgeCallCoins)
+	bscAccAddrBalances := suite.QueryBalances(bscChain.AccAddress())
+	bscChain.BridgeCallConfirm(nonce, true)
+	suite.True(
+		sdk.NewCoins(
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
+			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
+		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+	suite.True(bscAccAddrBalances.IsEqual(suite.QueryBalances(bscChain.AccAddress())))
+
+	// Clear test tokens
+	bscChain.Send(ethChain.AccAddress(), bridgeCallCoins...)
+	ethBridgeCallNonce := ethChain.BridgeCall(bridgeCallCoins)
+	ethChain.BridgeCallConfirm(ethBridgeCallNonce, true)
+	suite.True(suite.QueryBalances(erc20ModuleAddr).IsZero())
 }
