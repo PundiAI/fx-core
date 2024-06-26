@@ -18,6 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -554,6 +555,17 @@ func (suite *TestSuite) ChainTokens(chainName string) []banktypes.Metadata {
 		}
 	}
 	return chainMetadata
+}
+
+func (suite *TestSuite) QueryModuleAccountByName(moduleName string) sdk.AccAddress {
+	moduleAddress, err := suite.GRPCClient().AuthQuery().ModuleAccountByName(suite.ctx, &types.QueryModuleAccountByNameRequest{
+		Name: moduleName,
+	})
+	suite.NoError(err)
+	var account types.AccountI
+	err = suite.network.Config.Codec.UnpackAny(moduleAddress.Account, &account)
+	suite.Require().NoError(err)
+	return account.GetAddress()
 }
 
 // unsafeExporter is implemented by key stores that support unsafe export

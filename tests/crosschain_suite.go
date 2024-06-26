@@ -328,11 +328,14 @@ func (suite *CrosschainTestSuite) SendToTxClaimWithReceiver(receiver sdk.AccAddr
 	}
 }
 
-func (suite *CrosschainTestSuite) SendToFxClaimAndCheckBalance(token string, amount sdkmath.Int, targetIbc string, addCoin sdk.Coin) {
+func (suite *CrosschainTestSuite) SendToFxClaimAndCheckBalance(token string, amount sdkmath.Int, targetIbc string, addCoins ...sdk.Coin) {
 	balance := suite.QueryBalances(suite.AccAddress())
 	suite.SendToFxClaim(token, amount, targetIbc)
 	newBalance := suite.QueryBalances(suite.AccAddress())
-	suite.Equal(balance.Add(addCoin), newBalance)
+	for _, coin := range addCoins {
+		balance = balance.Add(coin)
+	}
+	suite.Equal(balance, newBalance)
 }
 
 func (suite *CrosschainTestSuite) SendToExternalAndResponse(count int, amount sdk.Coin) (*sdk.TxResponse, uint64) {
@@ -477,22 +480,14 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 	suite.NotNil(response.Batch)
 
 	outgoingTxBatch := response.Batch
-	var signatureBytes []byte
+	var checkpoint []byte
 	if suite.chainName == trontypes.ModuleName {
-		checkpoint, err := trontypes.GetCheckpointConfirmBatch(outgoingTxBatch, suite.params.GravityId)
-		suite.NoError(err)
-		signatureBytes, err = trontypes.NewTronSignature(checkpoint, suite.externalPrivKey)
-		suite.NoError(err)
-		err = trontypes.ValidateTronSignature(checkpoint, signatureBytes, suite.ExternalAddr())
-		suite.NoError(err)
+		checkpoint, err = trontypes.GetCheckpointConfirmBatch(outgoingTxBatch, suite.params.GravityId)
 	} else {
-		checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
-		suite.NoError(err)
-		signatureBytes, err = crosschaintypes.NewEthereumSignature(checkpoint, suite.externalPrivKey)
-		suite.NoError(err)
-		err = crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.ExternalAddr())
-		suite.NoError(err)
+		checkpoint, err = outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
 	}
+	suite.NoError(err)
+	signatureBytes := suite.SignatureCheckpoint(checkpoint)
 
 	suite.BroadcastTx(suite.bridgerPrivKey,
 		&crosschaintypes.MsgConfirmBatch{
@@ -551,4 +546,138 @@ func (suite *CrosschainTestSuite) AddBridgeToken(md banktypes.Metadata) (string,
 
 func (suite *CrosschainTestSuite) FormatAddress(address gethcommon.Address) string {
 	return crosschaintypes.ExternalAddrToStr(suite.chainName, address.Bytes())
+}
+
+func (suite *CrosschainTestSuite) BridgeCall(amounts sdk.Coins) uint64 {
+	_, nonce := suite.SendBridgeCallAndResponse(amounts)
+	return nonce
+}
+
+func (suite *CrosschainTestSuite) SendBridgeCallAndResponse(amount sdk.Coins) (*sdk.TxResponse, uint64) {
+	msg := &crosschaintypes.MsgBridgeCall{
+		ChainName: suite.chainName,
+		Sender:    suite.AccAddress().String(),
+		Refund:    suite.AccAddress().String(),
+		Coins:     amount,
+		To:        crosschaintypes.ExternalAddrToStr(suite.chainName, suite.AccAddress()),
+		Data:      "",
+		Value:     sdkmath.ZeroInt(),
+		Memo:      "",
+	}
+	txResponse := suite.BroadcastTx(suite.privKey, msg)
+	for _, eventLog := range txResponse.Logs {
+		for _, event := range eventLog.Events {
+			if event.Type != crosschaintypes.EventTypeBridgeCall && event.Type != crosschaintypes.EventTypePendingBridgeCall {
+				continue
+			}
+			for _, attribute := range event.Attributes {
+				if attribute.Key != crosschaintypes.AttributeKeyBridgeCallNonce {
+					continue
+				}
+				txId, err := strconv.ParseUint(attribute.Value, 10, 64)
+				suite.NoError(err)
+				return txResponse, txId
+			}
+		}
+	}
+	return txResponse, 0
+}
+
+func (suite *CrosschainTestSuite) CancelBridgeCall(nonces []uint64) {
+	msgs := make([]sdk.Msg, 0, len(nonces))
+	for _, nonce := range nonces {
+		msg := &crosschaintypes.MsgCancelPendingBridgeCall{
+			Nonce:     nonce,
+			Sender:    suite.AccAddress().String(),
+			ChainName: suite.chainName,
+		}
+		msgs = append(msgs, msg)
+
+	}
+	suite.BroadcastTx(suite.privKey, msgs...)
+}
+
+func (suite *CrosschainTestSuite) AddPendingPoolRewards(id uint64, reward sdk.Coin) {
+	msg := &crosschaintypes.MsgAddPendingPoolRewards{
+		ChainName: suite.chainName,
+		Id:        id,
+		Sender:    suite.AccAddress().String(),
+		Rewards:   sdk.NewCoins(reward),
+	}
+	suite.BroadcastTx(suite.privKey, msg)
+}
+
+func (suite *CrosschainTestSuite) BridgeCallConfirm(nonce uint64, isSuccess bool) {
+	bridgeCall := suite.QueryBridgeCallByNonce(nonce)
+	var checkpoint []byte
+	var err error
+	if suite.chainName == trontypes.ModuleName {
+		checkpoint, err = trontypes.GetCheckpointBridgeCall(bridgeCall, suite.params.GravityId)
+	} else {
+		checkpoint, err = bridgeCall.GetCheckpoint(suite.params.GravityId)
+	}
+	suite.NoError(err)
+	signatureBytes := suite.SignatureCheckpoint(checkpoint)
+
+	suite.BroadcastTx(suite.bridgerPrivKey,
+		&crosschaintypes.MsgBridgeCallConfirm{
+			Nonce:           nonce,
+			BridgerAddress:  suite.BridgerAddr().String(),
+			ExternalAddress: suite.ExternalAddr(),
+			Signature:       hex.EncodeToString(signatureBytes),
+			ChainName:       suite.chainName,
+		},
+		&crosschaintypes.MsgBridgeCallResultClaim{
+			ChainName:      suite.chainName,
+			BridgerAddress: suite.BridgerAddr().String(),
+			EventNonce:     suite.queryFxLastEventNonce(),
+			BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
+			Nonce:          nonce,
+			TxOrigin:       suite.ExternalAddr(),
+			Success:        isSuccess,
+			Cause:          "",
+		},
+	)
+}
+
+func (suite *CrosschainTestSuite) SignatureCheckpoint(checkpoint []byte) []byte {
+	var signatureBytes []byte
+	var err error
+	if suite.chainName == trontypes.ModuleName {
+		signatureBytes, err = trontypes.NewTronSignature(checkpoint, suite.externalPrivKey)
+		suite.NoError(err)
+		suite.NoError(trontypes.ValidateTronSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
+	} else {
+		signatureBytes, err = crosschaintypes.NewEthereumSignature(checkpoint, suite.externalPrivKey)
+		suite.NoError(err)
+		suite.NoError(crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
+	}
+	return signatureBytes
+}
+
+func (suite *CrosschainTestSuite) QueryBridgeCallByNonce(nonce uint64) *crosschaintypes.OutgoingBridgeCall {
+	response, err := suite.CrosschainQuery().BridgeCallByNonce(suite.ctx, &crosschaintypes.QueryBridgeCallByNonceRequest{
+		ChainName: suite.chainName,
+		Nonce:     nonce,
+	})
+	suite.NoError(err)
+	return response.GetBridgeCall()
+}
+
+func (suite *CrosschainTestSuite) QueryPendingBridgeCallByNonce(nonce uint64) *crosschaintypes.PendingOutgoingBridgeCall {
+	response, err := suite.CrosschainQuery().PendingBridgeCallByNonce(suite.ctx, &crosschaintypes.QueryPendingBridgeCallByNonceRequest{
+		ChainName: suite.chainName,
+		Nonce:     nonce,
+	})
+	suite.NoError(err)
+	return response.GetBridgeCall()
+}
+
+func (suite *CrosschainTestSuite) QueryPendingBridgeCalls(senderAddr string) []*crosschaintypes.PendingOutgoingBridgeCall {
+	response, err := suite.CrosschainQuery().PendingBridgeCalls(suite.ctx, &crosschaintypes.QueryPendingBridgeCallsRequest{
+		ChainName:     suite.chainName,
+		SenderAddress: senderAddr,
+	})
+	suite.NoError(err)
+	return response.GetPendingBridgeCalls()
 }
