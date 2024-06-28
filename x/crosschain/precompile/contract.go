@@ -43,6 +43,7 @@ func NewPrecompiledContract(
 			NewFIP20CrossChainMethod(keeper),
 			NewCrossChainMethod(keeper),
 			NewBridgeCallMethod(keeper),
+			NewCancelPendingBridgeCallMethod(keeper),
 		},
 	}
 }

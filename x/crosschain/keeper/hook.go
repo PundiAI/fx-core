@@ -61,3 +61,7 @@ func (k Keeper) PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Addr
 
 	return outCallNonce, nil
 }
+
+func (k Keeper) PrecompileCancelPendingBridgeCall(ctx sdk.Context, nonce uint64, sender sdk.AccAddress) (sdk.Coins, error) {
+	return k.HandleCancelPendingOutgoingBridgeCall(ctx, nonce, sender)
+}

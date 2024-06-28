@@ -29,6 +29,11 @@ interface ICrossChain is IFIP20CrossChain, IBridgeCall {
         uint256 _fee
     ) external payable returns (bool _result);
 
+    function cancelPendingBridgeCall(
+        string memory _chain,
+        uint256 _txID
+    ) external returns (bool _result);
+
     function bridgeCoinAmount(
         address _token,
         bytes32 _target
@@ -71,5 +76,11 @@ interface ICrossChain is IFIP20CrossChain, IBridgeCall {
         uint256[] _amounts,
         bytes _data,
         bytes _memo
+    );
+
+    event CancelPendingBridgeCallEvent(
+        address indexed _sender,
+        string chain,
+        uint256 txID
     );
 }

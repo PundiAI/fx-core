@@ -6,7 +6,7 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) {
+func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.OutgoingBridgeCall) sdk.Coins {
 	refund := types.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
 	coins, err := k.bridgeCallTransferCoins(ctx, refund, data.Tokens)
 	if err != nil {
@@ -19,12 +19,13 @@ func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.Outg
 	))
 
 	if k.HasBridgeCallFromMsg(ctx, data.Nonce) {
-		return
+		return coins
 	}
 	// precompile bridge call, refund to evm
 	if err = k.bridgeCallTransferTokens(ctx, refund, refund, coins); err != nil {
 		panic(err)
 	}
+	return coins
 }
 
 func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, bridgeCallNonce uint64) {
