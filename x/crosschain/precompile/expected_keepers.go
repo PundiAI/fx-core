@@ -51,4 +51,5 @@ type CrosschainKeeper interface {
 	PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
 	PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (uint64, error)
 	PrecompileCancelPendingBridgeCall(ctx sdk.Context, nonce uint64, sender sdk.AccAddress) (sdk.Coins, error)
+	PrecompileAddPendingPoolRewards(ctx sdk.Context, txID uint64, sender sdk.AccAddress, reward sdk.Coin) error
 }

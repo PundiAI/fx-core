@@ -422,6 +422,20 @@ func (m *MockCrosschainKeeper) EXPECT() *MockCrosschainKeeperMockRecorder {
 	return m.recorder
 }
 
+// PrecompileAddPendingPoolRewards mocks base method.
+func (m *MockCrosschainKeeper) PrecompileAddPendingPoolRewards(ctx types.Context, txID uint64, sender types.AccAddress, reward types.Coin) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrecompileAddPendingPoolRewards", ctx, txID, sender, reward)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PrecompileAddPendingPoolRewards indicates an expected call of PrecompileAddPendingPoolRewards.
+func (mr *MockCrosschainKeeperMockRecorder) PrecompileAddPendingPoolRewards(ctx, txID, sender, reward any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrecompileAddPendingPoolRewards", reflect.TypeOf((*MockCrosschainKeeper)(nil).PrecompileAddPendingPoolRewards), ctx, txID, sender, reward)
+}
+
 // PrecompileBridgeCall mocks base method.
 func (m *MockCrosschainKeeper) PrecompileBridgeCall(ctx types.Context, sender, refund common.Address, coins types.Coins, to common.Address, data, memo []byte) (uint64, error) {
 	m.ctrl.T.Helper()

@@ -44,6 +44,7 @@ func NewPrecompiledContract(
 			NewCrossChainMethod(keeper),
 			NewBridgeCallMethod(keeper),
 			NewCancelPendingBridgeCallMethod(keeper),
+			NewAddPendingPoolRewardsMethod(keeper),
 		},
 	}
 }
