@@ -437,6 +437,21 @@ func (mr *MockCrosschainKeeperMockRecorder) PrecompileBridgeCall(ctx, sender, re
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrecompileBridgeCall", reflect.TypeOf((*MockCrosschainKeeper)(nil).PrecompileBridgeCall), ctx, sender, refund, coins, to, data, memo)
 }
 
+// PrecompileCancelPendingBridgeCall mocks base method.
+func (m *MockCrosschainKeeper) PrecompileCancelPendingBridgeCall(ctx types.Context, nonce uint64, sender types.AccAddress) (types.Coins, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrecompileCancelPendingBridgeCall", ctx, nonce, sender)
+	ret0, _ := ret[0].(types.Coins)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PrecompileCancelPendingBridgeCall indicates an expected call of PrecompileCancelPendingBridgeCall.
+func (mr *MockCrosschainKeeperMockRecorder) PrecompileCancelPendingBridgeCall(ctx, nonce, sender any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrecompileCancelPendingBridgeCall", reflect.TypeOf((*MockCrosschainKeeper)(nil).PrecompileCancelPendingBridgeCall), ctx, nonce, sender)
+}
+
 // PrecompileCancelSendToExternal mocks base method.
 func (m *MockCrosschainKeeper) PrecompileCancelSendToExternal(ctx types.Context, txID uint64, sender types.AccAddress) (types.Coin, error) {
 	m.ctrl.T.Helper()

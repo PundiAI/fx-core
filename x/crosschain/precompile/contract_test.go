@@ -220,6 +220,13 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 
+func (suite *PrecompileTestSuite) InitObservedBlockHeight() {
+	keepers := suite.CrossChainKeepers()
+	for _, k := range keepers {
+		k.SetLastObservedBlockHeight(suite.ctx, 10, uint64(suite.ctx.BlockHeight()))
+	}
+}
+
 func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata, amt sdkmath.Int) sdk.Coin {
 	generateAddress := helpers.GenHexAddress()
 

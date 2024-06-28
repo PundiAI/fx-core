@@ -625,7 +625,7 @@ func (s MsgServer) CancelPendingBridgeCall(c context.Context, msg *types.MsgCanc
 	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if err := s.HandleCancelPendingOutgoingBridgeCall(ctx, msg.Nonce, sender); err != nil {
+	if _, err := s.HandleCancelPendingOutgoingBridgeCall(ctx, msg.Nonce, sender); err != nil {
 		return nil, err
 	}
 

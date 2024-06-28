@@ -147,3 +147,18 @@ func (args *BridgeCallArgs) Validate() error {
 	}
 	return nil
 }
+
+type CancelPendingBridgeCallArgs struct {
+	Chain string   `abi:"_chain"`
+	TxID  *big.Int `abi:"_txID"`
+}
+
+func (args *CancelPendingBridgeCallArgs) Validate() error {
+	if err := ValidateModuleName(args.Chain); err != nil {
+		return err
+	}
+	if args.TxID == nil || args.TxID.Sign() <= 0 {
+		return errors.New("invalid tx id")
+	}
+	return nil
+}

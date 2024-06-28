@@ -130,3 +130,11 @@ func (m *BridgeCallMethod) PackOutput(nonceNonce *big.Int) ([]byte, error) {
 	}
 	return pack, nil
 }
+
+func (m *BridgeCallMethod) PackInput(args crosschaintypes.BridgeCallArgs) ([]byte, error) {
+	arguments, err := m.Method.Inputs.Pack(args.DstChain, args.Refund, args.Tokens, args.Amounts, args.To, args.Data, args.Value, args.Memo)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), arguments...), nil
+}
