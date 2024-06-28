@@ -8,7 +8,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -638,31 +637,11 @@ func (s MsgServer) CancelPendingBridgeCall(c context.Context, msg *types.MsgCanc
 }
 
 func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPendingPoolRewards) (*types.MsgAddPendingPoolRewardsResponse, error) {
-	// 0. validate rewards coin, only support stake coin.
-	reward, err := types.RewardValidator(msg.Rewards)
-	if err != nil {
-		return nil, err
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
-	// 1. transfer coins to module
 	sender := sdk.MustAccAddressFromBech32(msg.Sender)
-	if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, s.moduleName, sdk.NewCoins(reward)); err != nil {
+	if err := s.Keeper.AddPendingPoolRewards(ctx, msg.Id, sender, msg.Rewards); err != nil {
 		return nil, err
 	}
-
-	// 2. try to handle adding pending bridge call rewards
-	addSuccess := s.HandleAddPendingBridgeCallRewards(ctx, msg.Id, reward)
-
-	if !addSuccess {
-		// 3. try to handle adding pending pool rewards
-		addSuccess = s.HandleAddPendingPoolReward(ctx, msg.Id, reward)
-	}
-	if !addSuccess {
-		return nil, errors.ErrInvalidRequest.Wrap("not found pending record")
-	}
-
-	// 3. emit event
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),

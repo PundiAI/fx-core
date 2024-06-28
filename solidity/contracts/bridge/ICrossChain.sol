@@ -34,6 +34,13 @@ interface ICrossChain is IFIP20CrossChain, IBridgeCall {
         uint256 _txID
     ) external returns (bool _result);
 
+    function addPendingPoolRewards(
+        string memory _chain,
+        uint256 _txID,
+        address _token,
+        uint256 _reward
+    ) external payable returns (bool _result);
+
     function bridgeCoinAmount(
         address _token,
         bytes32 _target
@@ -82,5 +89,13 @@ interface ICrossChain is IFIP20CrossChain, IBridgeCall {
         address indexed _sender,
         string chain,
         uint256 txID
+    );
+
+    event AddPendingPoolRewardsEvent(
+        address indexed sender,
+        address indexed token,
+        string chain,
+        uint256 txID,
+        uint256 reward
     );
 }

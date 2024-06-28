@@ -42,6 +42,10 @@ func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender
 	return k.AddUnbatchedTxBridgeFee(ctx, txID, sender, addBridgeFee)
 }
 
+func (k Keeper) PrecompileAddPendingPoolRewards(ctx sdk.Context, txID uint64, sender sdk.AccAddress, reward sdk.Coin) error {
+	return k.AddPendingPoolRewards(ctx, txID, sender.Bytes(), sdk.NewCoins(reward))
+}
+
 func (k Keeper) PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (nonce uint64, err error) {
 	tokens, notLiquidCoins, err := k.BridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
 	if err != nil {

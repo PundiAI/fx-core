@@ -112,6 +112,14 @@ func (m *CrossChainMethod) UnpackInput(data []byte) (*crosschaintypes.CrossChain
 	return args, nil
 }
 
+func (m *CrossChainMethod) PackInput(args crosschaintypes.CrossChainArgs) ([]byte, error) {
+	data, err := m.Method.Inputs.Pack(args.Token, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), data...), nil
+}
+
 func (m *CrossChainMethod) PackOutput(success bool) ([]byte, error) {
 	pack, err := m.Method.Outputs.Pack(success)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	gogotypes "github.com/gogo/protobuf/types"
 
@@ -173,6 +174,28 @@ func (k Keeper) HandleCancelPendingOutgoingBridgeCall(ctx sdk.Context, nonce uin
 	// 4. delete bridge call from msg
 	k.DeleteBridgeCallFromMsg(ctx, nonce)
 	return refundCoins, nil
+}
+
+func (k Keeper) AddPendingPoolRewards(ctx sdk.Context, nonce uint64, sender sdk.AccAddress, rewards sdk.Coins) error {
+	// 0. validate rewards coin, only support stake coin.
+	reward, err := types.RewardValidator(rewards)
+	if err != nil {
+		return err
+	}
+
+	// 1. transfer coins to module
+	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(reward)); err != nil {
+		return err
+	}
+	// 2. try to handle adding pending bridge call rewards
+	if addSuccess := k.HandleAddPendingBridgeCallRewards(ctx, nonce, reward); addSuccess {
+		return nil
+	}
+	// 3. try to handle adding pending pool rewards
+	if addSuccess := k.HandleAddPendingPoolReward(ctx, nonce, reward); addSuccess {
+		return nil
+	}
+	return errors.ErrInvalidRequest.Wrap("not found pending record")
 }
 
 func (k Keeper) HandleAddPendingBridgeCallRewards(ctx sdk.Context, nonce uint64, reward sdk.Coin) (success bool) {
