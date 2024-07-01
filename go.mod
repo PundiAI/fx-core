@@ -210,5 +210,5 @@ replace (
 // use for precompile
 replace (
 	github.com/ethereum/go-ethereum => github.com/evmos/go-ethereum v1.10.26-evmos-rc1
-	github.com/evmos/ethermint => github.com/functionx/ethermint v0.22.0-fxcore-precompile-rc2
+	github.com/evmos/ethermint => github.com/functionx/ethermint v0.22.0-fxcore-precompile-rc2.0.20240701110919-286276c8a9bd
 )
