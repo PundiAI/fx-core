@@ -211,15 +211,11 @@ require (
 replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	github.com/ethereum/go-ethereum => github.com/functionx/go-ethereum v1.10.26-fxcore
+	github.com/evmos/ethermint => github.com/functionx/ethermint v0.22.0-fxcore-precompile-rc2
 	// use cosmos style protobufs
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// use informal system fork of tendermint
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
-)
-
-// use for precompile
-replace (
-	github.com/ethereum/go-ethereum => github.com/evmos/go-ethereum v1.10.26-evmos-rc1
-	github.com/evmos/ethermint => github.com/functionx/ethermint v0.22.0-fxcore-precompile-rc2
 )
