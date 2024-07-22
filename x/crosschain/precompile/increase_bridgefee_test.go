@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"

@@ -5,6 +5,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/evmos/ethermint/x/evm/statedb"
 )
 
 // EvmLogHandler defines the interface for evm log handler
@@ -17,4 +19,11 @@ type EvmLogHandler interface {
 
 type MethodArgs interface {
 	Validate() error
+}
+
+// ExtStateDB defines extra methods of statedb to support stateful precompiled contracts
+type ExtStateDB interface {
+	vm.StateDB
+	ExecuteNativeAction(contract common.Address, converter statedb.EventConverter, action func(ctx sdk.Context) error) error
+	CacheContext() sdk.Context
 }

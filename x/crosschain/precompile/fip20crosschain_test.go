@@ -9,13 +9,13 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -933,7 +933,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 					var data []byte
 
 					for _, attr := range event.Attributes {
-						attrKey, attrValue := string(attr.Key), string(attr.Value)
+						attrKey, attrValue := attr.Key, attr.Value
 						if attrKey == ibcchanneltypes.AttributeKeyDataHex {
 							data, err = hex.DecodeString(attrValue)
 							suite.Require().NoError(err)
@@ -1175,7 +1175,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 					var data []byte
 
 					for _, attr := range event.Attributes {
-						attrKey, attrValue := string(attr.Key), string(attr.Value)
+						attrKey, attrValue := attr.Key, attr.Value
 						if attrKey == ibcchanneltypes.AttributeKeyDataHex {
 							data, err = hex.DecodeString(attrValue)
 							suite.Require().NoError(err)

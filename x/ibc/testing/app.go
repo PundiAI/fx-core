@@ -6,18 +6,20 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
+	fxapp "github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/types"
 	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
@@ -31,6 +33,9 @@ var DefaultTestingAppInit = helpers.SetupTestingApp
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, balances ...banktypes.Balance) ibctesting.TestingApp {
 	app, genesisState := DefaultTestingAppInit()
+	// set chainID for app
+	baseapp.SetChainID(chainID)(app.GetBaseApp())
+
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
@@ -80,18 +85,19 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	})
 
 	// update total supply
-	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{})
+	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 	require.NoError(t, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
+	consensusParams := fxapp.CustomGenesisConsensusParams().ToProto()
 	app.InitChain(
 		abci.RequestInitChain{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: helpers.ABCIConsensusParams,
+			ConsensusParams: &consensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)

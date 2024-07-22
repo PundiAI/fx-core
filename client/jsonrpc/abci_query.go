@@ -2,69 +2,106 @@ package jsonrpc
 
 import (
 	"fmt"
+	"strconv"
 
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	etherminttypes "github.com/evmos/ethermint/types"
-	"github.com/gogo/protobuf/proto"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/pkg/errors"
 
-	gravitytypes "github.com/functionx/fx-core/v7/x/gravity/types"
+	"github.com/functionx/fx-core/v7/client"
 )
 
-func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
-	result, err := c.ABCIQueryIsOk("/custom/auth/account", legacy.Cdc.MustMarshalJSON(authtypes.QueryAccountRequest{Address: address}))
+func (c *NodeRPC) GetModuleAccounts() ([]authtypes.AccountI, error) {
+	data, err := proto.Marshal(&authtypes.QueryModuleAccountsRequest{})
 	if err != nil {
 		return nil, err
 	}
-	var account authtypes.AccountI
-	if err = authtypes.ModuleCdc.UnmarshalInterfaceJSON(result.Response.Value, &account); err != nil {
-		account = new(etherminttypes.EthAccount)
-		if err1 := legacy.Cdc.UnmarshalJSON(result.Response.Value, account); err1 != nil {
-			return nil, fmt.Errorf("%s: %s", err.Error(), err1.Error())
+	result, err := c.ABCIQueryIsOk("/cosmos.auth.v1beta1.Query/ModuleAccounts", data)
+	if err != nil {
+		return nil, err
+	}
+	response := new(authtypes.QueryModuleAccountsResponse)
+	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
+		return nil, err
+	}
+	accounts := make([]authtypes.AccountI, 0, len(response.Accounts))
+	for _, acc := range response.Accounts {
+		var account authtypes.AccountI
+		if err = client.NewAccountCodec().UnpackAny(acc, &account); err != nil {
+			return nil, err
 		}
+		accounts = append(accounts, account)
+	}
+	return accounts, nil
+}
+
+func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
+	data, err := proto.Marshal(&authtypes.QueryAccountRequest{Address: address})
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.ABCIQueryIsOk("/cosmos.auth.v1beta1.Query/Account", data)
+	if err != nil {
+		return nil, err
+	}
+	response := new(authtypes.QueryAccountResponse)
+	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
+		return nil, err
+	}
+	var account authtypes.AccountI
+	if err = client.NewAccountCodec().UnpackAny(response.GetAccount(), &account); err != nil {
+		return nil, err
 	}
 	return account, nil
 }
 
 func (c *NodeRPC) QueryBalance(address string, denom string) (sdk.Coin, error) {
-	result, err := c.ABCIQueryIsOk("/custom/bank/balance", legacy.Cdc.MustMarshalJSON(banktypes.QueryBalanceRequest{Address: address, Denom: denom}))
+	data, err := proto.Marshal(&banktypes.QueryBalanceRequest{Address: address, Denom: denom})
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-	var coin sdk.Coin
-	if err = legacy.Cdc.UnmarshalJSON(result.Response.Value, &coin); err != nil {
+	result, err := c.ABCIQueryIsOk("/cosmos.bank.v1beta1.Query/Balance", data)
+	if err != nil {
 		return sdk.Coin{}, err
 	}
-	return coin, nil
+	response := new(banktypes.QueryBalanceResponse)
+	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
+		return sdk.Coin{}, err
+	}
+	return *response.Balance, nil
 }
 
 func (c *NodeRPC) QueryBalances(address string) (sdk.Coins, error) {
-	result, err := c.ABCIQueryIsOk("/custom/bank/all_balances", legacy.Cdc.MustMarshalJSON(banktypes.QueryAllBalancesRequest{Address: address}))
+	data, err := proto.Marshal(&banktypes.QueryAllBalancesRequest{Address: address})
 	if err != nil {
 		return nil, err
 	}
-	var coins sdk.Coins
-	if err = legacy.Cdc.UnmarshalJSON(result.Response.Value, &coins); err != nil {
+	result, err := c.ABCIQueryIsOk("/cosmos.bank.v1beta1.Query/AllBalances", data)
+	if err != nil {
 		return nil, err
 	}
-	return coins, nil
+	response := new(banktypes.QueryAllBalancesResponse)
+	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
+		return nil, err
+	}
+	return response.Balances, nil
 }
 
 func (c *NodeRPC) QuerySupply() (sdk.Coins, error) {
-	result, err := c.ABCIQueryIsOk("/custom/bank/total_supply", legacy.Cdc.MustMarshalJSON(banktypes.QueryTotalSupplyRequest{}))
+	result, err := c.ABCIQueryIsOk("/cosmos.bank.v1beta1.Query/TotalSupply", nil)
 	if err != nil {
 		return nil, err
 	}
-	var supplyRes banktypes.QueryTotalSupplyResponse
-	if err = legacy.Cdc.UnmarshalJSON(result.Response.Value, &supplyRes); err != nil {
+	response := new(banktypes.QueryTotalSupplyResponse)
+	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
 		return nil, err
 	}
-	return supplyRes.Supply, nil
+	return response.Supply, nil
 }
 
 func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
@@ -86,6 +123,14 @@ func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
 	return coins, nil
 }
 
+func (c *NodeRPC) AppVersion() (string, error) {
+	result, err := c.ABCIQueryIsOk("/app/version", nil)
+	if err != nil {
+		return "", err
+	}
+	return string(result.Response.Value), nil
+}
+
 func (c *NodeRPC) Store(path string) (*ctypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/store/"+path, nil)
 }
@@ -98,31 +143,16 @@ func (c *NodeRPC) PeersById(id string) (*ctypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/p2p/filter/id/"+id, nil)
 }
 
-// Deprecated: GetGravityAttestation
-func (c *NodeRPC) GetGravityAttestation(cdc codec.Codec, id []byte) (*gravitytypes.Attestation, error) {
-	query, err := c.ABCIQuery("/store/gravity/key", id)
+func (c *NodeRPC) ABCIQueryIsOk(path string, data tmbytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
+	result := new(ctypes.ResultABCIQuery)
+	params := map[string]interface{}{"path": path, "data": data, "height": strconv.FormatInt(c.height, 10), "prove": false}
+	err := c.caller.Call(c.ctx, "abci_query", params, result)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "ABCIQueryIsOk")
 	}
-	if query.Response.Code != 0 {
-		return nil, fmt.Errorf("abci query code %d, space %s, log %s", query.Response.Code, query.Response.Codespace, query.Response.Log)
+	if result.Response.Code != 0 {
+		return nil, fmt.Errorf("abci query response, space: %s, code: %d, log: %s",
+			result.Response.Codespace, result.Response.Code, result.Response.Log)
 	}
-	var gravityAtt gravitytypes.Attestation
-	cdc.MustUnmarshal(query.Response.Value, &gravityAtt)
-	return &gravityAtt, nil
-}
-
-// Deprecated: GetGravityLastObservedEventNonce
-func (c *NodeRPC) GetGravityLastObservedEventNonce() (uint64, error) {
-	query, err := c.ABCIQuery("/store/gravity/key", []byte{0xc})
-	if err != nil {
-		return 0, err
-	}
-	if query.Response.Code != 0 {
-		return 0, fmt.Errorf("abci query code %d, space %s, log %s", query.Response.Code, query.Response.Codespace, query.Response.Log)
-	}
-	if len(query.Response.Value) == 0 {
-		return 0, nil
-	}
-	return sdk.BigEndianToUint64(query.Response.Value), nil
+	return result, nil
 }

@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"strconv"
 
+	tmcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
 )
 
 // BlockCommand returns the verified block data for a given heights

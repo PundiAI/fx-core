@@ -8,8 +8,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -28,17 +28,13 @@ type Keeper struct {
 	accountKeeper     AccountKeeper
 }
 
-func (c *Keeper) handlerOriginToken(ctx sdk.Context, evm *vm.EVM, sender common.Address, amount *big.Int) (sdk.Coin, error) {
-	// NOTE: stateDB sub sender balance,but bank keeper not update.
-	// so mint token to crosschain, end of stateDB commit will sub balance from bank keeper.
-	// if only allow depth 1, the sender is origin sender, we can sub balance from bank keeper and not need burn/mint denom
-	evm.StateDB.SubBalance(crosschaintypes.GetAddress(), amount)
+func (c *Keeper) handlerOriginToken(ctx sdk.Context, _ *vm.EVM, sender common.Address, amount *big.Int) (sdk.Coin, error) {
 	totalCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amount))
 	totalCoins := sdk.NewCoins(totalCoin)
-
-	if err := c.bankKeeper.MintCoins(ctx, evmtypes.ModuleName, totalCoins); err != nil {
+	if err := c.bankKeeper.SendCoinsFromAccountToModule(ctx, crosschaintypes.GetAddress().Bytes(), evmtypes.ModuleName, totalCoins); err != nil {
 		return sdk.Coin{}, err
 	}
+
 	if err := c.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender.Bytes(), totalCoins); err != nil {
 		return sdk.Coin{}, err
 	}
@@ -77,16 +73,10 @@ func (c *Keeper) convertERC20(
 			return err
 		}
 		if tokenPair.GetDenom() == fxtypes.DefaultDenom {
-			// cache token contract balance
-			evm.StateDB.GetBalance(tokenPair.GetERC20Contract())
-
 			err = c.bankKeeper.SendCoinsFromAccountToModule(ctx, tokenPair.GetERC20Contract().Bytes(), erc20types.ModuleName, sdk.NewCoins(amount))
 			if err != nil {
 				return err
 			}
-
-			// evm stateDB sub token contract balance
-			evm.StateDB.SubBalance(tokenPair.GetERC20Contract(), amount.Amount.BigInt())
 		}
 
 	} else if tokenPair.IsNativeERC20() {

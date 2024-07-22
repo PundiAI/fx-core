@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"encoding/hex"
 
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"

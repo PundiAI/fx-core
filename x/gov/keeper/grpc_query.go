@@ -12,7 +12,7 @@ var _ types.QueryServer = Keeper{}
 
 func (keeper Keeper) Params(c context.Context, re *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	params := keeper.GetParams(ctx, re.MsgType)
+	params := keeper.GetFXParams(ctx, re.MsgType)
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 

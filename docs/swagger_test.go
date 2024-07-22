@@ -25,7 +25,7 @@ func TestSwaggerConfig(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(data, &c))
 	assert.Equal(t, "2.0", c.Swagger)
 	assert.Equal(t, "0.4.0", c.Info.Version)
-	assert.Equal(t, 23, len(c.Apis))
+	assert.Equal(t, 24, len(c.Apis))
 	app := helpers.Setup(true, false)
 	clientCtx := client.Context{
 		InterfaceRegistry: app.InterfaceRegistry(),
@@ -48,16 +48,19 @@ func TestSwaggerConfig(t *testing.T) {
 			if key == "ibc/apps/transfer/v1" {
 				key = "ibc/applications/transfer/v1"
 			}
+			if key == "fx/crosschain/v1" {
+				key = "fx/gravity/crosschain/v1"
+			}
 			route[key] = route[key] + 1
 		}
 		if handler.Key().String() == "POST" {
-			assert.Equal(t, 2, handler.Value().Len())
+			assert.Equal(t, 6, handler.Value().Len())
 		}
 		if handler.Key().String() == "GET" {
-			assert.Equal(t, 213, handler.Value().Len())
+			assert.Equal(t, 220, handler.Value().Len())
 		}
 	}
-	assert.Equal(t, 32, len(route))
+	assert.Equal(t, 33, len(route))
 	ignoreLen := len(route) - len(c.Apis)
 	for _, v := range c.Apis {
 		for key := range route {

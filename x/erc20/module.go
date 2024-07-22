@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -13,7 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/v7/x/erc20/client/cli"
 	"github.com/functionx/fx-core/v7/x/erc20/keeper"
@@ -85,34 +85,22 @@ func (AppModuleBasic) RegisterInterfaces(interfaceRegistry codectypes.InterfaceR
 // AppModule implements the AppModule interface for the capability module.
 type AppModule struct {
 	AppModuleBasic
-	keeper         keeper.Keeper
-	legacySubspace types.Subspace
+	keeper keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper, ss types.Subspace) AppModule {
+func NewAppModule(keeper keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		legacySubspace: ss,
 	}
 }
 
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Deprecated: Route returns the message routing key
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
 // QuerierRoute implements app module
 func (am AppModule) QuerierRoute() string { return "" }
-
-// LegacyQuerierHandler returns no sdk.Querier
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
-}
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.

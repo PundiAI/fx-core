@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	_ "github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"

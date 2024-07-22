@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -18,7 +19,6 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/v7/x/gov/client/cli"
 	"github.com/functionx/fx-core/v7/x/gov/keeper"
@@ -78,36 +78,40 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // AppModule implements an application module for the gov module.
 type AppModule struct {
 	gov.AppModule
-	keeper keeper.Keeper
-	ak     govtypes.AccountKeeper
-	bk     govtypes.BankKeeper
-	cdc    codec.Codec
+	keeper         *keeper.Keeper
+	ak             govtypes.AccountKeeper
+	bk             govtypes.BankKeeper
+	cdc            codec.Codec
+	legacySubspace govtypes.ParamSubspace
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ss govtypes.ParamSubspace) AppModule {
 	return AppModule{
-		AppModule: gov.NewAppModule(cdc, keeper.Keeper, ak, bk),
-		keeper:    keeper,
-		ak:        ak,
-		bk:        bk,
-		cdc:       cdc,
+		AppModule:      gov.NewAppModule(cdc, keeper.Keeper, ak, bk, ss),
+		keeper:         keeper,
+		ak:             ak,
+		bk:             bk,
+		cdc:            cdc,
+		legacySubspace: ss,
 	}
 }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	msgServer := keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(am.keeper.Keeper), am.keeper)
-	govv1betal.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
+	govv1betal.RegisterMsgServer(cfg.MsgServer(), govkeeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
 	govv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
 
 	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
 	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 	govv1.RegisterQueryServer(cfg.QueryServer(), am.keeper.Keeper)
 
-	//  fx gov
-	types.RegisterMsgServer(cfg.MsgServer(), msgServer)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
+	err := cfg.RegisterMigration(govtypes.ModuleName, 3, m.Migrate3to4)
+	if err != nil {
+		panic(fmt.Sprintf("failed to migrate x/gov from version 3 to 4: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the gov module. It returns

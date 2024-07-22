@@ -35,11 +35,11 @@ if [[ "$1" == "init" ]]; then
   fxcored config chain-id "fxcore"
   fxcored config keyring-backend "test"
   fxcored config output "json"
-  fxcored config broadcast-mode "block"
+  fxcored config broadcast-mode "sync"
 
   echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
   if [ -n "${2:-""}" ]; then
-    fxcored add-genesis-account fx1 10004000000000000000000000FX
+    fxcored genesis add-genesis-account fx1 10004000000000000000000000FX
     genesis_tmp="$FX_HOME/config/genesis.json.tmp"
     # update genesis total supply
     jq '.app_state.bank.supply[0].amount = "388604525462891000000000000"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
@@ -47,9 +47,9 @@ if [[ "$1" == "init" ]]; then
     jq '.app_state.gov.voting_params.voting_period = "15s"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
       mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
   else
-    fxcored add-genesis-account fx1 4000000000000000000000FX
+    fxcored genesis add-genesis-account fx1 4000000000000000000000FX
   fi
-  fxcored gentx fx1 100000000000000000000FX --chain-id=fxcore \
+  fxcored genesis gentx fx1 100000000000000000000FX --chain-id=fxcore \
     --gas="200000" \
     --moniker="fx-validator" \
     --commission-max-change-rate="0.01" \
@@ -58,7 +58,7 @@ if [[ "$1" == "init" ]]; then
     --details="Details A Function X foundation self-hosted validator." \
     --security-contact="contact@functionx.io" \
     --website="functionx.io"
-  fxcored collect-gentxs
+  fxcored genesis collect-gentxs
 fi
 
 fxcored start

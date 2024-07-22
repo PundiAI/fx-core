@@ -13,7 +13,7 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 	"golang.org/x/exp/slices"
 
@@ -38,7 +38,7 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 	}
 
 	// Remove token pair if contract is suicided
-	if acc := k.evmKeeper.GetAccountWithoutBalance(ctx, pair.GetERC20Contract()); acc == nil || !acc.IsContract() {
+	if acc := k.evmKeeper.GetAccount(ctx, pair.GetERC20Contract()); acc == nil || !acc.IsContract() {
 		k.RemoveTokenPair(ctx, pair)
 		k.Logger(ctx).Debug("deleting selfdestructed token pair from state", "contract", pair.Erc20Address)
 		// NOTE: return nil error to persist the changes from the deletion
@@ -94,7 +94,7 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	}
 
 	// Remove token pair if contract is suicided
-	if acc := k.evmKeeper.GetAccountWithoutBalance(ctx, pair.GetERC20Contract()); acc == nil || !acc.IsContract() {
+	if acc := k.evmKeeper.GetAccount(ctx, pair.GetERC20Contract()); acc == nil || !acc.IsContract() {
 		k.RemoveTokenPair(ctx, pair)
 		k.Logger(ctx).Debug("deleting selfdestructed token pair from state", "contract", pair.Erc20Address)
 		// NOTE: return nil error to persist the changes from the deletion

@@ -1,0 +1,407 @@
+syntax = "proto3";
+package fx.gravity.crosschain.v1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "fx/gravity/crosschain/v1/tx.proto";
+import "fx/gravity/crosschain/v1/types.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/functionx/fx-core/x/crosschain/types";
+
+// Query defines the gRPC querier service
+service Query {
+  // Deployments queries deployments
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/params";
+  }
+  rpc CurrentOracleSet(QueryCurrentOracleSetRequest) returns (QueryCurrentOracleSetResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/current";
+  }
+  rpc OracleSetRequest(QueryOracleSetRequestRequest) returns (QueryOracleSetRequestResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/request";
+  }
+  rpc OracleSetConfirm(QueryOracleSetConfirmRequest) returns (QueryOracleSetConfirmResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/confirm";
+  }
+  rpc OracleSetConfirmsByNonce(QueryOracleSetConfirmsByNonceRequest) returns (QueryOracleSetConfirmsByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/confirms";
+  }
+  rpc LastOracleSetRequests(QueryLastOracleSetRequestsRequest) returns (QueryLastOracleSetRequestsResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/requests";
+  }
+  rpc LastPendingOracleSetRequestByAddr(QueryLastPendingOracleSetRequestByAddrRequest) returns (QueryLastPendingOracleSetRequestByAddrResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/last";
+  }
+  rpc LastPendingBatchRequestByAddr(QueryLastPendingBatchRequestByAddrRequest) returns (QueryLastPendingBatchRequestByAddrResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/batch/last";
+  }
+  rpc LastEventNonceByAddr(QueryLastEventNonceByAddrRequest) returns (QueryLastEventNonceByAddrResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle/event_nonce";
+  }
+  rpc LastEventBlockHeightByAddr(QueryLastEventBlockHeightByAddrRequest) returns (QueryLastEventBlockHeightByAddrResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle/event/block_height";
+  }
+  rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/batch_fees";
+  }
+  rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest) returns (QueryLastObservedBlockHeightResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/observed/block_height";
+  }
+  rpc OutgoingTxBatches(QueryOutgoingTxBatchesRequest) returns (QueryOutgoingTxBatchesResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/batch/outgoing_tx";
+  }
+  rpc BatchRequestByNonce(QueryBatchRequestByNonceRequest) returns (QueryBatchRequestByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/batch/request";
+  }
+  rpc BatchConfirm(QueryBatchConfirmRequest) returns (QueryBatchConfirmResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/batch/confirm";
+  }
+  rpc BatchConfirms(QueryBatchConfirmsRequest) returns (QueryBatchConfirmsResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/batch/confirms";
+  }
+  rpc TokenToDenom(QueryTokenToDenomRequest) returns (QueryTokenToDenomResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/denom";
+  }
+  rpc DenomToToken(QueryDenomToTokenRequest) returns (QueryDenomToTokenResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/token";
+  }
+  rpc GetOracleByAddr(QueryOracleByAddrRequest) returns (QueryOracleResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_by_addr";
+  }
+  rpc GetOracleByExternalAddr(QueryOracleByExternalAddrRequest) returns (QueryOracleResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_by_external_addr";
+  }
+  rpc GetOracleByBridgerAddr(QueryOracleByBridgerAddrRequest) returns (QueryOracleResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_by_bridger_addr";
+  }
+  rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/pending_send_to_external";
+  }
+  rpc GetPendingPoolSendToExternal(QueryPendingPoolSendToExternalRequest) returns (QueryPendingPoolSendToExternalResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/pending_pool_send_to_external";
+  }
+  rpc BridgeCalls(QueryBridgeCallsRequest) returns (QueryBridgeCallsResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_calls";
+  }
+  rpc BridgeCallConfirmByNonce(QueryBridgeCallConfirmByNonceRequest) returns (QueryBridgeCallConfirmByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_call_confirm_by_nonce";
+  }
+  rpc BridgeCallByNonce(QueryBridgeCallByNonceRequest) returns (QueryBridgeCallByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_call_by_nonce";
+  }
+  rpc BridgeCallBySender(QueryBridgeCallBySenderRequest) returns (QueryBridgeCallBySenderResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_call_by_sender";
+  }
+  rpc LastPendingBridgeCallByAddr(QueryLastPendingBridgeCallByAddrRequest) returns (QueryLastPendingBridgeCallByAddrResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/last_pending_bridge_call_by_addr";
+  }
+  rpc PendingBridgeCalls(QueryPendingBridgeCallsRequest) returns (QueryPendingBridgeCallsResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/pending_bridge_calls";
+  }
+  rpc PendingBridgeCallByNonce(QueryPendingBridgeCallByNonceRequest) returns (QueryPendingBridgeCallByNonceResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/pending_bridge_call_by_nonce";
+  }
+
+  // Validators queries all oracle that match the given status.
+  rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/oracles";
+  }
+  rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest) returns (QueryProjectedBatchTimeoutHeightResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/projected_batch_timeout";
+  }
+  rpc BridgeTokens(QueryBridgeTokensRequest) returns (QueryBridgeTokensResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_tokens";
+  }
+  rpc BridgeCoinByDenom(QueryBridgeCoinByDenomRequest) returns (QueryBridgeCoinByDenomResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_coin_by_denom";
+  }
+  rpc BridgeChainList(QueryBridgeChainListRequest) returns (QueryBridgeChainListResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_chain_list";
+  }
+}
+
+message QueryParamsRequest {
+  string chain_name = 1;
+}
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryCurrentOracleSetRequest {
+  string chain_name = 1;
+}
+message QueryCurrentOracleSetResponse {
+  OracleSet oracle_set = 1;
+}
+
+message QueryOracleSetRequestRequest {
+  string chain_name = 1;
+  uint64 nonce = 2;
+}
+message QueryOracleSetRequestResponse {
+  OracleSet oracle_set = 1;
+}
+
+message QueryOracleSetConfirmRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+  uint64 nonce = 3;
+}
+message QueryOracleSetConfirmResponse {
+  MsgOracleSetConfirm confirm = 1;
+}
+
+message QueryOracleSetConfirmsByNonceRequest {
+  string chain_name = 1;
+  uint64 nonce = 2;
+}
+message QueryOracleSetConfirmsByNonceResponse {
+  repeated MsgOracleSetConfirm confirms = 1;
+}
+
+message QueryLastOracleSetRequestsRequest {
+  string chain_name = 1;
+}
+message QueryLastOracleSetRequestsResponse {
+  repeated OracleSet oracle_sets = 1;
+}
+
+message QueryLastPendingOracleSetRequestByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastPendingOracleSetRequestByAddrResponse {
+  repeated OracleSet oracle_sets = 1;
+}
+
+message QueryBatchFeeRequest {
+  string chain_name = 1;
+  repeated MinBatchFee minBatchFees = 2 [(gogoproto.nullable) = false];
+}
+message QueryBatchFeeResponse {
+  repeated BatchFees batch_fees = 1;
+}
+
+message QueryLastPendingBatchRequestByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastPendingBatchRequestByAddrResponse {
+  OutgoingTxBatch batch = 1;
+}
+
+message QueryOutgoingTxBatchesRequest {
+  string chain_name = 1;
+}
+message QueryOutgoingTxBatchesResponse {
+  repeated OutgoingTxBatch batches = 1;
+}
+
+message QueryBatchRequestByNonceRequest {
+  string chain_name = 1;
+  string token_contract = 2;
+  uint64 nonce = 3;
+}
+message QueryBatchRequestByNonceResponse {
+  OutgoingTxBatch batch = 1;
+}
+
+message QueryBatchConfirmRequest {
+  string chain_name = 1;
+  string token_contract = 2;
+  string bridger_address = 3;
+  uint64 nonce = 4;
+}
+message QueryBatchConfirmResponse {
+  MsgConfirmBatch confirm = 1;
+}
+
+message QueryBatchConfirmsRequest {
+  string chain_name = 1;
+  string token_contract = 2;
+  uint64 nonce = 3;
+}
+message QueryBatchConfirmsResponse {
+  repeated MsgConfirmBatch confirms = 1;
+}
+
+message QueryLastEventNonceByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastEventNonceByAddrResponse {
+  uint64 event_nonce = 1;
+}
+
+message QueryTokenToDenomRequest {
+  string chain_name = 1;
+  string token = 2;
+}
+message QueryTokenToDenomResponse {
+  string denom = 1;
+}
+
+message QueryDenomToTokenRequest {
+  string chain_name = 1;
+  string denom = 2;
+}
+message QueryDenomToTokenResponse {
+  string token = 1;
+}
+
+message QueryOracleByAddrRequest {
+  string chain_name = 1;
+  string oracle_address = 2;
+}
+message QueryOracleResponse {
+  Oracle oracle = 1;
+}
+
+message QueryOracleByExternalAddrRequest {
+  string chain_name = 1;
+  string external_address = 2;
+}
+message QueryOracleByBridgerAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryPendingSendToExternalRequest {
+  string chain_name = 1;
+  string sender_address = 2;
+}
+message QueryPendingSendToExternalResponse {
+  repeated OutgoingTransferTx transfers_in_batches = 1;
+  repeated OutgoingTransferTx unbatched_transfers = 2;
+}
+
+message QueryPendingPoolSendToExternalRequest {
+  string chain_name = 1;
+  string sender_address = 2;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+message QueryPendingPoolSendToExternalResponse {
+  repeated PendingOutgoingTransferTx txs = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryLastObservedBlockHeightRequest {
+  string chain_name = 1;
+}
+message QueryLastObservedBlockHeightResponse {
+  uint64 external_block_height = 1;
+  uint64 block_height = 2;
+}
+
+message QueryLastEventBlockHeightByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastEventBlockHeightByAddrResponse {
+  uint64 block_height = 1;
+}
+
+message QueryOraclesRequest {
+  string chain_name = 1;
+}
+message QueryOraclesResponse {
+  // oracles contains all the queried oracles.
+  repeated Oracle oracles = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProjectedBatchTimeoutHeightRequest {
+  string chain_name = 1;
+}
+message QueryProjectedBatchTimeoutHeightResponse {
+  uint64 timeout_height = 1;
+}
+
+message QueryBridgeTokensRequest {
+  string chain_name = 1;
+}
+message QueryBridgeTokensResponse {
+  repeated BridgeToken bridge_tokens = 1;
+}
+
+message QueryBridgeCoinByDenomRequest {
+  string chain_name = 1;
+  string denom = 2;
+}
+message QueryBridgeCoinByDenomResponse {
+  cosmos.base.v1beta1.Coin coin = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryBridgeChainListRequest {}
+message QueryBridgeChainListResponse {
+  repeated string chain_names = 1;
+}
+
+message QueryBridgeCallsRequest {
+  string chain_name = 1;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryBridgeCallsResponse {
+  repeated OutgoingBridgeCall bridge_calls = 1;
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryBridgeCallByNonceRequest {
+  string chain_name = 1;
+  uint64 nonce = 2;
+}
+message QueryBridgeCallByNonceResponse {
+  OutgoingBridgeCall bridge_call = 1;
+}
+
+message QueryBridgeCallBySenderRequest {
+  string chain_name = 1;
+  string sender_address = 2;
+}
+message QueryBridgeCallBySenderResponse {
+  repeated OutgoingBridgeCall bridge_calls = 1;
+}
+
+message QueryBridgeCallConfirmByNonceRequest {
+  string chain_name = 1;
+  uint64 event_nonce = 2;
+}
+
+message QueryBridgeCallConfirmByNonceResponse {
+  repeated MsgBridgeCallConfirm confirms = 1;
+  bool enough_power = 2;
+}
+
+message QueryLastPendingBridgeCallByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastPendingBridgeCallByAddrResponse {
+  repeated OutgoingBridgeCall bridge_calls = 1;
+}
+
+message QueryPendingBridgeCallsRequest {
+  string chain_name = 1;
+  string sender_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryPendingBridgeCallsResponse {
+  repeated PendingOutgoingBridgeCall pending_bridge_calls = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryPendingBridgeCallByNonceRequest {
+  string chain_name = 1;
+  uint64 nonce = 2;
+}
+message QueryPendingBridgeCallByNonceResponse {
+  PendingOutgoingBridgeCall bridge_call = 1;
+}

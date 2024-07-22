@@ -7,17 +7,17 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
-func (suite *KeeperTestSuite) TestKeeper_SetAccount() {
+func (s *KeeperTestSuite) TestKeeper_SetAccount() {
 	address := helpers.GenHexAddress()
-	suite.Nil(suite.app.AccountKeeper.GetAccount(suite.ctx, address.Bytes()))
+	s.Nil(s.App.AccountKeeper.GetAccount(s.Ctx, address.Bytes()))
 
-	acc := suite.app.EvmKeeper.GetAccountOrEmpty(suite.ctx, address)
-	suite.NotNil(acc)
+	acc := s.App.EvmKeeper.GetAccountOrEmpty(s.Ctx, address)
+	s.NotNil(acc)
 	acc.CodeHash = common.BytesToHash([]byte{1, 2, 3}).Bytes()
-	suite.NoError(suite.app.EvmKeeper.SetAccount(suite.ctx, address, acc))
+	s.NoError(s.App.EvmKeeper.SetAccount(s.Ctx, address, acc))
 
-	account := suite.app.AccountKeeper.GetAccount(suite.ctx, address.Bytes())
+	account := s.App.AccountKeeper.GetAccount(s.Ctx, address.Bytes())
 	ethAcc, ok := account.(ethermint.EthAccountI)
-	suite.True(ok)
-	suite.Equal(ethAcc.GetCodeHash(), common.BytesToHash(acc.CodeHash))
+	s.True(ok)
+	s.Equal(ethAcc.GetCodeHash(), common.BytesToHash(acc.CodeHash))
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/big"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
@@ -39,11 +38,14 @@ func (m *BridgeCoinAmountMethod) RequiredGas() uint64 {
 	return 10_000
 }
 
-func (m *BridgeCoinAmountMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+func (m *BridgeCoinAmountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
 	}
+
+	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+	ctx := stateDB.CacheContext()
 
 	pair, has := m.erc20Keeper.GetTokenPair(ctx, args.Token.Hex())
 	if !has {

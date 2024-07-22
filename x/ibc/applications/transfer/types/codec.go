@@ -8,8 +8,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	"github.com/gogo/protobuf/jsonpb"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/jsonpb"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/ibc transfer interfaces and concrete types

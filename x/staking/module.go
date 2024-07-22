@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/staking/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	fxstakingcli "github.com/functionx/fx-core/v7/x/staking/client/cli"
 	"github.com/functionx/fx-core/v7/x/staking/keeper"
@@ -62,12 +63,12 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 type AppModule struct {
 	staking.AppModule
 	AppModuleBasic AppModuleBasic
-	Keeper         keeper.Keeper
+	Keeper         *keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper) AppModule {
-	stakingAppModule := staking.NewAppModule(cdc, keeper.Keeper, ak, bk)
+func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper, ak stakingtypes.AccountKeeper, bk stakingtypes.BankKeeper, ls exported.Subspace) AppModule {
+	stakingAppModule := staking.NewAppModule(cdc, keeper.Keeper, ak, bk, ls)
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{AppModuleBasic: stakingAppModule.AppModuleBasic},
 		AppModule:      stakingAppModule,

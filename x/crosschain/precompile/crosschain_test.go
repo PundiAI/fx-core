@@ -8,14 +8,14 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"golang.org/x/exp/slices"
 
 	"github.com/functionx/fx-core/v7/contract"
@@ -1747,7 +1747,6 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			},
 			result: false,
 		},
-
 		{
 			name: "contract - ok",
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *big.Int, string, string, []string) {
@@ -2064,7 +2063,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 					var data []byte
 
 					for _, attr := range event.Attributes {
-						attrKey, attrValue := string(attr.Key), string(attr.Value)
+						attrKey, attrValue := attr.Key, attr.Value
 						if attrKey == ibcchanneltypes.AttributeKeyDataHex {
 							data, err = hex.DecodeString(attrValue)
 							suite.Require().NoError(err)
@@ -2420,7 +2419,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 					var data []byte
 
 					for _, attr := range event.Attributes {
-						attrKey, attrValue := string(attr.Key), string(attr.Value)
+						attrKey, attrValue := attr.Key, attr.Value
 						if attrKey == ibcchanneltypes.AttributeKeyDataHex {
 							data, err = hex.DecodeString(attrValue)
 							suite.Require().NoError(err)

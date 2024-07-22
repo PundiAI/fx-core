@@ -2,8 +2,8 @@ package tests_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"

@@ -20,7 +20,7 @@ import (
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	precompilesstaking "github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
+	stakingprecompile "github.com/functionx/fx-core/v7/x/staking/precompile"
 	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
@@ -100,8 +100,8 @@ func (suite *IntegrationTest) StakingContractTest() {
 	txFee3 := suite.evm.TxFee(receipt.TxHash)
 
 	for _, log := range receipt.Logs {
-		if log.Address == precompilesstaking.GetAddress() && log.Topics[0] == precompilesstaking.WithdrawEvent.ID {
-			unpack, err := precompilesstaking.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
+		if log.Address == stakingprecompile.GetAddress() && log.Topics[0] == stakingprecompile.WithdrawEvent.ID {
+			unpack, err := stakingprecompile.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
 			suite.Require().NoError(err)
 			reward := unpack[1].(*big.Int)
 			delBal = suite.QueryBalances(contract.Bytes())
@@ -562,7 +562,7 @@ func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
 
 	// val send coins error, not have privilege
 	msgSend := banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))))
-	_, err = suite.GRPCClient().BuildTxV1(suite.GetValidatorPrivKeys(from), []sdk.Msg{msgSend}, 500000, "", 0)
+	_, err = suite.GRPCClient().BuildTxRaw(suite.GetValidatorPrivKeys(from), []sdk.Msg{msgSend}, 500000, 0, "")
 	suite.Require().Error(err)
 
 	// grant MsgSend privilege with to address
@@ -571,7 +571,7 @@ func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
 	suite.Require().NoError(err)
 	msgExec := authz.NewMsgExec(to, []sdk.Msg{msgGrant, msgSend})
 
-	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{&msgExec}, 500000, "", 0)
+	_, err = suite.GRPCClient().BuildTxRaw(suite.staking.privKey, []sdk.Msg{&msgExec}, 500000, 0, "")
 	suite.Require().NoError(err)
 	tx := suite.BroadcastTx(suite.staking.privKey, &msgExec)
 	suite.Require().Equal(uint32(0), tx.Code)
@@ -584,13 +584,13 @@ func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
 	// val grant to to2 address error, val not have privilege
 	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, from, suite.staking.GrantPrivKey().PubKey())
 	suite.Require().NoError(err)
-	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{msg}, 500000, "", 0)
+	_, err = suite.GRPCClient().BuildTxRaw(suite.staking.privKey, []sdk.Msg{msg}, 500000, 0, "")
 	suite.Require().Error(err)
 
 	// to grant to to2 address
 	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, to, suite.staking.GrantPrivKey().PubKey())
 	suite.Require().NoError(err)
-	_, err = suite.GRPCClient().BuildTxV1(suite.staking.privKey, []sdk.Msg{msg}, 500000, "", 0)
+	_, err = suite.GRPCClient().BuildTxRaw(suite.staking.privKey, []sdk.Msg{msg}, 500000, 0, "")
 	suite.NoError(err)
 	suite.BroadcastTx(suite.staking.privKey, msg)
 

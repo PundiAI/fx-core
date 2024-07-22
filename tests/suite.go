@@ -17,7 +17,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -35,7 +34,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 type TestSuite struct {
@@ -273,13 +271,14 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 		gasPrices = sdk.Coins{suite.NewCoin(sdk.ZeroInt())}
 	}
 	grpcClient = grpcClient.WithGasPrices(gasPrices)
-	txRaw, err := grpcClient.BuildTxV1(privKey, msgList, 500000, "", 0)
+	txRaw, err := grpcClient.BuildTxRaw(privKey, msgList, 500000, 0, "")
 	suite.NoError(err)
 
-	txResponse, err := grpcClient.BroadcastTxOk(txRaw, tx.BroadcastMode_BROADCAST_MODE_BLOCK)
+	txResponse, err := grpcClient.BroadcastTx(txRaw)
 	suite.NoError(err)
-	// txResponse might be nil, but error is also nil
-	suite.NotNil(txResponse)
+	suite.NotNil(txResponse) // txResponse might be nil, but error is also nil
+	txResponse, err = grpcClient.WaitMined(txResponse.TxHash, 10*time.Second, 1*time.Second)
+	suite.NoError(err)
 	suite.T().Log("broadcast tx", "msg:", sdk.MsgTypeURL(msgList[0]), "height:", txResponse.Height, "txHash:", txResponse.TxHash)
 	suite.NoError(suite.network.WaitForNextBlock())
 	return txResponse
@@ -322,12 +321,14 @@ func (suite *TestSuite) BroadcastProposalTx(content govv1beta1.Content, expected
 }
 
 func (suite *TestSuite) BroadcastProposalTx2(msgs []sdk.Msg, title, summary string, expectedStatus ...govv1.ProposalStatus) (*sdk.TxResponse, uint64) {
-	fxMetadata := fxgovtypes.NewFXMetadata(title, summary, "")
 	proposalMsg, err := govv1.NewMsgSubmitProposal(
 		msgs,
 		sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(10_000).MulRaw(1e18))),
 		sdk.AccAddress(suite.GetFirstValAddr().Bytes()).String(),
-		fxMetadata.String())
+		"",
+		title,
+		summary,
+	)
 	suite.NoError(err)
 	proposalId := suite.getNextProposalId()
 	voteMsg := govv1.NewMsgVote(suite.GetFirstValAddr().Bytes(), proposalId, govv1.OptionYes, "")

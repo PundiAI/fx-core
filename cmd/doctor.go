@@ -10,6 +10,11 @@ import (
 	"runtime"
 	"strings"
 
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/privval"
+	tmtypes "github.com/cometbft/cometbft/types"
+	tmversion "github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -22,11 +27,6 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/privval"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/version"
 
 	"github.com/functionx/fx-core/v7/client/grpc"
 	"github.com/functionx/fx-core/v7/server"
@@ -132,7 +132,7 @@ func checkGenesis(genesisFile string) (string, error) {
 	fmt.Printf("Genesis:\n")
 	fmt.Printf("%sFile: %s\n", SPACE, genesisFile)
 
-	genesisSha256, err := getGenesisSha256(genesisFile)
+	doc, sha256, err := getGenesisDocAndSha256(genesisFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			fmt.Printf("%sWarning: Not found Genesis file!\n", SPACE)
@@ -140,14 +140,13 @@ func checkGenesis(genesisFile string) (string, error) {
 		}
 		return "", err
 	}
-	switch genesisSha256 {
-	case fxtypes.MainnetGenesisHash:
+	if sha256 == fxtypes.MainnetGenesisHash && doc.ChainID == fxtypes.MainnetChainId {
 		fmt.Printf("%sNetwork: Mainnet\n", SPACE)
-		return fxtypes.MainnetChainId, nil
-	case fxtypes.TestnetGenesisHash:
+		return doc.ChainID, nil
+	} else if sha256 == fxtypes.TestnetGenesisHash && doc.ChainID == fxtypes.TestnetChainId {
 		fmt.Printf("%sNetwork: Testnet\n", SPACE)
-		return fxtypes.TestnetChainId, nil
-	default:
+		return doc.ChainID, nil
+	} else {
 		fmt.Printf("%sWarning: Unknown Network!\n", SPACE)
 		return "Unknown", nil
 	}
@@ -515,18 +514,19 @@ func printTree(entry string, depth int, last []bool, tab string) {
 	}
 }
 
-func getGenesisSha256(genesisFile string) (string, error) {
+func getGenesisDocAndSha256(genesisFile string) (*tmtypes.GenesisDoc, string, error) {
 	genesisFileData, err := os.ReadFile(genesisFile)
 	if err != nil {
-		return "", err
+		return nil, "", err
+	}
+	dst := &bytes.Buffer{}
+	if err = json.Compact(dst, genesisFileData); err != nil {
+		return nil, "", err
 	}
 	genesisDoc, err := tmtypes.GenesisDocFromJSON(genesisFileData)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
-	genesisBytes, err := tmjson.Marshal(genesisDoc)
-	if err != nil {
-		return "", err
-	}
-	return fxtypes.Sha256Hex(genesisBytes), nil
+	fmt.Println(dst.String())
+	return genesisDoc, fxtypes.Sha256Hex(dst.Bytes()), nil
 }

@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
+	tmos "github.com/cometbft/cometbft/libs/os"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
@@ -29,14 +28,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // GenTxCmd builds the application's gentx command.
 //
 //gocyclo:ignore
-func GenTxCmd(mbm module.BasicManager, txEncCfg client.TxEncodingConfig, genBalIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
+func GenTxCmd(mbm module.BasicManager, genBalIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
 	ipDefault, _ := server.ExternalIP()
 	fsCreateValidator, defaultsDesc := cli.CreateValidatorMsgFlagSet(ipDefault)
 
@@ -98,7 +95,7 @@ $ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=f
 				return errors.Wrap(err, "failed to unmarshal genesis state")
 			}
 
-			if err = mbm.ValidateGenesis(clientCtx.Codec, txEncCfg, genesisState); err != nil {
+			if err = mbm.ValidateGenesis(clientCtx.Codec, clientCtx.TxConfig, genesisState); err != nil {
 				return errors.Wrap(err, "failed to validate genesis state")
 			}
 
@@ -131,12 +128,14 @@ $ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=f
 			if err != nil {
 				return err
 			}
-			err = ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, clientCtx.Codec)
-			if err != nil {
+			if err = ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, clientCtx.Codec); err != nil {
 				return errors.Wrap(err, "failed to validate account in genesis")
 			}
 
-			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			txFactory, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
 
 			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(addr)
 
@@ -154,7 +153,7 @@ $ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=f
 			createValCfg.Amount = amount
 
 			// create a 'create-validator' message
-			txBldr, msg, err := BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory)
+			txBldr, msg, err := cli.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, false)
 			if err != nil {
 				return errors.Wrap(err, "failed to build create-validator message")
 			}
@@ -201,7 +200,7 @@ $ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=f
 				}
 			}
 
-			if err := writeSignedGenTx(clientCtx, outputDocument, stdTx); err != nil {
+			if err = writeSignedGenTx(clientCtx, outputDocument, stdTx); err != nil {
 				return errors.Wrap(err, "failed to write signed gen tx")
 			}
 
@@ -212,9 +211,9 @@ $ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=f
 
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().String(flags.FlagOutputDocument, "", "Write the genesis transaction JSON document to the given file instead of the default location")
-	cmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
 	cmd.Flags().AddFlagSet(fsCreateValidator)
 	flags.AddTxFlagsToCmd(cmd)
+	_ = cmd.Flags().MarkHidden(flags.FlagOutput) // signing makes sense to output only json
 
 	return cmd
 }
@@ -256,75 +255,6 @@ func writeSignedGenTx(clientCtx client.Context, outputDocument string, tx sdk.Tx
 	_, err = fmt.Fprintf(outputFile, "%s\n", bts)
 
 	return err
-}
-
-// BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValidatorConfig, txFactory tx.Factory) (tx.Factory, sdk.Msg, error) {
-	amountStr := config.Amount
-	amount, err := sdk.ParseCoinNormalized(amountStr)
-	if err != nil {
-		return txFactory, nil, err
-	}
-
-	valAddr := clientCtx.GetFromAddress()
-
-	description := stakingtypes.NewDescription(
-		config.Moniker,
-		config.Identity,
-		config.Website,
-		config.SecurityContact,
-		config.Details,
-	)
-
-	// get the initial validator commission parameters
-	rateStr := config.CommissionRate
-	maxRateStr := config.CommissionMaxRate
-	maxChangeRateStr := config.CommissionMaxChangeRate
-	commissionRates, err := buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr)
-	if err != nil {
-		return txFactory, nil, err
-	}
-
-	// get the initial validator min self delegation
-	msbStr := config.MinSelfDelegation
-	minSelfDelegation, ok := sdkmath.NewIntFromString(msbStr)
-
-	if !ok {
-		return txFactory, nil, errorsmod.Wrap(errortypes.ErrInvalidRequest, "minimum self delegation must be a positive integer")
-	}
-
-	msg, err := stakingtypes.NewMsgCreateValidator(
-		sdk.ValAddress(valAddr), config.PubKey, amount, description, commissionRates, minSelfDelegation,
-	)
-	if err != nil {
-		return txFactory, msg, err
-	}
-	return txFactory, msg, nil
-}
-
-func buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr string) (commission stakingtypes.CommissionRates, err error) {
-	if rateStr == "" || maxRateStr == "" || maxChangeRateStr == "" {
-		return commission, errors.New("must specify all validator commission parameters")
-	}
-
-	rate, err := sdk.NewDecFromStr(rateStr)
-	if err != nil {
-		return commission, err
-	}
-
-	maxRate, err := sdk.NewDecFromStr(maxRateStr)
-	if err != nil {
-		return commission, err
-	}
-
-	maxChangeRate, err := sdk.NewDecFromStr(maxChangeRateStr)
-	if err != nil {
-		return commission, err
-	}
-
-	commission = stakingtypes.NewCommissionRates(rate, maxRate, maxChangeRate)
-
-	return commission, nil
 }
 
 // ValidateAccountInGenesis checks that the provided account has a sufficient

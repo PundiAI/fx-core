@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run proto format and generate
         run: |
-          docker run --rm --user root --name fx-core-proto-fmt-0.11.2 -v `pwd`:/workspace --workdir /workspace ghcr.io/cosmos/proto-builder:0.11.2 sh ./contrib/protoc/format.sh
-          docker run --rm --user root --name fx-core-proto-gen-0.11.2 -v `pwd`:/workspace --workdir /workspace tendermintdev/sdk-proto-gen:v0.7 sh ./contrib/protoc/gen.sh
+          make proto-all
+          make update-swagger-docs
       - name: Check diff
         run: git diff --exit-code

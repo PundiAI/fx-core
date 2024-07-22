@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"

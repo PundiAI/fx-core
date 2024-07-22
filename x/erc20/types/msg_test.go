@@ -128,7 +128,7 @@ func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 	}
 
 	for i, tc := range testCases {
-		tx := types.MsgConvertCoin{tc.coin, tc.receiver, tc.sender}
+		tx := types.MsgConvertCoin{Coin: tc.coin, Receiver: tc.receiver, Sender: tc.sender}
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
@@ -236,7 +236,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 	}
 
 	for i, tc := range testCases {
-		tx := types.MsgConvertERC20{tc.contract, tc.amount, tc.receiver, tc.sender}
+		tx := types.MsgConvertERC20{ContractAddress: tc.contract, Amount: tc.amount, Receiver: tc.receiver, Sender: tc.sender}
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {

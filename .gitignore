@@ -14,5 +14,6 @@ artifacts
 dist
 out
 typechain-types
-
+swagger-proto
+tmp-swagger-gen
 tests/scripts/.env

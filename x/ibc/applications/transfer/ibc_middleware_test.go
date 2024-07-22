@@ -3,7 +3,7 @@ package transfer_test
 import (
 	"testing"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/functionx/fx-core/v7/app"

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	crosschaincli "github.com/functionx/fx-core/v7/x/crosschain/client/cli"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
@@ -81,34 +81,21 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 type AppModule struct {
 	AppModuleBasic
 	keeper crosschainkeeper.Keeper
-	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace crosschaintypes.Subspace
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper crosschainkeeper.Keeper, ss crosschaintypes.Subspace) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		legacySubspace: ss,
 	}
 }
 
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Deprecated: Route returns the message routing key
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
 // QuerierRoute implements app module
 func (am AppModule) QuerierRoute() string { return "" }
-
-// LegacyQuerierHandler returns no sdk.Querier
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
-}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {

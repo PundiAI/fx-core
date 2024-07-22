@@ -3,9 +3,9 @@ package types_test
 import (
 	"testing"
 
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"

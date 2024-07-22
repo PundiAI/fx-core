@@ -3,19 +3,17 @@ package server
 import (
 	"fmt"
 	"log"
-	"path/filepath"
 	"sync"
 	"time"
 
 	cmtdbm "github.com/cometbft/cometbft-db"
+	tmnode "github.com/cometbft/cometbft/node"
+	sm "github.com/cometbft/cometbft/state"
+	"github.com/cometbft/cometbft/store"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	tmnode "github.com/tendermint/tendermint/node"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/store"
-	dbm "github.com/tendermint/tm-db"
 )
 
 const (
@@ -71,8 +69,8 @@ func dataPruningCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if backend != string(dbm.GoLevelDBBackend) {
-				return fmt.Errorf("nonsupport db_backend %s, expected <%s>", backend, dbm.GoLevelDBBackend)
+			if backend != string(cmtdbm.GoLevelDBBackend) {
+				return fmt.Errorf("nonsupport db_backend %s, expected <%s>", backend, cmtdbm.GoLevelDBBackend)
 			}
 			return nil
 		},
@@ -274,9 +272,4 @@ func getBlockInfo(blockStoreDB cmtdbm.DB) (baseHeight, size int64) {
 	baseHeight = blockStore.Base()
 	size = blockStore.Size()
 	return
-}
-
-func openDB(name string, backendType dbm.BackendType, rootDir string) (dbm.DB, error) {
-	dataDir := filepath.Join(rootDir, "data")
-	return dbm.NewDB(name, backendType, dataDir)
 }

@@ -6,9 +6,9 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
-	grpc1 "github.com/gogo/protobuf/grpc"
-	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	grpc1 "github.com/cosmos/gogoproto/grpc"
+	proto "github.com/cosmos/gogoproto/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -29,7 +29,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// QueryBaseParamsRequest is the request type for the Query/BaseParams RPC method.
+// QueryBaseParamsRequest is the request type for the Query/BaseParams RPC
+// method.
 type QueryParamsRequest struct {
 	MsgType string `protobuf:"bytes,1,opt,name=msg_type,json=msgType,proto3" json:"msg_type,omitempty"`
 }

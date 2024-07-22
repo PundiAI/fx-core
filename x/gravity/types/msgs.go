@@ -4,10 +4,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/functionx/fx-core/v7/contract"
 )

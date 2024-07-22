@@ -16,7 +16,7 @@ import (
 
 	types "github.com/cosmos/cosmos-sdk/types"
 	types0 "github.com/cosmos/cosmos-sdk/x/bank/types"
-	types1 "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	types1 "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
 	types2 "github.com/functionx/fx-core/v7/types"
 	types3 "github.com/functionx/fx-core/v7/x/erc20/types"

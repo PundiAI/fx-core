@@ -4,8 +4,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"

@@ -7,7 +7,7 @@
 
 # The minimum gas prices a validator is willing to accept for processing a
 # transaction. A transaction's fees must meet the minimum of any denomination
-# specified in this config (e.g. 0.25token1;0.0001token2).
+# specified in this config (e.g. 0.25token1,0.0001token2).
 minimum-gas-prices = "4000000000000FX"
 
 # default: the last 362880 states are kept, pruning at 10 block intervals
@@ -59,22 +59,20 @@ inter-block-cache = true
 # ["message.sender", "message.recipient"]
 index-events = []
 
-# IavlCacheSize set the size of the iavl tree cache. 
-# Default cache size is 50mb.
+# IavlCacheSize set the size of the iavl tree cache (in number of nodes).
 iavl-cache-size = 781250
 
-# IavlDisableFastNode enables or disables the fast node feature of IAVL. 
+# IAVLDisableFastNode enables or disables the fast node feature of IAVL. 
 # Default is false.
 iavl-disable-fastnode = true
 
-# EXPERIMENTAL: IAVLLazyLoading enable/disable the lazy loading of iavl store.
+# IAVLLazyLoading enable/disable the lazy loading of iavl store.
 # Default is false.
 iavl-lazy-loading = false
 
 # AppDBBackend defines the database backend type to use for the application and snapshots DBs.
 # An empty string indicates that a fallback will be used.
-# First fallback is the deprecated compile-time types.DBBackend value.
-# Second fallback (if the types.DBBackend also isn't set), is the db-backend value set in Tendermint's config.toml.
+# The fallback is the db_backend value set in Tendermint's config.toml.
 app-db-backend = ""
 
 ###############################################################################
@@ -124,7 +122,7 @@ enable = true
 swagger = true
 
 # Address defines the API server to listen on.
-address = "tcp://0.0.0.0:1317"
+address = "tcp://localhost:1317"
 
 # MaxOpenConnections defines the number of maximum open connections.
 max-open-connections = 1000
@@ -135,7 +133,7 @@ rpc-read-timeout = 10
 # RPCWriteTimeout defines the Tendermint RPC write timeout (in seconds).
 rpc-write-timeout = 0
 
-# RPCMaxBodyBytes defines the Tendermint maximum response body (in bytes).
+# RPCMaxBodyBytes defines the Tendermint maximum request body (in bytes).
 rpc-max-body-bytes = 1000000
 
 # EnableUnsafeCORS defines if CORS should be enabled (unsafe - use it at your own risk).
@@ -187,7 +185,7 @@ denom-to-suggest = "FX"
 enable = true
 
 # Address defines the gRPC server address to bind to.
-address = "0.0.0.0:9090"
+address = "localhost:9090"
 
 # MaxRecvMsgSize defines the max message size in bytes the server can receive.
 # The default value is 10MB.
@@ -208,7 +206,7 @@ max-send-msg-size = "2147483647"
 enable = true
 
 # Address defines the gRPC-web server address to bind to.
-address = "0.0.0.0:9091"
+address = "localhost:9091"
 
 # EnableUnsafeCORS defines if CORS should be enabled (unsafe - use it at your own risk).
 enable-unsafe-cors = false
@@ -250,6 +248,19 @@ stop-node-on-error = "true"
 
 # fsync specifies if call fsync after writing the files.
 fsync = "false"
+
+###############################################################################
+###                         Mempool                                         ###
+###############################################################################
+
+[mempool]
+# Setting max-txs to 0 will allow for a unbounded amount of transactions in the mempool.
+# Setting max_txs to negative 1 (-1) will disable transactions from being inserted into the mempool.
+# Setting max_txs to a positive number (> 0) will limit the number of transactions in the mempool, by the specified amount.
+#
+# Note, this configuration only applies to SDK built-in app-side mempool
+# implementations.
+max-txs = 5000
 
 ###############################################################################
 ###                        Custom Fx Configuration                        ###
@@ -334,12 +345,18 @@ max-open-connections = 0
 # EnableIndexer enables the custom transaction indexer for the EVM (ethereum transactions).
 enable-indexer = false
 
+# AllowIndexerGap allow block gap for the custom transaction indexer for the EVM (ethereum transactions).
+allow-indexer-gap = true
+
 # MetricsAddress defines the EVM Metrics server address to bind to. Pass --metrics in CLI to enable
 # Prometheus metrics path: /debug/metrics/prometheus
 metrics-address = "127.0.0.1:6065"
 
 # Upgrade height for fix of revert gas refund logic when transaction reverted.
 fix-revert-gas-refund-height = 0
+
+# Maximum number of bytes returned from eth_call or similar invocations.
+return-data-limit = 100000
 
 ###############################################################################
 ###                             TLS Configuration                           ###

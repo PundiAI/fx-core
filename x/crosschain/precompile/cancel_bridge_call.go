@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
@@ -49,7 +48,7 @@ func (m *CancelPendingBridgeCallMethod) NewCancelPendingBridgeCallEvent(sender c
 	return data, topic, nil
 }
 
-func (m *CancelPendingBridgeCallMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+func (m *CancelPendingBridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	if m.router == nil {
 		return nil, errors.New("cross chain router is empty")
 	}
@@ -65,22 +64,24 @@ func (m *CancelPendingBridgeCallMethod) Run(ctx sdk.Context, evm *vm.EVM, contra
 		return nil, fmt.Errorf("chain not support: %s", args.Chain)
 	}
 
-	conis, err := route.PrecompileCancelPendingBridgeCall(ctx, args.TxID.Uint64(), sender.Bytes())
+	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		if _, err = route.PrecompileCancelPendingBridgeCall(ctx, args.TxID.Uint64(), sender.Bytes()); err != nil {
+			return err
+		}
+
+		data, topic, err := m.NewCancelPendingBridgeCallEvent(sender, args.Chain, args.TxID)
+		if err != nil {
+			return err
+		}
+		EmitEvent(evm, data, topic)
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
-
-	originAmount := conis.AmountOf(fxtypes.DefaultDenom)
-	if originAmount.IsPositive() {
-		// add refund + reward to sender in evm state db, because bank keeper add refund to sender
-		evm.StateDB.AddBalance(sender, originAmount.BigInt())
-	}
-
-	data, topic, err := m.NewCancelPendingBridgeCallEvent(sender, args.Chain, args.TxID)
-	if err != nil {
-		return nil, err
-	}
-	EmitEvent(evm, data, topic)
 
 	return m.PackOutput(true)
 }

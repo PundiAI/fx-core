@@ -8,7 +8,7 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"

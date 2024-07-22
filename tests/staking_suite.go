@@ -22,7 +22,7 @@ import (
 	"github.com/functionx/fx-core/v7/contract"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	precompilesstaking "github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
+	stakingprecompile "github.com/functionx/fx-core/v7/x/staking/precompile"
 )
 
 type StakingSuite struct {
@@ -35,7 +35,7 @@ func NewStakingSuite(ts *TestSuite) StakingSuite {
 	key := helpers.NewEthPrivKey()
 	return StakingSuite{
 		Erc20TestSuite: NewErc20TestSuite(ts),
-		abi:            precompilesstaking.GetABI(),
+		abi:            stakingprecompile.GetABI(),
 		grantKey:       key,
 	}
 }
@@ -104,8 +104,8 @@ func (suite *StakingSuite) SetWithdrawAddressWithResponse(privKey cryptotypes.Pr
 }
 
 func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack("delegate", valAddr)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack("delegate", valAddr)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, delAmount, pack)
 	suite.Require().NoError(err)
@@ -113,8 +113,8 @@ func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr stri
 }
 
 func (suite *StakingSuite) Redelegate(privateKey cryptotypes.PrivKey, valSrc, valDst string, shares *big.Int) *ethtypes.Receipt {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack("redelegate", valSrc, valDst, shares)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack("redelegate", valSrc, valDst, shares)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, big.NewInt(0), pack)
 	suite.Require().NoError(err)
@@ -191,8 +191,8 @@ func (suite *StakingSuite) RedelegateByContract(privateKey cryptotypes.PrivKey, 
 }
 
 func (suite *StakingSuite) UnDelegate(privateKey cryptotypes.PrivKey, valAddr string, shares *big.Int) {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.UndelegateMethodName, valAddr, shares)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.UndelegateMethodName, valAddr, shares)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
 	suite.Require().NoError(err)
@@ -200,8 +200,8 @@ func (suite *StakingSuite) UnDelegate(privateKey cryptotypes.PrivKey, valAddr st
 }
 
 func (suite *StakingSuite) WithdrawReward(privateKey cryptotypes.PrivKey, valAddr string) {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.WithdrawMethodName, valAddr)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.WithdrawMethodName, valAddr)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
 	suite.Require().NoError(err)
@@ -209,13 +209,13 @@ func (suite *StakingSuite) WithdrawReward(privateKey cryptotypes.PrivKey, valAdd
 }
 
 func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*big.Int, *big.Int) {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.DelegationMethodName, valAddr, delAddr)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.DelegationMethodName, valAddr, delAddr)
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
 	var out []interface{}
-	res, err := suite.abi.Unpack(precompilesstaking.DelegationMethodName, output)
+	res, err := suite.abi.Unpack(stakingprecompile.DelegationMethodName, output)
 	suite.Require().NoError(err)
 	out = res
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
@@ -224,13 +224,13 @@ func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*
 }
 
 func (suite *StakingSuite) Rewards(valAddr string, delAddr common.Address) *big.Int {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.DelegationRewardsMethodName, valAddr, delAddr)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.DelegationRewardsMethodName, valAddr, delAddr)
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
 	var out []interface{}
-	res, err := suite.abi.Unpack(precompilesstaking.DelegationRewardsMethodName, output)
+	res, err := suite.abi.Unpack(stakingprecompile.DelegationRewardsMethodName, output)
 	suite.Require().NoError(err)
 	out = res
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
@@ -238,8 +238,8 @@ func (suite *StakingSuite) Rewards(valAddr string, delAddr common.Address) *big.
 }
 
 func (suite *StakingSuite) TransferShares(privateKey cryptotypes.PrivKey, valAddr string, receipt common.Address, shares *big.Int) *ethtypes.Receipt {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.TransferSharesMethodName, valAddr, receipt, shares)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.TransferSharesMethodName, valAddr, receipt, shares)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
 	suite.Require().NoError(err)
@@ -264,8 +264,8 @@ func (suite *StakingSuite) TransferSharesByContract(privateKey cryptotypes.PrivK
 }
 
 func (suite *StakingSuite) TransferFromShares(privateKey cryptotypes.PrivKey, valAddr string, from, receipt common.Address, shares *big.Int) *ethtypes.Receipt {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.TransferFromSharesMethodName, valAddr, from, receipt, shares)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.TransferFromSharesMethodName, valAddr, from, receipt, shares)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
 	suite.Require().NoError(err)
@@ -290,8 +290,8 @@ func (suite *StakingSuite) TransferFromSharesByContract(privateKey cryptotypes.P
 }
 
 func (suite *StakingSuite) ApproveShares(privateKey cryptotypes.PrivKey, valAddr string, spender common.Address, shares *big.Int) *ethtypes.Receipt {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.ApproveSharesMethodName, valAddr, spender, shares)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.ApproveSharesMethodName, valAddr, spender, shares)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
 	suite.Require().NoError(err)
@@ -299,13 +299,13 @@ func (suite *StakingSuite) ApproveShares(privateKey cryptotypes.PrivKey, valAddr
 }
 
 func (suite *StakingSuite) AllowanceShares(valAddr string, owner, spender common.Address) *big.Int {
-	stakingContract := precompilesstaking.GetAddress()
-	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.AllowanceSharesMethodName, valAddr, owner, spender)
+	stakingContract := stakingprecompile.GetAddress()
+	pack, err := stakingprecompile.GetABI().Pack(stakingprecompile.AllowanceSharesMethodName, valAddr, owner, spender)
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
 	var out []interface{}
-	res, err := suite.abi.Unpack(precompilesstaking.AllowanceSharesMethodName, output)
+	res, err := suite.abi.Unpack(stakingprecompile.AllowanceSharesMethodName, output)
 	suite.Require().NoError(err)
 	out = res
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
@@ -314,10 +314,10 @@ func (suite *StakingSuite) AllowanceShares(valAddr string, owner, spender common
 
 func (suite *StakingSuite) LogReward(logs []*ethtypes.Log, valAddr string, addr common.Address) *big.Int {
 	for _, log := range logs {
-		if log.Address == precompilesstaking.GetAddress() &&
-			log.Topics[0] == precompilesstaking.WithdrawEvent.ID &&
+		if log.Address == stakingprecompile.GetAddress() &&
+			log.Topics[0] == stakingprecompile.WithdrawEvent.ID &&
 			log.Topics[1] == addr.Hash() {
-			unpack, err := precompilesstaking.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
+			unpack, err := stakingprecompile.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
 			suite.Require().NoError(err)
 			suite.Require().Equal(unpack[0].(string), valAddr)
 			return unpack[1].(*big.Int)

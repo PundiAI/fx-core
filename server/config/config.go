@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
-	"github.com/spf13/viper"
 
 	"github.com/functionx/fx-core/v7/contract"
 )
@@ -48,20 +47,6 @@ type Config struct {
 	EVM     ethermintconfig.EVMConfig     `mapstructure:"evm"`
 	JSONRPC ethermintconfig.JSONRPCConfig `mapstructure:"json-rpc"`
 	TLS     ethermintconfig.TLSConfig     `mapstructure:"tls"`
-}
-
-func GetConfig(v *viper.Viper) (*Config, error) {
-	cfg, err := ethermintconfig.GetConfig(v)
-	if err != nil {
-		return nil, err
-	}
-	return &Config{
-		Config:       cfg.Config,
-		BypassMinFee: BypassMinFee{},
-		EVM:          cfg.EVM,
-		JSONRPC:      cfg.JSONRPC,
-		TLS:          cfg.TLS,
-	}, nil
 }
 
 // ValidateBasic returns an error any of the application configuration fields are invalid

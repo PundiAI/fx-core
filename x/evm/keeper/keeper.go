@@ -7,15 +7,16 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	fxserverconfig "github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -27,12 +28,12 @@ type Keeper struct {
 
 	// access to account state
 	accountKeeper fxevmtypes.AccountKeeper
+	bankkeeper    types.BankKeeper
 	module        common.Address
 }
 
-func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
-	ctx := sdk.Context{}.WithChainID(fxtypes.ChainIdWithEIP155())
-	ek.WithChainID(ctx)
+func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper, bk types.BankKeeper) *Keeper {
+	ek.WithChainID(sdk.Context{}.WithChainID(fxtypes.ChainIdWithEIP155()))
 	addr := ak.GetModuleAddress(types.ModuleName)
 	if addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
@@ -40,6 +41,7 @@ func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
 	return &Keeper{
 		Keeper:        ek,
 		accountKeeper: ak,
+		bankkeeper:    bk,
 		module:        common.BytesToAddress(addr),
 	}
 }
@@ -70,19 +72,19 @@ func (k *Keeper) CallEVMWithoutGas(
 	if value == nil {
 		value = big.NewInt(0)
 	}
-	msg := ethtypes.NewMessage(
-		from,
-		contract,
-		nonce,
-		value,         // amount
-		gasLimit,      // gasLimit
-		big.NewInt(0), // gasFeeCap
-		big.NewInt(0), // gasTipCap
-		big.NewInt(0), // gasPrice
-		data,
-		ethtypes.AccessList{}, // AccessList
-		!commit,               // isFake
-	)
+	msg := core.Message{
+		From:              from,
+		To:                contract,
+		Nonce:             nonce,
+		Value:             value,
+		GasLimit:          gasLimit,
+		GasPrice:          big.NewInt(0),
+		GasFeeCap:         big.NewInt(0),
+		GasTipCap:         big.NewInt(0),
+		Data:              data,
+		AccessList:        ethtypes.AccessList{},
+		SkipAccountChecks: false,
+	}
 
 	res, err := k.ApplyMessage(ctx, msg, types.NewNoOpTracer(), commit)
 	if err != nil {
@@ -128,19 +130,19 @@ func (k *Keeper) CallEVM(
 	if value == nil {
 		value = big.NewInt(0)
 	}
-	msg := ethtypes.NewMessage(
-		from,
-		contract,
-		nonce,
-		value,         // amount
-		gasLimit,      // gasLimit
-		big.NewInt(0), // gasFeeCap
-		big.NewInt(0), // gasTipCap
-		big.NewInt(0), // gasPrice
-		data,
-		ethtypes.AccessList{}, // AccessList
-		!commit,               // isFake
-	)
+	msg := core.Message{
+		To:                contract,
+		From:              from,
+		Nonce:             nonce,
+		Value:             value,
+		GasLimit:          gasLimit,
+		GasPrice:          big.NewInt(0),
+		GasFeeCap:         big.NewInt(0),
+		GasTipCap:         big.NewInt(0),
+		Data:              data,
+		AccessList:        ethtypes.AccessList{},
+		SkipAccountChecks: false,
+	}
 
 	res, err := k.ApplyMessage(ctx, msg, types.NewNoOpTracer(), commit)
 	if err != nil {
@@ -198,4 +200,9 @@ func (k *Keeper) CallEVM(
 	ctx.WithGasMeter(gasMeter)
 
 	return res, nil
+}
+
+func (k *Keeper) IsContract(ctx sdk.Context, account common.Address) bool {
+	acc := k.GetAccount(ctx, account)
+	return acc != nil && acc.IsContract()
 }

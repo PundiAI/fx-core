@@ -9,14 +9,14 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"

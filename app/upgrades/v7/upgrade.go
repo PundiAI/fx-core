@@ -1,21 +1,25 @@
 package v7
 
 import (
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v7/app/keepers"
 	"github.com/functionx/fx-core/v7/contract"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	fxevmkeeper "github.com/functionx/fx-core/v7/x/evm/keeper"
 )
 
 func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
+		baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+		baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
+
 		cacheCtx, commit := ctx.CacheContext()
 
 		ctx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
@@ -26,7 +30,6 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 
 		UpdateWFXLogicCode(cacheCtx, app.EvmKeeper)
 		UpdateFIP20LogicCode(cacheCtx, app.EvmKeeper)
-		FixEthLastObservedEventNonce(ctx, app.EthKeeper)
 		crosschainBridgeCallFrom := autytypes.NewModuleAddress(crosschaintypes.ModuleName)
 		if account := app.AccountKeeper.GetAccount(ctx, crosschainBridgeCallFrom); account == nil {
 			app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccountWithAddress(ctx, crosschainBridgeCallFrom))
@@ -54,11 +57,4 @@ func UpdateFIP20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
 	} else {
 		ctx.Logger().Info("update FIP20 contract", "module", "upgrade", "codeHash", fip20.CodeHash())
 	}
-}
-
-func FixEthLastObservedEventNonce(ctx sdk.Context, keeper crosschainkeeper.Keeper) {
-	if ctx.ChainID() != fxtypes.TestnetChainId {
-		return
-	}
-	keeper.SetLastObservedEventNonce(ctx, 15636)
 }

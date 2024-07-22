@@ -144,7 +144,7 @@ lint-install:
 lint: lint-install
 	echo "--> Running linter"
 	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
-	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 39 ]; then \
+	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 46 ]; then \
 		echo "--> increase or decrease nolint, please recheck them"; \
 		echo "--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`"; exit 1;\
 	fi
@@ -188,47 +188,43 @@ mocks:
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
-protoVer=0.11.2
+protoVer=0.13.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
-containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
-containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
-containerProtoFork=$(PROJECT_NAME)-proto-fork-$(protoVer)
+protoImage=docker run --rm -v $(CURDIR):/workspace --user root --workdir /workspace $(protoImageName)
 
-proto-all:
-	@$(MAKE) proto-format
-	@$(MAKE) proto-gen
+proto-all: proto-format proto-gen proto-swagger-gen
 
 proto-format:
 	@echo "Formatting Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./contrib/protoc/format.sh; fi
+	@$(protoImage) sh ./contrib/protoc/format.sh
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/sdk-proto-gen:v0.7 \
-		sh ./contrib/protoc/gen.sh; fi
-	@go mod tidy
+	@$(protoImage) sh ./contrib/protoc/gen.sh
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./contrib/protoc/swagger-gen.sh; fi
+	@$(protoImage) sh ./contrib/protoc/swagger-gen.sh
+	$(MAKE) update-swagger-docs
 
 proto-fork:
 	@echo "Forking Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFork}$$"; then docker rm $(containerProtoFork); fi
-	@docker run --rm --name $(containerProtoFork) -e BUF_NAME=${BUF_NAME} -e BUF_TOKEN=${BUF_TOKEN} -e BUF_ORG=${BUF_ORG} -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+	@docker run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+		-e BUF_NAME=${BUF_NAME} -e BUF_TOKEN=${BUF_TOKEN} -e BUF_ORG=${BUF_ORG} \
 		sh ./contrib/protoc/fork.sh
 
-.PHONY: proto-format proto-gen proto-swagger-gen proto-fork
+proto-update-deps:
+	@echo "Updating Protobuf dependencies"
+	@docker run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
+
+.PHONY: proto-format proto-gen proto-swagger-gen proto-fork proto-update-deps
 
 statik: $(STATIK)
 $(STATIK):
 	@echo "Installing statik..."
 	@go install github.com/rakyll/statik@latest
 
-update-swagger-docs: proto-swagger-gen statik
+update-swagger-docs: statik
 	$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
 	@if [ -n "$(git status --porcelain)" ]; then \
         echo "\033[91mSwagger docs are out of sync!!!\033[0m";\

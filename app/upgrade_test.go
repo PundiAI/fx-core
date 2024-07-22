@@ -5,14 +5,15 @@ import (
 	"path/filepath"
 	"testing"
 
+	dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v7/app"
 	v7 "github.com/functionx/fx-core/v7/app/upgrades/v7"
@@ -53,7 +54,7 @@ func Test_TestnetUpgrade(t *testing.T) {
 	makeEncodingConfig := app.MakeEncodingConfig()
 	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
 		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
-		makeEncodingConfig, app.EmptyAppOptions{})
+		makeEncodingConfig, app.EmptyAppOptions{}, baseapp.SetChainID(fxtypes.ChainId()))
 	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v7.Upgrade.StoreUpgrades()))
 	err = myApp.LoadLatestVersion()
 	require.NoError(t, err)

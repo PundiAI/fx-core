@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ sdk.Msg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgUpdateFXParams{}
 	_ sdk.Msg = &MsgUpdateEGFParams{}
 	_ sdk.Msg = &MsgUpdateStore{}
 )
@@ -22,29 +22,29 @@ const (
 	TypeMsgUpdateStore     = "fx_update_store"
 )
 
-func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
-	return &MsgUpdateParams{Authority: authority, Params: params}
+func NewMsgUpdateFXParams(authority string, params Params) *MsgUpdateFXParams {
+	return &MsgUpdateFXParams{Authority: authority, Params: params}
 }
 
 // Route returns the MsgUpdateParams message route.
-func (m *MsgUpdateParams) Route() string { return types.ModuleName }
+func (m *MsgUpdateFXParams) Route() string { return types.ModuleName }
 
 // Type returns the MsgUpdateParams message type.
-func (m *MsgUpdateParams) Type() string { return TypeMsgUpdateParams }
+func (m *MsgUpdateFXParams) Type() string { return TypeMsgUpdateParams }
 
 // GetSignBytes returns the raw bytes for a MsgUpdateParams message that
 // the expected signer needs to sign.
-func (m *MsgUpdateParams) GetSignBytes() []byte {
+func (m *MsgUpdateFXParams) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
-func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+func (m *MsgUpdateFXParams) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
 }
 
-func (m *MsgUpdateParams) ValidateBasic() error {
+func (m *MsgUpdateFXParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return errorsmod.Wrap(err, "authority")
 	}
@@ -86,8 +86,8 @@ func (m *MsgUpdateEGFParams) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateStore(authority string, stores []UpdateStore) *MsgUpdateStore {
-	return &MsgUpdateStore{Authority: authority, Stores: stores}
+func NewMsgUpdateStore(authority string, updateStores []UpdateStore) *MsgUpdateStore {
+	return &MsgUpdateStore{Authority: authority, UpdateStores: updateStores}
 }
 
 func (m *MsgUpdateStore) Route() string { return types.ModuleName }
@@ -107,26 +107,26 @@ func (m *MsgUpdateStore) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return errorsmod.Wrap(err, "authority")
 	}
-	if len(m.Stores) == 0 {
+	if len(m.UpdateStores) == 0 {
 		return sdkerrors.ErrInvalidRequest.Wrap("stores are empty")
 	}
-	for _, s := range m.Stores {
-		if len(s.Space) == 0 {
+	for _, updateStore := range m.UpdateStores {
+		if len(updateStore.Space) == 0 {
 			return sdkerrors.ErrInvalidRequest.Wrap("store space is empty")
 		}
-		if len(s.Key) == 0 {
+		if len(updateStore.Key) == 0 {
 			return sdkerrors.ErrInvalidRequest.Wrap("store key is empty")
 		}
-		if _, err := hex.DecodeString(s.Key); err != nil {
+		if _, err := hex.DecodeString(updateStore.Key); err != nil {
 			return sdkerrors.ErrInvalidRequest.Wrap("invalid store key")
 		}
-		if len(s.OldValue) > 0 {
-			if _, err := hex.DecodeString(s.OldValue); err != nil {
+		if len(updateStore.OldValue) > 0 {
+			if _, err := hex.DecodeString(updateStore.OldValue); err != nil {
 				return sdkerrors.ErrInvalidRequest.Wrap("invalid old store value")
 			}
 		}
-		if len(s.Value) > 0 {
-			if _, err := hex.DecodeString(s.Value); err != nil {
+		if len(updateStore.Value) > 0 {
+			if _, err := hex.DecodeString(updateStore.Value); err != nil {
 				return sdkerrors.ErrInvalidRequest.Wrap("invalid store value")
 			}
 		}
@@ -134,12 +134,12 @@ func (m *MsgUpdateStore) ValidateBasic() error {
 	return nil
 }
 
-func (us UpdateStore) String() string {
+func (us *UpdateStore) String() string {
 	out, _ := json.Marshal(us)
 	return string(out)
 }
 
-func (us UpdateStore) KeyToBytes() []byte {
+func (us *UpdateStore) KeyToBytes() []byte {
 	b, err := hex.DecodeString(us.Key)
 	if err != nil {
 		panic(err)
@@ -147,7 +147,7 @@ func (us UpdateStore) KeyToBytes() []byte {
 	return b
 }
 
-func (us UpdateStore) OldValueToBytes() []byte {
+func (us *UpdateStore) OldValueToBytes() []byte {
 	if len(us.OldValue) == 0 {
 		return []byte{}
 	}
@@ -158,7 +158,7 @@ func (us UpdateStore) OldValueToBytes() []byte {
 	return b
 }
 
-func (us UpdateStore) ValueToBytes() []byte {
+func (us *UpdateStore) ValueToBytes() []byte {
 	if len(us.Value) == 0 {
 		return []byte{}
 	}

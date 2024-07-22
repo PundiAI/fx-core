@@ -1,10 +1,10 @@
 package server
 
 import (
+	tmcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/consensus"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/consensus"
 )
 
 // ReplayCmd allows replaying of messages from the WAL.
@@ -14,7 +14,7 @@ func ReplayCmd() *cobra.Command {
 		Short: "Replay messages from WAL",
 		Run: func(cmd *cobra.Command, args []string) {
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			cfg.EnsureRoot(serverCtx.Config.RootDir)
+			tmcfg.EnsureRoot(serverCtx.Config.RootDir)
 
 			consensus.RunReplayFile(serverCtx.Config.BaseConfig, serverCtx.Config.Consensus, false)
 		},
@@ -30,7 +30,7 @@ func ReplayConsoleCmd() *cobra.Command {
 		Short:   "Replay messages from WAL in a console",
 		Run: func(cmd *cobra.Command, args []string) {
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			cfg.EnsureRoot(serverCtx.Config.RootDir)
+			tmcfg.EnsureRoot(serverCtx.Config.RootDir)
 			consensus.RunReplayFile(serverCtx.Config.BaseConfig, serverCtx.Config.Consensus, true)
 		},
 	}

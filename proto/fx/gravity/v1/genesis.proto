@@ -1,0 +1,66 @@
+syntax = "proto3";
+package fx.gravity.v1;
+
+import "fx/gravity/v1/tx.proto";
+import "fx/gravity/v1/types.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/functionx/fx-core/x/gravity/types";
+
+// Deprecated: after upgrade v3
+message Params {
+  option (gogoproto.stringer) = false;
+
+  string gravity_id = 1;
+  string contract_source_hash = 2;
+  string bridge_eth_address = 4;
+  uint64 bridge_chain_id = 5;
+  uint64 signed_valsets_window = 6;
+  uint64 signed_batches_window = 7;
+  uint64 signed_claims_window = 8;
+  uint64 target_batch_timeout = 10;
+  uint64 average_block_time = 11;
+  uint64 average_eth_block_time = 12;
+  bytes slash_fraction_valset = 13 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  bytes slash_fraction_batch = 14 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  bytes slash_fraction_claim = 15 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  bytes slash_fraction_conflicting_claim = 16 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  uint64 unbond_slashing_valsets_window = 17;
+  uint64 ibc_transfer_timeout_height = 18;
+  bytes valset_update_power_change_percent = 19 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// Deprecated: after upgrade v3
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  uint64 last_observed_nonce = 2;
+  LastObservedEthereumBlockHeight last_observed_block_height = 3 [(gogoproto.nullable) = false];
+  repeated MsgSetOrchestratorAddress delegate_keys = 4 [(gogoproto.nullable) = false];
+  repeated Valset valsets = 5 [(gogoproto.nullable) = false];
+  repeated ERC20ToDenom erc20_to_denoms = 6 [(gogoproto.nullable) = false];
+  repeated OutgoingTransferTx unbatched_transfers = 7 [(gogoproto.nullable) = false];
+  repeated OutgoingTxBatch batches = 8 [(gogoproto.nullable) = false];
+  repeated MsgConfirmBatch batch_confirms = 9 [(gogoproto.nullable) = false];
+  repeated MsgValsetConfirm valset_confirms = 10 [(gogoproto.nullable) = false];
+  repeated Attestation attestations = 11 [(gogoproto.nullable) = false];
+  Valset last_observed_valset = 12 [(gogoproto.nullable) = false];
+  uint64 last_slashed_batch_block = 13;
+  uint64 last_slashed_valset_nonce = 14;
+  uint64 last_tx_pool_id = 15;
+  uint64 last_batch_id = 16;
+}

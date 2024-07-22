@@ -39,7 +39,7 @@ func (m *BridgeCallMethod) RequiredGas() uint64 {
 	return 50_000
 }
 
-func (m *BridgeCallMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	if m.router == nil {
 		return nil, errors.New("bridge call router is empty")
 	}
@@ -53,58 +53,68 @@ func (m *BridgeCallMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contra
 	if !has {
 		return nil, errors.New("invalid dstChain")
 	}
-	sender := contract.Caller()
-
-	coins := make([]sdk.Coin, 0, len(args.Tokens)+1)
-	value := contract.Value()
-	if value.Cmp(big.NewInt(0)) == 1 {
-		totalCoin, err := m.handlerOriginToken(ctx, evm, sender, value)
-		if err != nil {
-			return nil, err
+	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+	var result []byte
+	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		sender := contract.Caller()
+		coins := make([]sdk.Coin, 0, len(args.Tokens)+1)
+		value := contract.Value()
+		if value.Cmp(big.NewInt(0)) == 1 {
+			totalCoin, err := m.handlerOriginToken(ctx, evm, sender, value)
+			if err != nil {
+				return err
+			}
+			coins = append(coins, totalCoin)
 		}
-		coins = append(coins, totalCoin)
-	}
-	for i, token := range args.Tokens {
-		coin, err := m.handlerERC20Token(ctx, evm, sender, token, args.Amounts[i])
-		if err != nil {
-			return nil, err
+		for i, token := range args.Tokens {
+			coin, err := m.handlerERC20Token(ctx, evm, sender, token, args.Amounts[i])
+			if err != nil {
+				return err
+			}
+			coins = append(coins, coin)
 		}
-		coins = append(coins, coin)
-	}
 
-	nonce, err := route.PrecompileBridgeCall(
-		ctx,
-		sender,
-		args.Refund,
-		coins,
-		args.To,
-		args.Data,
-		args.Memo,
-	)
+		nonce, err := route.PrecompileBridgeCall(
+			ctx,
+			sender,
+			args.Refund,
+			coins,
+			args.To,
+			args.Data,
+			args.Memo,
+		)
+		if err != nil {
+			return err
+		}
+
+		nonceNonce := new(big.Int).SetUint64(nonce)
+		data, topic, err := m.NewBridgeCallEvent(
+			sender,
+			args.Refund,
+			args.To,
+			evm.Origin,
+			args.Value,
+			nonceNonce,
+			args.DstChain,
+			args.Tokens,
+			args.Amounts,
+			args.Data,
+			args.Memo,
+		)
+		if err != nil {
+			return err
+		}
+		EmitEvent(evm, data, topic)
+
+		result, err = m.PackOutput(nonceNonce)
+		return err
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	nonceNonce := new(big.Int).SetUint64(nonce)
-	data, topic, err := m.NewBridgeCallEvent(
-		sender,
-		args.Refund,
-		args.To,
-		evm.Origin,
-		args.Value,
-		nonceNonce,
-		args.DstChain,
-		args.Tokens,
-		args.Amounts,
-		args.Data,
-		args.Memo,
-	)
-	if err != nil {
-		return nil, err
-	}
-	EmitEvent(evm, data, topic)
-
-	return m.PackOutput(nonceNonce)
+	return result, err
 }
 
 func (m *BridgeCallMethod) NewBridgeCallEvent(sender, refund, to, origin common.Address, value, eventNonce *big.Int, dstChain string, tokens []common.Address, amounts []*big.Int, txData, memo []byte) (data []byte, topic []common.Hash, err error) {

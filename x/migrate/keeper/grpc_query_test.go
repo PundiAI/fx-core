@@ -13,7 +13,6 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 	"github.com/functionx/fx-core/v7/x/migrate/types"
 )
 
@@ -348,7 +347,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent},
-					fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+					"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 				suite.Require().NoError(err)
 
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, from, amount)
@@ -380,7 +379,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent},
-					fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+					"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 				suite.Require().NoError(err)
 
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)
@@ -412,7 +411,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent},
-					fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+					"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 				suite.Require().NoError(err)
 
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, from, amount)
@@ -444,7 +443,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent},
-					fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+					"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 				suite.Require().NoError(err)
 
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)
@@ -476,7 +475,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent},
-					fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+					"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 				suite.Require().NoError(err)
 
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, from, amount)
@@ -511,7 +510,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent},
-					fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+					"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 				suite.Require().NoError(err)
 
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)
@@ -546,7 +545,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent},
-					fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+					"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 				suite.Require().NoError(err)
 
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)

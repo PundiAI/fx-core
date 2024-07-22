@@ -9,13 +9,14 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/gogo/protobuf/proto"
-	"github.com/stretchr/testify/require"
+	"github.com/cosmos/gogoproto/proto"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/functionx/fx-core/v7/app"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -39,7 +40,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "upgrade-SoftwareUpgradeProposal",
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"cosmos-sdk/SoftwareUpgradeProposal","value":{"description":"foo","plan":{"height":"123","info":"foo","name":"foo","time":"0001-01-01T00:00:00Z"},"title":"v2"}},"initial_deposit":[]}}`,
-			amino:    govv1betal.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1betal.MsgSubmitProposal{
 				Content: NewAnyWithValue(&upgradetypes.SoftwareUpgradeProposal{ // nolint:staticcheck
 					Title:       "v2",
@@ -58,7 +59,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "upgrade-MsgSoftwareUpgrade",
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"cosmos-sdk/MsgSoftwareUpgrade","value":{"authority":"foo","plan":{"height":"123","info":"foo","name":"foo","time":"0001-01-01T00:00:00Z"}}},"initial_deposit":[]}}`,
-			amino:    govv1betal.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1betal.MsgSubmitProposal{
 				Content: NewAnyWithValue(&upgradetypes.MsgSoftwareUpgrade{
 					Authority: "foo",
@@ -93,7 +94,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "erc20-RegisterCoinProposal",
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"erc20/RegisterCoinProposal","value":{"description":"foo","metadata":{"base":"test","denom_units":[{"aliases":["ethtest"],"denom":"test"},{"denom":"TEST","exponent":18}],"description":"test","display":"test","name":"test name","symbol":"TEST"},"title":"v2"}},"initial_deposit":[]}}`,
-			amino:    govv1betal.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1betal.MsgSubmitProposal{
 				Content: NewAnyWithValue(&erc20types.RegisterCoinProposal{ // nolint:staticcheck
 					Title:       "v2",
@@ -161,7 +162,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "gov-TextProposal",
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"cosmos-sdk/TextProposal","value":{"description":"foo desc","title":"foo title"}},"initial_deposit":[]}}`,
-			amino:    govv1betal.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1betal.MsgSubmitProposal{
 				Content: NewAnyWithValue(&govv1betal.TextProposal{
 					Title:       "foo title",
@@ -174,7 +175,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "gov-v1-MsgSubmitProposal-crosschain-MsgUpdateParams",
 			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"crosschain/MsgUpdateParams","value":{"authority":"1","chain_name":"1","params":{"average_block_time":"1","average_external_block_time":"1","delegate_multiple":"1","delegate_threshold":{"amount":"1","denom":"FX"},"external_batch_timeout":"1","gravity_id":"1","ibc_transfer_timeout_height":"1","oracle_set_update_power_change_percent":"1.000000000000000000","signed_window":"1","slash_fraction":"1.000000000000000000"}}}]}}`,
-			amino:    govv1.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
 					NewAnyWithValue(&crosschaintypes.MsgUpdateParams{
@@ -203,7 +204,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "gov-v1-MsgSubmitProposal-erc20-MsgUpdateParams",
 			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"erc20/MsgUpdateParams","value":{"authority":"1","params":{"enable_erc20":true,"enable_evm_hook":true,"ibc_timeout":"1"}}}]}}`,
-			amino:    govv1.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
 					NewAnyWithValue(&erc20types.MsgUpdateParams{
@@ -221,12 +222,12 @@ func TestAminoEncode(t *testing.T) {
 			},
 		},
 		{
-			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateParams",
-			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateParams","value":{"authority":"1","params":{"max_deposit_period":"172800000000000","min_deposit":[{"amount":"10000000","denom":"stake"}],"min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"},"msg_type":"/fx.evm.v1.MsgCallContract","quorum":"0.334000000000000000","threshold":"0.500000000000000000","veto_threshold":"0.334000000000000000","voting_period":"172800000000000"}}}]}}`,
-			amino:    govv1.ModuleCdc.LegacyAmino,
+			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateFXParams",
+			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateFXParams","value":{"authority":"1","params":{"burn_vote_veto":true,"max_deposit_period":"172800000000000","min_deposit":[{"amount":"10000000","denom":"stake"}],"min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"},"min_initial_deposit_ratio":"0.000000000000000000","msg_type":"/fx.evm.v1.MsgCallContract","quorum":"0.334000000000000000","threshold":"0.500000000000000000","veto_threshold":"0.334000000000000000","voting_period":"172800000000000"}}}]}}`,
+			amino:    govcodec.Amino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
-					NewAnyWithValue(&fxgovtypes.MsgUpdateParams{
+					NewAnyWithValue(&fxgovtypes.MsgUpdateFXParams{
 						Authority: "1",
 						Params:    *fxgovtypes.DefaultParams(),
 					}),
@@ -239,7 +240,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateEGFParams",
 			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateEGFParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"}}}}]}}`,
-			amino:    govv1.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
 					NewAnyWithValue(&fxgovtypes.MsgUpdateEGFParams{
@@ -255,7 +256,7 @@ func TestAminoEncode(t *testing.T) {
 		{
 			name:     "gov-v1-MsgVote",
 			expected: `{"type":"cosmos-sdk/v1/MsgVote","value":{"metadata":"foo","option":1,"proposal_id":"1","voter":"foo"}}`,
-			amino:    govv1.ModuleCdc.LegacyAmino,
+			amino:    govcodec.Amino,
 			msg: govv1.MsgVote{
 				ProposalId: 1,
 				Voter:      "foo",
@@ -268,8 +269,8 @@ func TestAminoEncode(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			aminoJson, err := testcase.amino.MarshalJSON(testcase.msg)
-			require.NoError(t, err)
-			require.Equal(t, testcase.expected, string(sdk.MustSortJSON(aminoJson)))
+			assert.NoError(t, err)
+			assert.Equal(t, testcase.expected, string(sdk.MustSortJSON(aminoJson)))
 		})
 	}
 }

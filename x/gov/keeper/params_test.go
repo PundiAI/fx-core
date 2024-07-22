@@ -163,7 +163,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			if !tc.expErr {
 				suite.Require().NoError(err, "expected no error, got %v", err)
 
-				_, err := suite.MsgServer.UpdateParams(suite.ctx, types.NewMsgUpdateParams(suite.govAcct, tc.params))
+				_, err := suite.MsgServer.UpdateFXParams(suite.ctx, types.NewMsgUpdateFXParams(suite.govAcct, tc.params))
 				suite.Require().NoError(err, "expected no error, got %v", err)
 
 				response, err := suite.queryClient.Params(suite.ctx, &types.QueryParamsRequest{MsgType: tc.params.MsgType})

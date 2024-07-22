@@ -31,7 +31,7 @@ var (
 
 // IStakingMetaData contains all meta data concerning the IStaking contract.
 var IStakingMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"ApproveShares\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"delegator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"Delegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"valSrc\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"valDst\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"Redelegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"token\",\"type\":\"uint256\"}],\"name\":\"TransferShares\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"Undelegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"reward\",\"type\":\"uint256\"}],\"name\":\"Withdraw\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"}],\"name\":\"allowanceShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"approveShares\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"_result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"delegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegation\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delegateAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegationRewards\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_valSrc\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_valDst\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"redelegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_completionTime\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transferFromShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transferShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"undelegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_completionTime\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"withdraw\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"ApproveShares\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"delegator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"Delegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"delegator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DelegateV2\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"valSrc\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"valDst\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"Redelegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"valSrc\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"valDst\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"RedelegateV2\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"token\",\"type\":\"uint256\"}],\"name\":\"TransferShares\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"Undelegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"UndelegateV2\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"reward\",\"type\":\"uint256\"}],\"name\":\"Withdraw\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"}],\"name\":\"allowanceShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"approveShares\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"_result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"delegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"delegateV2\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"_result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegation\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delegateAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegationRewards\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_valSrc\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_valDst\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"redelegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_completionTime\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_valSrc\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_valDst\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"redelegateV2\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"_result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transferFromShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transferShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"undelegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_completionTime\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"undelegateV2\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"_result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"withdraw\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IStakingABI is the input ABI used to generate the binding from.
@@ -329,6 +329,27 @@ func (_IStaking *IStakingTransactorSession) Delegate(_val string) (*types.Transa
 	return _IStaking.Contract.Delegate(&_IStaking.TransactOpts, _val)
 }
 
+// DelegateV2 is a paid mutator transaction binding the contract method 0x6d788035.
+//
+// Solidity: function delegateV2(string _val, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingTransactor) DelegateV2(opts *bind.TransactOpts, _val string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.contract.Transact(opts, "delegateV2", _val, _amount)
+}
+
+// DelegateV2 is a paid mutator transaction binding the contract method 0x6d788035.
+//
+// Solidity: function delegateV2(string _val, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingSession) DelegateV2(_val string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.Contract.DelegateV2(&_IStaking.TransactOpts, _val, _amount)
+}
+
+// DelegateV2 is a paid mutator transaction binding the contract method 0x6d788035.
+//
+// Solidity: function delegateV2(string _val, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingTransactorSession) DelegateV2(_val string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.Contract.DelegateV2(&_IStaking.TransactOpts, _val, _amount)
+}
+
 // Redelegate is a paid mutator transaction binding the contract method 0x7dd0209d.
 //
 // Solidity: function redelegate(string _valSrc, string _valDst, uint256 _shares) returns(uint256 _amount, uint256 _reward, uint256 _completionTime)
@@ -348,6 +369,27 @@ func (_IStaking *IStakingSession) Redelegate(_valSrc string, _valDst string, _sh
 // Solidity: function redelegate(string _valSrc, string _valDst, uint256 _shares) returns(uint256 _amount, uint256 _reward, uint256 _completionTime)
 func (_IStaking *IStakingTransactorSession) Redelegate(_valSrc string, _valDst string, _shares *big.Int) (*types.Transaction, error) {
 	return _IStaking.Contract.Redelegate(&_IStaking.TransactOpts, _valSrc, _valDst, _shares)
+}
+
+// RedelegateV2 is a paid mutator transaction binding the contract method 0xee226c66.
+//
+// Solidity: function redelegateV2(string _valSrc, string _valDst, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingTransactor) RedelegateV2(opts *bind.TransactOpts, _valSrc string, _valDst string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.contract.Transact(opts, "redelegateV2", _valSrc, _valDst, _amount)
+}
+
+// RedelegateV2 is a paid mutator transaction binding the contract method 0xee226c66.
+//
+// Solidity: function redelegateV2(string _valSrc, string _valDst, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingSession) RedelegateV2(_valSrc string, _valDst string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.Contract.RedelegateV2(&_IStaking.TransactOpts, _valSrc, _valDst, _amount)
+}
+
+// RedelegateV2 is a paid mutator transaction binding the contract method 0xee226c66.
+//
+// Solidity: function redelegateV2(string _valSrc, string _valDst, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingTransactorSession) RedelegateV2(_valSrc string, _valDst string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.Contract.RedelegateV2(&_IStaking.TransactOpts, _valSrc, _valDst, _amount)
 }
 
 // TransferFromShares is a paid mutator transaction binding the contract method 0xdc6ffc7d.
@@ -411,6 +453,27 @@ func (_IStaking *IStakingSession) Undelegate(_val string, _shares *big.Int) (*ty
 // Solidity: function undelegate(string _val, uint256 _shares) returns(uint256 _amount, uint256 _reward, uint256 _completionTime)
 func (_IStaking *IStakingTransactorSession) Undelegate(_val string, _shares *big.Int) (*types.Transaction, error) {
 	return _IStaking.Contract.Undelegate(&_IStaking.TransactOpts, _val, _shares)
+}
+
+// UndelegateV2 is a paid mutator transaction binding the contract method 0xde2b3451.
+//
+// Solidity: function undelegateV2(string _val, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingTransactor) UndelegateV2(opts *bind.TransactOpts, _val string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.contract.Transact(opts, "undelegateV2", _val, _amount)
+}
+
+// UndelegateV2 is a paid mutator transaction binding the contract method 0xde2b3451.
+//
+// Solidity: function undelegateV2(string _val, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingSession) UndelegateV2(_val string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.Contract.UndelegateV2(&_IStaking.TransactOpts, _val, _amount)
+}
+
+// UndelegateV2 is a paid mutator transaction binding the contract method 0xde2b3451.
+//
+// Solidity: function undelegateV2(string _val, uint256 _amount) returns(bool _result)
+func (_IStaking *IStakingTransactorSession) UndelegateV2(_val string, _amount *big.Int) (*types.Transaction, error) {
+	return _IStaking.Contract.UndelegateV2(&_IStaking.TransactOpts, _val, _amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x31fb67c2.
@@ -736,6 +799,152 @@ func (_IStaking *IStakingFilterer) ParseDelegate(log types.Log) (*IStakingDelega
 	return event, nil
 }
 
+// IStakingDelegateV2Iterator is returned from FilterDelegateV2 and is used to iterate over the raw logs and unpacked data for DelegateV2 events raised by the IStaking contract.
+type IStakingDelegateV2Iterator struct {
+	Event *IStakingDelegateV2 // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IStakingDelegateV2Iterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IStakingDelegateV2)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IStakingDelegateV2)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IStakingDelegateV2Iterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IStakingDelegateV2Iterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IStakingDelegateV2 represents a DelegateV2 event raised by the IStaking contract.
+type IStakingDelegateV2 struct {
+	Delegator common.Address
+	Validator string
+	Amount    *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterDelegateV2 is a free log retrieval operation binding the contract event 0x330852c9460e583c049d932477c038fca307363fa8c1083a332905a68b821f10.
+//
+// Solidity: event DelegateV2(address indexed delegator, string validator, uint256 amount)
+func (_IStaking *IStakingFilterer) FilterDelegateV2(opts *bind.FilterOpts, delegator []common.Address) (*IStakingDelegateV2Iterator, error) {
+
+	var delegatorRule []interface{}
+	for _, delegatorItem := range delegator {
+		delegatorRule = append(delegatorRule, delegatorItem)
+	}
+
+	logs, sub, err := _IStaking.contract.FilterLogs(opts, "DelegateV2", delegatorRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IStakingDelegateV2Iterator{contract: _IStaking.contract, event: "DelegateV2", logs: logs, sub: sub}, nil
+}
+
+// WatchDelegateV2 is a free log subscription operation binding the contract event 0x330852c9460e583c049d932477c038fca307363fa8c1083a332905a68b821f10.
+//
+// Solidity: event DelegateV2(address indexed delegator, string validator, uint256 amount)
+func (_IStaking *IStakingFilterer) WatchDelegateV2(opts *bind.WatchOpts, sink chan<- *IStakingDelegateV2, delegator []common.Address) (event.Subscription, error) {
+
+	var delegatorRule []interface{}
+	for _, delegatorItem := range delegator {
+		delegatorRule = append(delegatorRule, delegatorItem)
+	}
+
+	logs, sub, err := _IStaking.contract.WatchLogs(opts, "DelegateV2", delegatorRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IStakingDelegateV2)
+				if err := _IStaking.contract.UnpackLog(event, "DelegateV2", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDelegateV2 is a log parse operation binding the contract event 0x330852c9460e583c049d932477c038fca307363fa8c1083a332905a68b821f10.
+//
+// Solidity: event DelegateV2(address indexed delegator, string validator, uint256 amount)
+func (_IStaking *IStakingFilterer) ParseDelegateV2(log types.Log) (*IStakingDelegateV2, error) {
+	event := new(IStakingDelegateV2)
+	if err := _IStaking.contract.UnpackLog(event, "DelegateV2", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // IStakingRedelegateIterator is returned from FilterRedelegate and is used to iterate over the raw logs and unpacked data for Redelegate events raised by the IStaking contract.
 type IStakingRedelegateIterator struct {
 	Event *IStakingRedelegate // Event containing the contract specifics and raw log
@@ -879,6 +1088,154 @@ func (_IStaking *IStakingFilterer) WatchRedelegate(opts *bind.WatchOpts, sink ch
 func (_IStaking *IStakingFilterer) ParseRedelegate(log types.Log) (*IStakingRedelegate, error) {
 	event := new(IStakingRedelegate)
 	if err := _IStaking.contract.UnpackLog(event, "Redelegate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IStakingRedelegateV2Iterator is returned from FilterRedelegateV2 and is used to iterate over the raw logs and unpacked data for RedelegateV2 events raised by the IStaking contract.
+type IStakingRedelegateV2Iterator struct {
+	Event *IStakingRedelegateV2 // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IStakingRedelegateV2Iterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IStakingRedelegateV2)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IStakingRedelegateV2)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IStakingRedelegateV2Iterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IStakingRedelegateV2Iterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IStakingRedelegateV2 represents a RedelegateV2 event raised by the IStaking contract.
+type IStakingRedelegateV2 struct {
+	Sender         common.Address
+	ValSrc         string
+	ValDst         string
+	Amount         *big.Int
+	CompletionTime *big.Int
+	Raw            types.Log // Blockchain specific contextual infos
+}
+
+// FilterRedelegateV2 is a free log retrieval operation binding the contract event 0xdcf3a72a725100ce405b1ea62706114bec51d16536bf2cf868772ca440fe0da9.
+//
+// Solidity: event RedelegateV2(address indexed sender, string valSrc, string valDst, uint256 amount, uint256 completionTime)
+func (_IStaking *IStakingFilterer) FilterRedelegateV2(opts *bind.FilterOpts, sender []common.Address) (*IStakingRedelegateV2Iterator, error) {
+
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
+	}
+
+	logs, sub, err := _IStaking.contract.FilterLogs(opts, "RedelegateV2", senderRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IStakingRedelegateV2Iterator{contract: _IStaking.contract, event: "RedelegateV2", logs: logs, sub: sub}, nil
+}
+
+// WatchRedelegateV2 is a free log subscription operation binding the contract event 0xdcf3a72a725100ce405b1ea62706114bec51d16536bf2cf868772ca440fe0da9.
+//
+// Solidity: event RedelegateV2(address indexed sender, string valSrc, string valDst, uint256 amount, uint256 completionTime)
+func (_IStaking *IStakingFilterer) WatchRedelegateV2(opts *bind.WatchOpts, sink chan<- *IStakingRedelegateV2, sender []common.Address) (event.Subscription, error) {
+
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
+	}
+
+	logs, sub, err := _IStaking.contract.WatchLogs(opts, "RedelegateV2", senderRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IStakingRedelegateV2)
+				if err := _IStaking.contract.UnpackLog(event, "RedelegateV2", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseRedelegateV2 is a log parse operation binding the contract event 0xdcf3a72a725100ce405b1ea62706114bec51d16536bf2cf868772ca440fe0da9.
+//
+// Solidity: event RedelegateV2(address indexed sender, string valSrc, string valDst, uint256 amount, uint256 completionTime)
+func (_IStaking *IStakingFilterer) ParseRedelegateV2(log types.Log) (*IStakingRedelegateV2, error) {
+	event := new(IStakingRedelegateV2)
+	if err := _IStaking.contract.UnpackLog(event, "RedelegateV2", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -1183,6 +1540,153 @@ func (_IStaking *IStakingFilterer) WatchUndelegate(opts *bind.WatchOpts, sink ch
 func (_IStaking *IStakingFilterer) ParseUndelegate(log types.Log) (*IStakingUndelegate, error) {
 	event := new(IStakingUndelegate)
 	if err := _IStaking.contract.UnpackLog(event, "Undelegate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IStakingUndelegateV2Iterator is returned from FilterUndelegateV2 and is used to iterate over the raw logs and unpacked data for UndelegateV2 events raised by the IStaking contract.
+type IStakingUndelegateV2Iterator struct {
+	Event *IStakingUndelegateV2 // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IStakingUndelegateV2Iterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IStakingUndelegateV2)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IStakingUndelegateV2)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IStakingUndelegateV2Iterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IStakingUndelegateV2Iterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IStakingUndelegateV2 represents a UndelegateV2 event raised by the IStaking contract.
+type IStakingUndelegateV2 struct {
+	Sender         common.Address
+	Validator      string
+	Amount         *big.Int
+	CompletionTime *big.Int
+	Raw            types.Log // Blockchain specific contextual infos
+}
+
+// FilterUndelegateV2 is a free log retrieval operation binding the contract event 0x4d3e71c3e3ff90f64b7095a17eb6b6cdd1ca0f0563102ef30415f73cb64b866f.
+//
+// Solidity: event UndelegateV2(address indexed sender, string validator, uint256 amount, uint256 completionTime)
+func (_IStaking *IStakingFilterer) FilterUndelegateV2(opts *bind.FilterOpts, sender []common.Address) (*IStakingUndelegateV2Iterator, error) {
+
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
+	}
+
+	logs, sub, err := _IStaking.contract.FilterLogs(opts, "UndelegateV2", senderRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IStakingUndelegateV2Iterator{contract: _IStaking.contract, event: "UndelegateV2", logs: logs, sub: sub}, nil
+}
+
+// WatchUndelegateV2 is a free log subscription operation binding the contract event 0x4d3e71c3e3ff90f64b7095a17eb6b6cdd1ca0f0563102ef30415f73cb64b866f.
+//
+// Solidity: event UndelegateV2(address indexed sender, string validator, uint256 amount, uint256 completionTime)
+func (_IStaking *IStakingFilterer) WatchUndelegateV2(opts *bind.WatchOpts, sink chan<- *IStakingUndelegateV2, sender []common.Address) (event.Subscription, error) {
+
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
+	}
+
+	logs, sub, err := _IStaking.contract.WatchLogs(opts, "UndelegateV2", senderRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IStakingUndelegateV2)
+				if err := _IStaking.contract.UnpackLog(event, "UndelegateV2", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseUndelegateV2 is a log parse operation binding the contract event 0x4d3e71c3e3ff90f64b7095a17eb6b6cdd1ca0f0563102ef30415f73cb64b866f.
+//
+// Solidity: event UndelegateV2(address indexed sender, string validator, uint256 amount, uint256 completionTime)
+func (_IStaking *IStakingFilterer) ParseUndelegateV2(log types.Log) (*IStakingUndelegateV2, error) {
+	event := new(IStakingUndelegateV2)
+	if err := _IStaking.contract.UnpackLog(event, "UndelegateV2", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

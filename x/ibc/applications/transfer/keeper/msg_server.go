@@ -6,7 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 )

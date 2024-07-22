@@ -12,10 +12,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
@@ -36,11 +37,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v6/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
+	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -100,7 +102,7 @@ var maccPerms = map[string][]string{
 // and genesis verification.
 var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
-	genutil.AppModuleBasic{},
+	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
 	bank.AppModuleBasic{},
 	capability.AppModuleBasic{},
 	fxstaking.AppModuleBasic{},
@@ -108,7 +110,6 @@ var ModuleBasics = module.NewBasicManager(
 	distr.AppModuleBasic{},
 	fxgov.NewAppModuleBasic([]govclient.ProposalHandler{
 		paramsclient.ProposalHandler,
-		distrclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
@@ -125,6 +126,7 @@ var ModuleBasics = module.NewBasicManager(
 	feegrantmodule.AppModuleBasic{},
 	authzmodule.AppModuleBasic{},
 	ibc.AppModuleBasic{},
+	ibctm.AppModuleBasic{},
 	upgrade.AppModuleBasic{},
 	evidence.AppModuleBasic{},
 	ibctransfer.AppModuleBasic{},
@@ -142,6 +144,7 @@ var ModuleBasics = module.NewBasicManager(
 	feemarket.AppModuleBasic{},
 	erc20.AppModuleBasic{},
 	migrate.AppModuleBasic{},
+	consensus.AppModuleBasic{},
 )
 
 func appModules(
@@ -154,16 +157,16 @@ func appModules(
 		genutil.NewAppModule(
 			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig,
 		),
-		auth.NewAppModule(appCodec, app.AccountKeeper, nil),
+		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
-		fxgov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper.Keeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		fxstaking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
+		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
+		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)),
+		fxgov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper.Keeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName)),
+		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
+		fxstaking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
@@ -171,20 +174,21 @@ func appModules(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 
-		bsc.NewAppModule(app.BscKeeper, app.GetSubspace(bsctypes.ModuleName)),
-		polygon.NewAppModule(app.PolygonKeeper, app.GetSubspace(polygontypes.ModuleName)),
-		avalanche.NewAppModule(app.AvalancheKeeper, app.GetSubspace(avalanchetypes.ModuleName)),
-		eth.NewAppModule(app.EthKeeper, app.GetSubspace(ethtypes.ModuleName)),
-		tron.NewAppModule(app.TronKeeper, app.GetSubspace(trontypes.ModuleName)),
+		bsc.NewAppModule(app.BscKeeper),
+		polygon.NewAppModule(app.PolygonKeeper),
+		avalanche.NewAppModule(app.AvalancheKeeper),
+		eth.NewAppModule(app.EthKeeper),
+		tron.NewAppModule(app.TronKeeper),
 		arbitrum.NewAppModule(app.ArbitrumKeeper),
 		optimism.NewAppModule(app.OptimismKeeper),
 		layer2.NewAppModule(app.Layer2Keeper),
-		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.LegacyAmino(), app.GetKey(paramstypes.StoreKey), app.GetSubspace(evmtypes.ModuleName)),
+		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
-		erc20.NewAppModule(app.Erc20Keeper, app.GetSubspace(erc20types.ModuleName)),
+		erc20.NewAppModule(app.Erc20Keeper),
 		migrate.NewAppModule(app.MigrateKeeper),
 		fxibctransfer.NewAppModule(app.FxTransferKeeper),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),
+		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	}
 }
 
@@ -226,7 +230,9 @@ func orderBeginBlockers() []string {
 
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
+
+		consensustypes.ModuleName,
 	}
 }
 
@@ -265,7 +271,9 @@ func orderEndBlockers() []string {
 
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
+
+		consensustypes.ModuleName,
 	}
 }
 
@@ -304,6 +312,33 @@ func orderInitBlockers() []string {
 
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
+
+		consensustypes.ModuleName,
 	}
+}
+
+func GetMaccPerms() map[string][]string {
+	dupMaccPerms := make(map[string][]string)
+	for k, v := range maccPerms {
+		dupMaccPerms[k] = v
+	}
+	return dupMaccPerms
+}
+
+// ModuleAccountAddrs returns all the app's module account addresses.
+func ModuleAccountAddrs() map[string]bool {
+	modAccAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
+	}
+	return modAccAddrs
+}
+
+// BlockedAccountAddrs returns all the app's blocked module account addresses.
+func BlockedAccountAddrs() map[string]bool {
+	modAccAddrs := ModuleAccountAddrs()
+	// allow the following addresses to receive funds
+	delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	return modAccAddrs
 }

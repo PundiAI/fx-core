@@ -10,8 +10,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v7/contract"

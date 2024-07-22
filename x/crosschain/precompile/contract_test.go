@@ -10,32 +10,33 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	localhosttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/09-localhost/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/contract"
@@ -46,6 +47,7 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	crossethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -108,6 +110,17 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, to comm
 		return nil, err
 	}
 
+	if len(res.VmError) > 0 {
+		if len(res.Ret) > 4 {
+			retError, err := fxevmtypes.UnpackRetError(res.Ret[4:])
+			if err != nil {
+				return nil, err
+			}
+			return nil, fmt.Errorf("%s: %s", res.VmError, retError)
+		}
+		return nil, fmt.Errorf(res.VmError)
+	}
+
 	ethTx := evmtypes.NewTx(
 		fxtypes.EIP155ChainID(),
 		suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
@@ -115,12 +128,12 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, to comm
 		amount,
 		res.Gas,
 		nil,
-		suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
-		big.NewInt(1),
+		nil,
+		nil,
 		data,
 		nil,
 	)
-	ethTx.From = signer.Address().Hex()
+	ethTx.From = signer.Address().Bytes()
 	err = ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
 	return ethTx, err
 }
@@ -328,12 +341,14 @@ func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID strin
 	clientID := clienttypes.FormatClientIdentifier(exported.Localhost, uint64(tmrand.Intn(100)))
 
 	revision := clienttypes.ParseChainID(suite.ctx.ChainID())
-	localHostClient := localhosttypes.NewClientState(
-		suite.ctx.ChainID(), clienttypes.NewHeight(revision, uint64(suite.ctx.BlockHeight())),
-	)
+	localHostClient := localhost.NewClientState(clienttypes.NewHeight(revision, uint64(suite.ctx.BlockHeight())))
 	suite.app.IBCKeeper.ClientKeeper.SetClientState(suite.ctx, clientID, localHostClient)
 
-	prevConsState := &ibctmtypes.ConsensusState{
+	params := suite.app.IBCKeeper.ClientKeeper.GetParams(suite.ctx)
+	params.AllowedClients = append(params.AllowedClients, localHostClient.ClientType())
+	suite.app.IBCKeeper.ClientKeeper.SetParams(suite.ctx, params)
+
+	prevConsState := &ibctm.ConsensusState{
 		Timestamp:          suite.ctx.BlockTime(),
 		NextValidatorsHash: suite.ctx.BlockHeader().NextValidatorsHash,
 	}
@@ -408,19 +423,19 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 	// Mint the max gas to the FeeCollector to ensure balance in case of refund
 	// suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
 
-	msg := ethtypes.NewMessage(
-		signer.Address(),
-		&contractAddr,
-		suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
-		big.NewInt(0),
-		res.Gas,
-		suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
-		nil,
-		nil,
-		data,
-		nil,
-		true,
-	)
+	msg := core.Message{
+		To:                &contractAddr,
+		From:              signer.Address(),
+		Nonce:             suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
+		Value:             big.NewInt(0),
+		GasLimit:          res.Gas,
+		GasPrice:          suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
+		GasFeeCap:         nil,
+		GasTipCap:         nil,
+		Data:              data,
+		AccessList:        nil,
+		SkipAccountChecks: false,
+	}
 
 	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, nil, true)
 	suite.Require().NoError(err)

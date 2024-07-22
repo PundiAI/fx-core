@@ -1,9 +1,9 @@
 version: v1
 name: buf.build/functionx/fx-core
 deps:
-  - buf.build/cosmos/gogo-proto:bee5511075b7499da6178d9e4aaa628b
+  - buf.build/cosmos/gogo-proto:34d970b699f84aa382f3c29773a60836
   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
-  - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
+  - buf.build/googleapis/googleapis:75b4300737fb4efca0831636be94e517
 lint:
   use:
     - DEFAULT

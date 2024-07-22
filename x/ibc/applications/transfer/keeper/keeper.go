@@ -1,16 +1,16 @@
 package keeper
 
 import (
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/tendermint/tendermint/libs/log"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 )
@@ -87,5 +87,5 @@ func (k Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) Keeper {
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+types.CompatibleModuleName)
+	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.CompatibleModuleName)
 }

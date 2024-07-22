@@ -1,190 +1,79 @@
 package client
 
 import (
+	"errors"
+	"strings"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 )
 
-const DefGasLimit int64 = 200000
+const DefGasLimit uint64 = 200000
 
 type buildTxClient interface {
 	GetChainId() (string, error)
 	QueryAccount(address string) (authtypes.AccountI, error)
 	GetGasPrices() (sdk.Coins, error)
+	GetAddressPrefix() (string, error)
 	EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error)
 }
 
-//gocyclo:ignore
-func BuildTx(cli buildTxClient, privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
-	account, err := cli.QueryAccount(sdk.AccAddress(privKey.PubKey().Address()).String())
+func BuildTxRawWithCli(cli buildTxClient, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit, timeout uint64, memo string) (*tx.TxRaw, error) {
+	if gasLimit == 0 {
+		gasLimit = DefGasLimit
+	}
+	prefix, err := cli.GetAddressPrefix()
 	if err != nil {
 		return nil, err
 	}
-	chainId, err := cli.GetChainId()
+	from, err := bech32.ConvertAndEncode(prefix, privKey.PubKey().Address())
 	if err != nil {
 		return nil, err
 	}
-
-	txBodyMessage := make([]*types.Any, 0)
-	for i := 0; i < len(msgs); i++ {
-		msgAnyValue, err := types.NewAnyWithValue(msgs[i])
-		if err != nil {
-			return nil, err
-		}
-		txBodyMessage = append(txBodyMessage, msgAnyValue)
-	}
-
-	txBody := &tx.TxBody{
-		Messages:                    txBodyMessage,
-		Memo:                        "",
-		TimeoutHeight:               0,
-		ExtensionOptions:            nil,
-		NonCriticalExtensionOptions: nil,
-	}
-	txBodyBytes, err := proto.Marshal(txBody)
+	account, chainId, gasPrice, err := GetChainInfo(cli, from)
 	if err != nil {
 		return nil, err
 	}
-
-	pubAny, err := types.NewAnyWithValue(privKey.PubKey())
+	txRaw, err := BuildTxRaw(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, timeout, memo)
 	if err != nil {
 		return nil, err
 	}
-
-	gasPrices, err := cli.GetGasPrices()
+	estimatingGas, err := cli.EstimatingGas(txRaw)
 	if err != nil {
 		return nil, err
 	}
-	var gasPrice sdk.Coin
-	if len(gasPrices) > 0 {
-		gasPrice = gasPrices[0]
+	if estimatingGas.GetGasUsed() > gasLimit {
+		gasLimit = estimatingGas.GetGasUsed() + (estimatingGas.GetGasUsed())*2/10
 	}
-
-	authInfo := &tx.AuthInfo{
-		SignerInfos: []*tx.SignerInfo{
-			{
-				PublicKey: pubAny,
-				ModeInfo: &tx.ModeInfo{
-					Sum: &tx.ModeInfo_Single_{
-						Single: &tx.ModeInfo_Single{Mode: signing.SignMode_SIGN_MODE_DIRECT},
-					},
-				},
-				Sequence: account.GetSequence(),
-			},
-		},
-		Fee: &tx.Fee{
-			Amount:   sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(DefGasLimit))),
-			GasLimit: uint64(DefGasLimit),
-			Payer:    "",
-			Granter:  "",
-		},
-	}
-
-	txAuthInfoBytes, err := proto.Marshal(authInfo)
-	if err != nil {
-		return nil, err
-	}
-	signDoc := &tx.SignDoc{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       chainId,
-		AccountNumber: account.GetAccountNumber(),
-	}
-	signatures, err := proto.Marshal(signDoc)
-	if err != nil {
-		return nil, err
-	}
-	sign, err := privKey.Sign(signatures)
-	if err != nil {
-		return nil, err
-	}
-	gasInfo, err := cli.EstimatingGas(&tx.TxRaw{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: signDoc.AuthInfoBytes,
-		Signatures:    [][]byte{sign},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	authInfo.Fee.GasLimit = gasInfo.GasUsed * 12 / 10
-	authInfo.Fee.Amount = sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(int64(authInfo.Fee.GasLimit))))
-
-	signDoc.AuthInfoBytes, err = proto.Marshal(authInfo)
-	if err != nil {
-		return nil, err
-	}
-	signatures, err = proto.Marshal(signDoc)
-	if err != nil {
-		return nil, err
-	}
-	sign, err = privKey.Sign(signatures)
-	if err != nil {
-		return nil, err
-	}
-	return &tx.TxRaw{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: signDoc.AuthInfoBytes,
-		Signatures:    [][]byte{sign},
-	}, nil
+	return BuildTxRaw(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, timeout, memo)
 }
 
-func BuildTxV1(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
-	txBodyMessage := make([]*types.Any, 0)
-	for i := 0; i < len(msgs); i++ {
-		msgAnyValue, err := types.NewAnyWithValue(msgs[i])
-		if err != nil {
-			return nil, err
-		}
-		txBodyMessage = append(txBodyMessage, msgAnyValue)
-	}
-
-	txBody := &tx.TxBody{
-		Messages:                    txBodyMessage,
-		Memo:                        memo,
-		TimeoutHeight:               timeout,
-		ExtensionOptions:            nil,
-		NonCriticalExtensionOptions: nil,
+func BuildTxRaw(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit, timeout uint64, memo string) (*tx.TxRaw, error) {
+	txBody, err := NewTxBody(msgs, memo, timeout)
+	if err != nil {
+		return nil, err
 	}
 	txBodyBytes, err := proto.Marshal(txBody)
 	if err != nil {
 		return nil, err
 	}
 
-	pubAny, err := types.NewAnyWithValue(privKey.PubKey())
+	authInfo, err := NewAuthInfo(privKey.PubKey(), sequence, gasLimit, gasPrice)
 	if err != nil {
 		return nil, err
 	}
-
-	authInfo := &tx.AuthInfo{
-		SignerInfos: []*tx.SignerInfo{
-			{
-				PublicKey: pubAny,
-				ModeInfo: &tx.ModeInfo{
-					Sum: &tx.ModeInfo_Single_{
-						Single: &tx.ModeInfo_Single{Mode: signing.SignMode_SIGN_MODE_DIRECT},
-					},
-				},
-				Sequence: sequence,
-			},
-		},
-		Fee: &tx.Fee{
-			Amount:   sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(gasLimit))),
-			GasLimit: uint64(gasLimit),
-			Payer:    "",
-			Granter:  "",
-		},
-	}
-
 	txAuthInfoBytes, err := proto.Marshal(authInfo)
 	if err != nil {
 		return nil, err
 	}
+
 	signDoc := &tx.SignDoc{
 		BodyBytes:     txBodyBytes,
 		AuthInfoBytes: txAuthInfoBytes,
@@ -203,5 +92,91 @@ func BuildTxV1(chainId string, sequence, accountNumber uint64, privKey cryptotyp
 		BodyBytes:     txBodyBytes,
 		AuthInfoBytes: signDoc.AuthInfoBytes,
 		Signatures:    [][]byte{sign},
+	}, nil
+}
+
+type waitMinedClient interface {
+	TxByHash(txHash string) (*sdk.TxResponse, error)
+}
+
+func WaitMined(cli waitMinedClient, txHash string, timeout, pollInterval time.Duration) (*sdk.TxResponse, error) {
+	for i := int64(0); i < int64(timeout/pollInterval); i++ {
+		time.Sleep(pollInterval)
+		txResponse, err := cli.TxByHash(txHash)
+		if err != nil && strings.Contains(err.Error(), "not found") {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if txResponse != nil {
+			return txResponse, nil
+		}
+	}
+	return nil, errors.New("waiting for tx timeout")
+}
+
+func GetChainInfo(cli buildTxClient, from string) (account authtypes.AccountI, chainId string, gasPrice sdk.Coin, err error) {
+	account, err = cli.QueryAccount(from)
+	if err != nil {
+		return nil, "", sdk.Coin{}, err
+	}
+	chainId, err = cli.GetChainId()
+	if err != nil {
+		return nil, "", sdk.Coin{}, err
+	}
+	gasPrices, err := cli.GetGasPrices()
+	if err != nil {
+		return nil, "", sdk.Coin{}, err
+	}
+	if len(gasPrices) > 0 {
+		gasPrice = gasPrices[0]
+	}
+	return account, chainId, gasPrice, nil
+}
+
+func NewTxBody(msgs []sdk.Msg, memo string, timeout uint64) (*tx.TxBody, error) {
+	txBodyMessage := make([]*types.Any, 0)
+	for i := 0; i < len(msgs); i++ {
+		msgAnyValue, err := types.NewAnyWithValue(msgs[i])
+		if err != nil {
+			return nil, err
+		}
+		txBodyMessage = append(txBodyMessage, msgAnyValue)
+	}
+
+	txBody := &tx.TxBody{
+		Messages:                    txBodyMessage,
+		Memo:                        memo,
+		TimeoutHeight:               timeout,
+		ExtensionOptions:            nil,
+		NonCriticalExtensionOptions: nil,
+	}
+	return txBody, nil
+}
+
+func NewAuthInfo(pubKey cryptotypes.PubKey, sequence, gasLimit uint64, gasPrice sdk.Coin) (*tx.AuthInfo, error) {
+	pubAny, err := types.NewAnyWithValue(pubKey)
+	if err != nil {
+		return nil, err
+	}
+	return &tx.AuthInfo{
+		SignerInfos: []*tx.SignerInfo{
+			{
+				PublicKey: pubAny,
+				ModeInfo: &tx.ModeInfo{
+					Sum: &tx.ModeInfo_Single_{
+						Single: &tx.ModeInfo_Single{Mode: signing.SignMode_SIGN_MODE_DIRECT},
+					},
+				},
+				Sequence: sequence,
+			},
+		},
+		Fee: &tx.Fee{
+			Amount:   sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(int64(gasLimit)))),
+			GasLimit: gasLimit,
+			Payer:    "",
+			Granter:  "",
+		},
 	}, nil
 }

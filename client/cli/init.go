@@ -8,27 +8,19 @@ import (
 	"os"
 	"path/filepath"
 
+	tmcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/libs/cli"
+	tmos "github.com/cometbft/cometbft/libs/os"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	clientcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/cli"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/types"
 	"github.com/tyler-smith/go-bip39"
-)
-
-const (
-	// FlagOverwrite defines a flag to overwrite an existing genesis JSON file.
-	FlagOverwrite = "overwrite"
-
-	// FlagRecover defines a flag to initialize the private validator key from a specific seed.
-	FlagRecover = "recover"
 )
 
 type PrintInfo struct {
@@ -51,7 +43,9 @@ func NewPrintInfo(moniker, chainID, nodeID, genTxsDir string, appMessage json.Ra
 
 // InitCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
-func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensusParams *tmproto.ConsensusParams) *cobra.Command {
+//
+//gocyclo:ignore
+func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensusParams *tmtypes.ConsensusParams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init [moniker]",
 		Short: "Initialize private validator, p2p, genesis, application and client configuration files",
@@ -71,7 +65,7 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 
 			// Get bip39 mnemonic
 			var mnemonic string
-			flagRecover, err := cmd.Flags().GetBool(FlagRecover)
+			flagRecover, err := cmd.Flags().GetBool(clientcli.FlagRecover)
 			if err != nil {
 				return err
 			}
@@ -87,6 +81,12 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 				}
 			}
 
+			// Get initial height
+			initHeight, _ := cmd.Flags().GetInt64(flags.FlagInitHeight)
+			if initHeight < 1 {
+				initHeight = 1
+			}
+
 			nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic)
 			if err != nil {
 				return err
@@ -95,7 +95,7 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 			config.Moniker = args[0]
 
 			genFile := config.GenesisFile()
-			overwrite, _ := cmd.Flags().GetBool(FlagOverwrite)
+			overwrite, _ := cmd.Flags().GetBool(clientcli.FlagOverwrite)
 
 			if !overwrite && tmos.FileExists(genFile) {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
@@ -105,14 +105,14 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 				return fmt.Errorf("failed to marshall default genesis state: %s", err.Error())
 			}
 
-			genDoc := &types.GenesisDoc{}
+			genDoc := &tmtypes.GenesisDoc{}
 			if _, err := os.Stat(genFile); err != nil {
 				if !os.IsNotExist(err) {
 					return err
 				}
 				genDoc.ConsensusParams = consensusParams
 			} else {
-				genDoc, err = types.GenesisDocFromFile(genFile)
+				genDoc, err = tmtypes.GenesisDocFromFile(genFile)
 				if err != nil {
 					return fmt.Errorf("failed to read genesis doc from file: %s", err.Error())
 				}
@@ -121,11 +121,12 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 			genDoc.ChainID = chainID
 			genDoc.Validators = nil
 			genDoc.AppState = appState
+			genDoc.InitialHeight = initHeight
 			if err = genutil.ExportGenesisFile(genDoc, genFile); err != nil {
 				return fmt.Errorf("failed to export gensis file: %s", err.Error())
 			}
 
-			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
+			tmcfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
 			toPrint := NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 			out, err := json.MarshalIndent(toPrint, "", " ")
@@ -137,9 +138,10 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 	}
 
 	cmd.Flags().String(cli.HomeFlag, nodeHome, "node's home directory")
-	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
-	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
+	cmd.Flags().Bool(clientcli.FlagOverwrite, false, "overwrite the genesis.json file")
+	cmd.Flags().Bool(clientcli.FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().StringP(cli.OutputFlag, "o", "json", "Output format (text|json)")
+	cmd.Flags().Int64(flags.FlagInitHeight, 1, "specify the initial block height at genesis")
 	return cmd
 }

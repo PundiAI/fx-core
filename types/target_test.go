@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

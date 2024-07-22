@@ -7,6 +7,7 @@ import "./Encode.sol";
 import "./Decode.sol";
 
 /* solhint-enable no-global-import */
+/* solhint-disable custom-errors */
 
 library StakingCall {
     address public constant STAKING_ADDRESS =
@@ -23,6 +24,13 @@ library StakingCall {
         return Decode.delegate(data);
     }
 
+    function delegateV2(
+        string memory,
+        uint256
+    ) external returns (bool _result) {
+        revert("Use an interface call");
+    }
+
     function undelegate(
         string memory _val,
         uint256 _shares
@@ -33,6 +41,13 @@ library StakingCall {
         );
         Decode.ok(result, data, "undelegate failed");
         return Decode.undelegate(data);
+    }
+
+    function undelegateV2(
+        string memory,
+        uint256
+    ) external returns (bool _result) {
+        revert("Use an interface call");
     }
 
     function redelegate(
@@ -46,6 +61,14 @@ library StakingCall {
         );
         Decode.ok(result, data, "redelegate failed");
         return Decode.redelegate(data);
+    }
+
+    function redelegateV2(
+        string memory,
+        string memory,
+        uint256
+    ) external returns (bool _result) {
+        revert("Use an interface call");
     }
 
     function withdraw(string memory _val) internal returns (uint256) {

@@ -68,14 +68,12 @@ func (k *Keeper) UpdateContractCode(ctx sdk.Context, address common.Address, con
 }
 
 // DeployContract deploy contract with args
-func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, constructorData ...interface{}) (common.Address, error) {
-	args, err := abi.Pack("", constructorData...)
+func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, args ...interface{}) (common.Address, error) {
+	data, err := abi.Pack("", args...)
 	if err != nil {
 		return common.Address{}, errorsmod.Wrap(types.ErrABIPack, err.Error())
 	}
-	data := make([]byte, len(bin)+len(args))
-	copy(data[:len(bin)], bin)
-	copy(data[len(bin):], args)
+	data = append(bin, data...)
 
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
@@ -91,7 +89,7 @@ func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.AB
 }
 
 // DeployUpgradableContract deploy upgrade contract and initialize it
-func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Address, logicData []byte, initializeAbi *abi.ABI, initializeArgs ...interface{}) (common.Address, error) {
+func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Address, logicData []byte, abi *abi.ABI, args ...interface{}) (common.Address, error) {
 	// deploy proxy
 	erc1967Proxy := contract.GetERC1967Proxy()
 	if logicData == nil {
@@ -103,8 +101,8 @@ func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Ad
 	}
 
 	// initialize contract
-	if initializeAbi != nil {
-		_, err = k.ApplyContract(ctx, from, proxyContract, nil, *initializeAbi, "initialize", initializeArgs...)
+	if abi != nil {
+		_, err = k.ApplyContract(ctx, from, proxyContract, nil, *abi, "initialize", args...)
 		if err != nil {
 			return common.Address{}, err
 		}
@@ -113,12 +111,12 @@ func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Ad
 }
 
 // QueryContract query contract with args and res
-func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, constructorData ...interface{}) error {
-	args, err := abi.Pack(method, constructorData...)
+func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error {
+	data, err := abi.Pack(method, args...)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrABIPack, err.Error())
 	}
-	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, nil, args, false)
+	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, nil, data, false)
 	if err != nil {
 		return err
 	}

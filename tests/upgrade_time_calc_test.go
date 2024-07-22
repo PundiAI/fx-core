@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	clienthttp "github.com/cometbft/cometbft/rpc/client/http"
+	jsonrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/stretchr/testify/require"
-	clienthttp "github.com/tendermint/tendermint/rpc/client/http"
-	jsonrpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 )

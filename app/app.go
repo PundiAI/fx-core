@@ -1,16 +1,26 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
+	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -20,18 +30,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
+	evmante "github.com/evmos/ethermint/app/ante"
 	srvflags "github.com/evmos/ethermint/server/flags"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
 
 	fxante "github.com/functionx/fx-core/v7/ante"
 	"github.com/functionx/fx-core/v7/app/keepers"
@@ -40,7 +48,6 @@ import (
 	fxauth "github.com/functionx/fx-core/v7/server/grpc/auth"
 	gaspricev1 "github.com/functionx/fx-core/v7/server/grpc/gasprice/legacy/v1"
 	gaspricev2 "github.com/functionx/fx-core/v7/server/grpc/gasprice/legacy/v2"
-	fxrest "github.com/functionx/fx-core/v7/server/rest"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain"
 	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
@@ -58,9 +65,15 @@ var _ servertypes.Application = (*App)(nil)
 type App struct {
 	*baseapp.BaseApp
 	*keepers.AppKeepers
+
+	legacyAmino       *codec.LegacyAmino
+	appCodec          codec.Codec
+	txConfig          client.TxConfig
 	interfaceRegistry types.InterfaceRegistry
 	mm                *module.Manager
 	configurator      module.Configurator
+
+	pendingTxListeners []evmante.PendingTxListener
 }
 
 func New(
@@ -78,12 +91,13 @@ func New(
 	appCodec := encodingConfig.Codec
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
+	txConfig := encodingConfig.TxConfig
 
 	bApp := baseapp.NewBaseApp(
 		fxtypes.Name,
 		logger,
 		db,
-		encodingConfig.TxConfig.TxDecoder(),
+		txConfig.TxDecoder(),
 		baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
@@ -91,6 +105,9 @@ func New(
 
 	myApp := &App{
 		BaseApp:           bApp,
+		txConfig:          txConfig,
+		legacyAmino:       legacyAmino,
+		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
 	}
 	// Setup keepers
@@ -99,7 +116,7 @@ func New(
 		bApp,
 		legacyAmino,
 		maccPerms,
-		myApp.BlockedModuleAccountAddrs(),
+		BlockedAccountAddrs(),
 		skipUpgradeHeights,
 		homePath,
 		invCheckPeriod,
@@ -107,7 +124,7 @@ func New(
 	)
 
 	// load state streaming if enabled
-	if _, _, err := streaming.LoadStreamingServices(bApp, appOpts, appCodec, myApp.AppKeepers.GetKVStoreKey()); err != nil {
+	if _, _, err := streaming.LoadStreamingServices(bApp, appOpts, appCodec, logger, myApp.AppKeepers.GetKVStoreKey()); err != nil {
 		fmt.Printf("failed to load state streaming: %s", err)
 		os.Exit(1)
 	}
@@ -136,37 +153,26 @@ func New(
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
 	myApp.mm.SetOrderInitGenesis(orderInitBlockers()...)
+	myApp.mm.SetOrderExportGenesis(orderInitBlockers()...)
 
-	myApp.mm.RegisterInvariants(&myApp.CrisisKeeper)
-	myApp.mm.RegisterRoutes(myApp.Router(), myApp.QueryRouter(), encodingConfig.Amino)
-
-	myApp.configurator = module.NewConfigurator(myApp.AppCodec(), myApp.MsgServiceRouter(), myApp.GRPCQueryRouter())
+	myApp.mm.RegisterInvariants(myApp.CrisisKeeper)
+	myApp.configurator = module.NewConfigurator(myApp.appCodec, myApp.MsgServiceRouter(), myApp.GRPCQueryRouter())
 	myApp.RegisterServices(myApp.configurator)
+
+	autocliv1.RegisterQueryServer(myApp.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(myApp.mm.Modules))
+
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(err)
+	}
+	reflectionv1.RegisterReflectionServiceServer(myApp.GRPCQueryRouter(), reflectionSvc)
 
 	// initialize stores
 	myApp.MountKVStores(myApp.GetKVStoreKey())
 	myApp.MountTransientStores(myApp.GetTransientStoreKey())
 	myApp.MountMemoryStores(myApp.GetMemoryStoreKey())
 
-	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
-	anteOptions := fxante.HandlerOptions{
-		AccountKeeper:              myApp.AccountKeeper,
-		BankKeeper:                 myApp.BankKeeper,
-		EvmKeeper:                  myApp.EvmKeeper,
-		FeeMarketKeeper:            myApp.FeeMarketKeeper,
-		IbcKeeper:                  myApp.IBCKeeper,
-		SignModeHandler:            encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:             fxante.DefaultSigVerificationGasConsumer,
-		MaxTxGasWanted:             maxGasWanted,
-		BypassMinFeeMsgTypes:       cast.ToStringSlice(appOpts.Get(fxcfg.BypassMinFeeMsgTypesKey)),
-		MaxBypassMinFeeMsgGasUsage: cast.ToUint64(appOpts.Get(fxcfg.BypassMinFeeMsgMaxGasUsageKey)),
-	}
-
-	if err := anteOptions.Validate(); err != nil {
-		panic(fmt.Errorf("failed to ante options validate: %w", err))
-	}
-
-	myApp.SetAnteHandler(fxante.NewAnteHandler(anteOptions))
+	myApp.setAnteHandler(appOpts)
 	myApp.SetInitChainer(myApp.InitChainer)
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetEndBlocker(myApp.EndBlocker)
@@ -183,6 +189,34 @@ func New(
 	}
 
 	return myApp
+}
+
+func (app *App) setAnteHandler(appOpts servertypes.AppOptions) {
+	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
+	BypassMinFeeMsgTypes := cast.ToStringSlice(appOpts.Get(fxcfg.BypassMinFeeMsgTypesKey))
+	MaxBypassMinFeeMsgGasUsage := cast.ToUint64(appOpts.Get(fxcfg.BypassMinFeeMsgMaxGasUsageKey))
+	anteOptions := fxante.HandlerOptions{
+		AccountKeeper:   app.AccountKeeper,
+		BankKeeper:      app.BankKeeper,
+		EvmKeeper:       app.EvmKeeper,
+		FeeMarketKeeper: app.FeeMarketKeeper,
+		IbcKeeper:       app.IBCKeeper,
+		SignModeHandler: app.txConfig.SignModeHandler(),
+		SigGasConsumer:  fxante.DefaultSigVerificationGasConsumer,
+		MaxTxGasWanted:  maxGasWanted,
+		TxFeeChecker:    fxante.NewCheckTxFeees(BypassMinFeeMsgTypes, MaxBypassMinFeeMsgGasUsage).Check,
+		DisabledAuthzMsgs: []string{
+			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
+			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
+		},
+		PendingTxListener: app.onPendingTx,
+	}
+
+	if err := anteOptions.Validate(); err != nil {
+		panic(fmt.Errorf("failed to ante options validate: %w", err))
+	}
+
+	app.SetAnteHandler(fxante.NewAnteHandler(anteOptions))
 }
 
 func (app *App) setPostHandler() {
@@ -210,6 +244,11 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 	return app.mm.EndBlock(ctx, req)
 }
 
+// Configurator returns the configurator of the app
+func (app *App) Configurator() module.Configurator {
+	return app.configurator
+}
+
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
@@ -219,7 +258,7 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 
 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
-	return app.mm.InitGenesis(ctx, app.AppCodec(), genesisState)
+	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
 // LoadHeight loads a particular height
@@ -227,36 +266,25 @@ func (app *App) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
-// ModuleAccountAddrs returns all the app's module account addresses.
-func (app *App) ModuleAccountAddrs() map[string]bool {
-	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
-		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
-	}
-
-	return modAccAddrs
-}
-
-// BlockedModuleAccountAddrs returns all the app's blocked module account
-// addresses.
-func (app *App) BlockedModuleAccountAddrs() map[string]bool {
-	return app.ModuleAccountAddrs()
-}
-
 // InterfaceRegistry returns InterfaceRegistry
 func (app *App) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
-// SimulationManager implements the SimulationApp interface
-func (app *App) SimulationManager() *module.SimulationManager {
-	return &module.SimulationManager{}
+// TxConfig returns App's TxConfig
+func (app *App) TxConfig() client.TxConfig {
+	return app.txConfig
 }
 
+// DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
+func (app *App) DefaultGenesis() map[string]json.RawMessage {
+	return NewDefAppGenesisByDenom(fxtypes.DefaultDenom, app.appCodec)
+}
+
+// RegisterServices registers all module services
 func (app *App) RegisterServices(cfg module.Configurator) {
-	for _, m := range app.mm.Modules {
-		m.RegisterServices(cfg)
-	}
+	app.mm.RegisterServices(cfg)
+
 	// Deprecated
 	gaspricev1.RegisterQueryServer(cfg.QueryServer(), gaspricev1.Querier{})
 	gaspricev2.RegisterQueryServer(cfg.QueryServer(), gaspricev2.Querier{})
@@ -271,8 +299,7 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	fxauth.RegisterQueryServer(cfg.QueryServer(), fxauth.Querier{})
 }
 
-// RegisterAPIRoutes registers all application module routes with the provided
-// API server.
+// RegisterAPIRoutes registers all application module routes with the provided API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 
@@ -282,19 +309,6 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 
 	// Deprecated: Register gravity queries routes from grpc-gateway.
 	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	// Deprecated: cosmos-sdk legacy rest.
-	fxrest.RegisterRPCRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterTxRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterAuthRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterBankRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterEvidenceRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterMintRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterDistributeRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterSlashingRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterGovRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterStakingRESTRoutes(clientCtx, apiSvr.Router)
-	fxrest.RegisterUpgradeRESTRoutes(clientCtx, apiSvr.Router)
 
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -332,30 +346,59 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(clientCtx, app.BaseApp.GRPCQueryRouter(), app.interfaceRegistry, app.Query)
 }
 
-// RegisterNodeService registers the node gRPC service on the provided
-// application gRPC query router.
+// RegisterNodeService registers the node gRPC service on the provided application gRPC query router.
 func (app *App) RegisterNodeService(clientCtx client.Context) {
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
 }
 
-// TestingApp functions
-
-// GetModules implements the TestingApp interface.
-func (app *App) GetModules() map[string]module.AppModule {
-	return app.mm.Modules
+// RegisterPendingTxListener is used by json-rpc server to listen to pending transactions callback.
+func (app *App) RegisterPendingTxListener(listener evmante.PendingTxListener) {
+	app.pendingTxListeners = append(app.pendingTxListeners, listener)
 }
 
-// GetOrderBeginBlockersModules implements the TestingApp interface.
+func (app *App) onPendingTx(hash common.Hash) {
+	for _, listener := range app.pendingTxListeners {
+		listener(hash)
+	}
+}
+
+// << only for test, do not use in production >>
+
+// SimulationManager NOTE: This is solely to be used for testing purposes.
+func (app *App) SimulationManager() *module.SimulationManager {
+	return &module.SimulationManager{}
+}
+
+// LegacyAmino NOTE: This is solely to be used for testing purposes.
+func (app *App) LegacyAmino() *codec.LegacyAmino {
+	return app.legacyAmino
+}
+
+// AppCodec NOTE: This is solely to be used for testing purposes.
+func (app *App) AppCodec() codec.Codec {
+	return app.appCodec
+}
+
+// GetModules NOTE: This is solely to be used for testing purposes.
+func (app *App) GetModules() map[string]module.AppModule {
+	modules := make(map[string]module.AppModule, len(app.mm.Modules))
+	for name, mod := range app.mm.Modules {
+		modules[name] = mod.(module.AppModule)
+	}
+	return modules
+}
+
+// GetOrderBeginBlockersModules NOTE: This is solely to be used for testing purposes..
 func (app *App) GetOrderBeginBlockersModules() []string {
 	return app.mm.OrderBeginBlockers
 }
 
-// GetOrderEndBlockersModules implements the TestingApp interface.
+// GetOrderEndBlockersModules NOTE: This is solely to be used for testing purposes.
 func (app *App) GetOrderEndBlockersModules() []string {
 	return app.mm.OrderEndBlockers
 }
 
-// GetOrderInitGenesisModules implements the TestingApp interface.
+// GetOrderInitGenesisModules NOTE: This is solely to be used for testing purposes.
 func (app *App) GetOrderInitGenesisModules() []string {
 	return app.mm.OrderInitGenesis
 }

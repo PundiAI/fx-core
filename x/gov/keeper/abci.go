@@ -24,7 +24,7 @@ func (keeper Keeper) EndBlocker(ctx sdk.Context) {
 		keeper.RefundAndDeleteDeposits(ctx, proposal.Id)
 
 		// called when proposal become inactive
-		keeper.AfterProposalFailedMinDeposit(ctx, proposal.Id)
+		keeper.Hooks().AfterProposalFailedMinDeposit(ctx, proposal.Id)
 
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeInactiveProposal,
@@ -110,7 +110,7 @@ func (keeper Keeper) EndBlocker(ctx sdk.Context) {
 		keeper.RemoveFromActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
 
 		// when proposal become active
-		keeper.AfterProposalVotingPeriodEnded(ctx, proposal.Id)
+		keeper.Hooks().AfterProposalVotingPeriodEnded(ctx, proposal.Id)
 
 		logger.Info(
 			"proposal tallied",

@@ -6,17 +6,16 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/tendermint/tendermint/libs/log"
+	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	fxtransfertypes "github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/parser"
@@ -81,7 +80,7 @@ func NewIBCMiddleware(app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper
 
 // Logger returns a module-specific logger.
 func (im IBCMiddleware) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"-"+"ibcroutermiddleware")
+	return ctx.Logger().With("module", "x/ibc-ibcroutermiddleware")
 }
 
 // OnRecvPacket implements the IBCModule interface

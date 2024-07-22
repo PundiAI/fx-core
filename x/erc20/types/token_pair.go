@@ -3,9 +3,9 @@ package types
 import (
 	"fmt"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/functionx/fx-core/v7/contract"
 )

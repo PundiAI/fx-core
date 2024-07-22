@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2021-07-05T04:00:00.000000Z",
+  "genesis_time": "2021-07-05T04:00:00Z",
   "chain_id": "fxcore",
   "initial_height": "1",
   "consensus_params": {

@@ -33,8 +33,7 @@ type BankKeeper interface {
 }
 
 type GovKeeper interface {
-	GetDepositParams(ctx sdk.Context) govv1.DepositParams
-	GetVotingParams(ctx sdk.Context) govv1.VotingParams
+	GetParams(ctx sdk.Context) govv1.Params
 
 	ActiveProposalQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator
 	InactiveProposalQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator

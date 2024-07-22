@@ -3,33 +3,30 @@ package network
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"path/filepath"
-	"strings"
 	"time"
 
+	tmos "github.com/cometbft/cometbft/libs/os"
+	"github.com/cometbft/cometbft/node"
+	"github.com/cometbft/cometbft/p2p"
+	pvm "github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
+	"github.com/cometbft/cometbft/rpc/client/local"
+	"github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server/api"
-	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	"github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/p2p"
-	pvm "github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/rpc/client/local"
-	"github.com/tendermint/tendermint/types"
+	"github.com/evmos/ethermint/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/server"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
@@ -80,33 +77,23 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 
 		// Add the tendermint queries service in the gRPC router.
 		myApp.RegisterTendermintService(val.ClientCtx)
-
-		if a, ok := myApp.(servertypes.ApplicationQueryService); ok {
-			a.RegisterNodeService(val.ClientCtx)
-		}
+		myApp.RegisterNodeService(val.ClientCtx)
 	}
 
 	if val.AppConfig.GRPC.Enable {
-		_, port, err := net.SplitHostPort(val.AppConfig.GRPC.Address)
-		if err != nil {
-			return err
-		}
-
 		maxSendMsgSize := val.AppConfig.GRPC.MaxSendMsgSize
 		if maxSendMsgSize == 0 {
-			maxSendMsgSize = serverconfig.DefaultGRPCMaxSendMsgSize
+			maxSendMsgSize = srvconfig.DefaultGRPCMaxSendMsgSize
 		}
 
 		maxRecvMsgSize := val.AppConfig.GRPC.MaxRecvMsgSize
 		if maxRecvMsgSize == 0 {
-			maxRecvMsgSize = serverconfig.DefaultGRPCMaxRecvMsgSize
+			maxRecvMsgSize = srvconfig.DefaultGRPCMaxRecvMsgSize
 		}
-
-		grpcAddress := fmt.Sprintf("127.0.0.1:%s", port)
 
 		// If grpc is enabled, configure grpc client for grpc gateway.
 		grpcClient, err := grpc.Dial(
-			grpcAddress,
+			val.AppConfig.GRPC.Address,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithDefaultCallOptions(
 				grpc.ForceCodec(codec.NewProtoCodec(val.ClientCtx.InterfaceRegistry).GRPCCodec()),
@@ -130,7 +117,7 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 	}
 
 	if val.AppConfig.GRPC.Enable {
-		val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC)
+		val.grpc, err = StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC)
 		if err != nil {
 			return err
 		}
@@ -148,22 +135,15 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 			return fmt.Errorf("validator %s context is nil", val.Ctx.Config.Moniker)
 		}
 
-		tmEndpoint := "/websocket"
-		tmRPCAddr := val.RPCAddress
+		val.ClientCtx = val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
+		val.jsonrpc, val.jsonrpcDone, err = StartJSONRPC(val.Ctx, val.ClientCtx, val.AppConfig.ToEthermintConfig(), nil, myApp.(server.AppWithPendingTxStream))
+		if err != nil {
+			return err
+		}
 
-		clientCtx := val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
-		val.jsonrpc, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, val.AppConfig.ToEthermintConfig(), nil)
-		if err != nil {
-			return err
-		}
-		ln, err := server.Listen(val.jsonrpc.Addr, val.AppConfig.JSONRPC.MaxOpenConnections)
-		if err != nil {
-			return err
-		}
-		go func() {
-			_ = val.jsonrpc.Serve(ln)
-		}()
-		val.JSONRPCClient, err = ethclient.Dial(fmt.Sprintf("http://%s", val.AppConfig.JSONRPC.Address))
+		address := fmt.Sprintf("http://%s", val.AppConfig.JSONRPC.Address)
+
+		val.JSONRPCClient, err = ethclient.Dial(address)
 		if err != nil {
 			return fmt.Errorf("failed to dial JSON-RPC at %s: %w", val.AppConfig.JSONRPC.Address, err)
 		}
@@ -184,7 +164,7 @@ func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
 			return err
 		}
 
-		_, err = genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig, tmCfg, initCfg, *genDoc, banktypes.GenesisBalancesIterator{})
+		_, err = genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig, tmCfg, initCfg, *genDoc, banktypes.GenesisBalancesIterator{}, genutiltypes.DefaultMessageValidator)
 		if err != nil {
 			return err
 		}
@@ -216,13 +196,11 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 		return err
 	}
 
-	customConsensusParams := app.CustomGenesisConsensusParams()
-	customConsensusParams.Block.TimeIotaMs = cfg.TimeoutCommit.Milliseconds()
 	genDoc := types.GenesisDoc{
 		GenesisTime:     time.Now(),
 		ChainID:         cfg.ChainID,
 		InitialHeight:   1,
-		ConsensusParams: customConsensusParams,
+		ConsensusParams: app.CustomGenesisConsensusParams(),
 		Validators:      nil,
 		AppHash:         nil,
 		AppState:        appGenStateJSON,
@@ -245,45 +223,4 @@ func writeFile(name string, dir string, contents []byte) error {
 
 	file := filepath.Join(dir, name)
 	return tmos.WriteFile(file, contents, 0o644)
-}
-
-// printMnemonic prints a provided mnemonic seed phrase for debugging and manual testing
-func printMnemonic(secret string) {
-	lines := []string{
-		"THIS MNEMONIC IS FOR TESTING PURPOSES ONLY",
-		"DO NOT USE IN PRODUCTION",
-		"",
-		strings.Join(strings.Fields(secret)[0:8], " "),
-		strings.Join(strings.Fields(secret)[8:16], " "),
-		strings.Join(strings.Fields(secret)[16:24], " "),
-	}
-
-	lineLengths := make([]int, len(lines))
-	for i, line := range lines {
-		lineLengths[i] = len(line)
-	}
-
-	maxLineLength := 0
-	for _, lineLen := range lineLengths {
-		if lineLen > maxLineLength {
-			maxLineLength = lineLen
-		}
-	}
-
-	fmt.Print("\n")
-	fmt.Print(strings.Repeat("+", maxLineLength+8))
-	for _, line := range lines {
-		fmt.Printf("++  %s  ++\n", centerText(line, maxLineLength))
-	}
-	fmt.Print(strings.Repeat("+", maxLineLength+8))
-	fmt.Print("\n")
-}
-
-// centerText centers text across a fixed width, filling either side with whitespace buffers
-func centerText(text string, width int) string {
-	textLen := len(text)
-	leftBuffer := strings.Repeat(" ", (width-textLen)/2)
-	rightBuffer := strings.Repeat(" ", (width-textLen)/2+(width-textLen)%2)
-
-	return fmt.Sprintf("%s%s%s", leftBuffer, text, rightBuffer)
 }

@@ -10,7 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
+	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -18,7 +20,6 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
-	tmcfg "github.com/tendermint/tendermint/config"
 
 	"github.com/functionx/fx-core/v7/app"
 	fxserver "github.com/functionx/fx-core/v7/server"
@@ -417,7 +418,9 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	encCfg := app.MakeEncodingConfig()
 
 	// Run InitCmd to create necessary config files.
-	clientCtx := client.Context{}.WithHomeDir(tempDir).WithCodec(encCfg.Codec)
+	clientCtx := client.Context{}.WithHomeDir(tempDir).WithCodec(encCfg.Codec).WithViper("")
+	clientCtx, err = sdkcfg.ReadFromClientConfig(clientCtx)
+	require.NoError(t, err)
 	serverCtx := server.NewDefaultContext()
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)

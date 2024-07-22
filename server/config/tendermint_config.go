@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/tendermint/tendermint/config"
+	"github.com/cometbft/cometbft/config"
 )
 
 // DefaultTendermintConfig returns tendermint default configuration.

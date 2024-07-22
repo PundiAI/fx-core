@@ -6,16 +6,16 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	"github.com/cometbft/cometbft/privval"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	"github.com/tendermint/tendermint/privval"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/client/jsonrpc"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -303,7 +303,8 @@ func (suite *KeeperTestSuite) TestEditPubKeyJailNextBlock() {
 	suite.Require().False(found)
 	newSigningInfo, found = suite.app.SlashingKeeper.GetValidatorSigningInfo(suite.ctx, newConsAddr)
 	suite.Require().True(found)
-	suite.Require().Equal(oldSigningInfo.IndexOffset+1, newSigningInfo.IndexOffset)
+	// https://github.com/cosmos/cosmos-sdk/blob/44c5d17ca6d9d37fdd6adfa3169c986fbce22b8f/x/slashing/keeper/infractions.go#L20-L23
+	suite.Require().Equal(oldSigningInfo.IndexOffset, newSigningInfo.IndexOffset)
 
 	found = suite.app.StakingKeeper.HasConsensusProcess(suite.ctx, valAddr)
 	suite.Require().False(found)
@@ -793,7 +794,8 @@ func TestValidatorUpdateEvidence(t *testing.T) {
 	require.NoError(t, err)
 
 	// evidence
-	evidence := tmtypes.NewDuplicateVoteEvidence(&voteA, &voteB, commitResp.Header.Time, tmtypes.NewValidatorSet(valPowers))
+	evidence, err := tmtypes.NewDuplicateVoteEvidence(&voteA, &voteB, commitResp.Header.Time, tmtypes.NewValidatorSet(valPowers))
+	require.NoError(t, err)
 	_, err = rpc.BroadcastEvidence(evidence)
 	require.NoError(t, err)
 }

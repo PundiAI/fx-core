@@ -27,9 +27,9 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	grpc1 "github.com/gogo/protobuf/grpc"
-	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 	"google.golang.org/grpc/credentials/insecure"
@@ -190,7 +190,7 @@ func (cli *Client) QueryAccount(address string) (authtypes.AccountI, error) {
 		return nil, err
 	}
 	var account authtypes.AccountI
-	if err = newInterfaceRegistry().UnpackAny(response.GetAccount(), &account); err != nil {
+	if err = client.NewAccountCodec().UnpackAny(response.GetAccount(), &account); err != nil {
 		return nil, err
 	}
 	return account, nil
@@ -296,16 +296,6 @@ func (cli *Client) GetBlockByHeight(blockHeight int64) (*tmservice.Block, error)
 	return response.GetSdkBlock(), nil
 }
 
-func (cli *Client) GetStatusByTx(txHash string) (*tx.GetTxResponse, error) {
-	response, err := cli.ServiceClient().GetTx(cli.ctx, &tx.GetTxRequest{
-		Hash: txHash,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
 func (cli *Client) GetGasPrices() (sdk.Coins, error) {
 	if len(cli.gasPrices) > 0 {
 		return cli.gasPrices, nil
@@ -342,6 +332,22 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 		return cli.addrPrefix, nil
 	}
 	return "", errors.New("no found address prefix")
+}
+
+func (cli *Client) GetModuleAccounts() ([]authtypes.AccountI, error) {
+	response, err := cli.AuthQuery().ModuleAccounts(cli.ctx, &authtypes.QueryModuleAccountsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	accounts := make([]authtypes.AccountI, 0, len(response.Accounts))
+	for _, acc := range response.Accounts {
+		var account authtypes.AccountI
+		if err = client.NewAccountCodec().UnpackAny(acc, &account); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, account)
+	}
+	return accounts, nil
 }
 
 func (cli *Client) GetSyncing() (bool, error) {
@@ -396,19 +402,8 @@ func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	return response.GetGasInfo(), nil
 }
 
-func (cli *Client) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
-	return client.BuildTx(cli, privKey, msgs)
-}
-
-func (cli *Client) BroadcastTxOk(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
-	broadcastTx, err := cli.BroadcastTx(txRaw, mode...)
-	if err != nil {
-		return nil, err
-	}
-	if broadcastTx.Code != 0 {
-		return nil, errors.New(broadcastTx.RawLog)
-	}
-	return broadcastTx, nil
+func (cli *Client) BuildTxRaw(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit, timeout uint64, memo string) (*tx.TxRaw, error) {
+	return client.BuildTxRawWithCli(cli, privKey, msgs, gasLimit, timeout, memo)
 }
 
 func (cli *Client) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
@@ -416,7 +411,7 @@ func (cli *Client) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.
 	if err != nil {
 		return nil, err
 	}
-	defaultMode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	defaultMode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	if len(mode) > 0 {
 		defaultMode = mode[0]
 	}
@@ -439,7 +434,7 @@ func (cli *Client) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.
 }
 
 func (cli *Client) BroadcastTxBytes(txBytes []byte, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
-	defaultMode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	defaultMode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	if len(mode) > 0 {
 		defaultMode = mode[0]
 	}
@@ -468,42 +463,9 @@ func (cli *Client) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	return resp.GetTxResponse(), nil
 }
 
-func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
-	prefix, err := cli.GetAddressPrefix()
-	if err != nil {
-		return nil, err
-	}
-	from, err := bech32.ConvertAndEncode(prefix, privKey.PubKey().Address())
-	if err != nil {
-		return nil, err
-	}
-	account, err := cli.QueryAccount(from)
-	if err != nil {
-		return nil, err
-	}
-	chainId, err := cli.GetChainId()
-	if err != nil {
-		return nil, err
-	}
-	var gasPrice sdk.Coin
-	gasPrices, err := cli.GetGasPrices()
-	if err != nil {
-		return nil, err
-	}
-	if len(gasPrices) > 0 {
-		gasPrice = gasPrices[0]
-	}
-
-	txRaw, err := client.BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
-	if err != nil {
-		return nil, err
-	}
-	estimatingGas, err := cli.EstimatingGas(txRaw)
-	if err != nil {
-		return nil, err
-	}
-	if estimatingGas.GetGasUsed() > uint64(gasLimit) {
-		gasLimit = int64(estimatingGas.GetGasUsed()) + (int64(estimatingGas.GetGasUsed()) * 2 / 10)
-	}
-	return client.BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
+func (cli *Client) WaitMined(txHash string, timeout, pollInterval time.Duration) (*sdk.TxResponse, error) {
+	ctx, cancelFunc := context.WithTimeout(cli.ctx, timeout)
+	defer cancelFunc()
+	newCli := cli.WithContext(ctx)
+	return client.WaitMined(newCli, txHash, timeout, pollInterval)
 }
