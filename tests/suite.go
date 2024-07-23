@@ -107,6 +107,7 @@ func (suite *TestSuite) SetupSuite() {
 	cfg := testutil.DefaultNetworkConfig(encCfg, ibcGenesisOpt, bankGenesisOpt, govGenesisOpt, slashingGenesisOpt)
 	cfg.TimeoutCommit = timeoutCommit
 	cfg.NumValidators = numValidators
+	cfg.EnableJSONRPC = true
 	if suite.enableTMLogging {
 		cfg.EnableTMLogging = true
 	}
@@ -359,10 +360,14 @@ func (suite *TestSuite) BroadcastProposalTx2(msgs []sdk.Msg, title, summary stri
 	return txResponse, proposalId
 }
 
-func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) *sdk.TxResponse {
+func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey, toBondedVal bool) *sdk.TxResponse {
 	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
-	selfDelegate := sdk.NewCoin(suite.GetStakingDenom(), sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(100)))
-	minSelfDelegate := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1))
+	minSelfDelegate := sdkmath.NewInt(1)
+	stakingDenom := suite.GetStakingDenom()
+	selfDelegate := sdk.NewCoin(stakingDenom, minSelfDelegate)
+	if toBondedVal {
+		selfDelegate = sdk.NewCoin(stakingDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(100)))
+	}
 	description := stakingtypes.Description{
 		Moniker:         "val2",
 		Identity:        "",
@@ -467,6 +472,7 @@ func (suite *TestSuite) CheckUndelegate(delegatorAddr sdk.AccAddress, validatorA
 	suite.NoError(err)
 	suite.Equal(len(response.Unbond.Entries), len(entries))
 	for i, entry := range response.Unbond.Entries {
+		entry.UnbondingId = 0
 		suite.Equal(entry.String(), entries[i].String())
 	}
 }

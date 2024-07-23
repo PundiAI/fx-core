@@ -135,10 +135,15 @@ func (c *Contract) handlerTransferShares(
 	// withdraw reward
 	distrKeeper := c.distrKeeper.(distrkeeper.Keeper)
 	impl := distrkeeper.NewMsgServerImpl(distrKeeper)
-	if _, err := impl.WithdrawDelegatorReward(sdk.WrapSDKContext(ctx), &distrtypes.MsgWithdrawDelegatorReward{
+	withdrawRewardRes, err := impl.WithdrawDelegatorReward(sdk.WrapSDKContext(ctx), &distrtypes.MsgWithdrawDelegatorReward{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: valAddr.String(),
-	}); err != nil {
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if err = c.AddLog(evm, WithdrawEvent, []common.Hash{from.Hash()}, valAddr.String(), withdrawRewardRes.Amount.AmountOf(evmDenom).BigInt()); err != nil {
 		return nil, nil, err
 	}
 
@@ -149,10 +154,15 @@ func (c *Contract) handlerTransferShares(
 		// if address to not delegate before, increase validator period
 		_ = c.distrKeeper.IncrementValidatorPeriod(ctx, validator)
 	} else {
-		if _, err := impl.WithdrawDelegatorReward(sdk.WrapSDKContext(ctx), &distrtypes.MsgWithdrawDelegatorReward{
+		toWithdrawRewardsRes, err := impl.WithdrawDelegatorReward(sdk.WrapSDKContext(ctx), &distrtypes.MsgWithdrawDelegatorReward{
 			DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
 			ValidatorAddress: valAddr.String(),
-		}); err != nil {
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if err = c.AddLog(evm, WithdrawEvent, []common.Hash{to.Hash()}, valAddr.String(), toWithdrawRewardsRes.Amount.AmountOf(evmDenom).BigInt()); err != nil {
 			return nil, nil, err
 		}
 	}

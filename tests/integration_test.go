@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"testing"
@@ -109,7 +110,7 @@ func (suite *IntegrationTest) GetCrossChainByName(chainName string) CrosschainTe
 			return c
 		}
 	}
-	panic("chain not found")
+	panic(fmt.Sprintf("chain not found %s", chainName))
 }
 
 type IntegrationMultiNodeTest struct {
