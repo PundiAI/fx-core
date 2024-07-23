@@ -1,9 +1,8 @@
 package testutil_test
 
 import (
-	"encoding/json"
+	"context"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -48,8 +47,7 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 func (suite *IntegrationTestSuite) TearDownSuite() {
 	suite.T().Log("tearing down integration test suite")
 
-	// This is important and must be called to ensure other tests can create
-	// a network!
+	// This is important and must be called to ensure other tests can create a network!
 	suite.network.Cleanup()
 }
 
@@ -72,19 +70,8 @@ func (suite *IntegrationTestSuite) TestValidatorInfo() {
 
 	suite.Equal(len(suite.network.Config.Mnemonics), suite.network.Config.NumValidators)
 	for i := 0; i < suite.network.Config.NumValidators; i++ {
-
 		validator := suite.network.Validators[i]
-
 		mnemonic := suite.network.Config.Mnemonics[i]
-		keySeedFileName := filepath.Join(validator.ClientCtx.KeyringDir, "key_seed.json")
-		if _, err := os.Stat(keySeedFileName); err == nil {
-			file, err := os.ReadFile(keySeedFileName)
-			suite.NoError(err)
-
-			var data map[string]string
-			suite.NoError(json.Unmarshal(file, &data))
-			suite.Equal(mnemonic, data["secret"])
-		}
 
 		key, err := validator.ClientCtx.Keyring.Key(validator.Ctx.Config.Moniker)
 		suite.NoError(err)
@@ -99,5 +86,20 @@ func (suite *IntegrationTestSuite) TestValidatorInfo() {
 		privKey, err := helpers.PrivKeyFromMnemonic(mnemonic, hd.Secp256k1Type, 0, 0)
 		suite.NoError(err)
 		suite.Equal(validator.Address.Bytes(), privKey.PubKey().Address().Bytes())
+	}
+}
+
+func (suite *IntegrationTestSuite) TestValidatorsPower() {
+	for _, val := range suite.network.Validators {
+		result, err := val.RPCClient.Validators(context.Background(), nil, nil, nil)
+		suite.NoError(err)
+		suite.Equal(result.Total, 4)
+		suite.Equal(len(result.Validators), result.Total)
+		var totalProposerPriority int64
+		for _, validator := range result.Validators {
+			totalProposerPriority += validator.ProposerPriority
+			suite.Equal(validator.VotingPower, int64(100))
+		}
+		suite.Equal(totalProposerPriority, int64(0))
 	}
 }

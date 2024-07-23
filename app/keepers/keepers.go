@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -12,9 +13,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
@@ -38,16 +40,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	"github.com/ethereum/go-ethereum/core/vm"
+	ethparams "github.com/ethereum/go-ethereum/params"
 	srvflags "github.com/evmos/ethermint/server/flags"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	v0evmtypes "github.com/evmos/ethermint/x/evm/migrations/v0/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -60,6 +65,7 @@ import (
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
 	"github.com/functionx/fx-core/v7/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	crosschainprecompile "github.com/functionx/fx-core/v7/x/crosschain/precompile"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20"
 	erc20keeper "github.com/functionx/fx-core/v7/x/erc20/keeper"
@@ -80,6 +86,7 @@ import (
 	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
 	fxslashingkeeper "github.com/functionx/fx-core/v7/x/slashing/keeper"
 	fxstakingkeeper "github.com/functionx/fx-core/v7/x/staking/keeper"
+	stakingprecompile "github.com/functionx/fx-core/v7/x/staking/precompile"
 	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -96,26 +103,24 @@ type CrossChainKeepers struct {
 }
 
 type AppKeepers struct {
-	legacyAmino *codec.LegacyAmino
-	appCodec    codec.Codec
-
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
 	tkeys   map[string]*storetypes.TransientStoreKey
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper    authkeeper.AccountKeeper
-	BankKeeper       bankkeeper.Keeper
-	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    fxstakingkeeper.Keeper
-	SlashingKeeper   fxslashingkeeper.Keeper
-	MintKeeper       mintkeeper.Keeper
-	DistrKeeper      distrkeeper.Keeper
-	GovKeeper        fxgovkeeper.Keeper
-	CrisisKeeper     crisiskeeper.Keeper
-	UpgradeKeeper    upgradekeeper.Keeper
-	ParamsKeeper     paramskeeper.Keeper
+	AccountKeeper         authkeeper.AccountKeeper
+	BankKeeper            bankkeeper.Keeper
+	CapabilityKeeper      *capabilitykeeper.Keeper
+	StakingKeeper         *fxstakingkeeper.Keeper
+	SlashingKeeper        fxslashingkeeper.Keeper
+	MintKeeper            mintkeeper.Keeper
+	DistrKeeper           distrkeeper.Keeper
+	GovKeeper             *fxgovkeeper.Keeper
+	CrisisKeeper          *crisiskeeper.Keeper
+	UpgradeKeeper         *upgradekeeper.Keeper
+	ParamsKeeper          paramskeeper.Keeper
+	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCKeeper         *ibckeeper.Keeper
@@ -149,10 +154,7 @@ func NewAppKeeper(
 	invCheckPeriod uint,
 	appOpts servertypes.AppOptions,
 ) *AppKeepers {
-	appKeepers := &AppKeepers{
-		legacyAmino: legacyAmino,
-		appCodec:    appCodec,
-	}
+	appKeepers := &AppKeepers{}
 
 	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
 	appKeepers.generateKeys()
@@ -165,9 +167,12 @@ func NewAppKeeper(
 	)
 
 	// set the BaseApp's parameter store
-	bApp.SetParamStore(
-		appKeepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
+	appKeepers.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[consensusparamtypes.StoreKey],
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	bApp.SetParamStore(&appKeepers.ConsensusParamsKeeper)
 
 	// add capability keeper and ScopeToModule for ibc module
 	appKeepers.CapabilityKeeper = capabilitykeeper.NewKeeper(
@@ -177,17 +182,17 @@ func NewAppKeeper(
 	)
 
 	// grant capabilities for the ibc and ibc-transfer modules
-	appKeepers.ScopedIBCKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	appKeepers.ScopedIBCKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	appKeepers.ScopedTransferKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	appKeepers.CapabilityKeeper.Seal()
 
 	appKeepers.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
 		appKeepers.keys[authtypes.StoreKey],
-		appKeepers.GetSubspace(authtypes.ModuleName),
 		authtypes.ProtoBaseAccount,
 		maccPerms,
 		fxtypes.AddressPrefix,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
@@ -198,70 +203,82 @@ func NewAppKeeper(
 		appCodec,
 		appKeepers.keys[banktypes.StoreKey],
 		appKeepers.AccountKeeper,
-		appKeepers.GetSubspace(banktypes.ModuleName),
 		blockedAddress,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	appKeepers.StakingKeeper = fxstakingkeeper.NewKeeper(stakingkeeper.NewKeeper(
-		appCodec,
+	appKeepers.FeeGrantKeeper = appKeepers.FeeGrantKeeper.SetBankKeeper(appKeepers.BankKeeper)
+	appKeepers.StakingKeeper = fxstakingkeeper.NewKeeper(
+		stakingkeeper.NewKeeper(
+			appCodec,
+			appKeepers.keys[stakingtypes.StoreKey],
+			appKeepers.AccountKeeper,
+			appKeepers.BankKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		),
 		appKeepers.keys[stakingtypes.StoreKey],
+		appCodec,
 		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		appKeepers.GetSubspace(stakingtypes.ModuleName),
-	), appKeepers.keys[stakingtypes.StoreKey], appCodec, appKeepers.AccountKeeper)
+	)
 
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[minttypes.StoreKey],
-		appKeepers.GetSubspace(minttypes.ModuleName),
-		&appKeepers.StakingKeeper,
+		appKeepers.StakingKeeper,
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		authtypes.FeeCollectorName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[distrtypes.StoreKey],
-		appKeepers.GetSubspace(distrtypes.ModuleName),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
-		&appKeepers.StakingKeeper,
+		appKeepers.StakingKeeper,
 		authtypes.FeeCollectorName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.SlashingKeeper = fxslashingkeeper.NewKeeper(
 		slashingkeeper.NewKeeper(
 			appCodec,
+			legacyAmino,
 			appKeepers.keys[slashingtypes.StoreKey],
-			&appKeepers.StakingKeeper,
-			appKeepers.GetSubspace(slashingtypes.ModuleName),
-		), appKeepers.keys[slashingtypes.StoreKey],
+			appKeepers.StakingKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		),
+		appKeepers.keys[slashingtypes.StoreKey],
 	)
-	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetSlashingKeeper(appKeepers.SlashingKeeper)
+	appKeepers.StakingKeeper.SetSlashingKeeper(appKeepers.SlashingKeeper)
 
 	appKeepers.CrisisKeeper = crisiskeeper.NewKeeper(
-		appKeepers.GetSubspace(crisistypes.ModuleName),
+		appCodec,
+		appKeepers.keys[crisistypes.StoreKey],
 		invCheckPeriod,
 		appKeepers.BankKeeper,
 		authtypes.FeeCollectorName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// register the staking hooks
 	// NOTE: appKeepers.StakingKeeper above is passed by reference, so that it will contain these hooks
-	appKeepers.StakingKeeper.Keeper = *appKeepers.StakingKeeper.Keeper.SetHooks(
+	appKeepers.StakingKeeper.Keeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			appKeepers.DistrKeeper.Hooks(),
 			appKeepers.SlashingKeeper.Hooks(),
 		),
 	)
 
-	appKeepers.AuthzKeeper = fxauthzkeeper.NewKeeper(authzkeeper.NewKeeper(
+	authzKeeper := authzkeeper.NewKeeper(
 		appKeepers.keys[authzkeeper.StoreKey],
 		appCodec,
 		bApp.MsgServiceRouter(),
 		appKeepers.AccountKeeper,
-	), appKeepers.keys[authzkeeper.StoreKey], appCodec)
+	)
+	authzKeeper = authzKeeper.SetBankKeeper(appKeepers.BankKeeper)
+	appKeepers.AuthzKeeper = fxauthzkeeper.NewKeeper(authzKeeper, appKeepers.keys[authzkeeper.StoreKey], appCodec)
 
 	// grant privileges
-	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetAuthzKeeper(appKeepers.AuthzKeeper)
+	appKeepers.StakingKeeper.SetAuthzKeeper(appKeepers.AuthzKeeper)
 
 	appKeepers.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
@@ -273,9 +290,9 @@ func NewAppKeeper(
 	)
 	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
-		appKeepers.keys[ibchost.StoreKey],
-		appKeepers.GetSubspace(ibchost.ModuleName),
-		&appKeepers.StakingKeeper,
+		appKeepers.keys[ibcexported.StoreKey],
+		appKeepers.GetSubspace(ibcexported.ModuleName),
+		appKeepers.StakingKeeper,
 		appKeepers.UpgradeKeeper,
 		appKeepers.ScopedIBCKeeper,
 	)
@@ -309,6 +326,19 @@ func NewAppKeeper(
 		appKeepers.tkeys[feemarkettypes.TransientKey],
 		appKeepers.GetSubspace(feemarkettypes.ModuleName),
 	)
+	allKeys := make(map[string]storetypes.StoreKey, len(appKeepers.keys)+len(appKeepers.tkeys)+len(appKeepers.memKeys))
+	for k, v := range appKeepers.keys {
+		allKeys[k] = v
+	}
+	for k, v := range appKeepers.tkeys {
+		allKeys[k] = v
+	}
+	for k, v := range appKeepers.memKeys {
+		allKeys[k] = v
+	}
+
+	// cross chain precompile
+	precompileRouter := crosschainprecompile.NewRouter()
 	appKeepers.EvmKeeper = fxevmkeeper.NewKeeper(
 		evmkeeper.NewKeeper(
 			appCodec,
@@ -317,12 +347,22 @@ func NewAppKeeper(
 			authtypes.NewModuleAddress(govtypes.ModuleName),
 			appKeepers.AccountKeeper,
 			appKeepers.BankKeeper,
-			&appKeepers.StakingKeeper,
+			appKeepers.StakingKeeper,
 			appKeepers.FeeMarketKeeper,
 			cast.ToString(appOpts.Get(srvflags.EVMTracer)),
 			appKeepers.GetSubspace(evmtypes.ModuleName),
+			[]evmkeeper.CustomContractFn{
+				func(_ sdk.Context, rules ethparams.Rules) vm.PrecompiledContract {
+					return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, precompileRouter)
+				},
+				func(_ sdk.Context, rules ethparams.Rules) vm.PrecompiledContract {
+					return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, appKeepers.EvmKeeper)
+				},
+			},
+			allKeys,
 		),
 		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
 	)
 
 	appKeepers.Erc20Keeper = erc20keeper.NewKeeper(
@@ -463,44 +503,50 @@ func NewAppKeeper(
 
 	appKeepers.CrosschainRouterKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
+	// cross chain precompile
+	precompileRouter.
+		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
+		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
+		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
+		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
+		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
+		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
+		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper).
+		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
+
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(appKeepers.ParamsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(appKeepers.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(appKeepers.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(appKeepers.IBCKeeper.ClientKeeper)).
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrosschainProposalHandler(appKeepers.CrosschainRouterKeeper)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(appKeepers.Erc20Keeper))
 
+	// provider depends on gov, so gov must be registered first
 	govConfig := fxgovtypes.DefaultConfig()
+	// set the MaxMetadataLen for proposals to the same value as it was pre-sdk v0.47.x
+	govConfig.MaxMetadataLen = 10200
 	_govKeeper := govkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[govtypes.StoreKey],
-		appKeepers.GetSubspace(govtypes.ModuleName),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.StakingKeeper,
-		govRouter,
 		bApp.MsgServiceRouter(),
 		govConfig.Config,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	_govKeeper = *_govKeeper.SetHooks(
-		govtypes.NewMultiGovHooks(
-		// register the governance hooks
-		),
-	)
+	_govKeeper.SetLegacyRouter(govRouter)
 
 	appKeepers.GovKeeper = fxgovkeeper.NewKeeper(
 		appKeepers.BankKeeper,
 		appKeepers.StakingKeeper,
-		appKeepers.keys[govtypes.StoreKey],
+		appKeepers.keys,
 		_govKeeper,
-		govConfig,
 		appCodec,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	initGovStoreSpace(appKeepers)
 
 	ibcTransferRouter := fxibctransfertypes.NewRouter().
 		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper).
@@ -535,7 +581,7 @@ func NewAppKeeper(
 	appKeepers.MigrateKeeper = appKeepers.MigrateKeeper.SetMigrateI(
 		migratekeeper.NewBankMigrate(appKeepers.BankKeeper),
 		migratekeeper.NewDistrStakingMigrate(appKeepers.keys[distrtypes.StoreKey], appKeepers.keys[stakingtypes.StoreKey], appKeepers.StakingKeeper),
-		migratekeeper.NewGovMigrate(appKeepers.keys[govtypes.StoreKey], appKeepers.GovKeeper),
+		migratekeeper.NewGovMigrate(appKeepers.keys[govtypes.StoreKey], appKeepers.GovKeeper.Keeper),
 	)
 
 	appKeepers.EvidenceKeeper = *evidencekeeper.NewKeeper(
@@ -544,9 +590,6 @@ func NewAppKeeper(
 		appKeepers.StakingKeeper,
 		appKeepers.SlashingKeeper,
 	)
-
-	// set evm precompiled contracts
-	appKeepers.EvmPrecompiled()
 
 	return appKeepers
 }
@@ -557,49 +600,23 @@ func (appKeepers *AppKeepers) GetSubspace(moduleName string) paramstypes.Subspac
 	return subspace
 }
 
-// LegacyAmino NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (appKeepers *AppKeepers) LegacyAmino() *codec.LegacyAmino {
-	return appKeepers.legacyAmino
-}
-
-// AppCodec NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (appKeepers *AppKeepers) AppCodec() codec.Codec {
-	return appKeepers.appCodec
-}
-
 // initParamsKeeper init params keeper and its subspaces
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	paramsKeeper.Subspace(authtypes.ModuleName)
-	paramsKeeper.Subspace(banktypes.ModuleName)
-	paramsKeeper.Subspace(stakingtypes.ModuleName)
-	paramsKeeper.Subspace(minttypes.ModuleName)
-	paramsKeeper.Subspace(distrtypes.ModuleName)
-	paramsKeeper.Subspace(slashingtypes.ModuleName)
-	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
-	paramsKeeper.Subspace(crisistypes.ModuleName)
+	paramsKeeper.Subspace(authtypes.ModuleName).WithKeyTable(authtypes.ParamKeyTable())         // nolint:staticcheck // SA1019
+	paramsKeeper.Subspace(banktypes.ModuleName).WithKeyTable(banktypes.ParamKeyTable())         // nolint:staticcheck // SA1019
+	paramsKeeper.Subspace(stakingtypes.ModuleName).WithKeyTable(stakingtypes.ParamKeyTable())   // nolint:staticcheck // SA1019
+	paramsKeeper.Subspace(minttypes.ModuleName).WithKeyTable(minttypes.ParamKeyTable())         // nolint:staticcheck // SA1019
+	paramsKeeper.Subspace(distrtypes.ModuleName).WithKeyTable(distrtypes.ParamKeyTable())       // nolint:staticcheck // SA1019
+	paramsKeeper.Subspace(slashingtypes.ModuleName).WithKeyTable(slashingtypes.ParamKeyTable()) // nolint:staticcheck // SA1019
+	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())              // nolint:staticcheck // SA1019
+	paramsKeeper.Subspace(crisistypes.ModuleName).WithKeyTable(crisistypes.ParamKeyTable())     // nolint:staticcheck // SA1019
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(ibchost.ModuleName)
+	paramsKeeper.Subspace(ibcexported.ModuleName)
 
-	paramsKeeper.Subspace(bsctypes.ModuleName)
-	paramsKeeper.Subspace(polygontypes.ModuleName)
-	paramsKeeper.Subspace(avalanchetypes.ModuleName)
-	paramsKeeper.Subspace(ethtypes.ModuleName)
-	paramsKeeper.Subspace(trontypes.ModuleName)
-
-	// ethermint subspaces
-	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable()) // nolint: staticcheck
+	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(v0evmtypes.ParamKeyTable()) // nolint: staticcheck
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
-	paramsKeeper.Subspace(erc20types.ModuleName)
 
 	return paramsKeeper
-}
-
-func initGovStoreSpace(keepers *AppKeepers) {
-	for space, kvStore := range keepers.GetKVStoreKey() {
-		keepers.GovKeeper.StoreSpace(space, kvStore)
-	}
 }

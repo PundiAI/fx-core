@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 				balance := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
 				cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 
-				acc := suite.app.EvmKeeper.GetAccountWithoutBalance(suite.ctx, erc20)
+				acc := suite.app.EvmKeeper.GetAccount(suite.ctx, erc20)
 				if tc.selfdestructed {
 					suite.Require().Nil(acc, "expected contract to be destroyed")
 				} else {
@@ -306,7 +306,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 				balance := suite.BalanceOf(contractAddr, suite.signer.Address())
 				cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, receiver, "test")
 
-				acc := suite.app.EvmKeeper.GetAccountWithoutBalance(suite.ctx, contractAddr)
+				acc := suite.app.EvmKeeper.GetAccount(suite.ctx, contractAddr)
 				if tc.selfdestructed {
 					suite.Require().Nil(acc, "expected contract to be destroyed")
 				} else {
@@ -870,7 +870,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 			},
 			expPass: false,
 			expErr: func(args []string) string {
-				return fmt.Sprintf("%s is smaller than %s: insufficient funds", args[0], args[1])
+				return fmt.Sprintf("spendable balance %s is smaller than %s: insufficient funds", args[0], args[1])
 			},
 		},
 		{
@@ -964,11 +964,11 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				fxTarget := fxtypes.ParseFxTarget("erc20") // or empty
 
-				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], sdkmath.NewInt(0)).String(), originCoin.String()}
+				return originCoin, expCoin, fxTarget, []string{"", originCoin.String()}
 			},
 			expPass: false,
 			expErr: func(args []string) string {
-				return fmt.Sprintf("%s is smaller than %s: insufficient funds", args[0], args[1])
+				return fmt.Sprintf("spendable balance %s is smaller than %s: insufficient funds", args[0], args[1])
 			},
 		},
 		{

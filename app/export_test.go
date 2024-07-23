@@ -8,6 +8,12 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	dbm "github.com/cometbft/cometbft-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,11 +21,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil"
@@ -62,9 +63,9 @@ func GetGenesisDocFromAppData(t *testing.T) *types.GenesisDoc {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 	myApp := app.New(logger, db,
 		nil, true, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
-		appEncodingCfg, app.EmptyAppOptions{},
+		appEncodingCfg, app.EmptyAppOptions{}, baseapp.SetChainID(fxtypes.ChainId()),
 	)
-	exportedApp, err := myApp.ExportAppStateAndValidators(false, []string{})
+	exportedApp, err := myApp.ExportAppStateAndValidators(false, []string{}, []string{})
 	assert.NoError(t, err)
 	genesisDoc := &types.GenesisDoc{
 		GenesisTime:     time.Now(),

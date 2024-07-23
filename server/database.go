@@ -5,6 +5,11 @@ import (
 	"path/filepath"
 
 	cmtdbm "github.com/cometbft/cometbft-db"
+	tmcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/libs/log"
+	sm "github.com/cometbft/cometbft/state"
+	"github.com/cometbft/cometbft/store"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -13,19 +18,13 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	tmcfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/log"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/store"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 )
 
 type Database struct {
 	genesisFile string
 	blockStore  *store.BlockStore
 	stateStore  sm.Store
-	appDB       dbm.DB
+	appDB       cmtdbm.DB
 	appStore    *rootmulti.Store
 	storeKeys   map[string]*storetypes.KVStoreKey
 	codec       codec.Codec
@@ -46,7 +45,7 @@ func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec, modules ...string) (*Databa
 	}
 	stateStore := sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: false})
 
-	appDB, err := dbm.NewDB(AppDBName, dbm.BackendType(cfg.DBBackend), dataDir)
+	appDB, err := cmtdbm.NewDB(AppDBName, cmtdbm.BackendType(cfg.DBBackend), dataDir)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +69,7 @@ func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec, modules ...string) (*Databa
 	}, err
 }
 
-func (d *Database) AppDB() dbm.DB {
+func (d *Database) AppDB() cmtdbm.DB {
 	return d.appDB
 }
 

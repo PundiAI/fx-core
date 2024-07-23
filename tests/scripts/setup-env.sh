@@ -152,16 +152,16 @@ function gen_cosmos_genesis() {
   echo "$TEST_MNEMONIC" | $DAEMON keys add "$FROM" --recover --home "$NODE_HOME"
   genesis_amount="$(to_18 "10^6")${STAKING_DENOM}"
   [[ -n "$MINT_DENOM" && "$STAKING_DENOM" != "$MINT_DENOM" ]] && genesis_amount="$genesis_amount,$(to_18 "10^6")${MINT_DENOM}"
-  $DAEMON add-genesis-account "$FROM" "$genesis_amount" --home "$NODE_HOME"
+  $DAEMON genesis add-genesis-account "$FROM" "$genesis_amount" --home "$NODE_HOME"
 
-  set +e && supply="$($DAEMON validate-genesis --home "$NODE_HOME" 2>&1 | grep "expected .*$STAKING_DENOM" | cut -d " " -f 14)" && set -e
+  set +e && supply="$($DAEMON genesis validate-genesis --home "$NODE_HOME" 2>&1 | grep "expected .*$STAKING_DENOM" | cut -d " " -f 14)" && set -e
   if [[ -n "$supply" ]]; then
     json_processor "$NODE_HOME/config/genesis.json" ".app_state.bank.supply[0].amount = \"${supply%%"$STAKING_DENOM"}\""
   fi
 
   json_processor "$NODE_HOME/config/genesis.json" '.app_state.gov.voting_params.voting_period = "5s"'
 
-  $DAEMON gentx "$FROM" "$(to_18 100)${STAKING_DENOM}" --chain-id="${CHAIN_ID}" \
+  $DAEMON genesis gentx "$FROM" "$(to_18 100)${STAKING_DENOM}" --chain-id="${CHAIN_ID}" \
     --moniker="test-validator" \
     --commission-max-change-rate="0.01" \
     --commission-max-rate="0.2" \
@@ -169,7 +169,7 @@ function gen_cosmos_genesis() {
     --gas="20000000" \
     --gas-prices="" \
     --home "$NODE_HOME"
-  $DAEMON collect-gentxs --home "$NODE_HOME"
+  $DAEMON genesis collect-gentxs --home "$NODE_HOME"
 }
 
 function node_catching_up() {

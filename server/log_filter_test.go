@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"testing"
 
+	tmlog "github.com/cometbft/cometbft/libs/log"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
-	tmlog "github.com/tendermint/tendermint/libs/log"
 
 	fxserver "github.com/functionx/fx-core/v7/server"
 )
@@ -72,7 +72,7 @@ func TestFxZeroLogWrapper(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
 			logger := zerolog.New(buf).Level(testcase.level).With().Logger()
-			logWrapper := fxserver.NewFxZeroLogWrapper(logger, testcase.logTypes)
+			logWrapper := fxserver.NewFxZeroLogWrapper(&logger, testcase.logTypes)
 			testcase.call(logWrapper)
 			assert.Equal(t, testcase.output, buf.String())
 		})

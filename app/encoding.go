@@ -2,15 +2,13 @@ package app
 
 import (
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	ethermintcodec "github.com/evmos/ethermint/crypto/codec"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	etherminttypes "github.com/evmos/ethermint/types"
@@ -45,13 +43,12 @@ func MakeEncodingConfig() EncodingConfig {
 
 	registerCryptoEthSecp256k1(encodingConfig.Amino)
 
-	govv1beta1.ModuleCdc = codec.NewAminoCodec(encodingConfig.Amino)
-	govv1.ModuleCdc = codec.NewAminoCodec(encodingConfig.Amino)
+	govcodec.Amino = encodingConfig.Amino
+	govcodec.ModuleCdc = codec.NewAminoCodec(encodingConfig.Amino)
 
 	// NOTE: update SDK's amino codec to include the ethsecp256k1 keys.
 	// DO NOT REMOVE unless deprecated on the SDK.
 	legacy.Cdc = encodingConfig.Amino
-	keys.KeysCdc = encodingConfig.Amino
 	return encodingConfig
 }
 

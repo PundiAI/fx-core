@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmlog "github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/rs/zerolog/log"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	tmcfg "github.com/tendermint/tendermint/config"
 
 	fxcfg "github.com/functionx/fx-core/v7/server/config"
 )
@@ -31,11 +31,12 @@ func Test_updateCfgCmd(t *testing.T) {
 	publicDir, err := os.ReadDir("../public")
 	assert.NoError(t, err)
 	for _, entry := range publicDir {
-		appConfig, err := os.ReadFile(fmt.Sprintf("../public/%s/app.toml", entry.Name()))
+		dir := filepath.Join("../public", entry.Name())
+		appConfig, err := os.ReadFile(filepath.Join(dir, "app.toml"))
 		assert.NoError(t, err)
 		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/app.toml"), appConfig, 0o600))
 
-		tmConfig, err := os.ReadFile(fmt.Sprintf("../public/%s/config.toml", entry.Name()))
+		tmConfig, err := os.ReadFile(filepath.Join(dir, "config.toml"))
 		assert.NoError(t, err)
 		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/config.toml"), tmConfig, 0o600))
 
@@ -44,11 +45,15 @@ func Test_updateCfgCmd(t *testing.T) {
 
 		appConfigAfter, err := os.ReadFile(filepath.Join(tempDir, "config/app.toml"))
 		assert.NoError(t, err)
-		assert.Equal(t, string(appConfig), string(appConfigAfter))
+		if !assert.Equal(t, string(appConfig), string(appConfigAfter)) {
+			assert.NoError(t, os.WriteFile(filepath.Join(dir, "app.toml"), appConfigAfter, 0o600))
+		}
 
 		tmConfigAfter, err := os.ReadFile(filepath.Join(tempDir, "config/config.toml"))
 		assert.NoError(t, err)
-		assert.Equal(t, string(tmConfig), string(tmConfigAfter))
+		if !assert.Equal(t, string(tmConfig), string(tmConfigAfter)) {
+			assert.NoError(t, os.WriteFile(filepath.Join(dir, "config.toml"), tmConfigAfter, 0o600))
+		}
 	}
 }
 
@@ -57,7 +62,7 @@ func TestPublicTmConfig(t *testing.T) {
 	defer assert.NoError(t, os.RemoveAll(tempDir))
 	assert.NoError(t, os.MkdirAll(tempDir, 0o700))
 
-	serverCtx := server.NewContext(viper.New(), fxcfg.DefaultTendermintConfig(), server.ZeroLogWrapper{Logger: log.Logger})
+	serverCtx := server.NewContext(viper.New(), fxcfg.DefaultTendermintConfig(), tmlog.NewNopLogger())
 	fileName := fmt.Sprintf("%s/config.toml", t.TempDir())
 	serverCtx.Config.BaseConfig.Moniker = "your-moniker"
 	serverCtx.Config.Consensus.TimeoutCommit = 5 * time.Second

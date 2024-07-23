@@ -11,7 +11,6 @@ import (
 	"github.com/functionx/fx-core/v7/x/evm/legacy"
 )
 
-// ModuleCdc is the codec for the module
 var ModuleCdc = codec.NewAminoCodec(codec.NewLegacyAmino())
 
 func init() {
@@ -31,7 +30,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 
 	registry.RegisterImplementations(
 		(*govv1betal.Content)(nil),
-		&legacy.InitEvmParamsProposal{}, // nolint: staticcheck
+		&legacy.InitEvmParamsProposal{}, // nolint:staticcheck
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

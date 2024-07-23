@@ -3,10 +3,17 @@
 pragma solidity ^0.8.0;
 
 interface IStaking {
+    // Deprecated: use delegateV2
     function delegate(
         string memory _val
     ) external payable returns (uint256 _shares, uint256 _reward);
 
+    function delegateV2(
+        string memory _val,
+        uint256 _amount
+    ) external returns (bool _result);
+
+    // Deprecated: use undelegateV2
     function undelegate(
         string memory _val,
         uint256 _shares
@@ -14,6 +21,12 @@ interface IStaking {
         external
         returns (uint256 _amount, uint256 _reward, uint256 _completionTime);
 
+    function undelegateV2(
+        string memory _val,
+        uint256 _amount
+    ) external returns (bool _result);
+
+    // Deprecated: use redelegateV2
     function redelegate(
         string memory _valSrc,
         string memory _valDst,
@@ -21,6 +34,12 @@ interface IStaking {
     )
         external
         returns (uint256 _amount, uint256 _reward, uint256 _completionTime);
+
+    function redelegateV2(
+        string memory _valSrc,
+        string memory _valDst,
+        uint256 _amount
+    ) external returns (bool _result);
 
     function withdraw(string memory _val) external returns (uint256 _reward);
 
@@ -66,10 +85,23 @@ interface IStaking {
         uint256 shares
     );
 
+    event DelegateV2(
+        address indexed delegator,
+        string validator,
+        uint256 amount
+    );
+
     event Undelegate(
         address indexed sender,
         string validator,
         uint256 shares,
+        uint256 amount,
+        uint256 completionTime
+    );
+
+    event UndelegateV2(
+        address indexed sender,
+        string validator,
         uint256 amount,
         uint256 completionTime
     );
@@ -79,6 +111,14 @@ interface IStaking {
         string valSrc,
         string valDst,
         uint256 shares,
+        uint256 amount,
+        uint256 completionTime
+    );
+
+    event RedelegateV2(
+        address indexed sender,
+        string valSrc,
+        string valDst,
         uint256 amount,
         uint256 completionTime
     );

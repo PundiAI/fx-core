@@ -10,6 +10,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -17,9 +20,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -1493,10 +1493,10 @@ func (suite *KeeperTestSuite) checkObservationState(ctx context.Context, expect 
 		}
 		suite.Require().False(foundObservation, "found multiple observation event")
 		for _, attr := range event.Attributes {
-			if string(attr.Key) != types.AttributeKeyStateSuccess {
+			if attr.Key != types.AttributeKeyStateSuccess {
 				continue
 			}
-			suite.Require().EqualValues(fmt.Sprintf("%v", expect), string(attr.Value))
+			suite.Require().EqualValues(fmt.Sprintf("%v", expect), attr.Value)
 			foundObservation = true
 			break
 		}

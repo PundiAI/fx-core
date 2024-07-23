@@ -10,9 +10,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
-	tmcfg "github.com/tendermint/tendermint/config"
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil"

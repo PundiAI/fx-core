@@ -2,8 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	ibctesting "github.com/functionx/fx-core/v7/x/ibc/testing"
@@ -20,17 +19,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"success",
 			func() {},
-			true,
-		},
-		{
-			"bank send enabled for denom",
-			func() {
-				suite.GetApp(suite.chainA.App).BankKeeper.SetParams(suite.chainA.GetContext(),
-					banktypes.Params{
-						SendEnabled: []*banktypes.SendEnabled{{Denom: fxtypes.DefaultDenom, Enabled: true}},
-					},
-				)
-			},
 			true,
 		},
 		{
@@ -55,17 +43,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			"sender is a blocked address",
 			func() {
 				msg.Sender = suite.GetApp(suite.chainA.App).AccountKeeper.GetModuleAddress(types.ModuleName).String()
-			},
-			false,
-		},
-		{
-			"bank send disabled for denom",
-			func() {
-				suite.GetApp(suite.chainA.App).BankKeeper.SetParams(suite.chainA.GetContext(),
-					banktypes.Params{
-						SendEnabled: []*banktypes.SendEnabled{{Denom: fxtypes.DefaultDenom, Enabled: false}},
-					},
-				)
 			},
 			false,
 		},

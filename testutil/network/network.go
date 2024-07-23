@@ -13,6 +13,12 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	dbm "github.com/cometbft/cometbft-db"
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmflags "github.com/cometbft/cometbft/libs/cli/flags"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/node"
+	tmclient "github.com/cometbft/cometbft/rpc/client"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -31,18 +37,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/evmos/ethermint/server/config"
-	ethermint "github.com/evmos/ethermint/types"
 	"github.com/spf13/cobra"
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/node"
-	tmclient "github.com/tendermint/tendermint/rpc/client"
-	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
 	fxcfg "github.com/functionx/fx-core/v7/server/config"
-	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 // package-wide network lock to only allow one test network at a time
@@ -56,14 +54,12 @@ type AppConstructor = func(appConfig *fxcfg.Config, ctx *server.Context) servert
 // in-process local testing network.
 type Config struct {
 	Codec                codec.Codec
-	LegacyAmino          *codec.LegacyAmino
 	InterfaceRegistry    codectypes.InterfaceRegistry
 	TxConfig             client.TxConfig
 	AccountRetriever     client.AccountRetriever
 	AppConstructor       AppConstructor             // the ABCI application constructor
 	GenesisState         map[string]json.RawMessage // custom gensis state to provide
 	TimeoutCommit        time.Duration              // the consensus commitment timeout
-	AccountTokens        sdkmath.Int                // the amount of unique validator tokens (e.g. 1000node0)
 	StakingTokens        sdkmath.Int                // the amount of tokens each validator has available to stake
 	BondedTokens         sdkmath.Int                // the amount of tokens each validator stakes
 	NumValidators        int                        // the total number of validators to create and bond
@@ -76,11 +72,12 @@ type Config struct {
 	JSONRPCAddress       string                     // JSON-RPC listen address (including port)
 	APIAddress           string                     // REST API listen address (including port)
 	GRPCAddress          string                     // GRPC server listen address (including port)
+	EnableJSONRPC        bool                       // enable JSON-RPC service
+	EnableAPI            bool                       // enable REST API service
 	EnableTMLogging      bool                       // enable Tendermint logging to STDOUT
 	CleanupDir           bool                       // remove base temporary directory during cleanup
 	SigningAlgo          string                     // signing algorithm for keys
 	KeyringOptions       []keyring.Option           // keyring configuration options
-	PrintMnemonic        bool                       // print the mnemonic of first validator as log output for testing
 	BypassMinFeeMsgTypes []string                   // bypass minimum fee check for the given message types
 }
 
@@ -118,11 +115,12 @@ type Validator struct {
 	RPCClient     tmclient.Client
 	JSONRPCClient *ethclient.Client
 
-	tmNode  *node.Node
-	api     *api.Server
-	grpc    *grpc.Server
-	grpcWeb *http.Server
-	jsonrpc *http.Server
+	tmNode      *node.Node
+	api         *api.Server
+	grpc        *grpc.Server
+	grpcWeb     *http.Server
+	jsonrpc     *http.Server
+	jsonrpcDone chan struct{}
 }
 
 // Logger is a network logger interface that exposes testnet-level Log() methods for an in-process testing network
@@ -149,19 +147,12 @@ func (s CLILogger) Logf(format string, args ...interface{}) {
 	s.cmd.Printf(format, args...)
 }
 
-func NewCLILogger(cmd *cobra.Command) CLILogger {
-	return CLILogger{cmd}
-}
-
 // New creates a new Network for integration tests or in-process testnets run via the CLI
 func New(logger Logger, baseDir string, cfg Config) (*Network, error) {
 	// only one caller/test can create and use a network at a time
 	// l.Log("acquiring test network lock")
 	// lock.Lock()
 
-	if !ethermint.IsValidChainID(fxtypes.ChainIdWithEIP155()) {
-		return nil, fmt.Errorf("invalid chain-id: %s", cfg.ChainID)
-	}
 	logger.Logf("preparing test network with chain-id \"%s\"\n", cfg.ChainID)
 	startTime := time.Now()
 
@@ -248,16 +239,18 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 		appCfg.BypassMinFee.MsgTypes = cfg.BypassMinFeeMsgTypes
 
 		if i == 0 {
-			if cfg.APIAddress != "" {
-				appCfg.API.Address = cfg.APIAddress
-			} else {
-				apiAddr, _, err := server.FreeTCPAddr()
-				if err != nil {
-					return nil, err
+			if cfg.EnableAPI {
+				if cfg.APIAddress != "" {
+					appCfg.API.Address = cfg.APIAddress
+				} else {
+					apiAddr, _, err := server.FreeTCPAddr()
+					if err != nil {
+						return nil, err
+					}
+					appCfg.API.Address = apiAddr
 				}
-				appCfg.API.Address = apiAddr
+				appCfg.API.Enable = true
 			}
-			appCfg.API.Enable = true
 
 			if cfg.RPCAddress != "" {
 				srvCtx.Config.RPC.ListenAddress = cfg.RPCAddress
@@ -287,16 +280,19 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			// appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
 			// appCfg.GRPCWeb.Enable = true
 
-			if cfg.JSONRPCAddress != "" {
-				appCfg.JSONRPC.Address = cfg.JSONRPCAddress
-			} else {
-				_, jsonRPCPort, err := server.FreeTCPAddr()
-				if err != nil {
-					return nil, err
+			if cfg.EnableJSONRPC {
+				if cfg.JSONRPCAddress != "" {
+					appCfg.JSONRPC.Address = cfg.JSONRPCAddress
+				} else {
+					_, jsonRPCPort, err := server.FreeTCPAddr()
+					if err != nil {
+						return nil, err
+					}
+					appCfg.JSONRPC.Address = fmt.Sprintf("0.0.0.0:%s", jsonRPCPort)
 				}
-				appCfg.JSONRPC.Address = fmt.Sprintf("0.0.0.0:%s", jsonRPCPort)
+				appCfg.JSONRPC.Enable = true
 			}
-			appCfg.JSONRPC.Enable = true
+
 			appCfg.JSONRPC.API = config.GetAPINamespaces()
 			appCfg.JSONRPC.WsAddress = ""
 
@@ -364,24 +360,6 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			cfg.Mnemonics = append(cfg.Mnemonics, secret)
 		}
 
-		// if PrintMnemonic is set to true, we print the first validator node's secret to the network's logger
-		// for debugging and manual testing
-		if cfg.PrintMnemonic && i == 0 {
-			printMnemonic(secret)
-		}
-
-		/*info := map[string]string{"secret": secret}
-		infoBz, err := json.Marshal(info)
-		if err != nil {
-			return nil, err
-		}
-
-		// save private key seed words
-		err = writeFile(fmt.Sprintf("%v.json", "key_seed"), clientDir, infoBz)
-		if err != nil {
-			return nil, err
-		}*/
-
 		balances := sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, cfg.StakingTokens))
 
 		genFiles[i] = srvCtx.Config.GenesisFile()
@@ -445,7 +423,6 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			WithChainID(cfg.ChainID).
 			WithInterfaceRegistry(cfg.InterfaceRegistry).
 			WithCodec(cfg.Codec).
-			WithLegacyAmino(cfg.LegacyAmino).
 			WithTxConfig(cfg.TxConfig).
 			WithAccountRetriever(cfg.AccountRetriever).
 			WithKeyringOptions(cfg.KeyringOptions...)
@@ -579,7 +556,18 @@ func (n *Network) Cleanup() {
 		}
 
 		if v.jsonrpc != nil {
-			_ = v.jsonrpc.Shutdown(context.Background())
+			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancelFn()
+
+			if err := v.jsonrpc.Shutdown(shutdownCtx); err != nil {
+				v.tmNode.Logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
+			} else {
+				v.tmNode.Logger.Info("HTTP server shut down, waiting 5 sec")
+				select {
+				case <-time.Tick(5 * time.Second):
+				case <-v.jsonrpcDone:
+				}
+			}
 		}
 	}
 

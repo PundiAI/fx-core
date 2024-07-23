@@ -7,18 +7,18 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	tenderminttypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/abci/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -217,7 +217,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			malleate: func(packet *channeltypes.Packet) {
 				protID := "transfer"
 				channelID := "channel-0"
-				coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, transferAmount))
+				coin := sdk.NewCoin(fxtypes.DefaultDenom, transferAmount)
+				coins := sdk.NewCoins(coin)
 				err := suite.GetApp(suite.chainA.App).BankKeeper.MintCoins(suite.chainA.GetContext(), transfertypes.ModuleName, coins)
 				suite.Require().NoError(err)
 				portChannelAddr := transfertypes.GetEscrowAddress(protID, channelID)
@@ -232,6 +233,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Path:      fmt.Sprintf("%s/%s", protID, channelID),
 				}.GetFullDenomPath()
 				packet.Data = packetData.GetBytes()
+
+				suite.GetApp(suite.chainA.App).IBCTransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), coin)
 			},
 			expPass:       true,
 			checkBalance:  true,
@@ -442,6 +445,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			chain := suite.GetApp(suite.chainA.App)
+			chain.IBCTransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(baseDenom, transferAmount))
 			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
@@ -453,7 +457,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			tc.malleate(&packet)
 
 			cacheCtx, writeFn := suite.chainA.GetContext().CacheContext()
-			cacheCtx = cacheCtx.WithConsensusParams(&types.ConsensusParams{Block: &types.BlockParams{MaxGas: 5000000}})
+			cacheCtx = cacheCtx.WithConsensusParams(&tenderminttypes.ConsensusParams{Block: &tenderminttypes.BlockParams{MaxGas: 5000000}})
 			ackI := fxIBCMiddleware.OnRecvPacket(cacheCtx, packet, nil)
 			if ackI == nil || ackI.Success() {
 				// write application state changes for asynchronous and successful acknowledgements
@@ -486,8 +490,8 @@ func getOnRecvPacketErrorByEvent(ctx sdk.Context) string {
 	for _, event := range events {
 		if event.Type == transfertypes.EventTypePacket {
 			for _, attr := range event.Attributes {
-				if string(attr.Key) == fxtransfertypes.AttributeKeyRecvError {
-					return string(attr.Value)
+				if attr.Key == fxtransfertypes.AttributeKeyRecvError {
+					return attr.Value
 				}
 			}
 		}
@@ -538,6 +542,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			chain := suite.GetApp(suite.chainA.App)
+			chain.IBCTransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(baseDenom, transferAmount))
 			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
@@ -658,6 +663,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				amount := sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Add(fee)))
 				escrowAddress := transfertypes.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 				mintCoin(suite.T(), suite.chainA.GetContext(), suite.GetApp(suite.chainA.App), escrowAddress, amount)
+				suite.GetApp(suite.chainA.App).IBCTransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(baseDenom, transferAmount.Add(fee)))
 			},
 			true,
 			"",
@@ -677,7 +683,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				mintCoin(suite.T(), suite.chainA.GetContext(), suite.GetApp(suite.chainA.App), escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Sub(sdkmath.NewInt(10)))))
 			},
 			false,
-			fmt.Sprintf("unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module: %d%s is smaller than %d%s: insufficient funds", transferAmount.Sub(sdkmath.NewInt(10)).Uint64(), baseDenom, transferAmount.Uint64(), baseDenom),
+			fmt.Sprintf("unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module: spendable balance %d%s is smaller than %d%s: insufficient funds", transferAmount.Sub(sdkmath.NewInt(10)).Uint64(), baseDenom, transferAmount.Uint64(), baseDenom),
 			true,
 			sdk.NewCoins(),
 		},
@@ -687,6 +693,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			chain := suite.GetApp(suite.chainA.App)
+			chain.IBCTransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(baseDenom, transferAmount))
 			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")

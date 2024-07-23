@@ -43,7 +43,7 @@ func (m *CrossChainMethod) RequiredGas() uint64 {
 	return 40_000
 }
 
-func (m *CrossChainMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
@@ -55,43 +55,51 @@ func (m *CrossChainMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contra
 	originToken := false
 	totalCoin := sdk.Coin{}
 
-	// cross-chain origin token
-	if value.Cmp(big.NewInt(0)) == 1 && fxcontract.IsZeroEthAddress(args.Token) {
-		totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
-		if totalAmount.Cmp(value) != 0 {
-			return nil, errors.New("amount + fee not equal msg.value")
+	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		// cross-chain origin token
+		if value.Cmp(big.NewInt(0)) == 1 && fxcontract.IsZeroEthAddress(args.Token) {
+			totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
+			if totalAmount.Cmp(value) != 0 {
+				return errors.New("amount + fee not equal msg.value")
+			}
+
+			totalCoin, err = m.handlerOriginToken(ctx, evm, sender, totalAmount)
+			if err != nil {
+				return err
+			}
+
+			// origin token flag is true when cross chain evm denom
+			originToken = true
+		} else {
+			totalCoin, err = m.handlerERC20Token(ctx, evm, sender, args.Token, big.NewInt(0).Add(args.Amount, args.Fee))
+			if err != nil {
+				return err
+			}
 		}
 
-		totalCoin, err = m.handlerOriginToken(ctx, evm, sender, totalAmount)
+		fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
+		amountCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Amount))
+		feeCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
+
+		if err = m.handlerCrossChain(ctx, sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, originToken); err != nil {
+			return err
+		}
+
+		data, topic, err := m.NewCrossChainEvent(sender, args.Token, amountCoin.Denom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
 		if err != nil {
-			return nil, err
+			return err
 		}
+		EmitEvent(evm, data, topic)
 
-		// origin token flag is true when cross chain evm denom
-		originToken = true
-	} else {
-		totalCoin, err = m.handlerERC20Token(ctx, evm, sender, args.Token, big.NewInt(0).Add(args.Amount, args.Fee))
-		if err != nil {
-			return nil, err
-		}
-	}
+		legacy.CrossChainEvents(ctx, sender, args.Token, args.Receipt, fxtypes.Byte32ToString(args.Target),
+			amountCoin.Denom, args.Memo, args.Amount, args.Fee)
+		return nil
+	})
 
-	fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
-	amountCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Amount))
-	feeCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
-
-	if err = m.handlerCrossChain(ctx, sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, originToken); err != nil {
-		return nil, err
-	}
-
-	data, topic, err := m.NewCrossChainEvent(sender, args.Token, amountCoin.Denom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
 	if err != nil {
 		return nil, err
 	}
-	EmitEvent(evm, data, topic)
-
-	legacy.CrossChainEvents(ctx, sender, args.Token, args.Receipt, fxtypes.Byte32ToString(args.Target),
-		amountCoin.Denom, args.Memo, args.Amount, args.Fee)
 
 	return m.PackOutput(true)
 }

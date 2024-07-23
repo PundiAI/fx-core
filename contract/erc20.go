@@ -5,142 +5,151 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 )
 
-type ERC20Pack struct{}
+type ERC20ABI struct {
+	ABI abi.ABI
+}
 
-func (e ERC20Pack) Name() (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("name")
+func NewERC20ABI() ERC20ABI {
+	return ERC20ABI{
+		ABI: GetWFX().ABI,
+	}
+}
+
+func (e ERC20ABI) PackName() (data []byte, err error) {
+	data, err = e.ABI.Pack("name")
 	if err != nil {
 		return nil, fmt.Errorf("pack name: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) UnpackName(ret []byte) (string, error) {
+func (e ERC20ABI) UnpackName(ret []byte) (string, error) {
 	var unpackedRet struct{ Value string }
-	if err := GetFIP20().ABI.UnpackIntoInterface(&unpackedRet, "name", ret); err != nil {
+	if err := e.ABI.UnpackIntoInterface(&unpackedRet, "name", ret); err != nil {
 		return "", fmt.Errorf("unpack name: %s", err.Error())
 	}
 	return unpackedRet.Value, nil
 }
 
-func (e ERC20Pack) Symbol() (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("symbol")
+func (e ERC20ABI) PackSymbol() (data []byte, err error) {
+	data, err = e.ABI.Pack("symbol")
 	if err != nil {
 		return nil, fmt.Errorf("pack symbol: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) UnpackSymbol(ret []byte) (string, error) {
+func (e ERC20ABI) UnpackSymbol(ret []byte) (string, error) {
 	var unpackedRet struct{ Value string }
-	if err := GetFIP20().ABI.UnpackIntoInterface(&unpackedRet, "symbol", ret); err != nil {
+	if err := e.ABI.UnpackIntoInterface(&unpackedRet, "symbol", ret); err != nil {
 		return "", fmt.Errorf("unpack symbol: %s", err.Error())
 	}
 	return unpackedRet.Value, nil
 }
 
-func (e ERC20Pack) Decimals() (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("decimals")
+func (e ERC20ABI) PackDecimals() (data []byte, err error) {
+	data, err = e.ABI.Pack("decimals")
 	if err != nil {
 		return nil, fmt.Errorf("pack decimals: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) UnpackDecimals(ret []byte) (uint8, error) {
+func (e ERC20ABI) UnpackDecimals(ret []byte) (uint8, error) {
 	var unpackedRet struct{ Value uint8 }
-	if err := GetFIP20().ABI.UnpackIntoInterface(&unpackedRet, "decimals", ret); err != nil {
+	if err := e.ABI.UnpackIntoInterface(&unpackedRet, "decimals", ret); err != nil {
 		return 0, fmt.Errorf("unpack decimals: %s", err.Error())
 	}
 	return unpackedRet.Value, nil
 }
 
-func (e ERC20Pack) BalanceOf(account common.Address) (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("balanceOf", account)
+func (e ERC20ABI) PackBalanceOf(account common.Address) (data []byte, err error) {
+	data, err = e.ABI.Pack("balanceOf", account)
 	if err != nil {
 		return nil, fmt.Errorf("pack balanceOf: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) UnpackBalanceOf(ret []byte) (*big.Int, error) {
+func (e ERC20ABI) UnpackBalanceOf(ret []byte) (*big.Int, error) {
 	var unpackedRet struct{ Value *big.Int }
-	if err := GetFIP20().ABI.UnpackIntoInterface(&unpackedRet, "balanceOf", ret); err != nil {
+	if err := e.ABI.UnpackIntoInterface(&unpackedRet, "balanceOf", ret); err != nil {
 		return nil, fmt.Errorf("unpack balanceOf: %s", err.Error())
 	}
 	return unpackedRet.Value, nil
 }
 
-func (e ERC20Pack) TotalSupply() (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("totalSupply")
+func (e ERC20ABI) PackTotalSupply() (data []byte, err error) {
+	data, err = e.ABI.Pack("totalSupply")
 	if err != nil {
 		return nil, fmt.Errorf("pack totalSupply: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) UnpackTotalSupply(ret []byte) (*big.Int, error) {
+func (e ERC20ABI) UnpackTotalSupply(ret []byte) (*big.Int, error) {
 	var unpackedRet struct{ Value *big.Int }
-	if err := GetFIP20().ABI.UnpackIntoInterface(&unpackedRet, "totalSupply", ret); err != nil {
+	if err := e.ABI.UnpackIntoInterface(&unpackedRet, "totalSupply", ret); err != nil {
 		return nil, fmt.Errorf("unpack totalSupply: %s", err.Error())
 	}
 	return unpackedRet.Value, nil
 }
 
-func (e ERC20Pack) Approve(spender common.Address, amount *big.Int) (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("approve", spender, amount)
+func (e ERC20ABI) PackApprove(spender common.Address, amount *big.Int) (data []byte, err error) {
+	data, err = e.ABI.Pack("approve", spender, amount)
 	if err != nil {
 		return nil, fmt.Errorf("pack approve: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) Allowance(owner, spender common.Address) (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("allowance", owner, spender)
+func (e ERC20ABI) PackAllowance(owner, spender common.Address) (data []byte, err error) {
+	data, err = e.ABI.Pack("allowance", owner, spender)
 	if err != nil {
 		return nil, fmt.Errorf("pack allowance: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) TransferFrom(sender, to common.Address, amount *big.Int) (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("transferFrom", sender, to, amount)
+func (e ERC20ABI) PackTransferFrom(sender, to common.Address, amount *big.Int) (data []byte, err error) {
+	data, err = e.ABI.Pack("transferFrom", sender, to, amount)
 	if err != nil {
 		return nil, fmt.Errorf("pack transferFrom: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) UnpackTransferFrom(ret []byte) (bool, error) {
+func (e ERC20ABI) UnpackTransferFrom(ret []byte) (bool, error) {
 	var unpackedRet struct{ Value bool }
-	if err := GetFIP20().ABI.UnpackIntoInterface(&unpackedRet, "transferFrom", ret); err != nil {
+	if err := e.ABI.UnpackIntoInterface(&unpackedRet, "transferFrom", ret); err != nil {
 		return false, fmt.Errorf("unpack transferFrom: %s", err.Error())
 	}
 	return unpackedRet.Value, nil
 }
 
-func (e ERC20Pack) Transfer(to common.Address, amount *big.Int) (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("transfer", to, amount)
+func (e ERC20ABI) PackTransfer(to common.Address, amount *big.Int) (data []byte, err error) {
+	data, err = e.ABI.Pack("transfer", to, amount)
 	if err != nil {
 		return nil, fmt.Errorf("pack transfer: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) Burn(account common.Address, amount *big.Int) (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("burn", account, amount)
+func (e ERC20ABI) PackBurn(account common.Address, amount *big.Int) (data []byte, err error) {
+	data, err = e.ABI.Pack("burn", account, amount)
 	if err != nil {
 		return nil, fmt.Errorf("pack burn: %s", err.Error())
 	}
 	return data, err
 }
 
-func (e ERC20Pack) Mint(account common.Address, amount *big.Int) (data []byte, err error) {
-	data, err = GetFIP20().ABI.Pack("mint", account, amount)
+func (e ERC20ABI) PackMint(account common.Address, amount *big.Int) (data []byte, err error) {
+	data, err = e.ABI.Pack("mint", account, amount)
 	if err != nil {
 		return nil, fmt.Errorf("pack mint: %s", err.Error())
 	}
@@ -148,7 +157,7 @@ func (e ERC20Pack) Mint(account common.Address, amount *big.Int) (data []byte, e
 }
 
 type ERC20Call struct {
-	ERC20Pack
+	ERC20ABI
 	evm      *vm.EVM
 	caller   vm.AccountRef
 	contract common.Address
@@ -161,6 +170,7 @@ func NewERC20Call(evm *vm.EVM, caller, contract common.Address, maxGas uint64) *
 		defMaxGas = maxGas
 	}
 	return &ERC20Call{
+		ERC20ABI: NewERC20ABI(),
 		evm:      evm,
 		caller:   vm.AccountRef(caller),
 		contract: contract,
@@ -185,7 +195,7 @@ func (e *ERC20Call) staticCall(data []byte) (ret []byte, err error) {
 }
 
 func (e *ERC20Call) Burn(account common.Address, amount *big.Int) error {
-	data, err := e.ERC20Pack.Burn(account, amount)
+	data, err := e.ERC20ABI.PackBurn(account, amount)
 	if err != nil {
 		return err
 	}
@@ -197,7 +207,7 @@ func (e *ERC20Call) Burn(account common.Address, amount *big.Int) error {
 }
 
 func (e *ERC20Call) TransferFrom(from, to common.Address, amount *big.Int) error {
-	data, err := e.ERC20Pack.TransferFrom(from, to, amount)
+	data, err := e.ERC20ABI.PackTransferFrom(from, to, amount)
 	if err != nil {
 		return err
 	}
@@ -216,7 +226,7 @@ func (e *ERC20Call) TransferFrom(from, to common.Address, amount *big.Int) error
 }
 
 func (e *ERC20Call) TotalSupply() (*big.Int, error) {
-	data, err := e.ERC20Pack.TotalSupply()
+	data, err := e.ERC20ABI.PackTotalSupply()
 	if err != nil {
 		return nil, err
 	}
@@ -224,5 +234,5 @@ func (e *ERC20Call) TotalSupply() (*big.Int, error) {
 	if err != nil {
 		return nil, fmt.Errorf("StaticCall totalSupply: %s", err.Error())
 	}
-	return e.ERC20Pack.UnpackTotalSupply(ret)
+	return e.ERC20ABI.UnpackTotalSupply(ret)
 }

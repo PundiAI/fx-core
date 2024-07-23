@@ -6,19 +6,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/btcsuite/btcutil/bech32"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
+	"github.com/cometbft/cometbft/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/pkg/errors"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/client"
 )
@@ -133,42 +133,8 @@ func (c *NodeRPC) GetAddressPrefix() (prefix string, err error) {
 	return c.addrPrefix, err
 }
 
-func (c *NodeRPC) GetStakeValidators(status stakingtypes.BondStatus) (stakingtypes.Validators, error) {
-	data, err := json.Marshal(map[string]string{"Page": "1", "Limit": "200", "Status": status.String()})
-	if err != nil {
-		return nil, err
-	}
-	result, err := c.ABCIQueryIsOk("/custom/staking/validators", data)
-	if err != nil {
-		return nil, err
-	}
-	validators := make(stakingtypes.Validators, 0)
-	if err := json.Unmarshal(result.Response.Value, &validators); err != nil {
-		return nil, err
-	}
-	return validators, err
-}
-
-func (c *NodeRPC) GetValAddressByCons(consAddrStr string) (sdk.ValAddress, error) {
-	consAddr, err := sdk.ConsAddressFromBech32(consAddrStr)
-	if err != nil {
-		consAddr, err = hex.DecodeString(consAddrStr)
-		if err != nil {
-			return nil, errors.New("expected hex or bech32 address")
-		}
-	}
-	result, err := c.ABCIQueryIsOk("/store/staking/key", stakingtypes.GetValidatorByConsAddrKey(consAddr))
-	if err != nil {
-		return nil, err
-	}
-	if result.Response.Value == nil {
-		return nil, fmt.Errorf("not found validator by consAddress: %s", consAddr.String())
-	}
-	return result.Response.Value, nil
-}
-
-func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
-	return client.BuildTx(c, privKey, msgs)
+func (c *NodeRPC) BuildTxRaw(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit, timeout uint64, memo string) (*tx.TxRaw, error) {
+	return client.BuildTxRawWithCli(c, privKey, msgs, gasLimit, timeout, memo)
 }
 
 func (c *NodeRPC) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
@@ -176,40 +142,23 @@ func (c *NodeRPC) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.T
 	if err != nil {
 		return nil, err
 	}
-	defaultMode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	defaultMode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	if len(mode) > 0 {
 		defaultMode = mode[0]
 	}
+	var res *ctypes.ResultBroadcastTx
 	switch defaultMode {
 	case tx.BroadcastMode_BROADCAST_MODE_SYNC:
-		res, err := c.BroadcastTxSync(txBytes)
-		if err != nil {
-			return nil, err
-		}
-		return sdk.NewResponseFormatBroadcastTx(res), nil
+		res, err = c.BroadcastTxSync(txBytes)
 	case tx.BroadcastMode_BROADCAST_MODE_ASYNC:
-		res, err := c.BroadcastTxAsync(txBytes)
-		if err != nil {
-			return nil, err
-		}
-		return sdk.NewResponseFormatBroadcastTx(res), nil
-	case tx.BroadcastMode_BROADCAST_MODE_BLOCK:
-		res, err := c.BroadcastTxCommit(txBytes)
-		if err != nil {
-			return nil, err
-		}
-		return sdk.NewResponseFormatBroadcastTxCommit(res), nil
+		res, err = c.BroadcastTxAsync(txBytes)
 	default:
 		return nil, fmt.Errorf("unsupported return type %s; supported types: sync, async, block", defaultMode)
 	}
-}
-
-func (c *NodeRPC) BroadcastTxRawCommit(txRaw *tx.TxRaw) (*ctypes.ResultBroadcastTxCommit, error) {
-	txBytes, err := proto.Marshal(txRaw)
 	if err != nil {
 		return nil, err
 	}
-	return c.BroadcastTxCommit(txBytes)
+	return sdk.NewResponseFormatBroadcastTx(res), nil
 }
 
 func (c *NodeRPC) TxByHash(txHash string) (*sdk.TxResponse, error) {
@@ -256,26 +205,11 @@ func (c *NodeRPC) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	}, nil
 }
 
-func (c *NodeRPC) AppVersion() (string, error) {
-	result, err := c.ABCIQueryIsOk("/app/version", nil)
-	if err != nil {
-		return "", err
-	}
-	return string(result.Response.Value), nil
-}
-
-func (c *NodeRPC) ABCIQueryIsOk(path string, data tmbytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
-	result := new(ctypes.ResultABCIQuery)
-	params := map[string]interface{}{"path": path, "data": data, "height": strconv.FormatInt(c.height, 10), "prove": false}
-	err := c.caller.Call(c.ctx, "abci_query", params, result)
-	if err != nil {
-		return nil, errors.Wrap(err, "ABCIQueryIsOk")
-	}
-	if result.Response.Code != 0 {
-		return nil, fmt.Errorf("abci query response, space: %s, code: %d, log: %s",
-			result.Response.Codespace, result.Response.Code, result.Response.Log)
-	}
-	return result, nil
+func (c *NodeRPC) WaitMined(txHash string, timeout, pollInterval time.Duration) (*sdk.TxResponse, error) {
+	ctx, cancelFunc := context.WithTimeout(c.ctx, timeout)
+	defer cancelFunc()
+	newCli := c.WithContext(ctx)
+	return client.WaitMined(newCli, txHash, timeout, pollInterval)
 }
 
 // Tendermint API
@@ -304,15 +238,6 @@ func (c *NodeRPC) ABCIQuery(path string, data tmbytes.HexBytes) (*ctypes.ResultA
 	err := c.caller.Call(c.ctx, "abci_query", params, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "ABCIQuery")
-	}
-	return result, nil
-}
-
-func (c *NodeRPC) BroadcastTxCommit(tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
-	result := new(ctypes.ResultBroadcastTxCommit)
-	err := c.caller.Call(c.ctx, "broadcast_tx_commit", map[string]interface{}{"tx": tx}, result)
-	if err != nil {
-		return nil, errors.Wrap(err, "broadcast_tx_commit")
 	}
 	return result, nil
 }

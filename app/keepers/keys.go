@@ -7,6 +7,8 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -16,21 +18,16 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/ethereum/go-ethereum/core/vm"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	crosschainprecompile "github.com/functionx/fx-core/v7/x/crosschain/precompile"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	precompilesstaking "github.com/functionx/fx-core/v7/x/evm/precompiles/staking"
 	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
 	migratetypes "github.com/functionx/fx-core/v7/x/migrate/types"
 	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
@@ -42,15 +39,16 @@ func (appKeepers *AppKeepers) generateKeys() {
 	// Define what keys will be used in the cosmos-sdk key/value store.
 	// Cosmos-SDK modules each have a "key" that allows the application to reference what they've stored on the chain.
 	appKeepers.keys = sdk.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
+		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
+		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey,
 		bsctypes.StoreKey, polygontypes.StoreKey, avalanchetypes.StoreKey, ethtypes.StoreKey, trontypes.StoreKey,
 		arbitrumtypes.ModuleName, optimismtypes.ModuleName, layer2types.ModuleName,
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		erc20types.StoreKey, migratetypes.StoreKey,
+		consensustypes.StoreKey,
 	)
 
 	// Define transient store keys
@@ -72,46 +70,6 @@ func (appKeepers *AppKeepers) GetMemoryStoreKey() map[string]*storetypes.MemoryS
 	return appKeepers.memKeys
 }
 
-// EvmPrecompiled  set evm precompiled contracts
-func (appKeepers *AppKeepers) EvmPrecompiled() {
-	precompiled := evmkeeper.BerlinPrecompiled()
-
-	// staking precompile
-	precompiled[precompilesstaking.GetAddress()] = func(ctx sdk.Context) vm.PrecompiledContract {
-		return precompilesstaking.NewPrecompiledContract(
-			ctx,
-			appKeepers.BankKeeper,
-			appKeepers.StakingKeeper,
-			appKeepers.DistrKeeper,
-			appKeepers.EvmKeeper,
-		)
-	}
-
-	// cross chain precompile
-	crosschainRouter := crosschainprecompile.NewRouter().
-		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
-		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
-		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
-		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
-		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
-		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
-		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
-		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper)
-	precompiled[crosschaintypes.GetAddress()] = func(ctx sdk.Context) vm.PrecompiledContract {
-		return crosschainprecompile.NewPrecompiledContract(
-			ctx,
-			appKeepers.BankKeeper,
-			appKeepers.Erc20Keeper,
-			appKeepers.IBCTransferKeeper,
-			appKeepers.AccountKeeper,
-			crosschainRouter,
-		)
-	}
-
-	// set precompiled contracts
-	appKeepers.EvmKeeper.WithPrecompiled(precompiled)
-}
-
 // GetKey returns the KVStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
@@ -128,7 +86,7 @@ func (appKeepers *AppKeepers) GetTKey(storeKey string) *storetypes.TransientStor
 
 // GetMemKey returns the MemStoreKey for the provided mem key.
 //
-// NOTE: This is solely used for testing purposes.
+// NOTE: This is solely to be used for testing purposes.
 func (appKeepers *AppKeepers) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return appKeepers.memKeys[storeKey]
 }

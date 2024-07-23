@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2021-11-17T05:00:00.000000Z",
+  "genesis_time": "2021-11-17T05:00:00Z",
   "chain_id": "dhobyghaut",
   "initial_height": "1",
   "consensus_params": {
@@ -215,7 +215,6 @@
             }
           ]
         },
-
         {
           "address": "fx12e5pqxp3kta5l5v2hlyetydxp9cqwsp8et8uuj",
           "coins": [

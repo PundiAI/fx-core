@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cometbft/cometbft/libs/bytes"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
+	"github.com/cometbft/cometbft/p2p"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/libs/bytes"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/p2p"
 )
 
 // ValidatorInfo is info about the node's validator, same as Tendermint,

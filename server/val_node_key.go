@@ -6,16 +6,16 @@ import (
 	"os"
 	"path/filepath"
 
+	tmcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/crypto/ed25519"
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+	tmos "github.com/cometbft/cometbft/libs/os"
+	"github.com/cometbft/cometbft/p2p"
+	"github.com/cometbft/cometbft/privval"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/go-bip39"
 	"github.com/spf13/cobra"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
 )
 
 const (
@@ -35,7 +35,7 @@ func UnsafeRestPrivValidatorCmd() *cobra.Command {
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			cfg.EnsureRoot(serverCtx.Config.RootDir)
+			tmcfg.EnsureRoot(serverCtx.Config.RootDir)
 
 			unsafe := serverCtx.Viper.GetBool(flagUnsafe)
 			resetKey := serverCtx.Viper.GetBool(flagResetPrivKey)
@@ -98,7 +98,7 @@ func UnsafeResetNodeKeyCmd() *cobra.Command {
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			cfg.EnsureRoot(serverCtx.Config.RootDir)
+			tmcfg.EnsureRoot(serverCtx.Config.RootDir)
 
 			unsafe := serverCtx.Viper.GetBool(flagUnsafe)
 			resetKey := serverCtx.Viper.GetBool(flagResetNodeKey)

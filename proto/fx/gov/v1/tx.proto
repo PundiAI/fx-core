@@ -10,7 +10,7 @@ option go_package = "github.com/functionx/fx-core/x/gov/types";
 
 // Msg defines the fx/x/gov Msg service.
 service Msg {
-  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+  rpc UpdateFXParams(MsgUpdateFXParams) returns (MsgUpdateFXParamsResponse);
 
   rpc UpdateEGFParams(MsgUpdateEGFParams) returns (MsgUpdateEGFParamsResponse);
 
@@ -18,7 +18,7 @@ service Msg {
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
-message MsgUpdateParams {
+message MsgUpdateFXParams {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address of the governance account.
@@ -30,7 +30,7 @@ message MsgUpdateParams {
 
 // MsgUpdateParamsResponse defines the response structure for executing a
 // MsgUpdateParams message.
-message MsgUpdateParamsResponse {}
+message MsgUpdateFXParamsResponse {}
 
 // MsgUpdateBaseParams is the Msg/UpdateParams request type.
 message MsgUpdateEGFParams {
@@ -53,7 +53,7 @@ message MsgUpdateStore {
   // authority is the address of the governance account.
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  repeated UpdateStore stores = 2 [(gogoproto.nullable) = false];
+  repeated UpdateStore update_stores = 2 [(gogoproto.nullable) = false];
 }
 
 message MsgUpdateStoreResponse {}

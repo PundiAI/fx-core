@@ -39,60 +39,68 @@ func (m *FIP20CrossChainMethod) RequiredGas() uint64 {
 	return 40_000
 }
 
-func (m *FIP20CrossChainMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+func (m *FIP20CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	tokenContract := contract.Caller()
-	tokenPair, found := m.erc20Keeper.GetTokenPairByAddress(ctx, tokenContract)
-	if !found {
-		return nil, fmt.Errorf("token pair not found: %s", tokenContract.String())
-	}
 
-	args, err := m.UnpackInput(contract.Input)
-	if err != nil {
-		return nil, err
-	}
-
-	amountCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Amount))
-	feeCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Fee))
-	totalCoin := sdk.NewCoin(tokenPair.GetDenom(), amountCoin.Amount.Add(feeCoin.Amount))
-
-	// NOTE: if user call evm denom transferCrossChain with msg.value
-	// we need transfer msg.value from sender to contract in bank keeper
-	if tokenPair.GetDenom() == fxtypes.DefaultDenom {
-		balance := m.bankKeeper.GetBalance(ctx, tokenContract.Bytes(), fxtypes.DefaultDenom)
-		evmBalance := evm.StateDB.GetBalance(tokenContract)
-
-		cmp := evmBalance.Cmp(balance.Amount.BigInt())
-		if cmp == -1 {
-			return nil, fmt.Errorf("invalid balance(chain: %s,evm: %s)", balance.Amount.String(), evmBalance.String())
+	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+	err := stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		tokenPair, found := m.erc20Keeper.GetTokenPairByAddress(ctx, tokenContract)
+		if !found {
+			return fmt.Errorf("token pair not found: %s", tokenContract.String())
 		}
-		if cmp == 1 {
-			// sender call transferCrossChain with msg.value, the msg.value evm denom should send to contract
-			value := big.NewInt(0).Sub(evmBalance, balance.Amount.BigInt())
-			valueCoin := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value)))
-			if err := m.bankKeeper.SendCoins(ctx, args.Sender.Bytes(), tokenContract.Bytes(), valueCoin); err != nil {
-				return nil, fmt.Errorf("send coin: %s", err.Error())
+
+		args, err := m.UnpackInput(contract.Input)
+		if err != nil {
+			return err
+		}
+
+		amountCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Amount))
+		feeCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Fee))
+		totalCoin := sdk.NewCoin(tokenPair.GetDenom(), amountCoin.Amount.Add(feeCoin.Amount))
+
+		// NOTE: if user call evm denom transferCrossChain with msg.value
+		// we need transfer msg.value from sender to contract in bank keeper
+		if tokenPair.GetDenom() == fxtypes.DefaultDenom {
+			balance := m.bankKeeper.GetBalance(ctx, tokenContract.Bytes(), fxtypes.DefaultDenom)
+			evmBalance := evm.StateDB.GetBalance(tokenContract)
+
+			cmp := evmBalance.Cmp(balance.Amount.BigInt())
+			if cmp == -1 {
+				return fmt.Errorf("invalid balance(chain: %s,evm: %s)", balance.Amount.String(), evmBalance.String())
+			}
+			if cmp == 1 {
+				// sender call transferCrossChain with msg.value, the msg.value evm denom should send to contract
+				value := big.NewInt(0).Sub(evmBalance, balance.Amount.BigInt())
+				valueCoin := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value)))
+				if err := m.bankKeeper.SendCoins(ctx, args.Sender.Bytes(), tokenContract.Bytes(), valueCoin); err != nil {
+					return fmt.Errorf("send coin: %s", err.Error())
+				}
 			}
 		}
-	}
 
-	// transfer token from evm to local chain
-	if err = m.convertERC20(ctx, evm, tokenPair, totalCoin, args.Sender); err != nil {
-		return nil, err
-	}
+		// transfer token from evm to local chain
+		if err = m.convertERC20(ctx, evm, tokenPair, totalCoin, args.Sender); err != nil {
+			return err
+		}
 
-	fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
-	if err = m.handlerCrossChain(ctx, args.Sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, false); err != nil {
-		return nil, err
-	}
+		fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
+		if err = m.handlerCrossChain(ctx, args.Sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, false); err != nil {
+			return err
+		}
 
-	data, topic, err := m.NewCrossChainEvent(args.Sender, tokenPair.GetERC20Contract(), tokenPair.GetDenom(), args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
+		data, topic, err := m.NewCrossChainEvent(args.Sender, tokenPair.GetERC20Contract(), tokenPair.GetDenom(), args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
+		if err != nil {
+			return err
+		}
+		EmitEvent(evm, data, topic)
+
+		legacy.Fip20CrossChainEvents(ctx, args.Sender, tokenPair.GetERC20Contract(), args.Receipt,
+			fxtypes.Byte32ToString(args.Target), tokenPair.GetDenom(), args.Amount, args.Fee)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	EmitEvent(evm, data, topic)
-
-	legacy.Fip20CrossChainEvents(ctx, args.Sender, tokenPair.GetERC20Contract(), args.Receipt,
-		fxtypes.Byte32ToString(args.Target), tokenPair.GetDenom(), args.Amount, args.Fee)
 
 	return m.PackOutput(true)
 }

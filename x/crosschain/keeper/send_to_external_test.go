@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"go.uber.org/mock/gomock"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"

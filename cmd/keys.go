@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"github.com/cometbft/cometbft/libs/cli"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/libs/cli"
 
 	fxkeys "github.com/functionx/fx-core/v7/client/cli/keys"
 )
@@ -47,6 +47,7 @@ The pass backend requires GnuPG: https://gnupg.org/
 		fxkeys.ListKeysCmd(),
 		fxkeys.ShowKeysCmd(),
 		fxkeys.ParseAddressCommand(),
+		keys.ListKeyTypesCmd(),
 		keys.DeleteKeyCommand(),
 		keys.RenameKeyCommand(),
 		keys.ParseKeyStringCommand(),

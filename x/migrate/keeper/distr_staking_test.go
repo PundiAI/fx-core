@@ -6,11 +6,14 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
+	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -19,8 +22,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/app"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -230,7 +231,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 
 func GetDelegateRewards(ctx sdk.Context, app *app.App, delegate []byte, validator sdk.ValAddress) (sdk.DecCoins, error) {
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	distritypes.RegisterQueryServer(queryHelper, app.DistrKeeper)
+	distritypes.RegisterQueryServer(queryHelper, distributionkeeper.NewQuerier(app.DistrKeeper))
 	queryClient := distritypes.NewQueryClient(queryHelper)
 	rewards, err := queryClient.DelegationRewards(context.Background(), &distritypes.QueryDelegationRewardsRequest{
 		DelegatorAddress: sdk.AccAddress(delegate).String(),
@@ -261,7 +262,7 @@ func commitBlock(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
 	distribution.BeginBlocker(ctx, abcitypes.RequestBeginBlock{
 		Hash:   nil,
 		Header: tmproto.Header{},
-		LastCommitInfo: abcitypes.LastCommitInfo{
+		LastCommitInfo: abcitypes.CommitInfo{
 			Round: 0,
 			Votes: buildCommitVotes(t, ctx, app.StakingKeeper.Keeper, app.AppCodec()),
 		},
@@ -271,7 +272,7 @@ func commitBlock(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
 	return ctx
 }
 
-func buildCommitVotes(t *testing.T, ctx sdk.Context, stakingKeeper stakingkeeper.Keeper, codec codec.Codec) []abcitypes.VoteInfo {
+func buildCommitVotes(t *testing.T, ctx sdk.Context, stakingKeeper *stakingkeeper.Keeper, codec codec.Codec) []abcitypes.VoteInfo {
 	t.Helper()
 	validators := stakingKeeper.GetAllValidators(ctx)
 

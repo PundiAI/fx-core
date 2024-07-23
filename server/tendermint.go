@@ -1,11 +1,12 @@
 package server
 
 import (
+	tmcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/server/types"
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	tmcmd "github.com/tendermint/tendermint/cmd/cometbft/commands"
 )
 
 func TendermintCommand() *cobra.Command {
@@ -42,4 +43,22 @@ func TendermintCommand() *cobra.Command {
 		// tmcmd.ResetPrivValidatorCmd,
 	)
 	return tendermintCmd
+}
+
+func CometCommand(appCreator types.AppCreator) *cobra.Command {
+	cometCmd := &cobra.Command{
+		Use:   "comet",
+		Short: "CometBFT subcommands",
+	}
+
+	cometCmd.AddCommand(
+		sdkserver.ShowNodeIDCmd(),
+		sdkserver.ShowValidatorCmd(),
+		sdkserver.ShowAddressCmd(),
+		sdkserver.VersionCmd(),
+		tmcmd.ResetAllCmd,
+		tmcmd.ResetStateCmd,
+		sdkserver.BootstrapStateCmd(appCreator),
+	)
+	return cometCmd
 }

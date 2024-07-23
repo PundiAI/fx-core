@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.10;
 
 /* solhint-disable no-global-import */
 import "../staking/IStaking.sol";
 import "../staking/StakingCall.sol";
 
 /* solhint-enable no-global-import */
+
+/* solhint-disable custom-errors */
 
 contract StakingTest is IStaking {
     mapping(string => uint256) public validatorShares;
@@ -22,6 +24,14 @@ contract StakingTest is IStaking {
         return (newShares, reward);
     }
 
+    function delegateV2(
+        string memory _val,
+        uint256 _amount
+    ) external override returns (bool _result) {
+        require(address(this).balance >= _amount, "insufficient balance");
+        return IStaking(StakingCall.STAKING_ADDRESS).delegateV2(_val, _amount);
+    }
+
     function undelegate(
         string memory _val,
         uint256 _shares
@@ -30,6 +40,14 @@ contract StakingTest is IStaking {
             .undelegate(_val, _shares);
         validatorShares[_val] -= _shares;
         return (amount, reward, completionTime);
+    }
+
+    function undelegateV2(
+        string memory _val,
+        uint256 _amount
+    ) external override returns (bool _result) {
+        return
+            IStaking(StakingCall.STAKING_ADDRESS).undelegateV2(_val, _amount);
     }
 
     function redelegate(
@@ -42,6 +60,19 @@ contract StakingTest is IStaking {
         validatorShares[_valSrc] -= _shares;
         validatorShares[_valDst] += _shares;
         return (amount, reward, completionTime);
+    }
+
+    function redelegateV2(
+        string memory _valSrc,
+        string memory _valDst,
+        uint256 _amount
+    ) external override returns (bool _result) {
+        return
+            IStaking(StakingCall.STAKING_ADDRESS).redelegateV2(
+                _valSrc,
+                _valDst,
+                _amount
+            );
     }
 
     function withdraw(string memory _val) external override returns (uint256) {

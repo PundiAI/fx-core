@@ -4,13 +4,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	tmcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/crypto"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	tmtypes "github.com/cometbft/cometbft/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/stretchr/testify/suite"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/server"
@@ -18,7 +17,7 @@ import (
 
 type DatabaseTestSuite struct {
 	suite.Suite
-	config   *cfg.Config
+	config   *tmcfg.Config
 	database *server.Database
 }
 
@@ -28,13 +27,13 @@ func TestDatabaseTestSuite(t *testing.T) {
 
 func (suite *DatabaseTestSuite) SetupTest() {
 	cdc := app.MakeEncodingConfig()
-	newCfg := cfg.ResetTestRootWithChainID("blockchain_database_test", "fxcore")
+	newCfg := tmcfg.ResetTestRootWithChainID("blockchain_database_test", "fxcore")
 
 	database, err := server.NewDatabase(newCfg, cdc.Codec)
-	require.NoError(suite.T(), err)
+	suite.NoError(err)
 
 	_, err = database.StateStore().LoadFromDBOrGenesisFile(newCfg.GenesisFile())
-	require.NoError(suite.T(), err)
+	suite.NoError(err)
 	suite.config = newCfg
 	suite.database = database
 }
@@ -46,61 +45,60 @@ func (suite *DatabaseTestSuite) TearDownSuite() {
 
 func (suite *DatabaseTestSuite) TestGetChainID() {
 	_, err := suite.database.GetChainId()
-	require.Error(suite.T(), err, "not found chain id")
+	suite.Error(err, "not found chain id")
 
 	suite.newBlock(1)
 
 	chainID, err := suite.database.GetChainId()
-	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), "fxcore", chainID)
+	suite.NoError(err)
+	suite.Equal("fxcore", chainID)
 }
 
 func (suite *DatabaseTestSuite) TestGetBlockHeight() {
 	height, err := suite.database.GetBlockHeight()
-	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), int64(0), height)
+	suite.NoError(err)
+	suite.Equal(int64(0), height)
 
 	suite.newBlock(5)
 
 	height, err = suite.database.GetBlockHeight()
-	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), int64(5), height)
+	suite.NoError(err)
+	suite.Equal(int64(5), height)
 }
 
 func (suite *DatabaseTestSuite) TestGetSyncing() {
 	syncing, err := suite.database.GetSyncing()
-	require.NoError(suite.T(), err)
-	require.True(suite.T(), syncing)
+	suite.NoError(err)
+	suite.True(syncing)
 }
 
 func (suite *DatabaseTestSuite) TestGetNodeInfo() {
 	nodeInfo, err := suite.database.GetNodeInfo()
-	require.NoError(suite.T(), err)
-	require.NotNil(suite.T(), nodeInfo)
+	suite.NoError(err)
+	suite.NotNil(nodeInfo)
 }
 
 func (suite *DatabaseTestSuite) TestCurrentPlan() {
 	plan, err := suite.database.CurrentPlan()
-	require.NoError(suite.T(), err)
-	require.Nil(suite.T(), plan)
+	suite.NoError(err)
+	suite.Nil(plan)
 }
 
-// test database GetConsensusValidators
 func (suite *DatabaseTestSuite) TestGetConsensusValidators() {
 	validators, err := suite.database.GetConsensusValidators()
-	require.NoError(suite.T(), err)
-	require.NotNil(suite.T(), validators)
-	require.Equal(suite.T(), 2, len(validators))
+	suite.NoError(err)
+	suite.NotNil(validators)
+	suite.Equal(2, len(validators))
 }
 
-// test database GetLatestHeight
 func (suite *DatabaseTestSuite) newBlock(height int64) {
 	state, err := suite.database.StateStore().LoadFromDBOrGenesisFile(suite.config.GenesisFile())
-	require.NoError(suite.T(), err)
+	suite.NoError(err)
 
 	for h := int64(1); h <= height; h++ {
-		block, _ := state.MakeBlock(h, nil, new(tmtypes.Commit), nil, state.Validators.GetProposer().Address)
-		partSet := block.MakePartSet(2)
+		block := state.MakeBlock(h, nil, new(tmtypes.Commit), nil, state.Validators.GetProposer().Address)
+		partSet, err := block.MakePartSet(2)
+		suite.NoError(err)
 		commitSigs := []tmtypes.CommitSig{{
 			BlockIDFlag:      tmtypes.BlockIDFlagCommit,
 			ValidatorAddress: tmrand.Bytes(crypto.AddressSize),

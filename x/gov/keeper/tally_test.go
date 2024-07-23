@@ -8,7 +8,6 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_Tally() {
@@ -26,7 +25,7 @@ func (suite *KeeperTestSuite) TestKeeper_Tally() {
 	msgExecLegacyContent, err := govv1.NewLegacyContent(proposalContent, suite.govAcct)
 	suite.NoError(err)
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx.WithChainID(fxtypes.ChainIdWithEIP155()), []sdk.Msg{msgExecLegacyContent},
-		fxgovtypes.NewFXMetadata(proposalContent.GetTitle(), proposalContent.GetDescription(), "").String())
+		"", proposalContent.GetTitle(), proposalContent.GetDescription(), suite.newAddress())
 	suite.NoError(err)
 	suite.Equal(proposal.Status, govv1.StatusDepositPeriod)
 

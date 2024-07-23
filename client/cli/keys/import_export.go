@@ -153,7 +153,7 @@ func ImportKeyCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyAlgorithm)
+				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyType)
 				var armoPrivKey string
 				switch hd.PubKeyType(algoStr) {
 				case hd.Secp256k1Type:
@@ -172,7 +172,7 @@ func ImportKeyCommand() *cobra.Command {
 			}
 			key, err := keystore.DecryptKey(bz, passphrase)
 			if err == nil {
-				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyAlgorithm)
+				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyType)
 				var armoPrivKey string
 				if hd.PubKeyType(algoStr) == hd.Secp256k1Type {
 					armoPrivKey = crypto.EncryptArmorPrivKey(&secp256k1.PrivKey{Key: ethcrypto.FromECDSA(key.PrivateKey)}, "", string(hd.Secp256k1Type))
@@ -187,7 +187,7 @@ func ImportKeyCommand() *cobra.Command {
 			return clientCtx.Keyring.ImportPrivKey(args[0], string(bz), passphrase)
 		},
 	}
-	cmd.Flags().String(flags.FlagKeyAlgorithm, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
+	cmd.Flags().String(flags.FlagKeyType, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
 	return cmd
 }
 

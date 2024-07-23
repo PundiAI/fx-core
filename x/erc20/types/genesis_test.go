@@ -3,23 +3,12 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-type GenesisTestSuite struct {
-	suite.Suite
-}
-
-func (suite *GenesisTestSuite) SetupTest() {
-}
-
-func TestGenesisTestSuite(t *testing.T) {
-	suite.Run(t, new(GenesisTestSuite))
-}
-
-func (suite *GenesisTestSuite) TestValidateGenesis() {
+func TestValidateGenesis(t *testing.T) {
 	newGen := types.NewGenesisState(types.DefaultParams(), []types.TokenPair{})
 
 	testCases := []struct {
@@ -139,12 +128,11 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		err := tc.genState.Validate()
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
+			assert.NoError(t, err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			assert.Error(t, err, tc.name)
 		}
 	}
 }

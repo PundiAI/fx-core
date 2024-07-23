@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/config"
+	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	tmcfg "github.com/tendermint/tendermint/config"
 )
 
 func CmdHandler(cmd *cobra.Command, args []string) error {
@@ -20,115 +20,117 @@ func CmdHandler(cmd *cobra.Command, args []string) error {
 	clientCtx := client.GetClientContextFromCmd(cmd)
 
 	configName := filepath.Join(serverCtx.Config.RootDir, "config", args[0])
-	cfg, err := newConfig(serverCtx.Viper, configName)
+	cfg, err := NewConfig(serverCtx.Viper, configName)
 	if err != nil {
 		return err
 	}
 
-	// is len(args) == 1, get config file content
+	// is len(args) == 1, get Config file content
 	if len(args) == 1 {
-		return cfg.output(clientCtx)
+		return cfg.Output(clientCtx)
 	}
 
-	// 2. is len(args) == 2, get config key value
+	// 2. is len(args) == 2, get Config key value
 	if len(args) == 2 {
-		return output(clientCtx, serverCtx.Viper.Get(args[1]))
+		return Output(clientCtx, serverCtx.Viper.Get(args[1]))
 	}
 
 	serverCtx.Viper.Set(args[1], args[2])
-	return cfg.save()
+	return cfg.Save()
 }
 
-type cmdConfig interface {
-	save() error
-	output(ctx client.Context) error
+type CmdConfig interface {
+	Save() error
+	Output(ctx client.Context) error
 }
 
 var (
-	_ cmdConfig = &appTomlConfig{}
-	_ cmdConfig = &configTomlConfig{}
+	_ CmdConfig = &AppToml{}
+	_ CmdConfig = &TmConfigToml{}
 )
 
-type appTomlConfig struct {
+type AppToml struct {
 	v          *viper.Viper
-	config     *Config
+	Config     *Config
 	configName string
 }
 
-func (a *appTomlConfig) output(ctx client.Context) error {
-	return output(ctx, a.config)
+func (a *AppToml) Output(ctx client.Context) error {
+	return Output(ctx, a.Config)
 }
 
-func (a *appTomlConfig) save() error {
-	if err := a.v.Unmarshal(a.config, func(decoderConfig *mapstructure.DecoderConfig) {
+func (a *AppToml) Save() error {
+	if err := a.v.Unmarshal(a.Config, func(decoderConfig *mapstructure.DecoderConfig) {
 		decoderConfig.ZeroFields = true
 	}); err != nil {
 		return err
 	}
-	config.WriteConfigFile(a.configName, a.config)
+	srvconfig.WriteConfigFile(a.configName, a.Config)
 	return nil
 }
 
-type configTomlConfig struct {
+type TmConfigToml struct {
 	v          *viper.Viper
-	config     *tmcfg.Config
+	Config     *tmcfg.Config
 	configName string
 }
 
-func (c *configTomlConfig) output(ctx client.Context) error {
+func (c *TmConfigToml) Output(ctx client.Context) error {
 	type outputConfig struct {
 		tmcfg.BaseConfig `mapstructure:",squash"`
 		RPC              tmcfg.RPCConfig             `mapstructure:"rpc"`
 		P2P              tmcfg.P2PConfig             `mapstructure:"p2p"`
 		Mempool          tmcfg.MempoolConfig         `mapstructure:"mempool"`
 		StateSync        tmcfg.StateSyncConfig       `mapstructure:"statesync"`
-		FastSync         tmcfg.FastSyncConfig        `mapstructure:"fastsync"`
+		BlockSync        tmcfg.BlockSyncConfig       `mapstructure:"blocksync"`
 		Consensus        tmcfg.ConsensusConfig       `mapstructure:"consensus"`
+		Storage          tmcfg.StorageConfig         `mapstructure:"storage"`
 		TxIndex          tmcfg.TxIndexConfig         `mapstructure:"tx_index"`
 		Instrumentation  tmcfg.InstrumentationConfig `mapstructure:"instrumentation"`
 	}
-	return output(ctx, outputConfig{
-		BaseConfig:      c.config.BaseConfig,
-		RPC:             *c.config.RPC,
-		P2P:             *c.config.P2P,
-		Mempool:         *c.config.Mempool,
-		StateSync:       *c.config.StateSync,
-		FastSync:        *c.config.FastSync,
-		Consensus:       *c.config.Consensus,
-		TxIndex:         *c.config.TxIndex,
-		Instrumentation: *c.config.Instrumentation,
+	return Output(ctx, outputConfig{
+		BaseConfig:      c.Config.BaseConfig,
+		RPC:             *c.Config.RPC,
+		P2P:             *c.Config.P2P,
+		Mempool:         *c.Config.Mempool,
+		StateSync:       *c.Config.StateSync,
+		BlockSync:       *c.Config.BlockSync,
+		Consensus:       *c.Config.Consensus,
+		Storage:         *c.Config.Storage,
+		TxIndex:         *c.Config.TxIndex,
+		Instrumentation: *c.Config.Instrumentation,
 	})
 }
 
-func (c *configTomlConfig) save() error {
-	if err := c.v.Unmarshal(c.config, func(decoderConfig *mapstructure.DecoderConfig) {
+func (c *TmConfigToml) Save() error {
+	if err := c.v.Unmarshal(c.Config, func(decoderConfig *mapstructure.DecoderConfig) {
 		decoderConfig.ZeroFields = true
 	}); err != nil {
 		return err
 	}
-	tmcfg.WriteConfigFile(c.configName, c.config)
+	tmcfg.WriteConfigFile(c.configName, c.Config)
 	return nil
 }
 
-func newConfig(v *viper.Viper, configName string) (cmdConfig, error) {
+func NewConfig(v *viper.Viper, configName string) (CmdConfig, error) {
 	if strings.HasSuffix(configName, "app.toml") {
 		configData := Config{}
 		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
-		return &appTomlConfig{config: &configData, v: v, configName: configName}, nil
+		return &AppToml{Config: &configData, v: v, configName: configName}, nil
 	} else if strings.HasSuffix(configName, "config.toml") {
 		configData := tmcfg.Config{}
 		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
-		return &configTomlConfig{config: &configData, v: v, configName: configName}, nil
+		return &TmConfigToml{Config: &configData, v: v, configName: configName}, nil
 	} else {
-		return nil, fmt.Errorf("invalid config file: %s, (support: %v)", configName, strings.Join([]string{"app.toml", "config.toml"}, "/"))
+		return nil, fmt.Errorf("invalid Config file: %s, (support: %v)", configName, strings.Join([]string{"app.toml", "config.toml"}, "/"))
 	}
 }
 
-func output(ctx client.Context, content interface{}) error {
+func Output(ctx client.Context, content interface{}) error {
 	var mapData map[string]interface{}
 	if err := mapstructure.Decode(content, &mapData); err != nil {
 		var data interface{}

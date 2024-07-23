@@ -1,19 +1,16 @@
 package types
 
 import (
-	"bytes"
-	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
@@ -36,17 +33,22 @@ var (
 )
 
 func NewParam(msgType string, minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration,
-	quorum string, maxDepositPeriod *time.Duration, threshold string, vetoThreshold string,
+	quorum string, maxDepositPeriod *time.Duration, threshold, vetoThreshold, minInitialDepositRatio string,
+	burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto bool,
 ) *Params {
 	return &Params{
-		MsgType:           msgType,
-		MinDeposit:        minDeposit,
-		MinInitialDeposit: minInitialDeposit,
-		VotingPeriod:      votingPeriod,
-		Quorum:            quorum,
-		MaxDepositPeriod:  maxDepositPeriod,
-		Threshold:         threshold,
-		VetoThreshold:     vetoThreshold,
+		MsgType:                    msgType,
+		MinDeposit:                 minDeposit,
+		MinInitialDeposit:          minInitialDeposit,
+		VotingPeriod:               votingPeriod,
+		Quorum:                     quorum,
+		MaxDepositPeriod:           maxDepositPeriod,
+		Threshold:                  threshold,
+		VetoThreshold:              vetoThreshold,
+		MinInitialDepositRatio:     minInitialDepositRatio,
+		BurnVoteQuorum:             burnVoteQuorum,
+		BurnProposalDepositPrevote: burnProposalDepositPrevote,
+		BurnVoteVeto:               burnVoteVeto,
 	}
 }
 
@@ -60,13 +62,17 @@ func NewEGFParam(egfDepositThreshold sdk.Coin, claimRatio string) *EGFParams {
 func DefaultParams() *Params {
 	p := govv1.DefaultParams()
 	return NewParam(sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),
-		p.DepositParams.GetMinDeposit(),
+		p.GetMinDeposit(),
 		sdk.NewCoin(fxtypes.DefaultDenom, DefaultMinInitialDeposit),
 		&DefaultEvmVotingPeriod,
-		p.TallyParams.Quorum,
-		p.DepositParams.MaxDepositPeriod,
-		p.TallyParams.Threshold,
-		p.TallyParams.VetoThreshold,
+		p.Quorum,
+		p.MaxDepositPeriod,
+		p.Threshold,
+		p.VetoThreshold,
+		p.MinInitialDepositRatio,
+		p.BurnVoteQuorum,
+		p.BurnProposalDepositPrevote,
+		p.BurnVoteVeto,
 	)
 }
 
@@ -79,7 +85,7 @@ func DefaultEGFParams() *EGFParams {
 
 // Erc20ProposalParams  register default erc20 parameters
 func Erc20ProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration, quorum string,
-	maxDepositPeriod *time.Duration, threshold string, vetoThreshold string,
+	maxDepositPeriod *time.Duration, threshold string, vetoThreshold, minInitialDepositRatio string, burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto bool,
 ) []*Params {
 	erc20MsgType := []string{
 		"/fx.erc20.v1.RegisterCoinProposal",
@@ -94,27 +100,29 @@ func Erc20ProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voti
 	baseParams := make([]*Params, 0, len(erc20MsgType))
 	for _, msgType := range erc20MsgType {
 		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
-			maxDepositPeriod, threshold, vetoThreshold))
+			maxDepositPeriod, threshold, vetoThreshold, minInitialDepositRatio, burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto))
 	}
 	return baseParams
 }
 
 // EVMProposalParams register default evm parameters
-func EVMProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration, quorum string, maxDepositPeriod *time.Duration, threshold string, vetoThreshold string) []*Params {
+func EVMProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration, quorum string,
+	maxDepositPeriod *time.Duration, threshold string, vetoThreshold, minInitialDepositRatio string, burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto bool,
+) []*Params {
 	evmMsgType := []string{
 		sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),
 	}
 	baseParams := make([]*Params, 0, len(evmMsgType))
 	for _, msgType := range evmMsgType {
 		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
-			maxDepositPeriod, threshold, vetoThreshold))
+			maxDepositPeriod, threshold, vetoThreshold, minInitialDepositRatio, burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto))
 	}
 	return baseParams
 }
 
 // EGFProposalParams register default egf parameters
 func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration, quorum string,
-	maxDepositPeriod *time.Duration, threshold string, vetoThreshold string,
+	maxDepositPeriod *time.Duration, threshold string, vetoThreshold, minInitialDepositRatio string, burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto bool,
 ) []*Params {
 	EGFMsgType := []string{
 		"/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
@@ -123,7 +131,7 @@ func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voting
 	baseParams := make([]*Params, 0, len(EGFMsgType))
 	for _, msgType := range EGFMsgType {
 		baseParams = append(baseParams, NewParam(msgType, minDeposit, minInitialDeposit, votingPeriod, quorum,
-			maxDepositPeriod, threshold, vetoThreshold))
+			maxDepositPeriod, threshold, vetoThreshold, minInitialDepositRatio, burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto))
 	}
 	return baseParams
 }
@@ -132,7 +140,6 @@ func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voting
 //
 //gocyclo:ignore
 func (p *Params) ValidateBasic() error {
-	// TODO cosmos-sdk V0.47.0 has migrated from gogo/protobuf to cosmos/gogoproto
 	if p.MsgType != "" && proto.MessageType(strings.TrimPrefix(p.MsgType, "/")) == nil {
 		return fmt.Errorf("proto message un registered: %s", p.MsgType)
 	}
@@ -225,44 +232,12 @@ func ExtractMsgTypeURL(msgs []*codectypes.Any) string {
 func CheckEGFProposalMsg(msgs []*codectypes.Any) (bool, sdk.Coins) {
 	totalCommunityPoolSpendAmount := sdk.NewCoins()
 	for _, msg := range msgs {
-		// v1beta1 legacy MsgServer interface.from a legacy Content
-		if strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&govv1.MsgExecLegacyContent{})) {
-			legacyContent := msg.GetCachedValue().(*govv1.MsgExecLegacyContent)
-			content := legacyContent.GetContent()
-			if !strings.EqualFold(content.TypeUrl, "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal") {
-				return false, nil
-			}
-			communityPoolSpendProposal := content.GetCachedValue().(*distributiontypes.CommunityPoolSpendProposal)
+		if strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{})) {
+			communityPoolSpendProposal := msg.GetCachedValue().(*distributiontypes.MsgCommunityPoolSpend)
 			totalCommunityPoolSpendAmount = totalCommunityPoolSpendAmount.Add(communityPoolSpendProposal.Amount...)
 		} else {
-			// TODO v1 MsgServer MsgCommunityPoolSpend pending
-			// CommunityPoolSpendProposal is no msg type yet
 			return false, nil
 		}
 	}
 	return true, totalCommunityPoolSpendAmount
-}
-
-type StoreSpace struct {
-	key      string
-	storeKey storetypes.StoreKey
-}
-
-func NewStoreSpace(key string, storeKey storetypes.StoreKey) StoreSpace {
-	return StoreSpace{
-		key:      key,
-		storeKey: storeKey,
-	}
-}
-
-func (s StoreSpace) Update(ctx sdk.Context, key, oldValue, value []byte) error {
-	store := ctx.KVStore(s.storeKey)
-
-	storeValue := store.Get(key)
-	if !bytes.Equal(storeValue, oldValue) {
-		return fmt.Errorf("old value not equal store value: %s", hex.EncodeToString(storeValue))
-	}
-	store.Set(key, value)
-
-	return nil
 }

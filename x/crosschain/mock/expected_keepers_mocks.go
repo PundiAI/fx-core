@@ -20,7 +20,7 @@ import (
 	types2 "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	types3 "github.com/cosmos/cosmos-sdk/x/params/types"
 	types4 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	types5 "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	types5 "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
 	types6 "github.com/evmos/ethermint/x/evm/types"
 	types7 "github.com/functionx/fx-core/v7/types"
@@ -50,48 +50,6 @@ func NewMockStakingKeeper(ctrl *gomock.Controller) *MockStakingKeeper {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockStakingKeeper) EXPECT() *MockStakingKeeperMockRecorder {
 	return m.recorder
-}
-
-// AfterDelegationModified mocks base method.
-func (m *MockStakingKeeper) AfterDelegationModified(ctx types.Context, delAddr types.AccAddress, valAddr types.ValAddress) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AfterDelegationModified", ctx, delAddr, valAddr)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AfterDelegationModified indicates an expected call of AfterDelegationModified.
-func (mr *MockStakingKeeperMockRecorder) AfterDelegationModified(ctx, delAddr, valAddr any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AfterDelegationModified", reflect.TypeOf((*MockStakingKeeper)(nil).AfterDelegationModified), ctx, delAddr, valAddr)
-}
-
-// BeforeDelegationCreated mocks base method.
-func (m *MockStakingKeeper) BeforeDelegationCreated(ctx types.Context, delAddr types.AccAddress, valAddr types.ValAddress) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BeforeDelegationCreated", ctx, delAddr, valAddr)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BeforeDelegationCreated indicates an expected call of BeforeDelegationCreated.
-func (mr *MockStakingKeeperMockRecorder) BeforeDelegationCreated(ctx, delAddr, valAddr any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeforeDelegationCreated", reflect.TypeOf((*MockStakingKeeper)(nil).BeforeDelegationCreated), ctx, delAddr, valAddr)
-}
-
-// GetBondedValidatorsByPower mocks base method.
-func (m *MockStakingKeeper) GetBondedValidatorsByPower(ctx types.Context) []types4.Validator {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBondedValidatorsByPower", ctx)
-	ret0, _ := ret[0].([]types4.Validator)
-	return ret0
-}
-
-// GetBondedValidatorsByPower indicates an expected call of GetBondedValidatorsByPower.
-func (mr *MockStakingKeeperMockRecorder) GetBondedValidatorsByPower(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBondedValidatorsByPower", reflect.TypeOf((*MockStakingKeeper)(nil).GetBondedValidatorsByPower), ctx)
 }
 
 // GetDelegation mocks base method.
@@ -137,20 +95,6 @@ func (m *MockStakingKeeper) GetValidator(ctx types.Context, addr types.ValAddres
 func (mr *MockStakingKeeperMockRecorder) GetValidator(ctx, addr any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidator", reflect.TypeOf((*MockStakingKeeper)(nil).GetValidator), ctx, addr)
-}
-
-// RemoveDelegation mocks base method.
-func (m *MockStakingKeeper) RemoveDelegation(ctx types.Context, delegation types4.Delegation) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveDelegation", ctx, delegation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RemoveDelegation indicates an expected call of RemoveDelegation.
-func (mr *MockStakingKeeperMockRecorder) RemoveDelegation(ctx, delegation any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDelegation", reflect.TypeOf((*MockStakingKeeper)(nil).RemoveDelegation), ctx, delegation)
 }
 
 // MockStakingMsgServer is a mock of StakingMsgServer interface.

@@ -43,7 +43,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/fx/crosschain/v1/query.swagger.json",
+      "url": "./tmp-swagger-gen/fx/gravity/crosschain/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "CrosschainParams"
@@ -114,6 +114,14 @@
       "operationIds": {
         "rename": {
           "Params": "DistributionParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/consensus/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "ConsensusParams"
         }
       }
     },

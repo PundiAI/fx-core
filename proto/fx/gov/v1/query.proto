@@ -18,7 +18,8 @@ service Query {
   }
 }
 
-// QueryBaseParamsRequest is the request type for the Query/BaseParams RPC method.
+// QueryBaseParamsRequest is the request type for the Query/BaseParams RPC
+// method.
 message QueryParamsRequest {
   string msg_type = 1;
 }

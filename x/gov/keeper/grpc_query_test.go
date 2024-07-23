@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryParams() {
 	suite.Require().EqualValues(params.Quorum, govtypes.DefaultErc20Quorum.String())
 
 	params.Quorum = "0.3"
-	_, err = suite.MsgServer.UpdateParams(suite.ctx, &govtypes.MsgUpdateParams{Authority: suite.govAcct, Params: params})
+	_, err = suite.MsgServer.UpdateFXParams(suite.ctx, &govtypes.MsgUpdateFXParams{Authority: suite.govAcct, Params: params})
 	suite.Require().NoError(err)
 	response, err = queryClient.Params(suite.ctx, &govtypes.QueryParamsRequest{MsgType: sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{})})
 	suite.Require().NoError(err)

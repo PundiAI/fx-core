@@ -8,7 +8,6 @@ import (
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 )
 
-// ModuleCdc is the codec for the module
 var ModuleCdc = codec.NewAminoCodec(codec.NewLegacyAmino())
 
 func init() {

@@ -3,12 +3,12 @@ package cmd
 import (
 	"path/filepath"
 
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
 	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
 
 	fxcfg "github.com/functionx/fx-core/v7/server/config"
 )
@@ -18,8 +18,7 @@ const (
 	appFileName    = "app.toml"
 )
 
-// configCmd returns a CLI command to interactively create an application CLI
-// config file.
+// configCmd returns a CLI command to interactively create an application CLI config file.
 func configCmd() *cobra.Command {
 	cmd := sdkcfg.Cmd()
 	cmd.AddCommand(

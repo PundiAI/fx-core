@@ -27,8 +27,8 @@ func NewGovMigrate(govKey storetypes.StoreKey, govKeeper types.GovKeeper) Migrat
 }
 
 func (m *GovMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
-	votingParams := m.govKeeper.GetVotingParams(ctx)
-	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*votingParams.VotingPeriod))
+	params := m.govKeeper.GetParams(ctx)
+	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*params.VotingPeriod))
 	defer activeIter.Close()
 	for ; activeIter.Valid(); activeIter.Next() {
 		// check vote
@@ -46,8 +46,8 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 	govStore := ctx.KVStore(m.govKey)
 	events := make([]sdk.Event, 0, 10)
 
-	depositParams := m.govKeeper.GetDepositParams(ctx)
-	inactiveIter := m.govKeeper.InactiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*depositParams.MaxDepositPeriod))
+	params := m.govKeeper.GetParams(ctx)
+	inactiveIter := m.govKeeper.InactiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*params.MaxDepositPeriod))
 	defer inactiveIter.Close()
 	for ; inactiveIter.Valid(); inactiveIter.Next() {
 		proposalID, _ := govtypes.SplitInactiveProposalQueueKey(inactiveIter.Key())
@@ -74,8 +74,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 		}
 	}
 
-	votingParams := m.govKeeper.GetVotingParams(ctx)
-	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*votingParams.VotingPeriod))
+	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*params.VotingPeriod))
 	defer activeIter.Close()
 	for ; activeIter.Valid(); activeIter.Next() {
 		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())

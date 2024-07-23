@@ -19,26 +19,12 @@ import (
 
 // NewTxCmd returns a root CLI command handler for all x/staking transaction commands.
 func NewTxCmd() *cobra.Command {
-	stakingTxCmd := &cobra.Command{
-		Use:                        stakingtypes.ModuleName,
-		Short:                      "Staking transaction subcommands",
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
-
-	stakingTxCmd.AddCommand(
-		cli.NewCreateValidatorCmd(),
-		cli.NewEditValidatorCmd(),
-		cli.NewDelegateCmd(),
-		cli.NewRedelegateCmd(),
-		cli.NewUnbondCmd(),
-		cli.NewCancelUnbondingDelegation(),
+	cmd := cli.NewTxCmd()
+	cmd.AddCommand(
 		NewGrantPrivilegeCmd(),
 		NewEditConsensusPubKeyCmd(),
 	)
-
-	return stakingTxCmd
+	return cmd
 }
 
 func NewGrantPrivilegeCmd() *cobra.Command {

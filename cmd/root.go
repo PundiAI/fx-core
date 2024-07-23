@@ -8,12 +8,17 @@ import (
 	"path/filepath"
 	"strings"
 
+	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
+	dbm "github.com/cometbft/cometbft-db"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/snapshots"
@@ -23,17 +28,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/evmos/ethermint/crypto/hd"
+	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/client/cli"
+	fxcli "github.com/functionx/fx-core/v7/client/cli"
 	fxserver "github.com/functionx/fx-core/v7/server"
 	fxcfg "github.com/functionx/fx-core/v7/server/config"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -55,7 +57,7 @@ func NewRootCmd() *cobra.Command {
 		WithInput(os.Stdin).
 		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithBroadcastMode(flags.BroadcastBlock).
+		WithBroadcastMode(flags.BroadcastSync).
 		WithHomeDir(fxtypes.GetDefaultNodeHome()).
 		WithViper(fxtypes.EnvPrefix).
 		WithKeyringOptions(hd.EthSecp256k1Option())
@@ -99,32 +101,35 @@ func NewRootCmd() *cobra.Command {
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defaultNodeHome string) {
 	myAppCreator := appCreator{encodingConfig}
+	genesisCmd := fxcli.GenesisCoreCommand(app.ModuleBasics, defaultNodeHome)
 	rootCmd.AddCommand(
-		cli.Debug(),
-		cli.InitCmd(defaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec), app.CustomGenesisConsensusParams()),
-		cli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
-		cli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
-		cli.AddGenesisAccountCmd(defaultNodeHome),
+		fxcli.InitCmd(defaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec), app.CustomGenesisConsensusParams()),
+		genesisCmd,
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(encodingConfig),
-		configCmd(),
 		pruningCommand(myAppCreator.newApp, defaultNodeHome),
 	)
+	rootCmd.AddCommand(genesisCmd.Commands()...)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		cli.StatusCommand(),
+		version.NewVersionCommand(),
+		sdkserver.NewRollbackCmd(myAppCreator.newApp, defaultNodeHome),
+		sdkserver.ExportCmd(myAppCreator.appExport, defaultNodeHome),
+		rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
+		snapshot.Cmd(myAppCreator.newApp),
+		ethermintserver.NewIndexTxCmd(),
+		fxcli.Debug(),
+		fxcli.StatusCommand(),
+		fxserver.DataCmd(),
+		fxserver.StartCmd(myAppCreator.newApp, defaultNodeHome),
+		fxserver.TendermintCommand(),
+		fxserver.CometCommand(myAppCreator.newApp),
+		configCmd(),
 		keyCommands(defaultNodeHome),
 		queryCommand(),
 		txCommand(),
-		version.NewVersionCommand(),
-		sdkserver.NewRollbackCmd(myAppCreator.newApp, defaultNodeHome),
-		fxserver.DataCmd(),
-		fxserver.ExportSateCmd(myAppCreator.appExport, defaultNodeHome),
-		fxserver.StartCmd(myAppCreator.newApp, defaultNodeHome),
-		fxserver.TendermintCommand(),
-		fxserver.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
 		preUpgradeCmd(),
 		doctorCmd(),
 		exportDelegatesCmd(defaultNodeHome),
@@ -143,14 +148,14 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		authcmd.GetAccountCmd(),
+		authcmd.QueryTxCmd(),
+		authcmd.QueryTxsByEventsCmd(),
 		rpc.ValidatorCommand(),
-		cli.BlockCommand(),
-		cli.QueryTxsByEventsCmd(),
-		cli.QueryTxCmd(),
-		cli.QueryStoreCmd(),
-		cli.QueryValidatorByConsAddr(),
-		cli.QueryBlockResultsCmd(),
-		cli.QueryGasPricesCmd(),
+		rpc.QueryEventForTxCmd(),
+		fxcli.BlockCommand(),
+		fxcli.QueryStoreCmd(),
+		fxcli.QueryValidatorByConsAddr(),
+		fxcli.QueryGasPricesCmd(),
 		crosschaincli.GetQueryCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
 	)
 
@@ -178,6 +183,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
+		authcmd.GetAuxToFeeCommand(),
 		crosschaincli.GetTxCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
 	)
 
@@ -188,12 +194,7 @@ func txCommand() *cobra.Command {
 }
 
 func pruningCommand(appCreator servertypes.AppCreator, nodeHome string) *cobra.Command {
-	pruningCmd := pruning.PruningCmd(appCreator)
-	homeFlag := pruningCmd.Flag(flags.FlagHome)
-	homeFlag.DefValue = nodeHome
-	if err := homeFlag.Value.Set(nodeHome); err != nil {
-		panic(err)
-	}
+	pruningCmd := pruning.Cmd(appCreator, nodeHome)
 	dbBackend := pruningCmd.Flag(pruning.FlagAppDBBackend)
 	dbBackend.DefValue = string(dbm.GoLevelDBBackend)
 	if err := dbBackend.Value.Set(string(dbm.GoLevelDBBackend)); err != nil {
@@ -261,13 +262,20 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
 		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(sdkserver.FlagIAVLCacheSize))),
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(sdkserver.FlagDisableIAVLFastNode))),
+		baseapp.SetChainID(fxtypes.ChainId()),
 	)
 }
 
 // appExport creates a new simapp (optionally at a given height)
 func (a appCreator) appExport(
-	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	height int64,
+	forZeroHeight bool,
+	jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions,
+	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
 	var anApp *app.App
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
@@ -289,5 +297,5 @@ func (a appCreator) appExport(
 		)
 	}
 
-	return anApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+	return anApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }

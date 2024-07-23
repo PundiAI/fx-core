@@ -18,7 +18,7 @@ import (
 )
 
 type Keeper struct {
-	stakingkeeper.Keeper
+	*stakingkeeper.Keeper
 	storeKey storetypes.StoreKey
 	cdc      codec.Codec
 
@@ -28,8 +28,8 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new staking Keeper instance
-func NewKeeper(k stakingkeeper.Keeper, storeKey storetypes.StoreKey, cdc codec.Codec, ak types.AccountKeeper) Keeper {
-	return Keeper{
+func NewKeeper(k *stakingkeeper.Keeper, storeKey storetypes.StoreKey, cdc codec.Codec, ak types.AccountKeeper) *Keeper {
+	return &Keeper{
 		Keeper:        k,
 		storeKey:      storeKey,
 		cdc:           cdc,

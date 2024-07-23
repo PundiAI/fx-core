@@ -1,0 +1,27 @@
+syntax = "proto3";
+package fx.gravity.crosschain.v1;
+
+import "fx/gravity/crosschain/v1/tx.proto";
+import "fx/gravity/crosschain/v1/types.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/functionx/fx-core/x/crosschain/types";
+
+// GenesisState struct
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  uint64 last_observed_event_nonce = 2;
+  LastObservedBlockHeight last_observed_block_height = 3 [(gogoproto.nullable) = false];
+  repeated Oracle oracles = 4 [(gogoproto.nullable) = false];
+  repeated OracleSet oracle_sets = 5 [(gogoproto.nullable) = false];
+  repeated BridgeToken bridge_tokens = 6 [(gogoproto.nullable) = false];
+  repeated OutgoingTransferTx unbatched_transfers = 7 [(gogoproto.nullable) = false];
+  repeated OutgoingTxBatch batches = 8 [(gogoproto.nullable) = false];
+  repeated MsgOracleSetConfirm oracle_set_confirms = 9 [(gogoproto.nullable) = false];
+  repeated MsgConfirmBatch batch_confirms = 10 [(gogoproto.nullable) = false];
+  repeated Attestation attestations = 11 [(gogoproto.nullable) = false];
+  ProposalOracle proposal_oracle = 12 [(gogoproto.nullable) = false];
+  OracleSet last_observed_oracle_set = 13 [(gogoproto.nullable) = false];
+  uint64 last_slashed_batch_block = 14;
+  uint64 last_slashed_oracle_set_nonce = 15;
+}

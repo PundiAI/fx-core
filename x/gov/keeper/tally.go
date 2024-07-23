@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -14,13 +15,13 @@ import (
 //
 //gocyclo:ignore
 func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes bool, burnDeposits bool, tallyResults govv1.TallyResult) {
-	results := make(map[govv1.VoteOption]sdk.Dec)
-	results[govv1.OptionYes] = sdk.ZeroDec()
-	results[govv1.OptionAbstain] = sdk.ZeroDec()
-	results[govv1.OptionNo] = sdk.ZeroDec()
-	results[govv1.OptionNoWithVeto] = sdk.ZeroDec()
+	results := make(map[govv1.VoteOption]sdkmath.LegacyDec)
+	results[govv1.OptionYes] = sdkmath.LegacyZeroDec()
+	results[govv1.OptionAbstain] = sdkmath.LegacyZeroDec()
+	results[govv1.OptionNo] = sdkmath.LegacyZeroDec()
+	results[govv1.OptionNoWithVeto] = sdkmath.LegacyZeroDec()
 
-	totalVotingPower := sdk.ZeroDec()
+	totalVotingPower := sdkmath.LegacyZeroDec()
 	currValidators := make(map[string]govv1.ValidatorGovInfo)
 
 	// fetch all the bonded validators, insert them into currValidators
@@ -29,7 +30,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 			validator.GetOperator(),
 			validator.GetBondedTokens(),
 			validator.GetDelegatorShares(),
-			sdk.ZeroDec(),
+			sdkmath.LegacyZeroDec(),
 			govv1.WeightedVoteOptions{},
 		)
 
@@ -60,7 +61,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 				votingPower := delegation.GetShares().MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 
 				for _, option := range vote.Options {
-					weight, _ := sdk.NewDecFromStr(option.Weight)
+					weight, _ := sdkmath.LegacyNewDecFromStr(option.Weight)
 					subPower := votingPower.Mul(weight)
 					results[option.Option] = results[option.Option].Add(subPower)
 				}
@@ -84,14 +85,14 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 		votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 
 		for _, option := range val.Vote {
-			weight, _ := sdk.NewDecFromStr(option.Weight)
+			weight, _ := sdkmath.LegacyNewDecFromStr(option.Weight)
 			subPower := votingPower.Mul(weight)
 			results[option.Option] = results[option.Option].Add(subPower)
 		}
 		totalVotingPower = totalVotingPower.Add(votingPower)
 	}
 
-	params := keeper.GetParams(ctx, fxgovtypes.ExtractMsgTypeURL(proposal.Messages))
+	params := keeper.GetFXParams(ctx, fxgovtypes.ExtractMsgTypeURL(proposal.Messages))
 
 	tallyResults = govv1.NewTallyResultFromMap(results)
 	// If there is no staked coins, the proposal fails
@@ -100,25 +101,25 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 	}
 
 	// If there is not enough quorum of votes, the proposal fails
-	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(keeper.sk.TotalBondedTokens(ctx)))
-	quorum, _ := sdk.NewDecFromStr(params.Quorum)
+	percentVoting := totalVotingPower.Quo(sdkmath.LegacyNewDecFromInt(keeper.sk.TotalBondedTokens(ctx)))
+	quorum, _ := sdkmath.LegacyNewDecFromStr(params.Quorum)
 	if percentVoting.LT(quorum) {
 		return false, false, tallyResults
 	}
 
 	// If no one votes (everyone abstains), proposal fails
-	if totalVotingPower.Sub(results[govv1.OptionAbstain]).Equal(sdk.ZeroDec()) {
+	if totalVotingPower.Sub(results[govv1.OptionAbstain]).Equal(sdkmath.LegacyZeroDec()) {
 		return false, false, tallyResults
 	}
 
 	// If more than 1/3 of voters veto, proposal fails
-	vetoThreshold, _ := sdk.NewDecFromStr(params.VetoThreshold)
+	vetoThreshold, _ := sdkmath.LegacyNewDecFromStr(params.VetoThreshold)
 	if results[govv1.OptionNoWithVeto].Quo(totalVotingPower).GT(vetoThreshold) {
 		return false, true, tallyResults
 	}
 
 	// If more than 1/2 of non-abstaining voters vote Yes, proposal passes
-	threshold, _ := sdk.NewDecFromStr(params.Threshold)
+	threshold, _ := sdkmath.LegacyNewDecFromStr(params.Threshold)
 	if results[govv1.OptionYes].Quo(totalVotingPower.Sub(results[govv1.OptionAbstain])).GT(threshold) {
 		return true, false, tallyResults
 	}

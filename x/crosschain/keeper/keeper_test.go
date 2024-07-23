@@ -4,16 +4,16 @@ import (
 	"os"
 	"testing"
 
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 	"go.uber.org/mock/gomock"
 
+	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -85,14 +85,14 @@ func (s *KeeperTestSuite) SetupTest() {
 	testCtx := testutil.DefaultContextWithDB(s.T(), key, sdk.NewTransientStoreKey("transient_test"))
 	s.ctx = testCtx.Ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
 	s.ctx = testCtx.Ctx.WithConsensusParams(
-		&abci.ConsensusParams{
-			Block: &abci.BlockParams{
+		&tmproto.ConsensusParams{
+			Block: &tmproto.BlockParams{
 				MaxGas: types.MaxGasLimit,
 			},
 		},
 	)
 
-	encCfg := testutil.MakeTestEncodingConfig()
+	encCfg := app.MakeEncodingConfig()
 	types.RegisterInterfaces(encCfg.InterfaceRegistry)
 
 	ctrl := gomock.NewController(s.T())

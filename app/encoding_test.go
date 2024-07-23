@@ -2,57 +2,74 @@ package app_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/functionx/fx-core/v7/app"
+	"github.com/functionx/fx-core/v7/testutil/helpers"
 )
 
 func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	encodingConfig := app.MakeEncodingConfig()
 
+	// github.com/cosmos/cosmos/codec/types.interfaceRegistry
 	interfaceRegistry := reflect.ValueOf(encodingConfig.Codec).Elem().Field(0).Elem().Elem()
 
-	interfaceNames := interfaceRegistry.Field(0).MapRange()
-	var count1 int
+	result := struct {
+		InterfaceNames []string
+		TypeURLMap     []string
+		GovContent     []string
+		Msgs           []string
+		ProposalMsgs   []string
+	}{}
+
+	interfaceNames := interfaceRegistry.FieldByName("interfaceNames").MapRange()
 	for interfaceNames.Next() {
+		result.InterfaceNames = append(result.InterfaceNames, interfaceNames.Key().String())
+	}
+	sort.Strings(result.InterfaceNames)
+
+	interfaceImpls := interfaceRegistry.FieldByName("interfaceImpls").MapRange()
+	var count1 int
+	for interfaceImpls.Next() {
 		count1++
 	}
-	assert.Equal(t, 33, count1)
+	assert.Equal(t, 32, count1)
 
-	interfaceImpls := interfaceRegistry.Field(1).MapRange()
+	implInterfaces := interfaceRegistry.FieldByName("implInterfaces").MapRange()
 	var count2 int
-	for interfaceImpls.Next() {
+	for implInterfaces.Next() {
 		count2++
 	}
-	assert.Equal(t, 33, count2)
+	assert.Equal(t, 296, count2)
 
-	typeURLMap := interfaceRegistry.Field(2).MapRange()
-	var count3 int
+	typeURLMap := interfaceRegistry.FieldByName("typeURLMap").MapRange()
 	for typeURLMap.Next() {
-		count3++
+		result.TypeURLMap = append(result.TypeURLMap, typeURLMap.Key().String())
 	}
-	assert.Equal(t, 278, count3)
+	sort.Strings(result.TypeURLMap)
 
-	govContent := encodingConfig.InterfaceRegistry.ListImplementations("cosmos.gov.v1beta1.Content")
-	assert.Equal(t, 14, len(govContent))
+	result.GovContent = encodingConfig.InterfaceRegistry.ListImplementations("cosmos.gov.v1beta1.Content")
+	sort.Strings(result.GovContent)
 
-	msgImplementations := encodingConfig.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName)
-	assert.Equal(t, 108, len(msgImplementations))
+	result.Msgs = encodingConfig.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName)
+	sort.Strings(result.Msgs)
 
 	type govProposalMsg interface {
 		GetAuthority() string
 	}
-	var govMsg []string
-	for _, implementation := range msgImplementations {
+	for _, implementation := range result.Msgs {
 		resolvedMsg, err := encodingConfig.InterfaceRegistry.Resolve(implementation)
 		assert.NoError(t, err)
 
 		if _, ok := resolvedMsg.(govProposalMsg); ok {
-			govMsg = append(govMsg, implementation)
+			result.ProposalMsgs = append(result.ProposalMsgs, implementation)
 		}
 	}
-	assert.Equal(t, 16, len(govMsg))
+	sort.Strings(result.ProposalMsgs)
+
+	helpers.AssertJsonFile(t, "./interface_registry.json", result)
 }

@@ -4,33 +4,34 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	dbm "github.com/cometbft/cometbft-db"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibccoretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibccoretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v7/app"
 	fxcfg "github.com/functionx/fx-core/v7/server/config"
@@ -44,35 +45,46 @@ import (
 func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *network.Config)) network.Config {
 	cfg := network.Config{
 		Codec:             encCfg.Codec,
-		TxConfig:          encCfg.TxConfig,
-		LegacyAmino:       encCfg.Amino,
 		InterfaceRegistry: encCfg.InterfaceRegistry,
+		TxConfig:          encCfg.TxConfig,
 		AccountRetriever:  authtypes.AccountRetriever{},
 		AppConstructor: func(appConfig *fxcfg.Config, ctx *server.Context) servertypes.Application {
-			return app.New(ctx.Logger, dbm.NewMemDB(),
-				nil, true, make(map[int64]bool), ctx.Config.RootDir, 0,
+			return app.New(
+				ctx.Logger,
+				dbm.NewMemDB(),
+				nil,
+				true,
+				make(map[int64]bool),
+				ctx.Config.RootDir,
+				0,
 				encCfg,
 				ctx.Viper,
 				baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(appConfig.Pruning)),
 				baseapp.SetMinGasPrices(appConfig.MinGasPrices),
+				baseapp.SetChainID(fxtypes.MainnetChainId),
 			)
 		},
 		GenesisState:    NoSupplyGenesisState(encCfg.Codec),
 		TimeoutCommit:   500 * time.Millisecond,
-		ChainID:         fxtypes.MainnetChainId,
+		StakingTokens:   sdk.TokensFromConsensusPower(5000, sdk.DefaultPowerReduction), // 500_000
+		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),  // 10_000
 		NumValidators:   4,
+		ChainID:         fxtypes.MainnetChainId,
 		BondDenom:       fxtypes.DefaultDenom,
 		MinGasPrices:    fxtypes.GetDefGasPrice().String(),
-		AccountTokens:   sdk.TokensFromConsensusPower(1000, sdk.DefaultPowerReduction),
-		StakingTokens:   sdk.TokensFromConsensusPower(5000, sdk.DefaultPowerReduction),
-		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),
 		PruningStrategy: pruningtypes.PruningOptionNothing,
+		// RPCAddress:      "tcp://localhost:26657",
+		// JSONRPCAddress:  "localhost:8545",
+		// APIAddress:      "localhost:1317",
+		// GRPCAddress:     "localhost:9090",
+		EnableJSONRPC:   false,
+		EnableAPI:       false,
+		EnableTMLogging: false,
 		CleanupDir:      true,
 		SigningAlgo:     string(hd.Secp256k1Type),
 		KeyringOptions: []keyring.Option{
 			hd2.EthSecp256k1Option(),
 		},
-		PrintMnemonic: false,
 		BypassMinFeeMsgTypes: []string{
 			sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}),
 		},
@@ -91,9 +103,10 @@ func NoSupplyGenesisState(cdc codec.Codec) app.GenesisState {
 	bankState.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData()}
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
 
-	var govGenState govv1beta1.GenesisState
+	var govGenState govv1.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState)
-	govGenState.VotingParams.VotingPeriod = time.Millisecond
+	votingPeriod := time.Millisecond
+	govGenState.Params.VotingPeriod = &votingPeriod
 
 	genesisState[govtypes.ModuleName] = cdc.MustMarshalJSON(&govGenState)
 
@@ -116,7 +129,7 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 
 	// 1. ibc client state
 	clientState.Clients = []clienttypes.IdentifiedClientState{
-		clienttypes.NewIdentifiedClientState(clientId, &ibctmtypes.ClientState{
+		clienttypes.NewIdentifiedClientState(clientId, &ibctm.ClientState{
 			ChainId:      tmrand.Str(10),
 			LatestHeight: clienttypes.NewHeight(0, 1),
 			// if ibc timeout  ctx.BlockTime() > TrustingPeriod + clientState.ClientsConsensus.Timestamp
@@ -129,7 +142,7 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 			ClientId: clientId,
 			ConsensusStates: []clienttypes.ConsensusStateWithHeight{
 				clienttypes.NewConsensusStateWithHeight(clienttypes.NewHeight(0, 1),
-					ibctmtypes.NewConsensusState(time.Now(), types.NewMerkleRoot(tmrand.Bytes(32)), nil),
+					ibctm.NewConsensusState(time.Now(), types.NewMerkleRoot(tmrand.Bytes(32)), nil),
 				),
 			},
 		},
@@ -158,7 +171,7 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 	// for ibc test
 	capabilityState := buildCapabilityGenesisState()
 	genesisState[capabilitytypes.ModuleName] = cdc.MustMarshalJSON(&capabilityState)
-	genesisState[host.ModuleName] = cdc.MustMarshalJSON(&ibccoretypes.GenesisState{
+	genesisState[exported.ModuleName] = cdc.MustMarshalJSON(&ibccoretypes.GenesisState{
 		ClientGenesis:     clientState,
 		ConnectionGenesis: connState,
 		ChannelGenesis:    channelState,

@@ -11,7 +11,6 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-// ModuleCdc is the codec for the module
 var ModuleCdc = codec.NewAminoCodec(codec.NewLegacyAmino())
 
 func init() {

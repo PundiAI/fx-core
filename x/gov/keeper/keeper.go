@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,50 +17,33 @@ import (
 )
 
 type Keeper struct {
-	govkeeper.Keeper
+	*govkeeper.Keeper
 	// The (unexposed) keys used to access the stores from the Context.
 	storeKey storetypes.StoreKey
 
 	bankKeeper govtypes.BankKeeper
 	sk         govtypes.StakingKeeper
 
-	config types.Config
-
 	cdc codec.BinaryCodec
 
 	authority string
 
-	storeSpaces map[string]*types.StoreSpace
+	storeKeys map[string]*storetypes.KVStoreKey
 }
 
-func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key storetypes.StoreKey, gk govkeeper.Keeper, config types.Config, cdc codec.BinaryCodec, authority string) Keeper {
+func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, keys map[string]*storetypes.KVStoreKey, gk *govkeeper.Keeper, cdc codec.BinaryCodec, authority string) *Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
 	}
-	// If not set by app developer, set to default value.
-	if config.MaxTitleLen == 0 {
-		config.MaxTitleLen = types.DefaultConfig().MaxTitleLen
+	return &Keeper{
+		storeKey:   keys[govtypes.StoreKey],
+		bankKeeper: bk,
+		sk:         sk,
+		Keeper:     gk,
+		cdc:        cdc,
+		authority:  authority,
+		storeKeys:  keys,
 	}
-	if config.MaxSummaryLen == 0 {
-		config.MaxSummaryLen = types.DefaultConfig().MaxSummaryLen
-	}
-	if config.MaxMetadataLen == 0 {
-		config.MaxMetadataLen = types.DefaultConfig().MaxMetadataLen
-	}
-	return Keeper{
-		storeKey:    key,
-		bankKeeper:  bk,
-		sk:          sk,
-		Keeper:      gk,
-		config:      config,
-		cdc:         cdc,
-		authority:   authority,
-		storeSpaces: make(map[string]*types.StoreSpace),
-	}
-}
-
-func (keeper Keeper) Config() types.Config {
-	return keeper.config
 }
 
 // AddDeposit adds or updates a deposit of a specific depositor on a specific proposal
@@ -105,7 +89,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	}
 
 	// called when deposit has been added to a proposal, however the proposal may not be active
-	keeper.AfterProposalDeposit(ctx, proposalID, depositorAddr)
+	keeper.Hooks().AfterProposalDeposit(ctx, proposalID, depositorAddr)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		govtypes.EventTypeProposalDeposit,
@@ -148,25 +132,32 @@ func (keeper Keeper) EGFProposalMinDeposit(ctx sdk.Context, msgType string, clai
 	egfDepositThreshold := egfParams.EgfDepositThreshold
 	claimRatio := egfParams.ClaimRatio
 	claimAmount := claimCoin.AmountOf(fxtypes.DefaultDenom)
+
 	if claimAmount.LTE(egfDepositThreshold.Amount) {
 		return sdk.NewCoins(keeper.GetMinInitialDeposit(ctx, msgType))
 	}
-	ratio := sdk.MustNewDecFromStr(claimRatio)
-	initialDeposit := sdk.NewDecFromInt(claimAmount).Mul(ratio).TruncateInt()
+	ratio := sdkmath.LegacyMustNewDecFromStr(claimRatio)
+	initialDeposit := sdkmath.LegacyNewDecFromInt(claimAmount).Mul(ratio).TruncateInt()
 	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initialDeposit))
 }
 
 func (keeper Keeper) InitFxGovParams(ctx sdk.Context) error {
-	params := keeper.GetParams(ctx, "")
-	erc20Params := types.Erc20ProposalParams(params.MinDeposit, params.MinInitialDeposit, params.VotingPeriod, types.DefaultErc20Quorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	params := keeper.GetFXParams(ctx, "")
+	erc20Params := types.Erc20ProposalParams(params.MinDeposit, params.MinInitialDeposit, params.VotingPeriod,
+		types.DefaultErc20Quorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold,
+		params.MinInitialDepositRatio, params.BurnVoteQuorum, params.BurnProposalDepositPrevote, params.BurnVoteVeto)
 	if err := keeper.SetAllParams(ctx, erc20Params); err != nil {
 		return err
 	}
-	evmParams := types.EVMProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEvmVotingPeriod, types.DefaultEvmQuorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	evmParams := types.EVMProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEvmVotingPeriod,
+		types.DefaultEvmQuorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold,
+		params.MinInitialDepositRatio, params.BurnVoteQuorum, params.BurnProposalDepositPrevote, params.BurnVoteVeto)
 	if err := keeper.SetAllParams(ctx, evmParams); err != nil {
 		return err
 	}
-	egfParams := types.EGFProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEgfVotingPeriod, params.Quorum, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	egfParams := types.EGFProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEgfVotingPeriod,
+		params.Quorum, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold,
+		params.MinInitialDepositRatio, params.BurnVoteQuorum, params.BurnProposalDepositPrevote, params.BurnVoteVeto)
 	if err := keeper.SetAllParams(ctx, egfParams); err != nil {
 		return err
 	}
@@ -174,28 +165,4 @@ func (keeper Keeper) InitFxGovParams(ctx sdk.Context) error {
 		return err
 	}
 	return nil
-}
-
-func (keeper Keeper) StoreSpace(s string, storeKey storetypes.StoreKey) types.StoreSpace {
-	_, ok := keeper.storeSpaces[s]
-	if ok {
-		panic("store space already occupied")
-	}
-
-	if s == "" {
-		panic("cannot use empty string for store space")
-	}
-
-	space := types.NewStoreSpace(s, storeKey)
-	keeper.storeSpaces[s] = &space
-
-	return space
-}
-
-func (keeper Keeper) GetStoreSpace(s string) (types.StoreSpace, bool) {
-	space, ok := keeper.storeSpaces[s]
-	if !ok {
-		return types.StoreSpace{}, false
-	}
-	return *space, ok
 }

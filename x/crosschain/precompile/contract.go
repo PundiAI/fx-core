@@ -2,8 +2,8 @@ package precompile
 
 import (
 	"bytes"
+	"errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -14,12 +14,10 @@ import (
 )
 
 type Contract struct {
-	ctx     sdk.Context
 	methods []contract.PrecompileMethod
 }
 
 func NewPrecompiledContract(
-	ctx sdk.Context,
 	bankKeeper BankKeeper,
 	erc20Keeper Erc20Keeper,
 	ibcTransferKeeper IBCTransferKeeper,
@@ -34,7 +32,6 @@ func NewPrecompiledContract(
 		router:            router,
 	}
 	return &Contract{
-		ctx: ctx,
 		methods: []contract.PrecompileMethod{
 			NewBridgeCoinAmountMethod(keeper),
 
@@ -71,29 +68,23 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 
 func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret []byte, err error) {
 	if len(contract.Input) <= 4 {
-		return evmtypes.PackRetErrV2("invalid input")
+		return evmtypes.PackRetErrV2(errors.New("invalid input"))
 	}
 
 	for _, method := range c.methods {
 		if bytes.Equal(method.GetMethodId(), contract.Input[:4]) {
 			if readonly && !method.IsReadonly() {
-				return evmtypes.PackRetErrV2("write protection")
+				return evmtypes.PackRetErrV2(errors.New("write protection"))
 			}
-			cacheCtx, commit := c.ctx.CacheContext()
-			snapshot := evm.StateDB.Snapshot()
-			ret, err = method.Run(cacheCtx, evm, contract)
+
+			ret, err = method.Run(evm, contract)
 			if err != nil {
-				// revert evm state
-				evm.StateDB.RevertToSnapshot(snapshot)
-				return evmtypes.PackRetErrV2(err.Error())
-			}
-			if !method.IsReadonly() {
-				commit()
+				return evmtypes.PackRetErrV2(err)
 			}
 			return ret, nil
 		}
 	}
-	return evmtypes.PackRetErrV2("unknown method")
+	return evmtypes.PackRetErrV2(errors.New("unknown method"))
 }
 
 func EmitEvent(evm *vm.EVM, data []byte, topics []common.Hash) {

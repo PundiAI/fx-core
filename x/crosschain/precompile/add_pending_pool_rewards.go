@@ -43,7 +43,7 @@ func (m *AddPendingPoolRewardsMethod) RequiredGas() uint64 {
 	return 40_000
 }
 
-func (m *AddPendingPoolRewardsMethod) Run(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+func (m *AddPendingPoolRewardsMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	if m.router == nil {
 		return nil, errors.New("cross chain router empty")
 	}
@@ -59,40 +59,47 @@ func (m *AddPendingPoolRewardsMethod) Run(ctx sdk.Context, evm *vm.EVM, contract
 		return nil, fmt.Errorf("chain not support: %s", args.Chain)
 	}
 
-	value := contract.Value()
-	sender := contract.Caller()
-	totalCoin := sdk.Coin{}
-	if value.Cmp(big.NewInt(0)) == 1 && fxcontract.IsZeroEthAddress(args.Token) {
-		if args.Reward.Cmp(value) != 0 {
-			return nil, errors.New("add bridge fee not equal msg.value")
+	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		value := contract.Value()
+		sender := contract.Caller()
+		totalCoin := sdk.Coin{}
+		if value.Cmp(big.NewInt(0)) == 1 && fxcontract.IsZeroEthAddress(args.Token) {
+			if args.Reward.Cmp(value) != 0 {
+				return errors.New("add bridge fee not equal msg.value")
+			}
+			totalCoin, err = m.handlerOriginToken(ctx, evm, sender, args.Reward)
+			if err != nil {
+				return err
+			}
+		} else {
+			totalCoin, err = m.handlerERC20Token(ctx, evm, sender, args.Token, args.Reward)
+			if err != nil {
+				return err
+			}
 		}
-		totalCoin, err = m.handlerOriginToken(ctx, evm, sender, args.Reward)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		totalCoin, err = m.handlerERC20Token(ctx, evm, sender, args.Token, args.Reward)
-		if err != nil {
-			return nil, err
-		}
-	}
 
-	// convert token to bridge reward token
-	rewardCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Reward))
-	addReward, err := m.erc20Keeper.ConvertDenomToTarget(ctx, sender.Bytes(), rewardCoin, fxTarget)
+		// convert token to bridge reward token
+		rewardCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Reward))
+		addReward, err := m.erc20Keeper.ConvertDenomToTarget(ctx, sender.Bytes(), rewardCoin, fxTarget)
+		if err != nil {
+			return err
+		}
+
+		if err = route.PrecompileAddPendingPoolRewards(ctx, args.TxID.Uint64(), sender.Bytes(), addReward); err != nil {
+			return err
+		}
+
+		data, topic, err := m.NewAddPendingPoolRewardsEvent(sender, args.Token, args.Chain, args.TxID, args.Reward)
+		if err != nil {
+			return err
+		}
+		EmitEvent(evm, data, topic)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	if err = route.PrecompileAddPendingPoolRewards(ctx, args.TxID.Uint64(), sender.Bytes(), addReward); err != nil {
-		return nil, err
-	}
-
-	data, topic, err := m.NewAddPendingPoolRewardsEvent(sender, args.Token, args.Chain, args.TxID, args.Reward)
-	if err != nil {
-		return nil, err
-	}
-	EmitEvent(evm, data, topic)
 
 	return m.PackOutput(true)
 }

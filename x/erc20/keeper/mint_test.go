@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 )
@@ -39,22 +37,6 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 				expPair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
 				expPair.Enabled = false
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
-				return expPair
-			},
-			false,
-		},
-		{
-			"token transfers are disabled",
-			func() types.TokenPair {
-				expPair := types.NewTokenPair(helpers.GenHexAddress(), "coin", true, types.OWNER_MODULE)
-				expPair.Enabled = true
-				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
-
-				params := banktypes.DefaultParams()
-				params.SendEnabled = []*banktypes.SendEnabled{
-					{Denom: expPair.Denom, Enabled: false},
-				}
-				suite.app.BankKeeper.SetParams(suite.ctx, params)
 				return expPair
 			},
 			false,

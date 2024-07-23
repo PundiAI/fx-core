@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -eo pipefail
-#set -x
 
 VERSION=$(buf --version)
 echo "buf version: $VERSION"
@@ -63,10 +62,10 @@ fi
 
 if [ "$input" == "ethermint" ]; then
   # download ethermint proto
-  commit_hash=$(go list -m -f '{{.Version}}' github.com/evmos/ethermint | awk -F- '{print $1}')
+  commit_hash=$(go list -m -f '{{.Replace.Version}}' github.com/evmos/ethermint | awk -F '-' '{print $NF}')
   if [ ! -f "./build/fork/ethermint-proto.zip" ]; then
     echo "download ethermint $commit_hash"
-    wget -c "https://github.com/evmos/ethermint/archive/$commit_hash.zip" -O "./build/fork/ethermint-proto.zip"
+    wget -c "https://github.com/functionx/ethermint/archive/$commit_hash.zip" -O "./build/fork/ethermint-proto.zip"
   fi
 
   (
@@ -89,7 +88,7 @@ fi
 
 if [ "$input" == "ibc" ]; then
   # download ibc-go proto
-  commit_hash=$(go list -m -f '{{.Version}}' github.com/cosmos/ibc-go/v6)
+  commit_hash=$(go list -m -f '{{.Version}}' github.com/cosmos/ibc-go/v7)
   if [ ! -f "./build/fork/ibc-go-proto.zip" ]; then
     echo "download ibc-go $commit_hash"
     wget -c "https://github.com/cosmos/ibc-go/archive/$commit_hash.zip" -O "./build/fork/ibc-go-proto.zip"
@@ -102,14 +101,8 @@ if [ "$input" == "ibc" ]; then
     mv "$(ls | grep ibc-go | grep -v grep | grep -v zip)" ibc-go
     rm -rf ibc-go/.git
 
-    # buf push TODO v6.3.0 add name and deps
-    append="version: v1\nname: buf.build/$BUF_ORG/ibc\ndeps:\n  - buf.build/cosmos/cosmos-sdk:8cb30a2c4de74dc9bd8d260b1e75e176\n  - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31\n  - buf.build/cosmos/gogo-proto:bee5511075b7499da6178d9e4aaa628b\n  - buf.build/googleapis/googleapis:783e4b5374fa488ab068d08af9658438"
-
-    cd ibc-go
-    cp third_party/proto/proofs.proto proto/proofs.proto
-    cd proto
-
-    perl -pi -e 's|version: v1|'"${append}"'|g' buf.yaml
+    cd ibc-go/proto
+    perl -pi -e 's|buf.build/cosmos/ibc|buf.build/'"$BUF_ORG"'/ibc|g' buf.yaml
 
     buf mod update
     echo "buf push ibc-go proto with tag $commit_hash ..."

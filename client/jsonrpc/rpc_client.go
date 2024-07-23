@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"nhooyr.io/websocket"
 )
 

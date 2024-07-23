@@ -2,12 +2,14 @@ package transfer_test
 
 import (
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -57,14 +59,15 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.coordinator.Setup(path)
 
 	//	originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), fxtypes.DefaultDenom)
-	timeoutHeight := clienttypes.NewHeight(0, 110)
+	timeoutHeight := clienttypes.ZeroHeight()
+	timeoutTimestamp := uint64(tmtime.Now().Add(time.Hour).UnixNano())
 
 	amount, ok := sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(fxtypes.DefaultDenom, amount)
 
 	// send from chainA to chainB
-	fxIBCMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, defaultMsgRouter, sdk.NewCoin(coinToSendToB.GetDenom(), sdkmath.ZeroInt()))
+	fxIBCMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp, defaultMsgRouter, sdk.NewCoin(coinToSendToB.GetDenom(), sdkmath.ZeroInt()))
 	res, err := suite.chainA.SendMsgs(fxIBCMsg)
 	suite.Require().NoError(err) // message committed
 
@@ -90,7 +93,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.coordinator.Setup(pathBtoC)
 
 	// send from chainB to chainC
-	ibcMsg := transfertypes.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	ibcMsg := transfertypes.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp, "")
 	res, err = suite.chainB.SendMsgs(ibcMsg)
 	suite.Require().NoError(err) // message committed
 
@@ -114,7 +117,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Zero(balance.Amount.Int64())
 
 	// send from chainC back to chainB
-	ibcMsg = transfertypes.NewMsgTransfer(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	ibcMsg = transfertypes.NewMsgTransfer(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp, "")
 	res, err = suite.chainC.SendMsgs(ibcMsg)
 	suite.Require().NoError(err) // message committed
 

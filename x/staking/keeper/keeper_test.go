@@ -5,6 +5,10 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
+	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -17,10 +21,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v7/app"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -60,7 +60,8 @@ func (suite *KeeperTestSuite) SetupSubTest() {
 		Time:            time.Now().UTC(),
 		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
-	suite.ctx = suite.ctx.WithConsensusParams(helpers.ABCIConsensusParams)
+	consensusParams := app.CustomGenesisConsensusParams().ToProto()
+	suite.ctx = suite.ctx.WithConsensusParams(&consensusParams)
 	suite.valAccounts = valAccounts
 
 	for _, validator := range valSet.Validators {
@@ -88,7 +89,8 @@ func (suite *KeeperTestSuite) SetupSubTest() {
 	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
 	stakingParams.UnbondingTime = time.Second
 	stakingParams.MaxValidators = 150
-	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	err := suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	suite.Require().NoError(err)
 
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).MulRaw(1e18))))
@@ -135,12 +137,13 @@ func (suite *KeeperTestSuite) CommitBeginBlock(valUpdate []abci.ValidatorUpdate)
 
 	suite.app.BeginBlock(abci.RequestBeginBlock{
 		Header: header,
-		LastCommitInfo: abci.LastCommitInfo{
+		LastCommitInfo: abci.CommitInfo{
 			Votes: suite.currentVoteInfo,
 		},
 	})
 	suite.ctx = suite.app.NewContext(false, header)
-	suite.ctx = suite.ctx.WithConsensusParams(helpers.ABCIConsensusParams)
+	consensusParams := app.CustomGenesisConsensusParams().ToProto()
+	suite.ctx = suite.ctx.WithConsensusParams(&consensusParams)
 
 	pkUpdate := make(map[string]int64, len(valUpdate))
 	for _, pk := range valUpdate {

@@ -6,8 +6,10 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -18,12 +20,10 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
@@ -76,19 +76,21 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case distributiontypes.ModuleName:
 			state := distributiontypes.DefaultGenesisState()
-			state.Params.CommunityTax = sdk.NewDecWithPrec(40, 2) // %40
+			state.Params.CommunityTax = sdk.NewDecWithPrec(40, 2)       // %40
+			state.Params.BaseProposerReward = sdk.NewDecWithPrec(1, 2)  // nolint:staticcheck
+			state.Params.BonusProposerReward = sdk.NewDecWithPrec(4, 2) // nolint:staticcheck
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case govtypes.ModuleName:
 			state := govv1.DefaultGenesisState()
 			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-			for i := 0; i < len(state.DepositParams.MinDeposit); i++ {
-				state.DepositParams.MinDeposit[i].Denom = denom
-				state.DepositParams.MinDeposit[i].Amount = coinOne.Mul(sdkmath.NewInt(10000))
+			for i := 0; i < len(state.Params.MinDeposit); i++ {
+				state.Params.MinDeposit[i].Denom = denom
+				state.Params.MinDeposit[i].Amount = coinOne.Mul(sdkmath.NewInt(10000))
 			}
 			duration := time.Hour * 24 * 14
-			state.DepositParams.MaxDepositPeriod = &duration
-			state.VotingParams.VotingPeriod = &duration
-			state.TallyParams.Quorum = sdk.NewDecWithPrec(4, 1).String() // 40%
+			state.Params.MaxDepositPeriod = &duration
+			state.Params.VotingPeriod = &duration
+			state.Params.Quorum = sdk.NewDecWithPrec(4, 1).String() // 40%
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case crisistypes.ModuleName:
 			state := crisistypes.DefaultGenesisState()
@@ -116,15 +118,21 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			})
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case paramstypes.ModuleName:
-			if state := b.DefaultGenesis(cdc); state == nil {
-				genesis[b.Name()] = json.RawMessage("{}")
-			} else {
-				genesis[b.Name()] = state
+			if mod, ok := b.(module.HasGenesisBasics); ok {
+				if state := mod.DefaultGenesis(cdc); state == nil {
+					genesis[b.Name()] = json.RawMessage("{}")
+				} else {
+					genesis[b.Name()] = state
+				}
 			}
-		case ibchost.ModuleName:
+		case ibcexported.ModuleName:
 			state := coretypes.DefaultGenesisState()
 			// only allowedClients tendermint
-			state.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
+			state.ClientGenesis.Params.AllowedClients = []string{ibcexported.Tendermint}
+			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+		case evmtypes.ModuleName:
+			state := evmtypes.DefaultGenesisState()
+			state.Params.EvmDenom = denom
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case feemarkettypes.ModuleName:
 			state := feemarkettypes.DefaultGenesisState()
@@ -133,17 +141,18 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			state.Params.MinGasMultiplier = sdk.ZeroDec()
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		default:
-			genesis[b.Name()] = b.DefaultGenesis(cdc)
+			if mod, ok := b.(module.HasGenesisBasics); ok {
+				genesis[b.Name()] = mod.DefaultGenesis(cdc)
+			}
 		}
 	}
 	return genesis
 }
 
-func CustomGenesisConsensusParams() *tmproto.ConsensusParams {
+func CustomGenesisConsensusParams() *tmtypes.ConsensusParams {
 	result := tmtypes.DefaultConsensusParams()
 	result.Block.MaxBytes = 1048576 // 1M
 	result.Block.MaxGas = 30_000_000
-	result.Block.TimeIotaMs = 1000
 	result.Evidence.MaxAgeNumBlocks = 1000000
 	result.Evidence.MaxBytes = 100000
 	result.Evidence.MaxAgeDuration = 172800000000000

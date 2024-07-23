@@ -10,7 +10,6 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
 	migratekeeper "github.com/functionx/fx-core/v7/x/migrate/keeper"
 )
 
@@ -32,7 +31,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))))
 
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{legacyContent},
-		fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+		"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 	suite.Require().NoError(err)
 
 	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, acc, amount)
@@ -78,7 +77,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(5000))))
 
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{legacyContent},
-		fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+		"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 	suite.Require().NoError(err)
 
 	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, acc, amount)
@@ -135,7 +134,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(5000))))
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{legacyContent},
-		fxgovtypes.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
+		"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
 	suite.Require().NoError(err)
 
 	// acc deposit
