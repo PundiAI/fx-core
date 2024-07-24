@@ -20,7 +20,6 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -188,9 +187,9 @@ func BankGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesi
 }
 
 func GovGenesisState(cdc codec.Codec, genesisState app.GenesisState, votingPeriod time.Duration) app.GenesisState {
-	var govGenState govv1beta1.GenesisState
+	var govGenState govv1.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState)
-	govGenState.VotingParams.VotingPeriod = votingPeriod
+	govGenState.Params.VotingPeriod = &votingPeriod
 
 	genesisState[govtypes.ModuleName] = cdc.MustMarshalJSON(&govGenState)
 	return genesisState

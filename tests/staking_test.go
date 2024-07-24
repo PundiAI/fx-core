@@ -465,7 +465,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateTest() {
 	// query delegate
 	valAddrShares1, _ := suite.staking.Delegation(valAddr.String(), hexAddr)
 
-	resp := suite.staking.CreateValidator(valNew.PrivKey())
+	resp := suite.staking.CreateValidator(valNew.PrivKey(), false)
 	suite.Equal(resp.Code, uint32(0))
 
 	receipt = suite.staking.Redelegate(delSigner.PrivKey(), valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), valAddrShares1)
@@ -512,7 +512,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 	// query delegate
 	valAddrShares1, _ := suite.staking.Delegation(valAddr.String(), contract)
 
-	resp := suite.staking.CreateValidator(valNew.PrivKey())
+	resp := suite.staking.CreateValidator(valNew.PrivKey(), false)
 	suite.Equal(resp.Code, uint32(0))
 
 	receipt = suite.staking.RedelegateByContract(delSigner.PrivKey(), contract, valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), valAddrShares1)
