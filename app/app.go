@@ -99,9 +99,11 @@ func New(
 		db,
 		txConfig.TxDecoder(),
 		baseAppOptions...)
+
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
+	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	myApp := &App{
 		BaseApp:           bApp,
@@ -110,6 +112,7 @@ func New(
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
 	}
+
 	// Setup keepers
 	myApp.AppKeepers = keepers.NewAppKeeper(
 		appCodec,
