@@ -52,7 +52,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		return nil, err
 	}
 
-	crosschainKeeper, has := m.router.GetRoute(args.DstChain)
+	crosschainKeeper, has := m.router.GetRoute(args.Chain)
 	if !has {
 		return nil, errors.New("chain not support")
 	}
@@ -61,7 +61,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		if err = crosschainKeeper.ExecuteClaim(ctx, args.EventNonce.Uint64()); err != nil {
 			return err
 		}
-		data, topic, err := m.NewExecuteClaimEvent(contract.Caller(), args.EventNonce, args.DstChain)
+		data, topic, err := m.NewExecuteClaimEvent(contract.Caller(), args.EventNonce, args.Chain)
 		if err != nil {
 			return err
 		}
@@ -85,7 +85,7 @@ func (m *ExecuteClaimMethod) NewExecuteClaimEvent(sender common.Address, eventNo
 }
 
 func (m *ExecuteClaimMethod) PackInput(args crosschaintypes.ExecuteClaimArgs) ([]byte, error) {
-	arguments, err := m.Method.Inputs.Pack(args.DstChain, args.EventNonce)
+	arguments, err := m.Method.Inputs.Pack(args.Chain, args.EventNonce)
 	if err != nil {
 		return nil, err
 	}

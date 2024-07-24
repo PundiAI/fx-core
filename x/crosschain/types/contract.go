@@ -185,12 +185,12 @@ func (args *AddPendingPoolRewardArgs) Validate() error {
 }
 
 type ExecuteClaimArgs struct {
-	DstChain   string   `abi:"_dstChainId"`
+	Chain      string   `abi:"_chain"`
 	EventNonce *big.Int `abi:"_eventNonce"`
 }
 
 func (args *ExecuteClaimArgs) Validate() error {
-	if err := ValidateModuleName(args.DstChain); err != nil {
+	if err := ValidateModuleName(args.Chain); err != nil {
 		return err
 	}
 	if args.EventNonce == nil || args.EventNonce.Sign() <= 0 {

@@ -702,7 +702,7 @@ func (suite *CrosschainTestSuite) ExecuteClaim() *ethtypes.Transaction {
 	suite.Require().True(len(externalClaims) > 0)
 
 	pack, err := precompile.NewExecuteClaimMethod(nil).PackInput(crosschaintypes.ExecuteClaimArgs{
-		DstChain:   suite.chainName,
+		Chain:      suite.chainName,
 		EventNonce: new(big.Int).SetUint64(externalClaims[0].GetEventNonce()),
 	})
 	suite.Require().NoError(err)
