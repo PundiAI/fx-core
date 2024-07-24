@@ -298,3 +298,11 @@ func (k RouterKeeper) PendingBridgeCallByNonce(c context.Context, req *types.Que
 		return queryServer.PendingBridgeCallByNonce(c, req)
 	}
 }
+
+func (k RouterKeeper) PendingExecuteClaim(ctx context.Context, req *types.QueryPendingExecuteClaimRequest) (*types.QueryPendingExecuteClaimResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.PendingExecuteClaim(ctx, req)
+	}
+}

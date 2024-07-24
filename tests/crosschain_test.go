@@ -60,6 +60,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 			chain.CheckBalance(ibcTransferAddr, sdk.NewCoin(bridgeDenom, sdkmath.NewInt(0)))
 		}
 		chain.SendToFxClaim(tokenAddress, sdkmath.NewInt(100), "")
+		chain.ExecuteClaim()
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdkmath.NewInt(100)))
 
 		txId := chain.SendToExternal(5, sdk.NewCoin(bridgeDenom, sdkmath.NewInt(10)))
@@ -239,7 +240,7 @@ func (suite *IntegrationTest) BridgeCallToFxcoreTest() {
 				randAmount := sdkmath.NewInt(int64(tmrand.Uint() + 1000))
 				balBefore := suite.evm.BalanceOf(pair.GetERC20Contract(), chain.HexAddress())
 				chain.BridgeCallClaim(chain.HexAddressString(), []string{bridgeToken}, []sdkmath.Int{randAmount})
-				suite.evm.CheckBalance(pair.GetERC20Contract(), chain.HexAddress(), big.NewInt(0).Add(balBefore, randAmount.BigInt()))
+				suite.evm.CheckBalanceOf(pair.GetERC20Contract(), chain.HexAddress(), big.NewInt(0).Add(balBefore, randAmount.BigInt()))
 
 				// clear balance
 				suite.evm.TransferERC20(chain.privKey, pair.GetERC20Contract(), helpers.GenHexAddress(), randAmount.BigInt())

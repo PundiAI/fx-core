@@ -126,7 +126,7 @@ func (suite *IntegrationTest) ERC20TokenERC20Test() {
 
 	proxy := suite.evm.DeployERC20Contract(suite.erc20.privKey)
 	suite.evm.MintERC20(suite.erc20.privKey, proxy, common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
-	suite.True(suite.evm.CheckBalanceOf(proxy, common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18))))
+	suite.evm.CheckBalanceOf(proxy, suite.erc20.HexAddress(), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
 
 	metadataBrdige := fxtypes.GetCrossChainMetadataManyToOne("test token", helpers.NewRandSymbol(), uint32(18))
 	aliases := make([]string, 0, len(suite.crosschain))
@@ -206,5 +206,5 @@ func (suite *IntegrationTest) ERC20IBCChainTokenERC20Test() {
 	suite.Equal(tokenPair.Enabled, true)
 	suite.Equal(tokenPair.ContractOwner, erc20types.OWNER_EXTERNAL)
 	suite.evm.MintERC20(suite.erc20.privKey, proxy, common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
-	suite.True(suite.evm.CheckBalanceOf(proxy, common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18))))
+	suite.evm.CheckBalanceOf(proxy, common.BytesToAddress(suite.erc20.privKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
 }

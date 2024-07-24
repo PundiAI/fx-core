@@ -3,6 +3,7 @@ package tests
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"math/big"
 	"strconv"
 	"strings"
 
@@ -13,16 +14,19 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 
+	"github.com/functionx/fx-core/v7/client"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
 type CrosschainTestSuite struct {
-	*TestSuite
+	EvmTestSuite
 	params          crosschaintypes.Params
 	chainName       string
 	oraclePrivKey   cryptotypes.PrivKey
@@ -37,7 +41,7 @@ func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestS
 		panic(err.Error())
 	}
 	return CrosschainTestSuite{
-		TestSuite:       ts,
+		EvmTestSuite:    NewEvmTestSuite(ts),
 		chainName:       chainName,
 		oraclePrivKey:   helpers.NewPriKey(),
 		bridgerPrivKey:  helpers.NewPriKey(),
@@ -680,4 +684,37 @@ func (suite *CrosschainTestSuite) QueryPendingBridgeCalls(senderAddr string) []*
 	})
 	suite.NoError(err)
 	return response.GetPendingBridgeCalls()
+}
+
+func (suite *CrosschainTestSuite) ExecuteClaim() *ethtypes.Transaction {
+	externalClaims := suite.PendingExecuteClaim()
+	suite.Require().True(len(externalClaims) > 0)
+
+	pack, err := precompile.NewExecuteClaimMethod(nil).PackInput(crosschaintypes.ExecuteClaimArgs{
+		DstChain:   suite.chainName,
+		EventNonce: new(big.Int).SetUint64(externalClaims[0].GetEventNonce()),
+	})
+	suite.Require().NoError(err)
+
+	address := crosschaintypes.GetAddress()
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.privKey, &address, nil, pack)
+	suite.Require().NoError(err)
+
+	suite.SendTransaction(ethTx)
+	return ethTx
+}
+
+func (suite *CrosschainTestSuite) PendingExecuteClaim() []crosschaintypes.ExternalClaim {
+	response, err := suite.CrosschainQuery().PendingExecuteClaim(suite.ctx, &crosschaintypes.QueryPendingExecuteClaimRequest{
+		ChainName: suite.chainName,
+	})
+	suite.NoError(err)
+	externalClaims := make([]crosschaintypes.ExternalClaim, 0, len(response.Claims))
+	for _, claim := range response.Claims {
+		var externalClaim crosschaintypes.ExternalClaim
+		err = suite.network.Config.Codec.UnpackAny(claim, &externalClaim)
+		suite.Require().NoError(err)
+		externalClaims = append(externalClaims, externalClaim)
+	}
+	return externalClaims
 }

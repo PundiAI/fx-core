@@ -42,6 +42,7 @@ func NewPrecompiledContract(
 			NewBridgeCallMethod(keeper),
 			NewCancelPendingBridgeCallMethod(keeper),
 			NewAddPendingPoolRewardsMethod(keeper),
+			NewExecuteClaimMethod(keeper),
 		},
 	}
 }

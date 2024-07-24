@@ -513,7 +513,7 @@ func NewAppKeeper(
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
 		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
 		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper).
-		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
+		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper.Keeper)
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()

@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	fxAddr1 := helpers.GenHexAddress()
 	randomBlock := tmrand.Int63n(1000000000)
 	randomAmount := tmrand.Int63n(1000000000)
-	_, err := suite.MsgServer().SendToFxClaim(suite.ctx, &types.MsgSendToFxClaim{
+	claim := &types.MsgSendToFxClaim{
 		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0]) + 1,
 		BlockHeight:    uint64(randomBlock),
 		TokenContract:  bridgeTokenStr,
@@ -37,17 +37,15 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      "",
 		BridgerAddress: suite.bridgerAddrs[0].String(),
-	})
-	suite.NoError(err)
+	}
+	suite.SendClaim(claim)
 
 	pair, b := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, "ttt")
 	suite.True(b)
 	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 
-	suite.NoError(err)
-
 	bridgeCallRefundAddr := helpers.GenAccAddress()
-	_, err = suite.MsgServer().BridgeCall(suite.ctx, &types.MsgBridgeCall{
+	_, err := suite.MsgServer().BridgeCall(suite.ctx, &types.MsgBridgeCall{
 		ChainName: suite.chainName,
 		Sender:    sdk.AccAddress(fxAddr1.Bytes()).String(),
 		Refund:    bridgeCallRefundAddr.String(),
@@ -66,7 +64,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.NotNil(outgoingBridgeCall)
 
 	// Triggering the SendtoFx claim once is just to trigger timeout
-	_, err = suite.MsgServer().SendToFxClaim(suite.ctx, &types.MsgSendToFxClaim{
+	sendToFxClaim := &types.MsgSendToFxClaim{
 		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0]) + 1,
 		BlockHeight:    outgoingBridgeCall.Timeout,
 		TokenContract:  bridgeTokenStr,
@@ -75,8 +73,8 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      hex.EncodeToString([]byte(fxtypes.ERC20Target)),
 		BridgerAddress: suite.bridgerAddrs[0].String(),
-	})
-	suite.NoError(err)
+	}
+	suite.SendClaim(sendToFxClaim)
 	// expect balance = sendToFx value + outgointBridgeCallRefund value
 	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount))
 	suite.Equal(sdkmath.NewInt(0), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)

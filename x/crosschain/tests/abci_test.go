@@ -63,8 +63,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		BridgerAddress: suite.bridgerAddrs[0].String(),
 		ChainName:      suite.chainName,
 	}
-	_, err = suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
-	require.NoError(suite.T(), err)
+	suite.SendClaim(sendToFxClaim)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})

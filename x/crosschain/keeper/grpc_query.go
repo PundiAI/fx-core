@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	sdkmath "cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -564,4 +565,30 @@ func (k QueryServer) BridgeAddrToOracle(ctx sdk.Context, bridgeAddr string) (typ
 		return types.Oracle{}, status.Error(codes.NotFound, "oracle not found")
 	}
 	return oracle, nil
+}
+
+func (k QueryServer) PendingExecuteClaim(c context.Context, req *types.QueryPendingExecuteClaimRequest) (*types.QueryPendingExecuteClaimResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	store := prefix.NewStore(ctx.KVStore(k.Keeper.storeKey), types.PendingExecuteClaimKey)
+	var claims []*codectypes.Any
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		var claim types.ExternalClaim
+		if err := k.cdc.UnmarshalInterface(value, &claim); err != nil {
+			return err
+		}
+		anyClaim, err := codectypes.NewAnyWithValue(claim)
+		if err != nil {
+			return err
+		}
+		claims = append(claims, anyClaim)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "paginate: %v", err)
+	}
+	return &types.QueryPendingExecuteClaimResponse{Claims: claims, Pagination: pageRes}, nil
 }

@@ -92,7 +92,7 @@ func (suite *EvmTestSuite) BalanceOf(contractAddr, address common.Address) *big.
 	return balance
 }
 
-func (suite *EvmTestSuite) CheckBalance(contractAddr, address common.Address, balance *big.Int) {
+func (suite *EvmTestSuite) CheckBalanceOf(contractAddr, address common.Address, balance *big.Int) {
 	balAfter := suite.BalanceOf(contractAddr, address)
 	suite.Equal(balAfter.String(), balance.String())
 }
@@ -103,10 +103,6 @@ func (suite *EvmTestSuite) Symbol(contractAddr common.Address) string {
 	symbol, err := caller.Symbol(nil)
 	suite.NoError(err)
 	return symbol
-}
-
-func (suite *EvmTestSuite) CheckBalanceOf(contractAddr, address common.Address, value *big.Int) bool {
-	return suite.BalanceOf(contractAddr, address).Cmp(value) == 0
 }
 
 func (suite *EvmTestSuite) HandleWithCheckBalance(contractAddr, address common.Address, addValue *big.Int, h func()) {
