@@ -15,17 +15,17 @@ import (
 func TestExecuteClaimMethod_ABI(t *testing.T) {
 	executeClaim := precompile.NewExecuteClaimMethod(nil)
 
-	methodStr := `function executeClaim(string _dstChainId, uint256 _eventNonce) returns(bool _result)`
+	methodStr := `function executeClaim(string _chain, uint256 _eventNonce) returns(bool _result)`
 	assert.Equal(t, methodStr, executeClaim.Method.String())
 
-	eventStr := `event ExecuteClaimEvent(address indexed _sender, uint256 _eventNonce, string _dstChain)`
+	eventStr := `event ExecuteClaimEvent(address indexed _sender, uint256 _eventNonce, string _chain)`
 	assert.Equal(t, eventStr, executeClaim.Event.String())
 }
 
 func TestExecuteClaimMethod_PackInput(t *testing.T) {
 	executeClaim := precompile.NewExecuteClaimMethod(nil)
 	input, err := executeClaim.PackInput(types.ExecuteClaimArgs{
-		DstChain:   ethtypes.ModuleName,
+		Chain:      ethtypes.ModuleName,
 		EventNonce: big.NewInt(1),
 	})
 	assert.NoError(t, err)
