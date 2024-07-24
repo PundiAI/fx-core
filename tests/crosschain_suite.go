@@ -27,12 +27,13 @@ import (
 
 type CrosschainTestSuite struct {
 	EvmTestSuite
-	params          crosschaintypes.Params
-	chainName       string
-	oraclePrivKey   cryptotypes.PrivKey
-	bridgerPrivKey  cryptotypes.PrivKey
-	externalPrivKey *ecdsa.PrivateKey
-	privKey         cryptotypes.PrivKey
+	params              crosschaintypes.Params
+	chainName           string
+	oraclePrivKey       cryptotypes.PrivKey
+	bridgerPrivKey      cryptotypes.PrivKey
+	externalPrivKey     *ecdsa.PrivateKey
+	privKey             cryptotypes.PrivKey
+	executeClaimPrivKey cryptotypes.PrivKey
 }
 
 func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestSuite {
@@ -41,12 +42,13 @@ func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestS
 		panic(err.Error())
 	}
 	return CrosschainTestSuite{
-		EvmTestSuite:    NewEvmTestSuite(ts),
-		chainName:       chainName,
-		oraclePrivKey:   helpers.NewPriKey(),
-		bridgerPrivKey:  helpers.NewPriKey(),
-		externalPrivKey: externalPrivKey,
-		privKey:         helpers.NewEthPrivKey(),
+		EvmTestSuite:        NewEvmTestSuite(ts),
+		chainName:           chainName,
+		oraclePrivKey:       helpers.NewPriKey(),
+		bridgerPrivKey:      helpers.NewPriKey(),
+		externalPrivKey:     externalPrivKey,
+		privKey:             helpers.NewEthPrivKey(),
+		executeClaimPrivKey: helpers.NewEthPrivKey(),
 	}
 }
 
@@ -54,6 +56,7 @@ func (suite *CrosschainTestSuite) Init() {
 	suite.TestSuite.Send(suite.OracleAddr(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
 	suite.TestSuite.Send(suite.BridgerAddr(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
 	suite.TestSuite.Send(suite.AccAddress(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
+	suite.TestSuite.Send(suite.ExecuteClaimAccAddress(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
 	suite.params = suite.QueryParams()
 }
 
@@ -72,6 +75,10 @@ func (suite *CrosschainTestSuite) BridgerAddr() sdk.AccAddress {
 
 func (suite *CrosschainTestSuite) AccAddress() sdk.AccAddress {
 	return suite.privKey.PubKey().Address().Bytes()
+}
+
+func (suite *CrosschainTestSuite) ExecuteClaimAccAddress() sdk.AccAddress {
+	return suite.executeClaimPrivKey.PubKey().Address().Bytes()
 }
 
 func (suite *CrosschainTestSuite) HexAddress() gethcommon.Address {
@@ -260,6 +267,7 @@ func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
 		},
 	)
 	suite.NoError(err)
+	suite.NotEmpty(queryResponse.OracleSets)
 
 	for _, oracleSet := range queryResponse.OracleSets {
 		var signature []byte
@@ -307,6 +315,7 @@ func (suite *CrosschainTestSuite) BridgeCallClaim(to string, tokens []string, am
 		BridgerAddress: suite.BridgerAddr().String(),
 		TxOrigin:       suite.HexAddressString(),
 	})
+	suite.ExecuteClaim()
 }
 
 func (suite *CrosschainTestSuite) SendToTxClaimWithReceiver(receiver sdk.AccAddress, token string, amount sdkmath.Int, targetIbc string) {
@@ -321,6 +330,7 @@ func (suite *CrosschainTestSuite) SendToTxClaimWithReceiver(receiver sdk.AccAddr
 		BridgerAddress: suite.BridgerAddr().String(),
 		ChainName:      suite.chainName,
 	})
+	suite.ExecuteClaim()
 	bridgeToken, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
 		ChainName: suite.chainName,
 		Token:     token,
@@ -642,6 +652,7 @@ func (suite *CrosschainTestSuite) BridgeCallConfirm(nonce uint64, isSuccess bool
 			Cause:          "",
 		},
 	)
+	suite.ExecuteClaim()
 }
 
 func (suite *CrosschainTestSuite) SignatureCheckpoint(checkpoint []byte) []byte {
@@ -697,7 +708,7 @@ func (suite *CrosschainTestSuite) ExecuteClaim() *ethtypes.Transaction {
 	suite.Require().NoError(err)
 
 	address := crosschaintypes.GetAddress()
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.privKey, &address, nil, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.executeClaimPrivKey, &address, nil, pack)
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)

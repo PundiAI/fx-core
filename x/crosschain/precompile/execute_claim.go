@@ -2,6 +2,7 @@ package precompile
 
 import (
 	"errors"
+	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -60,7 +61,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		if err = crosschainKeeper.ExecuteClaim(ctx, args.EventNonce.Uint64()); err != nil {
 			return err
 		}
-		data, topic, err := m.NewExecuteClaimEvent(contract.Caller(), args.EventNonce.Uint64(), args.DstChain)
+		data, topic, err := m.NewExecuteClaimEvent(contract.Caller(), args.EventNonce, args.DstChain)
 		if err != nil {
 			return err
 		}
@@ -75,7 +76,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 	return m.PackOutput(true)
 }
 
-func (m *ExecuteClaimMethod) NewExecuteClaimEvent(sender common.Address, eventNonce uint64, dstChain string) (data []byte, topic []common.Hash, err error) {
+func (m *ExecuteClaimMethod) NewExecuteClaimEvent(sender common.Address, eventNonce *big.Int, dstChain string) (data []byte, topic []common.Hash, err error) {
 	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain)
 	if err != nil {
 		return nil, nil, err

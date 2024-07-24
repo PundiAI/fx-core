@@ -60,7 +60,6 @@ func (suite *IntegrationTest) CrossChainTest() {
 			chain.CheckBalance(ibcTransferAddr, sdk.NewCoin(bridgeDenom, sdkmath.NewInt(0)))
 		}
 		chain.SendToFxClaim(tokenAddress, sdkmath.NewInt(100), "")
-		chain.ExecuteClaim()
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdkmath.NewInt(100)))
 
 		txId := chain.SendToExternal(5, sdk.NewCoin(bridgeDenom, sdkmath.NewInt(10)))
