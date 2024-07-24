@@ -58,7 +58,6 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
 	fxauthzkeeper "github.com/functionx/fx-core/v7/x/authz/keeper"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
@@ -166,11 +165,13 @@ func NewAppKeeper(
 		appKeepers.tkeys[paramstypes.TStoreKey],
 	)
 
+	authAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
 	// set the BaseApp's parameter store
 	appKeepers.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[consensusparamtypes.StoreKey],
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	bApp.SetParamStore(&appKeepers.ConsensusParamsKeeper)
 
@@ -191,8 +192,8 @@ func NewAppKeeper(
 		appKeepers.keys[authtypes.StoreKey],
 		authtypes.ProtoBaseAccount,
 		maccPerms,
-		fxtypes.AddressPrefix,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		sdk.GetConfig().GetBech32AccountAddrPrefix(),
+		authAddr,
 	)
 	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
@@ -204,7 +205,7 @@ func NewAppKeeper(
 		appKeepers.keys[banktypes.StoreKey],
 		appKeepers.AccountKeeper,
 		blockedAddress,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.FeeGrantKeeper = appKeepers.FeeGrantKeeper.SetBankKeeper(appKeepers.BankKeeper)
 	appKeepers.StakingKeeper = fxstakingkeeper.NewKeeper(
@@ -213,7 +214,7 @@ func NewAppKeeper(
 			appKeepers.keys[stakingtypes.StoreKey],
 			appKeepers.AccountKeeper,
 			appKeepers.BankKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			authAddr,
 		),
 		appKeepers.keys[stakingtypes.StoreKey],
 		appCodec,
@@ -227,7 +228,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
@@ -236,7 +237,7 @@ func NewAppKeeper(
 		appKeepers.BankKeeper,
 		appKeepers.StakingKeeper,
 		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.SlashingKeeper = fxslashingkeeper.NewKeeper(
 		slashingkeeper.NewKeeper(
@@ -244,7 +245,7 @@ func NewAppKeeper(
 			legacyAmino,
 			appKeepers.keys[slashingtypes.StoreKey],
 			appKeepers.StakingKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			authAddr,
 		),
 		appKeepers.keys[slashingtypes.StoreKey],
 	)
@@ -256,7 +257,7 @@ func NewAppKeeper(
 		invCheckPeriod,
 		appKeepers.BankKeeper,
 		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 
 	// register the staking hooks
@@ -286,7 +287,7 @@ func NewAppKeeper(
 		appCodec,
 		homePath,
 		bApp,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
@@ -372,7 +373,7 @@ func NewAppKeeper(
 		appKeepers.BankKeeper,
 		appKeepers.EvmKeeper,
 		appKeepers.IBCTransferKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 
 	// init cross chain module
@@ -388,7 +389,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -402,7 +403,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -416,7 +417,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -430,7 +431,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.ArbitrumKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -444,7 +445,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -458,7 +459,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.Layer2Keeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -472,7 +473,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec,
@@ -486,7 +487,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	))
 
 	// add cross-chain router
@@ -535,7 +536,7 @@ func NewAppKeeper(
 		appKeepers.StakingKeeper,
 		bApp.MsgServiceRouter(),
 		govConfig.Config,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 	_govKeeper.SetLegacyRouter(govRouter)
 
@@ -545,7 +546,7 @@ func NewAppKeeper(
 		appKeepers.keys,
 		_govKeeper,
 		appCodec,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authAddr,
 	)
 
 	ibcTransferRouter := fxibctransfertypes.NewRouter().

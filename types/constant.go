@@ -8,6 +8,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -17,6 +18,8 @@ const (
 
 	DefaultDenom = "FX"
 	DenomUnit    = 18
+
+	AddrLen = 20
 )
 
 // defaultNodeHome default home directories for the application daemon
@@ -56,6 +59,7 @@ func SetConfig(isCosmosCoinType bool) {
 	config.SetBech32PrefixForAccount(AddressPrefix, AddressPrefix+sdk.PrefixPublic)
 	config.SetBech32PrefixForValidator(AddressPrefix+sdk.PrefixValidator+sdk.PrefixOperator, AddressPrefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)
 	config.SetBech32PrefixForConsensusNode(AddressPrefix+sdk.PrefixValidator+sdk.PrefixConsensus, AddressPrefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic)
+	config.SetAddressVerifier(VerifyAddressFormat)
 	if isCosmosCoinType {
 		config.SetCoinType(sdk.CoinType)
 	} else {
@@ -66,4 +70,16 @@ func SetConfig(isCosmosCoinType bool) {
 	if err := sdk.RegisterDenom(DefaultDenom, sdk.NewDecWithPrec(1, 18)); err != nil {
 		panic(err)
 	}
+}
+
+// VerifyAddressFormat verifies whether the address is compatible with Ethereum
+func VerifyAddressFormat(bz []byte) error {
+	if len(bz) == 0 {
+		return sdkerrors.ErrUnknownAddress.Wrap("invalid address; cannot be empty")
+	}
+	if len(bz) != AddrLen {
+		return sdkerrors.ErrUnknownAddress.Wrapf("invalid address length; got: %d, expect: %d", len(bz), AddrLen)
+	}
+
+	return nil
 }
