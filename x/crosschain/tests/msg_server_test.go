@@ -413,6 +413,9 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 			suite.Require().NoError(err)
 		}
 	}
+	err = suite.Keeper().ExecuteClaim(suite.ctx, sendToMsg.EventNonce)
+	suite.Require().NoError(err)
+
 	for _, bridger := range suite.bridgerAddrs {
 		suite.False(suite.Keeper().HasOracleAddrByBridgerAddr(suite.ctx, bridger))
 	}
@@ -980,8 +983,9 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	require.EqualValues(suite.T(), sendToFxToken, bridgeTokenData.Token)
 
 	// 4. sendToFx.
+	sendToFxClaim := new(types.MsgSendToFxClaim)
 	for i, oracle := range suite.oracleAddrs {
-		normalMsg := &types.MsgSendToFxClaim{
+		sendToFxClaim = &types.MsgSendToFxClaim{
 			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
 			BlockHeight:    1,
 			TokenContract:  sendToFxToken,
@@ -992,11 +996,12 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
 		require.NoError(suite.T(), err)
 	}
 
-	suite.Keeper().EndBlocker(suite.ctx)
+	err = suite.Keeper().ExecuteClaim(suite.ctx, sendToFxClaim.EventNonce)
+	require.NoError(suite.T(), err)
 
 	balance := suite.app.BankKeeper.GetBalance(suite.ctx, sendToFxReceiveAddr, tokenDenom)
 	require.NotNil(suite.T(), balance)
@@ -1301,8 +1306,9 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 	suite.NoError(err)
 
 	// 5. sendToFx.
+	sendToFxClaim := new(types.MsgSendToFxClaim)
 	for i, oracle := range suite.oracleAddrs {
-		normalMsg := &types.MsgSendToFxClaim{
+		sendToFxClaim = &types.MsgSendToFxClaim{
 			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
 			BlockHeight:    1,
 			TokenContract:  sendToFxToken,
@@ -1313,11 +1319,12 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
 		require.NoError(suite.T(), err)
 	}
+	err = suite.Keeper().ExecuteClaim(suite.ctx, sendToFxClaim.EventNonce)
+	require.NoError(suite.T(), err)
 
-	suite.Keeper().EndBlocker(suite.ctx)
 	suite.Equal(sendToFxAmount, suite.app.BankKeeper.GetBalance(suite.ctx, sendToFxReceiveAddr, tokenPair.GetDenom()).Amount)
 
 	testCases := []struct {

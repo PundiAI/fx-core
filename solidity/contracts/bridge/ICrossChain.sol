@@ -46,6 +46,11 @@ interface ICrossChain is IFIP20CrossChain, IBridgeCall {
         bytes32 _target
     ) external view returns (uint256 _amount);
 
+    function executeClaim(
+        string memory _dstChainId,
+        uint256 _eventNonce
+    ) external returns (bool _result);
+
     event CrossChain(
         address indexed sender,
         address indexed token,
@@ -97,5 +102,11 @@ interface ICrossChain is IFIP20CrossChain, IBridgeCall {
         string chain,
         uint256 txID,
         uint256 reward
+    );
+
+    event ExecuteClaimEvent(
+        address indexed _sender,
+        uint256 _eventNonce,
+        string _dstChain
     );
 }

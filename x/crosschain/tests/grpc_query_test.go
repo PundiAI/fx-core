@@ -59,6 +59,7 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{})
 
 	suite.ctx = suite.ctx.WithBlockHeight(1000)
+	suite.ctx = suite.ctx.WithProposer(valSet.Proposer.Address.Bytes())
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.CrosschainRouterKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -2353,14 +2354,18 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 					Denom:     denom.Denom,
 				}
 				amount := sdk.NewInt(int64(tmrand.Uint32() + 1))
-				err = suite.Keeper().AttestationHandler(suite.ctx, &types.MsgSendToFxClaim{
+				claim := &types.MsgSendToFxClaim{
 					Sender:        helpers.GenExternalAddr(suite.chainName),
 					ChainName:     suite.chainName,
 					TokenContract: token,
 					Amount:        amount,
 					Receiver:      helpers.GenAccAddress().String(),
 					TargetIbc:     hex.EncodeToString([]byte("")),
-				})
+					EventNonce:    1,
+				}
+				err = suite.Keeper().AttestationHandler(suite.ctx, claim)
+				suite.Require().NoError(err)
+				err = suite.Keeper().ExecuteClaim(suite.ctx, claim.EventNonce)
 				suite.Require().NoError(err)
 				response = &types.QueryBridgeCoinByDenomResponse{
 					Coin: sdk.Coin{

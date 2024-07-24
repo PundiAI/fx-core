@@ -172,3 +172,17 @@ func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, o
 	}
 	return externalAddress, signature
 }
+
+func (suite *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {
+	var err error
+	switch claim := externalClaim.(type) {
+	case *types.MsgSendToFxClaim:
+		_, err = suite.MsgServer().SendToFxClaim(suite.ctx, claim)
+	case *types.MsgBridgeCallClaim:
+		_, err = suite.MsgServer().BridgeCallClaim(suite.ctx, claim)
+	}
+	suite.NoError(err)
+
+	err = suite.Keeper().ExecuteClaim(suite.ctx, externalClaim.GetEventNonce())
+	suite.Require().NoError(err)
+}

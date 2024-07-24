@@ -4,16 +4,18 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
 )
 
 type Router struct {
-	routes map[string]CrosschainKeeper
+	routes map[string]crosschainkeeper.Keeper
 	sealed bool
 }
 
 func NewRouter() *Router {
 	return &Router{
-		routes: make(map[string]CrosschainKeeper),
+		routes: make(map[string]crosschainkeeper.Keeper),
 	}
 }
 
@@ -30,7 +32,7 @@ func (rtr *Router) Sealed() bool {
 	return rtr.sealed
 }
 
-func (rtr *Router) AddRoute(module string, hook CrosschainKeeper) *Router {
+func (rtr *Router) AddRoute(module string, hook crosschainkeeper.Keeper) *Router {
 	if rtr.sealed {
 		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
 	}
@@ -45,7 +47,7 @@ func (rtr *Router) AddRoute(module string, hook CrosschainKeeper) *Router {
 	return rtr
 }
 
-func (rtr *Router) GetRoute(module string) (CrosschainKeeper, bool) {
+func (rtr *Router) GetRoute(module string) (crosschainkeeper.Keeper, bool) {
 	hook, found := rtr.routes[module]
 	return hook, found
 }
