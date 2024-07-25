@@ -274,6 +274,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	txResponse, err := grpcClient.BroadcastTx(txRaw)
 	suite.NoError(err)
 	suite.NotNil(txResponse) // txResponse might be nil, but error is also nil
+	suite.EqualValues(0, txResponse.Code)
 	txResponse, err = grpcClient.WaitMined(txResponse.TxHash, 200*suite.timeoutCommit, 10*suite.timeoutCommit)
 	suite.NoError(err)
 	suite.T().Log("broadcast tx", "msg:", sdk.MsgTypeURL(msgList[0]), "height:", txResponse.Height, "txHash:", txResponse.TxHash)

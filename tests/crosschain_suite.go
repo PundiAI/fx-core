@@ -641,6 +641,8 @@ func (suite *CrosschainTestSuite) BridgeCallConfirm(nonce uint64, isSuccess bool
 			Signature:       hex.EncodeToString(signatureBytes),
 			ChainName:       suite.chainName,
 		},
+	)
+	suite.BroadcastTx(suite.bridgerPrivKey,
 		&crosschaintypes.MsgBridgeCallResultClaim{
 			ChainName:      suite.chainName,
 			BridgerAddress: suite.BridgerAddr().String(),
