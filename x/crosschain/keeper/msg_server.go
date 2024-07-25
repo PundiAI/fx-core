@@ -7,6 +7,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -161,6 +163,16 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	if !oracle.Online {
 		oracle.Online = true
 		oracle.StartHeight = ctx.BlockHeight()
+		if !ctx.IsCheckTx() {
+			telemetry.SetGaugeWithLabels(
+				[]string{types.ModuleName, types.MetricsKeyOracleStatus},
+				float32(0),
+				[]metrics.Label{
+					telemetry.NewLabel(types.MetricsLabelModule, s.moduleName),
+					telemetry.NewLabel(types.MetricsLabelAddress, oracle.OracleAddress),
+				},
+			)
+		}
 	}
 	oracle.SlashTimes = 0
 

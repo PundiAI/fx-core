@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -196,6 +198,16 @@ func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddrStr string) {
 	}
 	if !oracle.Online {
 		return
+	}
+	if !ctx.IsCheckTx() {
+		telemetry.SetGaugeWithLabels(
+			[]string{types.ModuleName, types.MetricsKeyOracleStatus},
+			float32(1),
+			[]metrics.Label{
+				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+				telemetry.NewLabel(types.MetricsLabelAddress, oracle.OracleAddress),
+			},
+		)
 	}
 
 	oracle.Online = false
