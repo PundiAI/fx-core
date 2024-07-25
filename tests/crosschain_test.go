@@ -291,6 +291,8 @@ func (suite *IntegrationTest) LiquidityTest() {
 	suite.Equal(1, len(unbatchedTx))
 	suite.EqualValues(transferAmount, unbatchedTx[0].Token.Amount.Add(unbatchedTx[0].Fee.Amount))
 	suite.EqualValues(moduleTokenMap[bscChain.chainName], unbatchedTx[0].Token.GetContract())
+	bscChain.CancelAllSendToExternal()
+	suite.Equal(0, len(bscChain.QueryPendingUnbatchedTx(bscChain.AccAddress())))
 }
 
 func (suite *IntegrationTest) BridgeCallTest() {
