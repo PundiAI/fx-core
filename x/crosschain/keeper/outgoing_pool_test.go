@@ -1,4 +1,4 @@
-package tests_test
+package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
@@ -11,7 +11,7 @@ import (
 	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
 )
 
-func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
+func (suite *KeeperTestSuite) TestKeeper_OutgoingPool() {
 	sender := helpers.GenHexAddress().Bytes()
 	bridgeToken := helpers.GenHexAddress().Hex()
 	denom := types.NewBridgeDenom(suite.chainName, bridgeToken)
@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 	suite.NoError(err)
 	suite.Equal(sendAmount, suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 
-	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom) // nolint:staticcheck
+	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom)
 
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	receiver := helpers.GenHexAddress().Hex()
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 	suite.Equal(sendAmount, suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 }
 
-func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
+func (suite *KeeperTestSuite) TestKeeper_OutgoingPool2() {
 	sender := helpers.GenHexAddress().Bytes()
 	bridgeToken := helpers.GenHexAddress().Hex()
 	denom := fxtypes.DefaultDenom
@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
 	}
 	suite.NoError(err)
 
-	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom) // nolint:staticcheck
+	suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken, denom)
 
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	receiver := helpers.GenHexAddress().Hex()

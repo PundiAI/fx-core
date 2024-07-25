@@ -1,11 +1,10 @@
-package tests_test
+package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -52,7 +51,7 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 				DestAddress: helpers.GenHexAddress().Hex(),
 			}},
 		})
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	wrapSDKContext := sdk.WrapSDKContext(suite.ctx)
@@ -70,10 +69,10 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 			&types.QueryLastPendingBatchRequestByAddrRequest{
 				BridgerAddress: testCase.BridgerAddress.String(),
 			})
-		require.NoError(suite.T(), err, testCase.Name)
-		require.NotNil(suite.T(), response, testCase.Name)
-		require.NotNil(suite.T(), response.Batch, testCase.Name)
-		require.EqualValues(suite.T(), testCase.ExpectStartHeight, response.Batch.Block, testCase.Name)
+		suite.Require().NoError(err, testCase.Name)
+		suite.Require().NotNil(response, testCase.Name)
+		suite.Require().NotNil(response.Batch, testCase.Name)
+		suite.Require().EqualValues(testCase.ExpectStartHeight, response.Batch.Block, testCase.Name)
 	}
 }
 

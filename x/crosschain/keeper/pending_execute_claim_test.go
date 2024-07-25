@@ -8,7 +8,7 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (s *KeeperTestSuite) TestKeeper_SavePendingExecuteClaim() {
+func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
 	tests := []struct {
 		name  string
 		claim types.ExternalClaim

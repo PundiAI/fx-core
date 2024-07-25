@@ -16,7 +16,7 @@ import (
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-func (s *KeeperTestSuite) TestBridgeCallHandler() {
+func (s *KeeperMockSuite) TestBridgeCallHandler() {
 	callEvmMock := func(msg *types.MsgBridgeCallClaim, sender common.Address, getTokenPairTimes int) {
 		s.crosschainKeeper.SetLastObservedBlockHeight(s.ctx, 1000, msg.BlockHeight-1)
 
@@ -138,7 +138,7 @@ func (s *KeeperTestSuite) TestBridgeCallHandler() {
 	}
 }
 
-func (s *KeeperTestSuite) Test_CoinsToBridgeCallTokens() {
+func (s *KeeperMockSuite) Test_CoinsToBridgeCallTokens() {
 	input := sdk.Coins{
 		sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e18)),
 		sdk.NewCoin("aaa", sdk.NewInt(2e18)),
@@ -159,7 +159,7 @@ func (s *KeeperTestSuite) Test_CoinsToBridgeCallTokens() {
 	s.Require().EqualValues(expectAmount, amounts)
 }
 
-func (s *KeeperTestSuite) MockBridgeCallToken(erc20Tokens []types.ERC20Token) {
+func (s *KeeperMockSuite) MockBridgeCallToken(erc20Tokens []types.ERC20Token) {
 	if len(erc20Tokens) == 0 {
 		return
 	}

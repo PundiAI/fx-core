@@ -1,8 +1,7 @@
-package tests_test
+package keeper_test
 
 import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -20,9 +19,9 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	}
 
 	err := suite.Keeper().UpdateChainOraclesProposal(suite.ctx, updateOracle)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 	for _, oracle := range suite.oracleAddrs {
-		require.True(suite.T(), suite.Keeper().IsProposalOracle(suite.ctx, oracle.String()))
+		suite.Require().True(suite.Keeper().IsProposalOracle(suite.ctx, oracle.String()))
 	}
 
 	updateOracle.Oracles = []string{}
@@ -31,7 +30,7 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, updateOracle)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	updateOracle.Oracles = []string{}
 	number = tmrand.Intn(2) + 101
@@ -39,5 +38,5 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, updateOracle)
-	require.Error(suite.T(), err)
+	suite.Require().Error(err)
 }

@@ -1,4 +1,4 @@
-package tests_test
+package keeper_test
 
 import (
 	"encoding/hex"
@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -27,7 +26,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 
@@ -47,7 +46,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		ChainName:      suite.chainName,
 	}
 	_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
@@ -73,7 +72,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	trace, err := fxtypes.GetIbcDenomTrace(denom, addBridgeTokenClaim.ChannelIbc)
 	suite.NoError(err)
 	denom = trace.IBCDenom()
-	require.EqualValues(suite.T(), sdk.Coin{Amount: sendToFxClaim.Amount, Denom: denom}.String(), allBalances.String())
+	suite.Require().EqualValues(sdk.Coin{Amount: sendToFxClaim.Amount, Denom: denom}.String(), allBalances.String())
 }
 
 func (suite *KeeperTestSuite) TestOracleUpdate() {
@@ -89,19 +88,19 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		suite.Require().NoError(msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
 
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		oracleSets := suite.Keeper().GetOracleSets(suite.ctx)
-		require.NotNil(suite.T(), oracleSets)
-		require.EqualValues(suite.T(), i+1, len(oracleSets))
+		suite.Require().NotNil(oracleSets)
+		suite.Require().EqualValues(i+1, len(oracleSets))
 
 		power := suite.Keeper().GetLastTotalPower(suite.ctx)
 		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
-		require.True(suite.T(), expectPower.Equal(power))
+		suite.Require().True(expectPower.Equal(power))
 	}
 
 	bridgeToken := helpers.GenExternalAddr(suite.chainName)
@@ -119,18 +118,18 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		endBlockBeforeAttestation := suite.Keeper().GetAttestation(suite.ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
-		require.NotNil(suite.T(), endBlockBeforeAttestation)
-		require.False(suite.T(), endBlockBeforeAttestation.Observed)
-		require.NotNil(suite.T(), endBlockBeforeAttestation.Votes)
-		require.EqualValues(suite.T(), i+1, len(endBlockBeforeAttestation.Votes))
+		suite.Require().NotNil(endBlockBeforeAttestation)
+		suite.Require().False(endBlockBeforeAttestation.Observed)
+		suite.Require().NotNil(endBlockBeforeAttestation.Votes)
+		suite.Require().EqualValues(i+1, len(endBlockBeforeAttestation.Votes))
 
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		endBlockAfterAttestation := suite.Keeper().GetAttestation(suite.ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
-		require.NotNil(suite.T(), endBlockAfterAttestation)
-		require.False(suite.T(), endBlockAfterAttestation.Observed)
+		suite.Require().NotNil(endBlockAfterAttestation)
+		suite.Require().False(endBlockAfterAttestation.Observed)
 	}
 
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
@@ -145,13 +144,13 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		ChainName:      suite.chainName,
 	}
 	_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	attestation := suite.Keeper().GetAttestation(suite.ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
 
-	require.NotNil(suite.T(), attestation)
-	require.True(suite.T(), attestation.Observed)
+	suite.Require().NotNil(attestation)
+	suite.Require().True(attestation.Observed)
 
 	proposalHandler := crosschain.NewCrosschainProposalHandler(suite.app.CrosschainRouterKeeper)
 
@@ -165,16 +164,16 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		Oracles:     newOracleList,
 		ChainName:   suite.chainName,
 	})
-	require.ErrorIs(suite.T(), types.ErrInvalid, err)
+	suite.Require().ErrorIs(types.ErrInvalid, err)
 
 	expectTotalPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(10)).Quo(sdk.DefaultPowerReduction)
 	actualTotalPower := suite.Keeper().GetLastTotalPower(suite.ctx)
-	require.True(suite.T(), expectTotalPower.Equal(actualTotalPower))
+	suite.Require().True(expectTotalPower.Equal(actualTotalPower))
 
 	expectMaxChangePower := types.AttestationProposalOracleChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(100))
 
 	expectDeletePower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(3)).Quo(sdk.DefaultPowerReduction)
-	require.EqualValues(suite.T(), fmt.Sprintf("max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
+	suite.Require().EqualValues(fmt.Sprintf("max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
 
 	var newOracleList2 []string
 	for i := 0; i < 8; i++ {
@@ -186,7 +185,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		Oracles:     newOracleList2,
 		ChainName:   suite.chainName,
 	})
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
@@ -203,16 +202,16 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			ChainName:        suite.chainName,
 		}
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		oracleSets := suite.Keeper().GetOracleSets(suite.ctx)
-		require.NotNil(suite.T(), oracleSets)
-		require.EqualValues(suite.T(), i+1, len(oracleSets))
+		suite.Require().NotNil(oracleSets)
+		suite.Require().EqualValues(i+1, len(oracleSets))
 
 		power := suite.Keeper().GetLastTotalPower(suite.ctx)
 		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
-		require.True(suite.T(), expectPower.Equal(power))
+		suite.Require().True(expectPower.Equal(power))
 	}
 
 	{
@@ -231,27 +230,27 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 13; i++ {
 			firstBridgeTokenClaim.BridgerAddress = suite.bridgerAddrs[i].String()
 			_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), firstBridgeTokenClaim)
-			require.NoError(suite.T(), err)
+			suite.Require().NoError(err)
 			endBlockBeforeAttestation := suite.Keeper().GetAttestation(suite.ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
-			require.NotNil(suite.T(), endBlockBeforeAttestation)
-			require.False(suite.T(), endBlockBeforeAttestation.Observed)
-			require.NotNil(suite.T(), endBlockBeforeAttestation.Votes)
-			require.EqualValues(suite.T(), i+1, len(endBlockBeforeAttestation.Votes))
+			suite.Require().NotNil(endBlockBeforeAttestation)
+			suite.Require().False(endBlockBeforeAttestation.Observed)
+			suite.Require().NotNil(endBlockBeforeAttestation.Votes)
+			suite.Require().EqualValues(i+1, len(endBlockBeforeAttestation.Votes))
 
 			endBlockAfterAttestation := suite.Keeper().GetAttestation(suite.ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
-			require.NotNil(suite.T(), endBlockAfterAttestation)
-			require.False(suite.T(), endBlockAfterAttestation.Observed)
+			suite.Require().NotNil(endBlockAfterAttestation)
+			suite.Require().False(endBlockAfterAttestation.Observed)
 		}
 
 		firstBridgeTokenClaim.BridgerAddress = suite.bridgerAddrs[13].String()
 		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), firstBridgeTokenClaim)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		attestation := suite.Keeper().GetAttestation(suite.ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
 
-		require.NotNil(suite.T(), attestation)
-		require.True(suite.T(), attestation.Observed)
+		suite.Require().NotNil(attestation)
+		suite.Require().True(attestation.Observed)
 	}
 
 	{
@@ -270,25 +269,25 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 6; i++ {
 			secondBridgeTokenClaim.BridgerAddress = suite.bridgerAddrs[i].String()
 			_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), secondBridgeTokenClaim)
-			require.NoError(suite.T(), err)
+			suite.Require().NoError(err)
 			endBlockBeforeAttestation := suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
-			require.NotNil(suite.T(), endBlockBeforeAttestation)
-			require.False(suite.T(), endBlockBeforeAttestation.Observed)
-			require.NotNil(suite.T(), endBlockBeforeAttestation.Votes)
-			require.EqualValues(suite.T(), i+1, len(endBlockBeforeAttestation.Votes))
+			suite.Require().NotNil(endBlockBeforeAttestation)
+			suite.Require().False(endBlockBeforeAttestation.Observed)
+			suite.Require().NotNil(endBlockBeforeAttestation.Votes)
+			suite.Require().EqualValues(i+1, len(endBlockBeforeAttestation.Votes))
 
 			suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 			suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 			endBlockAfterAttestation := suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
-			require.NotNil(suite.T(), endBlockAfterAttestation)
-			require.False(suite.T(), endBlockAfterAttestation.Observed)
+			suite.Require().NotNil(endBlockAfterAttestation)
+			suite.Require().False(endBlockAfterAttestation.Observed)
 		}
 
 		secondClaimAttestation := suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
-		require.NotNil(suite.T(), secondClaimAttestation)
-		require.False(suite.T(), secondClaimAttestation.Observed)
-		require.NotNil(suite.T(), secondClaimAttestation.Votes)
-		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
+		suite.Require().NotNil(secondClaimAttestation)
+		suite.Require().False(secondClaimAttestation.Observed)
+		suite.Require().NotNil(secondClaimAttestation.Votes)
+		suite.Require().EqualValues(6, len(secondClaimAttestation.Votes))
 
 		var newOracleList []string
 		for i := 0; i < 15; i++ {
@@ -299,21 +298,21 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			ChainName: suite.chainName,
 		})
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
-		require.NotNil(suite.T(), secondClaimAttestation)
-		require.False(suite.T(), secondClaimAttestation.Observed)
-		require.NotNil(suite.T(), secondClaimAttestation.Votes)
-		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
+		suite.Require().NotNil(secondClaimAttestation)
+		suite.Require().False(secondClaimAttestation.Observed)
+		suite.Require().NotNil(secondClaimAttestation.Votes)
+		suite.Require().EqualValues(6, len(secondClaimAttestation.Votes))
 
 		activeOracles := suite.Keeper().GetAllOracles(suite.ctx, true)
-		require.NotNil(suite.T(), activeOracles)
-		require.EqualValues(suite.T(), 15, len(activeOracles))
+		suite.Require().NotNil(activeOracles)
+		suite.Require().EqualValues(15, len(activeOracles))
 		for i := 0; i < 15; i++ {
-			require.NotNil(suite.T(), newOracleList[i], activeOracles[i].OracleAddress)
+			suite.Require().NotNil(newOracleList[i], activeOracles[i].OracleAddress)
 		}
 
 		var newOracleList2 []string
@@ -325,21 +324,21 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			ChainName: suite.chainName,
 		})
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
-		require.NotNil(suite.T(), secondClaimAttestation)
-		require.False(suite.T(), secondClaimAttestation.Observed)
-		require.NotNil(suite.T(), secondClaimAttestation.Votes)
-		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
+		suite.Require().NotNil(secondClaimAttestation)
+		suite.Require().False(secondClaimAttestation.Observed)
+		suite.Require().NotNil(secondClaimAttestation.Votes)
+		suite.Require().EqualValues(6, len(secondClaimAttestation.Votes))
 
 		activeOracles = suite.Keeper().GetAllOracles(suite.ctx, true)
-		require.NotNil(suite.T(), activeOracles)
-		require.EqualValues(suite.T(), 11, len(activeOracles))
+		suite.Require().NotNil(activeOracles)
+		suite.Require().EqualValues(11, len(activeOracles))
 		for i := 0; i < 11; i++ {
-			require.NotNil(suite.T(), newOracleList2[i], activeOracles[i].OracleAddress)
+			suite.Require().NotNil(newOracleList2[i], activeOracles[i].OracleAddress)
 		}
 
 		var newOracleList3 []string
@@ -351,35 +350,35 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			ChainName: suite.chainName,
 		})
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
-		require.NotNil(suite.T(), secondClaimAttestation)
-		require.False(suite.T(), secondClaimAttestation.Observed)
-		require.NotNil(suite.T(), secondClaimAttestation.Votes)
-		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
+		suite.Require().NotNil(secondClaimAttestation)
+		suite.Require().False(secondClaimAttestation.Observed)
+		suite.Require().NotNil(secondClaimAttestation.Votes)
+		suite.Require().EqualValues(6, len(secondClaimAttestation.Votes))
 
 		activeOracles = suite.Keeper().GetAllOracles(suite.ctx, true)
-		require.NotNil(suite.T(), activeOracles)
-		require.EqualValues(suite.T(), 10, len(activeOracles))
+		suite.Require().NotNil(activeOracles)
+		suite.Require().EqualValues(10, len(activeOracles))
 		for i := 0; i < 10; i++ {
-			require.NotNil(suite.T(), newOracleList3[i], activeOracles[i].OracleAddress)
+			suite.Require().NotNil(newOracleList3[i], activeOracles[i].OracleAddress)
 		}
 
 		secondBridgeTokenClaim.BridgerAddress = suite.bridgerAddrs[6].String()
 		_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), secondBridgeTokenClaim)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
-		require.NotNil(suite.T(), secondClaimAttestation)
-		require.True(suite.T(), secondClaimAttestation.Observed)
-		require.NotNil(suite.T(), secondClaimAttestation.Votes)
-		require.EqualValues(suite.T(), 7, len(secondClaimAttestation.Votes))
+		suite.Require().NotNil(secondClaimAttestation)
+		suite.Require().True(secondClaimAttestation.Observed)
+		suite.Require().NotNil(secondClaimAttestation.Votes)
+		suite.Require().EqualValues(7, len(secondClaimAttestation.Votes))
 	}
 }
 
@@ -393,36 +392,36 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		suite.Require().NoError(msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	allOracles := suite.Keeper().GetAllOracles(suite.ctx, false)
-	require.NotNil(suite.T(), allOracles)
-	require.EqualValues(suite.T(), len(suite.oracleAddrs), len(allOracles))
+	suite.Require().NotNil(allOracles)
+	suite.Require().EqualValues(len(suite.oracleAddrs), len(allOracles))
 
 	oracle := suite.oracleAddrs[0]
 	bridger := suite.bridgerAddrs[0]
 	externalAddress := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
 
 	oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, bridger)
-	require.True(suite.T(), found)
-	require.EqualValues(suite.T(), oracle.String(), oracleAddr.String())
+	suite.Require().True(found)
+	suite.Require().EqualValues(oracle.String(), oracleAddr.String())
 
 	oracleAddr, found = suite.Keeper().GetOracleAddrByExternalAddr(suite.ctx, externalAddress)
-	require.True(suite.T(), found)
-	require.EqualValues(suite.T(), oracle.String(), oracleAddr.String())
+	suite.Require().True(found)
+	suite.Require().EqualValues(oracle.String(), oracleAddr.String())
 
 	oracleData, found := suite.Keeper().GetOracle(suite.ctx, oracle)
-	require.True(suite.T(), found)
-	require.NotNil(suite.T(), oracleData)
-	require.EqualValues(suite.T(), oracle.String(), oracleData.OracleAddress)
-	require.EqualValues(suite.T(), bridger.String(), oracleData.BridgerAddress)
-	require.EqualValues(suite.T(), externalAddress, oracleData.ExternalAddress)
+	suite.Require().True(found)
+	suite.Require().NotNil(oracleData)
+	suite.Require().EqualValues(oracle.String(), oracleData.OracleAddress)
+	suite.Require().EqualValues(bridger.String(), oracleData.BridgerAddress)
+	suite.Require().EqualValues(externalAddress, oracleData.ExternalAddress)
 
-	require.True(suite.T(), sdkmath.NewInt(10*1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
+	suite.Require().True(sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
 
 	newOracleAddressList := make([]string, 0, len(suite.oracleAddrs)-1)
 	for _, address := range suite.oracleAddrs[1:] {
@@ -434,20 +433,20 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ChainName: suite.chainName,
 	})
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 	oracleAddr, found = suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, bridger)
-	require.True(suite.T(), found)
-	require.Equal(suite.T(), oracleAddr, oracle)
+	suite.Require().True(found)
+	suite.Require().Equal(oracleAddr, oracle)
 
 	oracleAddr, found = suite.Keeper().GetOracleAddrByExternalAddr(suite.ctx, externalAddress)
-	require.True(suite.T(), found)
-	require.Equal(suite.T(), oracleAddr, oracle)
+	suite.Require().True(found)
+	suite.Require().Equal(oracleAddr, oracle)
 
 	oracleData, found = suite.Keeper().GetOracle(suite.ctx, oracle)
-	require.True(suite.T(), found)
+	suite.Require().True(found)
 }
 
 func (suite *KeeperTestSuite) TestOracleSetSlash() {
@@ -460,20 +459,20 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		suite.Require().NoError(msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.Keeper().EndBlocker(suite.ctx)
 
 	allOracles := suite.Keeper().GetAllOracles(suite.ctx, false)
-	require.NotNil(suite.T(), allOracles)
-	require.Equal(suite.T(), len(suite.oracleAddrs), len(allOracles))
+	suite.Require().NotNil(allOracles)
+	suite.Require().Equal(len(suite.oracleAddrs), len(allOracles))
 
 	oracleSets := suite.Keeper().GetOracleSets(suite.ctx)
-	require.NotNil(suite.T(), oracleSets)
-	require.EqualValues(suite.T(), 1, len(oracleSets))
+	suite.Require().NotNil(oracleSets)
+	suite.Require().EqualValues(1, len(oracleSets))
 
 	for i := 0; i < len(suite.oracleAddrs)-1; i++ {
 		externalAddress, signature := suite.SignOracleSetConfirm(suite.externalPris[i], oracleSets[0])
@@ -484,9 +483,9 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			Signature:       hex.EncodeToString(signature),
 			ChainName:       suite.chainName,
 		}
-		require.NoError(suite.T(), oracleSetConfirm.ValidateBasic())
+		suite.Require().NoError(oracleSetConfirm.ValidateBasic())
 		_, err := suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), oracleSetConfirm)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
@@ -495,17 +494,17 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[len(suite.oracleAddrs)-1])
-	require.True(suite.T(), found)
-	require.True(suite.T(), oracle.Online)
-	require.Equal(suite.T(), int64(0), oracle.SlashTimes)
+	suite.Require().True(found)
+	suite.Require().True(oracle.Online)
+	suite.Require().Equal(int64(0), oracle.SlashTimes)
 
 	suite.ctx = suite.ctx.WithBlockHeight(oracleSetHeight + int64(suite.Keeper().GetParams(suite.ctx).SignedWindow) + 1)
 	suite.Keeper().EndBlocker(suite.ctx)
 
 	oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[len(suite.oracleAddrs)-1])
-	require.True(suite.T(), found)
-	require.False(suite.T(), oracle.Online)
-	require.Equal(suite.T(), int64(1), oracle.SlashTimes)
+	suite.Require().True(found)
+	suite.Require().False(oracle.Online)
+	suite.Require().Equal(int64(1), oracle.SlashTimes)
 }
 
 func (suite *KeeperTestSuite) TestSlashOracle() {
@@ -518,9 +517,9 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		suite.Require().NoError(msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	params := suite.Keeper().GetParams(suite.ctx)
@@ -528,30 +527,30 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 	suite.Require().NoError(err)
 	for i := 0; i < len(suite.oracleAddrs); i++ {
 		oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[i])
-		require.True(suite.T(), found)
-		require.True(suite.T(), oracle.Online)
-		require.Equal(suite.T(), int64(0), oracle.SlashTimes)
+		suite.Require().True(found)
+		suite.Require().True(oracle.Online)
+		suite.Require().Equal(int64(0), oracle.SlashTimes)
 
 		suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
 
 		oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[i])
-		require.True(suite.T(), found)
-		require.False(suite.T(), oracle.Online)
-		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
+		suite.Require().True(found)
+		suite.Require().False(oracle.Online)
+		suite.Require().Equal(int64(1), oracle.SlashTimes)
 	}
 
 	// repeat slash test.
 	for i := 0; i < len(suite.oracleAddrs); i++ {
 		oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[i])
-		require.True(suite.T(), found)
-		require.False(suite.T(), oracle.Online)
-		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
+		suite.Require().True(found)
+		suite.Require().False(oracle.Online)
+		suite.Require().Equal(int64(1), oracle.SlashTimes)
 
 		suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
 
 		oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[i])
-		require.True(suite.T(), found)
-		require.False(suite.T(), oracle.Online)
-		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
+		suite.Require().True(found)
+		suite.Require().False(oracle.Online)
+		suite.Require().Equal(int64(1), oracle.SlashTimes)
 	}
 }

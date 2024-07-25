@@ -1,4 +1,4 @@
-package tests_test
+package keeper_test
 
 import (
 	"context"
@@ -19,7 +19,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
@@ -104,8 +103,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 		},
 	}
 	for _, testCase := range testCases {
-		suite.T().Run(testCase.name, func(t *testing.T) {
-			suite.SetupTest()
+		suite.Run(testCase.name, func() {
 			oracleIndex := tmrand.Intn(len(suite.oracleAddrs))
 			msg := &types.MsgBondedOracle{
 				OracleAddress:    suite.oracleAddrs[oracleIndex].String(),
@@ -120,24 +118,24 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 
 			_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msg)
 			if !testCase.pass {
-				require.Error(t, err)
-				require.EqualValues(suite.T(), testCase.err, err.Error())
+				suite.Require().Error(err)
+				suite.Require().EqualValues(testCase.err, err.Error())
 				return
 			}
 
 			// success check
-			require.NoError(t, err)
+			suite.Require().NoError(err)
 
 			// check oracle
 			oracle, found := suite.Keeper().GetOracle(suite.ctx, sdk.MustAccAddressFromBech32(msg.OracleAddress))
-			require.True(t, found)
-			require.NotNil(t, oracle)
-			require.EqualValues(t, msg.OracleAddress, oracle.OracleAddress)
-			require.EqualValues(t, msg.BridgerAddress, oracle.BridgerAddress)
-			require.EqualValues(t, msg.ExternalAddress, oracle.ExternalAddress)
-			require.True(t, oracle.Online)
-			require.EqualValues(t, msg.ValidatorAddress, oracle.DelegateValidator)
-			require.EqualValues(t, int64(0), oracle.SlashTimes)
+			suite.Require().True(found)
+			suite.Require().NotNil(oracle)
+			suite.Require().EqualValues(msg.OracleAddress, oracle.OracleAddress)
+			suite.Require().EqualValues(msg.BridgerAddress, oracle.BridgerAddress)
+			suite.Require().EqualValues(msg.ExternalAddress, oracle.ExternalAddress)
+			suite.Require().True(oracle.Online)
+			suite.Require().EqualValues(msg.ValidatorAddress, oracle.DelegateValidator)
+			suite.Require().EqualValues(int64(0), oracle.SlashTimes)
 
 			// check relationship
 			oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, sdk.MustAccAddressFromBech32(msg.BridgerAddress))
@@ -277,8 +275,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 		},
 	}
 	for _, testCase := range testCases {
-		suite.T().Run(testCase.name, func(t *testing.T) {
-			suite.SetupTest()
+		suite.Run(testCase.name, func() {
 			oracleIndex := tmrand.Intn(len(suite.oracleAddrs))
 
 			// init bonded oracle
@@ -290,7 +287,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				DelegateAmount:   types.NewDelegateAmount(initDelegateAmount),
 				ChainName:        suite.chainName,
 			})
-			require.NoError(t, err)
+			suite.Require().NoError(err)
 
 			oracleDelegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
 			oracleDelegateMultiple := suite.Keeper().GetOracleDelegateMultiple(suite.ctx)
@@ -308,21 +305,21 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 
 			_, err = suite.MsgServer().AddDelegate(sdk.WrapSDKContext(suite.ctx), msg)
 			if !testCase.pass {
-				require.Error(t, err)
-				require.EqualValues(suite.T(), testCase.err, err.Error())
+				suite.Require().Error(err)
+				suite.Require().EqualValues(testCase.err, err.Error())
 				return
 			}
 
 			// success check
-			require.NoError(t, err)
+			suite.Require().NoError(err)
 
 			// check oracle
 			oracle, found := suite.Keeper().GetOracle(suite.ctx, sdk.MustAccAddressFromBech32(msg.OracleAddress))
-			require.True(t, found)
-			require.NotNil(t, oracle)
-			require.EqualValues(t, msg.OracleAddress, oracle.OracleAddress)
-			require.True(t, oracle.Online)
-			require.EqualValues(t, 0, oracle.SlashTimes)
+			suite.Require().True(found)
+			suite.Require().NotNil(oracle)
+			suite.Require().EqualValues(msg.OracleAddress, oracle.OracleAddress)
+			suite.Require().True(oracle.Online)
+			suite.Require().EqualValues(0, oracle.SlashTimes)
 
 			// check power
 			totalPower := suite.Keeper().GetLastTotalPower(suite.ctx)
@@ -437,42 +434,42 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	latestOracleSetNonce := suite.Keeper().GetLatestOracleSetNonce(suite.ctx)
-	require.EqualValues(suite.T(), 0, latestOracleSetNonce)
+	suite.Require().EqualValues(0, latestOracleSetNonce)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	latestOracleSetNonce = suite.Keeper().GetLatestOracleSetNonce(suite.ctx)
-	require.EqualValues(suite.T(), 1, latestOracleSetNonce)
+	suite.Require().EqualValues(1, latestOracleSetNonce)
 
-	require.True(suite.T(), suite.Keeper().HasOracleSetRequest(suite.ctx, 1))
+	suite.Require().True(suite.Keeper().HasOracleSetRequest(suite.ctx, 1))
 
-	require.False(suite.T(), suite.Keeper().HasOracleSetRequest(suite.ctx, 2))
+	suite.Require().False(suite.Keeper().HasOracleSetRequest(suite.ctx, 2))
 
 	nonce1OracleSet := suite.Keeper().GetOracleSet(suite.ctx, 1)
-	require.EqualValues(suite.T(), uint64(1), nonce1OracleSet.Nonce)
-	require.EqualValues(suite.T(), uint64(2), nonce1OracleSet.Height)
-	require.EqualValues(suite.T(), 1, len(nonce1OracleSet.Members))
-	require.EqualValues(suite.T(), normalMsg.ExternalAddress, nonce1OracleSet.Members[0].ExternalAddress)
-	require.EqualValues(suite.T(), math.MaxUint32, nonce1OracleSet.Members[0].Power)
+	suite.Require().EqualValues(uint64(1), nonce1OracleSet.Nonce)
+	suite.Require().EqualValues(uint64(2), nonce1OracleSet.Height)
+	suite.Require().EqualValues(1, len(nonce1OracleSet.Members))
+	suite.Require().EqualValues(normalMsg.ExternalAddress, nonce1OracleSet.Members[0].ExternalAddress)
+	suite.Require().EqualValues(math.MaxUint32, nonce1OracleSet.Members[0].Power)
 
 	gravityId := suite.Keeper().GetGravityID(suite.ctx)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 	if trontypes.ModuleName == suite.chainName {
 		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)
 	}
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[0])
 	if trontypes.ModuleName == suite.chainName {
 		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[0])
 	}
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 	external2Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[1])
 	if trontypes.ModuleName == suite.chainName {
 		external2Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[1])
 	}
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	errMsgData := []struct {
 		name      string
@@ -532,8 +529,8 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 
 	for _, testData := range errMsgData {
 		_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), testData.msg)
-		require.ErrorIs(suite.T(), err, testData.err, testData.name)
-		require.EqualValues(suite.T(), err.Error(), testData.errReason, testData.name)
+		suite.Require().ErrorIs(err, testData.err, testData.name)
+		suite.Require().EqualValues(err.Error(), testData.errReason, testData.name)
 	}
 
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
@@ -544,10 +541,10 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		ChainName:       suite.chainName,
 	}
 	_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), normalOracleSetConfirmMsg)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	endBlockBeforeLatestOracleSet := suite.Keeper().GetLatestOracleSet(suite.ctx)
-	require.NotNil(suite.T(), endBlockBeforeLatestOracleSet)
+	suite.Require().NotNil(endBlockBeforeLatestOracleSet)
 }
 
 func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
@@ -560,35 +557,35 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	latestOracleSetNonce := suite.Keeper().GetLatestOracleSetNonce(suite.ctx)
-	require.EqualValues(suite.T(), 1, latestOracleSetNonce)
+	suite.Require().EqualValues(1, latestOracleSetNonce)
 
 	nonce1OracleSet := suite.Keeper().GetOracleSet(suite.ctx, latestOracleSetNonce)
-	require.EqualValues(suite.T(), uint64(1), nonce1OracleSet.Nonce)
-	require.EqualValues(suite.T(), uint64(2), nonce1OracleSet.Height)
+	suite.Require().EqualValues(uint64(1), nonce1OracleSet.Nonce)
+	suite.Require().EqualValues(uint64(2), nonce1OracleSet.Height)
 
 	var gravityId string
-	require.NotPanics(suite.T(), func() {
+	suite.Require().NotPanics(func() {
 		gravityId = suite.Keeper().GetGravityID(suite.ctx)
 	})
 	if suite.chainName == ethtypes.ModuleName {
-		require.EqualValues(suite.T(), fmt.Sprintf("fx-bridge-%s", suite.chainName), gravityId)
+		suite.Require().EqualValues(fmt.Sprintf("fx-bridge-%s", suite.chainName), gravityId)
 	} else {
-		require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
+		suite.Require().EqualValues(fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	}
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 	if trontypes.ModuleName == suite.chainName {
 		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)
 	}
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	// oracle Online!!!
 	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[0])
-	require.True(suite.T(), found)
+	suite.Require().True(found)
 	oracle.Online = true
 	suite.Keeper().SetOracle(suite.ctx, oracle)
 
@@ -596,7 +593,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	if trontypes.ModuleName == suite.chainName {
 		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[0])
 	}
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
 		Nonce:           latestOracleSetNonce,
@@ -606,7 +603,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		ChainName:       suite.chainName,
 	}
 	_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), normalOracleSetConfirmMsg)
-	require.Nil(suite.T(), err)
+	suite.Require().Nil(err)
 }
 
 func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
@@ -652,7 +649,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
-					require.NoError(suite.T(), err)
+					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
 				return
@@ -681,7 +678,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
-					require.NoError(suite.T(), err)
+					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
 				return
@@ -719,7 +716,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
-					require.NoError(suite.T(), err)
+					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
 				return
@@ -748,7 +745,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().SendToExternalClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
-					require.NoError(suite.T(), err)
+					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
 				return
@@ -757,21 +754,20 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 	}
 
 	for _, testCase := range testCases {
-		suite.SetupTest()
-		for i, oracle := range suite.oracleAddrs {
-			msg := &types.MsgBondedOracle{
-				OracleAddress:    oracle.String(),
-				BridgerAddress:   suite.bridgerAddrs[i].String(),
-				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-				ValidatorAddress: suite.valAddrs[0].String(),
-				DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-				ChainName:        suite.chainName,
-			}
-			_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msg)
-			require.NoError(suite.T(), err)
-		}
-
 		suite.Run(fmt.Sprintf("%s-%s", suite.chainName, testCase.name), func() {
+			for i, oracle := range suite.oracleAddrs {
+				msg := &types.MsgBondedOracle{
+					OracleAddress:    oracle.String(),
+					BridgerAddress:   suite.bridgerAddrs[i].String(),
+					ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+					ValidatorAddress: suite.valAddrs[0].String(),
+					DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+					ChainName:        suite.chainName,
+				}
+				_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msg)
+				suite.Require().NoError(err)
+			}
+
 			claimMsg := testCase.buildMsg()
 			minGas, maxGas, avgGas := testCase.execute(claimMsg)
 			suite.Require().EqualValuesf(minGas, maxGas, "expect equal min:%d, max:%d, diff:%d", minGas, maxGas, maxGas-minGas)
@@ -790,10 +786,10 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
-	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
+	suite.Require().EqualValues(0, oracleLastEventNonce)
 
 	randomPrivateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
@@ -887,13 +883,13 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 
 	for _, testData := range testMsgs {
 		err = testData.msg.ValidateBasic()
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), testData.msg)
-		require.ErrorIs(suite.T(), err, testData.err, testData.name)
+		suite.Require().ErrorIs(err, testData.err, testData.name)
 		if err == nil {
 			continue
 		}
-		require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
+		suite.Require().EqualValues(testData.errReason, err.Error(), testData.name)
 	}
 }
 
@@ -916,7 +912,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		delegateAmounts = append(delegateAmounts, normalMsg.DelegateAmount.Amount)
 		totalPower = totalPower.Add(normalMsg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
@@ -943,7 +939,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
@@ -969,18 +965,18 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
 
 	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.ctx, sendToFxToken)
-	require.NotNil(suite.T(), bridgeDenomData)
+	suite.Require().NotNil(bridgeDenomData)
 	tokenDenom := types.NewBridgeDenom(suite.chainName, sendToFxToken)
-	require.EqualValues(suite.T(), tokenDenom, bridgeDenomData.Denom)
+	suite.Require().EqualValues(tokenDenom, bridgeDenomData.Denom)
 	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.ctx, tokenDenom)
-	require.NotNil(suite.T(), bridgeTokenData)
-	require.EqualValues(suite.T(), sendToFxToken, bridgeTokenData.Token)
+	suite.Require().NotNil(bridgeTokenData)
+	suite.Require().EqualValues(sendToFxToken, bridgeTokenData.Token)
 
 	// 4. sendToFx.
 	sendToFxClaim := new(types.MsgSendToFxClaim)
@@ -997,16 +993,16 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	err = suite.Keeper().ExecuteClaim(suite.ctx, sendToFxClaim.EventNonce)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	balance := suite.app.BankKeeper.GetBalance(suite.ctx, sendToFxReceiveAddr, tokenDenom)
-	require.NotNil(suite.T(), balance)
-	require.EqualValues(suite.T(), balance.Denom, tokenDenom)
-	require.True(suite.T(), balance.Amount.Equal(sendToFxAmount))
+	suite.Require().NotNil(balance)
+	suite.Require().EqualValues(balance.Denom, tokenDenom)
+	suite.Require().True(balance.Amount.Equal(sendToFxAmount))
 
 	sendToExternal := func(bridgeFees []sdkmath.Int) {
 		for _, bridgeFee := range bridgeFees {
@@ -1018,15 +1014,15 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 				ChainName: suite.chainName,
 			}
 			_, err := suite.MsgServer().SendToExternal(sdk.WrapSDKContext(suite.ctx), sendToExternal)
-			require.NoError(suite.T(), err)
+			suite.Require().NoError(err)
 		}
 	}
 
 	sendToExternal([]sdkmath.Int{sdkmath.NewInt(1), sdkmath.NewInt(2), sdkmath.NewInt(3)})
 	usdtBatchFee := suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdkmath.NewInt(0))
-	require.EqualValues(suite.T(), sendToFxToken, usdtBatchFee.TokenContract)
-	require.EqualValues(suite.T(), 3, usdtBatchFee.TotalTxs)
-	require.EqualValues(suite.T(), sdkmath.NewInt(6), usdtBatchFee.TotalFees)
+	suite.Require().EqualValues(sendToFxToken, usdtBatchFee.TokenContract)
+	suite.Require().EqualValues(3, usdtBatchFee.TotalTxs)
+	suite.Require().EqualValues(sdkmath.NewInt(6), usdtBatchFee.TotalFees)
 
 	testCases := []struct {
 		testName       string
@@ -1068,12 +1064,12 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			BaseFee:    testCase.baseFee,
 		})
 		if testCase.pass {
-			require.NoError(suite.T(), err)
+			suite.Require().NoError(err)
 			usdtBatchFee = suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdkmath.NewInt(0))
-			require.EqualValues(suite.T(), testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
+			suite.Require().EqualValues(testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
 		} else {
-			require.NotNil(suite.T(), err)
-			require.Equal(suite.T(), err.Error(), testCase.err.Error())
+			suite.Require().NotNil(err)
+			suite.Require().Equal(err.Error(), testCase.err.Error())
 		}
 	}
 }
@@ -1089,9 +1085,9 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 	}
 
 	_, err := suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 	for _, oracle := range suite.oracleAddrs {
-		require.True(suite.T(), suite.Keeper().IsProposalOracle(suite.ctx, oracle.String()))
+		suite.Require().True(suite.Keeper().IsProposalOracle(suite.ctx, oracle.String()))
 	}
 
 	updateOracle.Oracles = []string{}
@@ -1100,7 +1096,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	updateOracle.Oracles = []string{}
 	number = tmrand.Intn(2) + 101
@@ -1108,7 +1104,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 		updateOracle.Oracles = append(updateOracle.Oracles, helpers.GenAccAddress().String())
 	}
 	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
-	require.Error(suite.T(), err)
+	suite.Require().Error(err)
 }
 
 func (suite *KeeperTestSuite) TestBridgeCallClaim() {
@@ -1122,15 +1118,6 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 
 	fxTokenContract := helpers.GenExternalAddr(suite.chainName)
 	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData())
-
-	// fxAsset, err := contract.PackERC20AssetWithType(
-	// 	[]common.Address{
-	// 		common.BytesToAddress(types.ExternalAddrToAccAddr(suite.chainName, fxTokenContract).Bytes()),
-	// 	}, []*big.Int{
-	// 		big.NewInt(100),
-	// 	},
-	// )
-	// require.NoError(suite.T(), err)
 
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 
@@ -1161,34 +1148,15 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			errReason: "",
 			expect:    true,
 		},
-		// {
-		// 	name: "success - FX",
-		// 	msg: &types.MsgBridgeCallClaim{
-		// 		DstChainId:     "530",
-		// 		EventNonce:     oracleLastEventNonce + 2,
-		// 		Sender:         helpers.GenExternalAddr(suite.chainName),
-		// 		Asset:          fxAsset,
-		// 		Receiver:       helpers.GenExternalAddr(suite.chainName),
-		// 		To:             helpers.GenExternalAddr(suite.chainName),
-		// 		Data:           "",
-		// 		Value:          sdkmath.NewInt(0),
-		// 		BlockHeight:    1,
-		// 		BridgerAddress: suite.bridgerAddrs[0].String(),
-		// 		ChainName:      suite.chainName,
-		// 	},
-		// 	err:       nil,
-		// 	errReason: "",
-		// 	expect:    suite.chainName == ethtypes.ModuleName,
-		// },
 	}
 
 	for _, testData := range testMsgs {
 		err := testData.msg.ValidateBasic()
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 		ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
-		require.NoError(suite.T(), testData.msg.ValidateBasic())
+		suite.Require().NoError(testData.msg.ValidateBasic())
 		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)
-		require.ErrorIs(suite.T(), err, testData.err, testData.name)
+		suite.Require().ErrorIs(err, testData.err, testData.name)
 		if testData.err == nil {
 			suite.checkObservationState(ctx, testData.expect)
 		}
@@ -1196,7 +1164,7 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 			continue
 		}
 
-		require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
+		suite.Require().EqualValues(testData.errReason, err.Error(), testData.name)
 	}
 }
 
@@ -1219,7 +1187,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 		delegateAmounts = append(delegateAmounts, normalMsg.DelegateAmount.Amount)
 		totalPower = totalPower.Add(normalMsg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
@@ -1246,7 +1214,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
@@ -1272,18 +1240,18 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
 
 	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.ctx, sendToFxToken)
-	require.NotNil(suite.T(), bridgeDenomData)
+	suite.Require().NotNil(bridgeDenomData)
 	tokenDenom := types.NewBridgeDenom(suite.chainName, sendToFxToken)
-	require.EqualValues(suite.T(), tokenDenom, bridgeDenomData.Denom)
+	suite.Require().EqualValues(tokenDenom, bridgeDenomData.Denom)
 	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.ctx, tokenDenom)
-	require.NotNil(suite.T(), bridgeTokenData)
-	require.EqualValues(suite.T(), sendToFxToken, bridgeTokenData.Token)
+	suite.Require().NotNil(bridgeTokenData)
+	suite.Require().EqualValues(sendToFxToken, bridgeTokenData.Token)
 
 	// 4. register coin
 	tokenPair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
@@ -1320,10 +1288,10 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 	err = suite.Keeper().ExecuteClaim(suite.ctx, sendToFxClaim.EventNonce)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	suite.Equal(sendToFxAmount, suite.app.BankKeeper.GetBalance(suite.ctx, sendToFxReceiveAddr, tokenPair.GetDenom()).Amount)
 
@@ -1356,10 +1324,10 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 
 			_, err = suite.MsgServer().BridgeCall(sdk.WrapSDKContext(suite.ctx), msg)
 			if testCase.pass {
-				require.NoError(suite.T(), err)
+				suite.Require().NoError(err)
 			} else {
-				require.NotNil(suite.T(), err)
-				require.Equal(suite.T(), err.Error(), testCase.err.Error())
+				suite.Require().NotNil(err)
+				suite.Require().Equal(err.Error(), testCase.err.Error())
 			}
 		})
 	}
@@ -1420,10 +1388,10 @@ func (suite *KeeperTestSuite) TestAddPendingPoolRewards() {
 
 			_, err := suite.MsgServer().AddPendingPoolRewards(sdk.WrapSDKContext(suite.ctx), msg)
 			if testCase.pass {
-				require.NoError(suite.T(), err)
+				suite.Require().NoError(err)
 			} else {
-				require.NotNil(suite.T(), err)
-				require.Equal(suite.T(), err.Error(), testCase.err.Error())
+				suite.Require().NotNil(err)
+				suite.Require().Equal(err.Error(), testCase.err.Error())
 			}
 		})
 	}
@@ -1438,10 +1406,10 @@ func (suite *KeeperTestSuite) bondedOracle() {
 		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	})
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
-	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
+	suite.Require().EqualValues(0, oracleLastEventNonce)
 }
 
 func (suite *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.Metadata) {
@@ -1458,12 +1426,12 @@ func (suite *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.
 		ChannelIbc:     "",
 		ChainName:      suite.chainName,
 	})
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	suite.checkObservationState(ctx, true)
 
 	newOracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
-	require.EqualValues(suite.T(), oracleLastEventNonce+1, newOracleLastEventNonce)
+	suite.Require().EqualValues(oracleLastEventNonce+1, newOracleLastEventNonce)
 }
 
 func (suite *KeeperTestSuite) registerCoin(bridgeDenom string) {
@@ -1488,7 +1456,7 @@ func (suite *KeeperTestSuite) registerCoin(bridgeDenom string) {
 			Symbol:  "TTT",
 		},
 	})
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) checkObservationState(ctx context.Context, expect bool) {

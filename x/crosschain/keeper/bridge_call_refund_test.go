@@ -7,7 +7,7 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (s *KeeperTestSuite) TestKeeper_HandleOutgoingBridgeCallRefund() {
+func (s *KeeperMockSuite) TestKeeper_HandleOutgoingBridgeCallRefund() {
 	tests := []struct {
 		name     string
 		initData func(outgoingBridgeCall *types.OutgoingBridgeCall)

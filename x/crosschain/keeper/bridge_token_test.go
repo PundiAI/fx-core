@@ -1,4 +1,4 @@
-package tests_test
+package keeper_test
 
 import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
