@@ -1,11 +1,8 @@
-package tests_test
+package keeper_test
 
 import (
 	"crypto/ecdsa"
-	"fmt"
 	"os"
-	"reflect"
-	"regexp"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -15,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v7/app"
@@ -47,7 +43,6 @@ type KeeperTestSuite struct {
 }
 
 func TestCrosschainKeeperTestSuite(t *testing.T) {
-	compile := regexp.MustCompile("^Test")
 	mustTestModule := []string{
 		trontypes.ModuleName,
 		ethtypes.ModuleName,
@@ -66,19 +61,9 @@ func TestCrosschainKeeperTestSuite(t *testing.T) {
 	}
 
 	for _, moduleName := range subModules {
-		methodFinder := reflect.TypeOf(new(KeeperTestSuite))
-		for i := 0; i < methodFinder.NumMethod(); i++ {
-			method := methodFinder.Method(i)
-			if !compile.MatchString(method.Name) {
-				continue
-			}
-			t.Run(fmt.Sprintf("%s/%s", method.Name, moduleName), func(subT *testing.T) {
-				mySuite := &KeeperTestSuite{chainName: moduleName}
-				mySuite.SetT(subT)
-				mySuite.SetupTest()
-				method.Func.Call([]reflect.Value{reflect.ValueOf(mySuite)})
-			})
-		}
+		suite.Run(t, &KeeperTestSuite{
+			chainName: moduleName,
+		})
 	}
 }
 
@@ -145,6 +130,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)
 }
 
+func (suite *KeeperTestSuite) SetupSubTest() {
+	suite.SetupTest()
+}
+
 func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
 	address := crypto.PubkeyToAddress(publicKey)
 	return types.ExternalAddrToStr(suite.chainName, address.Bytes())
@@ -165,10 +154,10 @@ func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, o
 		externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
 
 		checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSet, gravityId)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 
 		signature, err = trontypes.NewTronSignature(checkpoint, external)
-		require.NoError(suite.T(), err)
+		suite.Require().NoError(err)
 	}
 	return externalAddress, signature
 }

@@ -857,7 +857,6 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
@@ -1285,7 +1284,6 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
@@ -1985,7 +1983,6 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
@@ -2335,7 +2332,6 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()

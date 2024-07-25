@@ -554,7 +554,6 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 
 			md := suite.GenerateCrossChainDenoms()
@@ -1095,7 +1094,6 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// set port channel
 			sourcePort, sourceChannel := suite.RandTransferChannel()

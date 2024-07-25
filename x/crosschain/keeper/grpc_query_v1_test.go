@@ -1,4 +1,4 @@
-package tests_test
+package keeper_test
 
 import (
 	"encoding/hex"
@@ -67,6 +67,10 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))
 	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
+}
+
+func (suite *CrossChainGrpcTestSuite) SetupSubTest() {
+	suite.SetupTest()
 }
 
 func (suite *CrossChainGrpcTestSuite) Keeper() keeper.Keeper {
@@ -201,7 +205,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetRequest() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.OracleSetRequest(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -291,7 +294,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -365,7 +367,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirmsByNonce() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.OracleSetConfirmsByNonce(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -518,7 +519,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.LastPendingOracleSetRequestByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -703,7 +703,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.BatchFees(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -870,7 +869,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.LastPendingBatchRequestByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -954,7 +952,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			response := testCase.malleate()
 			res, err := suite.queryClient.OutgoingTxBatches(sdk.WrapSDKContext(suite.ctx), &types.QueryOutgoingTxBatchesRequest{ChainName: suite.chainName})
 			suite.Require().NoError(err)
@@ -1054,7 +1051,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.BatchRequestByNonce(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1143,7 +1139,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.BatchConfirm(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1227,7 +1222,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirms() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.BatchConfirms(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1318,7 +1312,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.LastEventNonceByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1391,7 +1384,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.DenomToToken(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1465,7 +1457,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.TokenToDenom(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1538,7 +1529,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByAddr() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.GetOracleByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1628,7 +1618,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.GetOracleByBridgerAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1723,7 +1712,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.GetOracleByExternalAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1886,7 +1874,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -1971,7 +1958,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.LastEventBlockHeightByAddr(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -2030,7 +2016,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastObservedBlockHeight() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.LastObservedBlockHeight(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -2145,7 +2130,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.Oracles(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -2214,7 +2198,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_ProjectedBatchTimeoutHeight() {
 
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.ProjectedBatchTimeoutHeight(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
@@ -2272,7 +2255,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			response := testCase.malleate()
 			res, err := suite.queryClient.BridgeTokens(
 				sdk.WrapSDKContext(suite.ctx),
@@ -2379,7 +2361,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
 			res, err := suite.queryClient.BridgeCoinByDenom(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {

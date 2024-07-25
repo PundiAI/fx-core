@@ -13,7 +13,7 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
-func (s *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
+func (s *KeeperMockSuite) TestKeeper_BridgeCallResultHandler() {
 	tests := []struct {
 		name     string
 		initData func(msg *types.MsgBridgeCallResultClaim)
@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 	}
 }
 
-func (s *KeeperTestSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
+func (s *KeeperMockSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 	type Data struct {
 		sender sdk.AccAddress
 		coin   sdk.Coin
@@ -151,7 +151,7 @@ func (s *KeeperTestSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 	}
 }
 
-func (s *KeeperTestSuite) TestKeeper_DeleteOutgoingBridgeCall() {
+func (s *KeeperMockSuite) TestKeeper_DeleteOutgoingBridgeCall() {
 	outCall := &types.OutgoingBridgeCall{
 		Sender: helpers.GenHexAddress().String(),
 		Nonce:  tmrand.Uint64(),
@@ -168,7 +168,7 @@ func (s *KeeperTestSuite) TestKeeper_DeleteOutgoingBridgeCall() {
 	s.Require().False(s.crosschainKeeper.HasOutgoingBridgeCallAddressAndNonce(s.ctx, outCall.Sender, outCall.Nonce))
 }
 
-func (s *KeeperTestSuite) TestKeeper_IteratorBridgeCallNotLiquidsByDenom() {
+func (s *KeeperMockSuite) TestKeeper_IteratorBridgeCallNotLiquidsByDenom() {
 	expectCoins := sdk.NewCoins()
 	for i := 0; i < int(tmrand.Int63n(10))+1; i++ {
 		newCoin := sdk.NewCoin(types.NewBridgeDenom(s.moduleName, helpers.GenExternalAddr(s.moduleName)), sdkmath.NewInt(int64(tmrand.Uint32())))

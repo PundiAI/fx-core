@@ -35,7 +35,6 @@ func TestIncreaseBridgeFeeABI(t *testing.T) {
 	require.Equal(t, 5, len(increaseBridgeFee.Event.Inputs))
 }
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 	randBridgeFee := big.NewInt(int64(tmrand.Uint32() + 10))
 	crossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
@@ -756,7 +755,6 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()

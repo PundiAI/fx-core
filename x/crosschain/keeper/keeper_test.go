@@ -30,7 +30,7 @@ import (
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
 
-type KeeperTestSuite struct {
+type KeeperMockSuite struct {
 	suite.Suite
 
 	ctx          sdk.Context
@@ -68,18 +68,14 @@ func TestKeeperTestSuite(t *testing.T) {
 		}...)
 	}
 	for _, moduleName := range subModules {
-		suite.Run(t, &KeeperTestSuite{
+		suite.Run(t, &KeeperMockSuite{
 			moduleName:   moduleName,
 			wfxTokenAddr: helpers.GenHexAddress().String(),
 		})
 	}
 }
 
-func (s *KeeperTestSuite) SetupSuite() {
-	s.SetupTest()
-}
-
-func (s *KeeperTestSuite) SetupTest() {
+func (s *KeeperMockSuite) SetupTest() {
 	key := sdk.NewKVStoreKey(s.moduleName)
 
 	testCtx := testutil.DefaultContextWithDB(s.T(), key, sdk.NewTransientStoreKey("transient_test"))
@@ -139,7 +135,11 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.crosschainKeeper.AddBridgeToken(s.ctx, s.wfxTokenAddr, fxtypes.DefaultDenom)
 }
 
-func (s *KeeperTestSuite) CrossChainParams() types.Params {
+func (s *KeeperMockSuite) SetupSubTest() {
+	s.SetupTest()
+}
+
+func (s *KeeperMockSuite) CrossChainParams() types.Params {
 	switch s.moduleName {
 	case ethtypes.ModuleName:
 		return ethtypes.DefaultGenesisState().Params
@@ -162,7 +162,7 @@ func (s *KeeperTestSuite) CrossChainParams() types.Params {
 	}
 }
 
-func (s *KeeperTestSuite) SetOracleSet(nonce, power, height uint64) string {
+func (s *KeeperMockSuite) SetOracleSet(nonce, power, height uint64) string {
 	s.crosschainKeeper.SetLatestOracleSetNonce(s.ctx, nonce)
 	external := helpers.GenExternalAddr(s.moduleName)
 	bridgeValidator := types.BridgeValidator{Power: power, ExternalAddress: external}
@@ -170,7 +170,7 @@ func (s *KeeperTestSuite) SetOracleSet(nonce, power, height uint64) string {
 	return external
 }
 
-func (s *KeeperTestSuite) AddBridgeToken(contract string) (bridgeToken *types.BridgeToken) {
+func (s *KeeperMockSuite) AddBridgeToken(contract string) (bridgeToken *types.BridgeToken) {
 	denom := types.NewBridgeDenom(s.moduleName, contract)
 	s.crosschainKeeper.AddBridgeToken(s.ctx, contract, denom)
 	return &types.BridgeToken{

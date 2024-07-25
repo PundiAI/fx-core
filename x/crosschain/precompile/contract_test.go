@@ -91,6 +91,10 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.crosschain = stakingContract
 }
 
+func (suite *PrecompileTestSuite) SetupSubTest() {
+	suite.SetupTest()
+}
+
 func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, to common.Address, amount *big.Int, data []byte) (*evmtypes.MsgEthereumTx, error) {
 	fromAddr := signer.Address()
 	value := hexutil.Big(*amount)

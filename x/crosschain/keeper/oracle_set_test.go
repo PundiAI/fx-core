@@ -1,4 +1,4 @@
-package tests_test
+package keeper_test
 
 import (
 	"encoding/hex"
@@ -7,7 +7,6 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
@@ -67,8 +66,8 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 			&types.QueryLastPendingOracleSetRequestByAddrRequest{
 				BridgerAddress: testCase.BridgerAddress.String(),
 			})
-		require.NoError(suite.T(), err)
-		require.EqualValues(suite.T(), testCase.ExpectOracleSetSize, len(response.OracleSets))
+		suite.Require().NoError(err)
+		suite.Require().EqualValues(testCase.ExpectOracleSetSize, len(response.OracleSets))
 	}
 }
 
@@ -88,14 +87,14 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedOracleSetNonce(suite.ctx))
 
 	sets := suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
-	require.EqualValues(suite.T(), index-1, sets.Len())
+	suite.Require().EqualValues(index-1, sets.Len())
 
 	suite.Keeper().SetLastSlashedOracleSetNonce(suite.ctx, 1)
 	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
-	require.EqualValues(suite.T(), index-2, sets.Len())
+	suite.Require().EqualValues(index-2, sets.Len())
 
 	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index+1))
-	require.EqualValues(suite.T(), index-1, sets.Len())
+	suite.Require().EqualValues(index-1, sets.Len())
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {

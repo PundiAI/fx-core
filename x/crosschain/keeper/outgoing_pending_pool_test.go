@@ -3,7 +3,6 @@ package keeper_test
 import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -11,7 +10,7 @@ import (
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
 )
 
-func (s *KeeperTestSuite) TestSendToExternal() {
+func (s *KeeperMockSuite) TestSendToExternal() {
 	bridgeTokenAddress := helpers.GenHexAddress().String()
 	bridgeToken := s.AddBridgeToken(bridgeTokenAddress)
 
@@ -26,13 +25,13 @@ func (s *KeeperTestSuite) TestSendToExternal() {
 		Return(sdk.NewCoin(bridgeToken.Denom, sendMsg.Amount.Amount), erc20types.ErrInsufficientLiquidity).
 		Times(1)
 	external, err := s.msgServer.SendToExternal(s.ctx, &sendMsg)
-	require.NoError(s.T(), err)
-	require.EqualValues(s.T(), 1, external.OutgoingTxId)
+	s.Require().NoError(err)
+	s.Require().EqualValues(1, external.OutgoingTxId)
 
 	pendingSendToExternal, found := s.crosschainKeeper.GetPendingPoolTxById(s.ctx, external.OutgoingTxId)
-	require.True(s.T(), found)
-	require.EqualValues(s.T(), sendMsg.Amount, pendingSendToExternal.Token)
-	require.EqualValues(s.T(), sendMsg.BridgeFee, pendingSendToExternal.Fee)
+	s.Require().True(found)
+	s.Require().EqualValues(sendMsg.Amount, pendingSendToExternal.Token)
+	s.Require().EqualValues(sendMsg.BridgeFee, pendingSendToExternal.Fee)
 
 	// add liquidity
 	erc20ModuleAddr := helpers.GenAccAddress()
