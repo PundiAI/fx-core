@@ -5,8 +5,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	fxtelemetry "github.com/functionx/fx-core/v7/telemetry"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -49,6 +52,25 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextTxID)),
 	))
+
+	if !ctx.IsCheckTx() {
+		fxtelemetry.SetGaugeLabelsWithCoin(
+			[]string{types.ModuleName, types.MetricsKeyOutgoingTx},
+			amount,
+			telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+		)
+
+		metrics.IncrCounterWithLabels(
+			[]string{types.ModuleName, types.MetricsKeyOutgoingTx},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+				telemetry.NewLabel(fxtelemetry.LabelSender, sender.String()),
+				telemetry.NewLabel(fxtelemetry.LabelReceiver, receiver),
+				telemetry.NewLabel(fxtelemetry.LabelToken, amount.Denom),
+			},
+		)
+	}
 
 	return nextTxID, nil
 }

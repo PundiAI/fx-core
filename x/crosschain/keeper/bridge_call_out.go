@@ -7,10 +7,13 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	gogotypes "github.com/gogo/protobuf/types"
 
+	fxtelemetry "github.com/functionx/fx-core/v7/telemetry"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
@@ -57,6 +60,28 @@ func (k Keeper) AddOutgoingBridgeCallWithoutBuild(ctx sdk.Context, outCall *type
 		sdk.NewAttribute(sdk.AttributeKeySender, outCall.Sender),
 		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprint(outCall.Nonce)),
 	))
+
+	if !ctx.IsCheckTx() {
+		tokenLabels := make([]metrics.Label, 0, len(outCall.Tokens))
+		for _, t := range outCall.Tokens {
+			fxtelemetry.SetGaugeLabelsWithToken(
+				[]string{types.ModuleName, types.MetricsKeyBridgeCallOut},
+				t.Contract, t.Amount.BigInt(),
+				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+			)
+			tokenLabels = append(tokenLabels, telemetry.NewLabel(fxtelemetry.LabelToken, t.Contract))
+		}
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, types.MetricsKeyBridgeCallOut},
+			float32(1),
+			append([]metrics.Label{
+				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+				telemetry.NewLabel(fxtelemetry.LabelSender, outCall.Sender),
+				telemetry.NewLabel(types.MetricsLabelRefund, outCall.Refund),
+				telemetry.NewLabel(fxtelemetry.LabelTo, outCall.To),
+			}, tokenLabels...),
+		)
+	}
 
 	return outCall.Nonce
 }

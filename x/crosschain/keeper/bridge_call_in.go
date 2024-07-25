@@ -4,13 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	fxtelemetry "github.com/functionx/fx-core/v7/telemetry"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
@@ -30,6 +34,21 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
 	} else {
 		commit()
+	}
+
+	if !ctx.IsCheckTx() {
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, types.MetricsKeyBridgeCallIn},
+			float32(1),
+			[]metrics.Label{
+				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+				telemetry.NewLabel(fxtelemetry.LabelSender, msg.GetSender()),
+				telemetry.NewLabel(fxtelemetry.LabelTo, msg.GetTo()),
+				telemetry.NewLabel(fxtelemetry.LabelSuccess, strconv.FormatBool(err == nil)),
+				telemetry.NewLabel(types.MetricsLabelRefund, msg.GetRefund()),
+				telemetry.NewLabel(types.MetricsLabelTxOrigin, msg.GetTxOrigin()),
+			},
+		)
 	}
 
 	if err != nil && len(tokens) > 0 {
@@ -71,6 +90,15 @@ func (k Keeper) BridgeCallTransferAndCallEvm(ctx sdk.Context, sender, refundAddr
 	if err != nil {
 		return err
 	}
+
+	if !ctx.IsCheckTx() {
+		fxtelemetry.SetGaugeLabelsWithCoins(
+			[]string{types.ModuleName, types.MetricsKeyBridgeCallIn},
+			coins,
+			telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+		)
+	}
+
 	if err = k.bridgeCallTransferTokens(ctx, receiverTokenAddr.Bytes(), receiverTokenAddr.Bytes(), coins); err != nil {
 		return err
 	}
