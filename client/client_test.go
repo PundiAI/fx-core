@@ -188,6 +188,10 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		account, err := cli.QueryAccount(toAddress.String())
 		suite.NoError(err)
+		// acconts is
+		// 0. initAccount
+		// 1.fee_collector + 2.distribution + 3.bonded_tokens_pool + 4.not_bonded_tokens_pool + 5.gov + 6.mint + 7.autytypes.NewModuleAddress(crosschain)
+		// 8.evm 9.0x..1001 10.0x..1002 11.erc20 12.wfx-contract
 		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(14+i), 0), account)
 	}
 
