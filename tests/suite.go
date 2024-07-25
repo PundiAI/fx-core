@@ -78,11 +78,10 @@ func (suite *TestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	numValidators := suite.numValidator
-	timeoutCommit := time.Millisecond
+	suite.timeoutCommit = time.Millisecond
 	if numValidators > 1 {
-		timeoutCommit = 500 * time.Millisecond
+		suite.timeoutCommit = 500 * time.Millisecond
 	}
-	suite.timeoutCommit = timeoutCommit
 
 	ibcGenesisOpt := func(config *network.Config) {
 		config.GenesisState = testutil.IbcGenesisState(encCfg.Codec, config.GenesisState)
@@ -93,7 +92,7 @@ func (suite *TestSuite) SetupSuite() {
 	govGenesisOpt := func(config *network.Config) {
 		votingPeriod := time.Millisecond
 		if numValidators > 1 {
-			votingPeriod = time.Duration(numValidators*5) * timeoutCommit
+			votingPeriod = time.Duration(numValidators*5) * suite.timeoutCommit
 		}
 		config.GenesisState = testutil.GovGenesisState(encCfg.Codec, config.GenesisState, votingPeriod)
 	}
@@ -105,7 +104,7 @@ func (suite *TestSuite) SetupSuite() {
 	}
 
 	cfg := testutil.DefaultNetworkConfig(encCfg, ibcGenesisOpt, bankGenesisOpt, govGenesisOpt, slashingGenesisOpt)
-	cfg.TimeoutCommit = timeoutCommit
+	cfg.TimeoutCommit = suite.timeoutCommit
 	cfg.NumValidators = numValidators
 	cfg.EnableJSONRPC = true
 	if suite.enableTMLogging {
@@ -117,10 +116,7 @@ func (suite *TestSuite) SetupSuite() {
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.Require().NoError(err)
 
-	time.Sleep(timeoutCommit * 10)
-	for suite.BlockNumber() <= 3 {
-		time.Sleep(timeoutCommit * 2)
-	}
+	_, err = suite.network.WaitForHeight(3)
 	suite.Require().NoError(err)
 }
 
@@ -278,7 +274,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	txResponse, err := grpcClient.BroadcastTx(txRaw)
 	suite.NoError(err)
 	suite.NotNil(txResponse) // txResponse might be nil, but error is also nil
-	txResponse, err = grpcClient.WaitMined(txResponse.TxHash, 10*time.Second, 1*time.Second)
+	txResponse, err = grpcClient.WaitMined(txResponse.TxHash, 200*suite.timeoutCommit, 10*suite.timeoutCommit)
 	suite.NoError(err)
 	suite.T().Log("broadcast tx", "msg:", sdk.MsgTypeURL(msgList[0]), "height:", txResponse.Height, "txHash:", txResponse.TxHash)
 	suite.NoError(suite.network.WaitForNextBlock())
