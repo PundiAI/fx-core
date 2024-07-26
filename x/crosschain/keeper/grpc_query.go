@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	gogotypes "github.com/gogo/protobuf/types"
+	gogotypes "github.com/cosmos/gogoproto/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 

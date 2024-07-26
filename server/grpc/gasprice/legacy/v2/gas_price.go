@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gogo/protobuf/grpc"
+	"github.com/cosmos/gogoproto/grpc"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 

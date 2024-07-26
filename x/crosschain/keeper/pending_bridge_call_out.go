@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
+	gogotypes "github.com/cosmos/gogoproto/types"
 	"github.com/ethereum/go-ethereum/common"
-	gogotypes "github.com/gogo/protobuf/types"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"

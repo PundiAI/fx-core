@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/gogo/protobuf/grpc"
+	"github.com/cosmos/gogoproto/grpc"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

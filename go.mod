@@ -19,7 +19,6 @@ require (
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.22.0
 	github.com/fbsobreira/gotron-sdk v0.0.0-20211012084317-763989224068
-	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -116,6 +115,7 @@ require (
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
@@ -232,11 +232,14 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	github.com/cosmos/gogoproto => github.com/cosmos/gogoproto v1.4.10
-	github.com/ethereum/go-ethereum => github.com/crypto-org-chain/go-ethereum v1.10.20-0.20231207063621-43cf32d91c3e
+	github.com/cosmos/iavl => github.com/cosmos/iavl v0.20.1
+	github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.12.4
+
+	github.com/ethereum/go-ethereum => github.com/functionx/go-ethereum v1.10.20-0.20231207063621-43cf32d91c3e
 	github.com/evmos/ethermint => github.com/functionx/ethermint v0.6.1-0.20240711082233-ae8bfa5a35b3
-	// use cosmos style protobufs
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+
 	// stick with compatible version or x/exp in v0.47.x line
 	// x/exp had a breaking change in further commits
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
