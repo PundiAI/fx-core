@@ -10,8 +10,8 @@ import (
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	gogotypes "github.com/cosmos/gogoproto/types"
 	"github.com/ethereum/go-ethereum/common"
-	gogotypes "github.com/gogo/protobuf/types"
 
 	fxtelemetry "github.com/functionx/fx-core/v7/telemetry"
 	fxtypes "github.com/functionx/fx-core/v7/types"
