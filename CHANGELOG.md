@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v6.1.0]
+
+* Fix: precompile contract revert issue
+
+---
+
 ## [v6.0.0]
 
 ### Features
