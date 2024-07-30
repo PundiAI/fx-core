@@ -145,8 +145,8 @@ lint: lint-install
 	echo "--> Running linter"
 	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
 	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 44 ]; then \
-		echo "--> increase or decrease nolint, please recheck them"; \
-		echo "--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`"; exit 1;\
+		echo "\033[91m--> increase or decrease nolint, please recheck them\033[0m"; \
+		echo "\033[91m--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`\033[0m"; exit 1;\
 	fi
 
 format: lint-install
@@ -224,13 +224,10 @@ $(STATIK):
 	@go install github.com/rakyll/statik@latest
 
 update-swagger-docs: statik
-	$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-    else \
-        echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
-	perl -pi -e "print \"host: fx-rest.functionx.io\nschemes:\n  - https\n\" if $$.==6 " ./docs/swagger-ui/swagger.yaml
+	@$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
+	@if [ "$(shell sed -n '7p' docs/swagger-ui/swagger.yaml)" != "schemes:" ]; then \
+		perl -pi -e "print \"host: fx-rest.functionx.io\nschemes:\n  - https\n\" if $$.==6 " ./docs/swagger-ui/swagger.yaml; \
+	fi
 
 .PHONY: statik update-swagger-docs
 

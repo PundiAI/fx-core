@@ -210,6 +210,14 @@ func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeepe
 	return keepers
 }
 
+func (suite *PrecompileTestSuite) SetCorsschainEnablePending(moduleName string, isEnable bool) {
+	crosschainKeeper := suite.CrossChainKeepers()[moduleName]
+	params := crosschainKeeper.GetParams(suite.ctx)
+	params.EnableBridgeCallPending = isEnable
+	params.EnableSendToExternalPending = isEnable
+	suite.NoError(crosschainKeeper.SetParams(suite.ctx, &params))
+}
+
 func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Metadata {
 	keepers := suite.CrossChainKeepers()
 	modules := make([]string, 0, len(keepers))

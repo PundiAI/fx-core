@@ -223,6 +223,8 @@ message Params {
   int64 delegate_multiple = 11;
   uint64 bridge_call_timeout = 12;
   uint64 bridge_call_max_gas_limit = 13;
+  bool enable_send_to_external_pending = 14;
+  bool enable_bridge_call_pending = 15;
 }
 
 // Deprecated: after block 5713000

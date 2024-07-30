@@ -14,6 +14,9 @@ import (
 )
 
 func (k Keeper) AddPendingOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64, notLiquidCoins sdk.Coins) (uint64, error) {
+	if !k.GetParams(ctx).EnableBridgeCallPending {
+		return 0, types.ErrInvalid.Wrap("not enough liquidity")
+	}
 	// try to calculate the bridge call timeout height, Avoid failure to calculate timeout when liquidity is sufficient
 	outCall, err := k.BuildOutgoingBridgeCall(ctx, sender, refundAddr, tokens, to, data, memo, eventNonce)
 	if err != nil {
