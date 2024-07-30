@@ -238,6 +238,11 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	temporaryGasUsed := msg.Gas() - leftoverGas
 	leftoverGas += evmkeeper.GasToRefund(stateDB.GetRefund(), temporaryGasUsed, refundQuotient)
 
+	// force revert error
+	if vmErr == nil && stateDB.ForceRevert() {
+		vmErr = types.ErrExecutionForceReverted
+	}
+
 	// EVM execution error needs to be available for the JSON-RPC client
 	var vmError string
 	if vmErr != nil {
