@@ -133,6 +133,7 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
 			moduleName := md.RandModule()
+			suite.SetCorsschainEnablePending(moduleName, true)
 
 			amount := big.NewInt(0).Add(randMint, big.NewInt(1))
 			coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(amount))

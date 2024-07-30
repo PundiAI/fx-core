@@ -6,9 +6,6 @@ info:
 host: fx-rest.functionx.io
 schemes:
   - https
-host: fx-rest.functionx.io
-schemes:
-  - https
 paths:
   /ethermint/feemarket/v1/base_fee:
     get:
@@ -11537,6 +11534,10 @@ paths:
                   bridge_call_max_gas_limit:
                     type: string
                     format: uint64
+                  enable_send_to_external_pending:
+                    type: boolean
+                  enable_bridge_call_pending:
+                    type: boolean
                 description: >-
                   If power change between validators of CurrentOracleSet and
                   latest oracle set
@@ -43430,6 +43431,10 @@ definitions:
       bridge_call_max_gas_limit:
         type: string
         format: uint64
+      enable_send_to_external_pending:
+        type: boolean
+      enable_bridge_call_pending:
+        type: boolean
     description: >-
       If power change between validators of CurrentOracleSet and latest oracle
       set
@@ -44442,6 +44447,10 @@ definitions:
           bridge_call_max_gas_limit:
             type: string
             format: uint64
+          enable_send_to_external_pending:
+            type: boolean
+          enable_bridge_call_pending:
+            type: boolean
         description: >-
           If power change between validators of CurrentOracleSet and latest
           oracle set

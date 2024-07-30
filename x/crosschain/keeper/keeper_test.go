@@ -130,6 +130,7 @@ func (s *KeeperMockSuite) SetupTest() {
 	s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
 
 	params := s.CrossChainParams()
+	params.EnableSendToExternalPending = true
 	s.NoError(s.crosschainKeeper.SetParams(s.ctx, &params))
 
 	s.crosschainKeeper.AddBridgeToken(s.ctx, s.wfxTokenAddr, fxtypes.DefaultDenom)

@@ -16,6 +16,12 @@ func (k Keeper) AddToOutgoingPendingPool(ctx sdk.Context, sender sdk.AccAddress,
 	if bridgeToken == nil {
 		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
+
+	// add pending pool switch
+	if !k.GetParams(ctx).EnableSendToExternalPending {
+		return 0, types.ErrInvalid.Wrapf("not enough liquidity")
+	}
+
 	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
 
 	pendingOutgoingTx := types.NewPendingOutgoingTx(nextTxID, sender, receiver, bridgeToken.Token, amount, fee, sdk.NewCoins())

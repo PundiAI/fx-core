@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
@@ -18,8 +19,17 @@ func NewMigrator(k Keeper) Migrator {
 
 func (m Migrator) Migrate(ctx sdk.Context) error {
 	params := m.keeper.GetParams(ctx)
+
 	params.BridgeCallTimeout = types.DefBridgeCallTimeout
 	params.BridgeCallMaxGasLimit = types.MaxGasLimit
+
+	enablePending := false
+	if ctx.ChainID() == fxtypes.TestnetChainId {
+		enablePending = true
+	}
+	params.EnableSendToExternalPending = enablePending
+	params.EnableBridgeCallPending = enablePending
+
 	if err := m.keeper.SetParams(ctx, &params); err != nil {
 		return err
 	}

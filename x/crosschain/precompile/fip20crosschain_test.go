@@ -201,6 +201,8 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				)
 				suite.Require().NoError(err)
 
+				suite.SetCorsschainEnablePending(moduleName, true)
+
 				return data, pair, big.NewInt(0), moduleName, []string{
 					sdk.Coin{Denom: md.GetDenom(expectedModuleName), Amount: sdkmath.NewIntFromBigInt(big.NewInt(0).Sub(addAmount, big.NewInt(1)))}.String(),
 					sdk.Coin{Denom: md.GetDenom(expectedModuleName), Amount: sdkmath.NewIntFromBigInt(addAmount)}.String(),
