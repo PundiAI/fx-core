@@ -1,6 +1,7 @@
 package precompile_test
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
@@ -9,6 +10,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -189,4 +191,28 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 			}
 		})
 	}
+}
+
+func TestNewAddPendingPoolRewardsEvent(t *testing.T) {
+	method := precompile.NewAddPendingPoolRewardsMethod(nil)
+	args := &crosschaintypes.AddPendingPoolRewardArgs{
+		Chain:  "eth",
+		TxID:   big.NewInt(1000),
+		Token:  common.BytesToAddress([]byte{0x11}),
+		Reward: big.NewInt(2000),
+	}
+	sender := common.BytesToAddress([]byte{0x1})
+
+	data, topic, err := method.NewAddPendingPoolRewardsEvent(args, sender)
+	require.NoError(t, err)
+
+	expectedData := "000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000007d000000000000000000000000000000000000000000000000000000000000000036574680000000000000000000000000000000000000000000000000000000000"
+	expectedTopic := []common.Hash{
+		common.HexToHash("3afbebaebe58f01b574a31dcb1a2186714107461ff1efebbf3eef3aa79ced285"),
+		common.HexToHash("0000000000000000000000000000000000000000000000000000000000000001"),
+		common.HexToHash("0000000000000000000000000000000000000000000000000000000000000011"),
+	}
+
+	require.Equal(t, expectedData, hex.EncodeToString(data))
+	require.Equal(t, expectedTopic, topic)
 }

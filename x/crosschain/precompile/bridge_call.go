@@ -74,46 +74,26 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 			coins = append(coins, coin)
 		}
 
-		nonce, err := route.PrecompileBridgeCall(
-			ctx,
-			sender,
-			args.Refund,
-			coins,
-			args.To,
-			args.Data,
-			args.Memo,
-		)
+		bridgeCallNonce, err := route.PrecompileBridgeCall(ctx, sender, args.Refund, coins, args.To, args.Data, args.Memo)
 		if err != nil {
 			return err
 		}
 
-		nonceNonce := new(big.Int).SetUint64(nonce)
-		data, topic, err := m.NewBridgeCallEvent(
-			sender,
-			args.Refund,
-			args.To,
-			evm.Origin,
-			args.Value,
-			nonceNonce,
-			args.DstChain,
-			args.Tokens,
-			args.Amounts,
-			args.Data,
-			args.Memo,
-		)
+		emitNonce := new(big.Int).SetUint64(bridgeCallNonce)
+		data, topic, err := m.NewBridgeCallEvent(args, sender, evm.Origin, emitNonce)
 		if err != nil {
 			return err
 		}
 		EmitEvent(evm, data, topic)
 
-		result, err = m.PackOutput(nonceNonce)
+		result, err = m.PackOutput(emitNonce)
 		return err
 	})
 	return result, err
 }
 
-func (m *BridgeCallMethod) NewBridgeCallEvent(sender, refund, to, origin common.Address, value, eventNonce *big.Int, dstChain string, tokens []common.Address, amounts []*big.Int, txData, memo []byte) (data []byte, topic []common.Hash, err error) {
-	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), refund.Hash(), to.Hash()}, origin, value, eventNonce, dstChain, tokens, amounts, txData, memo)
+func (m *BridgeCallMethod) NewBridgeCallEvent(args *crosschaintypes.BridgeCallArgs, sender, origin common.Address, eventNonce *big.Int) (data []byte, topic []common.Hash, err error) {
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()}, origin, args.Value, eventNonce, args.DstChain, args.Tokens, args.Amounts, args.Data, args.Memo)
 }
 
 func (m *BridgeCallMethod) UnpackInput(data []byte) (*crosschaintypes.BridgeCallArgs, error) {
