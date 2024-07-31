@@ -59,7 +59,7 @@ func (m *CancelSendToExternalMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]
 	// NOTE: must be get relation before cancel, cancel will delete it if relation exist
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		if _, err = route.PrecompileCancelSendToExternal(ctx, args.TxID.Uint64(), sender.Bytes()); err != nil {
 			return err
 		}
@@ -71,9 +71,7 @@ func (m *CancelSendToExternalMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]
 		EmitEvent(evm, data, topic)
 
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -81,11 +79,7 @@ func (m *CancelSendToExternalMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]
 }
 
 func (m *CancelSendToExternalMethod) NewCancelSendToExternalEvent(sender common.Address, chainName string, txId *big.Int) (data []byte, topic []common.Hash, err error) {
-	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, chainName, txId)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, topic, nil
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, chainName, txId)
 }
 
 func (m *CancelSendToExternalMethod) PackInput(chainName string, txId *big.Int) ([]byte, error) {
@@ -105,9 +99,5 @@ func (m *CancelSendToExternalMethod) UnpackInput(data []byte) (*crosschaintypes.
 }
 
 func (m *CancelSendToExternalMethod) PackOutput(success bool) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(success)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(success)
 }

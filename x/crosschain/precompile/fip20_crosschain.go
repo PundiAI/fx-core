@@ -43,7 +43,7 @@ func (m *FIP20CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte,
 	tokenContract := contract.Caller()
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	err := stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+	if err := stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		tokenPair, found := m.erc20Keeper.GetTokenPairByAddress(ctx, tokenContract)
 		if !found {
 			return fmt.Errorf("token pair not found: %s", tokenContract.String())
@@ -97,8 +97,7 @@ func (m *FIP20CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte,
 		legacy.Fip20CrossChainEvents(ctx, args.Sender, tokenPair.GetERC20Contract(), args.Receipt,
 			fxtypes.Byte32ToString(args.Target), tokenPair.GetDenom(), args.Amount, args.Fee)
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -114,9 +113,5 @@ func (m *FIP20CrossChainMethod) UnpackInput(data []byte) (*crosschaintypes.FIP20
 }
 
 func (m *FIP20CrossChainMethod) PackOutput(success bool) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(success)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(success)
 }

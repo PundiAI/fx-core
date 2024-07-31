@@ -41,11 +41,7 @@ func (m *CancelPendingBridgeCallMethod) RequiredGas() uint64 {
 }
 
 func (m *CancelPendingBridgeCallMethod) NewCancelPendingBridgeCallEvent(sender common.Address, chainName string, txId *big.Int) (data []byte, topic []common.Hash, err error) {
-	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, chainName, txId)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, topic, nil
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, chainName, txId)
 }
 
 func (m *CancelPendingBridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
@@ -65,7 +61,7 @@ func (m *CancelPendingBridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) 
 	}
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		if _, err = route.PrecompileCancelPendingBridgeCall(ctx, args.TxID.Uint64(), sender.Bytes()); err != nil {
 			return err
 		}
@@ -77,9 +73,7 @@ func (m *CancelPendingBridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) 
 		EmitEvent(evm, data, topic)
 
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -103,9 +97,5 @@ func (m *CancelPendingBridgeCallMethod) PackInput(args crosschaintypes.CancelPen
 }
 
 func (m *CancelPendingBridgeCallMethod) PackOutput(success bool) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(success)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(success)
 }

@@ -109,20 +109,11 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		result, err = m.PackOutput(nonceNonce)
 		return err
 	})
-
-	if err != nil {
-		return nil, err
-	}
-
 	return result, err
 }
 
 func (m *BridgeCallMethod) NewBridgeCallEvent(sender, refund, to, origin common.Address, value, eventNonce *big.Int, dstChain string, tokens []common.Address, amounts []*big.Int, txData, memo []byte) (data []byte, topic []common.Hash, err error) {
-	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), refund.Hash(), to.Hash()}, origin, value, eventNonce, dstChain, tokens, amounts, txData, memo)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, topic, nil
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), refund.Hash(), to.Hash()}, origin, value, eventNonce, dstChain, tokens, amounts, txData, memo)
 }
 
 func (m *BridgeCallMethod) UnpackInput(data []byte) (*crosschaintypes.BridgeCallArgs, error) {
@@ -134,11 +125,7 @@ func (m *BridgeCallMethod) UnpackInput(data []byte) (*crosschaintypes.BridgeCall
 }
 
 func (m *BridgeCallMethod) PackOutput(nonceNonce *big.Int) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(nonceNonce)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(nonceNonce)
 }
 
 func (m *BridgeCallMethod) PackInput(args crosschaintypes.BridgeCallArgs) ([]byte, error) {

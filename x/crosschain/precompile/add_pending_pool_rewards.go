@@ -105,11 +105,7 @@ func (m *AddPendingPoolRewardsMethod) Run(evm *vm.EVM, contract *vm.Contract) ([
 }
 
 func (m *AddPendingPoolRewardsMethod) NewAddPendingPoolRewardsEvent(sender common.Address, token common.Address, chain string, txId, reward *big.Int) (data []byte, topic []common.Hash, err error) {
-	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, chain, txId, reward)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, topic, nil
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, chain, txId, reward)
 }
 
 func (m *AddPendingPoolRewardsMethod) PackInput(args crosschaintypes.AddPendingPoolRewardArgs) ([]byte, error) {
@@ -129,9 +125,5 @@ func (m *AddPendingPoolRewardsMethod) UnpackInput(data []byte) (*crosschaintypes
 }
 
 func (m *AddPendingPoolRewardsMethod) PackOutput(success bool) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(success)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(success)
 }

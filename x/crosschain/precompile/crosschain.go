@@ -56,7 +56,7 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	totalCoin := sdk.Coin{}
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		// cross-chain origin token
 		if value.Cmp(big.NewInt(0)) == 1 && fxcontract.IsZeroEthAddress(args.Token) {
 			totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
@@ -95,9 +95,7 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		legacy.CrossChainEvents(ctx, sender, args.Token, args.Receipt, fxtypes.Byte32ToString(args.Target),
 			amountCoin.Denom, args.Memo, args.Amount, args.Fee)
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -105,11 +103,7 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 }
 
 func (m *CrossChainMethod) NewCrossChainEvent(sender common.Address, token common.Address, denom, receipt string, amount, fee *big.Int, target [32]byte, memo string) (data []byte, topic []common.Hash, err error) {
-	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, denom, receipt, amount, fee, target, memo)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, topic, nil
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, denom, receipt, amount, fee, target, memo)
 }
 
 func (m *CrossChainMethod) UnpackInput(data []byte) (*crosschaintypes.CrossChainArgs, error) {
@@ -129,9 +123,5 @@ func (m *CrossChainMethod) PackInput(args crosschaintypes.CrossChainArgs) ([]byt
 }
 
 func (m *CrossChainMethod) PackOutput(success bool) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(success)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(success)
 }
