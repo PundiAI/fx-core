@@ -845,3 +845,27 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		})
 	}
 }
+
+func TestNewIncreaseBridgeFeeEvent(t *testing.T) {
+	method := precompile.NewIncreaseBridgeFeeMethod(nil)
+	args := &crosschaintypes.IncreaseBridgeFeeArgs{
+		Chain: "eth",
+		TxID:  big.NewInt(1000),
+		Token: common.BytesToAddress([]byte{0x11}),
+		Fee:   big.NewInt(2000),
+	}
+	sender := common.BytesToAddress([]byte{0x1})
+
+	data, topic, err := method.NewIncreaseBridgeFeeEvent(args, sender)
+	require.NoError(t, err)
+
+	expectedData := "000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000007d000000000000000000000000000000000000000000000000000000000000000036574680000000000000000000000000000000000000000000000000000000000"
+	expectedTopic := []common.Hash{
+		common.HexToHash("0x4b4d0e64eb77c0f61892107908295f09b3e381c50c655f4a73a4ad61c07350a0"),
+		common.HexToHash("0000000000000000000000000000000000000000000000000000000000000001"),
+		common.HexToHash("0000000000000000000000000000000000000000000000000000000000000011"),
+	}
+
+	require.Equal(t, expectedData, hex.EncodeToString(data))
+	require.Equal(t, expectedTopic, topic)
+}

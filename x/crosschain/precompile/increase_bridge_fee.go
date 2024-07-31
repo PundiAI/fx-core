@@ -90,7 +90,7 @@ func (m *IncreaseBridgeFeeMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 			return err
 		}
 
-		data, topic, err := m.NewIncreaseBridgeFeeEvent(sender, args.Token, args.Chain, args.TxID, args.Fee)
+		data, topic, err := m.NewIncreaseBridgeFeeEvent(args, sender)
 		if err != nil {
 			return err
 		}
@@ -103,8 +103,8 @@ func (m *IncreaseBridgeFeeMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 	return m.PackOutput(true)
 }
 
-func (m *IncreaseBridgeFeeMethod) NewIncreaseBridgeFeeEvent(sender common.Address, token common.Address, chain string, txId, fee *big.Int) (data []byte, topic []common.Hash, err error) {
-	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, chain, txId, fee)
+func (m *IncreaseBridgeFeeMethod) NewIncreaseBridgeFeeEvent(args *crosschaintypes.IncreaseBridgeFeeArgs, sender common.Address) (data []byte, topic []common.Hash, err error) {
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), args.Token.Hash()}, args.Chain, args.TxID, args.Fee)
 }
 
 func (m *IncreaseBridgeFeeMethod) PackInput(chainName string, txId *big.Int, token common.Address, fee *big.Int) ([]byte, error) {
