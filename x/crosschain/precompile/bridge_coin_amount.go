@@ -111,11 +111,7 @@ func (m *BridgeCoinAmountMethod) UnpackInput(data []byte) (*crosschaintypes.Brid
 }
 
 func (m *BridgeCoinAmountMethod) PackOutput(amount *big.Int) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(amount)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(amount)
 }
 
 func (m *BridgeCoinAmountMethod) UnpackOutput(data []byte) (*big.Int, error) {

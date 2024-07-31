@@ -60,7 +60,7 @@ func (m *IncreaseBridgeFeeMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 	}
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		value := contract.Value()
 		sender := contract.Caller()
 		totalCoin := sdk.Coin{}
@@ -96,9 +96,7 @@ func (m *IncreaseBridgeFeeMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 		}
 		EmitEvent(evm, data, topic)
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -106,11 +104,7 @@ func (m *IncreaseBridgeFeeMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 }
 
 func (m *IncreaseBridgeFeeMethod) NewIncreaseBridgeFeeEvent(sender common.Address, token common.Address, chain string, txId, fee *big.Int) (data []byte, topic []common.Hash, err error) {
-	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, chain, txId, fee)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, topic, nil
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, chain, txId, fee)
 }
 
 func (m *IncreaseBridgeFeeMethod) PackInput(chainName string, txId *big.Int, token common.Address, fee *big.Int) ([]byte, error) {
@@ -130,9 +124,5 @@ func (m *IncreaseBridgeFeeMethod) UnpackInput(data []byte) (*crosschaintypes.Inc
 }
 
 func (m *IncreaseBridgeFeeMethod) PackOutput(success bool) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(success)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(success)
 }

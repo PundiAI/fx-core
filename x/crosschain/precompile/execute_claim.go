@@ -57,7 +57,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		return nil, errors.New("chain not support")
 	}
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		if err = crosschainKeeper.ExecuteClaim(ctx, args.EventNonce.Uint64()); err != nil {
 			return err
 		}
@@ -67,9 +67,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		}
 		EmitEvent(evm, data, topic)
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -77,11 +75,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 }
 
 func (m *ExecuteClaimMethod) NewExecuteClaimEvent(sender common.Address, eventNonce *big.Int, dstChain string) (data []byte, topic []common.Hash, err error) {
-	data, topic, err = evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, topic, nil
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain)
 }
 
 func (m *ExecuteClaimMethod) PackInput(args crosschaintypes.ExecuteClaimArgs) ([]byte, error) {
@@ -101,11 +95,7 @@ func (m *ExecuteClaimMethod) UnpackInput(data []byte) (*crosschaintypes.ExecuteC
 }
 
 func (m *ExecuteClaimMethod) PackOutput(success bool) ([]byte, error) {
-	pack, err := m.Method.Outputs.Pack(success)
-	if err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return m.Method.Outputs.Pack(success)
 }
 
 func (m *ExecuteClaimMethod) UnpackOutput(data []byte) (bool, error) {
