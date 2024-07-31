@@ -2,6 +2,7 @@ package precompile_test
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/slices"
 
@@ -791,7 +791,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				return data, pair, randMint, moduleName, nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: msg.value not equal amount + fee"
+				return "msg.value not equal amount + fee"
 			},
 			result: false,
 		},
@@ -818,7 +818,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				return data, pair, big.NewInt(0), moduleName, []string{erc20Token.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: token pair not found: %s", args[0])
+				return fmt.Sprintf("token pair not found: %s", args[0])
 			},
 			result: false,
 		},
@@ -849,7 +849,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				return data, pair, big.NewInt(0), moduleName, nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: transfer amount exceeds allowance"
+				return "transfer amount exceeds allowance"
 			},
 			result: false,
 		},
@@ -892,15 +892,9 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, contractAddr, value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, contractAddr, value, packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 				// signer balance zero
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.AccAddress(addrQuery.Bytes()))
@@ -1001,8 +995,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					suite.Require().True(relation)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -1244,7 +1237,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				return data, pair, big.NewInt(0), moduleName, []string{erc20Token.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: token pair not found: %s", args[0])
+				return fmt.Sprintf("token pair not found: %s", args[0])
 			},
 			result: false,
 		},
@@ -1276,7 +1269,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 				return data, pair, big.NewInt(0), moduleName, nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: transfer amount exceeds allowance"
+				return "transfer amount exceeds allowance"
 			},
 			result: false,
 		},
@@ -1325,15 +1318,9 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, contractAddr, value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, contractAddr, value, packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 				// signer balance zero
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.AccAddress(addrQuery.Bytes()))
@@ -1410,8 +1397,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 					}
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -1885,7 +1871,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: md.metadata.Base}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -1946,7 +1932,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: denom}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -1975,7 +1961,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 				return data, randMint, sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: fxtypes.DefaultDenom}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -2014,15 +2000,9 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, contract, value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, contract, value, packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.AccAddress(addrQuery.Bytes()))
@@ -2089,8 +2069,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 					suite.Require().Equal(randMint.String(), packet.Amount)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -2324,7 +2303,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 				return data, big.NewInt(0), sourcePort, sourceChannel, []string{sdk.Coin{Amount: sdkmath.NewIntFromBigInt(fee), Denom: pair.GetDenom()}.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -2353,10 +2332,10 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 
 			packData, value, portId, channelId, errArgs := tc.malleate(pair, md, signer, randMint)
 
-			contract := crosschaintypes.GetAddress()
+			toAddr := crosschaintypes.GetAddress()
 			addrQuery := signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.crosschain
+				toAddr = suite.crosschain
 				addrQuery = suite.crosschain
 			}
 
@@ -2369,11 +2348,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, contract, value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, toAddr, value, packData)
 
 			// check result
 			if tc.result {
@@ -2444,8 +2419,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 					suite.Require().Equal(randMint.String(), packet.Amount)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}

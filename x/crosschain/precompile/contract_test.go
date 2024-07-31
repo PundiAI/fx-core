@@ -29,10 +29,12 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
@@ -47,7 +49,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	"github.com/functionx/fx-core/v7/x/erc20/types"
 	crossethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
 )
@@ -95,42 +96,13 @@ func (suite *PrecompileTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, to common.Address, amount *big.Int, data []byte) (*evmtypes.MsgEthereumTx, error) {
-	fromAddr := signer.Address()
-	value := hexutil.Big(*amount)
-	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &to, From: &fromAddr, Data: (*hexutil.Bytes)(&data), Value: &value})
-	suite.Require().NoError(err)
-
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
-	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
-		&evmtypes.EthCallRequest{
-			Args:    args,
-			GasCap:  contract.DefaultGasCap,
-			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(res.VmError) > 0 {
-		if len(res.Ret) > 4 {
-			retError, err := fxevmtypes.UnpackRetError(res.Ret[4:])
-			if err != nil {
-				return nil, err
-			}
-			return nil, fmt.Errorf("%s: %s", res.VmError, retError)
-		}
-		return nil, fmt.Errorf(res.VmError)
-	}
-
+func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.Address, amount *big.Int, data []byte) *evmtypes.MsgEthereumTxResponse {
 	ethTx := evmtypes.NewTx(
 		fxtypes.EIP155ChainID(),
 		suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
 		&to,
 		amount,
-		res.Gas,
+		contract.DefaultGasCap,
 		nil,
 		nil,
 		nil,
@@ -138,8 +110,12 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, to comm
 		nil,
 	)
 	ethTx.From = signer.Address().Bytes()
-	err = ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
-	return ethTx, err
+	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
+	suite.Require().NoError(err)
+
+	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), ethTx)
+	suite.Require().NoError(err)
+	return res
 }
 
 func (suite *PrecompileTestSuite) Commit() {
@@ -166,6 +142,24 @@ func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
 	signer := helpers.NewSigner(privKey)
 	suite.app.AccountKeeper.SetAccount(suite.ctx, suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.AccAddress()))
 	return signer
+}
+
+func (suite *PrecompileTestSuite) Error(res *evmtypes.MsgEthereumTxResponse, errResult error) {
+	suite.Require().True(res.Failed())
+	if res.VmError != vm.ErrExecutionReverted.Error() {
+		suite.Require().Equal(errResult.Error(), res.VmError)
+		return
+	}
+
+	if len(res.Ret) > 0 {
+		reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret))
+		suite.Require().NoError(err)
+
+		suite.Require().Equal(errResult.Error(), reason)
+		return
+	}
+
+	suite.Require().Equal(errResult.Error(), vm.ErrExecutionReverted.Error())
 }
 
 func (suite *PrecompileTestSuite) MintFeeCollector(coins sdk.Coins) {

@@ -10,7 +10,6 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -116,32 +115,24 @@ func (suite *PrecompileTestSuite) TestCancelPendingBridgeCall() {
 			}
 			bridgeCallPack, err := precompile.NewBridgeCallMethod(nil).PackInput(args)
 			suite.Require().NoError(err)
-			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), bridgeCallPack)
-			suite.Require().NoError(err)
-			bridgeCallRes, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			suite.Require().NoError(err)
-			suite.Require().False(bridgeCallRes.Failed(), bridgeCallRes.VmError)
+			res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), bridgeCallPack)
+			suite.Require().False(res.Failed(), res.VmError)
 
 			balanceBefore := suite.BalanceOf(pair.GetERC20Contract(), signer.Address())
 
-			cancelArgs, resultErr := tc.malleate(moduleName)
+			cancelArgs, errResult := tc.malleate(moduleName)
 			packData, err := precompile.NewCancelPendingBridgeCallMethod(nil).PackInput(cancelArgs)
 			suite.Require().NoError(err)
 
-			tx, err = suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res = suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
+
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				balanceAfter := suite.BalanceOf(pair.GetERC20Contract(), signer.Address())
 				suite.Equal(big.NewInt(0).Add(balanceBefore, amount).String(), balanceAfter.String())
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, resultErr.Error())
+				suite.Error(res, errResult)
 			}
 		})
 	}

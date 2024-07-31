@@ -2,6 +2,7 @@ package precompile_test
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
@@ -49,10 +49,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		)
 		suite.Require().NoError(err)
 
-		tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), value, data)
-		suite.Require().NoError(err)
-		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-		suite.Require().NoError(err)
+		res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	transferCrossChainTxFunc := func(signer *helpers.Signer, contactAddr common.Address, moduleName string, amount, fee, value *big.Int) {
@@ -64,10 +61,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			fxtypes.MustStrToByte32(moduleName),
 		)
 		suite.Require().NoError(err)
-		tx, err := suite.PackEthereumTx(signer, contactAddr, value, data)
-		suite.Require().NoError(err)
-		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-		suite.Require().NoError(err)
+		res := suite.EthereumTx(signer, contactAddr, value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
@@ -445,14 +439,9 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			suite.Require().NoError(err)
 
 			packData, errArgs := tc.malleate(moduleName, pair, md, signer, randMint)
-			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
-			// check result
+			res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
+
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
@@ -499,8 +488,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				}
 
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -520,10 +508,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		)
 		suite.Require().NoError(err)
 
-		tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), value, data)
-		suite.Require().NoError(err)
-		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-		suite.Require().NoError(err)
+		res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
@@ -535,10 +520,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			fxtypes.MustStrToByte32(moduleName),
 		)
 		suite.Require().NoError(err)
-		tx, err := suite.PackEthereumTx(signer, contact, value, data)
-		suite.Require().NoError(err)
-		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-		suite.Require().NoError(err)
+		res := suite.EthereumTx(signer, contact, value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
@@ -783,14 +765,9 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			suite.Require().NoError(err)
 
 			packData, errArgs := tc.malleate(moduleName, pair, md, signer, randMint)
-			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
-			// check result
+			res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
+
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
@@ -839,8 +816,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				}
 
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
