@@ -158,10 +158,7 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 			})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), crossChainPack)
-			suite.Require().NoError(err)
-			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			suite.Require().NoError(err)
+			res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), crossChainPack)
 			suite.Require().False(res.Failed(), res.VmError)
 
 			pendingTxBefore, found := suite.CrossChainKeepers()[moduleName].GetPendingPoolTxById(suite.ctx, 1)
@@ -171,13 +168,9 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 			packData, err := precompile.NewAddPendingPoolRewardsMethod(nil).PackInput(addPendingPoolRewards)
 			suite.Require().NoError(err)
 
-			tx, err = suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
-			// check result
+			res = suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
+
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				pendingTxAfter, found := suite.CrossChainKeepers()[moduleName].GetPendingPoolTxById(suite.ctx, 1)
@@ -186,8 +179,7 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 				suite.Require().Equal(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(addRewardFee)).String(),
 					sdk.NewCoins(pendingTxAfter.Rewards...).Sub(sdk.NewCoins(pendingTxBefore.Rewards...)...).String())
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, errResult.Error())
+				suite.Error(res, errResult)
 			}
 		})
 	}

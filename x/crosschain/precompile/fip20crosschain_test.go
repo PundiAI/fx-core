@@ -3,6 +3,7 @@ package precompile_test
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
@@ -170,7 +170,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				return data, pair, big.NewInt(0), moduleName, nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: transfer amount exceeds balance"
+				return "transfer amount exceeds balance"
 			},
 			result: false,
 		},
@@ -237,7 +237,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				return data, pair, big.NewInt(0), "", nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: invalid target"
+				return "invalid target"
 			},
 			result: false,
 		},
@@ -297,7 +297,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				return data, newPair, big.NewInt(0), moduleName, []string{}
 			},
 			error: func(args []string) string {
-				return "execution reverted: cross chain error: bridge token is not exist: invalid"
+				return "cross chain error: bridge token is not exist: invalid"
 			},
 			result: false,
 		},
@@ -335,15 +335,9 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, newPair.GetERC20Contract(), value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, newPair.GetERC20Contract(), value, packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
@@ -394,8 +388,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 					}
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -462,7 +455,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				return data, pair, big.NewInt(0), moduleName, nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: transfer amount exceeds balance"
+				return "transfer amount exceeds balance"
 			},
 			result: false,
 		},
@@ -490,7 +483,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				return data, pair, big.NewInt(0), "", nil
 			},
 			error: func(args []string) string {
-				return "execution reverted: invalid target"
+				return "invalid target"
 			},
 			result: false,
 		},
@@ -548,7 +541,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				return data, newPair, big.NewInt(0), moduleName, []string{}
 			},
 			error: func(args []string) string {
-				return "execution reverted: cross chain error: bridge token is not exist: invalid"
+				return "cross chain error: bridge token is not exist: invalid"
 			},
 			result: false,
 		},
@@ -590,15 +583,9 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, newPair.GetERC20Contract(), value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, newPair.GetERC20Contract(), value, packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
@@ -647,8 +634,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 					suite.Require().Equal(resp.UnbatchedTransfers[0].Token.Contract, bridgeToken.Token, moduleName)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -794,7 +780,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				return data, pair, big.NewInt(0), []string{sdk.NewCoin(aliasDenom, sdkmath.NewIntFromBigInt(fee)).String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -825,7 +811,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				return data, pair, big.NewInt(0), []string{recipient}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: invalid to address: %s", args[0])
+				return fmt.Sprintf("invalid to address: %s", args[0])
 			},
 			result: false,
 		},
@@ -856,7 +842,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				return data, pair, big.NewInt(0), []string{recipient}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: invalid to address: %s", args[0])
+				return fmt.Sprintf("invalid to address: %s", args[0])
 			},
 			result: false,
 		},
@@ -892,15 +878,9 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, newPair.GetERC20Contract(), value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, newPair.GetERC20Contract(), value, packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
@@ -963,8 +943,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 					suite.Require().Equal(randMint.String(), packet.Amount)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -1088,7 +1067,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 				return data, pair, big.NewInt(0), []string{sdk.NewCoin(aliasDenom, sdkmath.NewIntFromBigInt(fee)).String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: ibc transfer fee must be zero: %s", args[0])
+				return fmt.Sprintf("ibc transfer fee must be zero: %s", args[0])
 			},
 			result: false,
 		},
@@ -1131,15 +1110,9 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, newPair.GetERC20Contract(), value, packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, newPair.GetERC20Contract(), value, packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
@@ -1204,8 +1177,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 					suite.Require().Equal(randMint.String(), packet.Amount)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -1302,19 +1274,13 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 
 			packData, errArgs := tc.malleate(pair, md, signer, randMint)
 
-			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
 
-			// check result
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.error(errArgs))
+				suite.Require().True(res.Failed())
+				suite.Require().Contains(res.VmError, tc.error(errArgs))
 			}
 		})
 	}

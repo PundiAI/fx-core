@@ -2,6 +2,7 @@ package precompile_test
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
@@ -49,10 +49,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		)
 		suite.Require().NoError(err)
 
-		tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), value, data)
-		suite.Require().NoError(err)
-		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-		suite.Require().NoError(err)
+		res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
@@ -64,10 +61,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			fxtypes.MustStrToByte32(moduleName),
 		)
 		suite.Require().NoError(err)
-		tx, err := suite.PackEthereumTx(signer, contact, value, data)
-		suite.Require().NoError(err)
-		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-		suite.Require().NoError(err)
+		res := suite.EthereumTx(signer, contact, value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	refundPackFunc := func(moduleName string, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
@@ -384,14 +378,9 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
-			// check result
+			res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
+
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 				// check balance after tx
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
@@ -458,8 +447,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				}
 
 			} else {
-				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Error(res, errors.New(tc.error(errArgs)))
 			}
 		})
 	}
@@ -491,10 +479,8 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 	data, err := crosschaintypes.GetABI().Pack("crossChain", pair.GetERC20Contract(),
 		helpers.GenExternalAddr(moduleName), amount, fee, fxtypes.MustStrToByte32(moduleName), "")
 	suite.Require().NoError(err)
-	tx, err := suite.PackEthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), data)
-	suite.Require().NoError(err)
-	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-	suite.Require().NoError(err)
+
+	res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), data)
 	suite.Require().False(res.Failed(), res.VmError)
 
 	// get crosschain pending tx
