@@ -11,7 +11,7 @@ interface IStaking {
     function delegateV2(
         string memory _val,
         uint256 _amount
-    ) external returns (bool _result);
+    ) external payable returns (bool _result);
 
     // Deprecated: use undelegateV2
     function undelegate(
