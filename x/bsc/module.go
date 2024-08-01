@@ -10,7 +10,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -54,9 +53,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingCo
 // RegisterLegacyAminoCodec implements app module basic
 func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
 
-// RegisterRESTRoutes implements app module basic
-func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
-
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
@@ -93,9 +89,6 @@ func NewAppModule(keeper crosschainkeeper.Keeper) AppModule {
 
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
-
-// QuerierRoute implements app module
-func (am AppModule) QuerierRoute() string { return "" }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {

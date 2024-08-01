@@ -11,7 +11,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -50,10 +49,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingCo
 	}
 	return state.Validate()
 }
-
-// RegisterRESTRoutes performs a no-op as the erc20 module doesn't expose REST
-// endpoints
-func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(c client.Context, serveMux *runtime.ServeMux) {
@@ -98,9 +93,6 @@ func NewAppModule(keeper keeper.Keeper) AppModule {
 
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
-
-// QuerierRoute implements app module
-func (am AppModule) QuerierRoute() string { return "" }
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
