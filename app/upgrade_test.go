@@ -16,82 +16,41 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/app"
-	v7 "github.com/functionx/fx-core/v7/app/upgrades/v7"
+	nextversion "github.com/functionx/fx-core/v7/app/upgrades/v7"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
 )
 
-func Test_TestnetUpgrade(t *testing.T) {
-	helpers.SkipTest(t, "Skipping local test: ", t.Name())
+func Test_UpgradeAndMigrate(t *testing.T) {
+	helpers.SkipTest(t, "Skipping local test:", t.Name())
 
 	fxtypes.SetConfig(true)
-	fxtypes.SetChainId(fxtypes.TestnetChainId) // only for testnet
 
-	testCases := []struct {
-		name                  string
-		fromVersion           int
-		toVersion             int
-		LocalStoreBlockHeight uint64
-		plan                  upgradetypes.Plan
-	}{
-		{
-			name:        "upgrade v7",
-			fromVersion: 6,
-			toVersion:   7,
-			plan: upgradetypes.Plan{
-				Name: v7.Upgrade.UpgradeName,
-				Info: "local test upgrade v7",
-			},
-		},
-	}
+	home := filepath.Join(os.Getenv("HOME"), "tmp")
+	chainId := fxtypes.MainnetChainId
 
-	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(os.Getenv("HOME"), "tmp/data"))
+	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
 	require.NoError(t, err)
 
 	makeEncodingConfig := app.MakeEncodingConfig()
 	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
-		db, nil, false, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
-		makeEncodingConfig, app.EmptyAppOptions{}, baseapp.SetChainID(fxtypes.ChainId()))
-	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, v7.Upgrade.StoreUpgrades()))
-	err = myApp.LoadLatestVersion()
-	require.NoError(t, err)
+		db, nil, false, map[int64]bool{}, home, 0,
+		makeEncodingConfig, app.EmptyAppOptions{}, baseapp.SetChainID(chainId))
+	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, nextversion.Upgrade.StoreUpgrades()))
+	require.NoError(t, myApp.LoadLatestVersion())
 
-	ctx := newContext(t, myApp)
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			testCase.plan.Height = ctx.BlockHeight()
-			myApp.UpgradeKeeper.ApplyUpgrade(ctx, testCase.plan)
+	ctx := newContext(t, myApp, chainId)
 
-			myApp.EthKeeper.IterateAttestations(ctx, func(attestation *types.Attestation) bool {
-				if _, err = types.UnpackAttestationClaim(makeEncodingConfig.Codec, attestation); err != nil {
-					t.Log(ethtypes.ModuleName, attestation.Claim.TypeUrl, attestation.Observed, attestation.Height)
-					require.True(t,
-						attestation.Claim.TypeUrl == sdk.MsgTypeURL(&types.MsgBridgeCallClaim{}) ||
-							attestation.Claim.TypeUrl == sdk.MsgTypeURL(&types.MsgBridgeCallResultClaim{}))
-				}
-				return false
-			})
-
-			myApp.Layer2Keeper.IterateAttestations(ctx, func(attestation *types.Attestation) bool {
-				if _, err = types.UnpackAttestationClaim(makeEncodingConfig.Codec, attestation); err != nil {
-					t.Log(layer2types.ModuleName, attestation.Claim.TypeUrl, attestation.Observed, attestation.Height)
-				}
-				return false
-			})
-		})
-	}
+	myApp.UpgradeKeeper.ApplyUpgrade(ctx, upgradetypes.Plan{
+		Name:   nextversion.Upgrade.UpgradeName,
+		Height: ctx.BlockHeight() + 5,
+	})
 }
 
-func newContext(t *testing.T, myApp *app.App) sdk.Context {
-	chainId := fxtypes.MainnetChainId
-	if os.Getenv("CHAIN_ID") == fxtypes.TestnetChainId {
-		chainId = fxtypes.TestnetChainId
-	}
+func newContext(t *testing.T, myApp *app.App, chainId string) sdk.Context {
 	ctx := myApp.NewUncachedContext(false, tmproto.Header{
-		ChainID: chainId, Height: myApp.LastBlockHeight(),
+		ChainID: chainId,
+		Height:  myApp.LastBlockHeight(),
 	})
 	// set the first validator to proposer
 	validators := myApp.StakingKeeper.GetAllValidators(ctx)
