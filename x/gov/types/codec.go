@@ -26,6 +26,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateFXParams{},
 		&MsgUpdateEGFParams{},
 		&MsgUpdateStore{},
+		&MsgUpdateSwitchParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
@@ -35,4 +36,5 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateFXParams{}, "gov/MsgUpdateFXParams", nil)
 	cdc.RegisterConcrete(&MsgUpdateEGFParams{}, "gov/MsgUpdateEGFParams", nil)
 	cdc.RegisterConcrete(&MsgUpdateStore{}, "gov/MsgUpdateStore", nil)
+	cdc.RegisterConcrete(&MsgUpdateSwitchParams{}, "gov/MsgUpdateSwitchParams", nil)
 }

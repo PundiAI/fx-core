@@ -21,6 +21,7 @@ type HandlerOptions struct {
 	EvmKeeper         ethante.EVMKeeper
 	FeeMarketKeeper   FeeMarketKeeper
 	IbcKeeper         *ibckeeper.Keeper
+	GovKeeper         Govkeeper
 	SignModeHandler   authsigning.SignModeHandler
 	SigGasConsumer    ante.SignatureVerificationGasConsumer
 	TxFeeChecker      ante.TxFeeChecker
@@ -45,6 +46,12 @@ func (options HandlerOptions) Validate() error {
 	}
 	if options.EvmKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "evm keeper is required for AnteHandler")
+	}
+	if options.IbcKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "ibc keeper is required for AnteHandler")
+	}
+	if options.GovKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "gov keeper is required for AnteHandler")
 	}
 	return nil
 }
@@ -78,7 +85,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ethante.RejectMessagesDecorator{}, // reject MsgEthereumTxs
 		// disable the Msg types that cannot be included on an authz.MsgExec msgs field
-		ethante.NewAuthzLimiterDecorator(options.DisabledAuthzMsgs),
+		NewDisableMsgDecorator(options.DisabledAuthzMsgs, options.GovKeeper),
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewRejectExtensionOptionsDecorator(),
 		ante.NewValidateBasicDecorator(),

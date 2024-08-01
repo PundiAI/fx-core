@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"testing"
@@ -16,6 +17,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v7/app"
@@ -374,4 +377,57 @@ func (suite *KeeperTestSuite) TestGetParams() {
 	suite.Require().EqualValues(params.Quorum, tallyParamsQuorum)
 	suite.Require().EqualValues(egfParams.EgfDepositThreshold, sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultEgfDepositThreshold))
 	suite.Require().EqualValues(egfParams.ClaimRatio, types.DefaultClaimRatio.String())
+}
+
+func TestCheckContractAddressIsDisabled(t *testing.T) {
+	addr := common.HexToAddress("0x1234567890abcdef1234567890abcdef12345678")
+	methodId, _ := hex.DecodeString("abcdef01")
+
+	tests := []struct {
+		name                string
+		disabledPrecompiles []string
+		addr                common.Address
+		methodId            []byte
+		expectedError       string
+	}{
+		{
+			name:                "Empty disabled list",
+			disabledPrecompiles: []string{},
+			addr:                addr,
+			methodId:            methodId,
+			expectedError:       "",
+		},
+		{
+			name:                "Address is disabled",
+			disabledPrecompiles: []string{addr.Hex()},
+			addr:                addr,
+			methodId:            methodId,
+			expectedError:       "precompile address is disabled",
+		},
+		{
+			name:                "Address and method are disabled",
+			disabledPrecompiles: []string{fmt.Sprintf("%s/%s", addr.Hex(), "abcdef01")},
+			addr:                addr,
+			methodId:            methodId,
+			expectedError:       "precompile method abcdef01 is disabled",
+		},
+		{
+			name:                "Address and method are not disabled",
+			disabledPrecompiles: []string{fmt.Sprintf("%s/%s", addr.Hex(), "12345678")},
+			addr:                addr,
+			methodId:            methodId,
+			expectedError:       "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := keeper.CheckContractAddressIsDisabled(tt.disabledPrecompiles, tt.addr, tt.methodId)
+			if tt.expectedError == "" {
+				require.NoError(t, err)
+			} else {
+				require.EqualError(t, err, tt.expectedError)
+			}
+		})
+	}
 }

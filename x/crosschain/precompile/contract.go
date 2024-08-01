@@ -14,7 +14,8 @@ import (
 )
 
 type Contract struct {
-	methods []contract.PrecompileMethod
+	methods   []contract.PrecompileMethod
+	govKeeper GovKeeper
 }
 
 func NewPrecompiledContract(
@@ -22,6 +23,7 @@ func NewPrecompiledContract(
 	erc20Keeper Erc20Keeper,
 	ibcTransferKeeper IBCTransferKeeper,
 	accountKeeper AccountKeeper,
+	govKeeper GovKeeper,
 	router *Router,
 ) *Contract {
 	keeper := &Keeper{
@@ -32,6 +34,7 @@ func NewPrecompiledContract(
 		router:            router,
 	}
 	return &Contract{
+		govKeeper: govKeeper,
 		methods: []contract.PrecompileMethod{
 			NewBridgeCoinAmountMethod(keeper),
 
@@ -76,6 +79,11 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		if bytes.Equal(method.GetMethodId(), contract.Input[:4]) {
 			if readonly && !method.IsReadonly() {
 				return evmtypes.PackRetErrV2(errors.New("write protection"))
+			}
+
+			stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.CacheContext(), c.Address(), method.GetMethodId()); err != nil {
+				return evmtypes.PackRetErrV2(err)
 			}
 
 			ret, err = method.Run(evm, contract)

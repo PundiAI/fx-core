@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
@@ -55,4 +56,8 @@ type DistrKeeper interface {
 
 type EvmKeeper interface {
 	GetParams(ctx sdk.Context) evmtypes.Params
+}
+
+type GovKeeper interface {
+	CheckDisabledPrecompiles(ctx sdk.Context, contractAddress common.Address, methodId []byte) error
 }

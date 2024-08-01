@@ -16,14 +16,16 @@ type Contract struct {
 	distrKeeper   DistrKeeper
 	stakingKeeper StakingKeeper
 	evmKeeper     EvmKeeper
+	govKeeper     GovKeeper
 }
 
-func NewPrecompiledContract(bankKeeper BankKeeper, stakingKeeper StakingKeeper, distrKeeper DistrKeeper, evmKeeper EvmKeeper) *Contract {
+func NewPrecompiledContract(bankKeeper BankKeeper, stakingKeeper StakingKeeper, distrKeeper DistrKeeper, evmKeeper EvmKeeper, govKeeper GovKeeper) *Contract {
 	return &Contract{
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		distrKeeper:   distrKeeper,
 		evmKeeper:     evmKeeper,
+		govKeeper:     govKeeper,
 	}
 }
 
@@ -69,6 +71,11 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret []byte, err error) {
 	if len(contract.Input) <= 4 {
 		return types.PackRetError(errors.New("invalid input"))
+	}
+
+	stateDB := evm.StateDB.(types.ExtStateDB)
+	if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.CacheContext(), c.Address(), contract.Input[:4]); err != nil {
+		return types.PackRetError(err)
 	}
 
 	switch string(contract.Input[:4]) {

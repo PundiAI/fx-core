@@ -204,6 +204,7 @@ func (app *App) setAnteHandler(appOpts servertypes.AppOptions) {
 		EvmKeeper:       app.EvmKeeper,
 		FeeMarketKeeper: app.FeeMarketKeeper,
 		IbcKeeper:       app.IBCKeeper,
+		GovKeeper:       app.GovKeeper,
 		SignModeHandler: app.txConfig.SignModeHandler(),
 		SigGasConsumer:  fxante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  maxGasWanted,

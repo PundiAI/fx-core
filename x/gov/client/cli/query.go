@@ -32,6 +32,7 @@ func GetQueryCmd() *cobra.Command {
 		cli.GetCmdQueryVotes(),
 		GetCmdQueryParams(),
 		GetCmdQueryEGFParams(),
+		GetCmdQuerySwitchParams(),
 		cli.GetCmdQueryProposer(),
 		cli.GetCmdQueryDeposit(),
 		cli.GetCmdQueryDeposits(),
@@ -108,6 +109,34 @@ $ %s query gov egf-params
 				ctx,
 				&fxgovtypes.QueryEGFParamsRequest{},
 			)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func GetCmdQuerySwitchParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "switch-params",
+		Short: "Query the Switch parameters of the governance process",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the Switch parameters for the governance process.
+Example:
+$ %s query gov switch-params
+`,
+				version.AppName,
+			),
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := fxgovtypes.NewQueryClient(clientCtx)
+			ctx := cmd.Context()
+			res, err := queryClient.SwitchParams(ctx, &fxgovtypes.QuerySwitchParamsRequest{})
 			if err != nil {
 				return err
 			}

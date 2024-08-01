@@ -53,3 +53,7 @@ type CrosschainKeeper interface {
 	PrecompileCancelPendingBridgeCall(ctx sdk.Context, nonce uint64, sender sdk.AccAddress) (sdk.Coins, error)
 	PrecompileAddPendingPoolRewards(ctx sdk.Context, txID uint64, sender sdk.AccAddress, reward sdk.Coin) error
 }
+
+type GovKeeper interface {
+	CheckDisabledPrecompiles(ctx sdk.Context, contractAddress common.Address, methodId []byte) error
+}
