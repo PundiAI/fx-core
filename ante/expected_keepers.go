@@ -30,3 +30,7 @@ type FeeMarketKeeper interface {
 	AddTransientGasWanted(ctx sdk.Context, gasWanted uint64) (uint64, error)
 	GetBaseFeeEnabled(ctx sdk.Context) bool
 }
+
+type Govkeeper interface {
+	GetDisabledMsgs(ctx sdk.Context) []string
+}

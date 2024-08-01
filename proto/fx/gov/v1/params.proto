@@ -78,3 +78,8 @@ message UpdateStore {
   string old_value = 3;
   string value = 4;
 }
+
+message SwitchParams {
+  repeated string disable_precompiles = 1;
+  repeated string disable_msg_types = 2;
+}

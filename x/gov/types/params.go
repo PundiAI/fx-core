@@ -29,7 +29,8 @@ var (
 	// FxBaseParamsKeyPrefix is the key to query all base params
 	FxBaseParamsKeyPrefix = []byte("0x90")
 	// FxEGFParamsKey is the key to query all EGF params
-	FxEGFParamsKey = []byte("0x91")
+	FxEGFParamsKey    = []byte("0x91")
+	FxSwitchParamsKey = []byte{0x92}
 )
 
 func NewParam(msgType string, minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, votingPeriod *time.Duration,
@@ -240,4 +241,23 @@ func CheckEGFProposalMsg(msgs []*codectypes.Any) (bool, sdk.Coins) {
 		}
 	}
 	return true, totalCommunityPoolSpendAmount
+}
+
+func (p *SwitchParams) ValidateBasic() error {
+	duplicate := make(map[string]bool)
+	for _, precompile := range p.DisablePrecompiles {
+		if duplicate[precompile] {
+			return fmt.Errorf("duplicate precompile: %s", precompile)
+		}
+		duplicate[precompile] = true
+	}
+
+	duplicate = make(map[string]bool)
+	for _, msgType := range p.DisableMsgTypes {
+		if duplicate[msgType] {
+			return fmt.Errorf("duplicate msg type: %s", msgType)
+		}
+		duplicate[msgType] = true
+	}
+	return nil
 }

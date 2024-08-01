@@ -14170,6 +14170,55 @@ paths:
                       format: byte
       tags:
         - Query
+  /fx/gov/v1/switch_params:
+    get:
+      operationId: SwitchParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  disable_precompiles:
+                    type: array
+                    items:
+                      type: string
+                  disable_msg_types:
+                    type: array
+                    items:
+                      type: string
+            description: >-
+              QueryEGFParamsResponse is the response type for the
+              Query/EGFParams RPC
+
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
   /ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address:
     get:
       summary: >-
@@ -45170,6 +45219,34 @@ definitions:
     description: |-
       QueryBaseParamsResponse is the response type for the Query/BaseParams RPC
       method.
+  fx.gov.v1.QuerySwitchParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          disable_precompiles:
+            type: array
+            items:
+              type: string
+          disable_msg_types:
+            type: array
+            items:
+              type: string
+    description: |-
+      QueryEGFParamsResponse is the response type for the Query/EGFParams RPC
+      method.
+  fx.gov.v1.SwitchParams:
+    type: object
+    properties:
+      disable_precompiles:
+        type: array
+        items:
+          type: string
+      disable_msg_types:
+        type: array
+        items:
+          type: string
   ibc.applications.transfer.v1.DenomTrace:
     type: object
     properties:

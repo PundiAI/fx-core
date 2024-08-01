@@ -14,12 +14,14 @@ var (
 	_ sdk.Msg = &MsgUpdateFXParams{}
 	_ sdk.Msg = &MsgUpdateEGFParams{}
 	_ sdk.Msg = &MsgUpdateStore{}
+	_ sdk.Msg = &MsgUpdateSwitchParams{}
 )
 
 const (
-	TypeMsgUpdateParams    = "fx_update_params"
-	TypeMsgUpdateEGFParams = "fx_update_egf_params"
-	TypeMsgUpdateStore     = "fx_update_store"
+	TypeMsgUpdateParams       = "fx_update_params"
+	TypeMsgUpdateEGFParams    = "fx_update_egf_params"
+	TypeMsgUpdateStore        = "fx_update_store"
+	TypeMsgUpdateSwitchParams = "fx_update_switch_params"
 )
 
 func NewMsgUpdateFXParams(authority string, params Params) *MsgUpdateFXParams {
@@ -167,4 +169,36 @@ func (us *UpdateStore) ValueToBytes() []byte {
 		panic(err)
 	}
 	return b
+}
+
+func NewMsgUpdateSwitchParams(authority string, params SwitchParams) *MsgUpdateSwitchParams {
+	return &MsgUpdateSwitchParams{Authority: authority, Params: params}
+}
+
+// Route returns the MsgUpdateParams message route.
+func (m *MsgUpdateSwitchParams) Route() string { return types.ModuleName }
+
+// Type returns the MsgUpdateParams message type.
+func (m *MsgUpdateSwitchParams) Type() string { return TypeMsgUpdateSwitchParams }
+
+// GetSignBytes returns the raw bytes for a MsgUpdateParams message that
+// the expected signer needs to sign.
+func (m *MsgUpdateSwitchParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (m *MsgUpdateSwitchParams) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
+}
+
+func (m *MsgUpdateSwitchParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "authority")
+	}
+	if err := m.Params.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "params")
+	}
+	return nil
 }

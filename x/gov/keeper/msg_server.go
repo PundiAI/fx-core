@@ -163,3 +163,14 @@ func (k msgServer) UpdateStore(c context.Context, req *types.MsgUpdateStore) (*t
 	}
 	return &types.MsgUpdateStoreResponse{}, nil
 }
+
+func (k msgServer) UpdateSwitchParams(c context.Context, req *types.MsgUpdateSwitchParams) (*types.MsgUpdateSwitchParamsResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := k.SetSwitchParams(ctx, &req.Params); err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateSwitchParamsResponse{}, nil
+}

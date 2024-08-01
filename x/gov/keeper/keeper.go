@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -11,6 +14,7 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/gov/types"
@@ -164,5 +168,32 @@ func (keeper Keeper) InitFxGovParams(ctx sdk.Context) error {
 	if err := keeper.SetEGFParams(ctx, types.DefaultEGFParams()); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (keeper Keeper) CheckDisabledPrecompiles(ctx sdk.Context, contractAddress common.Address, methodId []byte) error {
+	switchParams := keeper.GetSwitchParams(ctx)
+	return CheckContractAddressIsDisabled(switchParams.DisablePrecompiles, contractAddress, methodId)
+}
+
+func CheckContractAddressIsDisabled(disabledPrecompiles []string, addr common.Address, methodId []byte) error {
+	if len(disabledPrecompiles) == 0 {
+		return nil
+	}
+
+	addrStr := strings.ToLower(addr.String())
+	methodIdStr := hex.EncodeToString(methodId)
+	addrMethodId := fmt.Sprintf("%s/%s", addrStr, methodIdStr)
+	for _, disabledPrecompile := range disabledPrecompiles {
+		disabledPrecompile = strings.ToLower(disabledPrecompile)
+		if disabledPrecompile == addrStr {
+			return errors.New("precompile address is disabled")
+		}
+
+		if disabledPrecompile == addrMethodId {
+			return fmt.Errorf("precompile method %s is disabled", methodIdStr)
+		}
+	}
+
 	return nil
 }

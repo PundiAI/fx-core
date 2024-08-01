@@ -21,3 +21,8 @@ func (keeper Keeper) EGFParams(c context.Context, _ *types.QueryEGFParamsRequest
 	params := keeper.GetEGFParams(ctx)
 	return &types.QueryEGFParamsResponse{Params: params}, nil
 }
+
+func (keeper Keeper) SwitchParams(c context.Context, _ *types.QuerySwitchParamsRequest) (*types.QuerySwitchParamsResponse, error) {
+	params := keeper.GetSwitchParams(sdk.UnwrapSDKContext(c))
+	return &types.QuerySwitchParamsResponse{Params: params}, nil
+}

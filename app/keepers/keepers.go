@@ -354,10 +354,10 @@ func NewAppKeeper(
 			appKeepers.GetSubspace(evmtypes.ModuleName),
 			[]evmkeeper.CustomContractFn{
 				func(_ sdk.Context, rules ethparams.Rules) vm.PrecompiledContract {
-					return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, precompileRouter)
+					return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter)
 				},
 				func(_ sdk.Context, rules ethparams.Rules) vm.PrecompiledContract {
-					return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, appKeepers.EvmKeeper)
+					return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, appKeepers.EvmKeeper, appKeepers.GovKeeper)
 				},
 			},
 			allKeys,
