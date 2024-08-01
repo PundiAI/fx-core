@@ -78,7 +78,7 @@ func (suite *TestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	numValidators := suite.numValidator
-	suite.timeoutCommit = time.Millisecond
+	suite.timeoutCommit = 50 * time.Millisecond
 	if numValidators > 1 {
 		suite.timeoutCommit = 500 * time.Millisecond
 	}
@@ -441,7 +441,7 @@ func (suite *TestSuite) CheckDelegate(delegatorAddr sdk.AccAddress, validatorAdd
 		suite.Error(errortypes.ErrNotFound)
 	} else {
 		suite.NoError(err)
-		suite.Equal(delegation, delegationResp.DelegationResponse.Balance)
+		suite.Equal(delegation.String(), delegationResp.DelegationResponse.Balance.String())
 	}
 }
 

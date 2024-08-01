@@ -14,11 +14,11 @@ import (
 
 type ERC20Suite struct {
 	contract.ERC20ABI
-	*EVMSuite
+	EVMSuite
 }
 
-func NewERC20Suite(evmSuite *EVMSuite) *ERC20Suite {
-	return &ERC20Suite{
+func NewERC20Suite(evmSuite EVMSuite) ERC20Suite {
+	return ERC20Suite{
 		ERC20ABI: contract.NewERC20ABI(),
 		EVMSuite: evmSuite,
 	}
@@ -49,9 +49,9 @@ func (s *ERC20Suite) Deploy(symbol string) common.Address {
 		SkipAccountChecks: false,
 	}
 	rsp, err := s.evmKeeper.ApplyMessage(s.ctx, msg, nil, true)
-	s.Require().NoError(err)
-	s.Require().False(rsp.Failed(), rsp.VmError)
-	s.Require().Equal(uint64(1_600_010), rsp.GasUsed)
+	s.NoError(err)
+	s.False(rsp.Failed(), rsp.VmError)
+	s.Equal(uint64(1_600_010), rsp.GasUsed)
 	addr := crypto.CreateAddress(s.signer.Address(), nonce)
 	s.contractAddr = addr
 	s.Initialize(symbol, true)
@@ -60,7 +60,7 @@ func (s *ERC20Suite) Deploy(symbol string) common.Address {
 
 func (s *ERC20Suite) Initialize(symbol string, result bool) {
 	response := s.Send("initialize", symbol+" Token", symbol, uint8(18), helpers.GenHexAddress())
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 }
 
 func (s *ERC20Suite) Owner() common.Address {
@@ -123,9 +123,9 @@ func (s *ERC20Suite) Approve(spender common.Address, amount *big.Int, result boo
 	before := s.Allowance(s.signer.Address(), spender)
 	response := s.Send("approve", spender, amount)
 	after := s.Allowance(s.signer.Address(), spender)
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().Equal(after, new(big.Int).Add(before, amount))
+		s.Equal(after, new(big.Int).Add(before, amount))
 	}
 }
 
@@ -133,9 +133,9 @@ func (s *ERC20Suite) Transfer(recipient common.Address, amount *big.Int, result 
 	before := s.BalanceOf(s.signer.Address())
 	response := s.Send("transfer", recipient, amount)
 	after := s.BalanceOf(s.signer.Address())
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().Equal(after, new(big.Int).Sub(before, amount))
+		s.Equal(after, new(big.Int).Sub(before, amount))
 	}
 }
 
@@ -143,9 +143,9 @@ func (s *ERC20Suite) TransferFrom(sender, recipient common.Address, amount *big.
 	before := s.BalanceOf(recipient)
 	response := s.Send("transferFrom", sender, recipient, amount)
 	after := s.BalanceOf(recipient)
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().Equal(after, new(big.Int).Add(before, amount))
+		s.Equal(after, new(big.Int).Add(before, amount))
 	}
 }
 
@@ -153,9 +153,9 @@ func (s *ERC20Suite) Mint(to common.Address, amount *big.Int, result bool) {
 	before := s.TotalSupply()
 	response := s.Send("mint", to, amount)
 	after := s.TotalSupply()
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().Equal(after, new(big.Int).Add(before, amount))
+		s.Equal(after, new(big.Int).Add(before, amount))
 	}
 }
 
@@ -163,9 +163,9 @@ func (s *ERC20Suite) Burn(from common.Address, amount *big.Int, result bool) {
 	before := s.BalanceOf(from)
 	response := s.Send("burn", from, amount)
 	after := s.BalanceOf(from)
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().Equal(after, new(big.Int).Sub(before, amount))
+		s.Equal(after, new(big.Int).Sub(before, amount))
 	}
 }
 
@@ -173,9 +173,9 @@ func (s *ERC20Suite) TransferOwnership(newOwner common.Address, result bool) {
 	before := s.Owner()
 	response := s.Send("transferOwnership", newOwner)
 	after := s.Owner()
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().NotEqual(before, after)
+		s.NotEqual(before, after)
 	}
 }
 
@@ -183,9 +183,9 @@ func (s *ERC20Suite) WithdrawSelf(amount *big.Int, result bool) {
 	before := s.BalanceOf(s.signer.Address())
 	response := s.Send("withdraw", amount)
 	after := s.BalanceOf(s.signer.Address())
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().Equal(after, new(big.Int).Sub(before, amount))
+		s.Equal(after, new(big.Int).Sub(before, amount))
 	}
 }
 
@@ -193,15 +193,15 @@ func (s *ERC20Suite) Withdraw(to common.Address, amount *big.Int, result bool) {
 	before := s.BalanceOf(to)
 	response := s.Send("withdraw0", to, amount)
 	after := s.BalanceOf(to)
-	s.Require().Equal(response.Failed(), !result)
+	s.Equal(response.Failed(), !result)
 	if result {
-		s.Require().Equal(after, before)
+		s.Equal(after, before)
 	}
 }
 
 func (s *ERC20Suite) Deposit(value *big.Int, result bool) {
 	data, err := s.ABI.Pack("deposit")
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	msg := core.Message{
 		To:                &s.contractAddr,
@@ -220,23 +220,23 @@ func (s *ERC20Suite) Deposit(value *big.Int, result bool) {
 	before := s.BalanceOf(s.signer.Address())
 	rsp, err := s.evmKeeper.ApplyMessage(s.ctx, msg, evmtypes.NewNoOpTracer(), true)
 	after := s.BalanceOf(s.signer.Address())
-	s.Require().NoError(err)
-	s.Require().Equal(rsp.Failed(), !result)
+	s.NoError(err)
+	s.Equal(rsp.Failed(), !result)
 	if result {
-		s.Require().Equal(after, new(big.Int).Add(before, value))
+		s.Equal(after, new(big.Int).Add(before, value))
 	}
 }
 
 func (s *ERC20Suite) OnTest(name, symbol string, decimals uint8, totalSupply *big.Int, owner common.Address) {
-	s.Require().Equal(name, s.Name())
-	s.Require().Equal(symbol, s.Symbol())
-	s.Require().Equal(decimals, s.Decimals())
-	s.Require().Equal(totalSupply.String(), s.TotalSupply().String())
-	s.Require().Equal(owner.String(), s.Owner().String())
+	s.Equal(name, s.Name())
+	s.Equal(symbol, s.Symbol())
+	s.Equal(decimals, s.Decimals())
+	s.Equal(totalSupply.String(), s.TotalSupply().String())
+	s.Equal(owner.String(), s.Owner().String())
 
-	s.Require().Equal("0", s.Allowance(s.HexAddr(), s.HexAddr()).String())
+	s.Equal("0", s.Allowance(s.HexAddr(), s.HexAddr()).String())
 	s.Approve(s.HexAddr(), big.NewInt(100), true)
-	s.Require().Equal("100", s.Allowance(s.HexAddr(), s.HexAddr()).String())
+	s.Equal("100", s.Allowance(s.HexAddr(), s.HexAddr()).String())
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
 

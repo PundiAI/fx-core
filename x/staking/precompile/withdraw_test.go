@@ -7,13 +7,9 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
@@ -21,97 +17,84 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/staking/precompile"
+	"github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func TestStakingWithdrawABI(t *testing.T) {
-	stakingABI := precompile.GetABI()
+	withdrawMethod := precompile.NewWithdrawMethod(nil)
 
-	method := stakingABI.Methods[precompile.WithdrawMethodName]
-	require.Equal(t, method, precompile.WithdrawMethod)
-	require.Equal(t, 1, len(precompile.WithdrawMethod.Inputs))
-	require.Equal(t, 1, len(precompile.WithdrawMethod.Outputs))
+	require.Equal(t, 1, len(withdrawMethod.Method.Inputs))
+	require.Equal(t, 1, len(withdrawMethod.Method.Outputs))
 
-	event := stakingABI.Events[precompile.WithdrawEventName]
-	require.Equal(t, event, precompile.WithdrawEvent)
-	require.Equal(t, 3, len(precompile.WithdrawEvent.Inputs))
+	require.Equal(t, 3, len(withdrawMethod.Event.Inputs))
 }
 
 //gocyclo:ignore
 func (suite *PrecompileTestSuite) TestWithdraw() {
+	withdrawMethod := precompile.NewWithdrawMethod(nil)
 	testCases := []struct {
 		name     string
-		malleate func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string)
+		malleate func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error)
 		error    func(errArgs []string) string
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := precompile.GetABI().Pack(precompile.WithdrawMethodName, val.String())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+				return types.WithdrawArgs{
+					Validator: val.String(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "failed invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
 				newVal := val.String() + "1"
-				pack, err := precompile.GetABI().Pack(precompile.WithdrawMethodName, newVal)
-				suite.Require().NoError(err)
-				return pack, []string{newVal}
-			},
-			error: func(errArgs []string) string {
-				return fmt.Sprintf("invalid validator address: %s", errArgs[0])
+				return types.WithdrawArgs{
+					Validator: newVal,
+				}, fmt.Errorf("invalid validator address: %s", newVal)
 			},
 			result: false,
 		},
 		{
 			name: "failed validator not found",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := precompile.GetABI().Pack(precompile.WithdrawMethodName, newVal)
-				suite.Require().NoError(err)
 
-				return pack, []string{newVal}
-			},
-			error: func(errArgs []string) string {
-				return "no validator distribution info"
+				return types.WithdrawArgs{
+					Validator: newVal,
+				}, fmt.Errorf("no validator distribution info")
 			},
 			result: false,
 		},
 		{
 			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, val.String())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+				return types.WithdrawArgs{
+					Validator: val.String(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "contract - failed invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
 				newVal := val.String() + "1"
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
-				suite.Require().NoError(err)
-				return pack, []string{newVal}
-			},
-			error: func(errArgs []string) string {
-				return fmt.Sprintf("execution reverted: withdraw failed: invalid validator address: %s", errArgs[0])
+				return types.WithdrawArgs{
+					Validator: newVal,
+				}, fmt.Errorf("withdraw failed: invalid validator address: %s", newVal)
 			},
 			result: false,
 		},
 		{
 			name: "contract - failed validator not found",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestWithdrawName, newVal)
-				suite.Require().NoError(err)
-				return pack, []string{newVal}
-			},
-			error: func(errArgs []string) string {
-				return "execution reverted: withdraw failed: no validator distribution info"
+
+				return types.WithdrawArgs{
+					Validator: newVal,
+				}, fmt.Errorf("withdraw failed: no validator distribution info")
 			},
 			result: false,
 		},
@@ -119,85 +102,76 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
+			val := suite.GetFirstValidator()
 
-			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val := vals[0]
-
-			delAmt := sdkmath.NewInt(int64(tmrand.Intn(1000) + 100)).Mul(sdkmath.NewInt(1e18))
+			delAmt := helpers.NewRandAmount()
 			signer := suite.RandSigner()
-			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
+			helpers.AddTestAddr(suite.App, suite.Ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
 
 			stakingContract := precompile.GetAddress()
 			stakingABI := precompile.GetABI()
-			delegateMethodName := precompile.DelegateMethodName
-			withdrawMethodName := precompile.WithdrawMethodName
 			delAddr := signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
 				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-				delegateMethodName = StakingTestDelegateName
-				withdrawMethodName = StakingTestWithdrawName
 				delAddr = suite.staking
 			}
 
-			pack, err := stakingABI.Pack(delegateMethodName, val.GetOperator().String())
+			pack, err := stakingABI.Pack(TestDelegateName, val.GetOperator().String())
 			suite.Require().NoError(err)
-			tx, err := suite.PackEthereumTx(signer, stakingContract, delAmt.BigInt(), pack)
-			suite.Require().NoError(err)
-			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			suite.Require().NoError(err)
+
+			res := suite.EthereumTx(signer, stakingContract, delAmt.BigInt(), pack)
 			suite.Require().False(res.Failed(), res.VmError)
 
 			suite.Commit()
 
-			chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, delAddr.Bytes())
+			chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, delAddr.Bytes())
 			suite.Require().True(chainBalances.IsZero(), chainBalances.String())
-			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+			totalBefore, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-			suite.Require().True(found)
+			delegation := suite.GetDelegation(delAddr.Bytes(), val.GetOperator())
 
-			pack, errArgs := tc.malleate(val.GetOperator(), delegation.Shares)
-			tx, err = suite.PackEthereumTx(signer, stakingContract, big.NewInt(0), pack)
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+			args, errResult := tc.malleate(val.GetOperator(), delegation.Shares)
+			packData, err := withdrawMethod.PackInput(args)
+			suite.Require().NoError(err)
+			if strings.HasPrefix(tc.name, "contract") {
+				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestWithdrawName, args.Validator)
+				suite.Require().NoError(err)
 			}
+			res = suite.EthereumTx(signer, stakingContract, big.NewInt(0), packData)
 
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				totalAfter, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+				totalAfter, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 				suite.Require().NoError(err)
 				suite.Require().Equal(totalAfter, totalBefore)
 
-				unpack, err := stakingABI.Unpack(withdrawMethodName, res.Ret)
+				unpack, err := stakingABI.Unpack(TestWithdrawName, res.Ret)
 				suite.Require().NoError(err)
 				reward := unpack[0].(*big.Int)
 				suite.Require().True(reward.Cmp(big.NewInt(0)) == 1, reward.String())
-				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, delAddr.Bytes())
+				chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == precompile.WithdrawEvent.ID.String() {
+					if log.Topics[0] == withdrawMethod.Event.ID.String() {
 						suite.Require().Equal(log.Address, precompile.GetAddress().String())
-						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
-						unpack, err := precompile.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
+
+						event, err := withdrawMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
-						unpackValidator := unpack[0].(string)
-						suite.Require().Equal(unpackValidator, val.GetOperator().String())
-						reward := unpack[1].(*big.Int)
-						suite.Require().Equal(reward.String(), chainBalances.AmountOf(fxtypes.DefaultDenom).BigInt().String())
+						suite.Require().Equal(event.Sender, delAddr)
+						suite.Require().Equal(event.Validator, val.GetOperator().String())
+						suite.Require().Equal(event.Reward.String(), chainBalances.AmountOf(fxtypes.DefaultDenom).BigInt().String())
 						existLog = true
 					}
 				}
 				suite.Require().True(existLog)
 
 				existEvent := false
-				for _, event := range suite.ctx.EventManager().Events() {
+				for _, event := range suite.Ctx.EventManager().Events() {
 					if event.Type == distritypes.EventTypeWithdrawRewards {
 						for _, attr := range event.Attributes {
 							if attr.Key == distritypes.AttributeKeyValidator {
@@ -217,26 +191,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				}
 				suite.Require().True(existEvent)
 			} else {
-				suite.Require().True(err != nil || res.Failed())
-				if err != nil {
-					suite.Require().Equal(tc.error(errArgs), err.Error())
-				}
-				if res.Failed() {
-					if res.VmError != vm.ErrExecutionReverted.Error() {
-						suite.Require().Equal(tc.error(errArgs), res.VmError)
-					} else {
-						if len(res.Ret) > 0 {
-							reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret))
-							suite.Require().NoError(err)
-
-							suite.Require().Equal(tc.error(errArgs), reason)
-						} else {
-							suite.Require().Equal(tc.error(errArgs), vm.ErrExecutionReverted.Error())
-						}
-					}
-				} else {
-					suite.Require().Equal(tc.error(errArgs), err.Error())
-				}
+				suite.Error(res, errResult)
 			}
 		})
 	}

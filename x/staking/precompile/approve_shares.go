@@ -2,45 +2,120 @@ package precompile
 
 import (
 	"errors"
+	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	fxcontract "github.com/functionx/fx-core/v7/contract"
 	"github.com/functionx/fx-core/v7/x/evm/types"
 	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
-func (c *Contract) ApproveShares(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
-	if readonly {
-		return nil, errors.New("approve method not readonly")
-	}
-	var args ApproveSharesArgs
-	if err := types.ParseMethodArgs(ApproveSharesMethod, &args, contract.Input[4:]); err != nil {
-		return nil, err
-	}
-	stateDB := evm.StateDB.(types.ExtStateDB)
-	err := stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		owner := contract.Caller()
-		c.stakingKeeper.SetAllowance(ctx, args.GetValidator(), owner.Bytes(), args.Spender.Bytes(), args.Shares)
+type ApproveSharesMethod struct {
+	*Keeper
+	abi.Method
+	abi.Event
+}
 
-		if err := c.AddLog(evm, ApproveSharesEvent, []common.Hash{owner.Hash(), args.Spender.Hash()}, args.Validator, args.Shares); err != nil {
-			return err
-		}
+func NewApproveSharesMethod(keeper *Keeper) *ApproveSharesMethod {
+	return &ApproveSharesMethod{
+		Keeper: keeper,
+		Method: fxstakingtypes.GetABI().Methods["approveShares"],
+		Event:  fxstakingtypes.GetABI().Events["ApproveShares"],
+	}
+}
 
-		ApproveSharesEmitEvents(ctx, args.GetValidator(), owner.Bytes(), args.Spender.Bytes(), sdkmath.NewIntFromBigInt(args.Shares))
-		return nil
-	})
+func (m *ApproveSharesMethod) IsReadonly() bool {
+	return false
+}
+
+func (m *ApproveSharesMethod) GetMethodId() []byte {
+	return m.Method.ID
+}
+
+func (m *ApproveSharesMethod) RequiredGas() uint64 {
+	return 10_000
+}
+
+func (m *ApproveSharesMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
 	}
 
-	return ApproveSharesMethod.Outputs.Pack(true)
+	stateDB := evm.StateDB.(types.ExtStateDB)
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		owner := contract.Caller()
+		m.stakingKeeper.SetAllowance(ctx, args.GetValidator(), owner.Bytes(), args.Spender.Bytes(), args.Shares)
+
+		ApproveSharesEmitEvents(ctx, args.GetValidator(), owner.Bytes(), args.Spender.Bytes(), sdkmath.NewIntFromBigInt(args.Shares))
+
+		data, topic, err := m.NewApproveSharesEvent(owner, args.Spender, args.Validator, args.Shares)
+		if err != nil {
+			return err
+		}
+		EmitEvent(evm, data, topic)
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return m.PackOutput(true)
+}
+
+func (m *ApproveSharesMethod) NewApproveSharesEvent(owner, spender common.Address, validator string, shares *big.Int) (data []byte, topic []common.Hash, err error) {
+	data, topic, err = types.PackTopicData(m.Event, []common.Hash{owner.Hash(), spender.Hash()}, validator, shares)
+	if err != nil {
+		return nil, nil, err
+	}
+	return data, topic, nil
+}
+
+func (m *ApproveSharesMethod) PackInput(args fxstakingtypes.ApproveSharesArgs) ([]byte, error) {
+	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Spender, args.Shares)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), arguments...), nil
+}
+
+func (m *ApproveSharesMethod) UnpackInput(data []byte) (*fxstakingtypes.ApproveSharesArgs, error) {
+	args := new(fxstakingtypes.ApproveSharesArgs)
+	err := types.ParseMethodArgs(m.Method, args, data[4:])
+	return args, err
+}
+
+func (m *ApproveSharesMethod) PackOutput(result bool) ([]byte, error) {
+	return m.Method.Outputs.Pack(result)
+}
+
+func (m *ApproveSharesMethod) UnpackOutput(data []byte) (bool, error) {
+	amount, err := m.Method.Outputs.Unpack(data)
+	if err != nil {
+		return false, err
+	}
+	return amount[0].(bool), nil
+}
+
+func (m *ApproveSharesMethod) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingApproveShares, error) {
+	if log == nil {
+		return nil, errors.New("empty log")
+	}
+	filterer, err := fxcontract.NewIStakingFilterer(common.Address{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return filterer.ParseApproveShares(*log)
 }
 
 func ApproveSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, owner, spender sdk.AccAddress, shares sdkmath.Int) {

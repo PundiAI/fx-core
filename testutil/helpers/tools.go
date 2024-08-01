@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,10 @@ func NewRandSymbol() string {
 
 func NewRandDenom() string {
 	return strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5)))
+}
+
+func NewRandAmount() sdkmath.Int {
+	return sdkmath.NewIntFromUint64(tmrand.Uint64() + 1)
 }
 
 func AssertJsonFile(t *testing.T, filePath string, result interface{}) {

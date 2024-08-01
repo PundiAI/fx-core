@@ -731,3 +731,14 @@ func (suite *CrosschainTestSuite) PendingExecuteClaim() []crosschaintypes.Extern
 	}
 	return externalClaims
 }
+
+func (suite *CrosschainTestSuite) UpdateParamsEnablePending() (*sdk.TxResponse, uint64) {
+	suite.params.EnableBridgeCallPending = true
+	suite.params.EnableSendToExternalPending = true
+	msg := &crosschaintypes.MsgUpdateParams{
+		ChainName: suite.chainName,
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Params:    suite.params,
+	}
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "UpdateParams", "UpdateParams")
+}

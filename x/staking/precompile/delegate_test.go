@@ -7,14 +7,8 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
@@ -22,92 +16,73 @@ import (
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/staking/precompile"
+	"github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func TestStakingDelegateABI(t *testing.T) {
-	stakingABI := precompile.GetABI()
+	delegateMethod := precompile.NewDelegateMethod(nil)
 
-	method := stakingABI.Methods[precompile.DelegateMethodName]
-	require.Equal(t, method, precompile.DelegateMethod)
-	require.Equal(t, 1, len(precompile.DelegateMethod.Inputs))
-	require.Equal(t, 2, len(precompile.DelegateMethod.Outputs))
+	require.Equal(t, 1, len(delegateMethod.Method.Inputs))
+	require.Equal(t, 2, len(delegateMethod.Method.Outputs))
 
-	event := stakingABI.Events[precompile.DelegateEventName]
-	require.Equal(t, event, precompile.DelegateEvent)
-	require.Equal(t, 4, len(precompile.DelegateEvent.Inputs))
+	require.Equal(t, 4, len(delegateMethod.Event.Inputs))
 }
 
 //gocyclo:ignore
 func (suite *PrecompileTestSuite) TestDelegate() {
+	delegateMethod := precompile.NewDelegateMethod(nil)
+	delegateV2Method := precompile.NewDelegateV2Method(nil)
 	testCases := []struct {
 		name     string
-		malleate func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string)
+		isV2     bool
+		malleate func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error)
 		error    func(args []string) string
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := precompile.GetABI().Pack(precompile.DelegateMethodName, val.String())
-				suite.Require().NoError(err)
-				return pack, delAmount.BigInt(), nil
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: val.String()}, delAmount.BigInt(), nil
 			},
 			result: true,
 		},
 		{
 			name: "ok - delegate - multiple",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount.Mul(sdk.NewInt(2)))))
-
-				validator, found := suite.app.StakingKeeper.GetValidator(suite.ctx, val)
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+				validator, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
 				suite.Require().True(found)
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, signer.AccAddress(), delAmount, stakingtypes.Unbonded, validator, true)
+				_, err := suite.App.StakingKeeper.Delegate(suite.Ctx, suite.signer.AccAddress(), delAmount, stakingtypes.Unbonded, validator, true)
 				suite.Require().NoError(err)
 
-				pack, err := precompile.GetABI().Pack(precompile.DelegateMethodName, val.String())
-				suite.Require().NoError(err)
-				return pack, delAmount.BigInt(), nil
+				return types.DelegateArgs{Validator: val.String()}, delAmount.BigInt(), nil
 			},
 			result: true,
 		},
 		{
 			name: "failed - invalid validator address",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := precompile.GetABI().Pack(precompile.DelegateMethodName, val.String()+"1")
-				suite.Require().NoError(err)
-				return pack, delAmount.BigInt(), []string{val.String() + "1"}
-			},
-			error: func(args []string) string {
-				return fmt.Sprintf("invalid validator address: %s", args[0])
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: val.String() + "1"},
+					delAmount.BigInt(),
+					fmt.Errorf("invalid validator address: %s", val.String()+"1")
 			},
 			result: false,
 		},
 		{
 			name: "failed - invalid value",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := precompile.GetABI().Pack(precompile.DelegateMethodName, val.String())
-				suite.Require().NoError(err)
-				return pack, big.NewInt(0), []string{big.NewInt(0).String()}
-			},
-			error: func(args []string) string {
-				return fmt.Sprintf("invalid delegate amount: %s", args[0])
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: val.String()},
+					big.NewInt(0),
+					fmt.Errorf("invalid delegate amount: %s", big.NewInt(0).String())
 			},
 			result: false,
 		},
 		{
 			name: "failed - invalid validator address",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := precompile.GetABI().Pack(precompile.DelegateMethodName, sdk.ValAddress(signer.AccAddress()).String())
-				suite.Require().NoError(err)
-				return pack, delAmount.BigInt(), []string{sdk.ValAddress(signer.AccAddress()).String()}
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: sdk.ValAddress(suite.signer.AccAddress()).String()},
+					delAmount.BigInt(),
+					fmt.Errorf("validator not found: %s", sdk.ValAddress(suite.signer.AccAddress()).String())
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("validator not found: %s", args[0])
@@ -117,73 +92,130 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 
 		{
 			name: "contract - ok",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String())
-				suite.Require().NoError(err)
-				return pack, delAmount.BigInt(), nil
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: val.String()}, delAmount.BigInt(), nil
 			},
 			result: true,
 		},
 		{
 			name: "contract - ok - delegate - multiple",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount.Mul(sdk.NewInt(2)))))
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String())
+				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateName, val.String())
 				suite.Require().NoError(err)
 
-				tx, err := suite.PackEthereumTx(signer, suite.staking, delAmount.BigInt(), pack)
-				suite.Require().NoError(err)
-
-				res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-				suite.Require().NoError(err)
+				res := suite.EthereumTx(suite.signer, suite.staking, delAmount.BigInt(), pack)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				return pack, delAmount.BigInt(), nil
+				return types.DelegateArgs{Validator: val.String()}, delAmount.BigInt(), nil
 			},
 			result: true,
 		},
 		{
 			name: "contract - failed - invalid validator address",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String()+"1")
-				suite.Require().NoError(err)
-				return pack, delAmount.BigInt(), []string{val.String() + "1"}
-			},
-			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: delegate failed: invalid validator address: %s", args[0])
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: val.String() + "1"}, delAmount.BigInt(),
+					fmt.Errorf("delegate failed: invalid validator address: %s", val.String()+"1")
 			},
 			result: false,
 		},
 		{
 			name: "contract - failed - invalid value",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, val.String())
-				suite.Require().NoError(err)
-				return pack, big.NewInt(0), []string{big.NewInt(0).String()}
-			},
-			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: delegate failed: invalid delegate amount: %s", args[0])
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: val.String()}, big.NewInt(0),
+					fmt.Errorf("delegate failed: invalid delegate amount: %s", big.NewInt(0).String())
 			},
 			result: false,
 		},
 		{
 			name: "contract - failed - invalid validator address",
-			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestDelegateName, sdk.ValAddress(signer.AccAddress()).String())
-				suite.Require().NoError(err)
-				return pack, delAmount.BigInt(), []string{sdk.ValAddress(signer.AccAddress()).String()}
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateArgs{Validator: sdk.ValAddress(suite.signer.AccAddress()).String()}, delAmount.BigInt(),
+					fmt.Errorf("delegate failed: validator not found: %s", sdk.ValAddress(suite.signer.AccAddress()).String())
 			},
-			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: delegate failed: validator not found: %s", args[0])
+			result: false,
+		},
+
+		{
+			name: "ok - v2",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, big.NewInt(0), nil
+			},
+			result: true,
+		},
+		{
+			name: "ok - v2 delegate - multiple",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+
+				validator, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
+				suite.Require().True(found)
+				_, err := suite.App.StakingKeeper.Delegate(suite.Ctx, suite.signer.AccAddress(), delAmount, stakingtypes.Unbonded, validator, true)
+				suite.Require().NoError(err)
+
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, big.NewInt(0), nil
+			},
+			result: true,
+		},
+		{
+			name: "failed - v2 invalid validator address",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateV2Args{
+					Validator: val.String() + "1",
+					Amount:    delAmount.BigInt(),
+				}, big.NewInt(0), fmt.Errorf("invalid validator address: %s", val.String()+"1")
+			},
+			result: false,
+		},
+
+		{
+			name: "contract - ok v2",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, big.NewInt(0), nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - ok - v2 delegate - multiple",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+
+				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, val.String(), delAmount.BigInt())
+				suite.Require().NoError(err)
+
+				res := suite.EthereumTx(suite.signer, suite.staking, big.NewInt(0), pack)
+				suite.Require().False(res.Failed(), res.VmError)
+
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, big.NewInt(0), nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - failed - v2 invalid validator address",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
+				return types.DelegateV2Args{Validator: val.String() + "1", Amount: delAmount.BigInt()},
+					big.NewInt(0),
+					fmt.Errorf("invalid validator address: %s", val.String()+"1")
 			},
 			result: false,
 		},
@@ -191,52 +223,50 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
+			val := suite.GetFirstValidator()
 
-			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val := vals[0]
-			delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
-			signer := suite.RandSigner()
+			delAmount := helpers.NewRandAmount()
 
-			contract := precompile.GetAddress()
-			delAddr := signer.Address()
+			stakingContract := precompile.GetAddress()
+
+			var packData []byte
+			var err error
+
+			args, value, errResult := tc.malleate(val.GetOperator(), delAmount)
+			if !tc.isV2 {
+				packData, err = delegateMethod.PackInput(args.(types.DelegateArgs))
+			} else {
+				packData, err = delegateV2Method.PackInput(args.(types.DelegateV2Args))
+			}
+			suite.Require().NoError(err)
+
+			delAddr := suite.signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.staking
+				stakingContract = suite.staking
 				delAddr = suite.staking
+
+				if !tc.isV2 {
+					packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateName, args.(types.DelegateArgs).Validator)
+				} else {
+					v2Args := args.(types.DelegateV2Args)
+					packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, v2Args.Validator, v2Args.Amount)
+					suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+				}
+				suite.Require().NoError(err)
 			}
 
-			chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
-			suite.Require().True(chainBalances.IsZero(), chainBalances.String())
-
-			pack, value, errArgs := tc.malleate(signer, val.GetOperator(), delAmount)
-
-			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
-			suite.Require().NoError(err)
-			delBefore, delFound := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-			valBefore, found := suite.app.StakingKeeper.GetValidator(suite.ctx, val.GetOperator())
+			delBefore, delFound := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), val.GetOperator())
+			valBefore, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val.GetOperator())
 			suite.Require().True(found)
 
-			tx, err := suite.PackEthereumTx(signer, contract, value, pack)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(suite.signer, stakingContract, value, packData)
 
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
-				suite.Require().True(chainBalances.IsZero(), chainBalances.String())
+				delAfter := suite.GetDelegation(delAddr.Bytes(), val.GetOperator())
 
-				totalAfter, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
-				suite.Require().NoError(err)
-				suite.Require().Equal(totalAfter, totalBefore)
-
-				delAfter, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-				suite.Require().True(found)
-
-				vaAfter, found := suite.app.StakingKeeper.GetValidator(suite.ctx, val.GetOperator())
+				vaAfter, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val.GetOperator())
 				suite.Require().True(found)
 
 				if !delFound {
@@ -245,74 +275,27 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), vaAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
 				suite.Require().Equal(delAmount, vaAfter.GetTokens().Sub(valBefore.GetTokens()))
 
-				existLog := false
-				for _, log := range res.Logs {
-					if log.Topics[0] == precompile.DelegateEvent.ID.String() {
-						suite.Require().Equal(log.Address, precompile.GetAddress().String())
-						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
-						unpack, err := precompile.DelegateEvent.Inputs.NonIndexed().Unpack(log.Data)
-						suite.Require().NoError(err)
-						unpackValidator := unpack[0].(string)
-						suite.Require().Equal(unpackValidator, val.GetOperator().String())
-						amount := unpack[1].(*big.Int)
-						suite.Require().Equal(amount.String(), delAmount.BigInt().String())
-						shares := unpack[2].(*big.Int)
-						suite.Require().Equal(shares.String(), delAfter.GetShares().Sub(delBefore.GetShares()).TruncateInt().BigInt().String())
-						existLog = true
-					}
-				}
-				suite.Require().True(existLog)
+				suite.CheckDelegateLogs(res.Logs, delAddr, val.GetOperator().String(),
+					delAmount.BigInt(), delAfter.GetShares().Sub(delBefore.GetShares()).TruncateInt().BigInt())
 
-				existEvent := false
-				for _, event := range suite.ctx.EventManager().Events() {
-					if event.Type == stakingtypes.TypeMsgDelegate {
-						for _, attr := range event.Attributes {
-							if attr.Key == stakingtypes.AttributeKeyValidator {
-								suite.Require().Equal(attr.Value, val.GetOperator().String())
-								existEvent = true
-							}
-							if attr.Key == sdk.AttributeKeyAmount {
-								suite.Require().Equal(attr.Value, delAmount.String())
-								existEvent = true
-							}
-						}
-					}
-				}
-				suite.Require().True(existEvent)
+				suite.CheckDelegateEvents(suite.Ctx, val.GetOperator(), delAmount)
 			} else {
-				suite.Require().True(err != nil || res.Failed())
-				if err != nil {
-					suite.Require().Equal(tc.error(errArgs), err.Error())
-				} else {
-					if res.VmError != vm.ErrExecutionReverted.Error() {
-						suite.Require().Equal(tc.error(errArgs), res.VmError)
-					} else {
-						if len(res.Ret) > 0 {
-							reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret))
-							suite.Require().NoError(err)
-
-							suite.Require().Equal(tc.error(errArgs), reason)
-						} else {
-							suite.Require().Equal(tc.error(errArgs), vm.ErrExecutionReverted.Error())
-						}
-					}
-				}
+				suite.Error(res, errResult)
 			}
 		})
 	}
 }
 
 func (suite *PrecompileTestSuite) TestDelegateCompare() {
-	vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-	val := vals[0]
-	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
+	val := suite.GetFirstValidator()
+	delAmount := helpers.NewRandAmount()
 	signer1 := suite.RandSigner()
 	signer2 := suite.RandSigner()
 
-	helpers.AddTestAddr(suite.app, suite.ctx, signer1.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	helpers.AddTestAddr(suite.App, suite.Ctx, signer1.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
 	// signer1 chain delegate to val
-	shares1, err := suite.app.StakingKeeper.Delegate(suite.ctx, signer1.AccAddress(), delAmount, stakingtypes.Unbonded, val, true)
+	shares1, err := suite.App.StakingKeeper.Delegate(suite.Ctx, signer1.AccAddress(), delAmount, stakingtypes.Unbonded, val, true)
 	suite.Require().NoError(err)
 
 	// signer2 evm delegate to val
@@ -325,7 +308,7 @@ func (suite *PrecompileTestSuite) TestDelegateCompare() {
 	suite.Commit()
 
 	// signer1 chain withdraw
-	rewards1, err := suite.app.DistrKeeper.WithdrawDelegationRewards(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	rewards1, err := suite.App.DistrKeeper.WithdrawDelegationRewards(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().NoError(err)
 
 	// signer2 evm withdraw
@@ -333,4 +316,161 @@ func (suite *PrecompileTestSuite) TestDelegateCompare() {
 
 	// rewards1 should equal rewards2
 	suite.Require().EqualValues(rewards1.AmountOf(fxtypes.DefaultDenom).BigInt(), rewards2)
+}
+
+func TestStakingDelegateV2ABI(t *testing.T) {
+	delegateV2Method := precompile.NewDelegateV2Method(nil)
+
+	require.Equal(t, 2, len(delegateV2Method.Method.Inputs))
+	require.Equal(t, 1, len(delegateV2Method.Method.Outputs))
+
+	require.Equal(t, 3, len(delegateV2Method.Event.Inputs))
+}
+
+func (suite *PrecompileTestSuite) TestDelegateV2() {
+	delegateV2Method := precompile.NewDelegateV2Method(nil)
+	testCases := []struct {
+		name     string
+		malleate func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error)
+		result   bool
+	}{
+		{
+			name: "ok",
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, nil
+			},
+			result: true,
+		},
+		{
+			name: "ok - delegate - multiple",
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
+				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+
+				validator, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
+				suite.Require().True(found)
+				_, err := suite.App.StakingKeeper.Delegate(suite.Ctx, suite.signer.AccAddress(), delAmount, stakingtypes.Unbonded, validator, true)
+				suite.Require().NoError(err)
+
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, nil
+			},
+			result: true,
+		},
+		{
+			name: "failed - invalid validator address",
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
+				return types.DelegateV2Args{
+					Validator: val.String() + "1",
+					Amount:    delAmount.BigInt(),
+				}, fmt.Errorf("invalid validator address: %s", val.String()+"1")
+			},
+			result: false,
+		},
+
+		{
+			name: "contract - ok",
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - ok - delegate - multiple",
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
+				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+
+				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, val.String(), delAmount.BigInt())
+				suite.Require().NoError(err)
+
+				res := suite.EthereumTx(suite.signer, suite.staking, big.NewInt(0), pack)
+				suite.Require().False(res.Failed(), res.VmError)
+
+				return types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				}, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - failed - invalid validator address",
+			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
+				return types.DelegateV2Args{Validator: val.String() + "1", Amount: delAmount.BigInt()},
+					fmt.Errorf("invalid validator address: %s", val.String()+"1")
+			},
+			result: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			val := suite.GetFirstValidator()
+			delAmount := helpers.NewRandAmount()
+
+			args, errResult := tc.malleate(val.GetOperator(), delAmount)
+
+			stakingContract := precompile.GetAddress()
+			delAddr := suite.signer.Address()
+
+			helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+			packData, err := delegateV2Method.PackInput(args)
+			suite.Require().NoError(err)
+			if strings.HasPrefix(tc.name, "contract") {
+				stakingContract = suite.staking
+				delAddr = suite.staking
+
+				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, args.Validator, args.Amount)
+				suite.Require().NoError(err)
+
+				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+			}
+
+			delBefore, delFound := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), val.GetOperator())
+			valBefore, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val.GetOperator())
+			suite.Require().True(found)
+
+			res := suite.EthereumTx(suite.signer, stakingContract, big.NewInt(0), packData)
+
+			if tc.result {
+				suite.Require().False(res.Failed(), res.VmError)
+
+				delAfter := suite.GetDelegation(delAddr.Bytes(), val.GetOperator())
+
+				vaAfter, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val.GetOperator())
+				suite.Require().True(found)
+
+				if !delFound {
+					delBefore = stakingtypes.Delegation{Shares: sdkmath.LegacyZeroDec()}
+				}
+				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), vaAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
+				suite.Require().Equal(delAmount, vaAfter.GetTokens().Sub(valBefore.GetTokens()))
+
+				existLog := false
+				for _, log := range res.Logs {
+					if log.Topics[0] == delegateV2Method.Event.ID.String() {
+						suite.Require().Equal(log.Address, precompile.GetAddress().String())
+
+						event, err := delegateV2Method.UnpackEvent(log.ToEthereum())
+						suite.Require().NoError(err)
+						suite.Require().Equal(event.Delegator, delAddr)
+						suite.Require().Equal(event.Validator, val.GetOperator().String())
+						suite.Require().Equal(event.Amount.String(), delAmount.BigInt().String())
+						existLog = true
+					}
+				}
+				suite.Require().True(existLog)
+			} else {
+				suite.Error(res, errResult)
+			}
+		})
+	}
 }

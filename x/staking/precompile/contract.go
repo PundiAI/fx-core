@@ -1,36 +1,75 @@
 package precompile
 
 import (
+	"bytes"
 	"errors"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v7/x/evm/types"
+	"github.com/functionx/fx-core/v7/contract"
+	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	fxstakingkeeper "github.com/functionx/fx-core/v7/x/staking/keeper"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 type Contract struct {
-	bankKeeper    BankKeeper
-	distrKeeper   DistrKeeper
-	stakingKeeper StakingKeeper
-	evmKeeper     EvmKeeper
-	govKeeper     GovKeeper
+	methods   []contract.PrecompileMethod
+	v2Methods map[string]bool
+	govKeeper GovKeeper
 }
 
-func NewPrecompiledContract(bankKeeper BankKeeper, stakingKeeper StakingKeeper, distrKeeper DistrKeeper, evmKeeper EvmKeeper, govKeeper GovKeeper) *Contract {
+func NewPrecompiledContract(
+	bankKeeper BankKeeper,
+	stakingKeeper *fxstakingkeeper.Keeper,
+	distrKeeper distrkeeper.Keeper,
+	stakingDenom string,
+	govKeeper GovKeeper,
+) *Contract {
+	keeper := &Keeper{
+		bankKeeper:       bankKeeper,
+		distrKeeper:      distrKeeper,
+		distrMsgServer:   distrkeeper.NewMsgServerImpl(distrKeeper),
+		stakingKeeper:    stakingKeeper,
+		stakingMsgServer: stakingkeeper.NewMsgServerImpl(stakingKeeper.Keeper),
+		stakingDenom:     stakingDenom,
+	}
+
+	delegateV2 := NewDelegateV2Method(keeper)
+	redelegateV2 := NewRedelegateV2Method(keeper)
+	undelegateV2 := NewUndelegateV2Method(keeper)
 	return &Contract{
-		bankKeeper:    bankKeeper,
-		stakingKeeper: stakingKeeper,
-		distrKeeper:   distrKeeper,
-		evmKeeper:     evmKeeper,
-		govKeeper:     govKeeper,
+		methods: []contract.PrecompileMethod{
+			NewAllowanceSharesMethod(keeper),
+			NewDelegationMethod(keeper),
+			NewDelegationRewardsMethod(keeper),
+
+			NewApproveSharesMethod(keeper),
+			NewDelegateMethod(keeper),
+			NewRedelegationMethod(keeper),
+			NewTransferSharesMethod(keeper),
+			NewTransferFromSharesMethod(keeper),
+			NewUndelegateMethod(keeper),
+			NewWithdrawMethod(keeper),
+
+			delegateV2,
+			redelegateV2,
+			undelegateV2,
+		},
+		v2Methods: map[string]bool{
+			string(delegateV2.GetMethodId()):   true,
+			string(redelegateV2.GetMethodId()): true,
+			string(undelegateV2.GetMethodId()): true,
+		},
+		govKeeper: govKeeper,
 	}
 }
 
 func (c *Contract) Address() common.Address {
-	return stakingAddress
+	return fxstakingtypes.GetAddress()
 }
 
 func (c *Contract) IsStateful() bool {
@@ -41,92 +80,48 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 	if len(input) <= 4 {
 		return 0
 	}
-	switch string(input[:4]) {
-	case string(DelegateMethod.ID):
-		return DelegateGas
-	case string(UndelegateMethod.ID):
-		return UndelegateGas
-	case string(RedelegateMethod.ID):
-		return RedelegateGas
-	case string(WithdrawMethod.ID):
-		return WithdrawGas
-	case string(DelegationMethod.ID):
-		return DelegationGas
-	case string(DelegationRewardsMethod.ID):
-		return DelegationRewardsGas
-	case string(TransferSharesMethod.ID):
-		return TransferSharesGas
-	case string(ApproveSharesMethod.ID):
-		return ApproveSharesGas
-	case string(AllowanceSharesMethod.ID):
-		return AllowanceSharesGas
-	case string(TransferFromSharesMethod.ID):
-		return TransferFromSharesGas
-	default:
-		return 0
+	for _, method := range c.methods {
+		if bytes.Equal(method.GetMethodId(), input[:4]) {
+			return method.RequiredGas()
+		}
 	}
+	return 0
 }
 
-//gocyclo:ignore
 func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret []byte, err error) {
 	if len(contract.Input) <= 4 {
-		return types.PackRetError(errors.New("invalid input"))
+		return evmtypes.PackRetErrV2(errors.New("invalid input"))
 	}
 
-	stateDB := evm.StateDB.(types.ExtStateDB)
+	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.CacheContext(), c.Address(), contract.Input[:4]); err != nil {
-		return types.PackRetError(err)
+		return evmtypes.PackRetError(err)
 	}
 
-	switch string(contract.Input[:4]) {
-	case string(DelegateMethod.ID):
-		ret, err = c.Delegate(evm, contract, readonly)
-	case string(UndelegateMethod.ID):
-		ret, err = c.Undelegate(evm, contract, readonly)
-	case string(RedelegateMethod.ID):
-		ret, err = c.Redelegation(evm, contract, readonly)
-	case string(WithdrawMethod.ID):
-		ret, err = c.Withdraw(evm, contract, readonly)
-	case string(DelegationMethod.ID):
-		ret, err = c.Delegation(evm, contract, readonly)
-	case string(DelegationRewardsMethod.ID):
-		ret, err = c.DelegationRewards(evm, contract, readonly)
-	case string(TransferSharesMethod.ID):
-		ret, err = c.TransferShares(evm, contract, readonly)
-	case string(ApproveSharesMethod.ID):
-		ret, err = c.ApproveShares(evm, contract, readonly)
-	case string(AllowanceSharesMethod.ID):
-		ret, err = c.AllowanceShares(evm, contract, readonly)
-	case string(TransferFromSharesMethod.ID):
-		ret, err = c.TransferFromShares(evm, contract, readonly)
-	case string(DelegateV2Method.ID):
-		ret, err = c.DelegateV2(evm, contract, readonly)
-	case string(UndelegateV2Method.ID):
-		ret, err = c.UndelegateV2(evm, contract, readonly)
-	case string(RedelegateV2Method.ID):
-		ret, err = c.RedelegationV2(evm, contract, readonly)
+	for _, method := range c.methods {
+		if bytes.Equal(method.GetMethodId(), contract.Input[:4]) {
+			if readonly && !method.IsReadonly() {
+				return evmtypes.PackRetErrV2(errors.New("write protection"))
+			}
 
-	default:
-		err = errors.New("unknown method")
+			ret, err = method.Run(evm, contract)
+			if err != nil {
+				if c.v2Methods[string(method.GetMethodId())] {
+					return evmtypes.PackRetErrV2(err)
+				}
+				return evmtypes.PackRetError(err)
+			}
+			return ret, nil
+		}
 	}
-
-	if err != nil {
-		return types.PackRetError(err)
-	}
-
-	return ret, nil
+	return evmtypes.PackRetErrV2(errors.New("unknown method"))
 }
 
-func (c *Contract) AddLog(evm *vm.EVM, event abi.Event, topics []common.Hash, args ...interface{}) error {
-	data, newTopic, err := types.PackTopicData(event, topics, args...)
-	if err != nil {
-		return err
-	}
+func EmitEvent(evm *vm.EVM, data []byte, topics []common.Hash) {
 	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     c.Address(),
-		Topics:      newTopic,
+		Address:     fxstakingtypes.GetAddress(),
+		Topics:      topics,
 		Data:        data,
 		BlockNumber: evm.Context.BlockNumber.Uint64(),
 	})
-	return nil
 }
