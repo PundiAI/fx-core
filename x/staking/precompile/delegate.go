@@ -9,27 +9,51 @@ import (
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	fxcontract "github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/evm/types"
-	fxstakingkeeper "github.com/functionx/fx-core/v7/x/staking/keeper"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
-func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
-	if readonly {
-		return nil, errors.New("delegate method not readonly")
+type DelegateMethod struct {
+	*Keeper
+	abi.Method
+	abi.Event
+}
+
+func NewDelegateMethod(keeper *Keeper) *DelegateMethod {
+	return &DelegateMethod{
+		Keeper: keeper,
+		Method: fxstakingtypes.GetABI().Methods["delegate"],
+		Event:  fxstakingtypes.GetABI().Events["Delegate"],
 	}
-	var args DelegateArgs
-	err := types.ParseMethodArgs(DelegateMethod, &args, contract.Input[4:])
+}
+
+func (m *DelegateMethod) IsReadonly() bool {
+	return false
+}
+
+func (m *DelegateMethod) GetMethodId() []byte {
+	return m.Method.ID
+}
+
+func (m *DelegateMethod) RequiredGas() uint64 {
+	return 40_000
+}
+
+func (m *DelegateMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
 	}
+
 	amount := contract.Value()
 	if amount.Cmp(big.NewInt(0)) <= 0 {
 		return nil, fmt.Errorf("invalid delegate amount: %s", amount.String())
@@ -40,89 +64,194 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 
 	var result []byte
 	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		val, found := c.stakingKeeper.GetValidator(ctx, valAddr)
+		val, found := m.stakingKeeper.GetValidator(ctx, valAddr)
 		if !found {
 			return fmt.Errorf("validator not found: %s", valAddr.String())
 		}
 
 		sender := sdk.AccAddress(contract.Caller().Bytes())
-		evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
-		delCoin := sdk.NewCoin(evmDenom, sdkmath.NewIntFromBigInt(amount))
-		if err = c.bankKeeper.SendCoinsFromAccountToModule(ctx, contract.Address().Bytes(), evmtypes.ModuleName, sdk.NewCoins(delCoin)); err != nil {
+		delCoin := m.NewStakingCoin(amount)
+		if err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, contract.Address().Bytes(), evmtypes.ModuleName, sdk.NewCoins(delCoin)); err != nil {
 			return err
 		}
-		if err = c.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender, sdk.NewCoins(delCoin)); err != nil {
+		if err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender, sdk.NewCoins(delCoin)); err != nil {
 			return err
 		}
 
-		withdrawAddr := c.distrKeeper.GetDelegatorWithdrawAddr(ctx, sender)
-		beforeDelBalance := c.bankKeeper.GetBalance(ctx, withdrawAddr, evmDenom)
+		withdrawAddr := m.distrKeeper.GetDelegatorWithdrawAddr(ctx, sender)
+		beforeDelBalance := m.bankKeeper.GetBalance(ctx, withdrawAddr, m.stakingDenom)
 		if withdrawAddr.Equals(sender) {
 			beforeDelBalance = beforeDelBalance.Sub(delCoin)
 		}
 
 		// delegate amount
-		shares, err := c.stakingKeeper.Delegate(ctx, sender, sdkmath.NewIntFromBigInt(amount), stakingtypes.Unbonded, val, true)
+		shares, err := m.stakingKeeper.Delegate(ctx, sender, sdkmath.NewIntFromBigInt(amount), stakingtypes.Unbonded, val, true)
 		if err != nil {
 			return err
 		}
 
-		afterDelBalance := c.bankKeeper.GetBalance(ctx, withdrawAddr, evmDenom)
+		afterDelBalance := m.bankKeeper.GetBalance(ctx, withdrawAddr, m.stakingDenom)
 		rewardCoin := afterDelBalance.Sub(beforeDelBalance)
 
-		// add delegate log
-		if err = c.AddLog(evm, DelegateEvent, []common.Hash{contract.Caller().Hash()},
-			args.Validator, amount, shares.TruncateInt().BigInt()); err != nil {
-			return err
-		}
 		// add delegate event
 		DelegateEmitEvents(ctx, sender, valAddr, amount, shares)
 
-		result, err = DelegateMethod.Outputs.Pack(shares.TruncateInt().BigInt(), rewardCoin.Amount.BigInt())
+		data, topic, err := m.NewDelegateEvent(contract.Caller(), args.Validator, amount, shares.TruncateInt().BigInt())
+		if err != nil {
+			return err
+		}
+		EmitEvent(evm, data, topic)
+
+		result, err = m.PackOutput(shares.TruncateInt().BigInt(), rewardCoin.Amount.BigInt())
 		return err
 	})
+
 	return result, err
 }
 
-func (c *Contract) DelegateV2(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
-	if readonly {
-		return nil, errors.New("delegate method not readonly")
+func (m *DelegateMethod) NewDelegateEvent(sender common.Address, validator string, amount, shares *big.Int) (data []byte, topic []common.Hash, err error) {
+	data, topic, err = types.PackTopicData(m.Event, []common.Hash{sender.Hash()}, validator, amount, shares)
+	if err != nil {
+		return nil, nil, err
 	}
-	var args DelegateV2Args
-	err := types.ParseMethodArgs(DelegateV2Method, &args, contract.Input[4:])
+	return data, topic, nil
+}
+
+func (m *DelegateMethod) PackInput(args fxstakingtypes.DelegateArgs) ([]byte, error) {
+	arguments, err := m.Method.Inputs.Pack(args.Validator)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), arguments...), nil
+}
+
+func (m *DelegateMethod) UnpackInput(data []byte) (*fxstakingtypes.DelegateArgs, error) {
+	args := new(fxstakingtypes.DelegateArgs)
+	err := types.ParseMethodArgs(m.Method, args, data[4:])
+	return args, err
+}
+
+func (m *DelegateMethod) PackOutput(share, reward *big.Int) ([]byte, error) {
+	return m.Method.Outputs.Pack(share, reward)
+}
+
+func (m *DelegateMethod) UnpackOutput(data []byte) (bool, error) {
+	amount, err := m.Method.Outputs.Unpack(data)
+	if err != nil {
+		return false, err
+	}
+	return amount[0].(bool), nil
+}
+
+func (m *DelegateMethod) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingDelegate, error) {
+	if log == nil {
+		return nil, errors.New("empty log")
+	}
+	filterer, err := fxcontract.NewIStakingFilterer(common.Address{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return filterer.ParseDelegate(*log)
+}
+
+type DelegateV2Method struct {
+	*Keeper
+	abi.Method
+	abi.Event
+}
+
+func NewDelegateV2Method(keeper *Keeper) *DelegateV2Method {
+	return &DelegateV2Method{
+		Keeper: keeper,
+		Method: fxstakingtypes.GetABI().Methods["delegateV2"],
+		Event:  fxstakingtypes.GetABI().Events["DelegateV2"],
+	}
+}
+
+func (m *DelegateV2Method) IsReadonly() bool {
+	return false
+}
+
+func (m *DelegateV2Method) GetMethodId() []byte {
+	return m.Method.ID
+}
+
+func (m *DelegateV2Method) RequiredGas() uint64 {
+	return 40_000
+}
+
+func (m *DelegateV2Method) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
 	}
 
 	stateDB := evm.StateDB.(types.ExtStateDB)
-
-	var result []byte
-	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		sender := sdk.AccAddress(contract.Caller().Bytes())
-		evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
-		delCoin := sdk.NewCoin(evmDenom, sdkmath.NewIntFromBigInt(args.Amount))
-
-		fxStakingKeeper, ok := c.stakingKeeper.(*fxstakingkeeper.Keeper)
-		if !ok {
-			return errortypes.ErrNotSupported
-		}
-		impl := stakingkeeper.NewMsgServerImpl(fxStakingKeeper.Keeper)
-		if _, err = impl.Delegate(sdk.WrapSDKContext(ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: sender.String(),
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		if _, err = m.stakingMsgServer.Delegate(sdk.WrapSDKContext(ctx), &stakingtypes.MsgDelegate{
+			DelegatorAddress: sdk.AccAddress(contract.Caller().Bytes()).String(),
 			ValidatorAddress: args.Validator,
-			Amount:           delCoin,
+			Amount:           m.NewStakingCoin(args.Amount),
 		}); err != nil {
 			return err
 		}
 
 		// add delegate log
-		if err = c.AddLog(evm, DelegateV2Event, []common.Hash{contract.Caller().Hash()}, args.Validator, args.Amount); err != nil {
+		data, topic, err := m.NewDelegateEvent(contract.Caller(), args.Validator, args.Amount)
+		if err != nil {
 			return err
 		}
-		result, err = DelegateV2Method.Outputs.Pack(true)
-		return err
-	})
-	return result, err
+		EmitEvent(evm, data, topic)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return m.PackOutput(true)
+}
+
+func (m *DelegateV2Method) NewDelegateEvent(sender common.Address, validator string, amount *big.Int) (data []byte, topic []common.Hash, err error) {
+	data, topic, err = types.PackTopicData(m.Event, []common.Hash{sender.Hash()}, validator, amount)
+	if err != nil {
+		return nil, nil, err
+	}
+	return data, topic, nil
+}
+
+func (m *DelegateV2Method) PackInput(args fxstakingtypes.DelegateV2Args) ([]byte, error) {
+	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Amount)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), arguments...), nil
+}
+
+func (m *DelegateV2Method) UnpackInput(data []byte) (*fxstakingtypes.DelegateV2Args, error) {
+	args := new(fxstakingtypes.DelegateV2Args)
+	err := types.ParseMethodArgs(m.Method, args, data[4:])
+	return args, err
+}
+
+func (m *DelegateV2Method) PackOutput(result bool) ([]byte, error) {
+	return m.Method.Outputs.Pack(result)
+}
+
+func (m *DelegateV2Method) UnpackOutput(data []byte) (bool, error) {
+	amount, err := m.Method.Outputs.Unpack(data)
+	if err != nil {
+		return false, err
+	}
+	return amount[0].(bool), nil
+}
+
+func (m *DelegateV2Method) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingDelegateV2, error) {
+	if log == nil {
+		return nil, errors.New("empty log")
+	}
+	filterer, err := fxcontract.NewIStakingFilterer(common.Address{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return filterer.ParseDelegateV2(*log)
 }
 
 func DelegateEmitEvents(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount *big.Int, newShares sdk.Dec) {

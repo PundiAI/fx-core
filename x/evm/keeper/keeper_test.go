@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"math/big"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,26 +17,21 @@ import (
 )
 
 type KeeperTestSuite struct {
-	*helpers.BaseSuite
-	EVMSuite *testutil.EVMSuite
+	helpers.BaseSuite
+	testutil.EVMSuite
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	baseSuite := &helpers.BaseSuite{}
-	suite.Run(t, &KeeperTestSuite{
-		BaseSuite: baseSuite,
-		EVMSuite: &testutil.EVMSuite{
-			Suite: &baseSuite.Suite,
-		},
-	})
+	suite.Run(t, new(KeeperTestSuite))
 }
 
 func (s *KeeperTestSuite) SetupTest() {
 	s.BaseSuite.SetupTest()
-	s.EVMSuite.Init(s.Ctx, s.App.EvmKeeper, s.BaseSuite.NewSigner())
+	s.EVMSuite.Init(s.Require(), s.Ctx, s.App.EvmKeeper, s.BaseSuite.NewSigner())
+	s.EVMSuite.WithGasPrice(big.NewInt(500 * 1e9))
 }
 
-func (s *KeeperTestSuite) NewERC20Suite() *testutil.ERC20Suite {
+func (s *KeeperTestSuite) NewERC20Suite() testutil.ERC20Suite {
 	return testutil.NewERC20Suite(s.EVMSuite)
 }
 

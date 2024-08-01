@@ -6,96 +6,97 @@ import (
 	"strings"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
 	"github.com/functionx/fx-core/v7/x/staking/precompile"
+	"github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func TestStakingAllowanceSharesABI(t *testing.T) {
-	stakingABI := precompile.GetABI()
+	allowanceSharesMethod := precompile.NewAllowanceSharesMethod(nil)
 
-	method := stakingABI.Methods[precompile.AllowanceSharesMethodName]
-	require.Equal(t, method, precompile.AllowanceSharesMethod)
-	require.Equal(t, 3, len(precompile.AllowanceSharesMethod.Inputs))
-	require.Equal(t, 1, len(precompile.AllowanceSharesMethod.Outputs))
+	require.Equal(t, 3, len(allowanceSharesMethod.Method.Inputs))
+	require.Equal(t, 1, len(allowanceSharesMethod.Method.Outputs))
 }
 
 func (suite *PrecompileTestSuite) TestAllowanceShares() {
+	allowanceSharesMethod := precompile.NewAllowanceSharesMethod(nil)
 	testCases := []struct {
 		name     string
-		malleate func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string)
-		error    func(args []string) string
+		malleate func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error)
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := precompile.GetABI().Pack(precompile.AllowanceSharesMethodName, val.String(), owner.Address(), spender.Address())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error) {
+				return types.AllowanceSharesArgs{
+					Validator: val.String(),
+					Owner:     owner.Address(),
+					Spender:   spender.Address(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "ok - default allowance zero",
-			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := precompile.GetABI().Pack(precompile.AllowanceSharesMethodName, val.String(), suite.RandSigner().Address(), spender.Address())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error) {
+				return types.AllowanceSharesArgs{
+					Validator: val.String(),
+					Owner:     suite.RandSigner().Address(),
+					Spender:   spender.Address(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "failed - invalid validator address",
-			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error) {
 				valStr := val.String() + "1"
-				pack, err := precompile.GetABI().Pack(precompile.AllowanceSharesMethodName, valStr, suite.RandSigner().Address(), spender.Address())
-				suite.Require().NoError(err)
-				return pack, []string{valStr}
-			},
-			error: func(args []string) string {
-				return fmt.Sprintf("invalid validator address: %s", args[0])
+
+				return types.AllowanceSharesArgs{
+					Validator: valStr,
+					Owner:     suite.RandSigner().Address(),
+					Spender:   spender.Address(),
+				}, fmt.Errorf("invalid validator address: %s", valStr)
 			},
 			result: false,
 		},
 		{
 			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, val.String(), owner.Address(), spender.Address())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error) {
+				return types.AllowanceSharesArgs{
+					Validator: val.String(),
+					Owner:     owner.Address(),
+					Spender:   spender.Address(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "contract - ok - default allowance zero",
-			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, val.String(), suite.RandSigner().Address(), spender.Address())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error) {
+				return types.AllowanceSharesArgs{
+					Validator: val.String(),
+					Owner:     suite.RandSigner().Address(),
+					Spender:   spender.Address(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "contract - failed - invalid validator address",
-			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error) {
 				valStr := val.String() + "1"
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestAllowanceSharesName, valStr, suite.RandSigner().Address(), spender.Address())
-				suite.Require().NoError(err)
-				return pack, []string{valStr}
-			},
-			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: allowance shares failed: invalid validator address: %s", args[0])
+
+				return types.AllowanceSharesArgs{
+					Validator: valStr,
+					Owner:     suite.RandSigner().Address(),
+					Spender:   spender.Address(),
+				}, fmt.Errorf("allowance shares failed: invalid validator address: %s", valStr)
 			},
 			result: false,
 		},
@@ -103,56 +104,37 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
-
-			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val := vals[0]
+			val := suite.GetFirstValidator()
 			owner := suite.RandSigner()
 			spender := suite.RandSigner()
-			allowanceAmt := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
+			allowanceAmt := helpers.NewRandAmount()
 
 			// set allowance
-			suite.app.StakingKeeper.SetAllowance(suite.ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
+			suite.App.StakingKeeper.SetAllowance(suite.Ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
+			args, errResult := tc.malleate(val.GetOperator(), owner, spender)
+
+			packData, err := allowanceSharesMethod.PackInput(args)
+			suite.Require().NoError(err)
 			stakingContract := precompile.GetAddress()
+
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
+				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestAllowanceSharesName, args.Validator, args.Owner, args.Spender)
+				suite.Require().NoError(err)
 			}
 
-			pack, errArgs := tc.malleate(val.GetOperator(), owner, spender)
-			tx, err := suite.PackEthereumTx(owner, stakingContract, big.NewInt(0), pack)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(owner, stakingContract, big.NewInt(0), packData)
 
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
-				unpack, err := precompile.AllowanceSharesMethod.Outputs.Unpack(res.Ret)
+				shares, err := allowanceSharesMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
-				shares := unpack[0].(*big.Int)
 				if shares.Cmp(big.NewInt(0)) != 0 {
 					suite.Require().Equal(allowanceAmt.BigInt(), shares)
 				}
 			} else {
-				suite.Require().True(err != nil || res.Failed())
-				if err != nil {
-					suite.Require().Equal(tc.error(errArgs), err.Error())
-				} else {
-					if res.VmError != vm.ErrExecutionReverted.Error() {
-						suite.Require().Equal(tc.error(errArgs), res.VmError)
-					} else {
-						if len(res.Ret) > 0 {
-							reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret))
-							suite.Require().NoError(err)
-
-							suite.Require().Equal(tc.error(errArgs), reason)
-						} else {
-							suite.Require().Equal(tc.error(errArgs), vm.ErrExecutionReverted.Error())
-						}
-					}
-				}
+				suite.Error(res, errResult)
 			}
 		})
 	}

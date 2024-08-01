@@ -1,6 +1,7 @@
 package precompile_test
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/testutil/helpers"
@@ -21,20 +21,17 @@ import (
 )
 
 func TestStakingTransferSharesABI(t *testing.T) {
-	stakingABI := precompile.GetABI()
+	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
 
-	method := stakingABI.Methods[precompile.TransferSharesMethodName]
-	require.Equal(t, method, precompile.TransferSharesMethod)
-	require.Equal(t, 3, len(precompile.TransferSharesMethod.Inputs))
-	require.Equal(t, 2, len(precompile.TransferSharesMethod.Outputs))
+	require.Equal(t, 3, len(transferSharesMethod.Method.Inputs))
+	require.Equal(t, 2, len(transferSharesMethod.Method.Outputs))
 
-	event := stakingABI.Events[precompile.TransferSharesEventName]
-	require.Equal(t, event, precompile.TransferSharesEvent)
-	require.Equal(t, 5, len(precompile.TransferSharesEvent.Inputs))
+	require.Equal(t, 5, len(transferSharesMethod.Event.Inputs))
 }
 
 //gocyclo:ignore
 func (suite *PrecompileTestSuite) TestTransferShares() {
+	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
@@ -280,10 +277,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
-
-			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val := vals[0]
+			val := suite.GetFirstValidator()
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(10000) + 1000)).Mul(sdkmath.NewInt(1e18))
 			fromSigner := suite.RandSigner()
 			toSigner := suite.RandSigner()
@@ -298,42 +292,37 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 			tc.pretransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 
 			fromWithdrawAddr := helpers.GenHexAddress()
-			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
+			err := suite.App.DistrKeeper.SetWithdrawAddr(suite.Ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 			toWithdrawAddr := helpers.GenHexAddress()
-			err = suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
+			err = suite.App.DistrKeeper.SetWithdrawAddr(suite.Ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 
 			suite.Commit()
 
-			fromBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, fromWithdrawAddr.Bytes())
+			fromBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
 			suite.Require().True(fromBalances.Empty())
-			toBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, toWithdrawAddr.Bytes())
+			toBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, toWithdrawAddr.Bytes())
 			suite.Require().True(toBalances.Empty())
 
-			fromDelBefore, found1 := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-			suite.Require().True(found1)
-			toDelBefore, found2 := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.Address().Bytes(), val.GetOperator())
+			fromDelBefore := suite.GetDelegation(delAddr.Bytes(), val.GetOperator())
+
+			toDelBefore, found2 := suite.App.StakingKeeper.GetDelegation(suite.Ctx, toSigner.Address().Bytes(), val.GetOperator())
 
 			pack, shares, _ := tc.malleate(val.GetOperator(), contract, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
-			tx, err := suite.PackEthereumTx(fromSigner, contract, big.NewInt(0), pack)
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(fromSigner, contract, big.NewInt(0), pack)
 
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				fromDelAfter, found3 := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-				toDelAfter, found4 := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.Address().Bytes(), val.GetOperator())
+				fromDelAfter, found3 := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), val.GetOperator())
+				toDelAfter, found4 := suite.App.StakingKeeper.GetDelegation(suite.Ctx, toSigner.Address().Bytes(), val.GetOperator())
 				suite.Require().True(found4)
 				if !found3 {
-					fromDelAfter.Shares = sdk.ZeroDec()
+					fromDelAfter.Shares = sdkmath.LegacyZeroDec()
 				}
 				if !found2 {
-					toDelBefore.Shares = sdk.ZeroDec()
+					toDelBefore.Shares = sdkmath.LegacyZeroDec()
 				}
 
 				suite.Require().Equal(fromDelBefore.GetShares().TruncateInt().Sub(fromDelAfter.GetShares().TruncateInt()).BigInt(), shares)
@@ -343,9 +332,9 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 					tc.suftransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 				}
 
-				fromBalances = suite.app.BankKeeper.GetAllBalances(suite.ctx, fromWithdrawAddr.Bytes())
+				fromBalances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
 				suite.Require().True(fromBalances.AmountOf(fxtypes.DefaultDenom).GT(sdkmath.ZeroInt()))
-				toBalances = suite.app.BankKeeper.GetAllBalances(suite.ctx, toWithdrawAddr.Bytes())
+				toBalances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, toWithdrawAddr.Bytes())
 				if found2 {
 					suite.Require().True(toBalances.AmountOf(fxtypes.DefaultDenom).GT(sdkmath.ZeroInt()))
 				} else {
@@ -354,23 +343,21 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == precompile.TransferSharesEvent.ID.String() {
+					if log.Topics[0] == transferSharesMethod.Event.ID.String() {
 						suite.Require().Equal(3, len(log.Topics))
-						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
-						suite.Require().Equal(log.Topics[2], toSigner.Address().Hash().String())
-						unpack, err := precompile.TransferSharesEvent.Inputs.NonIndexed().Unpack(log.Data)
+						event, err := transferSharesMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
-						unpackValStr := unpack[0].(string)
-						unpackShares := unpack[1].(*big.Int)
-						suite.Require().Equal(val.GetOperator().String(), unpackValStr)
-						suite.Require().Equal(shares.String(), unpackShares.String())
+						suite.Require().Equal(event.From, delAddr)
+						suite.Require().Equal(event.To, toSigner.Address())
+						suite.Require().Equal(event.Validator, val.GetOperator().String())
+						suite.Require().Equal(event.Shares.String(), shares.String())
 						existLog = true
 					}
 				}
 				suite.Require().True(existLog)
 
 				existEvent := false
-				for _, event := range suite.ctx.EventManager().Events() {
+				for _, event := range suite.Ctx.EventManager().Events() {
 					if event.Type == fxstakingtypes.EventTypeTransferShares {
 						for _, attr := range event.Attributes {
 							if attr.Key == fxstakingtypes.AttributeKeyFrom {
@@ -398,16 +385,15 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 }
 
 func TestStakingTransferFromSharesABI(t *testing.T) {
-	stakingABI := precompile.GetABI()
+	transferFromSharesMethod := precompile.NewTransferFromSharesMethod(nil)
 
-	method := stakingABI.Methods[precompile.TransferFromSharesMethodName]
-	require.Equal(t, method, precompile.TransferFromSharesMethod)
-	require.Equal(t, 4, len(precompile.TransferFromSharesMethod.Inputs))
-	require.Equal(t, 2, len(precompile.TransferFromSharesMethod.Outputs))
+	require.Equal(t, 4, len(transferFromSharesMethod.Method.Inputs))
+	require.Equal(t, 2, len(transferFromSharesMethod.Method.Outputs))
 }
 
 //gocyclo:ignore
 func (suite *PrecompileTestSuite) TestTransferFromShares() {
+	transferFromSharesMethod := precompile.NewTransferFromSharesMethod(nil)
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
@@ -653,10 +639,7 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
-
-			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val := vals[0]
+			val := suite.GetFirstValidator()
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(10000) + 1000)).Mul(sdkmath.NewInt(1e18))
 			fromSigner := suite.RandSigner()
 			toSigner := suite.RandSigner()
@@ -675,38 +658,33 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			tc.pretransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 
 			fromWithdrawAddr := helpers.GenHexAddress()
-			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
+			err := suite.App.DistrKeeper.SetWithdrawAddr(suite.Ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 			toWithdrawAddr := helpers.GenHexAddress()
-			err = suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
+			err = suite.App.DistrKeeper.SetWithdrawAddr(suite.Ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 
 			suite.Commit()
 
-			fromBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, fromWithdrawAddr.Bytes())
+			fromBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
 			suite.Require().True(fromBalances.Empty())
-			toBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, toWithdrawAddr.Bytes())
+			toBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, toWithdrawAddr.Bytes())
 			suite.Require().True(toBalances.Empty())
 
-			fromDelBefore, found1 := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-			suite.Require().True(found1)
-			toDelBefore, found2 := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.Address().Bytes(), val.GetOperator())
+			fromDelBefore := suite.GetDelegation(delAddr.Bytes(), val.GetOperator())
+
+			toDelBefore, found2 := suite.App.StakingKeeper.GetDelegation(suite.Ctx, toSigner.Address().Bytes(), val.GetOperator())
 
 			// NOTE: if contract test, spender is staking test contract
 			pack, shares, _ := tc.malleate(val.GetOperator(), spender, delAddr, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
-			tx, err := suite.PackEthereumTx(sender, contract, big.NewInt(0), pack)
 
-			var res *evmtypes.MsgEthereumTxResponse
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			}
+			res := suite.EthereumTx(sender, contract, big.NewInt(0), pack)
 
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				fromDelAfter, found3 := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-				toDelAfter, found4 := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.Address().Bytes(), val.GetOperator())
+				fromDelAfter, found3 := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), val.GetOperator())
+				toDelAfter, found4 := suite.App.StakingKeeper.GetDelegation(suite.Ctx, toSigner.Address().Bytes(), val.GetOperator())
 				suite.Require().True(found4)
 				if !found3 {
 					fromDelAfter.Shares = sdkmath.LegacyZeroDec()
@@ -718,16 +696,16 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 				suite.Require().Equal(fromDelBefore.GetShares().TruncateInt().Sub(fromDelAfter.GetShares().TruncateInt()).BigInt(), shares)
 				suite.Require().Equal(toDelAfter.GetShares().TruncateInt().Sub(toDelBefore.GetShares().TruncateInt()).BigInt(), shares)
 
-				allowance := suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), delAddr.Bytes(), spender.Bytes())
+				allowance := suite.App.StakingKeeper.GetAllowance(suite.Ctx, val.GetOperator(), delAddr.Bytes(), spender.Bytes())
 				suite.Require().EqualValues(big.NewInt(0), allowance)
 
 				if tc.suftransfer != nil {
 					tc.suftransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 				}
 
-				fromBalances = suite.app.BankKeeper.GetAllBalances(suite.ctx, fromWithdrawAddr.Bytes())
+				fromBalances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
 				suite.Require().True(fromBalances.AmountOf(fxtypes.DefaultDenom).GT(sdkmath.ZeroInt()))
-				toBalances = suite.app.BankKeeper.GetAllBalances(suite.ctx, toWithdrawAddr.Bytes())
+				toBalances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, toWithdrawAddr.Bytes())
 				if found2 {
 					suite.Require().True(toBalances.AmountOf(fxtypes.DefaultDenom).GT(sdkmath.ZeroInt()))
 				} else {
@@ -736,23 +714,21 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == precompile.TransferSharesEvent.ID.String() {
+					if log.Topics[0] == transferFromSharesMethod.Event.ID.String() {
 						suite.Require().Equal(3, len(log.Topics))
-						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
-						suite.Require().Equal(log.Topics[2], toSigner.Address().Hash().String())
-						unpack, err := precompile.TransferSharesEvent.Inputs.NonIndexed().Unpack(log.Data)
+						event, err := transferFromSharesMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
-						unpackValStr := unpack[0].(string)
-						unpackShares := unpack[1].(*big.Int)
-						suite.Require().Equal(val.GetOperator().String(), unpackValStr)
-						suite.Require().Equal(shares.String(), unpackShares.String())
+						suite.Require().Equal(event.From, delAddr)
+						suite.Require().Equal(event.To, toSigner.Address())
+						suite.Require().Equal(event.Validator, val.GetOperator().String())
+						suite.Require().Equal(event.Shares.String(), shares.String())
 						existLog = true
 					}
 				}
 				suite.Require().True(existLog)
 
 				existEvent := false
-				for _, event := range suite.ctx.EventManager().Events() {
+				for _, event := range suite.Ctx.EventManager().Events() {
 					if event.Type == fxstakingtypes.EventTypeTransferShares {
 						for _, attr := range event.Attributes {
 							if attr.Key == fxstakingtypes.AttributeKeyFrom {
@@ -780,29 +756,28 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 }
 
 func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
-	vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-	val := vals[0]
+	val := suite.GetFirstValidator()
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
 	signer1 := suite.RandSigner()
 	signer2 := suite.RandSigner()
 	signer3 := suite.RandSigner()
 
-	helpers.AddTestAddr(suite.app, suite.ctx, signer1.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	helpers.AddTestAddr(suite.App, suite.Ctx, signer1.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
 	// starting info 1,2,3
-	startingInfo := suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo := suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod)
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer2.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer2.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod)
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer3.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer3.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod)
 
 	// signer1 chain delegate to val
-	shares1, err := suite.app.StakingKeeper.Delegate(suite.ctx, signer1.AccAddress(), delAmount, stakingtypes.Unbonded, val, true)
+	shares1, err := suite.App.StakingKeeper.Delegate(suite.Ctx, signer1.AccAddress(), delAmount, stakingtypes.Unbonded, val, true)
 	suite.Require().NoError(err)
 
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(2, startingInfo.PreviousPeriod)
 
 	// signer2 evm delegate to val
@@ -810,18 +785,18 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	suite.Require().Equal(shares1.TruncateInt().BigInt(), shares2)
 
 	// signer2 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer2.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer2.AccAddress())
 	suite.Require().EqualValues(3, startingInfo.PreviousPeriod)
 
 	// generate block
 	suite.Commit()
 
 	// signer1 withdraw
-	rewards1, err := suite.app.DistrKeeper.WithdrawDelegationRewards(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	rewards1, err := suite.App.DistrKeeper.WithdrawDelegationRewards(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().NoError(err)
 
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(4, startingInfo.PreviousPeriod)
 
 	// signer2 transfer shares to singer3
@@ -829,9 +804,9 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	surplusShares, rewards2 := suite.PrecompileStakingTransferShares(signer2, val.GetOperator(), signer3.Address(), halfShares)
 
 	// starting info 2,3
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer2.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer2.AccAddress())
 	suite.Require().EqualValues(5, startingInfo.PreviousPeriod)
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer3.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer3.AccAddress())
 	suite.Require().EqualValues(6, startingInfo.PreviousPeriod)
 
 	// rewards1 equal rewards2
@@ -840,15 +815,15 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	suite.Require().EqualValues(halfShares, surplusShares)
 
 	// signer1 undelegate half shares
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, signer1.AccAddress(), val.GetOperator(), sdk.NewDecFromBigInt(halfShares))
+	_, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, signer1.AccAddress(), val.GetOperator(), sdkmath.LegacyNewDecFromBigInt(halfShares))
 	suite.Require().NoError(err)
 
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(7, startingInfo.PreviousPeriod)
 
 	// signer1 shares equal to half shares
-	delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	delegation, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().True(found)
 	suite.Require().EqualValues(halfShares, delegation.GetShares().TruncateInt().BigInt())
 
@@ -859,39 +834,39 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	surplusShares, rewards2 = suite.PrecompileStakingTransferShares(signer2, val.GetOperator(), signer3.Address(), surplusShares)
 
 	// starting info 2,3
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer2.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer2.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // transfer all shares, starting info removed
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer3.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer3.AccAddress())
 	suite.Require().EqualValues(9, startingInfo.PreviousPeriod)
 
 	// surplus shares equal to zero
 	suite.Require().EqualValues(big.NewInt(0).String(), surplusShares.String())
 
 	// get signer3 fx balance
-	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer3.AccAddress())
+	balances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, signer3.AccAddress())
 	suite.Require().EqualValues(rewards2, balances.AmountOf(fxtypes.DefaultDenom).BigInt())
 
 	// signer1 withdraw
-	rewards1, err = suite.app.DistrKeeper.WithdrawDelegationRewards(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	rewards1, err = suite.App.DistrKeeper.WithdrawDelegationRewards(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().NoError(err)
 
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(10, startingInfo.PreviousPeriod)
 
 	// rewards1 equal rewards2
 	suite.Require().EqualValues(rewards1.AmountOf(fxtypes.DefaultDenom).BigInt(), rewards2)
 
 	// signer1 undelegate all shares
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, signer1.AccAddress(), val.GetOperator(), delegation.GetShares())
+	_, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, signer1.AccAddress(), val.GetOperator(), delegation.GetShares())
 	suite.Require().NoError(err)
 
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // undelegate all, starting info removed
 
 	// signer1 shares equal to zero
-	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	_, found = suite.App.StakingKeeper.GetDelegation(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().False(found)
 
 	// signer3 delegation
@@ -906,7 +881,7 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	_ = suite.PrecompileStakingWithdraw(signer3, val.GetOperator())
 
 	// signer3 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer3.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer3.AccAddress())
 	suite.Require().EqualValues(12, startingInfo.PreviousPeriod)
 
 	// signer3 transferFrom shares
@@ -916,10 +891,10 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	suite.Require().EqualValues(newShares1, shares3)
 
 	// signer3 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer3.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer3.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // transferFrom all shares, starting info removed
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(14, startingInfo.PreviousPeriod)
 
 	// generate block
@@ -928,30 +903,29 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	// singer1 evm undelegate
 	_ = suite.PrecompileStakingUndelegate(signer1, val.GetOperator(), halfShares)
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(uint64(15), startingInfo.PreviousPeriod) // withdraw +1, undelegate +1
 
 	_ = suite.PrecompileStakingUndelegate(signer1, val.GetOperator(), halfShares)
 	// signer1 starting info
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // undelegate all, starting info removed
 
 	// signer1 shares equal to zero
-	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	_, found = suite.App.StakingKeeper.GetDelegation(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().False(found)
 
 	// starting info 1,2,3
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer1.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer1.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // undelegate all, starting info removed
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer2.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer2.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // transfer all shares, starting info removed
-	startingInfo = suite.app.DistrKeeper.GetDelegatorStartingInfo(suite.ctx, val.GetOperator(), signer3.AccAddress())
+	startingInfo = suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, val.GetOperator(), signer3.AccAddress())
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // transfer all shares, starting info removed
 }
 
 func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
-	vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-	val := vals[0]
+	val := suite.GetFirstValidator()
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
 	signer1 := suite.RandSigner()
 	signer2 := suite.RandSigner()
@@ -989,11 +963,11 @@ func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
 	suite.Commit()
 
 	// withdraw 1,2,3
-	_, err := suite.app.DistrKeeper.WithdrawDelegationRewards(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	_, err := suite.App.DistrKeeper.WithdrawDelegationRewards(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().NoError(err)
-	_, err = suite.app.DistrKeeper.WithdrawDelegationRewards(suite.ctx, signer2.AccAddress(), val.GetOperator())
+	_, err = suite.App.DistrKeeper.WithdrawDelegationRewards(suite.Ctx, signer2.AccAddress(), val.GetOperator())
 	suite.Require().NoError(err)
-	_, err = suite.app.DistrKeeper.WithdrawDelegationRewards(suite.ctx, signer3.AccAddress(), val.GetOperator())
+	_, err = suite.App.DistrKeeper.WithdrawDelegationRewards(suite.Ctx, signer3.AccAddress(), val.GetOperator())
 	suite.Require().NoError(err)
 	suite.Commit()
 
@@ -1004,11 +978,11 @@ func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
 	suite.Commit()
 
 	// undelegate 1,2,3
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, signer1.AccAddress(), val.GetOperator(), sdk.NewDecFromBigInt(shares1))
+	_, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, signer1.AccAddress(), val.GetOperator(), sdkmath.LegacyNewDecFromBigInt(shares1))
 	suite.Require().NoError(err)
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, signer2.AccAddress(), val.GetOperator(), sdk.NewDecFromBigInt(shares1))
+	_, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, signer2.AccAddress(), val.GetOperator(), sdkmath.LegacyNewDecFromBigInt(shares1))
 	suite.Require().NoError(err)
-	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, signer3.AccAddress(), val.GetOperator(), sdk.NewDecFromBigInt(shares1))
+	_, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, signer3.AccAddress(), val.GetOperator(), sdkmath.LegacyNewDecFromBigInt(shares1))
 	suite.Require().NoError(err)
 	suite.Commit()
 
@@ -1033,7 +1007,7 @@ func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
 }
 
 func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
-	vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
+	vals := suite.GetValidators()
 	val := vals[0]
 	valTmp := vals[1]
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
@@ -1044,20 +1018,25 @@ func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
 	suite.Delegate(valTmp.GetOperator(), delAmount, signer1.AccAddress())
 	suite.Commit()
 
-	delegationTmp, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, signer1.AccAddress(), valTmp.GetOperator())
+	delegationTmp, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, signer1.AccAddress(), valTmp.GetOperator())
 	suite.Require().True(found)
 
 	// redelegate
 	suite.Redelegate(valTmp.GetOperator(), val.GetOperator(), signer1.AccAddress(), delegationTmp.Shares)
 	suite.Commit()
 
-	delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, signer1.AccAddress(), val.GetOperator())
+	delegation, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, signer1.AccAddress(), val.GetOperator())
 	suite.Require().True(found)
 	suite.Require().Equal(delegationTmp.Shares, delegation.Shares)
 
 	// transfer shares
-	pack, err := precompile.GetABI().Pack(precompile.TransferSharesMethodName, val.GetOperator().String(), signer2.Address(), delegation.Shares.TruncateInt().BigInt())
+	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
+	pack, err := transferSharesMethod.PackInput(fxstakingtypes.TransferSharesArgs{
+		Validator: val.GetOperator().String(),
+		To:        signer2.Address(),
+		Shares:    delegation.Shares.TruncateInt().BigInt(),
+	})
 	suite.Require().NoError(err)
-	_, err = suite.PackEthereumTx(signer1, precompile.GetAddress(), big.NewInt(0), pack)
-	suite.Require().EqualError(err, "from has receiving redelegation")
+	res := suite.EthereumTx(signer1, precompile.GetAddress(), big.NewInt(0), pack)
+	suite.Error(res, errors.New("from has receiving redelegation"))
 }

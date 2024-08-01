@@ -100,6 +100,8 @@ func (suite *IntegrationTest) CrossChainTest() {
 			chain.AddBridgeTokenClaim(pundixMetadata.Name, pundixMetadata.Symbol,
 				uint64(pundixMetadata.DenomUnits[1].Exponent), pundixAddress, "")
 		}
+
+		chain.UpdateParamsEnablePending()
 	}
 }
 

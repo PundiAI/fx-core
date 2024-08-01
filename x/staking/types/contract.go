@@ -1,4 +1,4 @@
-package precompile
+package types
 
 import (
 	"errors"
@@ -6,49 +6,24 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/functionx/fx-core/v7/contract"
 )
 
 var (
-	// AllowanceSharesMethod Query the amount of shares an owner allowed to a spender.
-	AllowanceSharesMethod = GetABI().Methods[AllowanceSharesMethodName]
-
-	// DelegationMethod Query the amount of shares in val.
-	DelegationMethod = GetABI().Methods[DelegationMethodName]
-
-	// DelegationRewardsMethod Query the amount of rewards in val.
-	DelegationRewardsMethod = GetABI().Methods[DelegationRewardsMethodName]
-
-	// ApproveSharesMethod Approve shares to a spender.
-	ApproveSharesMethod = GetABI().Methods[ApproveSharesMethodName]
-
-	// DelegateMethod Delegate token to a validator.
-	DelegateMethod = GetABI().Methods[DelegateMethodName]
-
-	// DelegateMethodV2 Delegate token to a validator.
-	DelegateV2Method = GetABI().Methods[DelegateV2MethodName]
-
-	// TransferSharesMethod Transfer shares to a recipient.
-	TransferSharesMethod = GetABI().Methods[TransferSharesMethodName]
-
-	// TransferFromSharesMethod Transfer shares from a sender to a recipient.
-	TransferFromSharesMethod = GetABI().Methods[TransferFromSharesMethodName]
-
-	// UndelegateMethod Undelegate shares from a validator.
-	UndelegateMethod = GetABI().Methods[UndelegateMethodName]
-
-	// UndelegateV2Method Undelegate shares from a validator.
-	UndelegateV2Method = GetABI().Methods[UndelegateV2MethodName]
-
-	// WithdrawMethod Withdraw rewards from a validator.
-	WithdrawMethod = GetABI().Methods[WithdrawMethodName]
-
-	// RedelegateMethod Redelegate share from src validator to dest validator
-	RedelegateMethod = GetABI().Methods[RedelegateMethodName]
-
-	// RedelegateV2Method Redelegate share from src validator to dest validator
-	RedelegateV2Method = GetABI().Methods[RedelegateV2MethodName]
+	stakingAddress = common.HexToAddress(contract.StakingAddress)
+	stakingABI     = contract.MustABIJson(contract.IStakingMetaData.ABI)
 )
+
+func GetAddress() common.Address {
+	return stakingAddress
+}
+
+func GetABI() abi.ABI {
+	return stakingABI
+}
 
 type AllowanceSharesArgs struct {
 	Validator string         `abi:"_val"`
@@ -165,6 +140,58 @@ func (args *DelegationRewardsArgs) GetValidator() sdk.ValAddress {
 	return valAddr
 }
 
+type RedelegateArgs struct {
+	ValidatorSrc string   `abi:"_valSrc"`
+	ValidatorDst string   `abi:"_valDst"`
+	Shares       *big.Int `abi:"_shares"`
+}
+
+// Validate validates the args
+func (args *RedelegateArgs) Validate() error {
+	if _, err := sdk.ValAddressFromBech32(args.ValidatorSrc); err != nil {
+		return fmt.Errorf("invalid validator src address: %s", args.ValidatorSrc)
+	}
+	if _, err := sdk.ValAddressFromBech32(args.ValidatorDst); err != nil {
+		return fmt.Errorf("invalid validator dst address: %s", args.ValidatorDst)
+	}
+	if args.Shares == nil || args.Shares.Sign() <= 0 {
+		return errors.New("invalid shares")
+	}
+	return nil
+}
+
+// GetValidatorSrc returns the validator src address, caller must ensure the validator address is valid
+func (args *RedelegateArgs) GetValidatorSrc() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorSrc)
+	return valAddr
+}
+
+// GetValidatorDst returns the validator dest address, caller must ensure the validator address is valid
+func (args *RedelegateArgs) GetValidatorDst() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorDst)
+	return valAddr
+}
+
+type RedelegateV2Args struct {
+	ValidatorSrc string   `abi:"_valSrc"`
+	ValidatorDst string   `abi:"_valDst"`
+	Amount       *big.Int `abi:"_amount"`
+}
+
+// Validate validates the args
+func (args *RedelegateV2Args) Validate() error {
+	if _, err := sdk.ValAddressFromBech32(args.ValidatorSrc); err != nil {
+		return fmt.Errorf("invalid validator src address: %s", args.ValidatorSrc)
+	}
+	if _, err := sdk.ValAddressFromBech32(args.ValidatorDst); err != nil {
+		return fmt.Errorf("invalid validator dst address: %s", args.ValidatorDst)
+	}
+	if args.Amount == nil || args.Amount.Sign() <= 0 {
+		return errors.New("invalid amount")
+	}
+	return nil
+}
+
 type TransferSharesArgs struct {
 	Validator string         `abi:"_val"`
 	To        common.Address `abi:"_to"`
@@ -266,56 +293,4 @@ func (args *WithdrawArgs) Validate() error {
 func (args *WithdrawArgs) GetValidator() sdk.ValAddress {
 	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
 	return valAddr
-}
-
-type RedelegateArgs struct {
-	ValidatorSrc string   `abi:"_valSrc"`
-	ValidatorDst string   `abi:"_valDst"`
-	Shares       *big.Int `abi:"_shares"`
-}
-
-// Validate validates the args
-func (args *RedelegateArgs) Validate() error {
-	if _, err := sdk.ValAddressFromBech32(args.ValidatorSrc); err != nil {
-		return fmt.Errorf("invalid validator src address: %s", args.ValidatorSrc)
-	}
-	if _, err := sdk.ValAddressFromBech32(args.ValidatorDst); err != nil {
-		return fmt.Errorf("invalid validator dst address: %s", args.ValidatorDst)
-	}
-	if args.Shares == nil || args.Shares.Sign() <= 0 {
-		return errors.New("invalid shares")
-	}
-	return nil
-}
-
-// GetValidatorSrc returns the validator src address, caller must ensure the validator address is valid
-func (args *RedelegateArgs) GetValidatorSrc() sdk.ValAddress {
-	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorSrc)
-	return valAddr
-}
-
-// GetValidatorDst returns the validator dest address, caller must ensure the validator address is valid
-func (args *RedelegateArgs) GetValidatorDst() sdk.ValAddress {
-	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorDst)
-	return valAddr
-}
-
-type RedelegateV2Args struct {
-	ValidatorSrc string   `abi:"_valSrc"`
-	ValidatorDst string   `abi:"_valDst"`
-	Amount       *big.Int `abi:"_amount"`
-}
-
-// Validate validates the args
-func (args *RedelegateV2Args) Validate() error {
-	if _, err := sdk.ValAddressFromBech32(args.ValidatorSrc); err != nil {
-		return fmt.Errorf("invalid validator src address: %s", args.ValidatorSrc)
-	}
-	if _, err := sdk.ValAddressFromBech32(args.ValidatorDst); err != nil {
-		return fmt.Errorf("invalid validator dst address: %s", args.ValidatorDst)
-	}
-	if args.Amount == nil || args.Amount.Sign() <= 0 {
-		return errors.New("invalid amount")
-	}
-	return nil
 }

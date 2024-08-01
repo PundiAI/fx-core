@@ -18,7 +18,7 @@ import (
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	fxserverconfig "github.com/functionx/fx-core/v7/contract"
+	fxcontract "github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
 )
@@ -63,7 +63,7 @@ func (k *Keeper) CallEVMWithoutGas(
 		return nil, err
 	}
 
-	gasLimit := fxserverconfig.DefaultGasCap
+	gasLimit := fxcontract.DefaultGasCap
 	params := ctx.ConsensusParams()
 	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
 		gasLimit = uint64(params.Block.MaxGas)

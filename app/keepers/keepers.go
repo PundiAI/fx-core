@@ -58,6 +58,7 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
 
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
 	fxauthzkeeper "github.com/functionx/fx-core/v7/x/authz/keeper"
 	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
@@ -357,7 +358,7 @@ func NewAppKeeper(
 					return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter)
 				},
 				func(_ sdk.Context, rules ethparams.Rules) vm.PrecompiledContract {
-					return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, appKeepers.EvmKeeper, appKeepers.GovKeeper)
+					return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, fxtypes.DefaultDenom, appKeepers.GovKeeper)
 				},
 			},
 			allKeys,

@@ -5,113 +5,148 @@ import (
 	"math/big"
 	"strings"
 	"testing"
-	"time"
 
 	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v7/contract"
 	testscontract "github.com/functionx/fx-core/v7/tests/contract"
 	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/staking/precompile"
+	"github.com/functionx/fx-core/v7/x/staking/types"
 )
 
 func TestStakingUndelegateABI(t *testing.T) {
-	stakingABI := precompile.GetABI()
+	undelegateMethod := precompile.NewUndelegateMethod(nil)
 
-	method := stakingABI.Methods[precompile.UndelegateMethodName]
-	require.Equal(t, method, precompile.UndelegateMethod)
-	require.Equal(t, 2, len(precompile.UndelegateMethod.Inputs))
-	require.Equal(t, 3, len(precompile.UndelegateMethod.Outputs))
+	require.Equal(t, 2, len(undelegateMethod.Method.Inputs))
+	require.Equal(t, 3, len(undelegateMethod.Method.Outputs))
 
-	event := stakingABI.Events[precompile.UndelegateEventName]
-	require.Equal(t, event, precompile.UndelegateEvent)
-	require.Equal(t, 5, len(precompile.UndelegateEvent.Inputs))
+	require.Equal(t, 5, len(undelegateMethod.Event.Inputs))
 }
 
 //gocyclo:ignore
 func (suite *PrecompileTestSuite) TestUndelegate() {
+	undelegateMethod := precompile.NewUndelegateMethod(nil)
+	undelegateV2Method := precompile.NewUndelegateV2Method(nil)
 	testCases := []struct {
 		name     string
-		malleate func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string)
+		isV2     bool
+		malleate func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error)
 		error    func(errArgs []string) string
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := precompile.GetABI().Pack(precompile.UndelegateMethodName, val.String(), shares.TruncateInt().BigInt())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
+				return types.UndelegateArgs{
+					Validator: val.String(),
+					Shares:    shares.TruncateInt().BigInt(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "failed - invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
 				newVal := val.String() + "1"
-				pack, err := precompile.GetABI().Pack(precompile.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
-				suite.Require().NoError(err)
-				return pack, []string{newVal}
-			},
-			error: func(errArgs []string) string {
-				return fmt.Sprintf("invalid validator address: %s", errArgs[0])
+				return types.UndelegateArgs{
+					Validator: newVal,
+					Shares:    shares.TruncateInt().BigInt(),
+				}, fmt.Errorf("invalid validator address: %s", newVal)
 			},
 			result: false,
 		},
 		{
 			name: "failed - validator not found",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := precompile.GetABI().Pack(precompile.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
-				suite.Require().NoError(err)
-				return pack, []string{newVal}
-			},
-			error: func(errArgs []string) string {
-				return fmt.Sprintf("validator not found: %s", errArgs[0])
+				return types.UndelegateArgs{
+					Validator: newVal,
+					Shares:    shares.TruncateInt().BigInt(),
+				}, fmt.Errorf("validator not found: %s", newVal)
 			},
 			result: false,
 		},
+
 		{
 			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestUndelegateName, val.String(), shares.TruncateInt().BigInt())
-				suite.Require().NoError(err)
-				return pack, nil
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
+				return types.UndelegateArgs{
+					Validator: val.String(),
+					Shares:    shares.TruncateInt().BigInt(),
+				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "contract - failed - invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
 				newVal := val.String() + "1"
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestUndelegateName, newVal, shares.TruncateInt().BigInt())
-				suite.Require().NoError(err)
-				return pack, []string{newVal}
-			},
-			error: func(errArgs []string) string {
-				return fmt.Sprintf("execution reverted: undelegate failed: invalid validator address: %s", errArgs[0])
+				return types.UndelegateArgs{
+					Validator: newVal,
+					Shares:    shares.TruncateInt().BigInt(),
+				}, fmt.Errorf("undelegate failed: invalid validator address: %s", newVal)
 			},
 			result: false,
 		},
 		{
 			name: "contract - failed - validator not found",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(StakingTestUndelegateName, newVal, shares.TruncateInt().BigInt())
-				suite.Require().NoError(err)
-				return pack, []string{newVal}
+				return types.UndelegateArgs{
+					Validator: newVal,
+					Shares:    shares.TruncateInt().BigInt(),
+				}, fmt.Errorf("undelegate failed: validator not found: %s", newVal)
 			},
-			error: func(errArgs []string) string {
-				return fmt.Sprintf("execution reverted: undelegate failed: validator not found: %s", errArgs[0])
+			result: false,
+		},
+
+		{
+			name: "ok v2",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
+				return types.UndelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmt.BigInt(),
+				}, nil
+			},
+			result: true,
+		},
+		{
+			name: "failed - v2 invalid validator address",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
+				newVal := val.String() + "1"
+				return types.UndelegateV2Args{
+					Validator: newVal,
+					Amount:    delAmt.BigInt(),
+				}, fmt.Errorf("invalid validator address: %s", newVal)
+			},
+			result: false,
+		},
+
+		{
+			name: "contract - ok v2",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
+				return types.UndelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmt.BigInt(),
+				}, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - failed - v2 invalid validator address",
+			isV2: true,
+			malleate: func(val sdk.ValAddress, shares sdk.Dec, delAmt sdkmath.Int) (interface{}, error) {
+				newVal := val.String() + "1"
+				return types.UndelegateV2Args{
+					Validator: newVal,
+					Amount:    delAmt.BigInt(),
+				}, fmt.Errorf("invalid validator address: %s", newVal)
 			},
 			result: false,
 		},
@@ -119,135 +154,78 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
-
-			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val := vals[0]
-			delAmt := sdkmath.NewInt(int64(tmrand.Intn(1000) + 100)).Mul(sdkmath.NewInt(1e18))
-			signer := suite.RandSigner()
-			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
+			val := suite.GetFirstValidator()
+			delAmt := helpers.NewRandAmount()
 
 			stakingContract := precompile.GetAddress()
 			stakingABI := precompile.GetABI()
-			delegateMethodName := precompile.DelegateMethodName
-			undelegateMethodName := precompile.UndelegateMethodName
-			delAddr := signer.Address()
+			delAddr := suite.signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
 				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-				delegateMethodName = StakingTestDelegateName
-				undelegateMethodName = StakingTestUndelegateName
 				delAddr = suite.staking
 			}
 
-			pack, err := stakingABI.Pack(delegateMethodName, val.GetOperator().String())
+			pack, err := stakingABI.Pack(TestDelegateName, val.GetOperator().String())
 			suite.Require().NoError(err)
-			tx, err := suite.PackEthereumTx(signer, stakingContract, delAmt.BigInt(), pack)
-			suite.Require().NoError(err)
-			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-			suite.Require().NoError(err)
+
+			res := suite.EthereumTx(suite.signer, stakingContract, delAmt.BigInt(), pack)
 			suite.Require().False(res.Failed(), res.VmError)
 
 			suite.Commit()
 
-			chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, delAddr.Bytes())
-			suite.Require().True(chainBalances.IsZero(), chainBalances.String())
-			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
-			suite.Require().NoError(err)
+			delegation := suite.GetDelegation(delAddr.Bytes(), val.GetOperator())
 
-			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
-			suite.Require().True(found)
-			undelegations := suite.app.StakingKeeper.GetAllUnbondingDelegations(suite.ctx, delAddr.Bytes())
+			undelegations := suite.App.StakingKeeper.GetAllUnbondingDelegations(suite.Ctx, delAddr.Bytes())
 			suite.Require().Equal(0, len(undelegations))
 
-			pack, errArgs := tc.malleate(val.GetOperator(), delegation.Shares)
-			tx, err = suite.PackEthereumTx(signer, stakingContract, big.NewInt(0), pack)
-			if err == nil {
-				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+			var packData []byte
+			args, errResult := tc.malleate(val.GetOperator(), delegation.Shares, delAmt)
+			if !tc.isV2 {
+				packData, err = undelegateMethod.PackInput(args.(types.UndelegateArgs))
+			} else {
+				packData, err = undelegateV2Method.PackInput(args.(types.UndelegateV2Args))
+			}
+			suite.Require().NoError(err)
+
+			if strings.HasPrefix(tc.name, "contract") {
+				if !tc.isV2 {
+					argsV1 := args.(types.UndelegateArgs)
+					packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestUndelegateName, argsV1.Validator, argsV1.Shares)
+				} else {
+					argsV2 := args.(types.UndelegateV2Args)
+					packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestUndelegateV2Name, argsV2.Validator, argsV2.Amount)
+				}
+				suite.Require().NoError(err)
 			}
 
+			res = suite.EthereumTx(suite.signer, stakingContract, big.NewInt(0), packData)
+
 			if tc.result {
-				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				unpack, err := stakingABI.Unpack(undelegateMethodName, res.Ret)
-				suite.Require().NoError(err)
-				// amount,reward,completionTime
-				reward := unpack[1].(*big.Int)
-				suite.Require().True(reward.Cmp(big.NewInt(0)) == 1, reward.String())
+				if !tc.isV2 {
+					unpack, err := stakingABI.Unpack(TestUndelegateName, res.Ret)
+					suite.Require().NoError(err)
+					// amount,reward,completionTime
+					reward := unpack[1].(*big.Int)
+					suite.Require().True(reward.Cmp(big.NewInt(0)) == 1, reward.String())
+				}
 
-				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, delAddr.Bytes())
-				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
-
-				totalAfter, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
-				suite.Require().NoError(err)
-				suite.Require().Equal(totalAfter, totalBefore)
-
-				undelegations := suite.app.StakingKeeper.GetAllUnbondingDelegations(suite.ctx, delAddr.Bytes())
+				undelegations := suite.App.StakingKeeper.GetAllUnbondingDelegations(suite.Ctx, delAddr.Bytes())
 				suite.Require().Equal(1, len(undelegations))
 				suite.Require().Equal(1, len(undelegations[0].Entries))
 				suite.Require().Equal(sdk.AccAddress(delAddr.Bytes()).String(), undelegations[0].DelegatorAddress)
 				suite.Require().Equal(val.GetOperator().String(), undelegations[0].ValidatorAddress)
 				suite.Require().Equal(delAmt, undelegations[0].Entries[0].Balance)
 
-				existLog := false
-				for _, log := range res.Logs {
-					if log.Topics[0] == precompile.UndelegateEvent.ID.String() {
-						suite.Require().Equal(log.Address, precompile.GetAddress().String())
-						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
-						unpack, err := precompile.UndelegateEvent.Inputs.NonIndexed().Unpack(log.Data)
-						suite.Require().NoError(err)
-						unpackValidator := unpack[0].(string)
-						suite.Require().Equal(unpackValidator, val.GetOperator().String())
-						shares := unpack[1].(*big.Int)
-						suite.Require().Equal(shares.String(), delegation.Shares.TruncateInt().BigInt().String())
-						amount := unpack[2].(*big.Int)
-						suite.Require().Equal(amount.String(), undelegations[0].Entries[0].Balance.BigInt().String())
-						completionTime := unpack[3].(*big.Int)
-						suite.Require().Equal(completionTime.Int64(), undelegations[0].Entries[0].CompletionTime.Unix())
-						existLog = true
-					}
-				}
-				suite.Require().True(existLog)
+				suite.CheckUndelegateLogs(res.Logs, delAddr, val.GetOperator().String(), delegation.Shares.TruncateInt().BigInt(),
+					undelegations[0].Entries[0].Balance.BigInt(), undelegations[0].Entries[0].CompletionTime)
 
-				existEvent := false
-				for _, event := range suite.ctx.EventManager().Events() {
-					if event.Type == stakingtypes.EventTypeUnbond {
-						for _, attr := range event.Attributes {
-							if attr.Key == stakingtypes.AttributeKeyValidator {
-								suite.Require().Equal(attr.Value, val.GetOperator().String())
-								existEvent = true
-							}
-							if attr.Key == sdk.AttributeKeyAmount {
-								suite.Require().Equal(attr.Value, undelegations[0].Entries[0].Balance.String())
-								existEvent = true
-							}
-							if attr.Key == stakingtypes.AttributeKeyCompletionTime {
-								suite.Require().Equal(attr.Value, undelegations[0].Entries[0].CompletionTime.Format(time.RFC3339))
-								existEvent = true
-							}
-						}
-					}
-				}
-				suite.Require().True(existEvent)
+				suite.CheckUndeledateEvents(suite.Ctx, val.GetOperator().String(), undelegations[0].Entries[0].Balance.BigInt(),
+					undelegations[0].Entries[0].CompletionTime)
 			} else {
-				suite.Require().True(err != nil || res.Failed())
-				if err != nil {
-					suite.Require().Equal(tc.error(errArgs), err.Error())
-				} else {
-					if res.VmError != vm.ErrExecutionReverted.Error() {
-						suite.Require().Equal(tc.error(errArgs), res.VmError)
-					} else {
-						if len(res.Ret) > 0 {
-							reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret))
-							suite.Require().NoError(err)
-
-							suite.Require().Equal(tc.error(errArgs), reason)
-						} else {
-							suite.Require().Equal(tc.error(errArgs), vm.ErrExecutionReverted.Error())
-						}
-					}
-				}
+				suite.Error(res, errResult)
 			}
 		})
 	}

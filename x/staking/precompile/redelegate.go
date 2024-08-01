@@ -10,24 +10,47 @@ import (
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	fxcontract "github.com/functionx/fx-core/v7/contract"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/evm/types"
-	fxstakingkeeper "github.com/functionx/fx-core/v7/x/staking/keeper"
+	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
 )
 
-func (c *Contract) Redelegation(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
-	if readonly {
-		return nil, errors.New("redelegate method not readonly")
+type RedelegationMethod struct {
+	*Keeper
+	abi.Method
+	abi.Event
+}
+
+func NewRedelegationMethod(keeper *Keeper) *RedelegationMethod {
+	return &RedelegationMethod{
+		Keeper: keeper,
+		Method: fxstakingtypes.GetABI().Methods["redelegate"],
+		Event:  fxstakingtypes.GetABI().Events["Redelegate"],
 	}
-	var args RedelegateArgs
-	err := types.ParseMethodArgs(RedelegateMethod, &args, contract.Input[4:])
+}
+
+func (m *RedelegationMethod) IsReadonly() bool {
+	return false
+}
+
+func (m *RedelegationMethod) GetMethodId() []byte {
+	return m.Method.ID
+}
+
+func (m *RedelegationMethod) RequiredGas() uint64 {
+	return 60_000
+}
+
+func (m *RedelegationMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
 	}
@@ -37,18 +60,17 @@ func (c *Contract) Redelegation(evm *vm.EVM, contract *vm.Contract, readonly boo
 	var result []byte
 	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error { // withdraw src reward
 		sender := sdk.AccAddress(contract.Caller().Bytes())
-		evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 		shares := sdkmath.LegacyNewDecFromBigInt(args.Shares)
 
 		valSrcAddr := args.GetValidatorSrc()
 		// check src validator
-		validatorSrc, found := c.stakingKeeper.GetValidator(ctx, valSrcAddr)
+		validatorSrc, found := m.stakingKeeper.GetValidator(ctx, valSrcAddr)
 		if !found {
 			return fmt.Errorf("validator src not found: %s", valSrcAddr.String())
 		}
 
 		// check delegation
-		delegation, found := c.stakingKeeper.GetDelegation(ctx, sender, valSrcAddr)
+		delegation, found := m.stakingKeeper.GetDelegation(ctx, sender, valSrcAddr)
 		if !found {
 			return fmt.Errorf("delegation not found")
 		}
@@ -58,80 +80,188 @@ func (c *Contract) Redelegation(evm *vm.EVM, contract *vm.Contract, readonly boo
 
 		// check dst validator
 		valDstAddr := args.GetValidatorDst()
-		if _, found = c.stakingKeeper.GetValidator(ctx, valDstAddr); !found {
+		if _, found = m.stakingKeeper.GetValidator(ctx, valDstAddr); !found {
 			return fmt.Errorf("validator dst not found: %s", valDstAddr.String())
 		}
 
-		withdrawAddr := c.distrKeeper.GetDelegatorWithdrawAddr(ctx, sender)
-		beforeDelBalance := c.bankKeeper.GetBalance(ctx, withdrawAddr, evmDenom)
+		withdrawAddr := m.distrKeeper.GetDelegatorWithdrawAddr(ctx, sender)
+		beforeDelBalance := m.bankKeeper.GetBalance(ctx, withdrawAddr, m.stakingDenom)
 
 		// redelegate
-		completionTime, err := c.stakingKeeper.BeginRedelegation(ctx, sender, valSrcAddr, valDstAddr, shares)
+		completionTime, err := m.stakingKeeper.BeginRedelegation(ctx, sender, valSrcAddr, valDstAddr, shares)
 		if err != nil {
 			return err
 		}
 
 		redelAmount := validatorSrc.TokensFromShares(shares).TruncateInt()
-		afterDelBalance := c.bankKeeper.GetBalance(ctx, withdrawAddr, evmDenom)
+		afterDelBalance := m.bankKeeper.GetBalance(ctx, withdrawAddr, m.stakingDenom)
 		rewardCoin := afterDelBalance.Sub(beforeDelBalance)
 
 		// add redelegate log
-		if err = c.AddLog(evm, RedelegateEvent, []common.Hash{contract.Caller().Hash()},
-			args.ValidatorSrc, args.ValidatorDst, args.Shares, redelAmount.BigInt(), big.NewInt(completionTime.Unix())); err != nil {
+		data, topic, err := m.NewRedelegationEvent(contract.Caller(), args.ValidatorSrc, args.ValidatorDst, args.Shares, redelAmount.BigInt(), completionTime.Unix())
+		if err != nil {
 			return err
 		}
+		EmitEvent(evm, data, topic)
+
 		// add redelegate event
 		RedelegateEmitEvents(ctx, sender, valSrcAddr, valDstAddr, redelAmount, completionTime)
 
-		result, err = UndelegateMethod.Outputs.Pack(redelAmount.BigInt(), rewardCoin.Amount.BigInt(), big.NewInt(completionTime.Unix()))
+		result, err = m.PackOutput(redelAmount.BigInt(), rewardCoin.Amount.BigInt(), completionTime.Unix())
 		return err
 	})
+
 	return result, err
 }
 
-func (c *Contract) RedelegationV2(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
-	if readonly {
-		return nil, errors.New("redelegate method not readonly")
+func (m *RedelegationMethod) NewRedelegationEvent(sender common.Address, validatorSrc, validatorDst string, shares, amount *big.Int, completionTime int64) (data []byte, topic []common.Hash, err error) {
+	data, topic, err = types.PackTopicData(m.Event, []common.Hash{sender.Hash()}, validatorSrc, validatorDst, shares, amount, big.NewInt(completionTime))
+	if err != nil {
+		return nil, nil, err
 	}
-	var args RedelegateV2Args
-	err := types.ParseMethodArgs(RedelegateV2Method, &args, contract.Input[4:])
+	return data, topic, nil
+}
+
+func (m *RedelegationMethod) PackInput(args fxstakingtypes.RedelegateArgs) ([]byte, error) {
+	arguments, err := m.Method.Inputs.Pack(args.ValidatorSrc, args.ValidatorDst, args.Shares)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), arguments...), nil
+}
+
+func (m *RedelegationMethod) UnpackInput(data []byte) (*fxstakingtypes.RedelegateArgs, error) {
+	args := new(fxstakingtypes.RedelegateArgs)
+	err := types.ParseMethodArgs(m.Method, args, data[4:])
+	return args, err
+}
+
+func (m *RedelegationMethod) PackOutput(redelAmount, reward *big.Int, completionTime int64) ([]byte, error) {
+	return m.Method.Outputs.Pack(redelAmount, reward, big.NewInt(completionTime))
+}
+
+func (m *RedelegationMethod) UnpackOutput(data []byte) (bool, error) {
+	amount, err := m.Method.Outputs.Unpack(data)
+	if err != nil {
+		return false, err
+	}
+	return amount[0].(bool), nil
+}
+
+func (m *RedelegationMethod) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingRedelegate, error) {
+	if log == nil {
+		return nil, errors.New("empty log")
+	}
+	filterer, err := fxcontract.NewIStakingFilterer(common.Address{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return filterer.ParseRedelegate(*log)
+}
+
+type RedelegateMethodV2 struct {
+	*Keeper
+	abi.Method
+	abi.Event
+}
+
+func NewRedelegateV2Method(keeper *Keeper) *RedelegateMethodV2 {
+	return &RedelegateMethodV2{
+		Keeper: keeper,
+		Method: fxstakingtypes.GetABI().Methods["redelegateV2"],
+		Event:  fxstakingtypes.GetABI().Events["RedelegateV2"],
+	}
+}
+
+func (m *RedelegateMethodV2) IsReadonly() bool {
+	return false
+}
+
+func (m *RedelegateMethodV2) GetMethodId() []byte {
+	return m.Method.ID
+}
+
+func (m *RedelegateMethodV2) RequiredGas() uint64 {
+	return 60_000
+}
+
+func (m *RedelegateMethodV2) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
 	}
 
 	stateDB := evm.StateDB.(types.ExtStateDB)
 
-	var result []byte
-	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error { // withdraw src reward
-		sender := sdk.AccAddress(contract.Caller().Bytes())
-		evmDenom := c.evmKeeper.GetParams(ctx).EvmDenom
-		reDelCoin := sdk.NewCoin(evmDenom, sdkmath.NewIntFromBigInt(args.Amount))
-
-		fxStakingKeeper, ok := c.stakingKeeper.(fxstakingkeeper.Keeper)
-		if !ok {
-			return errortypes.ErrNotSupported
-		}
-		impl := stakingkeeper.NewMsgServerImpl(fxStakingKeeper.Keeper)
-		redelResp, err := impl.BeginRedelegate(sdk.WrapSDKContext(ctx), &stakingtypes.MsgBeginRedelegate{
-			DelegatorAddress:    sender.String(),
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+		resp, err := m.stakingMsgServer.BeginRedelegate(sdk.WrapSDKContext(ctx), &stakingtypes.MsgBeginRedelegate{
+			DelegatorAddress:    sdk.AccAddress(contract.Caller().Bytes()).String(),
 			ValidatorSrcAddress: args.ValidatorSrc,
 			ValidatorDstAddress: args.ValidatorDst,
-			Amount:              reDelCoin,
+			Amount:              m.NewStakingCoin(args.Amount),
 		})
 		if err != nil {
 			return err
 		}
 
 		// add redelegate log
-		if err = c.AddLog(evm, RedelegateV2Event, []common.Hash{contract.Caller().Hash()},
-			args.ValidatorSrc, args.ValidatorDst, args.Amount, big.NewInt(redelResp.CompletionTime.Unix())); err != nil {
+		data, topic, err := m.NewRedelegationEvent(contract.Caller(), args.ValidatorSrc, args.ValidatorDst, args.Amount, resp.CompletionTime.Unix())
+		if err != nil {
 			return err
 		}
+		EmitEvent(evm, data, topic)
 
-		result, err = UndelegateMethod.Outputs.Pack(true)
-		return err
-	})
-	return result, err
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return m.PackOutput(true)
+}
+
+func (m *RedelegateMethodV2) NewRedelegationEvent(sender common.Address, validatorSrc, validatorDst string, amount *big.Int, completionTime int64) (data []byte, topic []common.Hash, err error) {
+	data, topic, err = types.PackTopicData(m.Event, []common.Hash{sender.Hash()}, validatorSrc, validatorDst, amount, big.NewInt(completionTime))
+	if err != nil {
+		return nil, nil, err
+	}
+	return data, topic, nil
+}
+
+func (m *RedelegateMethodV2) PackInput(args fxstakingtypes.RedelegateV2Args) ([]byte, error) {
+	arguments, err := m.Method.Inputs.Pack(args.ValidatorSrc, args.ValidatorDst, args.Amount)
+	if err != nil {
+		return nil, err
+	}
+	return append(m.GetMethodId(), arguments...), nil
+}
+
+func (m *RedelegateMethodV2) UnpackInput(data []byte) (*fxstakingtypes.RedelegateV2Args, error) {
+	args := new(fxstakingtypes.RedelegateV2Args)
+	err := types.ParseMethodArgs(m.Method, args, data[4:])
+	return args, err
+}
+
+func (m *RedelegateMethodV2) PackOutput(result bool) ([]byte, error) {
+	return m.Method.Outputs.Pack(result)
+}
+
+func (m *RedelegateMethodV2) UnpackOutput(data []byte) (bool, error) {
+	amount, err := m.Method.Outputs.Unpack(data)
+	if err != nil {
+		return false, err
+	}
+	return amount[0].(bool), nil
+}
+
+func (m *RedelegateMethodV2) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingRedelegateV2, error) {
+	if log == nil {
+		return nil, errors.New("empty log")
+	}
+	filterer, err := fxcontract.NewIStakingFilterer(common.Address{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return filterer.ParseRedelegateV2(*log)
 }
 
 func RedelegateEmitEvents(ctx sdk.Context, delegator sdk.AccAddress, validatorSrc, validatorDst sdk.ValAddress, amount sdkmath.Int, completionTime time.Time) {

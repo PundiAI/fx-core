@@ -99,9 +99,10 @@ func (suite *IntegrationTest) StakingContractTest() {
 	receipt = suite.staking.WithdrawByContract(delSigner.PrivKey(), contract, valAddr.String())
 	txFee3 := suite.evm.TxFee(receipt.TxHash)
 
+	withdrawMethod := stakingprecompile.NewWithdrawMethod(nil)
 	for _, log := range receipt.Logs {
-		if log.Address == stakingprecompile.GetAddress() && log.Topics[0] == stakingprecompile.WithdrawEvent.ID {
-			unpack, err := stakingprecompile.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
+		if log.Address == stakingprecompile.GetAddress() && log.Topics[0] == withdrawMethod.Event.ID {
+			unpack, err := withdrawMethod.Event.Inputs.NonIndexed().Unpack(log.Data)
 			suite.Require().NoError(err)
 			reward := unpack[1].(*big.Int)
 			delBal = suite.QueryBalances(contract.Bytes())
@@ -530,6 +531,45 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 		Add(sdkmath.NewIntFromBigInt(txFee3)).
 		Add(delBal.AmountOf(fxtypes.DefaultDenom))
 	suite.Equal(initBalance.String(), total.String())
+}
+
+func (suite *IntegrationTest) StakingPrecompileV2() {
+	delSigner := helpers.NewSigner(helpers.NewEthPrivKey())
+	initBalance := sdkmath.NewInt(2000).MulRaw(1e18)
+	suite.Send(delSigner.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
+
+	// delegate
+	valAddr := suite.staking.GetFirstValAddr()
+	delBalance := sdkmath.NewInt(1000).MulRaw(1e18)
+	receipt := suite.staking.DelegateV2(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
+	txFee1 := suite.evm.TxFee(receipt.TxHash)
+
+	delBal := suite.QueryBalances(delSigner.AccAddress())
+	total := delBalance.Add(sdkmath.NewIntFromBigInt(txFee1)).Add(delBal.AmountOf(fxtypes.DefaultDenom))
+	suite.Equal(initBalance.String(), total.String())
+
+	hexAddr := common.BytesToAddress(delSigner.AccAddress().Bytes())
+	_, delAmt1 := suite.staking.Delegation(valAddr.String(), hexAddr)
+	suite.Equal(delAmt1.String(), delBalance.String())
+
+	// undelegate
+	suite.staking.UnDelegateV2(delSigner.PrivKey(), valAddr.String(), big.NewInt(0).Div(delAmt1, big.NewInt(2)))
+	_, delAmt2 := suite.staking.Delegation(valAddr.String(), hexAddr)
+	suite.Equal(delAmt2.String(), delBalance.Quo(sdkmath.NewInt(2)).String())
+
+	valNew := helpers.NewSigner(helpers.NewEthPrivKey())
+	suite.Send(valNew.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
+	resp := suite.staking.CreateValidator(valNew.PrivKey(), false)
+	suite.Equal(resp.Code, uint32(0))
+
+	// redelegate
+	suite.staking.RedelegateV2(delSigner.PrivKey(), valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), big.NewInt(0).Div(delAmt1, big.NewInt(2)))
+
+	delShare, _ := suite.staking.Delegation(valAddr.String(), hexAddr)
+	suite.Equal(int64(0), delShare.Int64())
+
+	_, delAmt3 := suite.staking.Delegation(sdk.ValAddress(valNew.AccAddress()).String(), hexAddr)
+	suite.Equal(delAmt3.String(), delBalance.Quo(sdkmath.NewInt(2)).String())
 }
 
 func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
