@@ -93,15 +93,15 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		return evmtypes.PackRetErrV2(errors.New("invalid input"))
 	}
 
-	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.CacheContext(), c.Address(), contract.Input[:4]); err != nil {
-		return evmtypes.PackRetError(err)
-	}
-
 	for _, method := range c.methods {
 		if bytes.Equal(method.GetMethodId(), contract.Input[:4]) {
 			if readonly && !method.IsReadonly() {
 				return evmtypes.PackRetErrV2(errors.New("write protection"))
+			}
+
+			stateDB := evm.StateDB.(evmtypes.ExtStateDB)
+			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.CacheContext(), c.Address(), contract.Input[:4]); err != nil {
+				return evmtypes.PackRetError(err)
 			}
 
 			ret, err = method.Run(evm, contract)
