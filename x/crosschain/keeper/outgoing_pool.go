@@ -14,29 +14,36 @@ import (
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
 
+func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+	// get next tx id from keeper
+	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
+	return nextTxID, k.addToOutgoingPool(ctx, sender, receiver, amount, fee, nextTxID)
+}
+
+func (k Keeper) AddToOutgoingPoolWithTxId(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin, txID uint64) error {
+	return k.addToOutgoingPool(ctx, sender, receiver, amount, fee, txID)
+}
+
 // AddToOutgoingPool
 // - checks a counterpart denominator exists for the given voucher type
 // - burns the voucher for transfer amount and fees
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
-func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin, txID uint64) error {
 	bridgeToken := k.GetDenomBridgeToken(ctx, amount.Denom)
 	if bridgeToken == nil {
-		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
 	if err := k.TransferBridgeCoinToExternal(ctx, sender, amount.Add(fee)); err != nil {
-		return 0, err
+		return err
 	}
-
-	// get next tx id from keeper
-	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
 
 	// construct outgoing tx, as part of this process we represent
 	// the token as an ERC20 token since it is preparing to go to ETH
 	// rather than the denom that is the input to this function.
 	outgoing := &types.OutgoingTransferTx{
-		Id:          nextTxID,
+		Id:          txID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
 		Token:       types.NewERC20Token(amount.Amount, bridgeToken.Token),
@@ -44,13 +51,13 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	}
 
 	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {
-		return 0, err
+		return err
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternal,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextTxID)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txID)),
 	))
 
 	if !ctx.IsCheckTx() {
@@ -72,7 +79,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		)
 	}
 
-	return nextTxID, nil
+	return nil
 }
 
 // RemoveFromOutgoingPoolAndRefund

@@ -63,7 +63,6 @@ func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.A
 
 	erc20ModuleAddress := k.ak.GetModuleAddress(erc20types.ModuleName)
 	var err error
-	var txId uint64
 	var provideLiquidityTxIds []uint64
 	var rewards sdk.Coins
 	liquidationSize := 0
@@ -91,11 +90,11 @@ func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.A
 		k.RemovePendingOutgoingTx(cacheContext, bridgeToken.Token, pendingOutgoingTx.Id)
 
 		// 4. add to outgoing tx
-		if txId, err = k.AddToOutgoingPool(cacheContext, sender, pendingOutgoingTx.DestAddress, pendingOutgoingTx.Token, pendingOutgoingTx.Fee); err != nil {
+		if err = k.AddToOutgoingPoolWithTxId(cacheContext, sender, pendingOutgoingTx.DestAddress, pendingOutgoingTx.Token, pendingOutgoingTx.Fee, pendingOutgoingTx.Id); err != nil {
 			k.Logger(ctx).Info("failed to add to outgoing pool", "error", err)
 			return true
 		}
-		provideLiquidityTxIds = append(provideLiquidityTxIds, txId)
+		provideLiquidityTxIds = append(provideLiquidityTxIds, pendingOutgoingTx.Id)
 		for _, reward := range pendingOutgoingTx.Rewards {
 			rewards = rewards.Add(reward)
 		}
