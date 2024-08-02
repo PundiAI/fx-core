@@ -30,8 +30,10 @@ import (
 	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
+// StartInProcess creates and starts an in-process local test network.
+//
 //gocyclo:ignore
-func startInProcess(appConstructor AppConstructor, val *Validator) error {
+func StartInProcess(appConstructor AppConstructor, val *Validator) error {
 	logger := val.Ctx.Logger
 	tmCfg := val.Ctx.Config
 
@@ -69,7 +71,7 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 	val.RPCClient = local.New(tmNode)
 
 	// We'll need a RPC client if the validator exposes a gRPC or REST endpoint.
-	if val.APIAddress != "" || val.AppConfig.GRPC.Enable {
+	if val.AppConfig.API.Address != "" || val.AppConfig.GRPC.Enable {
 		val.ClientCtx = val.ClientCtx.WithClient(val.RPCClient)
 
 		// Add the tx service in the gRPC router.
@@ -107,7 +109,7 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		val.ClientCtx = val.ClientCtx.WithGRPCClient(grpcClient)
 	}
 
-	if val.AppConfig.API.Enable && val.APIAddress != "" {
+	if val.AppConfig.API.Enable && val.AppConfig.API.Address != "" {
 		val.api = api.New(val.ClientCtx, logger.With("module", "api-server"))
 		myApp.RegisterAPIRoutes(val.api, val.AppConfig.API)
 

@@ -107,9 +107,6 @@ type Validator struct {
 	Ctx           *server.Context
 	NodeID        string
 	PubKey        cryptotypes.PubKey
-	APIAddress    string
-	RPCAddress    string
-	P2PAddress    string
 	Address       sdk.AccAddress
 	ValAddress    sdk.ValAddress
 	RPCClient     tmclient.Client
@@ -170,7 +167,7 @@ func New(logger Logger, baseDir string, cfg Config) (*Network, error) {
 
 	logger.Log("starting test network...")
 	for _, val := range network.Validators {
-		if err = startInProcess(network.Config.AppConstructor, val); err != nil {
+		if err = StartInProcess(network.Config.AppConstructor, val); err != nil {
 			return nil, err
 		}
 	}
@@ -433,9 +430,6 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			Ctx:        srvCtx,
 			NodeID:     nodeID,
 			PubKey:     pubKey,
-			RPCAddress: srvCtx.Config.RPC.ListenAddress,
-			P2PAddress: srvCtx.Config.P2P.ListenAddress,
-			APIAddress: appCfg.API.Address,
 			Address:    valAddr,
 			ValAddress: sdk.ValAddress(valAddr),
 		}

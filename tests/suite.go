@@ -207,7 +207,7 @@ func (suite *TestSuite) GRPCClient() *grpc.Client {
 }
 
 func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
-	nodeUrl := suite.GetFirstValidator().RPCAddress
+	nodeUrl := suite.GetFirstValidator().Ctx.Config.RPC.ListenAddress
 	if suite.IsUseLocalNetwork() {
 		nodeUrl = "http://localhost:26657"
 	}
