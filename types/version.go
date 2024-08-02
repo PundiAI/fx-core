@@ -29,14 +29,15 @@ const (
 	TestnetBlockHeightV2  = 3_418_880
 	TestnetBlockHeightV3  = 6_578_000
 	TestnetBlockHeightV4  = 8_088_000
-	TestnetBlockHeightV41 = 8_376_000
-	TestnetBlockHeightV42 = 8_481_000
+	TestnetBlockHeightV41 = 8_376_000 // v4.1
+	TestnetBlockHeightV42 = 8_481_000 // v4.2
 	TestnetBlockHeightV5  = 9_773_000
 	TestnetBlockHeightV6  = 11_701_000
 	TestnetBlockHeightV7  = 12_961_500
-	TestnetBlockHeightV71 = 14_369_500
-	TestnetBlockHeightV72 = 14_389_000
-	TestnetBlockHeightV73 = 14_551_500
+	TestnetBlockHeightV71 = 14_369_500 // v7.1
+	TestnetBlockHeightV72 = 14_389_000 // v7.2
+	TestnetBlockHeightV73 = 14_551_500 // v7.3
+	TestnetBlockHeightV74 = 15_571_000 // v7.4
 )
 
 var (

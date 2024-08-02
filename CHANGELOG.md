@@ -1,5 +1,22 @@
 # Change log
 
+## [v7.4.0-rc4]
+
+* Bump cosmos-sdk to v0.47.13
+* Bump cometbft to v0.37.9
+* Bump ibc-go to v7.6.0 
+* Added precompiled staking v2 contract, with v1 version to be deprecated in future releases
+* Updated interface contract to require a minimum Solidity version of 0.8.10. Contracts using versions prior to 0.8.10 will encounter errors when retrieving bytecode
+* Fixed a state rollback error in precompiled contracts. When using try-catch for contract rollback, the on-chain state was not fully reverted
+* Refactored precompiled contracts to improve execution efficiency
+* Added proposal `MsgUpdateStore` on gov module, This proposal is designed to facilitate the proposal to modify store
+* Added proposal `MsgUpdateSwitchParams` on gov module, This proposal is designed to facilitate the development of precompiled contracts or specific Cosmos transaction types
+* Added metrics for crosschain module
+* Fixed subgraph not getting contract status in some cases
+* Remove legacy rest API
+
+---
+
 ## [v7.3.0-rc3]
 
 * Improved refund methods to return assets to the refund address when cross-chain transactions fail
