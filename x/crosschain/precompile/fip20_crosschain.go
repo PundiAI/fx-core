@@ -2,7 +2,6 @@ package precompile
 
 import (
 	"fmt"
-	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -57,26 +56,6 @@ func (m *FIP20CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte,
 		amountCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Amount))
 		feeCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Fee))
 		totalCoin := sdk.NewCoin(tokenPair.GetDenom(), amountCoin.Amount.Add(feeCoin.Amount))
-
-		// NOTE: if user call evm denom transferCrossChain with msg.value
-		// we need transfer msg.value from sender to contract in bank keeper
-		if tokenPair.GetDenom() == fxtypes.DefaultDenom {
-			balance := m.bankKeeper.GetBalance(ctx, tokenContract.Bytes(), fxtypes.DefaultDenom)
-			evmBalance := evm.StateDB.GetBalance(tokenContract)
-
-			cmp := evmBalance.Cmp(balance.Amount.BigInt())
-			if cmp == -1 {
-				return fmt.Errorf("invalid balance(chain: %s,evm: %s)", balance.Amount.String(), evmBalance.String())
-			}
-			if cmp == 1 {
-				// sender call transferCrossChain with msg.value, the msg.value evm denom should send to contract
-				value := big.NewInt(0).Sub(evmBalance, balance.Amount.BigInt())
-				valueCoin := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value)))
-				if err := m.bankKeeper.SendCoins(ctx, args.Sender.Bytes(), tokenContract.Bytes(), valueCoin); err != nil {
-					return fmt.Errorf("send coin: %s", err.Error())
-				}
-			}
-		}
 
 		// transfer token from evm to local chain
 		if err = m.convertERC20(ctx, evm, tokenPair, totalCoin, args.Sender); err != nil {
