@@ -22,7 +22,7 @@ func IsLocalTest() bool {
 
 func SkipTest(t *testing.T, msg ...any) {
 	if !IsLocalTest() {
-		t.Skip(msg...)
+		t.Skip(append(msg, "#Please set env LOCAL_TEST=true#")...)
 	}
 }
 

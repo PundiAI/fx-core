@@ -114,11 +114,12 @@ func (suite *rpcTestSuite) GetClients() []rpcTestClient {
 	suite.True(validator.AppConfig.GRPC.Enable)
 	grpcClient, err := grpc.DailClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
 	suite.NoError(err)
-	wsClient, err := jsonrpc.NewWsClient(validator.RPCAddress+"/websocket", context.Background())
+	rpcAddress := validator.Ctx.Config.RPC.ListenAddress
+	wsClient, err := jsonrpc.NewWsClient(rpcAddress+"/websocket", context.Background())
 	suite.NoError(err)
 	return []rpcTestClient{
 		grpcClient,
-		jsonrpc.NewNodeRPC(jsonrpc.NewClient(validator.RPCAddress)),
+		jsonrpc.NewNodeRPC(jsonrpc.NewClient(rpcAddress)),
 		jsonrpc.NewNodeRPC(wsClient),
 	}
 }
@@ -464,7 +465,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 		return results
 	}
 
-	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewClient(validator.RPCAddress))
+	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewClient(validator.Ctx.Config.RPC.ListenAddress))
 	callNodeRPC := func(funcName string, params []interface{}) []reflect.Value {
 		typeOf := reflect.TypeOf(nodeRPC)
 		method, is := typeOf.MethodByName(funcName)
