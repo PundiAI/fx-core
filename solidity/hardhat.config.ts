@@ -37,6 +37,12 @@ const config: HardhatUserConfig = {
       url: `${process.env.BASE_URL || "https://sepolia.base.org"}`,
       chainId: 84532,
     },
+    polygonAmoy: {
+      url: `${
+        process.env.POLYGON_URL || "https://rpc-amoy.polygon.technology"
+      }`,
+      chainId: 80002,
+    },
     fxcore: {
       url: `${
         process.env.FXCORE_URL || "https://fx-json-web3.functionx.io:8545"
