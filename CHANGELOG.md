@@ -1,5 +1,11 @@
 # Change log
 
+## [v7.4.0-rc6]
+
+* Fixed nil consensus params in BeginBlock during migration
+
+---
+
 ## [v7.4.0-rc5]
 
 * Fixed added deprecated proposal, compatible history
