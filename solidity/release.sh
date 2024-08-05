@@ -25,8 +25,8 @@ cp "$project_dir/LICENSE" "$solidity_dir/contracts/"
 
 (
   cd "$solidity_dir" || exit 1
-  yarn clean
   yarn install
+  yarn clean
   yarn compile
 )
 

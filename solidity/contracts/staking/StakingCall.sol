@@ -13,6 +13,7 @@ library StakingCall {
     address public constant STAKING_ADDRESS =
         address(0x0000000000000000000000000000000000001003);
 
+    // Deprecated: use delegateV2
     function delegate(
         string memory _val,
         uint256 _value
@@ -24,13 +25,7 @@ library StakingCall {
         return Decode.delegate(data);
     }
 
-    function delegateV2(
-        string memory,
-        uint256
-    ) external returns (bool _result) {
-        revert("Use an interface call");
-    }
-
+    // Deprecated: use undelegateV2
     function undelegate(
         string memory _val,
         uint256 _shares
@@ -43,13 +38,7 @@ library StakingCall {
         return Decode.undelegate(data);
     }
 
-    function undelegateV2(
-        string memory,
-        uint256
-    ) external returns (bool _result) {
-        revert("Use an interface call");
-    }
-
+    // Deprecated: use redelegateV2
     function redelegate(
         string memory _valSrc,
         string memory _valDst,
@@ -61,14 +50,6 @@ library StakingCall {
         );
         Decode.ok(result, data, "redelegate failed");
         return Decode.redelegate(data);
-    }
-
-    function redelegateV2(
-        string memory,
-        string memory,
-        uint256
-    ) external returns (bool _result) {
-        revert("Use an interface call");
     }
 
     function withdraw(string memory _val) internal returns (uint256) {
