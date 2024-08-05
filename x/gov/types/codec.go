@@ -6,6 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
+
+	"github.com/functionx/fx-core/v7/x/gov/legacy"
 )
 
 // ModuleCdc is the codec for the module
@@ -27,6 +29,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateEGFParams{},
 		&MsgUpdateStore{},
 		&MsgUpdateSwitchParams{},
+		&legacy.MsgUpdateParams{}, // nolint: staticcheck
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

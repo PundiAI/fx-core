@@ -1,5 +1,11 @@
 # Change log
 
+## [v7.4.0-rc5]
+
+* Fixed added deprecated proposal, compatible history
+
+---
+
 ## [v7.4.0-rc4]
 
 * Bump cosmos-sdk to v0.47.13
