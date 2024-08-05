@@ -44,7 +44,7 @@ func TestMakeEncodingConfig_RegisterInterfaces(t *testing.T) {
 	for implInterfaces.Next() {
 		count2++
 	}
-	assert.Equal(t, 298, count2)
+	assert.Equal(t, 299, count2)
 
 	typeURLMap := interfaceRegistry.FieldByName("typeURLMap").MapRange()
 	for typeURLMap.Next() {
