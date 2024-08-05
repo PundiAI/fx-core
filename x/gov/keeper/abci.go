@@ -33,7 +33,7 @@ func (keeper Keeper) EndBlocker(ctx sdk.Context) {
 		))
 
 		logger.Info(
-			"proposal did not meet minimum deposit; deleted",
+			"proposal did not meet the minimum deposit requirement and has been deleted",
 			"proposal", proposal.Id,
 			"min_deposit", sdk.NewCoins(keeper.GetMinDeposit(ctx, fxgovtypes.ExtractMsgTypeURL(proposal.Messages))...).String(),
 			"total_deposit", sdk.NewCoins(proposal.TotalDeposit...).String(),
