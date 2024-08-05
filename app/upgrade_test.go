@@ -4,8 +4,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -27,7 +29,7 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 	fxtypes.SetConfig(true)
 
 	home := filepath.Join(os.Getenv("HOME"), "tmp")
-	chainId := fxtypes.MainnetChainId
+	chainId := fxtypes.TestnetChainId // The upgrade test is not related to chainId, do not modify it
 
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
 	require.NoError(t, err)
@@ -41,9 +43,23 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 
 	ctx := newContext(t, myApp, chainId)
 
-	myApp.UpgradeKeeper.ApplyUpgrade(ctx, upgradetypes.Plan{
+	require.NoError(t, myApp.UpgradeKeeper.ScheduleUpgrade(ctx, upgradetypes.Plan{
 		Name:   nextversion.Upgrade.UpgradeName,
-		Height: ctx.BlockHeight() + 5,
+		Height: ctx.BlockHeight() + 1,
+	}))
+
+	header := ctx.BlockHeader()
+	header.Height = header.Height + 1
+	header.Time = time.Now().UTC()
+	require.NotPanics(t, func() {
+		myApp.BeginBlock(abci.RequestBeginBlock{
+			Header: header,
+		})
+	})
+	require.NotPanics(t, func() {
+		myApp.EndBlock(abci.RequestEndBlock{
+			Height: header.Height,
+		})
 	})
 }
 

@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v7/app/keepers"
@@ -17,7 +16,10 @@ import (
 func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-		baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+		baseAppLegacySS, found := app.ParamsKeeper.GetSubspace(baseapp.Paramspace)
+		if !found {
+			panic("baseapp subspace not found")
+		}
 		baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
 
 		cacheCtx, commit := ctx.CacheContext()
