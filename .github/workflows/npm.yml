@@ -7,9 +7,15 @@ on:
   push:
     tags:
       - "v*.*.*"
+  pull_request:
+    paths:
+      - 'solidity/**.sol'
+      - 'solidity/package.json'
+      - 'solidity/release.sh'
+      - '.github/workflows/npm.yml'
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,8 +23,15 @@ jobs:
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org/
-      - run: |
+
+      - name: Set ENV
+        id: env
+        if: github.event_name != 'pull_request'
+        run: echo "NODE_AUTH_TOKEN=${{secrets.NPM_TOKEN}}" >> $GITHUB_ENV
+
+      - name: Release
+        run: |
           chmod +x ./solidity/release.sh
           ./solidity/release.sh
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ steps.env.outputs.NODE_AUTH_TOKEN }}
