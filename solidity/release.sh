@@ -15,6 +15,13 @@ if [ -d "$project_dir/solidity" ]; then
   solidity_dir="$project_dir/solidity"
 fi
 
+package_name=$(jq -r '.name' "$solidity_dir/package.json")
+last_version=$(npm info "$package_name" version)
+latest_version=$(jq -r '.version' "$solidity_dir/package.json")
+if [ "$last_version" == "$latest_version" ]; then
+  echo "The latest version of $package_name is already published." && exit 0
+fi
+
 if [ ! -f "$solidity_dir/hardhat.config.ts" ]; then
   echo "This script must be run from the root of the repository." && exit 1
 fi
@@ -42,5 +49,9 @@ done
 # publish contracts package
 (
   cd "$solidity_dir/contracts"
-  npm publish --access public
+  if [ -z "$NODE_AUTH_TOKEN" ]; then
+    npm publish --dry-run
+  else
+    npm publish --access public
+  fi
 )
