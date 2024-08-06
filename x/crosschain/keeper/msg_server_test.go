@@ -359,7 +359,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 
 	token := fmt.Sprintf("0x%s", tmrand.Str(40))
 	denom := types.NewBridgeDenom(suite.chainName, token)
-	suite.Keeper().AddBridgeToken(suite.ctx, token, denom) // nolint:staticcheck
+	suite.Keeper().AddBridgeToken(suite.ctx, token, denom)
 
 	privateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
@@ -671,7 +671,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToFxClaim)
 				suite.True(ok)
-				suite.Keeper().AddBridgeToken(suite.ctx, msg.TokenContract, types.NewBridgeDenom(suite.chainName, msg.TokenContract)) // nolint:staticcheck
+				suite.Keeper().AddBridgeToken(suite.ctx, msg.TokenContract, types.NewBridgeDenom(suite.chainName, msg.TokenContract))
 				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1

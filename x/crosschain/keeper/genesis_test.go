@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		denom, err := suite.Keeper().SetIbcDenomTrace(suite.ctx, bridgeToken.Token, "")
 		suite.Require().NoError(err)
 		suite.Require().Equal(denom, bridgeToken.Denom)
-		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom) // nolint:staticcheck
+		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom)
 
 		for _, bridger := range suite.bridgerAddrs {
 			voucher := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(9990))
