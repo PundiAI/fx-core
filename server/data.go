@@ -67,6 +67,10 @@ func dataPruningCmd() *cobra.Command {
 		Use:   "prune-compact",
 		Short: "Prune and Compact blocks and application states",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := cmd.Root().PersistentPreRunE(cmd, args); err != nil {
+				return err
+			}
+
 			backend, err := cmd.Flags().GetString(flagDBBackend)
 			if err != nil {
 				return err
