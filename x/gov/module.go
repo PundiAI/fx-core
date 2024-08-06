@@ -99,13 +99,18 @@ func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper, ak govtypes.AccountKee
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	msgServer := keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(am.keeper.Keeper), am.keeper)
-	govv1betal.RegisterMsgServer(cfg.MsgServer(), govkeeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
+	govMsgServer := govkeeper.NewMsgServerImpl(am.keeper.Keeper)
+	msgServer := keeper.NewMsgServerImpl(govMsgServer, am.keeper)
+
+	legacyMsgServer := govkeeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer)
+	govv1betal.RegisterMsgServer(cfg.MsgServer(), legacyMsgServer)
 	govv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
+	types.RegisterMsgServer(cfg.MsgServer(), msgServer)
 
 	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
 	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 	govv1.RegisterQueryServer(cfg.QueryServer(), am.keeper.Keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 3, m.Migrate3to4)
