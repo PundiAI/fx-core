@@ -8,6 +8,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -15,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v7/contract"
+	fxtelemetry "github.com/functionx/fx-core/v7/telemetry"
 	fxtypes "github.com/functionx/fx-core/v7/types"
 	"github.com/functionx/fx-core/v7/x/crosschain/types"
 )
@@ -26,6 +29,22 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 	}
 
 	coin := sdk.NewCoin(bridgeToken.Denom, claim.Amount)
+	if !ctx.IsCheckTx() {
+		defer func() {
+			telemetry.IncrCounterWithLabels(
+				[]string{types.ModuleName, "send_to_fx"},
+				float32(1),
+				[]metrics.Label{
+					telemetry.NewLabel("module", k.moduleName),
+				},
+			)
+			fxtelemetry.SetGaugeLabelsWithDenom(
+				[]string{types.ModuleName, "send_to_fx_amount"},
+				coin.Denom, coin.Amount.BigInt(),
+				telemetry.NewLabel("module", k.moduleName),
+			)
+		}()
+	}
 	receiveAddr, err := sdk.AccAddressFromBech32(claim.Receiver)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, "receiver address")

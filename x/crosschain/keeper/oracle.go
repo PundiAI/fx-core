@@ -201,11 +201,11 @@ func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddrStr string) {
 	}
 	if !ctx.IsCheckTx() {
 		telemetry.SetGaugeWithLabels(
-			[]string{types.ModuleName, types.MetricsKeyOracleStatus},
+			[]string{types.ModuleName, "oracle_status"},
 			float32(1),
 			[]metrics.Label{
-				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
-				telemetry.NewLabel(types.MetricsLabelAddress, oracle.OracleAddress),
+				telemetry.NewLabel("module", k.moduleName),
+				telemetry.NewLabel("address", oracle.OracleAddress),
 			},
 		)
 	}

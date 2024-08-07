@@ -4,7 +4,6 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -55,13 +54,8 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 	k.SetMigrateRecord(ctx, fromAddress, toAddress)
 
 	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, msg.Type()},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel("from", msg.From),
-				telemetry.NewLabel("to", msg.To),
-			},
+		telemetry.IncrCounter(1,
+			types.ModuleName, msg.Type(),
 		)
 	}()
 

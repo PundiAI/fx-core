@@ -61,20 +61,17 @@ func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	))
 
 	if !ctx.IsCheckTx() {
-		fxtelemetry.SetGaugeLabelsWithCoin(
-			[]string{types.ModuleName, types.MetricsKeyOutgoingTx},
-			amount,
-			telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+		fxtelemetry.SetGaugeLabelsWithDenom(
+			[]string{types.ModuleName, "outgoing_tx_amount"},
+			amount.Denom, amount.Amount.BigInt(),
+			telemetry.NewLabel("module", k.moduleName),
 		)
-
-		metrics.IncrCounterWithLabels(
-			[]string{types.ModuleName, types.MetricsKeyOutgoingTx},
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, "outgoing_tx"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
-				telemetry.NewLabel(fxtelemetry.LabelSender, sender.String()),
-				telemetry.NewLabel(fxtelemetry.LabelReceiver, receiver),
-				telemetry.NewLabel(fxtelemetry.LabelToken, amount.Denom),
+				telemetry.NewLabel("module", k.moduleName),
+				telemetry.NewLabel("denom", amount.Denom),
 			},
 		)
 	}
