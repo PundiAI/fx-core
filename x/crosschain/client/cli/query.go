@@ -91,6 +91,8 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		// pending bridge call
 		CmdGetPendingBridgeCalls(chainName),
 		CmdGetPendingBridgeCall(chainName),
+
+		CmdGetPendingExecuteClaim(chainName),
 	}
 
 	for _, command := range cmds {
@@ -1049,5 +1051,33 @@ func CmdGetPendingBridgeCall(chainName string) *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	return cmd
+}
+
+func CmdGetPendingExecuteClaim(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-execute-claim",
+		Short: "Query pending execute claim",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.PendingExecuteClaim(cmd.Context(), &types.QueryPendingExecuteClaimRequest{
+				ChainName:  chainName,
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddPaginationFlagsToCmd(cmd, "pending execute claim")
 	return cmd
 }
