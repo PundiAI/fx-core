@@ -62,25 +62,21 @@ func (k Keeper) AddOutgoingBridgeCallWithoutBuild(ctx sdk.Context, outCall *type
 	))
 
 	if !ctx.IsCheckTx() {
-		tokenLabels := make([]metrics.Label, 0, len(outCall.Tokens))
 		for _, t := range outCall.Tokens {
-			fxtelemetry.SetGaugeLabelsWithToken(
-				[]string{types.ModuleName, types.MetricsKeyBridgeCallOut},
+			fxtelemetry.SetGaugeLabelsWithDenom(
+				[]string{types.ModuleName, "bridge_call_out_amount"},
 				t.Contract, t.Amount.BigInt(),
-				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+				telemetry.NewLabel("module", k.moduleName),
 			)
-			tokenLabels = append(tokenLabels, telemetry.NewLabel(fxtelemetry.LabelToken, t.Contract))
+			telemetry.IncrCounterWithLabels(
+				[]string{types.ModuleName, "bridge_call_out"},
+				float32(1),
+				[]metrics.Label{
+					telemetry.NewLabel("module", k.moduleName),
+					telemetry.NewLabel("contract", t.Contract),
+				},
+			)
 		}
-		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, types.MetricsKeyBridgeCallOut},
-			float32(1),
-			append([]metrics.Label{
-				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
-				telemetry.NewLabel(fxtelemetry.LabelSender, outCall.Sender),
-				telemetry.NewLabel(types.MetricsLabelRefund, outCall.Refund),
-				telemetry.NewLabel(fxtelemetry.LabelTo, outCall.To),
-			}, tokenLabels...),
-		)
 	}
 
 	return outCall.Nonce

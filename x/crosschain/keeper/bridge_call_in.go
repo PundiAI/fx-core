@@ -38,15 +38,11 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	if !ctx.IsCheckTx() {
 		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, types.MetricsKeyBridgeCallIn},
+			[]string{types.ModuleName, "bridge_call_in"},
 			float32(1),
 			[]metrics.Label{
-				telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
-				telemetry.NewLabel(fxtelemetry.LabelSender, msg.GetSender()),
-				telemetry.NewLabel(fxtelemetry.LabelTo, msg.GetTo()),
-				telemetry.NewLabel(fxtelemetry.LabelSuccess, strconv.FormatBool(err == nil)),
-				telemetry.NewLabel(types.MetricsLabelRefund, msg.GetRefund()),
-				telemetry.NewLabel(types.MetricsLabelTxOrigin, msg.GetTxOrigin()),
+				telemetry.NewLabel("module", k.moduleName),
+				telemetry.NewLabel("success", strconv.FormatBool(err == nil)),
 			},
 		)
 	}
@@ -93,9 +89,9 @@ func (k Keeper) BridgeCallTransferAndCallEvm(ctx sdk.Context, sender, refundAddr
 
 	if !ctx.IsCheckTx() {
 		fxtelemetry.SetGaugeLabelsWithCoins(
-			[]string{types.ModuleName, types.MetricsKeyBridgeCallIn},
+			[]string{types.ModuleName, "bridge_call_in_amount"},
 			coins,
-			telemetry.NewLabel(types.MetricsLabelModule, k.moduleName),
+			telemetry.NewLabel("module", k.moduleName),
 		)
 	}
 

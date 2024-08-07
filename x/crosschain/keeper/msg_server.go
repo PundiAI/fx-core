@@ -165,11 +165,11 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		oracle.StartHeight = ctx.BlockHeight()
 		if !ctx.IsCheckTx() {
 			telemetry.SetGaugeWithLabels(
-				[]string{types.ModuleName, types.MetricsKeyOracleStatus},
+				[]string{types.ModuleName, "oracle_status"},
 				float32(0),
 				[]metrics.Label{
-					telemetry.NewLabel(types.MetricsLabelModule, s.moduleName),
-					telemetry.NewLabel(types.MetricsLabelAddress, oracle.OracleAddress),
+					telemetry.NewLabel("module", s.moduleName),
+					telemetry.NewLabel("address", oracle.OracleAddress),
 				},
 			)
 		}
