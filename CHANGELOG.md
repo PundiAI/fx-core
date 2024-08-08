@@ -55,11 +55,11 @@
 
 ### Features
 
-* Support bridge call auto refund and `refundCallback` interface (#554) (#576)
+* Support bridge call auto refund and `refundCallback` interface
 * Support for pre-compiled contracts to call bridgeCall 
 * Support IBC bridge call to fxCore-EVM
-* Support for adding crosschain requests to pending pool when liquidity is low (#420)
-* Implement liquidity provider rewards on crosschain (#339)
+* Support for adding crosschain requests to pending pool when liquidity is low
+* Implement liquidity provider rewards on crosschain
 
 ### Improvements
 
@@ -67,9 +67,9 @@
 
 ### Bug Fixes
 
-* Add validate for BypassMinFee (#587)
-* Update max-tx-gas-wanted to 0 on upgrade (#585)
-* Add layer2 module to crosschain cli (#438)
+* Add validate for BypassMinFee
+* Update max-tx-gas-wanted to 0 on upgrade
+* Add layer2 module to crosschain cli
 
 ## [v7.0.1-rc0]
 
