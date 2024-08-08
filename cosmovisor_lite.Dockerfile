@@ -28,6 +28,7 @@ ENV DAEMON_PREUPGRADE_MAX_RETRIES=3
 ENV COSMOVISOR_DISABLE_LOGS=false
 ENV COSMOVISOR_COLOR_LOGS=true
 
+COPY --from=fxv7_4 /root/.fxcore/cosmovisor/genesis /root/.fxcore/cosmovisor/genesis
 COPY --from=fxv7_4 /root/.fxcore/cosmovisor/upgrades /root/.fxcore/cosmovisor/upgrades
 
 COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
