@@ -10,11 +10,7 @@ COPY . .
 
 RUN make build
 
-FROM functionx/fx-core:6.0.0 as fxv6
-FROM functionx/fx-core:7.0.1-rc0 as fxv7
-FROM functionx/fx-core:7.1.0-rc1 as fxv7_1
-FROM functionx/fx-core:7.2.0-rc2 as fxv7_2
-FROM functionx/fx-core:7.3.0-rc3 as fxv7_3
+FROM ghcr.io/functionx/fxcorevisor-lite:7.4.0-rc6 as fxv7_4
 
 FROM alpine:3.18
 
@@ -32,11 +28,7 @@ ENV DAEMON_PREUPGRADE_MAX_RETRIES=3
 ENV COSMOVISOR_DISABLE_LOGS=false
 ENV COSMOVISOR_COLOR_LOGS=true
 
-COPY --from=fxv6 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v6.0.x/bin/fxcored
-COPY --from=fxv7 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.0.x/bin/fxcored
-COPY --from=fxv7_1 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.1.x/bin/fxcored
-COPY --from=fxv7_2 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.2.x/bin/fxcored
-COPY --from=fxv7_3 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.3.x/bin/fxcored
+COPY --from=fxv7_4 /root/.fxcore/cosmovisor/upgrades /root/.fxcore/cosmovisor/upgrades
 
 COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
 COPY --from=builder /app/build/bin/fxcored /usr/bin/fxcored

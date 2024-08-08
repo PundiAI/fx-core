@@ -1,5 +1,11 @@
 # Change log
 
+## [v7.5.0-rc1]
+
+* Fixed gov MsgServer unregistered
+
+---
+
 ## [v7.4.0-rc6]
 
 * Fixed nil consensus params in BeginBlock during migration
