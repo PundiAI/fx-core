@@ -38,6 +38,7 @@ const (
 	TestnetBlockHeightV72 = 14_389_000 // v7.2
 	TestnetBlockHeightV73 = 14_551_500 // v7.3
 	TestnetBlockHeightV74 = 15_614_000 // v7.4
+	TestnetBlockHeightV75 = 15_660_500 // v7.5
 )
 
 var (
