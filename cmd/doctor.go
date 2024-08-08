@@ -531,6 +531,5 @@ func getGenesisDocAndSha256(genesisFile string) (*tmtypes.GenesisDoc, string, er
 	if err != nil {
 		return nil, "", err
 	}
-	fmt.Println(dst.String())
 	return genesisDoc, fxtypes.Sha256Hex(dst.Bytes()), nil
 }
