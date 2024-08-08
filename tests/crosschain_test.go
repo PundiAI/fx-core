@@ -101,8 +101,13 @@ func (suite *IntegrationTest) CrossChainTest() {
 				uint64(pundixMetadata.DenomUnits[1].Exponent), pundixAddress, "")
 		}
 
-		chain.UpdateParamsEnablePending()
+		chain.UpdateParams(func(params *crosschaintypes.Params) {
+			params.EnableBridgeCallPending = true
+			params.EnableSendToExternalPending = true
+		})
 	}
+
+	// suite.UpdateParamsTest()
 }
 
 func (suite *IntegrationTest) OriginalCrossChainTest() {
@@ -413,4 +418,14 @@ func (suite *IntegrationTest) BridgeCallTest() {
 	ethBridgeCallNonce := ethChain.BridgeCall(bridgeCallCoins)
 	ethChain.BridgeCallConfirm(ethBridgeCallNonce, true)
 	suite.True(suite.QueryBalances(erc20ModuleAddr).IsZero())
+}
+
+func (suite *IntegrationTest) UpdateParamsTest() {
+	for _, chain := range suite.crosschain {
+		chain.UpdateParams(func(params *crosschaintypes.Params) {
+			params.DelegateMultiple = 100
+		})
+		params := chain.QueryParams()
+		suite.Require().Equal(params.DelegateMultiple, int64(100))
+	}
 }
