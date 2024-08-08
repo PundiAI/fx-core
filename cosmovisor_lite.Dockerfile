@@ -32,7 +32,7 @@ COPY --from=fxv7_4 /root/.fxcore/cosmovisor/upgrades /root/.fxcore/cosmovisor/up
 
 COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
 COPY --from=builder /app/build/bin/fxcored /usr/bin/fxcored
-COPY --from=builder /app/build/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.4.x/bin/fxcored
+COPY --from=builder /app/build/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.5.x/bin/fxcored
 
 RUN cosmovisor init /root/.fxcore/cosmovisor/upgrades/v6.0.x/bin/fxcored
 
