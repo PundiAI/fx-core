@@ -6,12 +6,16 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 
 	"github.com/functionx/fx-core/v7/app/upgrades"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          "v7.5.x",
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: func() *storetypes.StoreUpgrades {
+		if fxtypes.ChainId() == fxtypes.TestnetChainId {
+			return &storetypes.StoreUpgrades{}
+		}
 		return &storetypes.StoreUpgrades{
 			Added: []string{
 				crisistypes.ModuleName,

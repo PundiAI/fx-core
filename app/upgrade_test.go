@@ -30,6 +30,7 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 
 	home := filepath.Join(os.Getenv("HOME"), "tmp")
 	chainId := fxtypes.TestnetChainId // The upgrade test is not related to chainId, do not modify it
+	fxtypes.SetChainId(chainId)
 
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
 	require.NoError(t, err)

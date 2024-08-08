@@ -9,12 +9,17 @@ import (
 
 	"github.com/functionx/fx-core/v7/app/keepers"
 	"github.com/functionx/fx-core/v7/contract"
+	fxtypes "github.com/functionx/fx-core/v7/types"
 	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
 	fxevmkeeper "github.com/functionx/fx-core/v7/x/evm/keeper"
 )
 
 func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		// Testnet skip
+		if fxtypes.ChainId() == fxtypes.TestnetChainId {
+			return fromVM, nil
+		}
 		// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
 		baseAppLegacySS, found := app.ParamsKeeper.GetSubspace(baseapp.Paramspace)
 		if !found {
