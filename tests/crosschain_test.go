@@ -325,13 +325,9 @@ func (suite *IntegrationTest) BridgeCallTest() {
 		}
 	}
 
-	suite.T().Logf("moduleTokenMap: %+v", moduleTokenMap)
-	suite.T().Logf("moduleDenomMap: %+v", moduleDenomMap)
-
 	for _, metadata := range tokenMetaDatasMap {
 		metadata.DenomUnits[0].Aliases = tokenAliasesMap[metadata.Base]
 		suite.erc20.RegisterCoinProposal(metadata)
-		suite.T().Logf("metadata: %+v", metadata)
 	}
 
 	ethChain := suite.GetCrossChainByName(ethtypes.ModuleName)

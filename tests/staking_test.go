@@ -534,13 +534,14 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 }
 
 func (suite *IntegrationTest) StakingPrecompileV2() {
+	// 1. create a new account, send some balance to it
 	delSigner := helpers.NewSigner(helpers.NewEthPrivKey())
 	initBalance := sdkmath.NewInt(2000).MulRaw(1e18)
 	suite.Send(delSigner.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
 
-	// delegate
+	// 2. delegate to first validator
 	valAddr := suite.staking.GetFirstValAddr()
-	delBalance := sdkmath.NewInt(1000).MulRaw(1e18)
+	delBalance := sdkmath.NewInt(1000)
 	receipt := suite.staking.DelegateV2(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
 	txFee1 := suite.evm.TxFee(receipt.TxHash)
 
@@ -552,24 +553,35 @@ func (suite *IntegrationTest) StakingPrecompileV2() {
 	_, delAmt1 := suite.staking.Delegation(valAddr.String(), hexAddr)
 	suite.Equal(delAmt1.String(), delBalance.String())
 
-	// undelegate
-	suite.staking.UnDelegateV2(delSigner.PrivKey(), valAddr.String(), big.NewInt(0).Div(delAmt1, big.NewInt(2)))
-	_, delAmt2 := suite.staking.Delegation(valAddr.String(), hexAddr)
-	suite.Equal(delAmt2.String(), delBalance.Quo(sdkmath.NewInt(2)).String())
+	halfDelegateAmount := big.NewInt(0).Div(delBalance.BigInt(), big.NewInt(2))
 
+	// 2. undelegate half of the first validator amount
+	suite.staking.UnDelegateV2(delSigner.PrivKey(), valAddr.String(), halfDelegateAmount)
+	_, delAmt2 := suite.staking.Delegation(valAddr.String(), hexAddr)
+	suite.Equal(halfDelegateAmount.String(), delAmt2.String())
+
+	// 3. create a new validator, and redelegate half of the first validator amount to it(new validator is not bonded)
 	valNew := helpers.NewSigner(helpers.NewEthPrivKey())
 	suite.Send(valNew.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
 	resp := suite.staking.CreateValidator(valNew.PrivKey(), false)
 	suite.Equal(resp.Code, uint32(0))
 
-	// redelegate
-	suite.staking.RedelegateV2(delSigner.PrivKey(), valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), big.NewInt(0).Div(delAmt1, big.NewInt(2)))
+	// 4. redelegate half of the first validator amount to new validator
+	suite.staking.RedelegateV2(delSigner.PrivKey(), valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), halfDelegateAmount)
 
 	delShare, _ := suite.staking.Delegation(valAddr.String(), hexAddr)
 	suite.Equal(int64(0), delShare.Int64())
 
+	// 5. check new validator's delegation amount, expecting half of the first validator amount
 	_, delAmt3 := suite.staking.Delegation(sdk.ValAddress(valNew.AccAddress()).String(), hexAddr)
-	suite.Equal(delAmt3.String(), delBalance.Quo(sdkmath.NewInt(2)).String())
+	suite.Equal(halfDelegateAmount.String(), delAmt3.String())
+
+	{
+		// finally, clear the new validator
+		suite.staking.UnDelegateV2(delSigner.PrivKey(), sdk.ValAddress(valNew.AccAddress()).String(), halfDelegateAmount)
+		_, valSelfDelegation := suite.staking.Delegation(sdk.ValAddress(valNew.AccAddress()).String(), valNew.Address())
+		suite.staking.UnDelegateV2(valNew.PrivKey(), sdk.ValAddress(valNew.AccAddress()).String(), valSelfDelegation)
+	}
 }
 
 func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
