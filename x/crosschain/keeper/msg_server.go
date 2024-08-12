@@ -220,6 +220,8 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 	if _, err = s.stakingMsgServer.BeginRedelegate(c, msgBeginRedelegate); err != nil {
 		return nil, err
 	}
+	oracle.DelegateValidator = msg.ValidatorAddress
+	s.SetOracle(ctx, oracle)
 	return &types.MsgReDelegateResponse{}, err
 }
 
