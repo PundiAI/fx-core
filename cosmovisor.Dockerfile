@@ -10,6 +10,7 @@ COPY . .
 
 RUN make build
 
+FROM ghcr.io/functionx/fx-core:6.1.0 as fxv6
 FROM ghcr.io/functionx/fxcorevisor:7.4.0-rc6 as fxv7_4
 
 FROM alpine:3.18
@@ -30,6 +31,7 @@ ENV COSMOVISOR_COLOR_LOGS=true
 
 COPY --from=fxv7_4 /root/.fxcore/cosmovisor/genesis /root/.fxcore/cosmovisor/genesis
 COPY --from=fxv7_4 /root/.fxcore/cosmovisor/upgrades /root/.fxcore/cosmovisor/upgrades
+COPY --from=fxv6 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v6.0.x/bin/fxcored
 
 COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
 COPY --from=builder /app/build/bin/fxcored /usr/bin/fxcored
