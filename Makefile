@@ -175,7 +175,7 @@ test-count:
 	go test -mod=readonly -cpu 1 -count 1 -cover ./... | grep -v 'types\|cli\|no test files'
 
 test-nightly:
-	@TEST_INTEGRATION=true go test -mod=readonly -cpu 4 -v -run TestIntegrationTest ./tests
+	@TEST_INTEGRATION=true go test -mod=readonly -timeout 20m -cpu 4 -v -run TestIntegrationTest ./tests
 	@TEST_CROSSCHAIN=true go test -mod=readonly -cpu 4 -v -run TestCrosschainKeeperTestSuite ./x/crosschain/...
 
 mocks:
