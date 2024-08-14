@@ -136,23 +136,22 @@ function show_oracle_reward() {
 }
 
 function show_validator_vote() {
+  PROPOSAL_ID=${1}
   if [ -z "$PROPOSAL_ID" ]; then
     {
       echo "proposal_id#status#title"
-      curl -s "$REST_RPC/cosmos/gov/v1beta1/proposals?pagination.reverse=true&pagination.limit=10" | jq -r '.proposals[]|"\(.proposal_id)#\(.status)#\(.content.title)"'
+      curl -s "$REST_RPC/cosmos/gov/v1/proposals?pagination.reverse=true&pagination.limit=10" | jq -r '.proposals[]|"\(.proposal_id)#\(.status)#\(.content.title)"'
     } | column -t -s"#"
     read -r -p "Please select a proposal id: " PROPOSAL_ID
   fi
 
-  {
-    echo "moniker#operator_address#acc_address#proposal_id#vote_option"
-    while read -r operator_address moniker; do
-      acc_address=$(curl -s "$REST_RPC/fx/auth/v1/bech32/$operator_address?prefix=${BECH32_PREFIX}" | jq -r '.address')
-      option=$(curl -s "$REST_RPC/cosmos/tx/v1beta1/txs?events=message.sender='$acc_address'&proposal_vote.proposal_id='$PROPOSAL_ID'" | jq -r '.txs[].tx.body.messages[].option')
-      option=${option:-"null"}
-      echo "$moniker#$operator_address#$acc_address#$PROPOSAL_ID#$option"
-    done < <(curl -s "$REST_RPC/cosmos/staking/v1beta1/validators" | jq -r '.validators[]|"\(.operator_address) \(.description.moniker)"')
-  } | column -t -s"#"
+  printf "\033[91m%-55s %-50s %-42s %-12s %-10s\033[0m\n" "moniker" "operator_address" "acc_address" "proposal_id" "vote_option"
+  while read -r operator_address moniker; do
+    acc_address=$(curl -s "$REST_RPC/fx/auth/v1/bech32/$operator_address?prefix=${BECH32_PREFIX}" | jq -r '.address')
+    option=$(curl -s "$REST_RPC/cosmos/tx/v1beta1/txs?events=message.sender='$acc_address'&events=proposal_vote.proposal_id='$PROPOSAL_ID'" | jq -r '.txs[].body.messages[].option')
+    option=${option:-"null"}
+    printf "%-55s %-50s %-42s %-12s %-10s\n" "$moniker" "$operator_address" "$acc_address" "$PROPOSAL_ID" "$option"
+  done < <(curl -s "$REST_RPC/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED" | jq -r '.validators[]|"\(.operator_address) \(.description.moniker)"')
 }
 
 function show_module_account() {
