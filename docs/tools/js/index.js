@@ -104,11 +104,6 @@ function getBlockSignatures() {
     return getBlock().last_commit.signatures
 }
 
-function getPeers() {
-    const result = httpGetJson(getJsonrpcUrl() + "/net_info")
-    return result.peers
-}
-
 function getAverageBlockTime(block) {
     const nowHeight = Number(block.header.height);
     const nowTime = block.header.time;

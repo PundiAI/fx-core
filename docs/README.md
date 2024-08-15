@@ -8,9 +8,11 @@
 
 * [More Developer Doc](https://functionx.gitbook.io/home/developers)
 
-# f(x)Core Tools
+# f(x)Core Status
 
-* [Web Tools](tools)
+* [PundiScan](https://pundiscan.io)
+* [Ping.Pub](https://ping.pub/fxcore)
+* [Develop Tools](tools)
 
 # f(x)Core SDK
 

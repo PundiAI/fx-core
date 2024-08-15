@@ -1,6 +1,6 @@
 # fxcore
 
-**fxcore** is a blockchain built using Cosmos SDK and Tendermint and created with [Starport](https://github.com/tendermint/starport).
+**fxcore** is a blockchain built using Cosmos SDK and Cometbft.
 
 [![Version](https://img.shields.io/github/v/release/functionx/fx-core.svg)](https://github.com/functionx/fx-core/releases/latest)
 [![License](https://img.shields.io/github/license/functionx/fx-core.svg)](https://github.com/functionx/fx-core/blob/main/LICENSE)
@@ -35,13 +35,17 @@ Usage:
 Available Commands:
   add-genesis-account Add a genesis account to genesis.json
   collect-gentxs      Collect genesis txs and output a genesis.json file
+  comet               CometBFT subcommands
   config              Create or query an application CLI configuration file
   data                Modify data or query data in database
   debug               Tool for helping with debugging your application
   doctor              Check your system for potential problems
   export              Export state to JSON
+  export-delegates    Export all delegates and holders
+  genesis             Application's genesis-related subcommands
   gentx               Generate a genesis tx carrying a self delegation
   help                Help about any command
+  index-eth-tx        Index historical eth txs
   init                Initialize private validator, p2p, genesis, application and client configuration files
   keys                Manage your application's keys
   pre-upgrade         Called by cosmovisor, before migrations upgrade
@@ -49,6 +53,7 @@ Available Commands:
   query               Querying subcommands
   rollback            rollback cosmos-sdk and tendermint state by one height
   rosetta             spin up a rosetta server
+  snapshots           Manage local snapshots
   start               Run the full node
   status              Query remote node for status
   tendermint          Tendermint subcommands
@@ -62,6 +67,7 @@ Flags:
       --home string         directory for config and data (default "/root/.fxcore")
       --log_format string   The logging format (json|plain) (default "plain")
       --log_level string    The logging level (trace|debug|info|warn|error|fatal|panic) (default "info")
+      --log_no_color        Disable colored logs
       --trace               print out full stack trace on errors
 
 Use "fxcored [command] --help" for more information about a command.
@@ -70,7 +76,6 @@ Use "fxcored [command] --help" for more information about a command.
 ## Learn more
 
 - [Function X Docs](https://functionx.gitbook.io)
-- [Tendermint Starport](https://github.com/tendermint/starport)
 - [Cosmos SDK Documentation](https://docs.cosmos.network)
 
 ## License

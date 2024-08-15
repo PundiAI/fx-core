@@ -1,4 +1,4 @@
-# f(x)Core Web Tools
+# f(x)Core Develop Tools
 
 ## Upgrade Countdown
 
@@ -9,11 +9,6 @@
 
 * [Mainnet](validator.html?network=mainnet)
 * [Testnet](validator.html?network=testnet)
-
-## Network Peers
-
-* [Mainnet](peer.html?network=mainnet)
-* [Testnet](peer.html?network=testnet)
 
 ## Module Balances
 
