@@ -127,7 +127,7 @@ func (k Keeper) pickUnBatchedTx(ctx sdk.Context, tokenContract string, maxElemen
 	return selectedTx, err
 }
 
-// removeUnbatchedTXIndex removes the tx from the pool
+// removeUnbatchedTx removes the tx from the pool
 func (k Keeper) removeUnbatchedTx(ctx sdk.Context, fee types.ERC20Token, txID uint64) error {
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(fee, txID)
