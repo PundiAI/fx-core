@@ -126,8 +126,7 @@ func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voting
 	maxDepositPeriod *time.Duration, threshold string, vetoThreshold, minInitialDepositRatio string, burnVoteQuorum, burnProposalDepositPrevote, burnVoteVeto bool,
 ) []*Params {
 	EGFMsgType := []string{
-		"/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
-		// TODO v1 MsgServer MsgCommunityPoolSpend pending
+		sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{}),
 	}
 	baseParams := make([]*Params, 0, len(EGFMsgType))
 	for _, msgType := range EGFMsgType {
