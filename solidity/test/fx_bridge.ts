@@ -8,6 +8,7 @@ describe("fork network and fx bridge test", function () {
   let bridgeAddress: string;
   let adminAddress: string;
   let bridgeContractName: string;
+  let expectBridgeCallStatus: boolean;
   const abiCode = new AbiCoder();
 
   beforeEach(async function () {
@@ -21,18 +22,28 @@ describe("fork network and fx bridge test", function () {
         bridgeAddress = "0x6f1D09Fed11115d65E1071CD2109eDb300D80A27";
         adminAddress = "0x0F413055AdEF9b61e9507928c6856F438d690882";
         bridgeContractName = "FxBridgeLogicETH";
+        expectBridgeCallStatus = false;
         break;
       case "11155111":
         gasAddress = "0x6Cc9397c3B38739daCbfaA68EaD5F5D77Ba5F455";
         bridgeAddress = "0xd384a8e8822Ea845e83eb5AA2877239150615C18";
         adminAddress = "0xcF8049f0B918650614D5bf18CF15af080eFdDEe1";
         bridgeContractName = "FxBridgeLogicETH";
+        expectBridgeCallStatus = true;
         break;
       case "84532":
         gasAddress = "0x4200000000000000000000000000000000000016";
         bridgeAddress = "0x9164D153b8Af6D94d41E7876E814DD3Db1AEC320";
         adminAddress = "0xcF8049f0B918650614D5bf18CF15af080eFdDEe1";
         bridgeContractName = "FxBridgeLogic";
+        expectBridgeCallStatus = true;
+        break;
+      case "8453":
+        gasAddress = "0x4200000000000000000000000000000000000016";
+        bridgeAddress = "0x7a986bA67227acfab86385FF33436a80E2BB4CC5";
+        adminAddress = "0xE77A7EA2F1DC25968b5941a456d99D37b80E98B5";
+        bridgeContractName = "FxBridgeLogic";
+        expectBridgeCallStatus = false;
         break;
       default:
         throw new Error("Unsupported network");
@@ -121,7 +132,7 @@ describe("fork network and fx bridge test", function () {
         oldTokenStatus.get(bridgeToken.addr).batchNonce.toString()
       );
       expect(await bridgeContract.state_lastBridgeCallNonces(1)).to.equal(
-        false
+        expectBridgeCallStatus
       );
     }
   }).timeout(100000);
