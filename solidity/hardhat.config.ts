@@ -19,6 +19,10 @@ const config: HardhatUserConfig = {
       url: `${process.env.ETHEREUM_URL || "https://1rpc.io/eth"}`,
       chainId: 1,
     },
+    base: {
+      url: `${process.env.BASE_URL || "https://mainnet.base.org"}`,
+      chainId: 8453,
+    },
     sepolia: {
       url: `${process.env.SEPOLIA_URL || "https://rpc.sepolia.org"}`,
       chainId: 11155111,
