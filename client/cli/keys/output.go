@@ -1,7 +1,6 @@
 package keys
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,8 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"golang.org/x/crypto/sha3"
 	"gopkg.in/yaml.v2"
 )
 
@@ -53,32 +52,9 @@ func NewKeyOutput(name string, keyType keyring.KeyType, a sdk.Address, pk crypto
 		PubKey:  string(bz),
 	}
 	if strings.EqualFold(pk.Type(), ethsecp256k1.KeyType) {
-		keyOutput.Eip55Address = string(checksumHex(a.Bytes()))
+		keyOutput.Eip55Address = common.BytesToAddress(a.Bytes()).String()
 	}
 	return keyOutput, nil
-}
-
-func checksumHex(addr []byte) []byte {
-	buf := make([]byte, len(addr)*2)
-	hex.Encode(buf, addr)
-	buf = append([]byte("0x"), buf...)
-
-	// compute checksum
-	sha := sha3.NewLegacyKeccak256()
-	sha.Write(buf[2:])
-	hash := sha.Sum(nil)
-	for i := 2; i < len(buf); i++ {
-		hashByte := hash[(i-2)/2]
-		if i%2 == 0 {
-			hashByte = hashByte >> 4
-		} else {
-			hashByte &= 0xf
-		}
-		if buf[i] > '9' && hashByte > 7 {
-			buf[i] -= 32
-		}
-	}
-	return buf
 }
 
 // MkConsKeyOutput create a KeyOutput in with "cons" Bech32 prefixes.
