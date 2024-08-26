@@ -12,11 +12,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coder/websocket"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/libs/log"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
-	"nhooyr.io/websocket"
 )
 
 var _ jsonRPCCaller = &WSClient{}
