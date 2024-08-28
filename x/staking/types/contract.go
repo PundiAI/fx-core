@@ -326,7 +326,7 @@ type ValidatorListArgs struct {
 
 // Validate validates the args
 func (args *ValidatorListArgs) Validate() error {
-	if args.SortBy < uint8(ValidatorSortByPower) || args.SortBy > uint8(ValidatorSortByMissed) {
+	if args.SortBy > uint8(ValidatorSortByMissed) {
 		return fmt.Errorf("over the sort by limit")
 	}
 	return nil
