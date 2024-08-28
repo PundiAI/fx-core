@@ -358,7 +358,8 @@ func NewAppKeeper(
 					return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter)
 				},
 				func(_ sdk.Context, rules ethparams.Rules) vm.PrecompiledContract {
-					return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, fxtypes.DefaultDenom, appKeepers.GovKeeper)
+					return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper,
+						appKeepers.DistrKeeper, fxtypes.DefaultDenom, appKeepers.GovKeeper, appKeepers.SlashingKeeper)
 				},
 			},
 			allKeys,

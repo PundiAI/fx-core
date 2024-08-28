@@ -3,6 +3,11 @@
 pragma solidity ^0.8.0;
 
 interface IStaking {
+    enum ValidatorSortBy {
+        Power,
+        Missed
+    }
+
     // Deprecated: use delegateV2
     function delegate(
         string memory _val
@@ -77,6 +82,14 @@ interface IStaking {
         address _owner,
         address _spender
     ) external view returns (uint256 _shares);
+
+    function slashingInfo(
+        string memory _val
+    ) external view returns (bool _jailed, uint256 _missed);
+
+    function validatorList(
+        ValidatorSortBy _sortBy
+    ) external view returns (string[] memory);
 
     event Delegate(
         address indexed delegator,

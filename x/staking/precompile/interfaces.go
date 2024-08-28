@@ -7,6 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -38,6 +39,7 @@ type StakingKeeper interface {
 	BeginRedelegation(
 		ctx sdk.Context, delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress, sharesAmount sdk.Dec,
 	) (completionTime time.Time, err error)
+	GetLastValidators(ctx sdk.Context) (validators []stakingtypes.Validator)
 }
 
 type DistrKeeper interface {
@@ -59,4 +61,8 @@ type EvmKeeper interface {
 
 type GovKeeper interface {
 	CheckDisabledPrecompiles(ctx sdk.Context, contractAddress common.Address, methodId []byte) error
+}
+
+type SlashingKeeper interface {
+	GetValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress) (info slashingtypes.ValidatorSigningInfo, found bool)
 }
