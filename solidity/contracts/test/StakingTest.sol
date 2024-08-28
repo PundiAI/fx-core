@@ -138,4 +138,16 @@ contract StakingTest is IStaking {
     ) public view override returns (uint256) {
         return StakingCall.allowanceShares(_val, _owner, _spender);
     }
+
+    function slashingInfo(
+        string memory _val
+    ) external view override returns (bool _jailed, uint256 _missed) {
+        return IStaking(StakingCall.STAKING_ADDRESS).slashingInfo(_val);
+    }
+
+    function validatorList(
+        IStaking.ValidatorSortBy _sortBy
+    ) external view override returns (string[] memory) {
+        return IStaking(StakingCall.STAKING_ADDRESS).validatorList(_sortBy);
+    }
 }

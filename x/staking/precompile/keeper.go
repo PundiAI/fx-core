@@ -15,6 +15,7 @@ type Keeper struct {
 	distrMsgServer   distrtypes.MsgServer
 	stakingKeeper    StakingKeeper
 	stakingMsgServer stakingtypes.MsgServer
+	slashingKeeper   SlashingKeeper
 	stakingDenom     string
 }
 

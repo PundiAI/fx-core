@@ -48,6 +48,8 @@ const (
 	TestApproveSharesName      = "approveShares"
 	TestTransferSharesName     = "transferShares"
 	TestTransferFromSharesName = "transferFromShares"
+	TestSlashingInfoName       = "slashingInfo"
+	TestValidatorListName      = "validatorList"
 )
 
 type PrecompileTestSuite struct {

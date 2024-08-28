@@ -17,6 +17,13 @@ var (
 	stakingABI     = contract.MustABIJson(contract.IStakingMetaData.ABI)
 )
 
+type ValidatorSortBy uint8
+
+const (
+	ValidatorSortByPower ValidatorSortBy = iota
+	ValidatorSortByMissed
+)
+
 func GetAddress() common.Address {
 	return stakingAddress
 }
@@ -293,4 +300,38 @@ func (args *WithdrawArgs) Validate() error {
 func (args *WithdrawArgs) GetValidator() sdk.ValAddress {
 	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
 	return valAddr
+}
+
+type SlashingInfoArgs struct {
+	Validator string `abi:"_val"`
+}
+
+// Validate validates the args
+func (args *SlashingInfoArgs) Validate() error {
+	if _, err := sdk.ValAddressFromBech32(args.Validator); err != nil {
+		return fmt.Errorf("invalid validator address: %s", args.Validator)
+	}
+	return nil
+}
+
+// GetValidator returns the validator address, caller must ensure the validator address is valid
+func (args *SlashingInfoArgs) GetValidator() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
+	return valAddr
+}
+
+type ValidatorListArgs struct {
+	SortBy uint8 `abi:"_val"`
+}
+
+// Validate validates the args
+func (args *ValidatorListArgs) Validate() error {
+	if args.SortBy < uint8(ValidatorSortByPower) || args.SortBy > uint8(ValidatorSortByMissed) {
+		return fmt.Errorf("over the sort by limit")
+	}
+	return nil
+}
+
+func (args *ValidatorListArgs) GetSortBy() ValidatorSortBy {
+	return ValidatorSortBy(args.SortBy)
 }

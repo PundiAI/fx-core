@@ -28,6 +28,7 @@ func NewPrecompiledContract(
 	distrKeeper distrkeeper.Keeper,
 	stakingDenom string,
 	govKeeper GovKeeper,
+	slashingKeeper SlashingKeeper,
 ) *Contract {
 	keeper := &Keeper{
 		bankKeeper:       bankKeeper,
@@ -36,11 +37,14 @@ func NewPrecompiledContract(
 		stakingKeeper:    stakingKeeper,
 		stakingMsgServer: stakingkeeper.NewMsgServerImpl(stakingKeeper.Keeper),
 		stakingDenom:     stakingDenom,
+		slashingKeeper:   slashingKeeper,
 	}
 
 	delegateV2 := NewDelegateV2Method(keeper)
 	redelegateV2 := NewRedelegateV2Method(keeper)
 	undelegateV2 := NewUndelegateV2Method(keeper)
+	slashingInfo := NewSlashingInfoMethod(keeper)
+	validatorList := NewValidatorListMethod(keeper)
 	return &Contract{
 		methods: []contract.PrecompileMethod{
 			NewAllowanceSharesMethod(keeper),
@@ -58,11 +62,16 @@ func NewPrecompiledContract(
 			delegateV2,
 			redelegateV2,
 			undelegateV2,
+
+			slashingInfo,
+			validatorList,
 		},
 		v2Methods: map[string]bool{
-			string(delegateV2.GetMethodId()):   true,
-			string(redelegateV2.GetMethodId()): true,
-			string(undelegateV2.GetMethodId()): true,
+			string(delegateV2.GetMethodId()):    true,
+			string(redelegateV2.GetMethodId()):  true,
+			string(undelegateV2.GetMethodId()):  true,
+			string(slashingInfo.GetMethodId()):  true,
+			string(validatorList.GetMethodId()): true,
 		},
 		govKeeper: govKeeper,
 	}
