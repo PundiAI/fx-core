@@ -35,6 +35,12 @@ var _ types.MsgServerPro = msgServer{}
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitProposal) (*v1.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	msgInitialDeposit := msg.GetInitialDeposit()
+
+	if err := k.validateInitialDeposit(ctx, msgInitialDeposit); err != nil {
+		return nil, err
+	}
+
 	proposalMsgs, err := msg.GetMsgs()
 	if err != nil {
 		return nil, err
@@ -68,13 +74,13 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 
 	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
-	initialDeposit := k.Keeper.GetMinInitialDeposit(ctx, types.ExtractMsgTypeURL(proposal.Messages))
+	minInitialDeposit := k.Keeper.GetMinInitialDeposit(ctx, types.ExtractMsgTypeURL(proposal.Messages))
 
-	if sdk.NewCoins(msg.GetInitialDeposit()...).IsAllLT(sdk.NewCoins(initialDeposit)) {
-		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), initialDeposit)
+	if sdk.Coins(msgInitialDeposit).IsAllLT(sdk.NewCoins(minInitialDeposit)) {
+		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msgInitialDeposit, minInitialDeposit)
 	}
 
-	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msg.GetInitialDeposit())
+	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msgInitialDeposit)
 	if err != nil {
 		return nil, err
 	}
@@ -173,4 +179,26 @@ func (k msgServer) UpdateSwitchParams(c context.Context, req *types.MsgUpdateSwi
 		return nil, err
 	}
 	return &types.MsgUpdateSwitchParamsResponse{}, nil
+}
+
+// validateInitialDeposit validates if initial deposit is greater than or equal to the minimum
+// required at the time of proposal submission. This threshold amount is determined by
+// the deposit parameters. Returns nil on success, error otherwise.
+func (keeper Keeper) validateInitialDeposit(ctx sdk.Context, initialDeposit sdk.Coins) error {
+	params := keeper.GetParams(ctx)
+	minInitialDepositRatio, err := sdk.NewDecFromStr(params.MinInitialDepositRatio)
+	if err != nil {
+		return err
+	}
+	if minInitialDepositRatio.IsZero() {
+		return nil
+	}
+	minDepositCoins := params.MinDeposit
+	for i := range minDepositCoins {
+		minDepositCoins[i].Amount = sdk.NewDecFromInt(minDepositCoins[i].Amount).Mul(minInitialDepositRatio).RoundInt()
+	}
+	if !initialDeposit.IsAllGTE(minDepositCoins) {
+		return govtypes.ErrMinDepositTooSmall.Wrapf("was (%s), need (%s)", initialDeposit, minDepositCoins)
+	}
+	return nil
 }
