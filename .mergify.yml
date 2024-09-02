@@ -1,13 +1,13 @@
 queue_rules:
   - name: default
     queue_conditions:
-      - "#approved-reviews-by>1"
+      - "#approved-reviews-by>=2"
 
 pull_request_rules:
   - name: Automatic merge
     description: Merge when PR passes all branch protection and has label automerge
     conditions:
-      - "#approved-reviews-by>1"
+      - "#approved-reviews-by>=2"
       - base=main
       - label = automerge
     actions:
