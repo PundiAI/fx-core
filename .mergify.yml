@@ -1,5 +1,9 @@
 queue_rules:
   - name: default
+    merge_method: squash
+    update_method: merge
+    commit_message_template: |
+      {{ title }} (#{{ number }})
     queue_conditions:
       - "#approved-reviews-by>=2"
 
@@ -13,10 +17,6 @@ pull_request_rules:
     actions:
       queue:
         name: default
-        update_method: merge
-        merge_method: squash
-        commit_message_template: |
-            {{ title }} (#{{ number }})
   - name: backport patches to v7.5.x branch
     conditions:
       - base=main
