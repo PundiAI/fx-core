@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	tmcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/privval"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -525,13 +527,10 @@ func getGenesisDocAndSha256(genesisFile string) (*tmtypes.GenesisDoc, string, er
 	if err != nil {
 		return nil, "", err
 	}
-	dst := &bytes.Buffer{}
-	if err = json.Compact(dst, genesisFileData); err != nil {
-		return nil, "", err
-	}
 	genesisDoc, err := tmtypes.GenesisDocFromJSON(genesisFileData)
 	if err != nil {
 		return nil, "", err
 	}
-	return genesisDoc, fxtypes.Sha256Hex(dst.Bytes()), nil
+	genesisHash := hex.EncodeToString(tmhash.Sum(genesisFileData))
+	return genesisDoc, genesisHash, nil
 }
