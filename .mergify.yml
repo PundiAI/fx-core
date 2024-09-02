@@ -1,0 +1,45 @@
+queue_rules:
+  - name: default
+    queue_conditions:
+      - "#approved-reviews-by>=2"
+
+pull_request_rules:
+  - name: Automatic merge
+    description: Merge when PR passes all branch protection and has label automerge
+    conditions:
+      - "#approved-reviews-by>=2"
+      - base=main
+      - label = automerge
+    actions:
+      queue:
+        name: default
+        update_method: merge
+        merge_method: squash
+        commit_message_template: |
+            {{ title }} (#{{ number }})
+  - name: backport patches to v7.5.x branch
+    conditions:
+      - base=main
+      - label=backport/v7.5.x
+    actions:
+      backport:
+        branches:
+          - release/v7.5.x
+  - name: Ping PR author when conflicting
+    description: Warn the pull request author when their PR are conflicting
+    conditions:
+      - conflict
+      - '-closed'
+    actions:
+      comment:
+        message: >
+          👋 {{author}} your PR is conflicting and needs to be updated to be
+          merged
+  - name: Add a queue label when PR is queued
+    description: Toggle the queue label when a pull request is (un)queued.
+    conditions:
+      - queue-position > 0
+    actions:
+      label:
+        toggle:
+          - merge-queued
