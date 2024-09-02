@@ -1,13 +1,14 @@
 package server
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	tmcfg "github.com/cometbft/cometbft/config"
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/store"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -41,15 +42,15 @@ func StartCmd(appCreator types.AppCreator, defaultNodeHome string) *cobra.Comman
 			return fmt.Errorf("couldn't read GenesisDoc file: %w", err)
 		}
 		expectGenesisHash := serverCtx.Viper.GetString("genesis_hash")
-		actualGenesisHash := fxtypes.Sha256Hex(genesisBytes)
-		if len(expectGenesisHash) != 0 && fxtypes.Sha256Hex(genesisBytes) != expectGenesisHash {
+		actualGenesisHash := hex.EncodeToString(tmhash.Sum(genesisBytes))
+		if len(expectGenesisHash) != 0 && actualGenesisHash != expectGenesisHash {
 			return fmt.Errorf("--genesis_hash=%s does not match %s hash: %s", expectGenesisHash, genDocFile, actualGenesisHash)
 		}
 		genesisDoc, err := tmtypes.GenesisDocFromJSON(genesisBytes)
 		if err != nil {
 			return fmt.Errorf("error reading GenesisDoc at %s: %w", genDocFile, err)
 		}
-		if err = checkMainnetAndBlock(genesisDoc, serverCtx.Config); err != nil {
+		if err = checkMainnetAndBlock(genesisDoc, actualGenesisHash, serverCtx.Config); err != nil {
 			return err
 		}
 		fxtypes.SetChainId(genesisDoc.ChainID)
@@ -79,7 +80,7 @@ func StartCmd(appCreator types.AppCreator, defaultNodeHome string) *cobra.Comman
 	return startCmd
 }
 
-func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) error {
+func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, genesisHash string, config *tmcfg.Config) error {
 	if genesisDoc.InitialHeight > 1 || genesisDoc.ChainID != fxtypes.MainnetChainId || config.StateSync.Enable {
 		return nil
 	}
@@ -96,8 +97,7 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 	}()
 	blockStore := store.NewBlockStore(blockStoreDB)
 	if genesisDoc.GenesisTime.Equal(genesisTime) {
-		genesisBytes, _ := tmjson.Marshal(genesisDoc)
-		if fxtypes.Sha256Hex(genesisBytes) != fxtypes.MainnetGenesisHash {
+		if genesisHash != fxtypes.MainnetGenesisHash {
 			return nil
 		}
 		if blockStore.Height() < fxtypes.MainnetBlockHeightV2 {
@@ -124,7 +124,8 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 			return errors.New("invalid version: The current block height is less than the v7.5.0 upgrade height(16_838_000)," +
 				" please use the v6.x.x version to synchronize the block or download the latest snapshot")
 		}
-		return errors.New("invalid version: The current version is not released, please use the corresponding version")
+		// TODO: The line of code below must be removed before the release.
+		// return errors.New("invalid version: The current version is not released, please use the corresponding version")
 	}
 	return nil
 }
