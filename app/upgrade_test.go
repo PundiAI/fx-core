@@ -30,19 +30,7 @@ import (
 func Test_UpgradeAndMigrate(t *testing.T) {
 	helpers.SkipTest(t, "Skipping local test:", t.Name())
 
-	fxtypes.SetConfig(true)
-
-	home := filepath.Join(os.Getenv("HOME"), "tmp")
-	chainId := fxtypes.MainnetChainId
-	fxtypes.SetChainId(chainId)
-
-	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
-	require.NoError(t, err)
-
-	makeEncodingConfig := app.MakeEncodingConfig()
-	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
-		db, nil, false, map[int64]bool{}, home, 0,
-		makeEncodingConfig, app.EmptyAppOptions{}, baseapp.SetChainID(chainId))
+	myApp, chainId := buildApp(t, fxtypes.MainnetChainId)
 	myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(myApp.LastBlockHeight()+1, nextversion.Upgrade.StoreUpgrades()))
 	require.NoError(t, myApp.LoadLatestVersion())
 
@@ -82,6 +70,22 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 	})
 
 	checkProposalPassed(t, ctx, myApp, ingProposalIds)
+}
+
+func buildApp(t *testing.T, chainId string) (*app.App, string) {
+	fxtypes.SetConfig(true)
+
+	home := filepath.Join(os.Getenv("HOME"), "tmp")
+	fxtypes.SetChainId(chainId)
+
+	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
+	require.NoError(t, err)
+
+	makeEncodingConfig := app.MakeEncodingConfig()
+	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
+		db, nil, false, map[int64]bool{}, home, 0,
+		makeEncodingConfig, app.EmptyAppOptions{}, baseapp.SetChainID(chainId))
+	return myApp, chainId
 }
 
 func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) sdk.Context {
