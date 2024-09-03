@@ -133,11 +133,11 @@ func (k Keeper) IterateMigrateRecords(ctx sdk.Context, cb func(types.MigrateReco
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		if bytes.Equal(iter.Value()[1+addressLen+1:], types.ValuePrefixMigrateToFlag) {
+		if bytes.Equal(iter.Value()[:1], types.ValuePrefixMigrateToFlag) {
 			continue
 		}
 		if cb(types.MigrateRecord{
-			From:   sdk.AccAddress(iter.Key()).String(),
+			From:   sdk.AccAddress(iter.Key()[1:]).String(),
 			To:     common.BytesToAddress(iter.Value()[1 : addressLen+1]).String(),
 			Height: int64(sdk.BigEndianToUint64(iter.Value()[1+addressLen:])),
 		}) {

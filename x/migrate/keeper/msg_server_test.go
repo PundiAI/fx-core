@@ -62,4 +62,14 @@ func (suite *KeeperTestSuite) TestMigrateAccount() {
 	suite.Require().True(bb1.Empty())
 	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
 	suite.Require().Equal(b1, bb2.Sub(b2...))
+
+	// expect 1 record
+	recordCount := 0
+	suite.app.MigrateKeeper.IterateMigrateRecords(suite.ctx, func(record types.MigrateRecord) bool {
+		suite.Require().Equal(record.From, acc.String())
+		suite.Require().Equal(record.To, ethAcc.String())
+		recordCount++
+		return false
+	})
+	suite.Require().Equal(recordCount, 1)
 }
