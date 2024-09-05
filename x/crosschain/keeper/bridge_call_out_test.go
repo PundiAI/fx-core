@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"go.uber.org/mock/gomock"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (s *KeeperMockSuite) TestKeeper_BridgeCallResultHandler() {

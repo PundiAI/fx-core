@@ -10,11 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/contract"
-	testscontract "github.com/functionx/fx-core/v7/tests/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/staking/precompile"
-	"github.com/functionx/fx-core/v7/x/staking/types"
+	"github.com/functionx/fx-core/v8/contract"
+	testscontract "github.com/functionx/fx-core/v8/tests/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/x/staking/precompile"
+	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func TestStakingUndelegateABI(t *testing.T) {

@@ -21,10 +21,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/app"
-	nextversion "github.com/functionx/fx-core/v7/app/upgrades/v7"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/app"
+	nextversion "github.com/functionx/fx-core/v8/app/upgrades/v8"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 func Test_UpgradeAndMigrate(t *testing.T) {

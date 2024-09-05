@@ -9,10 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {

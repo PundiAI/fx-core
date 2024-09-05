@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	"github.com/functionx/fx-core/v7/x/gov/types"
+	"github.com/functionx/fx-core/v8/x/gov/types"
 )
 
 func MigrateFXParams(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec, params govv1.Params) error {

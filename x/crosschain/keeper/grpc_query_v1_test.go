@@ -22,13 +22,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 type CrossChainGrpcTestSuite struct {

@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
 
 func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketData) error {

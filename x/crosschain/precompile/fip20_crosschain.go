@@ -8,10 +8,10 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/legacy"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/legacy"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 type FIP20CrossChainMethod struct {

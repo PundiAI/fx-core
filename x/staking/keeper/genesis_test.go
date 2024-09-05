@@ -8,8 +8,8 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/staking/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {

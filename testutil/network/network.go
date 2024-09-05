@@ -40,7 +40,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	fxcfg "github.com/functionx/fx-core/v7/server/config"
+	fxcfg "github.com/functionx/fx-core/v8/server/config"
 )
 
 // package-wide network lock to only allow one test network at a time

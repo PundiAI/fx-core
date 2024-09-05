@@ -18,12 +18,12 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	fxgovtypes "github.com/functionx/fx-core/v7/x/gov/types"
-	ibctransfertypes "github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/app"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
+	ibctransfertypes "github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
 
 func TestAminoEncode(t *testing.T) {

@@ -30,10 +30,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/functionx/fx-core/v7/client/grpc"
-	"github.com/functionx/fx-core/v7/server"
-	fxcfg "github.com/functionx/fx-core/v7/server/config"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/client/grpc"
+	"github.com/functionx/fx-core/v8/server"
+	fxcfg "github.com/functionx/fx-core/v8/server/config"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 const SPACE = "  "

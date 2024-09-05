@@ -11,10 +11,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func TestBridgeCoinAmountMethod_ABI(t *testing.T) {

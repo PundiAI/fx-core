@@ -17,10 +17,10 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v7/client"
-	"github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	"github.com/functionx/fx-core/v8/client"
+	"github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 func (suite *IntegrationTest) WFXTest() {

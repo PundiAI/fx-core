@@ -18,16 +18,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/slices"
 
-	"github.com/functionx/fx-core/v7/contract"
-	testcontract "github.com/functionx/fx-core/v7/tests/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	"github.com/functionx/fx-core/v7/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v8/contract"
+	testcontract "github.com/functionx/fx-core/v8/tests/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 func TestCrossChainABI(t *testing.T) {
@@ -1984,10 +1984,10 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 
 			packData, value, portId, channelId, errArgs := tc.malleate(pair, md, signer, randMint)
 
-			contract := crosschaintypes.GetAddress()
+			crosschainContract := crosschaintypes.GetAddress()
 			addrQuery := signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.crosschain
+				crosschainContract = suite.crosschain
 				addrQuery = suite.crosschain
 			}
 
@@ -2000,7 +2000,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			res := suite.EthereumTx(signer, contract, value, packData)
+			res := suite.EthereumTx(signer, crosschainContract, value, packData)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)

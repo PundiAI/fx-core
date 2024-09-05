@@ -13,13 +13,13 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 func (suite *IntegrationTest) CrossChainTest() {

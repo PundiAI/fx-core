@@ -7,7 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 const (

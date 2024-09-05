@@ -23,16 +23,16 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
-	migratetypes "github.com/functionx/fx-core/v7/x/migrate/types"
-	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
+	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
+	migratetypes "github.com/functionx/fx-core/v8/x/migrate/types"
+	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v8/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 func (appKeepers *AppKeepers) generateKeys() {

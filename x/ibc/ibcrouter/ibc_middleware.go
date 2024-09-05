@@ -17,9 +17,9 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	fxtransfertypes "github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
-	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/parser"
-	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/types"
+	fxtransfertypes "github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/x/ibc/ibcrouter/parser"
+	"github.com/functionx/fx-core/v8/x/ibc/ibcrouter/types"
 )
 
 const (
@@ -191,7 +191,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 
 		// send tokens to destination
 		if _, err = im.transferKeeper.Transfer(sdk.WrapSDKContext(ctx), msgTransfer); err != nil {
-			return nil, errorsmod.Wrapf(errortypes.ErrInsufficientFunds, err.Error())
+			return nil, errorsmod.Wrap(errortypes.ErrInsufficientFunds, err.Error())
 		}
 	}
 	return ack, nil

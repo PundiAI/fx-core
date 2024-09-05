@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) HasBridgeCallConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) bool {

@@ -17,9 +17,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"golang.org/x/exp/slices"
 
-	"github.com/functionx/fx-core/v7/contract"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/erc20/types"
+	"github.com/functionx/fx-core/v8/contract"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 var _ types.MsgServer = &Keeper{}
@@ -190,16 +190,16 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 	}
 
 	erc20 := contract.GetFIP20().ABI
-	contract := pair.GetERC20Contract()
+	erc20Contract := pair.GetERC20Contract()
 
 	// Mint Tokens and send to receiver
-	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, contract, nil, erc20, "mint", receiver, coin.Amount.BigInt())
+	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, erc20Contract, nil, erc20, "mint", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return err
 	}
 
 	if pair.Denom == fxtypes.DefaultDenom {
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, contract.Bytes(), coins); err != nil {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, erc20Contract.Bytes(), coins); err != nil {
 			return errorsmod.Wrap(err, "failed to transfer escrow coins to origin denom")
 		}
 	}
@@ -213,10 +213,10 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 //   - Check if token balance decreased by amount
 func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
 	erc20 := contract.GetFIP20().ABI
-	contract := pair.GetERC20Contract()
+	erc20Contract := pair.GetERC20Contract()
 
 	// Burn escrowed tokens
-	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, contract, nil, erc20, "burn", sender, amount.BigInt())
+	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, erc20Contract, nil, erc20, "burn", sender, amount.BigInt())
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 
 	// Transfer origin denom to module
 	if pair.Denom == fxtypes.DefaultDenom {
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, contract.Bytes(), types.ModuleName, coins); err != nil {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, erc20Contract.Bytes(), types.ModuleName, coins); err != nil {
 			return errorsmod.Wrap(err, "failed to transfer origin denom to module")
 		}
 	}
@@ -249,8 +249,8 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 	erc20 := contract.GetFIP20().ABI
 
 	// Escrow tokens on module account
-	contract := pair.GetERC20Contract()
-	res, err := k.evmKeeper.ApplyContract(ctx, sender, contract, nil, erc20, "transfer", k.moduleAddress, amount.BigInt())
+	erc20Contract := pair.GetERC20Contract()
+	res, err := k.evmKeeper.ApplyContract(ctx, sender, erc20Contract, nil, erc20, "transfer", k.moduleAddress, amount.BigInt())
 	if err != nil {
 		return err
 	}
@@ -301,10 +301,10 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 	}
 
 	erc20 := contract.GetFIP20().ABI
-	contract := pair.GetERC20Contract()
+	erc20Contract := pair.GetERC20Contract()
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, contract, nil, erc20, "transfer", receiver, coin.Amount.BigInt())
+	res, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, erc20Contract, nil, erc20, "transfer", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return err
 	}

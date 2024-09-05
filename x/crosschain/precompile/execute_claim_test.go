@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 func TestExecuteClaimMethod_ABI(t *testing.T) {

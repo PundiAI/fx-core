@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/contract"
+	"github.com/functionx/fx-core/v8/contract"
 )
 
 var _ ExternalAddress = EthereumAddress{}

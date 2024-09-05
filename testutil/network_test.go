@@ -11,10 +11,10 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/testutil"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/testutil/network"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/testutil"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/testutil/network"
 )
 
 type IntegrationTestSuite struct {

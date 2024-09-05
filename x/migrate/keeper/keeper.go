@@ -12,7 +12,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/x/migrate/types"
+	"github.com/functionx/fx-core/v8/x/migrate/types"
 )
 
 // secp256k1

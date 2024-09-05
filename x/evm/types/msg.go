@@ -6,7 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v7/contract"
+	"github.com/functionx/fx-core/v8/contract"
 )
 
 var _ sdk.Msg = &MsgCallContract{}

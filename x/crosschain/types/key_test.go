@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func TestGetBatchConfirmKey(t *testing.T) {

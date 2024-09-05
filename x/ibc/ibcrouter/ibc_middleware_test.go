@@ -9,9 +9,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter"
-	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/parser"
+	_ "github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/x/ibc/ibcrouter"
+	"github.com/functionx/fx-core/v8/x/ibc/ibcrouter/parser"
 )
 
 func TestParseIncomingTransferField(t *testing.T) {

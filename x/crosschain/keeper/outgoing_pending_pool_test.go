@@ -5,9 +5,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"go.uber.org/mock/gomock"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func (s *KeeperMockSuite) TestSendToExternal() {

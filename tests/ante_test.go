@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
 
 func (suite *IntegrationTest) ByPassFeeTest() {

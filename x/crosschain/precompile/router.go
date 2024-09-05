@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
+	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 )
 
 type Router struct {

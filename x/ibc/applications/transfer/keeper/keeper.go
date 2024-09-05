@@ -12,7 +12,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
 
 // Keeper defines the IBC fungible transfer keeper

@@ -10,10 +10,10 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v7/contract"
-	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
-	fxstakingkeeper "github.com/functionx/fx-core/v7/x/staking/keeper"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	"github.com/functionx/fx-core/v8/contract"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	fxstakingkeeper "github.com/functionx/fx-core/v8/x/staking/keeper"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type Contract struct {

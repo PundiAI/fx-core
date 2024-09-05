@@ -26,15 +26,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/client"
-	"github.com/functionx/fx-core/v7/client/grpc"
-	"github.com/functionx/fx-core/v7/client/jsonrpc"
-	fxauth "github.com/functionx/fx-core/v7/server/grpc/auth"
-	"github.com/functionx/fx-core/v7/testutil"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/client"
+	"github.com/functionx/fx-core/v8/client/grpc"
+	"github.com/functionx/fx-core/v8/client/jsonrpc"
+	fxauth "github.com/functionx/fx-core/v8/server/grpc/auth"
+	"github.com/functionx/fx-core/v8/testutil"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 type rpcTestClient interface {
@@ -606,19 +606,19 @@ func (suite *rpcTestSuite) TestTmClient() {
 func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 	key := suite.GetPrivKeyByIndex(hd.Secp256k1Type, 1)
 	clients := suite.GetClients()
-	for _, client := range clients {
-		balances, err := client.QueryBalances(sdk.AccAddress(key.PubKey().Address().Bytes()).String())
+	for _, cli := range clients {
+		balances, err := cli.QueryBalances(sdk.AccAddress(key.PubKey().Address().Bytes()).String())
 		suite.NoError(err)
 		suite.True(balances.IsAllPositive())
 
-		if rpc, ok := client.(*jsonrpc.NodeRPC); ok {
-			client = rpc.WithBlockHeight(1)
+		if rpc, ok := cli.(*jsonrpc.NodeRPC); ok {
+			cli = rpc.WithBlockHeight(1)
 		}
-		if rpc, ok := client.(*grpc.Client); ok {
-			client = rpc.WithBlockHeight(1)
+		if rpc, ok := cli.(*grpc.Client); ok {
+			cli = rpc.WithBlockHeight(1)
 		}
 
-		balances, err = client.QueryBalances(sdk.AccAddress(key.PubKey().Address().Bytes()).String())
+		balances, err = cli.QueryBalances(sdk.AccAddress(key.PubKey().Address().Bytes()).String())
 		suite.NoError(err)
 		suite.False(balances.IsAllPositive())
 	}
@@ -626,8 +626,8 @@ func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 
 func (suite *rpcTestSuite) TestGRPCClient_ConvertAddress() {
 	validator := suite.GetFirstValidator()
-	client := fxauth.NewQueryClient(validator.ClientCtx)
-	res, err := client.ConvertAddress(context.Background(), &fxauth.ConvertAddressRequest{
+	cli := fxauth.NewQueryClient(validator.ClientCtx)
+	res, err := cli.ConvertAddress(context.Background(), &fxauth.ConvertAddressRequest{
 		Address: validator.Address.String(),
 		Prefix:  sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
 	})

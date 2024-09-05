@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v7/contract"
+	"github.com/functionx/fx-core/v8/contract"
 )
 
 const TypeMsgMigrateAccount = "migrate_account"

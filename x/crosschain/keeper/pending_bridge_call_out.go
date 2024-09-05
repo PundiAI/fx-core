@@ -8,9 +8,9 @@ import (
 	gogotypes "github.com/cosmos/gogoproto/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func (k Keeper) AddPendingOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64, notLiquidCoins sdk.Coins) (uint64, error) {

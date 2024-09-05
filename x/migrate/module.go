@@ -14,9 +14,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v7/x/migrate/client/cli"
-	"github.com/functionx/fx-core/v7/x/migrate/keeper"
-	"github.com/functionx/fx-core/v7/x/migrate/types"
+	"github.com/functionx/fx-core/v8/x/migrate/client/cli"
+	"github.com/functionx/fx-core/v8/x/migrate/keeper"
+	"github.com/functionx/fx-core/v8/x/migrate/types"
 )
 
 // type check to ensure the interface is properly implemented

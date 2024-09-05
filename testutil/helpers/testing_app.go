@@ -13,8 +13,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/app"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 type TestingApp struct {

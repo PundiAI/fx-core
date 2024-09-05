@@ -34,12 +34,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxcfg "github.com/functionx/fx-core/v7/server/config"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	"github.com/functionx/fx-core/v8/app"
+	fxcfg "github.com/functionx/fx-core/v8/server/config"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func Test_ExportGenesisAndRunNode(t *testing.T) {

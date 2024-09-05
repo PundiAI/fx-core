@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	ibctesting "github.com/functionx/fx-core/v7/x/ibc/testing"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	ibctesting "github.com/functionx/fx-core/v8/x/ibc/testing"
 )
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {

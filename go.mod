@@ -1,6 +1,6 @@
-module github.com/functionx/fx-core/v7
+module github.com/functionx/fx-core/v8
 
-go 1.21
+go 1.23
 
 require (
 	cosmossdk.io/api v0.3.1

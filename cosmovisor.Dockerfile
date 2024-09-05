@@ -1,4 +1,4 @@
-FROM golang:1.21.4-alpine3.18 as builder
+FROM golang:1.23.0-alpine3.19 as builder
 
 RUN apk add --no-cache git build-base linux-headers
 
@@ -10,10 +10,9 @@ COPY . .
 
 RUN make build
 
-FROM ghcr.io/functionx/fx-core:6.1.0 as fxv6
-FROM ghcr.io/functionx/fxcorevisor:7.4.0-rc6 as fxv7_4
+FROM ghcr.io/functionx/fxcorevisor:7.5.0 as fxv7_5
 
-FROM alpine:3.18
+FROM alpine:3.19
 
 WORKDIR /root
 
@@ -29,13 +28,12 @@ ENV DAEMON_PREUPGRADE_MAX_RETRIES=3
 ENV COSMOVISOR_DISABLE_LOGS=false
 ENV COSMOVISOR_COLOR_LOGS=true
 
-COPY --from=fxv7_4 /root/.fxcore/cosmovisor/genesis /root/.fxcore/cosmovisor/genesis
-COPY --from=fxv7_4 /root/.fxcore/cosmovisor/upgrades /root/.fxcore/cosmovisor/upgrades
-COPY --from=fxv6 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v6.0.x/bin/fxcored
+ENV PATH="/root/.fxcore/cosmovisor/current/bin:${PATH}"
+
+COPY --from=fxv7_5 /root/.fxcore/cosmovisor /root/.fxcore/cosmovisor
 
 COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
-COPY --from=builder /app/build/bin/fxcored /usr/bin/fxcored
-COPY --from=builder /app/build/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.5.x/bin/fxcored
+COPY --from=builder /app/build/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.0.x/bin/fxcored
 
 RUN cosmovisor init /root/.fxcore/cosmovisor/genesis/bin/fxcored
 

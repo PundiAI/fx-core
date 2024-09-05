@@ -13,10 +13,10 @@ import (
 	gogotypes "github.com/cosmos/gogoproto/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtelemetry "github.com/functionx/fx-core/v7/telemetry"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, sdk.Coins, error) {

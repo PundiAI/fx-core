@@ -11,11 +11,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/contract"
-	testscontract "github.com/functionx/fx-core/v7/tests/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/staking/precompile"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	"github.com/functionx/fx-core/v8/contract"
+	testscontract "github.com/functionx/fx-core/v8/tests/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/x/staking/precompile"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func TestStakingApproveSharesABI(t *testing.T) {

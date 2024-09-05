@@ -6,7 +6,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 
-	"github.com/functionx/fx-core/v7/x/erc20/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func TestTokenPair_GetID(t *testing.T) {

@@ -20,10 +20,10 @@ import (
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	migratetypes "github.com/functionx/fx-core/v7/x/migrate/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	migratetypes "github.com/functionx/fx-core/v8/x/migrate/types"
 )
 
 type KeeperTestSuite struct {

@@ -12,7 +12,7 @@ import (
 	jsonrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
 
 func TestCalculateUpgradeHeight(t *testing.T) {

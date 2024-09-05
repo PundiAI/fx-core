@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/exported"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 
-	v4 "github.com/functionx/fx-core/v7/x/gov/migrations/v4"
+	v4 "github.com/functionx/fx-core/v8/x/gov/migrations/v4"
 )
 
 // Migrator is a struct for handling in-place store migrations.

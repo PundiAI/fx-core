@@ -16,9 +16,9 @@ import (
 	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
 
 // make SendTransfer private

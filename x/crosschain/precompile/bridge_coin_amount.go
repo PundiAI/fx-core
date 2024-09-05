@@ -7,11 +7,11 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxcontract "github.com/functionx/fx-core/v7/contract"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	fxcontract "github.com/functionx/fx-core/v8/contract"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 type BridgeCoinAmountMethod struct {

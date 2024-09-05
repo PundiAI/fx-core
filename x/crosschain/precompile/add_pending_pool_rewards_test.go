@@ -13,11 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	"github.com/functionx/fx-core/v7/x/erc20/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func TestAddPendingPoolRewardsABI(t *testing.T) {

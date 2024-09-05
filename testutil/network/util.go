@@ -26,8 +26,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/app"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 // StartInProcess creates and starts an in-process local test network.

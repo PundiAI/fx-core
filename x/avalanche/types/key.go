@@ -1,6 +1,6 @@
 package types
 
-import crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+import crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 
 const (
 	// ModuleName is the name of the module

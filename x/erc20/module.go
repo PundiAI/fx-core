@@ -14,9 +14,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v7/x/erc20/client/cli"
-	"github.com/functionx/fx-core/v7/x/erc20/keeper"
-	"github.com/functionx/fx-core/v7/x/erc20/types"
+	"github.com/functionx/fx-core/v8/x/erc20/client/cli"
+	"github.com/functionx/fx-core/v8/x/erc20/keeper"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 // type check to ensure the interface is properly implemented

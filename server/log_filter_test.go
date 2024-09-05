@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 
-	fxserver "github.com/functionx/fx-core/v7/server"
+	fxserver "github.com/functionx/fx-core/v8/server"
 )
 
 func TestFxZeroLogWrapper(t *testing.T) {

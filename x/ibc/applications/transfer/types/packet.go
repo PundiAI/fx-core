@@ -13,7 +13,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/contract"
+	"github.com/functionx/fx-core/v8/contract"
 )
 
 type MemoPacket interface {
@@ -52,7 +52,7 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdkmath.Int", ftpd.Amount)
 	}
 	if !amount.IsPositive() {
-		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "amount must be strictly positive: got %s", amount)
 	}
 	if strings.TrimSpace(ftpd.Sender) == "" {
 		return errorsmod.Wrap(errortypes.ErrInvalidAddress, "sender address cannot be blank")
@@ -65,7 +65,7 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdkmath.Int", ftpd.Fee)
 	}
 	if fee.IsNegative() {
-		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee must be strictly not negative: got %d", fee)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee must be strictly not negative: got %s", fee)
 	}
 	if err := transfertypes.ValidatePrefixedDenom(ftpd.Denom); err != nil {
 		return err

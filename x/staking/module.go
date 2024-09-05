@@ -15,9 +15,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
 
-	fxstakingcli "github.com/functionx/fx-core/v7/x/staking/client/cli"
-	"github.com/functionx/fx-core/v7/x/staking/keeper"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	fxstakingcli "github.com/functionx/fx-core/v8/x/staking/client/cli"
+	"github.com/functionx/fx-core/v8/x/staking/keeper"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 var (

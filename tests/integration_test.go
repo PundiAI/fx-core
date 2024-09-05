@@ -8,14 +8,14 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	arbitrumtypes "github.com/functionx/fx-core/v7/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v7/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	layer2types "github.com/functionx/fx-core/v7/x/layer2/types"
-	optimismtypes "github.com/functionx/fx-core/v7/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v7/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
+	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
+	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v8/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 type IntegrationTest struct {

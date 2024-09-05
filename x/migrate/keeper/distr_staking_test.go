@@ -23,10 +23,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	migratekeeper "github.com/functionx/fx-core/v7/x/migrate/keeper"
+	"github.com/functionx/fx-core/v8/app"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	migratekeeper "github.com/functionx/fx-core/v8/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	rewards1, err := GetDelegateRewards(suite.ctx, suite.app, acc, val1.GetOperator())
 	suite.Require().NoError(err)
 	rewards2, err := GetDelegateRewards(suite.ctx, suite.app, ethAcc.Bytes(), val1.GetOperator())
-	suite.Require().Equal("delegation does not exist", err.Error())
+	suite.Require().EqualError(err, "delegation does not exist")
 
 	// migrate
 	m := migratekeeper.NewDistrStakingMigrate(suite.app.GetKey(distritypes.StoreKey), suite.app.GetKey(stakingtypes.StoreKey), suite.app.StakingKeeper)
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 
 	// check reward
 	rewards3, err := GetDelegateRewards(suite.ctx, suite.app, acc, val1.GetOperator())
-	suite.Require().Equal("delegation does not exist", err.Error())
+	suite.Require().EqualError(err, "delegation does not exist")
 	suite.Require().Equal(rewards2, rewards3)
 	rewards4, err := GetDelegateRewards(suite.ctx, suite.app, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().NoError(err)

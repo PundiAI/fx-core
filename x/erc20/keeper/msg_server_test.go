@@ -13,12 +13,12 @@ import (
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	"github.com/functionx/fx-core/v7/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {

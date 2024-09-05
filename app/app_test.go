@@ -10,11 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	govlegacy "github.com/functionx/fx-core/v7/x/gov/legacy"
-	gravitytypes "github.com/functionx/fx-core/v7/x/gravity/types"
+	"github.com/functionx/fx-core/v8/app"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	govlegacy "github.com/functionx/fx-core/v8/x/gov/legacy"
+	gravitytypes "github.com/functionx/fx-core/v8/x/gravity/types"
 )
 
 func Test_MsgServiceRouter(t *testing.T) {

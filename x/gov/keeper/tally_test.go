@@ -6,8 +6,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_Tally() {

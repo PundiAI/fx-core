@@ -16,8 +16,8 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v7/contract"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/contract"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 const (
