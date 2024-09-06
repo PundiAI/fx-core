@@ -15,12 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	tronkeeper "github.com/functionx/fx-core/v8/x/tron/keeper"
 )
 
 type KeeperTestSuite struct {

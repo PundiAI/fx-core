@@ -6,7 +6,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	fxstakingkeeper "github.com/functionx/fx-core/v7/x/staking/keeper"
+	fxstakingkeeper "github.com/functionx/fx-core/v8/x/staking/keeper"
 )
 
 type StakingSuite struct {

@@ -10,12 +10,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/v7/client"
-	"github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/client"
+	"github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 type PrecompileTestSuite struct {

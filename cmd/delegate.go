@@ -24,10 +24,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/server"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/server"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 type output struct {

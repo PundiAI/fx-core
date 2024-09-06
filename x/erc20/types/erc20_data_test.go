@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/x/erc20/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func TestNewERC20Data(t *testing.T) {

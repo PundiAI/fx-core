@@ -5,7 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v7/contract"
+	"github.com/functionx/fx-core/v8/contract"
 )
 
 var MemoSendCallTo = common.HexToHash("0000000000000000000000000000000000000000000000000000000000010000")

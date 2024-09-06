@@ -14,10 +14,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/testutil"
-	"github.com/functionx/fx-core/v7/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/testutil"
+	"github.com/functionx/fx-core/v8/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 const (

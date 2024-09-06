@@ -10,11 +10,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxcontract "github.com/functionx/fx-core/v7/contract"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/legacy"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	fxcontract "github.com/functionx/fx-core/v8/contract"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/legacy"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 type CrossChainMethod struct {

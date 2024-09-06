@@ -23,9 +23,9 @@ import (
 	types5 "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
 	types6 "github.com/evmos/ethermint/x/evm/types"
-	types7 "github.com/functionx/fx-core/v7/types"
-	types8 "github.com/functionx/fx-core/v7/x/crosschain/types"
-	types9 "github.com/functionx/fx-core/v7/x/erc20/types"
+	types7 "github.com/functionx/fx-core/v8/types"
+	types8 "github.com/functionx/fx-core/v8/x/crosschain/types"
+	types9 "github.com/functionx/fx-core/v8/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
 

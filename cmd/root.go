@@ -34,13 +34,13 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxcli "github.com/functionx/fx-core/v7/client/cli"
-	fxserver "github.com/functionx/fx-core/v7/server"
-	fxcfg "github.com/functionx/fx-core/v7/server/config"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	crosschaincli "github.com/functionx/fx-core/v7/x/crosschain/client/cli"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/app"
+	fxcli "github.com/functionx/fx-core/v8/client/cli"
+	fxserver "github.com/functionx/fx-core/v8/server"
+	fxcfg "github.com/functionx/fx-core/v8/server/config"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	crosschaincli "github.com/functionx/fx-core/v8/x/crosschain/client/cli"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

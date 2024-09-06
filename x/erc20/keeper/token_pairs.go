@@ -7,9 +7,9 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	"github.com/functionx/fx-core/v7/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 // GetAllTokenPairs - get all registered token tokenPairs

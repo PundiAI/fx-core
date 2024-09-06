@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/spf13/cobra"
 
-	fxkeys "github.com/functionx/fx-core/v7/client/cli/keys"
+	fxkeys "github.com/functionx/fx-core/v8/client/cli/keys"
 )
 
 // Commands registers a sub-tree of commands to interact with

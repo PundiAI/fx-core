@@ -6,8 +6,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v7/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	"github.com/functionx/fx-core/v8/x/evm/types"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type AllowanceSharesMethod struct {

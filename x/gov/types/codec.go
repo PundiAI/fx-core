@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 
-	"github.com/functionx/fx-core/v7/x/gov/legacy"
+	"github.com/functionx/fx-core/v8/x/gov/legacy"
 )
 
 // ModuleCdc is the codec for the module

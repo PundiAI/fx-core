@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/client/cli/keys"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/client/cli/keys"
 )
 
 func TestNewKeyOutput(t *testing.T) {

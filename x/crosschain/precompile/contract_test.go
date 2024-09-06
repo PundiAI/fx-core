@@ -40,17 +40,17 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/contract"
-	testscontract "github.com/functionx/fx-core/v7/tests/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	"github.com/functionx/fx-core/v7/x/erc20/types"
-	crossethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	tronkeeper "github.com/functionx/fx-core/v7/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/contract"
+	testscontract "github.com/functionx/fx-core/v8/tests/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/erc20/types"
+	crossethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	tronkeeper "github.com/functionx/fx-core/v8/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 type PrecompileTestSuite struct {

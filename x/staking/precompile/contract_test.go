@@ -26,12 +26,12 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/contract"
-	testscontract "github.com/functionx/fx-core/v7/tests/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/staking/precompile"
-	"github.com/functionx/fx-core/v7/x/staking/testutil"
+	"github.com/functionx/fx-core/v8/contract"
+	testscontract "github.com/functionx/fx-core/v8/tests/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/staking/precompile"
+	"github.com/functionx/fx-core/v8/x/staking/testutil"
 )
 
 const (

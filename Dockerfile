@@ -1,5 +1,4 @@
-# compile fx-core
-FROM golang:1.21.4-alpine3.18 as builder
+FROM golang:1.23.0-alpine3.19 as builder
 
 RUN apk add --no-cache git build-base linux-headers
 
@@ -9,8 +8,7 @@ COPY . .
 
 RUN make build
 
-# build fx-core
-FROM alpine:3.18
+FROM alpine:3.19
 
 WORKDIR root
 

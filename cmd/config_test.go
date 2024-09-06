@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	fxcfg "github.com/functionx/fx-core/v7/server/config"
+	fxcfg "github.com/functionx/fx-core/v8/server/config"
 )
 
 func Test_updateCfgCmd(t *testing.T) {

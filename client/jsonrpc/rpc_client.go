@@ -230,7 +230,7 @@ func (ws *WSClient) Call(ctx context.Context, method string, params map[string]i
 
 	resp := <-respChan
 	if resp.Error != nil {
-		return fmt.Errorf(resp.Error.String())
+		return errors.New(resp.Error.String())
 	}
 
 	return tmjson.Unmarshal(resp.Result, result)

@@ -17,12 +17,12 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v7/client"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	"github.com/functionx/fx-core/v7/x/crosschain/precompile"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
+	"github.com/functionx/fx-core/v8/client"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 type CrosschainTestSuite struct {

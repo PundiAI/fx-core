@@ -10,11 +10,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/contract"
-	testscontract "github.com/functionx/fx-core/v7/tests/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/staking/precompile"
-	"github.com/functionx/fx-core/v7/x/staking/types"
+	"github.com/functionx/fx-core/v8/contract"
+	testscontract "github.com/functionx/fx-core/v8/tests/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/x/staking/precompile"
+	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func TestStakingDelegationABI(t *testing.T) {

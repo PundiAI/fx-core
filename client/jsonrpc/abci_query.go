@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/pkg/errors"
 
-	"github.com/functionx/fx-core/v7/client"
+	"github.com/functionx/fx-core/v8/client"
 )
 
 func (c *NodeRPC) GetModuleAccounts() ([]authtypes.AccountI, error) {

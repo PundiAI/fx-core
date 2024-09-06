@@ -25,15 +25,15 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/client/grpc"
-	"github.com/functionx/fx-core/v7/client/jsonrpc"
-	"github.com/functionx/fx-core/v7/testutil"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	bsctypes "github.com/functionx/fx-core/v7/x/bsc/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/client/grpc"
+	"github.com/functionx/fx-core/v8/client/jsonrpc"
+	"github.com/functionx/fx-core/v8/testutil"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 type TestSuite struct {

@@ -22,7 +22,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -125,7 +125,7 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, genesisHash string, co
 				" please use the v6.x.x version to synchronize the block or download the latest snapshot")
 		}
 		// TODO: The line of code below must be removed before the release.
-		// return errors.New("invalid version: The current version is not released, please use the corresponding version")
+		return errors.New("invalid version: The current version is not released, please use the corresponding version")
 	}
 	return nil
 }

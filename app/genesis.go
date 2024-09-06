@@ -25,9 +25,9 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	ethtypes "github.com/functionx/fx-core/v7/x/eth/types"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 const (

@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 
-	fxcfg "github.com/functionx/fx-core/v7/server/config"
+	fxcfg "github.com/functionx/fx-core/v8/server/config"
 )
 
 const (

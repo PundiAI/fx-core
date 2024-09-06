@@ -7,10 +7,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	fxcontract "github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/x/evm/testutil"
-	"github.com/functionx/fx-core/v7/x/staking/precompile"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	fxcontract "github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/x/evm/testutil"
+	"github.com/functionx/fx-core/v8/x/staking/precompile"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type StakingPrecompileSuite struct {

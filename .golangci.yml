@@ -8,9 +8,9 @@ run:
   tests: true
 
   # Define the Go version limit.
-  # Mainly related to generics support since go1.21.
-  # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.21
-  go: '1.21'
+  # Mainly related to generics support since go1.23.
+  # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.23
+  go: '1.23'
 
 linters:
   enable:
@@ -34,6 +34,8 @@ linters-settings:
     min-complexity: 15
   gocritic:
     disabled-checks: ["assignOp", "ifElseChain", "appendAssign"]
+  gosec:
+    excludes: [ "G115" ]
   gci:
     custom-order: true
     sections:

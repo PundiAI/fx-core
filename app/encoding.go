@@ -13,8 +13,8 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	etherminttypes "github.com/evmos/ethermint/types"
 
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	gravitytypes "github.com/functionx/fx-core/v7/x/gravity/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	gravitytypes "github.com/functionx/fx-core/v8/x/gravity/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.

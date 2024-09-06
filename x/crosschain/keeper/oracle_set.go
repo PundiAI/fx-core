@@ -8,7 +8,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) UpdateOracleSetExecuted(ctx sdk.Context, claim *types.MsgOracleSetUpdatedClaim) error {

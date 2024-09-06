@@ -12,9 +12,9 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/gogoproto/proto"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 var (

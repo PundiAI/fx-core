@@ -15,9 +15,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	fxcontract "github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	fxcontract "github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/x/evm/types"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type ApproveSharesMethod struct {

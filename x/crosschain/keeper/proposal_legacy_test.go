@@ -3,8 +3,8 @@ package keeper_test
 import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {

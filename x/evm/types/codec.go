@@ -8,7 +8,7 @@ import (
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/functionx/fx-core/v7/x/evm/legacy"
+	"github.com/functionx/fx-core/v8/x/evm/legacy"
 )
 
 var ModuleCdc = codec.NewAminoCodec(codec.NewLegacyAmino())

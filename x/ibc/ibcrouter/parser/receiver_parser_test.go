@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/x/ibc/ibcrouter/parser"
+	"github.com/functionx/fx-core/v8/x/ibc/ibcrouter/parser"
 )
 
 func TestParseReceiverDataTransfer(t *testing.T) {

@@ -9,9 +9,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v7/contract"
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	"github.com/functionx/fx-core/v8/contract"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 var _ contract.PrecompileMethod = (*ExecuteClaimMethod)(nil)

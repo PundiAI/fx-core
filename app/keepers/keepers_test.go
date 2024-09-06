@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/app/keepers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/app/keepers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 func TestNewAppKeeper(t *testing.T) {
@@ -69,8 +69,7 @@ func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
 			assert.Falsef(t, valueOfField.IsNil(), "%s-%s-%s", valueOf.Type().PkgPath(), typeOfField.Name, name)
 		}
 
-		switch valueOfField.Kind() {
-		case reflect.Pointer, reflect.Interface:
+		if valueOfField.Kind() == reflect.Pointer || valueOfField.Kind() == reflect.Interface {
 			if typeOfField.Name == "QueryServer" ||
 				(name == "EvidenceKeeper" && typeOfField.Name == "router") {
 				return

@@ -14,9 +14,9 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	"github.com/functionx/fx-core/v7/x/ibc"
-	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/keeper"
-	"github.com/functionx/fx-core/v7/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/x/ibc"
+	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/keeper"
+	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}

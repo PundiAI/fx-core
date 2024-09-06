@@ -21,9 +21,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/app"
-	fxserver "github.com/functionx/fx-core/v7/server"
-	fxcfg "github.com/functionx/fx-core/v7/server/config"
+	"github.com/functionx/fx-core/v8/app"
+	fxserver "github.com/functionx/fx-core/v8/server"
+	fxcfg "github.com/functionx/fx-core/v8/server/config"
 )
 
 var errCancelledInPreRun = errors.New("cancelled in prerun")

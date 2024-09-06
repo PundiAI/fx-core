@@ -11,8 +11,8 @@ import (
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/server"
+	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/server"
 )
 
 type DatabaseTestSuite struct {

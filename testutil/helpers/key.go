@@ -18,8 +18,8 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v7/x/tron/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 func NewMnemonic() string {

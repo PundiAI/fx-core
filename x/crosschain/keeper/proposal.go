@@ -1,20 +1,18 @@
 package keeper
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/functionx/fx-core/v7/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) UpdateProposalOracles(ctx sdk.Context, oracles []string) error {
 	if len(oracles) > types.MaxOracleSize {
 		return errorsmod.Wrapf(types.ErrInvalid,
-			fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
+			"oracle length must be less than or equal: %d", types.MaxOracleSize)
 	}
 
 	newOracleMap := make(map[string]bool, len(oracles))

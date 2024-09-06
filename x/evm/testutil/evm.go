@@ -12,12 +12,12 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/contract"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v7/types"
-	erc20types "github.com/functionx/fx-core/v7/x/erc20/types"
-	fxevmkeeper "github.com/functionx/fx-core/v7/x/evm/keeper"
-	fxevmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	"github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	fxevmkeeper "github.com/functionx/fx-core/v8/x/evm/keeper"
+	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 type EVMSuite struct {

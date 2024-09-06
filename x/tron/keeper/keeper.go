@@ -4,8 +4,8 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainkeeper "github.com/functionx/fx-core/v7/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v7/x/tron/types"
+	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 type Keeper struct {

@@ -19,10 +19,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/require"
 
-	fxapp "github.com/functionx/fx-core/v7/app"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
-	"github.com/functionx/fx-core/v7/types"
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	fxapp "github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/types"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 var DefaultTestingAppInit = helpers.SetupTestingApp

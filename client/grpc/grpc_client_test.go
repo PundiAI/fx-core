@@ -7,8 +7,8 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v7/client/grpc"
-	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/functionx/fx-core/v8/client/grpc"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
 
 func TestClient_QueryBalances(t *testing.T) {

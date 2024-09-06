@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/functionx/fx-core/v7/types"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 // ChainIDPrefix defines the default chain ID prefix for Evmos test chains

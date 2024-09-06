@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	crosschaintypes "github.com/functionx/fx-core/v7/x/crosschain/types"
-	evmtypes "github.com/functionx/fx-core/v7/x/evm/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
 type BridgeCallMethod struct {

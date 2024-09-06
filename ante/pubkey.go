@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	fxstakingtypes "github.com/functionx/fx-core/v7/x/staking/types"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type PubKeyDecorator struct {

@@ -130,7 +130,7 @@ run-local: install
 ###                                Linting                                  ###
 ###############################################################################
 
-golangci_version=v1.55.2
+golangci_version=v1.60.3
 
 lint-install:
 	@echo "--> Installing golangci-lint $(golangci_version)"
@@ -141,13 +141,16 @@ lint-install:
 		go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version); \
 	fi
 
-lint: lint-install
-	echo "--> Running linter"
-	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
-	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 45 ]; then \
+check-no-lint:
+	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 44 ]; then \
 		echo "\033[91m--> increase or decrease nolint, please recheck them\033[0m"; \
-		echo "\033[91m--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`\033[0m"; exit 1;\
+		echo "\033[91m--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`\033[0m"; \
+		exit 1;\
 	fi
+
+lint: check-no-lint lint-install
+	@echo "--> Running linter"
+	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
 
 format: lint-install
 	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab --fix
@@ -248,7 +251,7 @@ contract-publish:
 ###############################################################################
 
 PACKAGE_NAME := $(shell go list -m)
-GOLANG_CROSS_VERSION := v1.21
+GOLANG_CROSS_VERSION := v1.23
 release-dry-run:
 	docker run --rm --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \
