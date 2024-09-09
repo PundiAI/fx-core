@@ -375,7 +375,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 	}
 	for i := 0; i < len(suite.bridgerAddrs)/2; i++ {
 		sendToMsg.BridgerAddress = suite.bridgerAddrs[i].String()
-		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToMsg)
+		err = suite.SendClaimReturnErr(sendToMsg)
 		suite.NoError(err)
 	}
 
@@ -403,7 +403,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		suite.NoError(err)
 
 		sendToMsg.BridgerAddress = sdk.AccAddress(suite.valAddrs[i]).String()
-		_, err = suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToMsg)
+		err = suite.SendClaimReturnErr(sendToMsg)
 		if i < len(suite.oracleAddrs)/2 {
 			suite.Require().ErrorContains(err, types.ErrNonContiguousEventNonce.Error())
 		} else {
@@ -648,7 +648,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.EventNonce = eventNonce + 1
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-					_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
+					err := suite.SendClaimReturnErr(msg)
 					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
@@ -677,7 +677,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.EventNonce = eventNonce + 1
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-					_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
+					err := suite.SendClaimReturnErr(msg)
 					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
@@ -715,7 +715,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.EventNonce = eventNonce + 1
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-					_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
+					err := suite.SendClaimReturnErr(msg)
 					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
@@ -744,7 +744,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					msg.EventNonce = eventNonce + 1
 					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-					_, err := suite.MsgServer().SendToExternalClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
+					err := suite.SendClaimReturnErr(msg)
 					suite.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
 				}
@@ -884,7 +884,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 	for _, testData := range testMsgs {
 		err = testData.msg.ValidateBasic()
 		suite.Require().NoError(err)
-		_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), testData.msg)
+		err = suite.SendClaimReturnErr(testData.msg)
 		suite.Require().ErrorIs(err, testData.err, testData.name)
 		if err == nil {
 			continue
@@ -938,7 +938,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		err := suite.SendClaimReturnErr(normalMsg)
 		suite.Require().NoError(err)
 	}
 
@@ -964,7 +964,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			ChannelIbc:     "",
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		err = suite.SendClaimReturnErr(normalMsg)
 		suite.Require().NoError(err)
 	}
 
@@ -992,7 +992,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
+		err = suite.SendClaimReturnErr(sendToFxClaim)
 		suite.Require().NoError(err)
 	}
 
@@ -1153,12 +1153,12 @@ func (suite *KeeperTestSuite) TestBridgeCallClaim() {
 	for _, testData := range testMsgs {
 		err := testData.msg.ValidateBasic()
 		suite.Require().NoError(err)
-		ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
+		suite.ctx = suite.ctx.WithEventManager(sdk.NewEventManager())
 		suite.Require().NoError(testData.msg.ValidateBasic())
-		_, err = suite.MsgServer().BridgeCallClaim(ctx, testData.msg)
+		err = suite.SendClaimReturnErr(testData.msg)
 		suite.Require().ErrorIs(err, testData.err, testData.name)
 		if testData.err == nil {
-			suite.checkObservationState(ctx, testData.expect)
+			suite.checkObservationState(suite.ctx, testData.expect)
 		}
 		if err == nil {
 			continue
@@ -1213,7 +1213,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		err := suite.SendClaimReturnErr(normalMsg)
 		suite.Require().NoError(err)
 	}
 
@@ -1239,7 +1239,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			ChannelIbc:     "",
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
+		err = suite.SendClaimReturnErr(normalMsg)
 		suite.Require().NoError(err)
 	}
 
@@ -1287,7 +1287,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
+		err = suite.SendClaimReturnErr(sendToFxClaim)
 		suite.Require().NoError(err)
 	}
 	err = suite.Keeper().ExecuteClaim(suite.ctx, sendToFxClaim.EventNonce)
@@ -1414,8 +1414,8 @@ func (suite *KeeperTestSuite) bondedOracle() {
 
 func (suite *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.Metadata) {
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
-	ctx := sdk.WrapSDKContext(suite.ctx.WithEventManager(sdk.NewEventManager()))
-	_, err := suite.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
+	suite.ctx = suite.ctx.WithEventManager(sdk.NewEventManager())
+	err := suite.SendClaimReturnErr(&types.MsgBridgeTokenClaim{
 		EventNonce:     oracleLastEventNonce + 1,
 		BlockHeight:    uint64(suite.ctx.BlockHeight()),
 		TokenContract:  tokenContract,
@@ -1428,7 +1428,7 @@ func (suite *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.
 	})
 	suite.Require().NoError(err)
 
-	suite.checkObservationState(ctx, true)
+	suite.checkObservationState(suite.ctx, true)
 
 	newOracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 	suite.Require().EqualValues(oracleLastEventNonce+1, newOracleLastEventNonce)
