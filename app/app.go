@@ -52,9 +52,6 @@ import (
 	"github.com/functionx/fx-core/v8/x/crosschain"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	"github.com/functionx/fx-core/v8/x/gravity"
-	gravitykeeper "github.com/functionx/fx-core/v8/x/gravity/keeper"
-	gravitytypes "github.com/functionx/fx-core/v8/x/gravity/types"
 )
 
 var _ servertypes.Application = (*App)(nil)
@@ -293,10 +290,6 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	gaspricev1.RegisterQueryServer(cfg.QueryServer(), gaspricev1.Querier{})
 	gaspricev2.RegisterQueryServer(cfg.QueryServer(), gaspricev2.Querier{})
 
-	// Deprecated
-	gravitytypes.RegisterQueryServer(cfg.QueryServer(), gravitykeeper.NewQueryServerImpl(app.EthKeeper))
-	gravitytypes.RegisterMsgServer(cfg.MsgServer(), gravitykeeper.NewMsgServerImpl(app.EthKeeper))
-
 	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainRouterKeeper)
 	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainRouterKeeper))
 
@@ -310,9 +303,6 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	// Deprecated: Register gas price queries routes from grpc-gateway.
 	gaspricev1.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	gaspricev2.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	// Deprecated: Register gravity queries routes from grpc-gateway.
-	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

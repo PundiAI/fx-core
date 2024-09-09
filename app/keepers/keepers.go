@@ -74,7 +74,6 @@ import (
 	fxevmkeeper "github.com/functionx/fx-core/v8/x/evm/keeper"
 	fxgovkeeper "github.com/functionx/fx-core/v8/x/gov/keeper"
 	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
-	gravitytypes "github.com/functionx/fx-core/v8/x/gravity/types"
 	fxtransfer "github.com/functionx/fx-core/v8/x/ibc/applications/transfer"
 	fxtransferkeeper "github.com/functionx/fx-core/v8/x/ibc/applications/transfer/keeper"
 	fxibctransfertypes "github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
@@ -552,7 +551,6 @@ func NewAppKeeper(
 	)
 
 	ibcTransferRouter := fxibctransfertypes.NewRouter().
-		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).

@@ -57,10 +57,10 @@ func TestSwaggerConfig(t *testing.T) {
 			assert.Equal(t, 6, handler.Value().Len())
 		}
 		if handler.Key().String() == "GET" {
-			assert.Equal(t, 222, handler.Value().Len())
+			assert.Equal(t, 198, handler.Value().Len())
 		}
 	}
-	assert.Equal(t, 33, len(route))
+	assert.Equal(t, 32, len(route))
 	ignoreLen := len(route) - len(c.Apis)
 	for _, v := range c.Apis {
 		for key := range route {
@@ -72,16 +72,15 @@ func TestSwaggerConfig(t *testing.T) {
 
 	// ignore routes:
 	// 1. other/v1/gas_price
-	// 2. fx/gravity/v1
-	// 3. fx/other/gas_price
-	// 4. fx/base/v1
-	// 5. fx/ibc/applications
-	// 6. ibc/core/channel/v1
-	// 7. ibc/core/client/v1
-	// 8. ibc/core/connection/v1
-	// 9. cosmos/gov/v1beta1
+	// 2. fx/other/gas_price
+	// 3. fx/base/v1
+	// 4. fx/ibc/applications
+	// 5. ibc/core/channel/v1
+	// 6. ibc/core/client/v1
+	// 7. ibc/core/connection/v1
+	// 8. cosmos/gov/v1beta1
 	assert.Equal(t, ignoreLen, len(route))
-	assert.Equal(t, 9, len(route))
+	assert.Equal(t, 8, len(route))
 }
 
 type config struct {

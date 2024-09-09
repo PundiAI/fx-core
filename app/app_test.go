@@ -14,7 +14,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	govlegacy "github.com/functionx/fx-core/v8/x/gov/legacy"
-	gravitytypes "github.com/functionx/fx-core/v8/x/gravity/types"
 )
 
 func Test_MsgServiceRouter(t *testing.T) {
@@ -31,8 +30,6 @@ func Test_MsgServiceRouter(t *testing.T) {
 	deprecated := map[string]struct{}{
 		sdk.MsgTypeURL(&crosschaintypes.MsgSetOrchestratorAddress{}): {},
 		sdk.MsgTypeURL(&crosschaintypes.MsgAddOracleDeposit{}):       {},
-		sdk.MsgTypeURL(&gravitytypes.MsgSetOrchestratorAddress{}):    {},
-		sdk.MsgTypeURL(&gravitytypes.MsgFxOriginatedTokenClaim{}):    {},
 		sdk.MsgTypeURL(&govlegacy.MsgUpdateParams{}):                 {},
 	}
 	for _, msg := range encodingConfig.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName) {
