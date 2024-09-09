@@ -240,15 +240,6 @@ func (app *App) Name() string {
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	consParams := ctx.ConsensusParams()
-	if consParams == nil || consParams.Block == nil {
-		baseAppLegacySS, found := app.ParamsKeeper.GetSubspace(baseapp.Paramspace)
-		if !found {
-			panic("consensus params not found")
-		}
-		cp := baseapp.GetConsensusParams(ctx, baseAppLegacySS)
-		ctx = ctx.WithConsensusParams(cp)
-	}
 	return app.mm.BeginBlock(ctx, req)
 }
 
