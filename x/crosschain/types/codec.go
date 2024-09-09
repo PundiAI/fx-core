@@ -34,16 +34,10 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgWithdrawReward{},
 
 		&MsgOracleSetConfirm{},
-		&MsgOracleSetUpdatedClaim{},
-
-		&MsgBridgeTokenClaim{},
-
-		&MsgSendToFxClaim{},
 
 		&MsgSendToExternal{},
 		&MsgCancelSendToExternal{},
 		&MsgIncreaseBridgeFee{},
-		&MsgSendToExternalClaim{},
 		&MsgAddPendingPoolRewards{},
 
 		&MsgRequestBatch{},
@@ -52,12 +46,12 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgBridgeCall{},
 		&MsgCancelPendingBridgeCall{},
 
-		&MsgBridgeCallClaim{},
 		&MsgBridgeCallConfirm{},
-		&MsgBridgeCallResultClaim{},
 
 		&MsgUpdateParams{},
 		&MsgUpdateChainOracles{},
+
+		&MsgClaim{},
 	)
 
 	registry.RegisterInterface(

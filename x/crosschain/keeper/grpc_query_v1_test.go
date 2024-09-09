@@ -10,6 +10,7 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -1937,7 +1938,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 					StartHeight:    100,
 					Online:         true,
 				})
-				_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), &types.MsgBridgeTokenClaim{
+				claimMsg := &types.MsgBridgeTokenClaim{
 					EventNonce:     1,
 					BlockHeight:    100,
 					TokenContract:  helpers.GenHexAddress().String(),
@@ -1946,7 +1947,10 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 					Decimals:       18,
 					BridgerAddress: suite.bridgerAddrs[0].String(),
 					ChainName:      suite.chainName,
-				})
+				}
+				anyWithValue, err := codectypes.NewAnyWithValue(claimMsg)
+				suite.Require().NoError(err)
+				_, err = suite.msgServer.Claim(sdk.WrapSDKContext(suite.ctx), &types.MsgClaim{Claim: anyWithValue})
 				suite.Require().NoError(err)
 				response = &types.QueryLastEventBlockHeightByAddrResponse{
 					BlockHeight: uint64(100),

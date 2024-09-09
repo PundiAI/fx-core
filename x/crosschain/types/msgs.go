@@ -118,6 +118,8 @@ var (
 
 	_ sdk.Msg       = &MsgUpdateChainOracles{}
 	_ CrossChainMsg = &MsgUpdateChainOracles{}
+
+	_ sdk.Msg = &MsgClaim{}
 )
 
 // MsgBondedOracle
@@ -625,6 +627,32 @@ func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (Exter
 	var msg ExternalClaim
 	err := cdc.UnpackAny(att.Claim, &msg)
 	return msg, err
+}
+
+// MsgSendToFxClaim
+
+// ValidateBasic performs stateless checks
+func (m *MsgClaim) ValidateBasic() (err error) {
+	if _, ok := externalAddressRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	}
+	if m.Claim == nil {
+		return errortypes.ErrInvalidRequest.Wrap("empty claim")
+	}
+	claim, ok := m.Claim.GetCachedValue().(ExternalClaim)
+	if !ok {
+		return errortypes.ErrInvalidRequest.Wrapf("expected claim type %T, got %T", new(ExternalClaim), m.Claim.GetCachedValue())
+	}
+	return claim.ValidateBasic()
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgClaim) GetSigners() []sdk.AccAddress {
+	claim, ok := m.Claim.GetCachedValue().(ExternalClaim)
+	if !ok {
+		panic(errortypes.ErrInvalidRequest.Wrapf("expected claim type %T, got %T", new(ExternalClaim), m.Claim.GetCachedValue()))
+	}
+	return []sdk.AccAddress{claim.GetClaimer()}
 }
 
 // MsgSendToFxClaim

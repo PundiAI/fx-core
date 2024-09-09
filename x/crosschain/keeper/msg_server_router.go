@@ -78,46 +78,6 @@ func (k msgServer) OracleSetConfirm(ctx context.Context, msg *types.MsgOracleSet
 	}
 }
 
-func (k msgServer) OracleSetUpdateClaim(ctx context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
-	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return queryServer.OracleSetUpdateClaim(ctx, msg)
-	}
-}
-
-func (k msgServer) BridgeTokenClaim(ctx context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
-	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return queryServer.BridgeTokenClaim(ctx, msg)
-	}
-}
-
-func (k msgServer) SendToFxClaim(ctx context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
-	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return queryServer.SendToFxClaim(ctx, msg)
-	}
-}
-
-func (k msgServer) BridgeCallClaim(ctx context.Context, msg *types.MsgBridgeCallClaim) (*types.MsgBridgeCallClaimResponse, error) {
-	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return queryServer.BridgeCallClaim(ctx, msg)
-	}
-}
-
-func (k msgServer) BridgeCallResultClaim(ctx context.Context, msg *types.MsgBridgeCallResultClaim) (*types.MsgBridgeCallResultClaimResponse, error) {
-	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return queryServer.BridgeCallResultClaim(ctx, msg)
-	}
-}
-
 func (k msgServer) SendToExternal(ctx context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err
@@ -139,14 +99,6 @@ func (k msgServer) IncreaseBridgeFee(ctx context.Context, msg *types.MsgIncrease
 		return nil, err
 	} else {
 		return queryServer.IncreaseBridgeFee(ctx, msg)
-	}
-}
-
-func (k msgServer) SendToExternalClaim(ctx context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
-	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return queryServer.SendToExternalClaim(ctx, msg)
 	}
 }
 
@@ -219,5 +171,13 @@ func (k msgServer) AddPendingPoolRewards(ctx context.Context, msg *types.MsgAddP
 		return nil, err
 	} else {
 		return queryServer.AddPendingPoolRewards(ctx, msg)
+	}
+}
+
+func (k msgServer) Claim(ctx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.Claim(ctx, msg)
 	}
 }

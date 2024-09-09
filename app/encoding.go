@@ -14,7 +14,6 @@ import (
 	etherminttypes "github.com/evmos/ethermint/types"
 
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	gravitytypes "github.com/functionx/fx-core/v8/x/gravity/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -37,9 +36,6 @@ func MakeEncodingConfig() EncodingConfig {
 
 	crosschaintypes.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	crosschaintypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-
-	gravitytypes.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	registerCryptoEthSecp256k1(encodingConfig.Amino)
 

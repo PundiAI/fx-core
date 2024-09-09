@@ -9,6 +9,7 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
@@ -163,15 +164,16 @@ func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, o
 }
 
 func (suite *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {
-	var err error
-	switch claim := externalClaim.(type) {
-	case *types.MsgSendToFxClaim:
-		_, err = suite.MsgServer().SendToFxClaim(suite.ctx, claim)
-	case *types.MsgBridgeCallClaim:
-		_, err = suite.MsgServer().BridgeCallClaim(suite.ctx, claim)
-	}
-	suite.NoError(err)
+	err := suite.SendClaimReturnErr(externalClaim)
+	suite.Require().NoError(err)
 
 	err = suite.Keeper().ExecuteClaim(suite.ctx, externalClaim.GetEventNonce())
 	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) SendClaimReturnErr(externalClaim types.ExternalClaim) error {
+	value, err := codectypes.NewAnyWithValue(externalClaim)
+	suite.Require().NoError(err)
+	_, err = suite.MsgServer().Claim(suite.ctx, &types.MsgClaim{Claim: value})
+	return err
 }

@@ -560,46 +560,6 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 	return &types.MsgBridgeCallConfirmResponse{}, nil
 }
 
-func (s MsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.claimHandlerCommon(ctx, msg); err != nil {
-		return nil, err
-	}
-	return &types.MsgSendToExternalClaimResponse{}, nil
-}
-
-func (s MsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.claimHandlerCommon(ctx, msg); err != nil {
-		return nil, err
-	}
-	return &types.MsgSendToFxClaimResponse{}, nil
-}
-
-func (s MsgServer) BridgeCallClaim(c context.Context, msg *types.MsgBridgeCallClaim) (*types.MsgBridgeCallClaimResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.claimHandlerCommon(ctx, msg); err != nil {
-		return nil, err
-	}
-	return &types.MsgBridgeCallClaimResponse{}, nil
-}
-
-func (s MsgServer) BridgeCallResultClaim(c context.Context, msg *types.MsgBridgeCallResultClaim) (*types.MsgBridgeCallResultClaimResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.claimHandlerCommon(ctx, msg); err != nil {
-		return nil, err
-	}
-	return &types.MsgBridgeCallResultClaimResponse{}, nil
-}
-
-func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.claimHandlerCommon(ctx, msg); err != nil {
-		return nil, err
-	}
-	return &types.MsgBridgeTokenClaimResponse{}, nil
-}
-
 func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*types.MsgBridgeCallResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
@@ -664,21 +624,6 @@ func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPen
 	return &types.MsgAddPendingPoolRewardsResponse{}, nil
 }
 
-// OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
-func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	for _, member := range msg.Members {
-		if !s.HasOracleAddrByExternalAddr(ctx, member.ExternalAddress) {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "external address")
-		}
-	}
-
-	if err := s.claimHandlerCommon(ctx, msg); err != nil {
-		return nil, err
-	}
-	return &types.MsgOracleSetUpdatedClaimResponse{}, nil
-}
-
 func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if s.authority != req.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, req.Authority)
@@ -701,6 +646,48 @@ func (s MsgServer) UpdateChainOracles(c context.Context, req *types.MsgUpdateCha
 	return &types.MsgUpdateChainOraclesResponse{}, nil
 }
 
+func (s MsgServer) Claim(c context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
+	claim, ok := msg.Claim.GetCachedValue().(types.ExternalClaim)
+	if !ok {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "invalid claim")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	bridgerAddr := claim.GetClaimer()
+	oracleAddr, err := s.checkBridgerIsOracle(ctx, bridgerAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = s.claimLogicCheck(ctx, claim); err != nil {
+		return nil, err
+	}
+
+	// Add the claim to the store
+	if _, err = s.Attest(ctx, oracleAddr, claim); err != nil {
+		return nil, err
+	}
+
+	// Emit the handle message event
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, bridgerAddr.String()),
+	))
+	return &types.MsgClaimResponse{}, nil
+}
+
+func (s MsgServer) claimLogicCheck(ctx sdk.Context, claim types.ExternalClaim) (err error) {
+	if claimMsg, ok := claim.(*types.MsgOracleSetUpdatedClaim); ok {
+		for _, member := range claimMsg.Members {
+			if !s.HasOracleAddrByExternalAddr(ctx, member.ExternalAddress) {
+				return errorsmod.Wrap(types.ErrInvalid, "external address")
+			}
+		}
+	}
+	return nil
+}
+
 func (s MsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddr sdk.AccAddress) (oracleAddr sdk.AccAddress, err error) {
 	oracleAddr, found := s.GetOracleAddrByBridgerAddr(ctx, bridgerAddr)
 	if !found {
@@ -714,30 +701,6 @@ func (s MsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddr sdk.AccAddr
 		return oracleAddr, types.ErrOracleNotOnLine
 	}
 	return oracleAddr, nil
-}
-
-// claimHandlerCommon is an internal function that provides common code for processing claims once they are
-// translated from the message to the Ethereum claim interface
-func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) (err error) {
-	bridgerAddr := msg.GetClaimer()
-	oracleAddr, err := s.checkBridgerIsOracle(ctx, bridgerAddr)
-	if err != nil {
-		return err
-	}
-
-	// Add the claim to the store
-	if _, err := s.Attest(ctx, oracleAddr, msg); err != nil {
-		return err
-	}
-
-	// Emit the handle message event
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, bridgerAddr.String()),
-	))
-
-	return nil
 }
 
 func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
