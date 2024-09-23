@@ -34,16 +34,14 @@ func (k RouterKeeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 type ModuleHandler struct {
-	QueryServer    types.QueryServer
-	MsgServer      types.MsgServer
-	ProposalServer proposalServer
+	QueryServer types.QueryServer
+	MsgServer   types.MsgServer
 }
 
 func NewModuleHandler(keeper Keeper) *ModuleHandler {
 	return &ModuleHandler{
-		QueryServer:    NewQueryServerImpl(keeper),
-		MsgServer:      NewMsgServerImpl(keeper),
-		ProposalServer: keeper,
+		QueryServer: NewQueryServerImpl(keeper),
+		MsgServer:   NewMsgServerImpl(keeper),
 	}
 }
 
