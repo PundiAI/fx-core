@@ -12,11 +12,8 @@ import (
 	"github.com/functionx/fx-core/v8/contract"
 )
 
-const TypeMsgMigrateAccount = "migrate_account"
-
 var _ sdk.Msg = &MsgMigrateAccount{}
 
-// NewMsgMigrateAccount returns a new MsgMigrateAccount
 func NewMsgMigrateAccount(from sdk.AccAddress, to common.Address, signature string) *MsgMigrateAccount {
 	return &MsgMigrateAccount{
 		From:      from.String(),
@@ -25,13 +22,6 @@ func NewMsgMigrateAccount(from sdk.AccAddress, to common.Address, signature stri
 	}
 }
 
-// Route should return the name of the module
-func (m *MsgMigrateAccount) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgMigrateAccount) Type() string { return TypeMsgMigrateAccount }
-
-// ValidateBasic performs stateless checks
 func (m *MsgMigrateAccount) ValidateBasic() error {
 	fromAddress, err := sdk.AccAddressFromBech32(m.From)
 	if err != nil {
@@ -65,16 +55,6 @@ func (m *MsgMigrateAccount) ValidateBasic() error {
 		return errortypes.ErrInvalidRequest.Wrap("signature key not equal to address")
 	}
 	return nil
-}
-
-// GetSignBytes encodes the message for signing
-func (m *MsgMigrateAccount) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgMigrateAccount) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.From)}
 }
 
 func MigrateAccountSignatureHash(from, to []byte) []byte {

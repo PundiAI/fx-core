@@ -95,7 +95,7 @@ func (suite *PrecompileTestSuite) TestCancelPendingBridgeCall() {
 			amount := big.NewInt(0).Add(randMint, big.NewInt(1))
 			coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(amount))
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-			_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+			_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 				Coin:     coin,
 				Receiver: signer.Address().Hex(),
 				Sender:   signer.AccAddress().String(),

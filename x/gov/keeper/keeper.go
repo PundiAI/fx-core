@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -25,6 +24,7 @@ type Keeper struct {
 	// The (unexposed) keys used to access the stores from the Context.
 	storeKey storetypes.StoreKey
 
+	authKeeper govtypes.AccountKeeper
 	bankKeeper govtypes.BankKeeper
 	sk         govtypes.StakingKeeper
 
@@ -35,12 +35,13 @@ type Keeper struct {
 	storeKeys map[string]*storetypes.KVStoreKey
 }
 
-func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, keys map[string]*storetypes.KVStoreKey, gk *govkeeper.Keeper, cdc codec.BinaryCodec, authority string) *Keeper {
+func NewKeeper(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, sk govtypes.StakingKeeper, keys map[string]*storetypes.KVStoreKey, gk *govkeeper.Keeper, cdc codec.BinaryCodec, authority string) *Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
 	}
 	return &Keeper{
 		storeKey:   keys[govtypes.StoreKey],
+		authKeeper: ak,
 		bankKeeper: bk,
 		sk:         sk,
 		Keeper:     gk,
@@ -48,75 +49,6 @@ func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, keys map[strin
 		authority:  authority,
 		storeKeys:  keys,
 	}
-}
-
-// AddDeposit adds or updates a deposit of a specific depositor on a specific proposal
-// Activates voting period when appropriate
-func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress, depositAmount sdk.Coins) (bool, error) {
-	// Checks to see if proposal exists
-	proposal, ok := keeper.GetProposal(ctx, proposalID)
-	if !ok {
-		return false, errorsmod.Wrapf(govtypes.ErrUnknownProposal, "%d", proposalID)
-	}
-
-	// Check if proposal is still depositable
-	if (proposal.Status != govv1.StatusDepositPeriod) && (proposal.Status != govv1.StatusVotingPeriod) {
-		return false, errorsmod.Wrapf(govtypes.ErrInactiveProposal, "%d", proposalID)
-	}
-
-	// update the governance module's account coins pool
-	err := keeper.bankKeeper.SendCoinsFromAccountToModule(ctx, depositorAddr, govtypes.ModuleName, depositAmount)
-	if err != nil {
-		return false, err
-	}
-
-	// Update proposal
-	proposal.TotalDeposit = sdk.NewCoins(proposal.TotalDeposit...).Add(depositAmount...)
-	keeper.SetProposal(ctx, proposal)
-
-	// Check if deposit has provided sufficient total funds to transition the proposal into the voting period
-	activatedVotingPeriod := false
-
-	minDeposit := keeper.NeedMinDeposit(ctx, proposal)
-	if proposal.Status == govv1.StatusDepositPeriod && sdk.NewCoins(proposal.TotalDeposit...).IsAllGTE(minDeposit) {
-		keeper.ActivateVotingPeriod(ctx, proposal)
-		activatedVotingPeriod = true
-	}
-
-	// Add or update deposit object
-	deposit, found := keeper.GetDeposit(ctx, proposalID, depositorAddr)
-
-	if found {
-		deposit.Amount = sdk.NewCoins(deposit.Amount...).Add(depositAmount...)
-	} else {
-		deposit = govv1.NewDeposit(proposalID, depositorAddr, depositAmount)
-	}
-
-	// called when deposit has been added to a proposal, however the proposal may not be active
-	keeper.Hooks().AfterProposalDeposit(ctx, proposalID, depositorAddr)
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		govtypes.EventTypeProposalDeposit,
-		sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
-		sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
-	))
-
-	keeper.SetDeposit(ctx, deposit)
-
-	return activatedVotingPeriod, nil
-}
-
-func (keeper Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govv1.Proposal) {
-	startTime := ctx.BlockHeader().Time
-	proposal.VotingStartTime = &startTime
-	votingPeriod := keeper.GetVotingPeriod(ctx, types.ExtractMsgTypeURL(proposal.Messages))
-	endTime := proposal.VotingStartTime.Add(*votingPeriod)
-	proposal.VotingEndTime = &endTime
-	proposal.Status = govv1.StatusVotingPeriod
-	keeper.SetProposal(ctx, proposal)
-
-	keeper.RemoveFromInactiveProposalQueue(ctx, proposal.Id, *proposal.DepositEndTime)
-	keeper.InsertActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
 }
 
 func (keeper Keeper) NeedMinDeposit(ctx sdk.Context, proposal govv1.Proposal) sdk.Coins {

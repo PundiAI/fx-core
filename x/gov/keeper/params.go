@@ -17,20 +17,23 @@ func (keeper Keeper) GetFXParams(ctx sdk.Context, msgType string) (params types.
 		keeper.cdc.MustUnmarshal(bz, &params)
 		return params
 	}
-	v1Params := keeper.Keeper.GetParams(ctx)
+	sdkParams, err := keeper.Keeper.Params.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
 	params = *types.NewParam(
 		msgType,
-		v1Params.GetMinDeposit(),
+		sdkParams.GetMinDeposit(),
 		sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit),
-		v1Params.VotingPeriod,
-		v1Params.Quorum,
-		v1Params.MaxDepositPeriod,
-		v1Params.Threshold,
-		v1Params.VetoThreshold,
-		v1Params.MinInitialDepositRatio,
-		v1Params.BurnVoteQuorum,
-		v1Params.BurnProposalDepositPrevote,
-		v1Params.BurnVoteVeto,
+		sdkParams.VotingPeriod,
+		sdkParams.Quorum,
+		sdkParams.MaxDepositPeriod,
+		sdkParams.Threshold,
+		sdkParams.VetoThreshold,
+		sdkParams.MinInitialDepositRatio,
+		sdkParams.BurnVoteQuorum,
+		sdkParams.BurnProposalDepositPrevote,
+		sdkParams.BurnVoteVeto,
 	)
 	return params
 }

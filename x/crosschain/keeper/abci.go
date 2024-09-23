@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -37,14 +38,14 @@ func (k Keeper) isNeedOracleSetRequest(ctx sdk.Context) (*types.OracleSet, bool)
 	}
 	// 3. Power diff
 	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentOracleSet.Members).PowerDiff(latestOracleSet.Members))
-	powerDiffDec, err := sdk.NewDecFromStr(powerDiff)
+	powerDiffDec, err := sdkmath.LegacyNewDecFromStr(powerDiff)
 	if err != nil {
 		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %w", powerDiff, err))
 	}
 
 	oracleSetUpdatePowerChangePercent := k.GetOracleSetUpdatePowerChangePercent(ctx)
-	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
-		oracleSetUpdatePowerChangePercent = sdk.OneDec()
+	if oracleSetUpdatePowerChangePercent.GT(sdkmath.LegacyOneDec()) {
+		oracleSetUpdatePowerChangePercent = sdkmath.LegacyOneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {
 		k.Logger(ctx).Info("oracle set change", "change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)

@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v8/app/upgrades"
 	nextversion "github.com/functionx/fx-core/v8/app/upgrades/v8"
@@ -37,7 +37,7 @@ func (app *App) setupUpgradeHandlers() {
 		plan.CreateUpgradeHandler(
 			app.mm,
 			app.configurator,
-			app.AppKeepers,
+			&app.AppKeepers,
 		),
 	)
 }

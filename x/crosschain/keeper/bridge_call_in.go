@@ -8,11 +8,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/hashicorp/go-metrics"
 
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -73,7 +72,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 func (k Keeper) BridgeCallTransferAndCallEvm(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, value sdkmath.Int) error {
 	if senderAccount := k.ak.GetAccount(ctx, sender.Bytes()); senderAccount != nil {
-		if _, ok := senderAccount.(authtypes.ModuleAccountI); ok {
+		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
 			return errorsmod.Wrap(types.ErrInvalid, "sender is module account")
 		}
 	}
@@ -152,7 +151,7 @@ func (k Keeper) bridgeCallTransferTokens(ctx sdk.Context, sender sdk.AccAddress,
 			}
 			continue
 		}
-		if _, err := k.erc20Keeper.ConvertCoin(sdk.WrapSDKContext(ctx), &erc20types.MsgConvertCoin{
+		if _, err := k.erc20Keeper.ConvertCoin(ctx, &erc20types.MsgConvertCoin{
 			Coin:     coin,
 			Receiver: common.BytesToAddress(receiver).String(),
 			Sender:   sender.String(),

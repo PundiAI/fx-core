@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -25,7 +26,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/client/grpc"
 	"github.com/functionx/fx-core/v8/client/jsonrpc"
 	"github.com/functionx/fx-core/v8/testutil"
@@ -62,13 +62,12 @@ func NewTestSuite() *TestSuite {
 }
 
 func (suite *TestSuite) SetupSuite() {
-	encCfg := app.MakeEncodingConfig()
 	if suite.IsUseLocalNetwork() {
 		fxtypes.SetConfig(true)
-		cfg := testutil.DefaultNetworkConfig(encCfg)
+		cfg := testutil.DefaultNetworkConfig()
 		cfg.TimeoutCommit = 5 * time.Second
 		suite.network = &network.Network{
-			Logger:     suite.T(),
+			Logger:     log.NewNopLogger(),
 			BaseDir:    fxtypes.GetDefaultNodeHome(),
 			Config:     cfg,
 			Validators: []*network.Validator{{}},
@@ -84,26 +83,26 @@ func (suite *TestSuite) SetupSuite() {
 	}
 
 	ibcGenesisOpt := func(config *network.Config) {
-		config.GenesisState = testutil.IbcGenesisState(encCfg.Codec, config.GenesisState)
+		config.GenesisState = testutil.IbcGenesisState(config.Codec, config.GenesisState)
 	}
 	bankGenesisOpt := func(config *network.Config) {
-		config.GenesisState = testutil.BankGenesisState(encCfg.Codec, config.GenesisState)
+		config.GenesisState = testutil.BankGenesisState(config.Codec, config.GenesisState)
 	}
 	govGenesisOpt := func(config *network.Config) {
 		votingPeriod := time.Millisecond
 		if numValidators > 1 {
 			votingPeriod = time.Duration(numValidators*5) * suite.timeoutCommit
 		}
-		config.GenesisState = testutil.GovGenesisState(encCfg.Codec, config.GenesisState, votingPeriod)
+		config.GenesisState = testutil.GovGenesisState(config.Codec, config.GenesisState, votingPeriod)
 	}
 	slashingGenesisOpt := func(config *network.Config) {
 		signedBlocksWindow := int64(10)
-		minSignedPerWindow := sdk.NewDecWithPrec(2, 1)
+		minSignedPerWindow := sdkmath.LegacyNewDecWithPrec(2, 1)
 		downtimeJailDuration := 5 * time.Second
-		config.GenesisState = testutil.SlashingGenesisState(encCfg.Codec, config.GenesisState, signedBlocksWindow, minSignedPerWindow, downtimeJailDuration)
+		config.GenesisState = testutil.SlashingGenesisState(config.Codec, config.GenesisState, signedBlocksWindow, minSignedPerWindow, downtimeJailDuration)
 	}
 
-	cfg := testutil.DefaultNetworkConfig(encCfg, ibcGenesisOpt, bankGenesisOpt, govGenesisOpt, slashingGenesisOpt)
+	cfg := testutil.DefaultNetworkConfig(ibcGenesisOpt, bankGenesisOpt, govGenesisOpt, slashingGenesisOpt)
 	cfg.TimeoutCommit = suite.timeoutCommit
 	cfg.NumValidators = numValidators
 	cfg.EnableJSONRPC = true
@@ -111,12 +110,9 @@ func (suite *TestSuite) SetupSuite() {
 		cfg.EnableTMLogging = true
 	}
 
-	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
-	suite.Require().NoError(err)
-	suite.network, err = network.New(suite.T(), baseDir, cfg)
-	suite.Require().NoError(err)
+	suite.network = network.New(suite.T(), cfg)
 
-	_, err = suite.network.WaitForHeight(3)
+	_, err := suite.network.WaitForHeight(3)
 	suite.Require().NoError(err)
 }
 
@@ -244,13 +240,13 @@ func (suite *TestSuite) QueryTx(txHash string) *sdk.TxResponse {
 	return txResponse
 }
 
-func (suite *TestSuite) QueryBlock(blockHeight int64) *tmservice.Block {
+func (suite *TestSuite) QueryBlock(blockHeight int64) *cmtservice.Block {
 	txResponse, err := suite.GRPCClient().GetBlockByHeight(blockHeight)
 	suite.NoError(err)
 	return txResponse
 }
 
-func (suite *TestSuite) QueryBlockByTxHash(txHash string) *tmservice.Block {
+func (suite *TestSuite) QueryBlockByTxHash(txHash string) *cmtservice.Block {
 	txResponse := suite.QueryTx(txHash)
 	return suite.QueryBlock(txResponse.Height)
 }
@@ -265,7 +261,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	suite.NoError(err)
 	if gasPrices.Len() <= 0 {
 		// Let me know if you use sdk.newCoins sanitizeCoins will remove all zero coins
-		gasPrices = sdk.Coins{suite.NewCoin(sdk.ZeroInt())}
+		gasPrices = sdk.Coins{suite.NewCoin(sdkmath.ZeroInt())}
 	}
 	grpcClient = grpcClient.WithGasPrices(gasPrices)
 	txRaw, err := grpcClient.BuildTxRaw(privKey, msgList, 500000, 0, "")
@@ -326,6 +322,7 @@ func (suite *TestSuite) BroadcastProposalTx2(msgs []sdk.Msg, title, summary stri
 		"",
 		title,
 		summary,
+		false,
 	)
 	suite.NoError(err)
 	proposalId := suite.getNextProposalId()
@@ -373,12 +370,12 @@ func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey, toBondedVal
 		Details:         "",
 	}
 	rates := stakingtypes.CommissionRates{
-		Rate:          sdk.NewDecWithPrec(2, 2),  // 2%
-		MaxRate:       sdk.NewDecWithPrec(50, 2), // 5%
-		MaxChangeRate: sdk.NewDecWithPrec(2, 2),  // 2%
+		Rate:          sdkmath.LegacyNewDecWithPrec(2, 2),  // 2%
+		MaxRate:       sdkmath.LegacyNewDecWithPrec(50, 2), // 5%
+		MaxChangeRate: sdkmath.LegacyNewDecWithPrec(2, 2),  // 2%
 	}
 	ed25519PrivKey := ed25519.GenPrivKeyFromSecret(valAddr.Bytes())
-	msg, err := stakingtypes.NewMsgCreateValidator(valAddr, ed25519PrivKey.PubKey(), selfDelegate, description, rates, minSelfDelegate)
+	msg, err := stakingtypes.NewMsgCreateValidator(valAddr.String(), ed25519PrivKey.PubKey(), selfDelegate, description, rates, minSelfDelegate)
 	suite.NoError(err)
 	return suite.BroadcastTx(valPriv, msg)
 }
@@ -429,7 +426,7 @@ func (suite *TestSuite) CheckWithdrawAddr(delegatorAddr, withdrawAddr sdk.AccAdd
 }
 
 func (suite *TestSuite) Delegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) *sdk.TxResponse {
-	return suite.BroadcastTx(priv, stakingtypes.NewMsgDelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
+	return suite.BroadcastTx(priv, stakingtypes.NewMsgDelegate(sdk.AccAddress(priv.PubKey().Address().Bytes()).String(), valAddress.String(), amount))
 }
 
 func (suite *TestSuite) CheckDelegate(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, delegation sdk.Coin) {
@@ -446,7 +443,7 @@ func (suite *TestSuite) CheckDelegate(delegatorAddr sdk.AccAddress, validatorAdd
 }
 
 func (suite *TestSuite) WithdrawReward(priv cryptotypes.PrivKey, valAddress sdk.ValAddress) *sdk.TxResponse {
-	return suite.BroadcastTx(priv, distritypes.NewMsgWithdrawDelegatorReward(priv.PubKey().Address().Bytes(), valAddress))
+	return suite.BroadcastTx(priv, distritypes.NewMsgWithdrawDelegatorReward(sdk.AccAddress(priv.PubKey().Address().Bytes()).String(), valAddress.String()))
 }
 
 func (suite *TestSuite) Undelegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) *sdk.TxResponse {
@@ -458,7 +455,7 @@ func (suite *TestSuite) Undelegate(priv cryptotypes.PrivKey, valAddress sdk.ValA
 		suite.NoError(err)
 		amount = delegation.DelegationResponse.Balance
 	}
-	return suite.BroadcastTx(priv, stakingtypes.NewMsgUndelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
+	return suite.BroadcastTx(priv, stakingtypes.NewMsgUndelegate(sdk.AccAddress(priv.PubKey().Address().Bytes()).String(), valAddress.String(), amount))
 }
 
 func (suite *TestSuite) CheckUndelegate(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, entries ...stakingtypes.UnbondingDelegationEntry) {
@@ -484,7 +481,7 @@ func (suite *TestSuite) Redelegate(priv cryptotypes.PrivKey, valSrc, valDest sdk
 		suite.NoError(err)
 		amt = delegation.DelegationResponse.Balance.Amount
 	}
-	msg := stakingtypes.NewMsgBeginRedelegate(priv.PubKey().Address().Bytes(), valSrc, valDest, sdk.NewCoin(suite.GetStakingDenom(), amt))
+	msg := stakingtypes.NewMsgBeginRedelegate(sdk.AccAddress(priv.PubKey().Address().Bytes()).String(), valSrc.String(), valDest.String(), sdk.NewCoin(suite.GetStakingDenom(), amt))
 	return suite.BroadcastTx(priv, msg)
 }
 
@@ -566,7 +563,7 @@ func (suite *TestSuite) QueryModuleAccountByName(moduleName string) sdk.AccAddre
 		Name: moduleName,
 	})
 	suite.NoError(err)
-	var account types.AccountI
+	var account sdk.AccountI
 	err = suite.network.Config.Codec.UnpackAny(moduleAddress.Account, &account)
 	suite.Require().NoError(err)
 	return account.GetAddress()

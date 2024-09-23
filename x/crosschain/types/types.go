@@ -393,8 +393,8 @@ func (m *Oracle) GetValidator() sdk.ValAddress {
 	return addr
 }
 
-func (m *Oracle) GetSlashAmount(slashFraction sdk.Dec) sdkmath.Int {
-	slashAmount := sdk.NewDecFromInt(m.DelegateAmount).Mul(slashFraction).MulInt64(m.SlashTimes).TruncateInt()
+func (m *Oracle) GetSlashAmount(slashFraction sdkmath.LegacyDec) sdkmath.Int {
+	slashAmount := sdkmath.LegacyNewDecFromInt(m.DelegateAmount).Mul(slashFraction).MulInt64(m.SlashTimes).TruncateInt()
 	slashAmount = sdkmath.MinInt(slashAmount, m.DelegateAmount)
 	slashAmount = sdkmath.MaxInt(slashAmount, sdkmath.ZeroInt())
 	return slashAmount

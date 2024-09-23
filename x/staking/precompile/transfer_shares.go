@@ -6,8 +6,6 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/armon/go-metrics"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -184,6 +182,7 @@ func (m *TransferShare) decrementAllowance(ctx sdk.Context, valAddr sdk.ValAddre
 	return nil
 }
 
+//nolint:gocyclo
 func (m *TransferShare) handlerTransferShares(
 	ctx sdk.Context,
 	evm *vm.EVM,
@@ -191,16 +190,20 @@ func (m *TransferShare) handlerTransferShares(
 	from, to common.Address,
 	sharesInt *big.Int,
 ) (*big.Int, *big.Int, error) {
-	validator, found := m.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return nil, nil, fmt.Errorf("validator not found: %s", valAddr.String())
+	validator, err := m.stakingKeeper.GetValidator(ctx, valAddr)
+	if err != nil {
+		return nil, nil, err
 	}
-	fromDel, found := m.stakingKeeper.GetDelegation(ctx, from.Bytes(), valAddr)
-	if !found {
-		return nil, nil, errors.New("from delegation not found")
+	fromDel, err := m.stakingKeeper.GetDelegation(ctx, from.Bytes(), valAddr)
+	if err != nil {
+		return nil, nil, err
 	}
 	// if from has receiving redelegation, can't transfer shares
-	if m.stakingKeeper.HasReceivingRedelegation(ctx, from.Bytes(), valAddr) {
+	has, err := m.stakingKeeper.HasReceivingRedelegation(ctx, from.Bytes(), valAddr)
+	if err != nil {
+		return nil, nil, err
+	}
+	if has {
 		return nil, nil, errors.New("from has receiving redelegation")
 	}
 
@@ -210,11 +213,14 @@ func (m *TransferShare) handlerTransferShares(
 	}
 
 	// withdraw reward
-	withdrawAddr := m.distrKeeper.GetDelegatorWithdrawAddr(ctx, to.Bytes())
+	withdrawAddr, err := m.distrKeeper.GetDelegatorWithdrawAddr(ctx, to.Bytes())
+	if err != nil {
+		return nil, nil, err
+	}
 	beforeDelBalance := m.bankKeeper.GetBalance(ctx, withdrawAddr, m.stakingDenom)
 
 	// withdraw reward
-	withdrawRewardRes, err := m.distrMsgServer.WithdrawDelegatorReward(sdk.WrapSDKContext(ctx), &distrtypes.MsgWithdrawDelegatorReward{
+	withdrawRewardRes, err := m.distrMsgServer.WithdrawDelegatorReward(ctx, &distrtypes.MsgWithdrawDelegatorReward{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: valAddr.String(),
 	})
@@ -230,13 +236,20 @@ func (m *TransferShare) handlerTransferShares(
 	EmitEvent(evm, data, topic)
 
 	// get to delegation
-	toDel, toDelFound := m.stakingKeeper.GetDelegation(ctx, to.Bytes(), valAddr)
-	if !toDelFound {
-		toDel = stakingtypes.NewDelegation(to.Bytes(), valAddr, sdkmath.LegacyZeroDec())
+	toDel, err := m.stakingKeeper.GetDelegation(ctx, to.Bytes(), valAddr)
+	toDelFound := false
+	if err != nil {
+		if !errors.Is(err, stakingtypes.ErrNoDelegation) {
+			return nil, nil, err
+		}
+		toDel = stakingtypes.NewDelegation(sdk.AccAddress(to.Bytes()).String(), valAddr.String(), sdkmath.LegacyZeroDec())
 		// if address to not delegate before, increase validator period
-		_ = m.distrKeeper.IncrementValidatorPeriod(ctx, validator)
+		if _, err = m.distrKeeper.IncrementValidatorPeriod(ctx, validator); err != nil {
+			return nil, nil, err
+		}
 	} else {
-		toWithdrawRewardsRes, err := m.distrMsgServer.WithdrawDelegatorReward(sdk.WrapSDKContext(ctx), &distrtypes.MsgWithdrawDelegatorReward{
+		toDelFound = true
+		toWithdrawRewardsRes, err := m.distrMsgServer.WithdrawDelegatorReward(ctx, &distrtypes.MsgWithdrawDelegatorReward{
 			DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
 			ValidatorAddress: valAddr.String(),
 		})
@@ -251,39 +264,65 @@ func (m *TransferShare) handlerTransferShares(
 	}
 
 	// update from delegate, delete it if shares zero
-	fromDelStartingInfo := m.distrKeeper.GetDelegatorStartingInfo(ctx, valAddr, from.Bytes())
+	fromDelStartingInfo, err := m.distrKeeper.GetDelegatorStartingInfo(ctx, valAddr, from.Bytes())
+	if err != nil {
+		return nil, nil, err
+	}
 	fromDel.Shares = fromDel.Shares.Sub(shares)
 	if fromDel.GetShares().IsZero() {
 		// if shares zero, remove delegation and delete starting info and reference count
-		if err := m.stakingKeeper.RemoveDelegation(ctx, fromDel); err != nil {
+		if err = m.stakingKeeper.RemoveDelegation(ctx, fromDel); err != nil {
 			return nil, nil, err
 		}
 		// decrement previous period reference count
-		decrementReferenceCount(m.distrKeeper, ctx, valAddr, fromDelStartingInfo.PreviousPeriod)
-		m.distrKeeper.DeleteDelegatorStartingInfo(ctx, valAddr, from.Bytes())
+		if err = decrementReferenceCount(m.distrKeeper, ctx, valAddr, fromDelStartingInfo.PreviousPeriod); err != nil {
+			return nil, nil, err
+		}
+		if err = m.distrKeeper.DeleteDelegatorStartingInfo(ctx, valAddr, from.Bytes()); err != nil {
+			return nil, nil, err
+		}
 	} else {
-		m.stakingKeeper.SetDelegation(ctx, fromDel)
+		if err = m.stakingKeeper.SetDelegation(ctx, fromDel); err != nil {
+			return nil, nil, err
+		}
 		// update from starting info
 		fromDelStartingInfo.Stake = validator.TokensFromSharesTruncated(fromDel.GetShares())
-		m.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, from.Bytes(), fromDelStartingInfo)
+		if err = m.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, from.Bytes(), fromDelStartingInfo); err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// update to delegate, set starting info if to not delegate before
 	toDel.Shares = toDel.Shares.Add(shares)
-	m.stakingKeeper.SetDelegation(ctx, toDel)
+	if err = m.stakingKeeper.SetDelegation(ctx, toDel); err != nil {
+		return nil, nil, err
+	}
 	if !toDelFound {
 		// if to not delegate before, last period reference count - 1 and set starting info
-		previousPeriod := m.distrKeeper.GetValidatorCurrentRewards(ctx, valAddr).Period - 1
-		incrementReferenceCount(m.distrKeeper, ctx, valAddr, previousPeriod)
+		validatorCurrentRewards, err := m.distrKeeper.GetValidatorCurrentRewards(ctx, valAddr)
+		if err != nil {
+			return nil, nil, err
+		}
+		previousPeriod := validatorCurrentRewards.Period - 1
+		if err = incrementReferenceCount(m.distrKeeper, ctx, valAddr, previousPeriod); err != nil {
+			return nil, nil, err
+		}
 
 		stakeToken := validator.TokensFromSharesTruncated(shares)
 		toDelStartingInfo := distrtypes.NewDelegatorStartingInfo(previousPeriod, stakeToken, uint64(ctx.BlockHeight()))
-		m.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, to.Bytes(), toDelStartingInfo)
+		if err = m.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, to.Bytes(), toDelStartingInfo); err != nil {
+			return nil, nil, err
+		}
 	} else {
 		// update to starting info
-		toDelStartingInfo := m.distrKeeper.GetDelegatorStartingInfo(ctx, valAddr, to.Bytes())
+		toDelStartingInfo, err := m.distrKeeper.GetDelegatorStartingInfo(ctx, valAddr, to.Bytes())
+		if err != nil {
+			return nil, nil, err
+		}
 		toDelStartingInfo.Stake = validator.TokensFromSharesTruncated(toDel.GetShares())
-		m.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, to.Bytes(), toDelStartingInfo)
+		if err = m.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, to.Bytes(), toDelStartingInfo); err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// calculate token from shares
@@ -298,9 +337,6 @@ func (m *TransferShare) handlerTransferShares(
 		return nil, nil, err
 	}
 	EmitEvent(evm, data, topic)
-
-	// add emit event
-	TransferSharesEmitEvents(ctx, valAddr, from.Bytes(), to.Bytes(), sdkmath.NewIntFromBigInt(sharesInt), token)
 
 	return token.BigInt(), toRewardCoin.Amount.BigInt(), nil
 }
@@ -337,49 +373,31 @@ func (m *TransferShare) NewTransferShareEvent(sender, to common.Address, validat
 }
 
 // increment the reference count for a historical rewards value
-func incrementReferenceCount(k DistrKeeper, ctx sdk.Context, valAddr sdk.ValAddress, period uint64) {
-	historical := k.GetValidatorHistoricalRewards(ctx, valAddr, period)
+func incrementReferenceCount(k DistrKeeper, ctx sdk.Context, valAddr sdk.ValAddress, period uint64) error {
+	historical, err := k.GetValidatorHistoricalRewards(ctx, valAddr, period)
+	if err != nil {
+		return err
+	}
 	if historical.ReferenceCount > 2 {
-		panic("reference count should never exceed 2")
+		return errors.New("reference count should never exceed 2")
 	}
 	historical.ReferenceCount++
-	k.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
+	return k.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
 }
 
 // decrement the reference count for a historical rewards value, and delete if zero references remain
-func decrementReferenceCount(k DistrKeeper, ctx sdk.Context, valAddr sdk.ValAddress, period uint64) {
-	historical := k.GetValidatorHistoricalRewards(ctx, valAddr, period)
+func decrementReferenceCount(k DistrKeeper, ctx sdk.Context, valAddr sdk.ValAddress, period uint64) error {
+	historical, err := k.GetValidatorHistoricalRewards(ctx, valAddr, period)
+	if err != nil {
+		return err
+	}
 	if historical.ReferenceCount == 0 {
 		panic("cannot set negative reference count")
 	}
 	historical.ReferenceCount--
 	if historical.ReferenceCount == 0 {
-		k.DeleteValidatorHistoricalReward(ctx, valAddr, period)
+		return k.DeleteValidatorHistoricalReward(ctx, valAddr, period)
 	} else {
-		k.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
+		return k.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
 	}
-}
-
-func TransferSharesEmitEvents(ctx sdk.Context, validator sdk.ValAddress, from, recipient sdk.AccAddress, shares, token sdkmath.Int) {
-	if shares.IsInt64() {
-		defer func() {
-			telemetry.IncrCounter(1, evmtypes.ModuleName, "transfer_shares")
-			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", evmtypes.TypeMsgEthereumTx},
-				float32(shares.Int64()),
-				[]metrics.Label{telemetry.NewLabel("validator", validator.String())},
-			)
-		}()
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			fxstakingtypes.EventTypeTransferShares,
-			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, validator.String()),
-			sdk.NewAttribute(fxstakingtypes.AttributeKeyFrom, from.String()),
-			sdk.NewAttribute(fxstakingtypes.AttributeKeyRecipient, recipient.String()),
-			sdk.NewAttribute(fxstakingtypes.AttributeKeyShares, shares.String()),
-			sdk.NewAttribute(fxstakingtypes.AttributeKeyAmount, token.String()),
-		),
-	)
 }

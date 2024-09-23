@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -75,7 +76,7 @@ func (k Keeper) AddBridgeToken(ctx sdk.Context, token, denom string) {
 
 func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.TokenToDenomKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.TokenToDenomKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

@@ -5,21 +5,11 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/v8/x/evm/legacy"
 )
-
-var ModuleCdc = codec.NewAminoCodec(codec.NewLegacyAmino())
-
-func init() {
-	RegisterLegacyAminoCodec(ModuleCdc.LegacyAmino)
-
-	// Register all Amino interfaces and concrete types on the authz Amino codec so that this can later be
-	// used to properly serialize MsgGrant and MsgExec instances
-	RegisterLegacyAminoCodec(authzcodec.Amino)
-}
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -30,7 +20,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 
 	registry.RegisterImplementations(
 		(*govv1betal.Content)(nil),
-		&legacy.InitEvmParamsProposal{}, // nolint:staticcheck
+		&legacy.InitEvmParamsProposal{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
@@ -38,4 +28,9 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // RegisterLegacyAminoCodec registers concrete types on the Amino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCallContract{}, "evm/MsgCallContract", nil)
+}
+
+func RegisterCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&ethsecp256k1.PubKey{}, ethsecp256k1.PubKeyName, nil)
+	cdc.RegisterConcrete(&ethsecp256k1.PrivKey{}, ethsecp256k1.PrivKeyName, nil)
 }

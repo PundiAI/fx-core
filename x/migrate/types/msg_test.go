@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,15 +12,6 @@ import (
 	_ "github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/x/migrate/types"
 )
-
-func TestMsgMigrateAccountRoute(t *testing.T) {
-	addr1 := sdk.AccAddress("from")
-	addr2 := common.BytesToAddress([]byte("to"))
-	msg := types.NewMsgMigrateAccount(addr1, addr2, "empty string")
-
-	require.Equal(t, msg.Route(), types.RouterKey)
-	require.Equal(t, msg.Type(), "migrate_account")
-}
 
 func TestMsgMigrateAccountValidation(t *testing.T) {
 	privateKey, err := crypto.GenerateKey()
@@ -71,21 +61,4 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestMsgMigrateAccountGetSignBytes(t *testing.T) {
-	addr1 := sdk.AccAddress("input")
-	addr2 := common.BytesToAddress([]byte("output"))
-	sign := "0x1"
-	msg := types.NewMsgMigrateAccount(addr1, addr2, sign)
-	res := msg.GetSignBytes()
-
-	expected := `{"type":"migrate/MsgMigrateAccount","value":{"from":"cosmos1d9h8qat57ljhcm","signature":"0x1","to":"0x00000000000000000000000000006F7574707574"}}`
-	require.Equal(t, expected, string(res))
-}
-
-func TestMsgMigrateAccountGetSigners(t *testing.T) {
-	msg := types.NewMsgMigrateAccount([]byte("input111111111111111"), common.Address{}, "")
-	res := msg.GetSigners()
-	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
 }

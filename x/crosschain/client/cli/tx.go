@@ -41,8 +41,6 @@ func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {
 
 func getTxSubCmds(chainName string) []*cobra.Command {
 	cmds := []*cobra.Command{
-		CmdUpdateChainOraclesProposal(chainName),
-
 		CmdBoundedOracle(chainName),
 		CmdUnboundedOracle(chainName),
 		CmdReDelegate(chainName),

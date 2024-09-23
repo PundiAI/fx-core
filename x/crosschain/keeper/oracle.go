@@ -2,9 +2,10 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"github.com/armon/go-metrics"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hashicorp/go-metrics"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
@@ -131,7 +132,7 @@ func (k Keeper) SetLastTotalPower(ctx sdk.Context) {
 
 func (k Keeper) IterateOracle(ctx sdk.Context, cb func(oracle types.Oracle) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.OracleKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -174,7 +175,7 @@ func (k Keeper) DelOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) {
 
 func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Oracles) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.OracleKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -211,7 +212,7 @@ func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddrStr string) {
 	}
 
 	oracle.Online = false
-	oracle.SlashTimes += 1
+	oracle.SlashTimes++
 	k.SetOracle(ctx, oracle)
 	k.SetLastOracleSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
 }

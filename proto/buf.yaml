@@ -1,13 +1,14 @@
 version: v1
 name: buf.build/functionx/fx-core
 deps:
-  - buf.build/cosmos/gogo-proto:34d970b699f84aa382f3c29773a60836
-  - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
-  - buf.build/googleapis/googleapis:75b4300737fb4efca0831636be94e517
+  - buf.build/cosmos/cosmos-sdk:v0.50.0
+  - buf.build/cosmos/cosmos-proto
+  - buf.build/cosmos/gogo-proto
+  - buf.build/cosmos/ibc:26e19db15b1d96d599882b2ba634ccef07488b85
+  - buf.build/googleapis/googleapis
 lint:
   use:
     - DEFAULT
-    - COMMENTS
     - FILE_LOWER_SNAKE_CASE
   except:
     - UNARY_RPC
@@ -19,6 +20,9 @@ lint:
     - RPC_RESPONSE_STANDARD_NAME
     - RPC_REQUEST_RESPONSE_UNIQUE
     - COMMENT_MESSAGE
+  ignore:
+    - ethermint/evm/v1/testnet_proposal.proto
+    - fx/gov/v1/legacy.proto
 breaking:
   use:
     - FILE

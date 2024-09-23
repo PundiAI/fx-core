@@ -42,7 +42,7 @@ func (m *AllowanceSharesMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte,
 
 	stateDB := evm.StateDB.(types.ExtStateDB)
 
-	allowance := m.Keeper.stakingKeeper.GetAllowance(stateDB.CacheContext(), args.GetValidator(), args.Owner.Bytes(), args.Spender.Bytes())
+	allowance := m.Keeper.stakingKeeper.GetAllowance(stateDB.Context(), args.GetValidator(), args.Owner.Bytes(), args.Spender.Bytes())
 	return m.PackOutput(allowance)
 }
 

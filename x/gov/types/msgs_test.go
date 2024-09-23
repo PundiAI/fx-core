@@ -174,10 +174,3 @@ func TestNewMsgUpdateStore(t *testing.T) {
 		}
 	}
 }
-
-func TestMsgUpdateEGFParamsGetSignBytes(t *testing.T) {
-	msg := types.NewMsgUpdateEGFParams("gov", *types.DefaultEGFParams())
-	res := msg.GetSignBytes()
-	expected := `{"type":"gov/MsgUpdateEGFParams","value":{"authority":"gov","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"}}}}`
-	require.Equal(t, expected, string(res))
-}

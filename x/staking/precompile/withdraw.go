@@ -4,41 +4,17 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/armon/go-metrics"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
 	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
-
-func WithdrawEmitEvents(ctx sdk.Context, delegator sdk.AccAddress, amount sdk.Coins) {
-	defer func() {
-		for _, a := range amount {
-			if a.Amount.IsInt64() {
-				telemetry.SetGaugeWithLabels(
-					[]string{"tx", "msg", "withdraw_reward"},
-					float32(a.Amount.Int64()),
-					[]metrics.Label{telemetry.NewLabel("denom", a.Denom)},
-				)
-			}
-		}
-	}()
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, delegator.String()),
-		),
-	)
-}
 
 type WithdrawMethod struct {
 	*Keeper
@@ -77,15 +53,13 @@ func (m *WithdrawMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error)
 	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		sender := sdk.AccAddress(contract.Caller().Bytes())
 
-		resp, err := m.distrMsgServer.WithdrawDelegatorReward(sdk.WrapSDKContext(ctx), &distrtypes.MsgWithdrawDelegatorReward{
+		resp, err := m.distrMsgServer.WithdrawDelegatorReward(ctx, &distrtypes.MsgWithdrawDelegatorReward{
 			DelegatorAddress: sender.String(),
 			ValidatorAddress: args.GetValidator().String(),
 		})
 		if err != nil {
 			return err
 		}
-		// add withdraw event
-		WithdrawEmitEvents(ctx, sender, resp.Amount)
 
 		// add withdraw log
 		bigInt := resp.Amount.AmountOf(m.stakingDenom).BigInt()

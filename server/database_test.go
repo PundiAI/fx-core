@@ -11,8 +11,8 @@ import (
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/server"
+	"github.com/functionx/fx-core/v8/testutil"
 )
 
 type DatabaseTestSuite struct {
@@ -26,10 +26,9 @@ func TestDatabaseTestSuite(t *testing.T) {
 }
 
 func (suite *DatabaseTestSuite) SetupTest() {
-	cdc := app.MakeEncodingConfig()
-	newCfg := tmcfg.ResetTestRootWithChainID("blockchain_database_test", "fxcore")
+	newCfg := testutil.ResetTestRootWithChainID("blockchain_database_test", "fxcore")
 
-	database, err := server.NewDatabase(newCfg, cdc.Codec)
+	database, err := server.NewDatabase(newCfg)
 	suite.NoError(err)
 
 	_, err = database.StateStore().LoadFromDBOrGenesisFile(newCfg.GenesisFile())
@@ -105,7 +104,12 @@ func (suite *DatabaseTestSuite) newBlock(height int64) {
 			Timestamp:        tmtime.Now(),
 			Signature:        []byte("Signature"),
 		}}
-		commit := tmtypes.NewCommit(h, 0, tmtypes.BlockID{Hash: []byte(""), PartSetHeader: tmtypes.PartSetHeader{Hash: []byte(""), Total: 2}}, commitSigs)
+		commit := &tmtypes.Commit{
+			Height:     h,
+			Round:      0,
+			BlockID:    tmtypes.BlockID{Hash: []byte(""), PartSetHeader: tmtypes.PartSetHeader{Hash: []byte(""), Total: 2}},
+			Signatures: commitSigs,
+		}
 		suite.database.BlockStore().SaveBlock(block, partSet, commit)
 	}
 }

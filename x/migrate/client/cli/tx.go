@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
@@ -144,7 +145,7 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 
 func getMigrateAccountMsg(cliCtx client.Context, from sdk.AccAddress, to common.Address) (sdk.Msg, error) {
 	toInfo, _ := cliCtx.Keyring.KeyByAddress(sdk.AccAddress(to.Bytes()))
-	sign, _, err := cliCtx.Keyring.Sign(toInfo.Name, types.MigrateAccountSignatureHash(from, to.Bytes()))
+	sign, _, err := cliCtx.Keyring.Sign(toInfo.Name, types.MigrateAccountSignatureHash(from, to.Bytes()), signing.SignMode_SIGN_MODE_DIRECT)
 	if err != nil {
 		return nil, fmt.Errorf("sign migrate signature error %w", err)
 	}

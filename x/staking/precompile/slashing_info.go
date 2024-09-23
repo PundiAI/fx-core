@@ -1,7 +1,6 @@
 package precompile
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -42,11 +41,11 @@ func (m *SlashingInfoMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 	}
 
 	stateDB := evm.StateDB.(types.ExtStateDB)
-	cacheCtx := stateDB.CacheContext()
+	cacheCtx := stateDB.Context()
 
-	validator, found := m.Keeper.stakingKeeper.GetValidator(cacheCtx, args.GetValidator())
-	if !found {
-		return nil, fmt.Errorf("validator %s not found", args.Validator)
+	validator, err := m.Keeper.stakingKeeper.GetValidator(cacheCtx, args.GetValidator())
+	if err != nil {
+		return nil, err
 	}
 
 	consAddr, err := validator.GetConsAddr()
@@ -54,9 +53,9 @@ func (m *SlashingInfoMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		return nil, err
 	}
 
-	signingInfo, found := m.Keeper.slashingKeeper.GetValidatorSigningInfo(cacheCtx, consAddr)
-	if !found {
-		return nil, fmt.Errorf("signing info %s not found", consAddr.String())
+	signingInfo, err := m.Keeper.slashingKeeper.GetValidatorSigningInfo(cacheCtx, consAddr)
+	if err != nil {
+		return nil, err
 	}
 	return m.PackOutput(validator.Jailed, signingInfo.MissedBlocksCounter)
 }

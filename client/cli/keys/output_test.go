@@ -8,15 +8,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/client/cli/keys"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
 
 func TestNewKeyOutput(t *testing.T) {
 	pubKeyJson := `{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"A4MYU1tUEF1Keq5gwI/EX5aHGBtP38YlvRp1P6c5f+11"}`
-	encodingConfig := app.MakeEncodingConfig()
 	var pubKey cryptotypes.PubKey
-	err := encodingConfig.Codec.UnmarshalInterfaceJSON([]byte(pubKeyJson), &pubKey)
+	err := helpers.NewApp().AppCodec().UnmarshalInterfaceJSON([]byte(pubKeyJson), &pubKey)
 	assert.NoError(t, err)
 	address := sdk.AccAddress(pubKey.Address().Bytes())
 	keyOutput, err := keys.NewKeyOutput("test", keyring.TypeLocal, address, pubKey)

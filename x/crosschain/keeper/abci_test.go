@@ -5,14 +5,12 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -25,12 +23,12 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	}
-	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
+	_, err := suite.MsgServer().BondedOracle(suite.ctx, normalMsg)
 	suite.Require().NoError(err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 
-	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.EndBlocker()
 
 	bridgeToken := helpers.GenExternalAddr(suite.chainName)
 	sendToFxSendAddr := helpers.GenExternalAddr(suite.chainName)
@@ -50,7 +48,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.Require().NoError(err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.EndBlocker()
 
 	sendToFxClaim := &types.MsgSendToFxClaim{
 		EventNonce:     2,
@@ -66,7 +64,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.SendClaim(sendToFxClaim)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.EndBlocker()
 
 	allBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToFxClaim.Receiver))
 	denom := types.NewBridgeDenom(suite.chainName, bridgeToken)
@@ -90,10 +88,10 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())
-		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
+		_, err := suite.MsgServer().BondedOracle(suite.ctx, msgBondedOracle)
 
 		suite.Require().NoError(err)
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		oracleSets := suite.Keeper().GetOracleSets(suite.ctx)
 		suite.Require().NotNil(oracleSets)
@@ -126,7 +124,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		suite.Require().NotNil(endBlockBeforeAttestation.Votes)
 		suite.Require().EqualValues(i+1, len(endBlockBeforeAttestation.Votes))
 
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		endBlockAfterAttestation := suite.Keeper().GetAttestation(suite.ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
 		suite.Require().NotNil(endBlockAfterAttestation)
@@ -146,25 +144,23 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 	}
 	err := suite.SendClaimReturnErr(addBridgeTokenClaim)
 	suite.Require().NoError(err)
-	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.EndBlocker()
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	attestation := suite.Keeper().GetAttestation(suite.ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
 
 	suite.Require().NotNil(attestation)
 	suite.Require().True(attestation.Observed)
 
-	proposalHandler := crosschain.NewCrosschainProposalHandler(suite.app.CrosschainRouterKeeper)
-
 	var newOracleList []string
 	for i := 0; i < 7; i++ {
 		newOracleList = append(newOracleList, suite.oracleAddrs[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{ // nolint:staticcheck
-		Title:       "proposal 1: try update chain oracle power >= 30%, expect error",
-		Description: "",
-		Oracles:     newOracleList,
-		ChainName:   suite.chainName,
+	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, &types.MsgUpdateChainOracles{
+		ChainName: suite.chainName,
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Oracles:   newOracleList,
 	})
+
 	suite.Require().ErrorIs(types.ErrInvalid, err)
 
 	expectTotalPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(10)).Quo(sdk.DefaultPowerReduction)
@@ -180,11 +176,10 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 	for i := 0; i < 8; i++ {
 		newOracleList2 = append(newOracleList2, suite.oracleAddrs[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{ // nolint:staticcheck
-		Title:       "proposal 2: try update chain oracle power <= 30%, expect success",
-		Description: "",
-		Oracles:     newOracleList2,
-		ChainName:   suite.chainName,
+	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, &types.MsgUpdateChainOracles{
+		ChainName: suite.chainName,
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Oracles:   newOracleList2,
 	})
 	suite.Require().NoError(err)
 }
@@ -202,9 +197,9 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
+		_, err := suite.MsgServer().BondedOracle(suite.ctx, msgBondedOracle)
 		suite.Require().NoError(err)
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		oracleSets := suite.Keeper().GetOracleSets(suite.ctx)
 		suite.Require().NotNil(oracleSets)
@@ -246,7 +241,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		firstBridgeTokenClaim.BridgerAddress = suite.bridgerAddrs[13].String()
 		err := suite.SendClaimReturnErr(firstBridgeTokenClaim)
 		suite.Require().NoError(err)
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 		attestation := suite.Keeper().GetAttestation(suite.ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
 
@@ -277,7 +272,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			suite.Require().NotNil(endBlockBeforeAttestation.Votes)
 			suite.Require().EqualValues(i+1, len(endBlockBeforeAttestation.Votes))
 
-			suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+			suite.EndBlocker()
 			suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 			endBlockAfterAttestation := suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 			suite.Require().NotNil(endBlockAfterAttestation)
@@ -301,7 +296,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		})
 		suite.Require().NoError(err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		suite.Require().NotNil(secondClaimAttestation)
@@ -327,7 +322,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		})
 		suite.Require().NoError(err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		suite.Require().NotNil(secondClaimAttestation)
@@ -353,7 +348,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		})
 		suite.Require().NoError(err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		suite.Require().NotNil(secondClaimAttestation)
@@ -373,7 +368,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		suite.Require().NoError(err)
 
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		suite.EndBlocker()
 
 		secondClaimAttestation = suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		suite.Require().NotNil(secondClaimAttestation)
@@ -394,10 +389,10 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())
-		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
+		_, err := suite.MsgServer().BondedOracle(suite.ctx, msgBondedOracle)
 		suite.Require().NoError(err)
 	}
-	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.EndBlocker()
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	allOracles := suite.Keeper().GetAllOracles(suite.ctx, false)
 	suite.Require().NotNil(allOracles)
@@ -436,7 +431,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 	})
 	suite.Require().NoError(err)
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.EndBlocker()
 
 	oracleAddr, found = suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, bridger)
 	suite.Require().True(found)
@@ -461,7 +456,7 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())
-		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
+		_, err := suite.MsgServer().BondedOracle(suite.ctx, msgBondedOracle)
 		suite.Require().NoError(err)
 	}
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -485,14 +480,14 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			ChainName:       suite.chainName,
 		}
 		suite.Require().NoError(oracleSetConfirm.ValidateBasic())
-		_, err := suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), oracleSetConfirm)
+		_, err := suite.MsgServer().OracleSetConfirm(suite.ctx, oracleSetConfirm)
 		suite.Require().NoError(err)
 	}
 
 	suite.Keeper().EndBlocker(suite.ctx)
 	oracleSetHeight := int64(oracleSets[0].Height)
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.EndBlocker()
 
 	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[len(suite.oracleAddrs)-1])
 	suite.Require().True(found)
@@ -519,7 +514,7 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())
-		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
+		_, err := suite.MsgServer().BondedOracle(suite.ctx, msgBondedOracle)
 		suite.Require().NoError(err)
 	}
 

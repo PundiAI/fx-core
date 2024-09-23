@@ -36,6 +36,9 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
 	s.Require().NoError(err)
 	s.Require().False(res.Failed(), res)
 
+	// s.Commit() call evm endBlock to setter the EVM Virtual balance
+	s.Commit()
+
 	refundAmount := gasPrice * int64(gasLimit-res.GasUsed)
 	s.BurnEvmRefundFee(erc20Suite.AccAddr(), helpers.NewStakingCoins(refundAmount, 0))
 
@@ -59,6 +62,9 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Value() {
 	res, err := s.EVMSuite.EthereumTx(&recipient, nil, amount, gasLimit)
 	s.Require().NoError(err)
 	s.Require().False(res.Failed(), res)
+
+	// s.Commit() call evm endBlock to setter the EVM Virtual balance
+	s.Commit()
 
 	refundAmount := sdkmath.NewInt(s.App.FeeMarketKeeper.GetBaseFee(s.Ctx).Int64() * int64(gasLimit-res.GasUsed))
 	s.BurnEvmRefundFee(s.EVMSuite.AccAddr(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, refundAmount)))

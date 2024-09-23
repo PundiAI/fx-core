@@ -1,6 +1,5 @@
 {
   "abci": "socket",
-  "block_sync": true,
   "blocksync": {
     "version": "v0"
   },
@@ -23,7 +22,6 @@
   },
   "db_backend": "goleveldb",
   "db_dir": "data",
-  "fast_sync": null,
   "filter_peers": false,
   "genesis_file": "config/genesis.json",
   "home": "",
@@ -46,11 +44,9 @@
     "max_tx_bytes": 1048576,
     "max_txs_bytes": 1073741824,
     "recheck": true,
+    "recheck_timeout": 1000000000,
     "size": 5000,
-    "ttl-duration": 0,
-    "ttl-num-blocks": 0,
     "type": "flood",
-    "version": "v0",
     "wal_dir": ""
   },
   "moniker": "anonymous",
@@ -79,14 +75,13 @@
     "test_dial_fail": false,
     "test_fuzz": false,
     "test_fuzz_config": {
-      "Mode": 0,
       "MaxDelay": 3000000000,
-      "ProbDropRW": 0.2,
+      "Mode": 0,
       "ProbDropConn": 0,
+      "ProbDropRW": 0.2,
       "ProbSleep": 0
     },
-    "unconditional_peer_ids": "",
-    "upnp": null
+    "unconditional_peer_ids": ""
   },
   "priv_validator_key_file": "config/priv_validator_key.json",
   "priv_validator_laddr": "",
@@ -116,6 +111,7 @@
     "max_body_bytes": 1000000,
     "max_header_bytes": 1048576,
     "max_open_connections": 900,
+    "max_request_batch_size": 10,
     "max_subscription_clients": 100,
     "max_subscriptions_per_client": 5,
     "pprof_laddr": "",
@@ -141,5 +137,6 @@
   "tx_index": {
     "indexer": "kv",
     "psql-conn": ""
-  }
+  },
+  "version": "0.38.11"
 }

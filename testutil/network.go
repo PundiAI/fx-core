@@ -4,36 +4,38 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibccoretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibccoretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v8/app"
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
@@ -41,11 +43,12 @@ import (
 
 // DefaultNetworkConfig returns a sane default configuration suitable for nearly all
 // testing requirements.
-func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *network.Config)) network.Config {
+func DefaultNetworkConfig(opts ...func(config *network.Config)) network.Config {
+	newApp := helpers.NewApp()
 	cfg := network.Config{
-		Codec:             encCfg.Codec,
-		InterfaceRegistry: encCfg.InterfaceRegistry,
-		TxConfig:          encCfg.TxConfig,
+		Codec:             newApp.AppCodec(),
+		InterfaceRegistry: newApp.InterfaceRegistry(),
+		TxConfig:          newApp.GetTxConfig(),
 		AccountRetriever:  authtypes.AccountRetriever{},
 		AppConstructor: func(appConfig *fxcfg.Config, ctx *server.Context) servertypes.Application {
 			return app.New(
@@ -55,15 +58,13 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 				true,
 				make(map[int64]bool),
 				ctx.Config.RootDir,
-				0,
-				encCfg,
 				ctx.Viper,
 				baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(appConfig.Pruning)),
 				baseapp.SetMinGasPrices(appConfig.MinGasPrices),
 				baseapp.SetChainID(fxtypes.MainnetChainId),
 			)
 		},
-		GenesisState:    NoSupplyGenesisState(encCfg.Codec),
+		GenesisState:    NoSupplyGenesisState(newApp.AppCodec(), newApp.ModuleBasics),
 		TimeoutCommit:   500 * time.Millisecond,
 		StakingTokens:   sdk.TokensFromConsensusPower(5000, sdk.DefaultPowerReduction), // 500_000
 		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),  // 10_000
@@ -94,8 +95,8 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 	return cfg
 }
 
-func NoSupplyGenesisState(cdc codec.Codec) app.GenesisState {
-	genesisState := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cdc)
+func NoSupplyGenesisState(cdc codec.JSONCodec, moduleBasics module.BasicManager) app.GenesisState {
+	genesisState := app.NewDefAppGenesisByDenom(cdc, moduleBasics)
 
 	// reset supply
 	bankState := banktypes.DefaultGenesisState()
@@ -195,7 +196,7 @@ func GovGenesisState(cdc codec.Codec, genesisState app.GenesisState, votingPerio
 	return genesisState
 }
 
-func SlashingGenesisState(cdc codec.Codec, genesisState app.GenesisState, signedBlocksWindow int64, minSignedPerWindow sdk.Dec, downtimeJailDuration time.Duration) app.GenesisState {
+func SlashingGenesisState(cdc codec.Codec, genesisState app.GenesisState, signedBlocksWindow int64, minSignedPerWindow sdkmath.LegacyDec, downtimeJailDuration time.Duration) app.GenesisState {
 	var slashingState slashingtypes.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[slashingtypes.ModuleName], &slashingState)
 	slashingState.Params.SignedBlocksWindow = signedBlocksWindow

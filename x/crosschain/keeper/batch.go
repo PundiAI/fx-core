@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -172,7 +173,7 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, bat
 // IterateOutgoingTxBatches iterates through all outgoing batches
 func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(batch *types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
+	iter := storetypes.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		batch := new(types.OutgoingTxBatch)
@@ -195,7 +196,7 @@ func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBa
 
 // GetLastOutgoingBatchByToken gets the latest outgoing tx batch by token type
 func (k Keeper) GetLastOutgoingBatchByToken(ctx sdk.Context, token string) *types.OutgoingTxBatch {
-	var lastBatch *types.OutgoingTxBatch = nil
+	var lastBatch *types.OutgoingTxBatch
 	lastNonce := uint64(0)
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.TokenContract == token && batch.BatchNonce > lastNonce {

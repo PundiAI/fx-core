@@ -82,7 +82,7 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 			}
 
 			stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.CacheContext(), c.Address(), method.GetMethodId()); err != nil {
+			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.Context(), c.Address(), method.GetMethodId()); err != nil {
 				return evmtypes.PackRetErrV2(err)
 			}
 

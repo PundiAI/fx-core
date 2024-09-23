@@ -114,25 +114,11 @@ func (suite *StakingSuite) send(privateKey cryptotypes.PrivKey, value *big.Int, 
 	return suite.SendTransaction(transaction)
 }
 
-func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewDelegateMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.DelegateArgs{Validator: valAddr})
-	suite.Require().NoError(err)
-	return suite.send(privateKey, delAmount, pack)
-}
-
 func (suite *StakingSuite) DelegateV2(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
 	method := stakingprecompile.NewDelegateV2Method(nil)
 	pack, err := method.PackInput(fxstakingtypes.DelegateV2Args{Validator: valAddr, Amount: delAmount})
 	suite.Require().NoError(err)
-	return suite.send(privateKey, nil, pack)
-}
-
-func (suite *StakingSuite) Redelegate(privateKey cryptotypes.PrivKey, valSrc, valDst string, shares *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewRedelegationMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.RedelegateArgs{ValidatorSrc: valSrc, ValidatorDst: valDst, Shares: shares})
-	suite.Require().NoError(err)
-	return suite.send(privateKey, nil, pack)
+	return suite.send(privateKey, big.NewInt(0), pack)
 }
 
 func (suite *StakingSuite) RedelegateV2(privateKey cryptotypes.PrivKey, valSrc, valDst string, amount *big.Int) *ethtypes.Receipt {
@@ -140,24 +126,6 @@ func (suite *StakingSuite) RedelegateV2(privateKey cryptotypes.PrivKey, valSrc, 
 	pack, err := method.PackInput(fxstakingtypes.RedelegateV2Args{ValidatorSrc: valSrc, ValidatorDst: valDst, Amount: amount})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, nil, pack)
-}
-
-func (suite *StakingSuite) DelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
-	suite.Require().NoError(err)
-
-	auth := suite.TransactionOpts(privateKey)
-	auth.Value = delAmount
-
-	tx, err := stakingContract.Delegate(auth, valAddr)
-	suite.Require().NoError(err)
-
-	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
-	defer cancel()
-	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
-	suite.Require().NoError(err)
-	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
-	return receipt
 }
 
 func (suite *StakingSuite) WithdrawByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string) *ethtypes.Receipt {
@@ -175,47 +143,6 @@ func (suite *StakingSuite) WithdrawByContract(privateKey cryptotypes.PrivKey, co
 	suite.Require().NoError(err)
 	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
 	return receipt
-}
-
-func (suite *StakingSuite) UndelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string, shares *big.Int) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
-	suite.Require().NoError(err)
-
-	auth := suite.TransactionOpts(privateKey)
-
-	tx, err := stakingContract.Undelegate(auth, valAddr, shares)
-	suite.Require().NoError(err)
-
-	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
-	defer cancel()
-	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
-	suite.Require().NoError(err)
-	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
-	return receipt
-}
-
-func (suite *StakingSuite) RedelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valSrc, valDst string, shares *big.Int) *ethtypes.Receipt {
-	stakingContract, err := testscontract.NewStakingTest(contract, suite.EthClient())
-	suite.Require().NoError(err)
-
-	auth := suite.TransactionOpts(privateKey)
-
-	tx, err := stakingContract.Redelegate(auth, valSrc, valDst, shares)
-	suite.Require().NoError(err)
-
-	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
-	defer cancel()
-	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
-	suite.Require().NoError(err)
-	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
-	return receipt
-}
-
-func (suite *StakingSuite) UnDelegate(privateKey cryptotypes.PrivKey, valAddr string, shares *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewUndelegateMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.UndelegateArgs{Validator: valAddr, Shares: shares})
-	suite.Require().NoError(err)
-	return suite.send(privateKey, nil, pack)
 }
 
 func (suite *StakingSuite) UnDelegateV2(privateKey cryptotypes.PrivKey, valAddr string, amount *big.Int) *ethtypes.Receipt {

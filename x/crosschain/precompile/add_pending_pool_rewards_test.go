@@ -44,7 +44,7 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(addRewardFee))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -106,7 +106,7 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(addRewardFee))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -140,7 +140,7 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 			amount := big.NewInt(0).Add(randMint, big.NewInt(1))
 			coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(amount))
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-			_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+			_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 				Coin:     coin,
 				Receiver: signer.Address().Hex(),
 				Sender:   signer.AccAddress().String(),
@@ -176,7 +176,7 @@ func (suite *PrecompileTestSuite) TestAddPendingPoolRewards() {
 				pendingTxAfter, found := suite.CrossChainKeepers()[moduleName].GetPendingPoolTxById(suite.ctx, 1)
 				suite.Require().True(found)
 
-				suite.Require().Equal(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(addRewardFee)).String(),
+				suite.Require().Equal(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(addRewardFee)).String(),
 					sdk.NewCoins(pendingTxAfter.Rewards...).Sub(sdk.NewCoins(pendingTxBefore.Rewards...)...).String())
 			} else {
 				suite.Error(res, errResult)

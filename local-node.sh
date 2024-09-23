@@ -3,6 +3,7 @@
 set -eo pipefail
 
 export FX_HOME=${FX_HOME:-"/tmp/fxcore"}
+genesis_tmp="$FX_HOME/config/genesis.json.tmp"
 
 if [[ "$1" == "init" ]]; then
   if [ -d "$FX_HOME" ]; then
@@ -13,7 +14,13 @@ if [[ "$1" == "init" ]]; then
   fi
 
   # Initialize private validator, p2p, genesis, and application configuration files
-  fxcored init local --chain-id fxcore
+  fxcored init local --chain-id fxcore --default-denom FX
+
+  # update consensus params
+  jq '.consensus.params.block.max_gas = "30000000"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
+    mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
+  jq '.consensus.params.block.max_bytes = "1048576"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
+    mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
 
   fxcored config config.toml rpc.cors_allowed_origins "*"
   # open prometheus
@@ -32,15 +39,14 @@ if [[ "$1" == "init" ]]; then
   fxcored config app.toml json-rpc.api "eth,txpool,personal,net,debug,web3"
 
   # update fxcore client config
-  fxcored config chain-id "fxcore"
-  fxcored config keyring-backend "test"
-  fxcored config output "json"
-  fxcored config broadcast-mode "sync"
+  fxcored config set client chain-id "fxcore"
+  fxcored config set client keyring-backend "test"
+  fxcored config set client output "json"
+  fxcored config set client broadcast-mode "sync"
 
   echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
   if [ -n "${2:-""}" ]; then
     fxcored genesis add-genesis-account fx1 10004000000000000000000000FX
-    genesis_tmp="$FX_HOME/config/genesis.json.tmp"
     # update genesis total supply
     jq '.app_state.bank.supply[0].amount = "388604525462891000000000000"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
       mv "$genesis_tmp" "$FX_HOME/config/genesis.json"

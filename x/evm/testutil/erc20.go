@@ -35,7 +35,7 @@ func (s *ERC20Suite) Send(method string, args ...interface{}) *evmtypes.MsgEther
 func (s *ERC20Suite) Deploy(symbol string) common.Address {
 	data := contract.GetFIP20().Bin
 	nonce := s.evmKeeper.GetNonce(s.ctx, s.signer.Address())
-	msg := core.Message{
+	msg := &core.Message{
 		To:                nil,
 		From:              s.signer.Address(),
 		Nonce:             nonce,
@@ -203,7 +203,7 @@ func (s *ERC20Suite) Deposit(value *big.Int, result bool) {
 	data, err := s.ABI.Pack("deposit")
 	s.NoError(err)
 
-	msg := core.Message{
+	msg := &core.Message{
 		To:                &s.contractAddr,
 		From:              s.signer.Address(),
 		Nonce:             s.evmKeeper.GetNonce(s.ctx, s.signer.Address()),

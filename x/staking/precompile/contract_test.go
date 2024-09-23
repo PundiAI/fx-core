@@ -8,9 +8,8 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
+	storetypes "cosmossdk.io/store/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -35,11 +34,8 @@ import (
 )
 
 const (
-	TestDelegateName           = "delegate"
 	TestDelegateV2Name         = "delegateV2"
-	TestUndelegateName         = "undelegate"
 	TestUndelegateV2Name       = "undelegateV2"
-	TestRedelegateName         = "redelegate"
 	TestRedelegateV2Name       = "redelegateV2"
 	TestWithdrawName           = "withdraw"
 	TestDelegationName         = "delegation"
@@ -72,14 +68,9 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+3, nil)
 	suite.App = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
-	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
-		Height:          suite.App.LastBlockHeight() + 1,
-		ChainID:         fxtypes.ChainId(),
-		ProposerAddress: set.Proposer.Address,
-		Time:            time.Now().UTC(),
-	})
+	suite.Ctx = suite.App.GetContextForFinalizeBlock(nil)
 	suite.Ctx = suite.Ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
-	suite.Ctx = suite.Ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
+	suite.Ctx = suite.Ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e18))
 
 	for _, validator := range set.Validators {
 		signingInfo := slashingtypes.NewValidatorSigningInfo(
@@ -90,7 +81,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 			false,
 			0,
 		)
-		suite.App.SlashingKeeper.SetValidatorSigningInfo(suite.Ctx, validator.Address.Bytes(), signingInfo)
+		suite.Require().NoError(suite.App.SlashingKeeper.SetValidatorSigningInfo(suite.Ctx, validator.Address.Bytes(), signingInfo))
 	}
 
 	priv, err := ethsecp256k1.GenerateKey()
@@ -115,7 +106,7 @@ func (suite *PrecompileTestSuite) DistributionQueryClient(ctx sdk.Context) distr
 
 func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.Address, amount *big.Int, data []byte) *evmtypes.MsgEthereumTxResponse {
 	ethTx := evmtypes.NewTx(
-		fxtypes.EIP155ChainID(),
+		fxtypes.EIP155ChainID(suite.Ctx.ChainID()),
 		suite.App.EvmKeeper.GetNonce(suite.Ctx, signer.Address()),
 		&to,
 		amount,
@@ -127,39 +118,16 @@ func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.A
 		nil,
 	)
 	ethTx.From = signer.Address().Bytes()
-	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
+	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID(suite.Ctx.ChainID())), signer)
 	suite.Require().NoError(err)
 
-	res, err := suite.App.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.Ctx), ethTx)
+	res, err := suite.App.EvmKeeper.EthereumTx(suite.Ctx, ethTx)
 	suite.Require().NoError(err)
 	return res
 }
 
 func (suite *PrecompileTestSuite) Commit() {
-	header := suite.Ctx.BlockHeader()
-
-	suite.App.EndBlock(abci.RequestEndBlock{Height: header.Height})
-	suite.App.Commit()
-	// begin block
-	header.Time = time.Now().UTC()
-	header.Height += 1
-	header.ChainID = fxtypes.ChainId()
-
-	vals := suite.App.StakingKeeper.GetAllValidators(suite.Ctx)
-	infos := make([]abci.VoteInfo, 0, len(vals))
-	for _, val := range vals {
-		addr, err := val.GetConsAddr()
-		suite.Require().NoError(err)
-		infos = append(infos, abci.VoteInfo{Validator: abci.Validator{Address: addr, Power: 100}})
-	}
-
-	suite.App.BeginBlock(abci.RequestBeginBlock{
-		Header: header,
-		LastCommitInfo: abci.CommitInfo{
-			Votes: infos,
-		},
-	})
-	suite.Ctx = suite.App.NewContext(false, header)
+	suite.BaseSuite.Commit()
 }
 
 func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
@@ -171,7 +139,7 @@ func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
 
 func (suite *PrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ common.Address, delAmount sdkmath.Int) {
 	helpers.AddTestAddr(suite.App, suite.Ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.Ctx), &stakingtypes.MsgDelegate{
+	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: val.String(),
 		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -180,15 +148,15 @@ func (suite *PrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ c
 }
 
 func (suite *PrecompileTestSuite) undelegateToFunc(val sdk.ValAddress, _, to common.Address, _ sdkmath.Int) {
-	toDel, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
-	suite.Require().True(found)
-	_, err := suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
+	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
 	suite.Require().NoError(err)
 }
 
 func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
 	helpers.AddTestAddr(suite.App, suite.Ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.Ctx), &stakingtypes.MsgDelegate{
+	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: val.String(),
 		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -196,7 +164,7 @@ func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, t
 	suite.Require().NoError(err)
 
 	helpers.AddTestAddr(suite.App, suite.Ctx, to.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.Ctx), &stakingtypes.MsgDelegate{
+	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
 		ValidatorAddress: val.String(),
 		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -206,7 +174,7 @@ func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, t
 
 func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
 	helpers.AddTestAddr(suite.App, suite.Ctx, to.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.Ctx), &stakingtypes.MsgDelegate{
+	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
 		ValidatorAddress: val.String(),
 		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -214,7 +182,7 @@ func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, t
 	suite.Require().NoError(err)
 
 	helpers.AddTestAddr(suite.App, suite.Ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.Ctx), &stakingtypes.MsgDelegate{
+	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: val.String(),
 		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -223,26 +191,26 @@ func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, t
 }
 
 func (suite *PrecompileTestSuite) undelegateFromToFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
-	fromDel, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, from.Bytes(), val)
-	suite.Require().True(found)
-	_, err := suite.App.StakingKeeper.Undelegate(suite.Ctx, from.Bytes(), val, fromDel.Shares)
+	fromDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, from.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, from.Bytes(), val, fromDel.Shares)
 	suite.Require().NoError(err)
 
-	toDel, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
-	suite.Require().True(found)
-	_, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
+	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
 	suite.Require().NoError(err)
 }
 
 func (suite *PrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
-	toDel, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
-	suite.Require().True(found)
-	_, err := suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
+	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
 	suite.Require().NoError(err)
 
-	fromDel, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, from.Bytes(), val)
-	suite.Require().True(found)
-	_, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, from.Bytes(), val, fromDel.Shares)
+	fromDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, from.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, from.Bytes(), val, fromDel.Shares)
 	suite.Require().NoError(err)
 }
 
@@ -305,14 +273,14 @@ func (suite *PrecompileTestSuite) PrecompileStakingDelegation(val sdk.ValAddress
 	return res.Shares, res.Amount
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingDelegate(signer *helpers.Signer, val sdk.ValAddress, amt *big.Int) *big.Int {
+func (suite *PrecompileTestSuite) PrecompileStakingDelegateV2(signer *helpers.Signer, val sdk.ValAddress, amt *big.Int) *big.Int {
 	helpers.AddTestAddr(suite.App, suite.Ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amt))))
-	pack, err := precompile.GetABI().Pack(TestDelegateName, val.String())
+	pack, err := precompile.GetABI().Pack(TestDelegateV2Name, val.String(), amt)
 	suite.Require().NoError(err)
 
 	_, amountBefore := suite.PrecompileStakingDelegation(val, signer.Address())
 
-	res := suite.EthereumTx(signer, precompile.GetAddress(), amt, pack)
+	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
 	suite.Require().False(res.Failed(), res.VmError)
 
 	shares, amount := suite.PrecompileStakingDelegation(val, signer.Address())
@@ -348,9 +316,9 @@ func (suite *PrecompileTestSuite) PrecompileStakingTransferShares(signer *helper
 	return signerShares, rewards
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingUndelegate(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
+func (suite *PrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
 	balanceBefore := suite.App.EvmKeeper.GetEVMDenomBalance(suite.Ctx, signer.Address())
-	pack, err := precompile.GetABI().Pack(TestUndelegateName, val.String(), shares)
+	pack, err := precompile.GetABI().Pack(TestUndelegateV2Name, val.String(), shares)
 	suite.Require().NoError(err)
 
 	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
@@ -379,14 +347,14 @@ func (suite *PrecompileTestSuite) PrecompileStakingTransferFromShares(signer *he
 func (suite *PrecompileTestSuite) Delegate(val sdk.ValAddress, amount sdkmath.Int, dels ...sdk.AccAddress) {
 	for _, del := range dels {
 		helpers.AddTestAddr(suite.App, suite.Ctx, del, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amount)))
-		validator, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
-		suite.Require().True(found)
-		_, err := suite.App.StakingKeeper.Delegate(suite.Ctx, del, amount, stakingtypes.Unbonded, validator, true)
+		validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
+		suite.Require().NoError(err)
+		_, err = suite.App.StakingKeeper.Delegate(suite.Ctx, del, amount, stakingtypes.Unbonded, validator, true)
 		suite.Require().NoError(err)
 	}
 }
 
-func (suite *PrecompileTestSuite) Redelegate(valSrc, valDest sdk.ValAddress, del sdk.AccAddress, shares sdk.Dec) {
+func (suite *PrecompileTestSuite) Redelegate(valSrc, valDest sdk.ValAddress, del sdk.AccAddress, shares sdkmath.LegacyDec) {
 	_, err := suite.App.StakingKeeper.BeginRedelegation(suite.Ctx, del, valSrc, valDest, shares)
 	suite.Require().NoError(err)
 }
@@ -399,9 +367,8 @@ func (suite *PrecompileTestSuite) Error(res *evmtypes.MsgEthereumTxResponse, err
 	}
 
 	if len(res.Ret) > 0 {
-		reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret))
+		reason, err := abi.UnpackRevert(res.Ret)
 		suite.Require().NoError(err)
-
 		suite.Require().Equal(errResult.Error(), reason)
 		return
 	}
@@ -410,22 +377,9 @@ func (suite *PrecompileTestSuite) Error(res *evmtypes.MsgEthereumTxResponse, err
 }
 
 func (suite *PrecompileTestSuite) CheckDelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valAddr string, amount, shares *big.Int) {
-	delegateMethod := precompile.NewDelegateMethod(nil)
 	delegateV2Method := precompile.NewDelegateV2Method(nil)
 	existLog := false
 	for _, log := range logs {
-		if log.Topics[0] == delegateMethod.Event.ID.String() {
-			suite.Require().Equal(log.Address, precompile.GetAddress().String())
-
-			event, err := delegateMethod.UnpackEvent(log.ToEthereum())
-			suite.Require().NoError(err)
-			suite.Require().Equal(event.Delegator, delAddr)
-			suite.Require().Equal(event.Validator, valAddr)
-			suite.Require().Equal(event.Amount.String(), amount.String())
-			suite.Require().Equal(event.Shares.String(), shares.String())
-			existLog = true
-		}
-
 		if log.Topics[0] == delegateV2Method.Event.ID.String() {
 			suite.Require().Equal(log.Address, precompile.GetAddress().String())
 
@@ -443,7 +397,7 @@ func (suite *PrecompileTestSuite) CheckDelegateLogs(logs []*evmtypes.Log, delAdd
 func (suite *PrecompileTestSuite) CheckDelegateEvents(ctx sdk.Context, valAddr sdk.ValAddress, delAmount sdkmath.Int) {
 	existEvent := false
 	for _, event := range ctx.EventManager().Events() {
-		if event.Type == stakingtypes.TypeMsgDelegate {
+		if event.Type == stakingtypes.EventTypeDelegate {
 			for _, attr := range event.Attributes {
 				if attr.Key == stakingtypes.AttributeKeyValidator {
 					suite.Require().Equal(attr.Value, valAddr.String())
@@ -460,23 +414,9 @@ func (suite *PrecompileTestSuite) CheckDelegateEvents(ctx sdk.Context, valAddr s
 }
 
 func (suite *PrecompileTestSuite) CheckRedelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valSrc, valDst string, shares, amount *big.Int, completionTime int64) {
-	redelegateMethod := precompile.NewRedelegationMethod(nil)
 	redelegateV2Method := precompile.NewRedelegateV2Method(nil)
 	existLog := false
 	for _, log := range logs {
-		if log.Topics[0] == redelegateMethod.Event.ID.String() {
-			suite.Require().Equal(log.Address, precompile.GetAddress().String())
-			event, err := redelegateMethod.UnpackEvent(log.ToEthereum())
-			suite.Require().NoError(err)
-			suite.Require().Equal(event.Sender, delAddr)
-			suite.Require().Equal(event.ValSrc, valSrc)
-			suite.Require().Equal(event.ValDst, valDst)
-			suite.Require().Equal(event.Shares.String(), shares.String())
-			suite.Require().Equal(event.Amount.String(), amount.String())
-			suite.Require().Equal(event.CompletionTime.Int64(), completionTime)
-			existLog = true
-		}
-
 		if log.Topics[0] == redelegateV2Method.Event.ID.String() {
 			suite.Require().Equal(log.Address, precompile.GetAddress().String())
 			event, err := redelegateV2Method.UnpackEvent(log.ToEthereum())
@@ -518,22 +458,9 @@ func (suite *PrecompileTestSuite) CheckRedelegateEvents(ctx sdk.Context, valSrc,
 }
 
 func (suite *PrecompileTestSuite) CheckUndelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valAddr string, shares, amount *big.Int, completionTime time.Time) {
-	undelegateMethod := precompile.NewUndelegateMethod(nil)
 	undelegateV2Method := precompile.NewUndelegateV2Method(nil)
 	existLog := false
 	for _, log := range logs {
-		if log.Topics[0] == undelegateMethod.Event.ID.String() {
-			suite.Require().Equal(log.Address, precompile.GetAddress().String())
-			event, err := undelegateMethod.UnpackEvent(log.ToEthereum())
-			suite.Require().NoError(err)
-			suite.Require().Equal(event.Sender, delAddr)
-			suite.Require().Equal(event.Validator, valAddr)
-			suite.Require().Equal(event.Shares.String(), shares.String())
-			suite.Require().Equal(event.Amount.String(), amount.String())
-			suite.Require().Equal(event.CompletionTime.Int64(), completionTime.Unix())
-			existLog = true
-		}
-
 		if log.Topics[0] == undelegateV2Method.Event.ID.String() {
 			suite.Require().Equal(log.Address, precompile.GetAddress().String())
 			event, err := undelegateV2Method.UnpackEvent(log.ToEthereum())

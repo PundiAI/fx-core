@@ -12,7 +12,6 @@ import (
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain/legacy"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
@@ -92,8 +91,6 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		}
 		EmitEvent(evm, data, topic)
 
-		legacy.CrossChainEvents(ctx, sender, args.Token, args.Receipt, fxtypes.Byte32ToString(args.Target),
-			amountCoin.Denom, args.Memo, args.Amount, args.Fee)
 		return nil
 	}); err != nil {
 		return nil, err

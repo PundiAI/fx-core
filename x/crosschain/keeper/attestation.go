@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -28,7 +29,7 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 	}
 
 	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 	// Tries to get an attestation with the same eventNonce and claim as the claim that was submitted.
 	att := k.GetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash())
 
@@ -162,7 +163,7 @@ func (k Keeper) DeleteAttestation(ctx sdk.Context, claim types.ExternalClaim) {
 // IterateAttestationAndClaim iterates through all attestations
 func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attestation, types.ExternalClaim) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.OracleAttestationKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.OracleAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -182,7 +183,7 @@ func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attes
 // IterateAttestations iterates through all attestations
 func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(*types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.OracleAttestationKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.OracleAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

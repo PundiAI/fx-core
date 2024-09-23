@@ -5,12 +5,11 @@ import (
 
 	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 func TestNewDefaultGenesisByDenom(t *testing.T) {
-	encodingConfig := app.MakeEncodingConfig()
-	genAppState := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec)
+	myApp := helpers.NewApp()
+	genAppState := app.NewDefAppGenesisByDenom(myApp.AppCodec(), myApp.ModuleBasics)
 
 	helpers.AssertJsonFile(t, "./genesis.json", genAppState)
 }

@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -137,11 +138,11 @@ func (k Keeper) GetLatestOracleSet(ctx sdk.Context) *types.OracleSet {
 // IterateOracleSets returns all oracleSet
 func (k Keeper) IterateOracleSets(ctx sdk.Context, reverse bool, cb func(*types.OracleSet) bool) {
 	store := ctx.KVStore(k.storeKey)
-	var iter sdk.Iterator
+	var iter storetypes.Iterator
 	if reverse {
-		iter = sdk.KVStoreReversePrefixIterator(store, types.OracleSetRequestKey)
+		iter = storetypes.KVStoreReversePrefixIterator(store, types.OracleSetRequestKey)
 	} else {
-		iter = sdk.KVStorePrefixIterator(store, types.OracleSetRequestKey)
+		iter = storetypes.KVStorePrefixIterator(store, types.OracleSetRequestKey)
 	}
 	defer iter.Close()
 

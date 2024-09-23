@@ -18,7 +18,6 @@ import (
 
 type Contract struct {
 	methods   []contract.PrecompileMethod
-	v2Methods map[string]bool
 	govKeeper GovKeeper
 }
 
@@ -52,11 +51,8 @@ func NewPrecompiledContract(
 			NewDelegationRewardsMethod(keeper),
 
 			NewApproveSharesMethod(keeper),
-			NewDelegateMethod(keeper),
-			NewRedelegationMethod(keeper),
 			NewTransferSharesMethod(keeper),
 			NewTransferFromSharesMethod(keeper),
-			NewUndelegateMethod(keeper),
 			NewWithdrawMethod(keeper),
 
 			delegateV2,
@@ -65,13 +61,6 @@ func NewPrecompiledContract(
 
 			slashingInfo,
 			validatorList,
-		},
-		v2Methods: map[string]bool{
-			string(delegateV2.GetMethodId()):    true,
-			string(redelegateV2.GetMethodId()):  true,
-			string(undelegateV2.GetMethodId()):  true,
-			string(slashingInfo.GetMethodId()):  true,
-			string(validatorList.GetMethodId()): true,
 		},
 		govKeeper: govKeeper,
 	}
@@ -109,16 +98,13 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 			}
 
 			stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.CacheContext(), c.Address(), contract.Input[:4]); err != nil {
+			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.Context(), c.Address(), contract.Input[:4]); err != nil {
 				return evmtypes.PackRetError(err)
 			}
 
 			ret, err = method.Run(evm, contract)
 			if err != nil {
-				if c.v2Methods[string(method.GetMethodId())] {
-					return evmtypes.PackRetErrV2(err)
-				}
-				return evmtypes.PackRetError(err)
+				return evmtypes.PackRetErrV2(err)
 			}
 			return ret, nil
 		}

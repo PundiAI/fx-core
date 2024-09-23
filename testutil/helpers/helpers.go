@@ -1,29 +1,22 @@
 package helpers
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
-	"os"
-	"strconv"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmed25519 "github.com/cometbft/cometbft/crypto/ed25519"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -32,42 +25,10 @@ import (
 
 	"github.com/functionx/fx-core/v8/app"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
-func Setup(isCheckTx bool, isShowLog bool) *app.App {
-	logger := log.NewNopLogger()
-	var traceStore io.Writer
-	if isShowLog {
-		logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-		traceStore = os.Stdout
-	}
-
-	myApp := app.New(logger, dbm.NewMemDB(),
-		traceStore, true, map[int64]bool{}, os.TempDir(), 1,
-		app.MakeEncodingConfig(), app.EmptyAppOptions{}, baseapp.SetChainID(fxtypes.ChainId()),
-	)
-	if !isCheckTx {
-		// InitChain must be called to stop deliverState from being nil
-		stateBytes, err := json.MarshalIndent(DefGenesisState(myApp.AppCodec()), "", " ")
-		if err != nil {
-			panic(err)
-		}
-
-		// Initialize the chain
-		consensusParams := app.CustomGenesisConsensusParams().ToProto()
-		myApp.InitChain(abci.RequestInitChain{
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: &consensusParams,
-			AppStateBytes:   stateBytes,
-		})
-	}
-
-	return myApp
-}
-
-func DefGenesisState(cdc codec.Codec) app.GenesisState {
-	genesis := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cdc)
+func newGenesisState(cdc codec.JSONCodec, moduleBasics module.BasicManager) app.GenesisState {
+	genesis := app.NewDefAppGenesisByDenom(cdc, moduleBasics)
 	bankState := new(banktypes.GenesisState)
 	cdc.MustUnmarshalJSON(genesis[banktypes.ModuleName], bankState)
 	bankState.Balances = append(bankState.Balances, banktypes.Balance{
@@ -78,6 +39,7 @@ func DefGenesisState(cdc codec.Codec) app.GenesisState {
 	return genesis
 }
 
+// Deprecated: please use BaseSuite
 func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tmtypes.ValidatorSet, genAccs authtypes.GenesisAccounts, balances []banktypes.Balance) {
 	if initCoins == nil || initCoins.Len() <= 0 {
 		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)))
@@ -102,13 +64,12 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tm
 	return tmtypes.NewValidatorSet(validators), genAccs, balances
 }
 
-// SetupWithGenesisValSet initializes a new App with a validator set and genesis accounts
-// that also act as delegators. For simplicity, each validator is bonded with a delegation
-// of one consensus engine unit (10^6) in the default token of the app from first genesis
-// account. A Nop logger is set in App.
+// Deprecated: please use BaseSuite
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
-	myApp := Setup(true, false)
-	genesisState := DefGenesisState(myApp.AppCodec())
+	t.Helper()
+
+	myApp := NewApp()
+	genesisState := newGenesisState(myApp.AppCodec(), myApp.ModuleBasics)
 
 	// set genesis accounts
 	var authGenesis authtypes.GenesisState
@@ -125,7 +86,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	bondAmt := sdk.DefaultPowerReduction
 
 	for i, val := range valSet.Validators {
-		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
+		pk, err := cryptocodec.FromCmtPubKeyInterface(val.PubKey)
 		require.NoError(t, err)
 		pkAny, err := codectypes.NewAnyWithValue(pk)
 		require.NoError(t, err)
@@ -135,18 +96,18 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.NewDecFromInt(bondAmt),
+			DelegatorShares:   sdkmath.LegacyNewDecFromInt(bondAmt),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+			Commission:        stakingtypes.NewCommission(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 			MinSelfDelegation: sdkmath.OneInt().Mul(sdkmath.NewInt(10)),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[i].GetAddress(), validator.GetOperator(), sdk.NewDecFromInt(bondAmt)))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[i].GetAddress().String(), validator.GetOperator(), sdkmath.LegacyNewDecFromInt(bondAmt)))
 	}
 
-	var stakingGenesis fxstakingtypes.GenesisState
+	var stakingGenesis stakingtypes.GenesisState
 	myApp.AppCodec().MustUnmarshalJSON(genesisState[stakingtypes.ModuleName], &stakingGenesis)
 	stakingGenesis.Params.MaxValidators = uint32(len(validators))
 	stakingGenesis.Validators = validators
@@ -176,80 +137,27 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 
 	consensusParams := app.CustomGenesisConsensusParams().ToProto()
 	// init chain will set the validator set and initialize the genesis accounts
-	myApp.InitChain(
-		abci.RequestInitChain{
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: &consensusParams,
-			AppStateBytes:   stateBytes,
-			ChainId:         fxtypes.ChainId(),
-		},
-	)
-
-	// commit genesis changes
-	myApp.Commit()
-	myApp.BeginBlock(abci.RequestBeginBlock{
-		Header: tmproto.Header{
-			Height:             myApp.LastBlockHeight() + 1,
-			AppHash:            myApp.LastCommitID().Hash,
-			ValidatorsHash:     valSet.Hash(),
-			NextValidatorsHash: valSet.Hash(),
-			ChainID:            fxtypes.ChainId(),
-		},
+	_, err = myApp.InitChain(&abci.RequestInitChain{
+		ConsensusParams: &consensusParams,
+		AppStateBytes:   stateBytes,
+		InitialHeight:   1,
 	})
+	require.NoError(t, err)
 
 	return myApp
 }
 
-// CreateRandomAccounts generated addresses in random order
-func CreateRandomAccounts(accNum int) []sdk.AccAddress {
+// Deprecated: please use BaseSuite.AddTestSigners
+func AddTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, coins sdk.Coins) []sdk.AccAddress {
 	testAddrs := make([]sdk.AccAddress, accNum)
 	for i := 0; i < accNum; i++ {
-		pk := ed25519.GenPrivKey().PubKey()
-		testAddrs[i] = sdk.AccAddress(pk.Address())
-	}
-
-	return testAddrs
-}
-
-// createIncrementalAccounts is a strategy used by addTestAddrs() in order to generated addresses in ascending order.
-func createIncrementalAccounts(accNum int) []sdk.AccAddress {
-	var addresses []sdk.AccAddress
-	var buffer bytes.Buffer
-
-	// start at 100 so we can make up to 999 test addresses with valid test addresses
-	for i := 100; i < (accNum + 100); i++ {
-		numString := strconv.Itoa(i)
-		buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") // base address string
-
-		buffer.WriteString(numString) // adding on final two digits to make addresses unique
-		res, _ := sdk.AccAddressFromHexUnsafe(buffer.String())
-		bech := res.String()
-		addr, _ := TestAddr(buffer.String(), bech)
-
-		addresses = append(addresses, addr)
-		buffer.Reset()
-	}
-
-	return addresses
-}
-
-// AddTestAddrs constructs and returns accNum amount of accounts with an initial balance of accAmt in random order
-func AddTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, coins sdk.Coins) []sdk.AccAddress {
-	return addTestAddrs(myApp, ctx, accNum, coins, CreateRandomAccounts)
-}
-
-func AddTestAddrsIncremental(myApp *app.App, ctx sdk.Context, accNum int, coins sdk.Coins) []sdk.AccAddress {
-	return addTestAddrs(myApp, ctx, accNum, coins, createIncrementalAccounts)
-}
-
-func addTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, coin sdk.Coins, strategy func(int) []sdk.AccAddress) []sdk.AccAddress {
-	testAddrs := strategy(accNum)
-	for _, addr := range testAddrs {
-		AddTestAddr(myApp, ctx, addr, coin)
+		testAddrs[i] = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+		AddTestAddr(myApp, ctx, testAddrs[i], coins)
 	}
 	return testAddrs
 }
 
+// Deprecated: please use BaseSuite.MintToken
 func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
 	err := myApp.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
 	if err != nil {
@@ -262,42 +170,39 @@ func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk
 	}
 }
 
-func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
-	res, err := sdk.AccAddressFromHexUnsafe(addr)
-	if err != nil {
-		return nil, err
-	}
-	bechExpected := res.String()
-	if bech != bechExpected {
-		return nil, fmt.Errorf("bech encoding doesn't match reference")
-	}
-
-	accAddr, err := sdk.AccAddressFromBech32(bech)
-	if err != nil {
-		return nil, err
-	}
-	if !bytes.Equal(accAddr, res) {
-		return nil, err
-	}
-
-	return res, nil
-}
-
+// Deprecated: please use BaseSuite.Commit
 func MintBlock(myApp *app.App, ctx sdk.Context, block ...int64) sdk.Context {
-	nextHeight := ctx.BlockHeight() + 1
+	lastBlockHeight := ctx.BlockHeight()
+	nextHeight := lastBlockHeight + 1
 	if len(block) > 0 {
-		nextHeight = ctx.BlockHeight() + block[0]
+		nextHeight = lastBlockHeight + block[0]
 	}
-	for i := ctx.BlockHeight(); i <= nextHeight; {
-		myApp.EndBlock(abci.RequestEndBlock{Height: i})
-		myApp.Commit()
-		i++
-		header := ctx.BlockHeader()
-		header.Height = i
-		myApp.BeginBlock(abci.RequestBeginBlock{
-			Header: header,
-		})
-		ctx = myApp.NewContext(false, header)
+	for i := lastBlockHeight; i < nextHeight; i++ {
+		// 1. try to finalize the block + commit finalizeBlockState
+		if _, err := myApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+			Height:          i,
+			Time:            tmtime.Now(),
+			ProposerAddress: ctx.BlockHeader().ProposerAddress,
+		}); err != nil {
+			panic(err)
+		}
+
+		// 2. commit lastCommitInfo
+		if _, err := myApp.Commit(); err != nil {
+			panic(err)
+		}
+
+		// 3. prepare to process new blocks (myApp.GetContextForFinalizeBlock(nil))
+		if _, err := myApp.ProcessProposal(&abci.RequestProcessProposal{
+			Height:          i + 1,
+			Time:            tmtime.Now(),
+			ProposerAddress: ctx.BlockHeader().ProposerAddress,
+		}); err != nil {
+			panic(err)
+		}
+
+		// 4. get new ctx for finalizeBlockState
+		ctx = myApp.GetContextForFinalizeBlock(nil)
 	}
 	return ctx
 }

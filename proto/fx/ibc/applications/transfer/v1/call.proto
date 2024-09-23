@@ -2,6 +2,7 @@ syntax = "proto3";
 package fx.ibc.applications.transfer.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/types";
 
@@ -16,7 +17,8 @@ message IbcCallEvmPacket {
   string to = 1;
   string data = 2;
   string value = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }

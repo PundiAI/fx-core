@@ -3,7 +3,6 @@ package tests
 import (
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
@@ -19,7 +18,7 @@ func (suite *IntegrationTest) ByPassFeeTest() {
 	// 1. zero gasPrices for bypassing fee check
 	minGasPrices := suite.network.Config.MinGasPrices
 	config := suite.network.Config
-	config.MinGasPrices = suite.NewCoin(sdk.ZeroInt()).String()
+	config.MinGasPrices = suite.NewCoin(sdkmath.ZeroInt()).String()
 	suite.network.Config = config
 
 	for i := 0; i < tmrand.Intn(5); i++ {

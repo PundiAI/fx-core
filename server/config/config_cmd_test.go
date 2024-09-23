@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -51,7 +52,9 @@ func Test_ConfigTomlConfig_Output(t *testing.T) {
 	}
 	assert.NoError(t, c.Output(clientCtx))
 
-	helpers.AssertJsonFile(t, "./data/config.json", buf.Bytes())
+	var data map[string]interface{}
+	assert.NoError(t, json.Unmarshal(buf.Bytes(), &data))
+	helpers.AssertJsonFile(t, "./data/config.json", data)
 }
 
 func Test_AppTomlConfig_Output(t *testing.T) {
@@ -65,5 +68,7 @@ func Test_AppTomlConfig_Output(t *testing.T) {
 	}
 	assert.NoError(t, c.Output(clientCtx))
 
-	helpers.AssertJsonFile(t, "./data/app.json", buf.Bytes())
+	var data map[string]interface{}
+	assert.NoError(t, json.Unmarshal(buf.Bytes(), &data))
+	helpers.AssertJsonFile(t, "./data/app.json", data)
 }

@@ -1,12 +1,9 @@
 package keeper
 
 import (
-	"fmt"
-
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/ethereum/go-ethereum/common"
@@ -15,114 +12,81 @@ import (
 )
 
 type GovMigrate struct {
-	govKey    storetypes.StoreKey
-	govKeeper types.GovKeeper
+	govKeeper     types.GovKeeper
+	accountKeeper govtypes.AccountKeeper
 }
 
-func NewGovMigrate(govKey storetypes.StoreKey, govKeeper types.GovKeeper) MigrateI {
+func NewGovMigrate(govKeeper types.GovKeeper, accountKeeper govtypes.AccountKeeper) MigrateI {
 	return &GovMigrate{
-		govKey:    govKey,
-		govKeeper: govKeeper,
+		govKeeper:     govKeeper,
+		accountKeeper: accountKeeper,
 	}
 }
 
 func (m *GovMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
-	params := m.govKeeper.GetParams(ctx)
-	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*params.VotingPeriod))
-	defer activeIter.Close()
-	for ; activeIter.Valid(); activeIter.Next() {
-		// check vote
-		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())
-		_, fromVoteFound := m.govKeeper.GetVote(ctx, proposalID, from)
-		_, toVoteFound := m.govKeeper.GetVote(ctx, proposalID, to.Bytes())
-		if fromVoteFound && toVoteFound {
-			return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
-		}
+	if err := m.govKeeper.IteratorInactiveProposal(ctx, ctx.BlockTime(), m.DepositPeriodCallback(ctx, from, to)); err != nil {
+		return err
 	}
+	return m.govKeeper.IteratorActiveProposal(ctx, ctx.BlockTime(), m.VotePeriodCallback(ctx, from, to))
+}
+
+func (m *GovMigrate) Execute(_ sdk.Context, _ codec.BinaryCodec, _ sdk.AccAddress, _ common.Address) error {
 	return nil
 }
 
-func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
-	govStore := ctx.KVStore(m.govKey)
-	events := make([]sdk.Event, 0, 10)
-
-	params := m.govKeeper.GetParams(ctx)
-	inactiveIter := m.govKeeper.InactiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*params.MaxDepositPeriod))
-	defer inactiveIter.Close()
-	for ; inactiveIter.Valid(); inactiveIter.Next() {
-		proposalID, _ := govtypes.SplitInactiveProposalQueueKey(inactiveIter.Key())
-		// migrate deposit
-		if fromDeposit, fromFound := m.govKeeper.GetDeposit(ctx, proposalID, from); fromFound {
-			amount := fromDeposit.Amount
-			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to.Bytes())
-			if toFound {
-				amount = sdk.NewCoins(amount...).Add(toDeposit.Amount...)
-			}
-
-			events = append(events,
-				sdk.NewEvent(
-					types.EventTypeMigrateGovDeposit,
-					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, sdk.NewCoins(fromDeposit.Amount...).String()),
-				),
-			)
-
-			fromDeposit.Depositor = sdk.AccAddress(to.Bytes()).String()
-			fromDeposit.Amount = amount
-			govStore.Delete(govtypes.DepositKey(fromDeposit.ProposalId, from))
-			govStore.Set(govtypes.DepositKey(fromDeposit.ProposalId, to.Bytes()), cdc.MustMarshal(&fromDeposit))
+func (m *GovMigrate) DepositPeriodCallback(ctx sdk.Context, from sdk.AccAddress, to common.Address) func(proposal govv1.Proposal) (bool, error) {
+	return func(proposal govv1.Proposal) (bool, error) {
+		proposer, err := m.accountKeeper.AddressCodec().StringToBytes(proposal.GetProposer())
+		if err != nil {
+			return false, err
 		}
-	}
 
-	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*params.VotingPeriod))
-	defer activeIter.Close()
-	for ; activeIter.Valid(); activeIter.Next() {
-		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())
-		// migrate deposit
-		if fromDeposit, depositFound := m.govKeeper.GetDeposit(ctx, proposalID, from); depositFound {
-			amount := fromDeposit.Amount
-			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to.Bytes())
-			if toFound {
-				amount = sdk.NewCoins(amount...).Add(toDeposit.Amount...)
-			}
-
-			events = append(events,
-				sdk.NewEvent(
-					types.EventTypeMigrateGovDeposit,
-					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, sdk.NewCoins(fromDeposit.Amount...).String()),
-				),
-			)
-
-			fromDeposit.Depositor = sdk.AccAddress(to.Bytes()).String()
-			fromDeposit.Amount = amount
-			govStore.Delete(govtypes.DepositKey(proposalID, from))
-			govStore.Set(govtypes.DepositKey(proposalID, to.Bytes()), cdc.MustMarshal(&fromDeposit))
+		if from.Equals(sdk.AccAddress(proposer)) {
+			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s is proposer of %d", from.String(), proposal.Id)
 		}
-		// migrate vote
-		if fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from); voteFound {
-			_, toFound := m.govKeeper.GetVote(ctx, proposalID, to.Bytes())
-			if toFound {
-				return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
-			}
-			fromVote.Voter = sdk.AccAddress(to.Bytes()).String()
-			govStore.Delete(govtypes.VoteKey(proposalID, from))
-			govStore.Set(govtypes.VoteKey(proposalID, to.Bytes()), cdc.MustMarshal(&fromVote))
-
-			var options govv1.WeightedVoteOptions = fromVote.Options
-			// add events
-			events = append(events,
-				sdk.NewEvent(
-					types.EventTypeMigrateGovVote,
-					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(types.AttributeKeyVoteOption, options.String()),
-				),
-			)
+		if sdk.AccAddress(to.Bytes()).Equals(sdk.AccAddress(proposer)) {
+			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s is proposer of %d", to.String(), proposal.Id)
 		}
-	}
+		hasDeposit, err := m.govKeeper.HasDeposit(ctx, proposal.Id, from)
+		if err != nil {
+			return false, err
+		}
+		if hasDeposit {
+			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have deposit of proposal %d", from.String(), proposal.Id)
+		}
 
-	if len(events) > 0 {
-		ctx.EventManager().EmitEvents(events)
+		hasDeposit, err = m.govKeeper.HasDeposit(ctx, proposal.Id, to.Bytes())
+		if err != nil {
+			return false, err
+		}
+		if hasDeposit {
+			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have deposit of proposal %d", to.String(), proposal.Id)
+		}
+		return false, nil
 	}
-	return nil
+}
+
+func (m *GovMigrate) VotePeriodCallback(ctx sdk.Context, from sdk.AccAddress, to common.Address) func(proposal govv1.Proposal) (bool, error) {
+	return func(proposal govv1.Proposal) (bool, error) {
+		b, err := m.DepositPeriodCallback(ctx, from, to)(proposal)
+		if err != nil {
+			return b, err
+		}
+		hasVote, err := m.govKeeper.HasVote(ctx, proposal.Id, from)
+		if err != nil {
+			return false, err
+		}
+		if hasVote {
+			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have vote of proposal %d", from.String(), proposal.Id)
+		}
+
+		hasVote, err = m.govKeeper.HasVote(ctx, proposal.Id, to.Bytes())
+		if err != nil {
+			return false, err
+		}
+		if hasVote {
+			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have vote of proposal %d", to.String(), proposal.Id)
+		}
+		return false, nil
+	}
 }

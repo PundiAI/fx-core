@@ -8,13 +8,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/hashicorp/go-metrics"
 
 	"github.com/functionx/fx-core/v8/contract"
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
@@ -133,7 +133,7 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 	ibcTransferTimeoutHeight := k.GetIbcTransferTimeoutHeight(ctx) * 5
 	ibcTimeoutTime := ctx.BlockTime().Add(time.Second * time.Duration(ibcTransferTimeoutHeight))
 
-	response, err := k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx),
+	response, err := k.ibcTransferKeeper.Transfer(ctx,
 		transfertypes.NewMsgTransfer(
 			target.SourcePort,
 			target.SourceChannel,
@@ -153,7 +153,7 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 		types.EventTypeIbcTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
-		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(response.GetSequence())),
+		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(response.Sequence)),
 		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, target.SourcePort),
 		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, target.SourceChannel),
 	))

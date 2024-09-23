@@ -20,19 +20,6 @@ func TestMsgsTestSuite(t *testing.T) {
 	suite.Run(t, new(MsgsTestSuite))
 }
 
-func (suite *MsgsTestSuite) TestMsgConvertCoinGetters() {
-	msgInvalid := types.MsgConvertCoin{}
-	msg := types.NewMsgConvertCoin(
-		sdk.NewCoin("test", sdkmath.NewInt(100)),
-		helpers.GenHexAddress(),
-		helpers.GenHexAddress().Bytes(),
-	)
-	suite.Require().Equal(types.RouterKey, msg.Route())
-	suite.Require().Equal(types.TypeMsgConvertCoin, msg.Type())
-	suite.Require().NotNil(msgInvalid.GetSignBytes())
-	suite.Require().NotNil(msg.GetSigners())
-}
-
 func (suite *MsgsTestSuite) TestMsgConvertCoinNew() {
 	testCases := []struct {
 		msg        string
@@ -137,20 +124,6 @@ func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
 		}
 	}
-}
-
-func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
-	msgInvalid := types.MsgConvertERC20{}
-	msg := types.NewMsgConvertERC20(
-		sdkmath.NewInt(100),
-		helpers.GenHexAddress().Bytes(),
-		helpers.GenHexAddress(),
-		helpers.GenHexAddress(),
-	)
-	suite.Require().Equal(types.RouterKey, msg.Route())
-	suite.Require().Equal(types.TypeMsgConvertERC20, msg.Type())
-	suite.Require().NotNil(msgInvalid.GetSignBytes())
-	suite.Require().NotNil(msg.GetSigners())
 }
 
 func (suite *MsgsTestSuite) TestMsgConvertERC20New() {

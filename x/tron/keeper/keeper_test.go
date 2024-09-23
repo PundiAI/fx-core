@@ -7,7 +7,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -44,19 +43,15 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{
-		ChainID:         fxtypes.MainnetChainId,
-		Height:          suite.app.LastBlockHeight() + 1,
-		ProposerAddress: valSet.Proposer.Address.Bytes(),
-	})
+	suite.ctx = suite.app.NewContext(false)
 	err := suite.app.TronKeeper.SetParams(suite.ctx, &crosschaintypes.Params{
 		GravityId:                         "fx-bridge-tron",
 		AverageBlockTime:                  5000,
 		ExternalBatchTimeout:              43200000,
 		AverageExternalBlockTime:          3000,
 		SignedWindow:                      20000,
-		SlashFraction:                     sdk.NewDec(1).Quo(sdk.NewDec(1000)),
-		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
+		SlashFraction:                     sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDec(1000)),
+		OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDec(10)),
 		IbcTransferTimeoutHeight:          10000,
 		DelegateThreshold: sdk.NewCoin(fxtypes.DefaultDenom,
 			sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -168,7 +169,7 @@ func (k Keeper) SetPendingTx(ctx sdk.Context, outgoing *types.PendingOutgoingTra
 
 func (k Keeper) IteratorPendingOutgoingTxByBridgeTokenContractAddr(ctx sdk.Context, tokenContract string, cb func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetOutgoingPendingTxPoolContractPrefix(tokenContract))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetOutgoingPendingTxPoolContractPrefix(tokenContract))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var pendingOutgoingTx types.PendingOutgoingTransferTx
@@ -181,7 +182,7 @@ func (k Keeper) IteratorPendingOutgoingTxByBridgeTokenContractAddr(ctx sdk.Conte
 
 func (k Keeper) IteratorPendingOutgoingTx(ctx sdk.Context, cb func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.PendingOutgoingTxPoolKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.PendingOutgoingTxPoolKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var pendingOutgoingTx types.PendingOutgoingTransferTx

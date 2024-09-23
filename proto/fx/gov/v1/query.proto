@@ -17,21 +17,20 @@ service Query {
     option (google.api.http).get = "/fx/gov/v1/egf_params";
   }
 
-  rpc SwitchParams(QuerySwitchParamsRequest) returns (QuerySwitchParamsResponse) {
+  rpc SwitchParams(QuerySwitchParamsRequest)
+      returns (QuerySwitchParamsResponse) {
     option (google.api.http).get = "/fx/gov/v1/switch_params";
   }
 }
 
 // QueryBaseParamsRequest is the request type for the Query/BaseParams RPC
 // method.
-message QueryParamsRequest {
-  string msg_type = 1;
-}
+message QueryParamsRequest { string msg_type = 1; }
 
 // QueryBaseParamsResponse is the response type for the Query/BaseParams RPC
 // method.
 message QueryParamsResponse {
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryEGFParamsRequest is the request type for the Query/EGFParams RPC method.
@@ -40,7 +39,7 @@ message QueryEGFParamsRequest {}
 // QueryEGFParamsResponse is the response type for the Query/EGFParams RPC
 // method.
 message QueryEGFParamsResponse {
-  EGFParams params = 1 [(gogoproto.nullable) = false];
+  EGFParams params = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryEGFParamsRequest is the request type for the Query/EGFParams RPC method.
@@ -49,5 +48,5 @@ message QuerySwitchParamsRequest {}
 // QueryEGFParamsResponse is the response type for the Query/EGFParams RPC
 // method.
 message QuerySwitchParamsResponse {
-  SwitchParams params = 1 [(gogoproto.nullable) = false];
+  SwitchParams params = 1 [ (gogoproto.nullable) = false ];
 }

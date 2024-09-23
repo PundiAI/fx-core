@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -78,7 +78,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive st
 	if err := contract.ValidateEthereumAddress(receive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err.Error())
 	}
-	_, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
+	_, err := k.ConvertCoin(ctx, &types.MsgConvertCoin{
 		Coin:     coin.Add(fee),
 		Receiver: receive,
 		Sender:   sender.String(),

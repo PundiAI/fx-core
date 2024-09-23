@@ -163,10 +163,10 @@ func (suite *KeeperTestSuite) TestParams() {
 			if !tc.expErr {
 				suite.Require().NoError(err, "expected no error, got %v", err)
 
-				_, err := suite.MsgServer.UpdateFXParams(suite.ctx, types.NewMsgUpdateFXParams(suite.govAcct, tc.params))
+				_, err := suite.msgServer.UpdateFXParams(suite.Ctx, types.NewMsgUpdateFXParams(suite.govAcct, tc.params))
 				suite.Require().NoError(err, "expected no error, got %v", err)
 
-				response, err := suite.queryClient.Params(suite.ctx, &types.QueryParamsRequest{MsgType: tc.params.MsgType})
+				response, err := suite.queryClient.Params(suite.Ctx, &types.QueryParamsRequest{MsgType: tc.params.MsgType})
 				suite.Require().NoError(err, "expected no error, got %v", err)
 				params := response.Params
 				suite.Require().EqualValues(params.String(), tc.params.String())
@@ -231,10 +231,10 @@ func (suite *KeeperTestSuite) TestEGFParams_ValidateBasic() {
 			if tc.expectedError == nil {
 				suite.Require().NoError(err, "expected no error, got %v", err)
 
-				_, err := suite.MsgServer.UpdateEGFParams(suite.ctx, types.NewMsgUpdateEGFParams(suite.govAcct, *tc.p))
+				_, err := suite.msgServer.UpdateEGFParams(suite.Ctx, types.NewMsgUpdateEGFParams(suite.govAcct, *tc.p))
 				suite.Require().NoError(err, "expected no error, got %v", err)
 
-				response, err := suite.queryClient.EGFParams(suite.ctx, &types.QueryEGFParamsRequest{})
+				response, err := suite.queryClient.EGFParams(suite.Ctx, &types.QueryEGFParamsRequest{})
 				suite.Require().NoError(err, "expected no error, got %v", err)
 				params := response.Params
 				suite.Require().EqualValues(params.String(), tc.p.String())

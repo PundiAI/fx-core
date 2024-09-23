@@ -9,6 +9,8 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '.golangci.yml'
+      - '!**.pb.go'
+      - '!statik.go'
   pull_request:
     types:
       - opened
@@ -19,6 +21,8 @@ on:
       - 'go.sum'
       - '.golangci.yml'
       - '.github/workflows/golang.yml'
+      - '!**.pb.go'
+      - '!statik.go'
 
 permissions:
   contents: read

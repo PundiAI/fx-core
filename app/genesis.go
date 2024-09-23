@@ -20,14 +20,13 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 const (
@@ -47,7 +46,8 @@ type GenesisState map[string]json.RawMessage
 // NewDefAppGenesisByDenom return new genesis state
 //
 //gocyclo:ignore
-func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
+func NewDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManager) GenesisState {
+	denom := fxtypes.DefaultDenom
 	fxTotalSupply, ok := sdkmath.NewIntFromString(InitTotalSupply)
 	if !ok {
 		panic("invalid fx total supply")
@@ -58,28 +58,28 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 	}
 
 	genesis := make(map[string]json.RawMessage)
-	for _, b := range ModuleBasics {
-		switch b.Name() {
+	for _, m := range moduleBasics {
+		switch m.Name() {
 		case stakingtypes.ModuleName:
-			state := fxstakingtypes.DefaultGenesisState()
+			state := stakingtypes.DefaultGenesisState()
 			state.Params.BondDenom = denom
 			state.Params.MaxValidators = 20
 			state.Params.UnbondingTime = time.Hour * 24 * 21
 			state.Params.HistoricalEntries = 20000
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case slashingtypes.ModuleName:
 			state := slashingtypes.DefaultGenesisState()
-			state.Params.MinSignedPerWindow = sdk.NewDecWithPrec(5, 2) // 5%
+			state.Params.MinSignedPerWindow = sdkmath.LegacyNewDecWithPrec(5, 2) // 5%
 			state.Params.SignedBlocksWindow = 20000
-			state.Params.SlashFractionDoubleSign = sdk.NewDec(1).Quo(sdk.NewDec(20))
-			state.Params.SlashFractionDowntime = sdk.NewDec(1).Quo(sdk.NewDec(1000))
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			state.Params.SlashFractionDoubleSign = sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDec(20))
+			state.Params.SlashFractionDowntime = sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDec(1000))
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case distributiontypes.ModuleName:
 			state := distributiontypes.DefaultGenesisState()
-			state.Params.CommunityTax = sdk.NewDecWithPrec(40, 2)       // %40
-			state.Params.BaseProposerReward = sdk.NewDecWithPrec(1, 2)  // nolint:staticcheck
-			state.Params.BonusProposerReward = sdk.NewDecWithPrec(4, 2) // nolint:staticcheck
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			state.Params.CommunityTax = sdkmath.LegacyNewDecWithPrec(40, 2) // %40
+			state.Params.BaseProposerReward = sdkmath.LegacyNewDecWithPrec(1, 2)
+			state.Params.BonusProposerReward = sdkmath.LegacyNewDecWithPrec(4, 2)
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case govtypes.ModuleName:
 			state := govv1.DefaultGenesisState()
 			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
@@ -90,23 +90,23 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			duration := time.Hour * 24 * 14
 			state.Params.MaxDepositPeriod = &duration
 			state.Params.VotingPeriod = &duration
-			state.Params.Quorum = sdk.NewDecWithPrec(4, 1).String() // 40%
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			state.Params.Quorum = sdkmath.LegacyNewDecWithPrec(4, 1).String() // 40%
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case crisistypes.ModuleName:
 			state := crisistypes.DefaultGenesisState()
 			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 			state.ConstantFee.Denom = denom
 			state.ConstantFee.Amount = sdkmath.NewInt(13333).Mul(coinOne)
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case minttypes.ModuleName:
 			state := minttypes.DefaultGenesisState()
 			state.Params.MintDenom = denom
-			state.Params.InflationMin = sdk.NewDecWithPrec(17, 2)        // 17%
-			state.Params.InflationMax = sdk.NewDecWithPrec(416762, 6)    // 41.6762%
-			state.Params.GoalBonded = sdk.NewDecWithPrec(51, 2)          // 51%
-			state.Params.InflationRateChange = sdk.NewDecWithPrec(30, 2) // 30%
-			state.Minter.Inflation = sdk.NewDecWithPrec(35, 2)           // 35%
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			state.Params.InflationMin = sdkmath.LegacyNewDecWithPrec(17, 2)        // 17%
+			state.Params.InflationMax = sdkmath.LegacyNewDecWithPrec(416762, 6)    // 41.6762%
+			state.Params.GoalBonded = sdkmath.LegacyNewDecWithPrec(51, 2)          // 51%
+			state.Params.InflationRateChange = sdkmath.LegacyNewDecWithPrec(30, 2) // 30%
+			state.Minter.Inflation = sdkmath.LegacyNewDecWithPrec(35, 2)           // 35%
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case banktypes.ModuleName:
 			state := banktypes.DefaultGenesisState()
 			state.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData()}
@@ -116,33 +116,33 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 				Address: authtypes.NewModuleAddress(ethtypes.ModuleName).String(),
 				Coins:   sdk.NewCoins(sdk.NewCoin(denom, ethInitAmount)),
 			})
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case paramstypes.ModuleName:
-			if mod, ok := b.(module.HasGenesisBasics); ok {
+			if mod, ok := m.(module.HasGenesisBasics); ok {
 				if state := mod.DefaultGenesis(cdc); state == nil {
-					genesis[b.Name()] = json.RawMessage("{}")
+					genesis[m.Name()] = json.RawMessage("{}")
 				} else {
-					genesis[b.Name()] = state
+					genesis[m.Name()] = state
 				}
 			}
 		case ibcexported.ModuleName:
 			state := coretypes.DefaultGenesisState()
 			// only allowedClients tendermint
 			state.ClientGenesis.Params.AllowedClients = []string{ibcexported.Tendermint}
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case evmtypes.ModuleName:
 			state := evmtypes.DefaultGenesisState()
 			state.Params.EvmDenom = denom
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case feemarkettypes.ModuleName:
 			state := feemarkettypes.DefaultGenesisState()
 			state.Params.BaseFee = sdkmath.NewInt(500_000_000_000)
-			state.Params.MinGasPrice = sdk.NewDec(500_000_000_000)
-			state.Params.MinGasMultiplier = sdk.ZeroDec()
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+			state.Params.MinGasPrice = sdkmath.LegacyNewDec(500_000_000_000)
+			state.Params.MinGasMultiplier = sdkmath.LegacyZeroDec()
+			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		default:
-			if mod, ok := b.(module.HasGenesisBasics); ok {
-				genesis[b.Name()] = mod.DefaultGenesis(cdc)
+			if mod, ok := m.(module.HasGenesisBasics); ok {
+				genesis[m.Name()] = mod.DefaultGenesis(cdc)
 			}
 		}
 	}

@@ -8,5 +8,5 @@ option go_package = "github.com/functionx/fx-core/x/migrate/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {
-  repeated MigrateRecord migrate_records = 1 [(gogoproto.nullable) = false];
+  repeated MigrateRecord migrate_records = 1 [ (gogoproto.nullable) = false ];
 }

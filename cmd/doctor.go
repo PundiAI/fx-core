@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmjson "github.com/cometbft/cometbft/libs/json"
@@ -19,12 +20,11 @@ import (
 	tmversion "github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/spf13/cobra"
@@ -42,9 +42,9 @@ type blockchain interface {
 	GetChainId() (string, error)
 	GetBlockHeight() (int64, error)
 	GetSyncing() (bool, error)
-	GetNodeInfo() (*tmservice.VersionInfo, error)
+	GetNodeInfo() (*cmtservice.VersionInfo, error)
 	CurrentPlan() (*upgradetypes.Plan, error)
-	GetConsensusValidators() ([]*tmservice.Validator, error)
+	GetConsensusValidators() ([]*cmtservice.Validator, error)
 }
 
 func doctorCmd() *cobra.Command {
@@ -191,7 +191,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockch
 		return nil, nil
 	}
 
-	database, err := server.NewDatabase(serverCtx.Config, cliCtx.Codec)
+	database, err := server.NewDatabase(serverCtx.Config)
 	if err != nil {
 		return nil, err
 	}

@@ -1,30 +1,109 @@
 package transfer
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
-	"github.com/functionx/fx-core/v8/x/ibc"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/keeper"
-	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
 // IBCMiddleware implements the ICS26 interface for transfer given the transfer keeper.
 type IBCMiddleware struct {
-	*ibc.Module
+	app    porttypes.IBCModule
 	keeper keeper.Keeper
+}
+
+// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
+func NewIBCMiddleware(k keeper.Keeper, app porttypes.IBCModule) IBCMiddleware {
+	return IBCMiddleware{
+		app:    app,
+		keeper: k,
+	}
+}
+
+// OnChanOpenInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenInit(ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID string,
+	channelID string,
+	channelCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty,
+	version string,
+) (string, error) {
+	return im.app.OnChanOpenInit(
+		ctx,
+		order,
+		connectionHops,
+		portID,
+		channelID,
+		channelCap,
+		counterparty,
+		version,
+	)
+}
+
+// OnChanOpenTry implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenTry(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID,
+	channelID string,
+	channelCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty,
+	counterpartyVersion string,
+) (string, error) {
+	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
+}
+
+// OnChanOpenAck implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenAck(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	counterpartyChannelID string,
+	counterpartyVersion string,
+) error {
+	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+}
+
+// OnChanOpenConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanOpenConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
+	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
+}
+
+// OnChanCloseInit implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseInit(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
+	return im.app.OnChanCloseInit(ctx, portID, channelID)
+}
+
+// OnChanCloseConfirm implements the IBCMiddleware interface
+func (im IBCMiddleware) OnChanCloseConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
+	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 func (im IBCMiddleware) SendPacket(
@@ -47,58 +126,40 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(k keeper.Keeper, app porttypes.IBCModule) IBCMiddleware {
-	return IBCMiddleware{
-		Module: ibc.NewModule(app),
-		keeper: k,
-	}
-}
-
 // OnRecvPacket implements the IBCModule interface
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	_ sdk.AccAddress,
+	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-
-	var data types.FungibleTokenPacketData
-	var ackErr error
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ackErr = sdkerrors.ErrInvalidType.Wrap("cannot unmarshal ICS-20 transfer packet data")
-		ack = channeltypes.NewErrorAcknowledgement(ackErr)
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		err = sdkerrors.ErrInvalidType.Wrap("cannot unmarshal ICS-20 transfer packet data")
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	// only attempt the application logic if the packet data
-	// was successfully decoded
-	if ack.Success() {
-		if len(data.GetFee()) == 0 {
-			data.Fee = sdkmath.ZeroInt().String()
-		}
-		if err := im.keeper.OnRecvPacket(ctx, packet, data); err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err)
-			ackErr = err
-		}
+	// parse receive address, compatible with evm addresses
+	receiver, _, err := fxtypes.ParseAddress(data.Receiver)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
+	newPacketData := data
+	newPacketData.Receiver = receiver.String()
+
+	newPacket := packet
+	newPacket.Data = newPacketData.GetBytes()
+
+	ack := im.app.OnRecvPacket(ctx, newPacket, relayer)
+
+	// return if the acknowledgement is an error ACK
+	if !ack.Success() {
+		return ack
 	}
 
-	event := sdk.NewEvent(
-		transfertypes.EventTypePacket,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
-		sdk.NewAttribute(transfertypes.AttributeKeyDenom, data.Denom),
-		sdk.NewAttribute(transfertypes.AttributeKeyAmount, data.Amount),
-		sdk.NewAttribute(transfertypes.AttributeKeyMemo, data.Memo),
-		sdk.NewAttribute(transfertypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
-	)
-
-	if ackErr != nil {
-		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRecvError, ackErr.Error()))
+	if err = im.keeper.OnRecvPacket(zeroGasConfigCtx(ctx), packet, data); err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
-	ctx.EventManager().EmitEvent(event)
 
-	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
 }
 
@@ -107,42 +168,22 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
-	_ sdk.AccAddress,
+	relayer sdk.AccAddress,
 ) error {
-	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
-	}
-	var data types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
-	}
-	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
+	if err := im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer); err != nil {
 		return err
 	}
+	var ack channeltypes.Acknowledgement
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	}
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		transfertypes.EventTypePacket,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
-		sdk.NewAttribute(transfertypes.AttributeKeyDenom, data.Denom),
-		sdk.NewAttribute(transfertypes.AttributeKeyAmount, data.Amount),
-		sdk.NewAttribute(transfertypes.AttributeKeyMemo, data.Memo),
-		sdk.NewAttribute(transfertypes.AttributeKeyAck, ack.String()),
-	))
-
-	switch resp := ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Result:
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			transfertypes.EventTypePacket,
-			sdk.NewAttribute(transfertypes.AttributeKeyAckSuccess, string(resp.Result)),
-		))
-	case *channeltypes.Acknowledgement_Error:
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			transfertypes.EventTypePacket,
-			sdk.NewAttribute(transfertypes.AttributeKeyAckError, resp.Error),
-		))
+	if err := im.keeper.OnAcknowledgementPacket(zeroGasConfigCtx(ctx), packet, data, ack); err != nil {
+		return err
 	}
 
 	return nil
@@ -152,25 +193,27 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	_ sdk.AccAddress,
+	relayer sdk.AccAddress,
 ) error {
-	var data types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	if err := im.app.OnTimeoutPacket(ctx, packet, relayer); err != nil {
+		return err
+	}
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
-	// refund tokens
-	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
+
+	if err := im.keeper.OnTimeoutPacket(zeroGasConfigCtx(ctx), packet, data); err != nil {
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		transfertypes.EventTypeTimeout,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(transfertypes.AttributeKeyRefundReceiver, data.Sender),
-		sdk.NewAttribute(transfertypes.AttributeKeyRefundDenom, data.Denom),
-		sdk.NewAttribute(transfertypes.AttributeKeyRefundAmount, data.Amount),
-		sdk.NewAttribute(transfertypes.AttributeKeyMemo, data.Memo),
-	))
-
 	return nil
+}
+
+// zeroGasConfigCtx returns a context with a zero gas meter
+// use a zero gas config to avoid extra costs for the relayers
+func zeroGasConfigCtx(ctx sdk.Context) sdk.Context {
+	return ctx.
+		WithKVGasConfig(storetypes.GasConfig{}).
+		WithTransientKVGasConfig(storetypes.GasConfig{})
 }

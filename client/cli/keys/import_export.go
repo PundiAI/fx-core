@@ -130,10 +130,10 @@ func exportUnsafeUnarmored(cmd *cobra.Command, uid string, buf *bufio.Reader, kr
 
 func ImportKeyCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "import <name> <keyfile>",
+		Use:   "import <name> [keyfile]",
 		Short: "Import private keys into the local keybase",
 		Long:  "Import a ASCII armored or ethereum keystore or unencrypted private key into the local keybase.",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -141,15 +141,25 @@ func ImportKeyCommand() *cobra.Command {
 			}
 			buf := bufio.NewReader(clientCtx.Input)
 
-			bz, err := os.ReadFile(args[1])
-			if err != nil {
-				return err
+			var hexKey []byte
+			if len(args) == 2 {
+				hexKey, err = os.ReadFile(args[1])
+				if err != nil {
+					return err
+				}
+			} else {
+				key, err := input.GetPassword("Enter unencrypted private key:", buf)
+				if err != nil {
+					return err
+				}
+				hexKey = []byte(key)
 			}
-			// os.ReadFile read all data, contains line break at the end of a file
-			bz = bytes.TrimPrefix(bytes.TrimSuffix(bz, []byte{'\n'}), []byte("0x"))
 
-			if len(bz) == 64 {
-				priv, err := ethcrypto.HexToECDSA(string(bz))
+			// os.ReadFile read all data, contains line break at the end of a file
+			hexKey = bytes.TrimPrefix(bytes.TrimSuffix(hexKey, []byte{'\n'}), []byte("0x"))
+
+			if len(hexKey) == 64 {
+				priv, err := ethcrypto.HexToECDSA(string(hexKey))
 				if err != nil {
 					return err
 				}
@@ -170,7 +180,7 @@ func ImportKeyCommand() *cobra.Command {
 			if err != nil && !strings.Contains(err.Error(), "password must be at least") {
 				return err
 			}
-			key, err := keystore.DecryptKey(bz, passphrase)
+			key, err := keystore.DecryptKey(hexKey, passphrase)
 			if err == nil {
 				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyType)
 				var armoPrivKey string
@@ -184,7 +194,7 @@ func ImportKeyCommand() *cobra.Command {
 				return clientCtx.Keyring.ImportPrivKey(args[0], armoPrivKey, "")
 			}
 
-			return clientCtx.Keyring.ImportPrivKey(args[0], string(bz), passphrase)
+			return clientCtx.Keyring.ImportPrivKey(args[0], string(hexKey), passphrase)
 		},
 	}
 	cmd.Flags().String(flags.FlagKeyType, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")

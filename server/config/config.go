@@ -97,7 +97,6 @@ func AppConfig(mintGasPrice sdk.Coin) (string, interface{}) {
 	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
 	//   own app.toml to override, or use this default value.
 	srvCfg.MinGasPrices = mintGasPrice.String()
-	srvCfg.Rosetta.DenomToSuggest = mintGasPrice.Denom
 
 	customAppConfig := Config{
 		Config:       *srvCfg,

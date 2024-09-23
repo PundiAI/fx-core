@@ -12,7 +12,8 @@ import (
 func TestAppDB(t *testing.T) {
 	helpers.SkipTest(t, "Skipping local test:", t.Name())
 
-	myApp, chainId := buildApp(t, fxtypes.MainnetChainId)
+	chainId := fxtypes.MainnetChainId
+	myApp := buildApp(t)
 	require.NoError(t, myApp.LoadLatestVersion())
 	ctx := newContext(t, myApp, chainId, false)
 

@@ -9,8 +9,11 @@ import (
 	"strings"
 	"time"
 
+	evidencetypes "cosmossdk.io/x/evidence/types"
+	"cosmossdk.io/x/feegrant"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -20,13 +23,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	"github.com/cosmos/gogoproto/proto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -68,7 +68,7 @@ func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
 	} else {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
-	return grpc.Dial(_url, opts...)
+	return grpc.NewClient(_url, opts...)
 }
 
 func NewClient(conn grpc1.ClientConn, ctx ...context.Context) *Client {
@@ -154,8 +154,8 @@ func (cli *Client) ServiceClient() tx.ServiceClient {
 	return tx.NewServiceClient(cli.ClientConn)
 }
 
-func (cli *Client) TMServiceClient() tmservice.ServiceClient {
-	return tmservice.NewServiceClient(cli.ClientConn)
+func (cli *Client) TMServiceClient() cmtservice.ServiceClient {
+	return cmtservice.NewServiceClient(cli.ClientConn)
 }
 
 func (cli *Client) ERC20Query() erc20types.QueryClient {
@@ -175,21 +175,21 @@ func (cli *Client) MigrateQuery() migratetypes.QueryClient {
 }
 
 func (cli *Client) AppVersion() (string, error) {
-	info, err := cli.TMServiceClient().GetNodeInfo(cli.ctx, &tmservice.GetNodeInfoRequest{})
+	info, err := cli.TMServiceClient().GetNodeInfo(cli.ctx, &cmtservice.GetNodeInfoRequest{})
 	if err != nil {
 		return "", err
 	}
 	return info.GetApplicationVersion().GetVersion(), nil
 }
 
-func (cli *Client) QueryAccount(address string) (authtypes.AccountI, error) {
+func (cli *Client) QueryAccount(address string) (sdk.AccountI, error) {
 	response, err := cli.AuthQuery().Account(cli.ctx, &authtypes.QueryAccountRequest{
 		Address: address,
 	})
 	if err != nil {
 		return nil, err
 	}
-	var account authtypes.AccountI
+	var account sdk.AccountI
 	if err = client.NewAccountCodec().UnpackAny(response.GetAccount(), &account); err != nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (cli *Client) GetStakingDenom() (string, error) {
 }
 
 func (cli *Client) GetBlockHeight() (int64, error) {
-	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &tmservice.GetLatestBlockRequest{})
+	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &cmtservice.GetLatestBlockRequest{})
 	if err != nil {
 		return 0, err
 	}
@@ -253,7 +253,7 @@ func (cli *Client) GetChainId() (string, error) {
 	if len(cli.chainId) > 0 {
 		return cli.chainId, nil
 	}
-	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &tmservice.GetLatestBlockRequest{})
+	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &cmtservice.GetLatestBlockRequest{})
 	if err != nil {
 		return "", err
 	}
@@ -262,14 +262,14 @@ func (cli *Client) GetChainId() (string, error) {
 
 func (cli *Client) GetBlockTimeInterval() (time.Duration, error) {
 	tmClient := cli.TMServiceClient()
-	response1, err := tmClient.GetLatestBlock(cli.ctx, &tmservice.GetLatestBlockRequest{})
+	response1, err := tmClient.GetLatestBlock(cli.ctx, &cmtservice.GetLatestBlockRequest{})
 	if err != nil {
 		return 0, err
 	}
 	if response1.GetSdkBlock().GetHeader().Height <= 1 {
 		return 0, fmt.Errorf("please try again later, the current block height is less than 1")
 	}
-	response2, err := tmClient.GetBlockByHeight(cli.ctx, &tmservice.GetBlockByHeightRequest{
+	response2, err := tmClient.GetBlockByHeight(cli.ctx, &cmtservice.GetBlockByHeightRequest{
 		Height: response1.GetSdkBlock().GetHeader().Height - 1,
 	})
 	if err != nil {
@@ -278,16 +278,16 @@ func (cli *Client) GetBlockTimeInterval() (time.Duration, error) {
 	return response1.GetSdkBlock().GetHeader().Time.Sub(response2.GetSdkBlock().GetHeader().Time), nil
 }
 
-func (cli *Client) GetLatestBlock() (*tmservice.Block, error) {
-	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &tmservice.GetLatestBlockRequest{})
+func (cli *Client) GetLatestBlock() (*cmtservice.Block, error) {
+	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &cmtservice.GetLatestBlockRequest{})
 	if err != nil {
 		return nil, err
 	}
 	return response.GetSdkBlock(), nil
 }
 
-func (cli *Client) GetBlockByHeight(blockHeight int64) (*tmservice.Block, error) {
-	response, err := cli.TMServiceClient().GetBlockByHeight(cli.ctx, &tmservice.GetBlockByHeightRequest{
+func (cli *Client) GetBlockByHeight(blockHeight int64) (*cmtservice.Block, error) {
+	response, err := cli.TMServiceClient().GetBlockByHeight(cli.ctx, &cmtservice.GetBlockByHeightRequest{
 		Height: blockHeight,
 	})
 	if err != nil {
@@ -315,7 +315,7 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 	if len(cli.addrPrefix) > 0 {
 		return cli.addrPrefix, nil
 	}
-	response, err := cli.TMServiceClient().GetLatestValidatorSet(cli.ctx, &tmservice.GetLatestValidatorSetRequest{})
+	response, err := cli.TMServiceClient().GetLatestValidatorSet(cli.ctx, &cmtservice.GetLatestValidatorSetRequest{})
 	if err != nil {
 		return "", err
 	}
@@ -334,14 +334,14 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 	return "", errors.New("no found address prefix")
 }
 
-func (cli *Client) GetModuleAccounts() ([]authtypes.AccountI, error) {
+func (cli *Client) GetModuleAccounts() ([]sdk.AccountI, error) {
 	response, err := cli.AuthQuery().ModuleAccounts(cli.ctx, &authtypes.QueryModuleAccountsRequest{})
 	if err != nil {
 		return nil, err
 	}
-	accounts := make([]authtypes.AccountI, 0, len(response.Accounts))
+	accounts := make([]sdk.AccountI, 0, len(response.Accounts))
 	for _, acc := range response.Accounts {
-		var account authtypes.AccountI
+		var account sdk.AccountI
 		if err = client.NewAccountCodec().UnpackAny(acc, &account); err != nil {
 			return nil, err
 		}
@@ -351,15 +351,15 @@ func (cli *Client) GetModuleAccounts() ([]authtypes.AccountI, error) {
 }
 
 func (cli *Client) GetSyncing() (bool, error) {
-	response, err := cli.TMServiceClient().GetSyncing(cli.ctx, &tmservice.GetSyncingRequest{})
+	response, err := cli.TMServiceClient().GetSyncing(cli.ctx, &cmtservice.GetSyncingRequest{})
 	if err != nil {
 		return false, err
 	}
 	return response.Syncing, nil
 }
 
-func (cli *Client) GetNodeInfo() (*tmservice.VersionInfo, error) {
-	response, err := cli.TMServiceClient().GetNodeInfo(cli.ctx, &tmservice.GetNodeInfoRequest{})
+func (cli *Client) GetNodeInfo() (*cmtservice.VersionInfo, error) {
+	response, err := cli.TMServiceClient().GetNodeInfo(cli.ctx, &cmtservice.GetNodeInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -382,8 +382,8 @@ func (cli *Client) GetValidators() ([]stakingtypes.Validator, error) {
 	return validators.GetValidators(), nil
 }
 
-func (cli *Client) GetConsensusValidators() ([]*tmservice.Validator, error) {
-	response, err := cli.TMServiceClient().GetLatestValidatorSet(cli.ctx, &tmservice.GetLatestValidatorSetRequest{})
+func (cli *Client) GetConsensusValidators() ([]*cmtservice.Validator, error) {
+	response, err := cli.TMServiceClient().GetLatestValidatorSet(cli.ctx, &cmtservice.GetLatestValidatorSetRequest{})
 	if err != nil {
 		return nil, err
 	}

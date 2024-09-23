@@ -9,8 +9,7 @@ import (
 )
 
 func TestOnOrderBeginBlockers(t *testing.T) {
-	valSet, genAccs, balances := helpers.GenerateGenesisValidator(1, nil)
-	myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
+	myApp := helpers.NewApp()
 	modules := myApp.GetModules()
 	orderBeginBlockersModules := myApp.GetOrderBeginBlockersModules()
 	require.Equal(t, len(orderBeginBlockersModules), len(modules))
@@ -21,8 +20,7 @@ func TestOnOrderBeginBlockers(t *testing.T) {
 }
 
 func TestOnOrderEndBlockers(t *testing.T) {
-	valSet, genAccs, balances := helpers.GenerateGenesisValidator(1, nil)
-	myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
+	myApp := helpers.NewApp()
 	modules := myApp.GetModules()
 	orderEndBlockersModules := myApp.GetOrderEndBlockersModules()
 	require.Equal(t, len(orderEndBlockersModules), len(modules))
@@ -33,8 +31,7 @@ func TestOnOrderEndBlockers(t *testing.T) {
 }
 
 func TestOnOrderInitGenesis(t *testing.T) {
-	valSet, genAccs, balances := helpers.GenerateGenesisValidator(1, nil)
-	myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
+	myApp := helpers.NewApp()
 	modules := myApp.GetModules()
 	initGenesisModules := myApp.GetOrderInitGenesisModules()
 	require.Equal(t, len(initGenesisModules), len(modules))

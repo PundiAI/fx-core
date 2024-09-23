@@ -2,8 +2,8 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -28,26 +28,40 @@ func NewDistrStakingMigrate(distrKey, stakingKey storetypes.StoreKey, stakingKee
 
 func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	// check validator
-	if _, found := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(from)); found {
+	if _, err := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(from)); err == nil {
 		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", from.String())
 	}
-	if _, found := m.stakingKeeper.GetValidator(ctx, to.Bytes()); found {
+	if _, err := m.stakingKeeper.GetValidator(ctx, to.Bytes()); err == nil {
 		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", to.String())
 	}
+
 	// check delegation
-	if delegations := m.stakingKeeper.GetDelegatorDelegations(ctx, to.Bytes(), 1); len(delegations) > 0 {
+	delegations, err := m.stakingKeeper.GetDelegatorDelegations(ctx, to.Bytes(), 1)
+	if err != nil {
+		return err
+	}
+	if len(delegations) > 0 {
 		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has delegation record", to.String())
 	}
+
 	// check undelegatetion
-	undelegations := m.stakingKeeper.GetUnbondingDelegations(ctx, to.Bytes(), 1)
+	undelegations, err := m.stakingKeeper.GetUnbondingDelegations(ctx, to.Bytes(), 1)
+	if err != nil {
+		return err
+	}
 	if len(undelegations) > 0 {
 		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has undelegate record", to.String())
 	}
+
 	// check redelegation
-	redelegations := m.stakingKeeper.GetRedelegations(ctx, to.Bytes(), 1)
+	redelegations, err := m.stakingKeeper.GetRedelegations(ctx, to.Bytes(), 1)
+	if err != nil {
+		return err
+	}
 	if len(redelegations) > 0 {
 		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has redelegation record", to.String())
 	}
+
 	return nil
 }
 
@@ -59,32 +73,37 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, fr
 	events := make([]sdk.Event, 0, 10)
 
 	// migrate delegate info
-	delegateIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetDelegationsKey(from))
+	delegateIterator := storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.GetDelegationsKey(from))
 	defer delegateIterator.Close()
 	for ; delegateIterator.Valid(); delegateIterator.Next() {
 		info := stakingtypes.MustUnmarshalDelegation(cdc, delegateIterator.Value())
 
 		// distribution starting info
-		key := distrtypes.GetDelegatorStartingInfoKey(info.GetValidatorAddr(), from)
+		validatorAddrStr := info.GetValidatorAddr()
+		validatorAddr, err := m.stakingKeeper.ValidatorAddressCodec().StringToBytes(validatorAddrStr)
+		if err != nil {
+			return err
+		}
+		key := distrtypes.GetDelegatorStartingInfoKey(validatorAddr, from)
 		startingInfo := distrStore.Get(key)
 		distrStore.Delete(key)
-		distrStore.Set(distrtypes.GetDelegatorStartingInfoKey(info.GetValidatorAddr(), to.Bytes()), startingInfo)
+		distrStore.Set(distrtypes.GetDelegatorStartingInfoKey(validatorAddr, to.Bytes()), startingInfo)
 
 		// staking delegate
 		info.DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
 		stakingStore.Delete(delegateIterator.Key())
-		stakingStore.Set(stakingtypes.GetDelegationKey(to.Bytes(), info.GetValidatorAddr()), stakingtypes.MustMarshalDelegation(cdc, info))
+		stakingStore.Set(stakingtypes.GetDelegationKey(to.Bytes(), validatorAddr), stakingtypes.MustMarshalDelegation(cdc, info))
 
 		events = append(events,
 			sdk.NewEvent(
 				types.EventTypeMigrateStakingDelegate,
-				sdk.NewAttribute(types.AttributeKeyValidatorAddr, info.GetValidatorAddr().String()),
+				sdk.NewAttribute(types.AttributeKeyValidatorAddr, sdk.ValAddress(validatorAddr).String()),
 			),
 		)
 	}
 
 	// migrate unbonding delegation
-	unbondingDelegationIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetUBDsKey(from))
+	unbondingDelegationIterator := storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.GetUBDsKey(from))
 	defer unbondingDelegationIterator.Close()
 	for ; unbondingDelegationIterator.Valid(); unbondingDelegationIterator.Next() {
 		ubd := stakingtypes.MustUnmarshalUBD(cdc, unbondingDelegationIterator.Value())
@@ -103,7 +122,10 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, fr
 		// migrate unbonding queue
 		for _, entry := range ubd.Entries {
 			var ubdFlag bool
-			UBDQueue := m.stakingKeeper.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
+			UBDQueue, err := m.stakingKeeper.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
+			if err != nil {
+				panic(err)
+			}
 			for i := range UBDQueue {
 				if UBDQueue[i].DelegatorAddress == from.String() {
 					UBDQueue[i].DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
@@ -126,7 +148,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, fr
 	}
 
 	// migrate redelegate
-	redelegateIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetREDsKey(from))
+	redelegateIterator := storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.GetREDsKey(from))
 	defer redelegateIterator.Close()
 	for ; redelegateIterator.Valid(); redelegateIterator.Next() {
 		red := stakingtypes.MustUnmarshalRED(cdc, redelegateIterator.Value())
@@ -153,7 +175,10 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, fr
 		// migrate redelegate queue
 		for _, entry := range red.Entries {
 			var redFlag bool
-			redQueue := m.stakingKeeper.GetRedelegationQueueTimeSlice(ctx, entry.CompletionTime)
+			redQueue, err := m.stakingKeeper.GetRedelegationQueueTimeSlice(ctx, entry.CompletionTime)
+			if err != nil {
+				panic(err)
+			}
 			for i := range redQueue {
 				if redQueue[i].DelegatorAddress == from.String() {
 					redQueue[i].DelegatorAddress = sdk.AccAddress(to.Bytes()).String()

@@ -76,7 +76,7 @@ HbP+c6JmeJy9JXe2rbbF1QtCX1gLqGcDQPBXiCtFvP7/8wTZtVOPj8vREzhZ9ElO
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := ImportKeyCommand()
-			cmd.Flags().AddFlagSet(keys.Commands("home").PersistentFlags())
+			cmd.Flags().AddFlagSet(keys.Commands().PersistentFlags())
 			mockIn := testutil.ApplyMockIODiscardOutErr(cmd)
 
 			interfaceRegistry := types.NewInterfaceRegistry()

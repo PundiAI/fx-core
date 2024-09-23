@@ -4,33 +4,34 @@ import (
 	"errors"
 	"path/filepath"
 
+	"cosmossdk.io/log"
+	"cosmossdk.io/store/metrics"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	cmtdbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/libs/log"
 	sm "github.com/cometbft/cometbft/state"
 	"github.com/cometbft/cometbft/store"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/cosmos/cosmos-sdk/codec"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type Database struct {
 	genesisFile string
 	blockStore  *store.BlockStore
 	stateStore  sm.Store
-	appDB       cmtdbm.DB
+	appDB       dbm.DB
 	appStore    *rootmulti.Store
 	storeKeys   map[string]*storetypes.KVStoreKey
-	codec       codec.Codec
 }
 
-func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec, modules ...string) (*Database, error) {
+func NewDatabase(cfg *tmcfg.Config, modules ...string) (*Database, error) {
 	dataDir := filepath.Join(cfg.RootDir, "data")
 
 	blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(cfg.DBBackend), dataDir)
@@ -45,12 +46,12 @@ func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec, modules ...string) (*Databa
 	}
 	stateStore := sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: false})
 
-	appDB, err := cmtdbm.NewDB(AppDBName, cmtdbm.BackendType(cfg.DBBackend), dataDir)
+	appDB, err := dbm.NewDB(AppDBName, dbm.BackendType(cfg.DBBackend), dataDir)
 	if err != nil {
 		return nil, err
 	}
-	storeKeys := sdk.NewKVStoreKeys(append(modules, upgradetypes.StoreKey)...)
-	appStore := rootmulti.NewStore(appDB, log.NewNopLogger())
+	storeKeys := storetypes.NewKVStoreKeys(append(modules, upgradetypes.StoreKey)...)
+	appStore := rootmulti.NewStore(appDB, log.NewNopLogger(), metrics.NewNoOpMetrics())
 
 	for _, storeKey := range storeKeys {
 		appStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
@@ -65,11 +66,10 @@ func NewDatabase(cfg *tmcfg.Config, cdc codec.Codec, modules ...string) (*Databa
 		stateStore:  stateStore,
 		appStore:    appStore,
 		storeKeys:   storeKeys,
-		codec:       cdc,
 	}, err
 }
 
-func (d *Database) AppDB() cmtdbm.DB {
+func (d *Database) AppDB() dbm.DB {
 	return d.appDB
 }
 
@@ -107,12 +107,12 @@ func (d *Database) GetSyncing() (bool, error) {
 	return true, nil
 }
 
-func (d *Database) GetNodeInfo() (*tmservice.VersionInfo, error) {
+func (d *Database) GetNodeInfo() (*cmtservice.VersionInfo, error) {
 	state, err := d.GetState()
 	if err != nil {
 		return nil, err
 	}
-	return &tmservice.VersionInfo{
+	return &cmtservice.VersionInfo{
 		Version: state.Version.GetSoftware(),
 	}, nil
 }
@@ -124,13 +124,13 @@ func (d *Database) CurrentPlan() (*upgradetypes.Plan, error) {
 		return nil, nil
 	}
 	var plan upgradetypes.Plan
-	if err := d.codec.Unmarshal(bz, &plan); err != nil {
+	if err := proto.Unmarshal(bz, &plan); err != nil {
 		return nil, err
 	}
 	return &plan, nil
 }
 
-func (d *Database) GetConsensusValidators() ([]*tmservice.Validator, error) {
+func (d *Database) GetConsensusValidators() ([]*cmtservice.Validator, error) {
 	state, err := d.GetState()
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (d *Database) GetConsensusValidators() ([]*tmservice.Validator, error) {
 	if len(state.Validators.Validators) == 0 {
 		return nil, nil
 	}
-	validators := make([]*tmservice.Validator, len(state.Validators.Validators))
+	validators := make([]*cmtservice.Validator, len(state.Validators.Validators))
 	for _, val := range state.Validators.Validators {
 		validator, err := toValidator(val)
 		if err != nil {
@@ -157,8 +157,8 @@ func (d *Database) GetState() (sm.State, error) {
 	return state, nil
 }
 
-func toValidator(validator *tmtypes.Validator) (*tmservice.Validator, error) {
-	pk, err := cryptocodec.FromTmPubKeyInterface(validator.PubKey)
+func toValidator(validator *tmtypes.Validator) (*cmtservice.Validator, error) {
+	pk, err := cryptocodec.FromCmtPubKeyInterface(validator.PubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func toValidator(validator *tmtypes.Validator) (*tmservice.Validator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &tmservice.Validator{
+	return &cmtservice.Validator{
 		Address:          sdk.ConsAddress(validator.Address.Bytes()).String(),
 		ProposerPriority: validator.ProposerPriority,
 		PubKey:           anyPub,

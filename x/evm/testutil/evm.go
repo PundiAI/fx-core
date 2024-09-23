@@ -93,7 +93,7 @@ func (s *EVMSuite) Send(abi abi.ABI, method string, args ...interface{}) *evmtyp
 
 func (s *EVMSuite) EthereumTx(to *common.Address, data []byte, value *big.Int, gasLimit uint64) (*evmtypes.MsgEthereumTxResponse, error) {
 	chanId := s.evmKeeper.ChainID()
-	s.Equal(fxtypes.EIP155ChainID(), chanId)
+	s.Equal(fxtypes.EIP155ChainID(s.ctx.ChainID()), chanId)
 	if value == nil {
 		value = big.NewInt(0)
 	}
@@ -114,7 +114,7 @@ func (s *EVMSuite) EthereumTx(to *common.Address, data []byte, value *big.Int, g
 	tx.From = s.signer.Address().Bytes()
 	s.NoError(tx.Sign(ethtypes.LatestSignerForChainID(chanId), s.signer))
 
-	return s.evmKeeper.EthereumTx(sdk.WrapSDKContext(s.ctx), tx)
+	return s.evmKeeper.EthereumTx(s.ctx, tx)
 }
 
 func (s *EVMSuite) DeployUpgradableERC20Logic(symbol string) common.Address {
@@ -134,6 +134,6 @@ func (s *EVMSuite) CallContract(data []byte) error {
 		ContractAddress: s.contractAddr.String(),
 		Data:            common.Bytes2Hex(data),
 	}
-	_, err := s.evmKeeper.CallContract(sdk.WrapSDKContext(s.ctx), msg)
+	_, err := s.evmKeeper.CallContract(s.ctx, msg)
 	return err
 }

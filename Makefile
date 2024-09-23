@@ -142,7 +142,7 @@ lint-install:
 	fi
 
 check-no-lint:
-	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 42 ]; then \
+	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 11 ]; then \
 		echo "\033[91m--> increase or decrease nolint, please recheck them\033[0m"; \
 		echo "\033[91m--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`\033[0m"; \
 		exit 1;\
@@ -198,28 +198,25 @@ proto-all: proto-format proto-gen proto-swagger-gen
 
 proto-format:
 	@echo "Formatting Protobuf files"
-	@$(protoImage) sh ./contrib/protoc/format.sh
+	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+
+proto-lint:
+	@$(protoImage) buf lint
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./contrib/protoc/gen.sh
+	@$(protoImage) sh ./scripts/protocgen.sh
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh ./contrib/protoc/swagger-gen.sh
+	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
 	$(MAKE) update-swagger-docs
-
-proto-fork:
-	@echo "Forking Protobuf files"
-	@docker run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		-e BUF_NAME=${BUF_NAME} -e BUF_TOKEN=${BUF_TOKEN} -e BUF_ORG=${BUF_ORG} \
-		sh ./contrib/protoc/fork.sh
 
 proto-update-deps:
 	@echo "Updating Protobuf dependencies"
 	@docker run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
-.PHONY: proto-format proto-gen proto-swagger-gen proto-fork proto-update-deps
+.PHONY: proto-format proto-lint proto-gen proto-swagger-gen proto-update-deps
 
 statik: $(STATIK)
 $(STATIK):
@@ -227,10 +224,10 @@ $(STATIK):
 	@go install github.com/rakyll/statik@latest
 
 update-swagger-docs: statik
-	@$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
 	@if [ "$(shell sed -n '7p' docs/swagger-ui/swagger.yaml)" != "schemes:" ]; then \
 		perl -pi -e "print \"host: fx-rest.functionx.io\nschemes:\n  - https\n\" if $$.==6 " ./docs/swagger-ui/swagger.yaml; \
 	fi
+	@$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
 
 .PHONY: statik update-swagger-docs
 

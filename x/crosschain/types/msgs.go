@@ -15,43 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// cross chain message types
-const (
-	TypeMsgBondedOracle   = "bonded_oracle"
-	TypeMsgAddDelegate    = "add_delegate"
-	TypeMsgReDelegate     = "re_delegate"
-	TypeMsgEditBridger    = "edit_bridger"
-	TypeMsgWithdrawReward = "withdraw_reward"
-	TypeMsgUnbondedOracle = "unbonded_oracle"
-
-	TypeMsgOracleSetConfirm      = "valset_confirm"
-	TypeMsgOracleSetUpdatedClaim = "valset_updated_claim"
-
-	TypeMsgBridgeTokenClaim = "bridge_token_claim"
-
-	TypeMsgSendToFxClaim = "send_to_fx_claim"
-
-	TypeMsgSendToExternal        = "send_to_external"
-	TypeMsgCancelSendToExternal  = "cancel_send_to_external"
-	TypeMsgIncreaseBridgeFee     = "increase_bridge_fee"
-	TypeMsgAddPendingPoolRewards = "add_pending_pool_rewards"
-	TypeMsgSendToExternalClaim   = "send_to_external_claim"
-
-	TypeMsgBridgeCallClaim = "bridge_call_claim"
-
-	TypeMsgBridgeCall              = "bridge_call"
-	TypeMsgCancelPendingBridgeCall = "cancel_pending_bridge_call"
-	TypeMsgBridgeCallConfirm       = "bridge_call_confirm"
-	TypeMsgBridgeCallResultClaim   = "bridge_call_result_claim"
-
-	TypeMsgRequestBatch = "request_batch"
-	TypeMsgConfirmBatch = "confirm_batch"
-
-	TypeMsgUpdateParams = "update_params"
-
-	TypeMsgUpdateChainOracles = "update_chain_oracles"
-)
-
 type (
 	// CrossChainMsg cross msg must implement GetChainName interface.. using in router
 	CrossChainMsg interface {
@@ -60,73 +23,59 @@ type (
 )
 
 var (
-	_ sdk.Msg       = &MsgBondedOracle{}
 	_ CrossChainMsg = &MsgBondedOracle{}
-	_ sdk.Msg       = &MsgAddDelegate{}
 	_ CrossChainMsg = &MsgAddDelegate{}
-	_ sdk.Msg       = &MsgReDelegate{}
 	_ CrossChainMsg = &MsgReDelegate{}
-	_ sdk.Msg       = &MsgEditBridger{}
 	_ CrossChainMsg = &MsgEditBridger{}
-	_ sdk.Msg       = &MsgWithdrawReward{}
 	_ CrossChainMsg = &MsgWithdrawReward{}
-	_ sdk.Msg       = &MsgUnbondedOracle{}
 	_ CrossChainMsg = &MsgUnbondedOracle{}
-
-	_ sdk.Msg       = &MsgOracleSetConfirm{}
 	_ CrossChainMsg = &MsgOracleSetConfirm{}
-	_ sdk.Msg       = &MsgOracleSetUpdatedClaim{}
 	_ CrossChainMsg = &MsgOracleSetUpdatedClaim{}
-
-	_ sdk.Msg       = &MsgBridgeTokenClaim{}
 	_ CrossChainMsg = &MsgBridgeTokenClaim{}
-
-	_ sdk.Msg       = &MsgSendToFxClaim{}
 	_ CrossChainMsg = &MsgSendToFxClaim{}
-
-	_ sdk.Msg       = &MsgSendToExternal{}
 	_ CrossChainMsg = &MsgSendToExternal{}
-	_ sdk.Msg       = &MsgCancelSendToExternal{}
 	_ CrossChainMsg = &MsgCancelSendToExternal{}
-	_ sdk.Msg       = &MsgIncreaseBridgeFee{}
 	_ CrossChainMsg = &MsgIncreaseBridgeFee{}
-	_ sdk.Msg       = &MsgSendToExternalClaim{}
 	_ CrossChainMsg = &MsgSendToExternalClaim{}
-	_ sdk.Msg       = &MsgAddPendingPoolRewards{}
 	_ CrossChainMsg = &MsgAddPendingPoolRewards{}
-
-	_ sdk.Msg       = &MsgRequestBatch{}
 	_ CrossChainMsg = &MsgRequestBatch{}
-	_ sdk.Msg       = &MsgConfirmBatch{}
 	_ CrossChainMsg = &MsgConfirmBatch{}
-
-	_ sdk.Msg       = &MsgBridgeCallClaim{}
 	_ CrossChainMsg = &MsgBridgeCallClaim{}
-
-	_ sdk.Msg       = &MsgBridgeCall{}
 	_ CrossChainMsg = &MsgBridgeCall{}
-	_ sdk.Msg       = &MsgCancelPendingBridgeCall{}
 	_ CrossChainMsg = &MsgCancelPendingBridgeCall{}
-
-	_ sdk.Msg       = &MsgBridgeCallConfirm{}
 	_ CrossChainMsg = &MsgBridgeCallConfirm{}
-	_ sdk.Msg       = &MsgBridgeCallResultClaim{}
 	_ CrossChainMsg = &MsgBridgeCallResultClaim{}
-
-	_ sdk.Msg       = &MsgUpdateParams{}
 	_ CrossChainMsg = &MsgUpdateParams{}
-
-	_ sdk.Msg       = &MsgUpdateChainOracles{}
 	_ CrossChainMsg = &MsgUpdateChainOracles{}
-
-	_ sdk.Msg = &MsgClaim{}
 )
 
-// MsgBondedOracle
-
-func (m *MsgBondedOracle) Route() string { return RouterKey }
-
-func (m *MsgBondedOracle) Type() string { return TypeMsgBondedOracle }
+var (
+	_ sdk.Msg = &MsgBondedOracle{}
+	_ sdk.Msg = &MsgAddDelegate{}
+	_ sdk.Msg = &MsgReDelegate{}
+	_ sdk.Msg = &MsgEditBridger{}
+	_ sdk.Msg = &MsgWithdrawReward{}
+	_ sdk.Msg = &MsgUnbondedOracle{}
+	_ sdk.Msg = &MsgOracleSetConfirm{}
+	_ sdk.Msg = &MsgOracleSetUpdatedClaim{}
+	_ sdk.Msg = &MsgBridgeTokenClaim{}
+	_ sdk.Msg = &MsgSendToFxClaim{}
+	_ sdk.Msg = &MsgSendToExternal{}
+	_ sdk.Msg = &MsgCancelSendToExternal{}
+	_ sdk.Msg = &MsgIncreaseBridgeFee{}
+	_ sdk.Msg = &MsgSendToExternalClaim{}
+	_ sdk.Msg = &MsgAddPendingPoolRewards{}
+	_ sdk.Msg = &MsgRequestBatch{}
+	_ sdk.Msg = &MsgConfirmBatch{}
+	_ sdk.Msg = &MsgBridgeCallClaim{}
+	_ sdk.Msg = &MsgBridgeCall{}
+	_ sdk.Msg = &MsgCancelPendingBridgeCall{}
+	_ sdk.Msg = &MsgBridgeCallConfirm{}
+	_ sdk.Msg = &MsgBridgeCallResultClaim{}
+	_ sdk.Msg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgUpdateChainOracles{}
+	_ sdk.Msg = &MsgClaim{}
+)
 
 func (m *MsgBondedOracle) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
@@ -150,22 +99,6 @@ func (m *MsgBondedOracle) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m *MsgBondedOracle) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgBondedOracle) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
-}
-
-// MsgAddDelegate
-
-func (m *MsgAddDelegate) Route() string { return RouterKey }
-
-func (m *MsgAddDelegate) Type() string {
-	return TypeMsgAddDelegate
-}
-
 func (m *MsgAddDelegate) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -177,22 +110,6 @@ func (m *MsgAddDelegate) ValidateBasic() (err error) {
 		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	return nil
-}
-
-func (m *MsgAddDelegate) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgAddDelegate) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
-}
-
-// MsgReDelegate
-
-func (m *MsgReDelegate) Route() string { return RouterKey }
-
-func (m *MsgReDelegate) Type() string {
-	return TypeMsgReDelegate
 }
 
 func (m *MsgReDelegate) ValidateBasic() (err error) {
@@ -207,20 +124,6 @@ func (m *MsgReDelegate) ValidateBasic() (err error) {
 	}
 	return nil
 }
-
-func (m *MsgReDelegate) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgReDelegate) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
-}
-
-// MsgEditBridger
-
-func (m *MsgEditBridger) Route() string { return RouterKey }
-
-func (m *MsgEditBridger) Type() string { return TypeMsgEditBridger }
 
 func (m *MsgEditBridger) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
@@ -238,20 +141,6 @@ func (m *MsgEditBridger) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m *MsgEditBridger) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgEditBridger) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
-}
-
-// MsgWithdrawReward
-
-func (m *MsgWithdrawReward) Route() string { return RouterKey }
-
-func (m *MsgWithdrawReward) Type() string { return TypeMsgWithdrawReward }
-
 func (m *MsgWithdrawReward) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -261,20 +150,6 @@ func (m *MsgWithdrawReward) ValidateBasic() (err error) {
 	}
 	return nil
 }
-
-func (m *MsgWithdrawReward) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgWithdrawReward) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
-}
-
-// MsgUnbondedOracle
-
-func (m *MsgUnbondedOracle) Route() string { return RouterKey }
-
-func (m *MsgUnbondedOracle) Type() string { return TypeMsgUnbondedOracle }
 
 func (m *MsgUnbondedOracle) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
@@ -286,23 +161,6 @@ func (m *MsgUnbondedOracle) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m *MsgUnbondedOracle) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgUnbondedOracle) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
-}
-
-// MsgOracleSetConfirm
-
-// Route should return the name of the module
-func (m *MsgOracleSetConfirm) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgOracleSetConfirm) Type() string { return TypeMsgOracleSetConfirm }
-
-// ValidateBasic performs stateless checks
 func (m *MsgOracleSetConfirm) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -322,26 +180,6 @@ func (m *MsgOracleSetConfirm) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgOracleSetConfirm) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgOracleSetConfirm) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-// MsgSendToExternal
-
-// Route should return the name of the module
-func (m *MsgSendToExternal) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgSendToExternal) Type() string { return TypeMsgSendToExternal }
-
-// ValidateBasic runs stateless checks on the message
-// Checks if the Eth address is valid
 func (m *MsgSendToExternal) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -364,25 +202,6 @@ func (m *MsgSendToExternal) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgSendToExternal) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgSendToExternal) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
-// MsgRequestBatch
-
-// Route should return the name of the module
-func (m *MsgRequestBatch) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
-
-// ValidateBasic performs stateless checks
 func (m *MsgRequestBatch) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -405,25 +224,6 @@ func (m *MsgRequestBatch) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgRequestBatch) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgRequestBatch) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
-// MsgConfirmBatch
-
-// Route should return the name of the module
-func (m *MsgConfirmBatch) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
-
-// ValidateBasic performs stateless checks
 func (m *MsgConfirmBatch) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -446,22 +246,6 @@ func (m *MsgConfirmBatch) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgConfirmBatch) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgConfirmBatch) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-// MsgBridgeCallConfirm
-
-func (m *MsgBridgeCallConfirm) Route() string { return RouterKey }
-
-func (m *MsgBridgeCallConfirm) Type() string { return TypeMsgBridgeCallConfirm }
-
 func (m *MsgBridgeCallConfirm) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -481,23 +265,6 @@ func (m *MsgBridgeCallConfirm) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m *MsgBridgeCallConfirm) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-func (m *MsgBridgeCallConfirm) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// MsgCancelSendToExternal
-
-// Route should return the name of the module
-func (m *MsgCancelSendToExternal) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgCancelSendToExternal) Type() string { return TypeMsgCancelSendToExternal }
-
-// ValidateBasic performs stateless checks
 func (m *MsgCancelSendToExternal) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -511,25 +278,6 @@ func (m *MsgCancelSendToExternal) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgCancelSendToExternal) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgCancelSendToExternal) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
-// MsgIncreaseBridgeFee
-
-// Route should return the name of the module
-func (m *MsgIncreaseBridgeFee) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgIncreaseBridgeFee) Type() string { return TypeMsgIncreaseBridgeFee }
-
-// ValidateBasic performs stateless checks
 func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -546,25 +294,6 @@ func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgIncreaseBridgeFee) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgIncreaseBridgeFee) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
-// MsgAddPendingPoolRewards
-
-// Route should return the name of the module
-func (m *MsgAddPendingPoolRewards) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgAddPendingPoolRewards) Type() string { return TypeMsgAddPendingPoolRewards }
-
-// ValidateBasic performs stateless checks
 func (m *MsgAddPendingPoolRewards) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -579,16 +308,6 @@ func (m *MsgAddPendingPoolRewards) ValidateBasic() (err error) {
 		return errortypes.ErrInvalidRequest.Wrap("invalid or out-of-range rewards")
 	}
 	return nil
-}
-
-// GetSignBytes encodes the message for signing
-func (m *MsgAddPendingPoolRewards) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgAddPendingPoolRewards) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // ExternalClaim represents a claim on ethereum state
@@ -629,9 +348,6 @@ func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (Exter
 	return msg, err
 }
 
-// MsgSendToFxClaim
-
-// ValidateBasic performs stateless checks
 func (m *MsgClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -646,7 +362,6 @@ func (m *MsgClaim) ValidateBasic() (err error) {
 	return claim.ValidateBasic()
 }
 
-// GetSigners defines whose signature is required
 func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	claim, ok := m.Claim.GetCachedValue().(ExternalClaim)
 	if !ok {
@@ -655,14 +370,10 @@ func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{claim.GetClaimer()}
 }
 
-// MsgSendToFxClaim
-
-// GetType returns the type of the claim
 func (m *MsgSendToFxClaim) GetType() ClaimType {
 	return CLAIM_TYPE_SEND_TO_FX
 }
 
-// ValidateBasic performs stateless checks
 func (m *MsgSendToFxClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -694,40 +405,19 @@ func (m *MsgSendToFxClaim) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgSendToFxClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
 func (m *MsgSendToFxClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
-// GetSigners defines whose signature is required
-func (m *MsgSendToFxClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-// Type should return the action
-func (m *MsgSendToFxClaim) Type() string { return TypeMsgSendToFxClaim }
-
-// Route should return the name of the module
-func (m *MsgSendToFxClaim) Route() string { return RouterKey }
-
-// ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgSendToFxClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d%s/%s/%s/%s/%s", m.BlockHeight, m.EventNonce, m.TokenContract, m.Sender, m.Amount.String(), m.Receiver, m.TargetIbc)
 	return tmhash.Sum([]byte(path))
 }
 
-// MsgBridgeCallClaim
-
-// GetType returns the type of the claim
 func (m *MsgBridgeCallClaim) GetType() ClaimType {
 	return CLAIM_TYPE_BRIDGE_CALL
 }
 
-// ValidateBasic performs stateless checks
 func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -781,27 +471,10 @@ func (m *MsgBridgeCallClaim) validateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgBridgeCallClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
 func (m *MsgBridgeCallClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
-// GetSigners defines whose signature is required
-func (m *MsgBridgeCallClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-// Type should return the action
-func (m *MsgBridgeCallClaim) Type() string { return TypeMsgBridgeCallClaim }
-
-// Route should return the name of the module
-func (m *MsgBridgeCallClaim) Route() string { return RouterKey }
-
-// ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgBridgeCallClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Refund, m.To, m.TokenContracts, m.Amounts, m.Data, m.Value.String())
 	return tmhash.Sum([]byte(path))
@@ -858,14 +531,10 @@ func (m *MsgBridgeCallClaim) GetAmounts() []*big.Int {
 	return amts
 }
 
-// MsgBridgeCallResultClaim
-
-// GetType returns the type of the claim
 func (m *MsgBridgeCallResultClaim) GetType() ClaimType {
 	return CLAIM_TYPE_BRIDGE_CALL_RESULT
 }
 
-// ValidateBasic performs stateless checks
 func (m *MsgBridgeCallResultClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -893,40 +562,23 @@ func (m *MsgBridgeCallResultClaim) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgBridgeCallResultClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
 func (m *MsgBridgeCallResultClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
-// GetSigners defines whose signature is required
 func (m *MsgBridgeCallResultClaim) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
 }
 
-// Type should return the action
-func (m *MsgBridgeCallResultClaim) Type() string { return TypeMsgBridgeCallResultClaim }
-
-// Route should return the name of the module
-func (m *MsgBridgeCallResultClaim) Route() string { return RouterKey }
-
-// ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgBridgeCallResultClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%d/%t/%s", m.BlockHeight, m.EventNonce, m.Nonce, m.Success, m.Cause)
 	return tmhash.Sum([]byte(path))
 }
 
-// MsgSendToExternalClaim
-
-// GetType returns the claim type
 func (m *MsgSendToExternalClaim) GetType() ClaimType {
 	return CLAIM_TYPE_SEND_TO_EXTERNAL
 }
 
-// ValidateBasic performs stateless checks
 func (m *MsgSendToExternalClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -949,37 +601,14 @@ func (m *MsgSendToExternalClaim) ValidateBasic() (err error) {
 	return nil
 }
 
-// ClaimHash Hash implements SendToFxBatch.Hash
 func (m *MsgSendToExternalClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%s/%d/", m.BlockHeight, m.EventNonce, m.TokenContract, m.BatchNonce)
 	return tmhash.Sum([]byte(path))
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgSendToExternalClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
 func (m *MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
-
-// GetSigners defines whose signature is required
-func (m *MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-// Route should return the name of the module
-func (m *MsgSendToExternalClaim) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgSendToExternalClaim) Type() string { return TypeMsgSendToExternalClaim }
-
-// MsgBridgeTokenClaim
-
-func (m *MsgBridgeTokenClaim) Route() string { return RouterKey }
-
-func (m *MsgBridgeTokenClaim) Type() string { return TypeMsgBridgeTokenClaim }
 
 func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
@@ -1009,14 +638,6 @@ func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m *MsgBridgeTokenClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
 func (m *MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
@@ -1030,14 +651,10 @@ func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
-// MsgOracleSetUpdatedClaim
-
-// GetType returns the type of the claim
 func (m *MsgOracleSetUpdatedClaim) GetType() ClaimType {
 	return CLAIM_TYPE_ORACLE_SET_UPDATED
 }
 
-// ValidateBasic performs stateless checks
 func (m *MsgOracleSetUpdatedClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -1065,27 +682,10 @@ func (m *MsgOracleSetUpdatedClaim) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgOracleSetUpdatedClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
 func (m *MsgOracleSetUpdatedClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
 }
 
-// GetSigners defines whose signature is required
-func (m *MsgOracleSetUpdatedClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-// Type should return the action
-func (m *MsgOracleSetUpdatedClaim) Type() string { return TypeMsgOracleSetUpdatedClaim }
-
-// Route should return the name of the module
-func (m *MsgOracleSetUpdatedClaim) Route() string { return RouterKey }
-
-// ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgOracleSetUpdatedClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%d/%v/", m.BlockHeight, m.OracleSetNonce, m.EventNonce, m.Members)
 	return tmhash.Sum([]byte(path))
@@ -1107,24 +707,6 @@ func (m *MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.OracleAddress)}
 }
 
-// Route returns the MsgUpdateParams message route.
-func (m *MsgUpdateParams) Route() string { return ModuleName }
-
-// Type returns the MsgUpdateParams message type.
-func (m *MsgUpdateParams) Type() string { return TypeMsgUpdateParams }
-
-// GetSignBytes returns the raw bytes for a MsgUpdateParams message that
-// the expected signer needs to sign.
-func (m *MsgUpdateParams) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
-}
-
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return errorsmod.Wrap(err, "authority")
@@ -1139,19 +721,6 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 		return errors.New("deprecated oracles")
 	}
 	return nil
-}
-
-// Route returns the MsgUpdateChainOracles message route.
-func (m *MsgUpdateChainOracles) Route() string { return ModuleName }
-
-// Type returns the MsgUpdateChainOracles message type.
-func (m *MsgUpdateChainOracles) Type() string { return TypeMsgUpdateChainOracles }
-
-// GetSignBytes returns the raw bytes for a MsgUpdateChainOracles message that
-// the expected signer needs to sign.
-func (m *MsgUpdateChainOracles) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateChainOracles) ValidateBasic() error {
@@ -1175,19 +744,6 @@ func (m *MsgUpdateChainOracles) ValidateBasic() error {
 		oraclesMap[addr] = true
 	}
 	return nil
-}
-
-func (m *MsgUpdateChainOracles) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
-}
-
-func (m *MsgBridgeCall) Route() string { return RouterKey }
-
-func (m *MsgBridgeCall) Type() string { return TypeMsgBridgeCall }
-
-func (m *MsgBridgeCall) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgBridgeCall) ValidateBasic() (err error) {
@@ -1275,15 +831,6 @@ func (m *MsgBridgeCall) MustMemo() []byte {
 	return bz
 }
 
-func (m *MsgCancelPendingBridgeCall) Route() string { return RouterKey }
-
-func (m *MsgCancelPendingBridgeCall) Type() string { return TypeMsgCancelPendingBridgeCall }
-
-func (m *MsgCancelPendingBridgeCall) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
 func (m *MsgCancelPendingBridgeCall) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -1295,8 +842,4 @@ func (m *MsgCancelPendingBridgeCall) ValidateBasic() (err error) {
 		return errortypes.ErrInvalidRequest.Wrapf("invalid nonce: %d", m.Nonce)
 	}
 	return nil
-}
-
-func (m *MsgCancelPendingBridgeCall) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }

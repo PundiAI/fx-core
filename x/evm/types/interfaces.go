@@ -25,5 +25,5 @@ type MethodArgs interface {
 type ExtStateDB interface {
 	vm.StateDB
 	ExecuteNativeAction(contract common.Address, converter statedb.EventConverter, action func(ctx sdk.Context) error) error
-	CacheContext() sdk.Context
+	Context() sdk.Context
 }

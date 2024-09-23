@@ -7,11 +7,12 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/armon/go-metrics"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gogotypes "github.com/cosmos/gogoproto/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/hashicorp/go-metrics"
 
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -166,7 +167,7 @@ func (k Keeper) DeleteOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
 
 func (k Keeper) IterateOutgoingBridgeCalls(ctx sdk.Context, cb func(outCall *types.OutgoingBridgeCall) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OutgoingBridgeCallNonceKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.OutgoingBridgeCallNonceKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var outCall types.OutgoingBridgeCall
@@ -179,7 +180,7 @@ func (k Keeper) IterateOutgoingBridgeCalls(ctx sdk.Context, cb func(outCall *typ
 
 func (k Keeper) IterateOutgoingBridgeCallsByAddress(ctx sdk.Context, senderAddr string, cb func(outCall *types.OutgoingBridgeCall) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.GetOutgoingBridgeCallAddressKey(senderAddr))
+	iterator := storetypes.KVStorePrefixIterator(store, types.GetOutgoingBridgeCallAddressKey(senderAddr))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		nonce := types.ParseOutgoingBridgeCallNonce(iterator.Key(), senderAddr)

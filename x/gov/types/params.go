@@ -20,11 +20,11 @@ import (
 var (
 	DefaultMinInitialDeposit   = sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 	DefaultEgfDepositThreshold = sdkmath.NewInt(10_000).Mul(sdkmath.NewInt(1e18))
-	DefaultClaimRatio          = sdk.NewDecWithPrec(1, 1)  // 10%
-	DefaultErc20Quorum         = sdk.NewDecWithPrec(25, 2) // 25%
-	DefaultEvmQuorum           = sdk.NewDecWithPrec(25, 2) // 25%
-	DefaultEgfVotingPeriod     = time.Hour * 24 * 14       // Default egf period for deposits & voting  14 days
-	DefaultEvmVotingPeriod     = time.Hour * 24 * 2        // Default evm period for deposits & voting  2 days
+	DefaultClaimRatio          = sdkmath.LegacyNewDecWithPrec(1, 1)  // 10%
+	DefaultErc20Quorum         = sdkmath.LegacyNewDecWithPrec(25, 2) // 25%
+	DefaultEvmQuorum           = sdkmath.LegacyNewDecWithPrec(25, 2) // 25%
+	DefaultEgfVotingPeriod     = time.Hour * 24 * 14                 // Default egf period for deposits & voting  14 days
+	DefaultEvmVotingPeriod     = time.Hour * 24 * 2                  // Default evm period for deposits & voting  2 days
 
 	// FxBaseParamsKeyPrefix is the key to query all base params
 	FxBaseParamsKeyPrefix = []byte("0x90")
@@ -155,34 +155,34 @@ func (p *Params) ValidateBasic() error {
 	if p.MaxDepositPeriod.Seconds() <= 0 {
 		return fmt.Errorf("maximum deposit period must be positive: %v", p.MaxDepositPeriod.String())
 	}
-	quorum, err := sdk.NewDecFromStr(p.Quorum)
+	quorum, err := sdkmath.LegacyNewDecFromStr(p.Quorum)
 	if err != nil {
 		return fmt.Errorf("invalid quorum string: %w", err)
 	}
 	if quorum.IsNegative() {
 		return fmt.Errorf("quorom cannot be negative: %s", quorum)
 	}
-	if quorum.GT(sdk.OneDec()) {
+	if quorum.GT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("quorom too large: %s", p.Quorum)
 	}
-	threshold, err := sdk.NewDecFromStr(p.Threshold)
+	threshold, err := sdkmath.LegacyNewDecFromStr(p.Threshold)
 	if err != nil {
 		return fmt.Errorf("invalid threshold string: %w", err)
 	}
 	if !threshold.IsPositive() {
 		return fmt.Errorf("vote threshold must be positive: %s", threshold)
 	}
-	if threshold.GT(sdk.OneDec()) {
+	if threshold.GT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("vote threshold too large: %s", threshold)
 	}
-	vetoThreshold, err := sdk.NewDecFromStr(p.VetoThreshold)
+	vetoThreshold, err := sdkmath.LegacyNewDecFromStr(p.VetoThreshold)
 	if err != nil {
 		return fmt.Errorf("invalid vetoThreshold string: %w", err)
 	}
 	if !vetoThreshold.IsPositive() {
 		return fmt.Errorf("veto threshold must be positive: %s", vetoThreshold)
 	}
-	if vetoThreshold.GT(sdk.OneDec()) {
+	if vetoThreshold.GT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("veto threshold too large: %s", vetoThreshold)
 	}
 	if p.VotingPeriod == nil {
@@ -199,14 +199,14 @@ func (p *EGFParams) ValidateBasic() error {
 	if !p.EgfDepositThreshold.IsValid() {
 		return fmt.Errorf("invalid Egf Deposit Threshold: %s", p.EgfDepositThreshold)
 	}
-	ratio, err := sdk.NewDecFromStr(p.ClaimRatio)
+	ratio, err := sdkmath.LegacyNewDecFromStr(p.ClaimRatio)
 	if err != nil {
 		return fmt.Errorf("invalid egf claim ratio string: %w", err)
 	}
 	if ratio.IsNegative() {
 		return fmt.Errorf("egf claim ratio cannot be negative: %s", ratio)
 	}
-	if ratio.GT(sdk.OneDec()) {
+	if ratio.GT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("egf claim ratio too large: %s", ratio)
 	}
 	return nil

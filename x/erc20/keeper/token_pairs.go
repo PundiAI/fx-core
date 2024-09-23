@@ -3,8 +3,9 @@ package keeper
 import (
 	"strings"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -15,7 +16,7 @@ import (
 // GetAllTokenPairs - get all registered token tokenPairs
 func (k Keeper) GetAllTokenPairs(ctx sdk.Context) []types.TokenPair {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixTokenPair)
+	iterator := storetypes.KVStorePrefixIterator(store, types.KeyPrefixTokenPair)
 	defer iterator.Close()
 
 	var tokenPairs []types.TokenPair

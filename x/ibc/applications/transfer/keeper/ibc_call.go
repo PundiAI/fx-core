@@ -5,13 +5,14 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
 
-func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketData) error {
+func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string, data transfertypes.FungibleTokenPacketData) error {
 	var mp types.MemoPacket
 	if err := k.cdc.UnmarshalInterfaceJSON([]byte(data.Memo), &mp); err != nil {
 		return nil
@@ -31,7 +32,7 @@ func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string
 }
 
 func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPacket *types.IbcCallEvmPacket) error {
-	limit := ctx.ConsensusParams().GetBlock().GetMaxGas()
+	limit := ctx.ConsensusParams().Block.GetMaxGas()
 	evmErrCause, evmSuccess := "", false
 	defer func() {
 		attrs := []sdk.Attribute{

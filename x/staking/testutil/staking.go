@@ -23,44 +23,47 @@ func (s *StakingSuite) Init(ass *require.Assertions, ctx sdk.Context, stakingKee
 }
 
 func (s *StakingSuite) GetFirstValidator() stakingtypes.Validator {
-	validators := s.stakingKeeper.GetValidators(s.ctx, 1)
+	validators, err := s.stakingKeeper.GetValidators(s.ctx, 1)
+	s.NoError(err)
 	s.True(len(validators) > 0)
 	return validators[0]
 }
 
 func (s *StakingSuite) GetValidators() []stakingtypes.Validator {
-	return s.stakingKeeper.GetValidators(s.ctx, 10)
+	validators, err := s.stakingKeeper.GetValidators(s.ctx, 10)
+	s.NoError(err)
+	return validators
 }
 
 func (s *StakingSuite) GetValidator(valAddr sdk.ValAddress) stakingtypes.Validator {
-	validator, found := s.stakingKeeper.GetValidator(s.ctx, valAddr)
-	s.True(found)
+	validator, err := s.stakingKeeper.GetValidator(s.ctx, valAddr)
+	s.NoError(err)
 	return validator
 }
 
 func (s *StakingSuite) Delegate(delAddr sdk.AccAddress, delAmount sdkmath.Int, val sdk.ValAddress) {
-	validator, found := s.stakingKeeper.GetValidator(s.ctx, val)
-	s.True(found)
-	_, err := s.stakingKeeper.Delegate(s.ctx, delAddr, delAmount, stakingtypes.Unbonded, validator, true)
+	validator, err := s.stakingKeeper.GetValidator(s.ctx, val)
+	s.NoError(err)
+	_, err = s.stakingKeeper.Delegate(s.ctx, delAddr, delAmount, stakingtypes.Unbonded, validator, true)
 	s.NoError(err)
 }
 
 func (s *StakingSuite) GetDelegation(delAddr sdk.AccAddress, val sdk.ValAddress) stakingtypes.Delegation {
-	delegation, found := s.stakingKeeper.GetDelegation(s.ctx, delAddr, val)
-	s.True(found)
+	delegation, err := s.stakingKeeper.GetDelegation(s.ctx, delAddr, val)
+	s.NoError(err)
 	return delegation
 }
 
 func (s *StakingSuite) Undelegate(delAddr sdk.AccAddress, val sdk.ValAddress) {
-	delegation, found := s.stakingKeeper.GetDelegation(s.ctx, delAddr, val)
-	s.True(found)
-	_, err := s.stakingKeeper.Undelegate(s.ctx, delAddr, val, delegation.Shares)
+	delegation, err := s.stakingKeeper.GetDelegation(s.ctx, delAddr, val)
+	s.NoError(err)
+	_, _, err = s.stakingKeeper.Undelegate(s.ctx, delAddr, val, delegation.Shares)
 	s.NoError(err)
 }
 
 func (s *StakingSuite) Redelegate(delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress) {
-	delegation, found := s.stakingKeeper.GetDelegation(s.ctx, delAddr, valSrcAddr)
-	s.True(found)
-	_, err := s.stakingKeeper.BeginRedelegation(s.ctx, delAddr, valSrcAddr, valDstAddr, delegation.Shares)
+	delegation, err := s.stakingKeeper.GetDelegation(s.ctx, delAddr, valSrcAddr)
+	s.NoError(err)
+	_, err = s.stakingKeeper.BeginRedelegation(s.ctx, delAddr, valSrcAddr, valDstAddr, delegation.Shares)
 	s.NoError(err)
 }

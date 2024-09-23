@@ -3,32 +3,31 @@ package fx.staking.v1;
 
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
+import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/functionx/fx-core/x/staking/types";
 
-// Msg defines the x/staking Msg service.
-service Msg {
-  // GrantPrivilege defines a method for granting privilege to a validator.
-  rpc GrantPrivilege(MsgGrantPrivilege) returns (MsgGrantPrivilegeResponse);
-
-  // EditConsensusKey defines a method for editing consensus pubkey of a
-  // validator.
-  rpc EditConsensusPubKey(MsgEditConsensusPubKey) returns (MsgEditConsensusPubKeyResponse);
-}
-
-// MsgGrantPrivilege defines the GrantPrivilege message.
+// Deprecated: MsgGrantPrivilege
 message MsgGrantPrivilege {
-  string validator_address = 1; // validator address
-  string from_address = 2; // from address
-  google.protobuf.Any to_pubkey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"]; // to pub_key
-  string signature = 4; // signature
-}
-message MsgGrantPrivilegeResponse {}
+  option (cosmos.msg.v1.signer) = "from_address";
+  option (amino.name) = "staking/MsgGrantPrivilege";
 
+  string validator_address = 1; // validator address
+  string from_address = 2;      // from address
+  google.protobuf.Any to_pubkey = 3
+      [ (cosmos_proto.accepts_interface) =
+            "cosmos.crypto.PubKey" ]; // to pub_key
+  string signature = 4;               // signature
+}
+
+// Deprecated: MsgEditConsensusPubKey
 message MsgEditConsensusPubKey {
+  option (cosmos.msg.v1.signer) = "from";
+  option (amino.name) = "staking/MsgEditConsensusPubKey";
+
   string validator_address = 1;
   string from = 2;
-  google.protobuf.Any pubkey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  google.protobuf.Any pubkey = 3
+      [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey" ];
 }
-
-message MsgEditConsensusPubKeyResponse {}

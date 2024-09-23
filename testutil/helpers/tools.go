@@ -42,14 +42,8 @@ func AssertJsonFile(t *testing.T, filePath string, result interface{}) {
 	expected, err := os.ReadFile(filePath)
 	assert.NoError(t, err, filePath)
 
-	var actual []byte
-	switch res := result.(type) {
-	case []byte:
-		actual = res
-	default:
-		actual, err = json.MarshalIndent(result, "", " ")
-		assert.NoError(t, err)
-	}
+	actual, err := json.MarshalIndent(result, "", "  ")
+	assert.NoError(t, err)
 
 	if !assert.JSONEqf(t, string(expected), string(actual), filePath) {
 		assert.NoError(t, os.WriteFile(filePath, actual, 0o600))
@@ -58,7 +52,7 @@ func AssertJsonFile(t *testing.T, filePath string, result interface{}) {
 
 func NewStakingCoin(amount int64, power int64) sdk.Coin {
 	powerBig := new(big.Int).Exp(big.NewInt(10), big.NewInt(power), nil)
-	return sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(amount).Mul(sdk.NewIntFromBigInt(powerBig)))
+	return sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(amount).Mul(sdkmath.NewIntFromBigInt(powerBig)))
 }
 
 func NewStakingCoins(amount int64, power int64) sdk.Coins {

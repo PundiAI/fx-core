@@ -15,6 +15,9 @@
     "msg-types": []
   },
   "evm": {
+    "block-executor": "sequential",
+    "block-stm-pre-estimate": false,
+    "block-stm-workers": 0,
     "max-tx-gas-wanted": 0,
     "tracer": ""
   },
@@ -25,15 +28,12 @@
     "max-send-msg-size": 2147483647
   },
   "grpc-web": {
-    "address": "localhost:9091",
-    "enable": true,
-    "enable-unsafe-cors": false
+    "enable": true
   },
   "halt-height": 0,
   "halt-time": 0,
   "iavl-cache-size": 781250,
   "iavl-disable-fastnode": false,
-  "iavl-lazy-loading": false,
   "index-events": [],
   "inter-block-cache": true,
   "json-rpc": {
@@ -63,51 +63,36 @@
     "ws-address": "127.0.0.1:8546"
   },
   "mempool": {
-    "max-txs": 5000
+    "max-txs": -1
   },
   "min-retain-blocks": 0,
   "minimum-gas-prices": "4000000000000FX",
   "pruning": "default",
   "pruning-interval": "0",
   "pruning-keep-recent": "0",
-  "rosetta": {
-    "address": ":8080",
-    "blockchain": "app",
-    "denom-to-suggest": "FX",
-    "enable": false,
-    "enable-fee-suggestion": false,
-    "gas-to-suggest": 200000,
-    "network": "network",
-    "offline": false,
-    "retries": 3
-  },
+  "query-gas-limit": 0,
   "state-sync": {
     "snapshot-interval": 0,
     "snapshot-keep-recent": 2
   },
-  "store": {
-    "streamers": []
-  },
-  "streamers": {
-    "file": {
-      "fsync": false,
-      "keys": [
-        "*"
-      ],
-      "output-metadata": true,
-      "prefix": "",
-      "stop-node-on-error": true,
-      "write_dir": ""
+  "streaming": {
+    "abci": {
+      "keys": [],
+      "plugin": "",
+      "stop-node-on-err": true
     }
   },
   "telemetry": {
+    "datadog-hostname": "",
     "enable-hostname": false,
     "enable-hostname-label": false,
     "enable-service-label": false,
     "enabled": false,
     "global-labels": [],
+    "metrics-sink": "",
     "prometheus-retention-time": 0,
-    "service-name": ""
+    "service-name": "",
+    "statsd-addr": ""
   },
   "tls": {
     "certificate-path": "",

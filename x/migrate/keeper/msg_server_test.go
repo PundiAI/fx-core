@@ -5,12 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
 	"github.com/functionx/fx-core/v8/x/migrate/types"
 )
 
 func (suite *KeeperTestSuite) TestMigrateAccount() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
+	suite.MintToken(suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -19,53 +18,53 @@ func (suite *KeeperTestSuite) TestMigrateAccount() {
 	suite.Require().Equal(len(ethKeys), 1)
 	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
-	b1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
+	b1 := suite.App.BankKeeper.GetAllBalances(suite.Ctx, acc)
 	suite.Require().NotEmpty(b1)
 
-	b2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
+	b2 := suite.App.BankKeeper.GetAllBalances(suite.Ctx, ethAcc.Bytes())
 	suite.Require().NotEmpty(b1)
 
-	_, found := suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, acc)
+	_, found := suite.App.MigrateKeeper.GetMigrateRecord(suite.Ctx, acc)
 	suite.Require().False(found)
 
-	_, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc.Bytes())
+	_, found = suite.App.MigrateKeeper.GetMigrateRecord(suite.Ctx, ethAcc.Bytes())
 	suite.Require().False(found)
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
+	found = suite.App.MigrateKeeper.HasMigratedDirectionFrom(suite.Ctx, acc)
 	suite.Require().False(found)
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
+	found = suite.App.MigrateKeeper.HasMigratedDirectionTo(suite.Ctx, ethAcc)
 	suite.Require().False(found)
 
-	_, err := suite.app.MigrateKeeper.MigrateAccount(sdk.WrapSDKContext(suite.ctx), &types.MsgMigrateAccount{
+	_, err := suite.App.MigrateKeeper.MigrateAccount(suite.Ctx, &types.MsgMigrateAccount{
 		From:      acc.String(),
 		To:        ethAcc.String(),
 		Signature: "",
 	})
 	suite.Require().NoError(err)
 
-	record, found := suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, acc)
+	record, found := suite.App.MigrateKeeper.GetMigrateRecord(suite.Ctx, acc)
 	suite.Require().True(found)
 	suite.Require().Equal(record.From, acc.String())
 
-	record, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc.Bytes())
+	record, found = suite.App.MigrateKeeper.GetMigrateRecord(suite.Ctx, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(record.To, ethAcc.String())
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
+	found = suite.App.MigrateKeeper.HasMigratedDirectionFrom(suite.Ctx, acc)
 	suite.Require().True(found)
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
+	found = suite.App.MigrateKeeper.HasMigratedDirectionTo(suite.Ctx, ethAcc)
 	suite.Require().True(found)
 
-	bb1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
+	bb1 := suite.App.BankKeeper.GetAllBalances(suite.Ctx, acc)
 	suite.Require().True(bb1.Empty())
-	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
+	bb2 := suite.App.BankKeeper.GetAllBalances(suite.Ctx, ethAcc.Bytes())
 	suite.Require().Equal(b1, bb2.Sub(b2...))
 
 	// expect 1 record
 	recordCount := 0
-	suite.app.MigrateKeeper.IterateMigrateRecords(suite.ctx, func(record types.MigrateRecord) bool {
+	suite.App.MigrateKeeper.IterateMigrateRecords(suite.Ctx, func(record types.MigrateRecord) bool {
 		suite.Require().Equal(record.From, acc.String())
 		suite.Require().Equal(record.To, ethAcc.String())
 		recordCount++

@@ -16,6 +16,4 @@ message ConvertAddressRequest {
   string prefix = 2;
 }
 
-message ConvertAddressResponse {
-  string address = 1;
-}
+message ConvertAddressResponse { string address = 1; }

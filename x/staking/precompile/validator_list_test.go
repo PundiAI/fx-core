@@ -84,8 +84,11 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 			spender := suite.RandSigner()
 			allowanceAmt := helpers.NewRandAmount()
 
+			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+			suite.Require().NoError(err)
+
 			// set allowance
-			suite.App.StakingKeeper.SetAllowance(suite.Ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
+			suite.App.StakingKeeper.SetAllowance(suite.Ctx, operator, owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
 			args, errResult := tc.malleate()
 
@@ -105,7 +108,8 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 				suite.Require().False(res.Failed(), res.VmError)
 				valAddrs, err := validatroListMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
-				valsByPower := suite.App.StakingKeeper.GetBondedValidatorsByPower(suite.Ctx)
+				valsByPower, err := suite.App.StakingKeeper.GetBondedValidatorsByPower(suite.Ctx)
+				suite.Require().NoError(err)
 				suite.Equal(len(valAddrs), len(valsByPower))
 
 				if args.GetSortBy() == types.ValidatorSortByPower {
@@ -118,8 +122,8 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 					for _, validator := range valsByPower {
 						consAddr, err := validator.GetConsAddr()
 						suite.NoError(err)
-						info, found := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
-						suite.True(found)
+						info, err := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
+						suite.NoError(err)
 						valList = append(valList, precompile.ValidatorList{
 							ValAddr:      validator.OperatorAddress,
 							MissedBlocks: info.MissedBlocksCounter,

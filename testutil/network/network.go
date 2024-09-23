@@ -7,18 +7,19 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
-	tmflags "github.com/cometbft/cometbft/libs/cli/flags"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/node"
 	tmclient "github.com/cometbft/cometbft/rpc/client"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -37,14 +38,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/evmos/ethermint/server/config"
-	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
 )
-
-// package-wide network lock to only allow one test network at a time
-// var lock = new(sync.Mutex)
 
 // AppConstructor defines a function which accepts a network configuration and
 // creates an ABCI Application to provide to Tendermint.
@@ -92,7 +91,7 @@ type Config struct {
 // to create networks. In addition, only the first validator will have a valid
 // RPC and API server/client.
 type Network struct {
-	Logger     Logger
+	Logger     log.Logger
 	BaseDir    string
 	Config     Config
 	Validators []*Validator
@@ -112,51 +111,27 @@ type Validator struct {
 	RPCClient     tmclient.Client
 	JSONRPCClient *ethclient.Client
 
-	tmNode      *node.Node
-	api         *api.Server
-	grpc        *grpc.Server
-	grpcWeb     *http.Server
-	jsonrpc     *http.Server
-	jsonrpcDone chan struct{}
-}
-
-// Logger is a network logger interface that exposes testnet-level Log() methods for an in-process testing network
-// This is not to be confused with logging that may happen at an individual node or validator level
-type Logger interface {
-	Log(args ...interface{})
-	Logf(format string, args ...interface{})
-}
-
-var (
-	_ Logger = (*testing.T)(nil)
-	_ Logger = (*CLILogger)(nil)
-)
-
-type CLILogger struct {
-	cmd *cobra.Command
-}
-
-func (s CLILogger) Log(args ...interface{}) {
-	s.cmd.Println(args...)
-}
-
-func (s CLILogger) Logf(format string, args ...interface{}) {
-	s.cmd.Printf(format, args...)
+	tmNode  *node.Node
+	api     *api.Server
+	grpc    *grpc.Server
+	jsonrpc *http.Server
 }
 
 // New creates a new Network for integration tests or in-process testnets run via the CLI
-func New(logger Logger, baseDir string, cfg Config) (*Network, error) {
-	// only one caller/test can create and use a network at a time
-	// l.Log("acquiring test network lock")
-	// lock.Lock()
+func New(t *testing.T, cfg Config) *Network {
+	t.Helper()
 
-	logger.Logf("preparing test network with chain-id \"%s\"\n", cfg.ChainID)
+	baseDir := t.TempDir()
+
+	t.Logf("preparing test network with chain-id \"%s\"\n", cfg.ChainID)
 	startTime := time.Now()
 
-	validators, err := GenerateGenesisAndValidators(baseDir, &cfg)
-	if err != nil {
-		return nil, err
+	logger := log.NewNopLogger()
+	if cfg.EnableTMLogging {
+		logger = log.NewTestLoggerInfo(t)
 	}
+	validators, err := GenerateGenesisAndValidators(baseDir, &cfg, logger)
+	require.NoError(t, err)
 
 	network := &Network{
 		Logger:     logger,
@@ -165,25 +140,29 @@ func New(logger Logger, baseDir string, cfg Config) (*Network, error) {
 		Validators: validators,
 	}
 
-	logger.Log("starting test network...")
+	ctx := context.Background()
+	ctx, cancelFn := context.WithCancel(ctx)
+	errGroup, ctx := errgroup.WithContext(ctx)
+
+	t.Log("starting test network...")
 	for _, val := range network.Validators {
-		if err = StartInProcess(network.Config.AppConstructor, val); err != nil {
-			return nil, err
+		if err = StartInProcess(ctx, errGroup, network.Config.AppConstructor, val); err != nil {
+			require.NoError(t, err)
 		}
 	}
 
 	// Ensure we cleanup incase any test was abruptly halted (e.g. SIGINT) as any
 	// defer in a test would not be called.
-	server.TrapSignal(network.Cleanup)
+	network.TrapSignal(cancelFn, errGroup)
 
-	logger.Logf("started test network %fs", time.Since(startTime).Seconds())
-	return network, nil
+	t.Logf("started test network %fs", time.Since(startTime).Seconds())
+	return network
 }
 
 // GenerateGenesisAndValidators
 //
 //gocyclo:ignore
-func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, error) {
+func GenerateGenesisAndValidators(baseDir string, cfg *Config, logger log.Logger) ([]*Validator, error) {
 	srvconfig.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 
 	if cfg.NumValidators < 1 || cfg.NumValidators > 100 {
@@ -208,7 +187,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 	// generate private keys, node IDs, and initial transactions
 	for i := 0; i < cfg.NumValidators; i++ {
 		srvCtx := server.NewDefaultContext()
-		srvCtx.Logger = log.NewNopLogger()
+		srvCtx.Logger = logger
 		srvCtx.Config.DBBackend = string(dbm.MemDBBackend)
 		if cfg.NumValidators == 1 {
 			srvCtx.Config.Consensus = tmcfg.TestConsensusConfig()
@@ -226,7 +205,6 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 		appCfg.MinGasPrices = cfg.MinGasPrices
 		appCfg.Telemetry.Enabled = false
 		appCfg.Telemetry.GlobalLabels = [][]string{{"chain_id", cfg.ChainID}}
-		appCfg.Rosetta.Enable = false
 		appCfg.API.Enable = false
 		appCfg.API.Swagger = false
 		appCfg.GRPC.Enable = false
@@ -240,7 +218,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 				if cfg.APIAddress != "" {
 					appCfg.API.Address = cfg.APIAddress
 				} else {
-					apiAddr, _, err := server.FreeTCPAddr()
+					apiAddr, _, err := FreeTCPAddr()
 					if err != nil {
 						return nil, err
 					}
@@ -252,7 +230,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			if cfg.RPCAddress != "" {
 				srvCtx.Config.RPC.ListenAddress = cfg.RPCAddress
 			} else {
-				rpcAddr, _, err := server.FreeTCPAddr()
+				rpcAddr, _, err := FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -262,7 +240,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			if cfg.GRPCAddress != "" {
 				appCfg.GRPC.Address = cfg.GRPCAddress
 			} else {
-				_, grpcPort, err := server.FreeTCPAddr()
+				_, grpcPort, err := FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -270,18 +248,11 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			}
 			appCfg.GRPC.Enable = true
 
-			// _, grpcWebPort, err := server.FreeTCPAddr()
-			// if err != nil {
-			//	return nil, err
-			// }
-			// appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
-			// appCfg.GRPCWeb.Enable = true
-
 			if cfg.EnableJSONRPC {
 				if cfg.JSONRPCAddress != "" {
 					appCfg.JSONRPC.Address = cfg.JSONRPCAddress
 				} else {
-					_, jsonRPCPort, err := server.FreeTCPAddr()
+					_, jsonRPCPort, err := FreeTCPAddr()
 					if err != nil {
 						return nil, err
 					}
@@ -292,15 +263,6 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 
 			appCfg.JSONRPC.API = config.GetAPINamespaces()
 			appCfg.JSONRPC.WsAddress = ""
-
-			if cfg.EnableTMLogging {
-				srvCtx.Logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-				var err error
-				srvCtx.Logger, err = tmflags.ParseLogLevel("info", srvCtx.Logger, tmcfg.DefaultLogLevel)
-				if err != nil {
-					return nil, err
-				}
-			}
 		}
 
 		nodeName := fmt.Sprintf("node%d", i)
@@ -318,7 +280,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 		srvCtx.Config.SetRoot(nodeDir)
 		srvCtx.Config.Moniker = nodeName
 
-		_, p2pPort, err := server.FreeTCPAddr()
+		_, p2pPort, err := FreeTCPAddr()
 		if err != nil {
 			return nil, err
 		}
@@ -364,11 +326,11 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 		genAccounts[i] = authtypes.NewBaseAccount(valAddr, nil, 0, 0)
 
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
-			sdk.ValAddress(valAddr),
+			sdk.ValAddress(valAddr).String(),
 			valPubKeys[i],
 			sdk.NewCoin(cfg.BondDenom, cfg.BondedTokens),
 			stakingtypes.NewDescription(nodeName, "", "", "", ""),
-			stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.OneDec(), sdk.OneDec()), // 5%
+			stakingtypes.NewCommissionRates(sdkmath.LegacyNewDecWithPrec(5, 1), sdkmath.LegacyOneDec(), sdkmath.LegacyOneDec()), // 5%
 			sdkmath.OneInt(),
 		)
 		if err != nil {
@@ -392,7 +354,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			WithKeybase(kb).
 			WithTxConfig(cfg.TxConfig)
 
-		if err = tx.Sign(txFactory, nodeName, txBuilder, true); err != nil {
+		if err = tx.Sign(context.Background(), txFactory, nodeName, txBuilder, true); err != nil {
 			return nil, err
 		}
 
@@ -526,13 +488,10 @@ func (n *Network) WaitForNextBlock() error {
 // test networks. This method must be called when a test is finished, typically
 // in a defer.
 func (n *Network) Cleanup() {
-	// defer func() {
-	// 	lock.Unlock()
-	// 	n.Logger.Log("released test network lock")
-	// }()
-
-	n.Logger.Log("cleaning up test network...")
+	n.Logger.Info("cleaning up test network...")
 	startTime := time.Now()
+	shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFn()
 	for _, v := range n.Validators {
 		if v.tmNode != nil && v.tmNode.IsRunning() {
 			_ = v.tmNode.Stop()
@@ -545,31 +504,31 @@ func (n *Network) Cleanup() {
 		if v.grpc != nil {
 			v.grpc.Stop()
 		}
-		if v.grpcWeb != nil {
-			_ = v.grpcWeb.Close()
-		}
 
 		if v.jsonrpc != nil {
-			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancelFn()
-
 			if err := v.jsonrpc.Shutdown(shutdownCtx); err != nil {
-				v.tmNode.Logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
-			} else {
-				v.tmNode.Logger.Info("HTTP server shut down, waiting 5 sec")
-				select {
-				case <-time.Tick(5 * time.Second):
-				case <-v.jsonrpcDone:
-				}
+				n.Logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
 			}
 		}
 	}
 
 	if n.Config.CleanupDir {
 		if err := os.RemoveAll(n.BaseDir); err != nil {
-			n.Logger.Log("remove base dir", "error", err.Error())
+			n.Logger.Error("remove base dir", "error", err.Error())
 		}
 	}
 
-	n.Logger.Logf("finished cleaning up test network %fs", time.Since(startTime).Seconds())
+	n.Logger.Info("finished cleaning up test network", "time", time.Since(startTime).Seconds())
+}
+
+func (n *Network) TrapSignal(cancelFn context.CancelFunc, group *errgroup.Group) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	group.Go(func() error {
+		<-sigs
+		cancelFn()
+		n.Cleanup()
+		return nil
+	})
 }

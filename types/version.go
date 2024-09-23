@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	"math/big"
-	"sync"
 )
 
 // mainnet
@@ -39,33 +38,15 @@ const (
 	TestnetBlockHeightV75 = 15_660_500 // v7.5
 )
 
-var (
-	chainId = MainnetChainId
-	once    sync.Once
-)
-
-func SetChainId(id string) {
-	if id != MainnetChainId && id != TestnetChainId {
-		panic("invalid chainId: " + id)
-	}
-	once.Do(func() {
-		chainId = id
-	})
-}
-
-func ChainId() string {
-	return chainId
-}
-
-func EIP155ChainID() *big.Int {
-	if TestnetChainId == ChainId() {
+func EIP155ChainID(chainId string) *big.Int {
+	if TestnetChainId == chainId {
 		return big.NewInt(testnetEvmChainID)
 	}
 	return big.NewInt(mainnetEvmChainID)
 }
 
-func ChainIdWithEIP155() string {
-	if TestnetChainId == ChainId() {
+func ChainIdWithEIP155(chainId string) string {
+	if TestnetChainId == chainId {
 		return fmt.Sprintf("%s_%d-1", TestnetChainId, testnetEvmChainID)
 	}
 	return fmt.Sprintf("%s_%d-1", MainnetChainId, mainnetEvmChainID)

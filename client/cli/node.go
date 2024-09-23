@@ -20,7 +20,7 @@ func QueryGasPricesCmd() *cobra.Command {
 		Use:   "gas-prices",
 		Short: "Query node gas prices",
 		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := node.NewServiceClient(clientCtx)
