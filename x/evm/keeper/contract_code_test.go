@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"bytes"
+	"encoding/hex"
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -72,6 +75,20 @@ func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_FIP20() {
 
 	erc20Suite.OnTest("USD Token", "USD", uint8(18), big.NewInt(100), erc20Suite.HexAddr())
 	erc20Suite.TransferOwnership(newSigner.Address(), true)
+}
+
+func (s *KeeperTestSuite) TestCodeCheck() {
+	for _, c := range []contract.Contract{contract.GetFIP20(), contract.GetWFX()} {
+		addr, err := s.App.EvmKeeper.DeployContract(s.Ctx, s.HexAddr(), c.ABI, c.Bin)
+		s.NoError(err)
+
+		account := s.App.EvmKeeper.GetAccount(s.Ctx, addr)
+		code := s.App.EvmKeeper.GetCode(s.Ctx, common.BytesToHash(account.CodeHash))
+		s.Equal(c.Code, code, fmt.Sprintf("new code: %s", hex.EncodeToString(code)))
+
+		deployedCode := bytes.ReplaceAll(code, c.Address.Bytes(), common.Address{}.Bytes())
+		s.True(bytes.HasSuffix(c.Bin, deployedCode))
+	}
 }
 
 func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_WFX() {

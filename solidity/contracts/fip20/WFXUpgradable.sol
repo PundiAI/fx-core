@@ -10,8 +10,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol";
 
-import "../bridge/IFIP20CrossChain.sol";
-
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
 
@@ -174,18 +172,6 @@ contract WFXUpgradable is
         uint256 value
     );
 
-    /**
-     * @dev Emitted when `amount + fee` tokens are cross chain moved from one account (`from`) to
-     * another (`to`) through (`target`).
-     */
-    event TransferCrossChain(
-        address indexed from,
-        string recipient,
-        uint256 amount,
-        uint256 fee,
-        bytes32 target
-    );
-
     function name() external view returns (string memory) {
         return _name;
     }
@@ -271,21 +257,6 @@ contract WFXUpgradable is
     event Withdraw(address indexed from, address indexed to, uint256 value);
     event Withdraw(address indexed from, uint256 value);
 
-    // Deprecated: use pre-compiled contract crossChain
-    function transferCrossChain(
-        string memory recipient,
-        uint256 amount,
-        uint256 fee,
-        bytes32 target
-    ) external payable notContract returns (bool) {
-        if (msg.value > 0) {
-            deposit();
-        }
-        _transferCrossChain(_msgSender(), recipient, amount, fee, target);
-        emit TransferCrossChain(_msgSender(), recipient, amount, fee, target);
-        return true;
-    }
-
     function module() external view returns (address) {
         return _module;
     }
@@ -344,23 +315,6 @@ contract WFXUpgradable is
     ) internal {
         require(sender != address(0), "approve from the zero address");
         _allowance[sender][spender] = amount;
-    }
-
-    function _transferCrossChain(
-        address sender,
-        string memory recipient,
-        uint256 amount,
-        uint256 fee,
-        bytes32 target
-    ) internal {
-        require(sender != address(0), "transfer from the zero address");
-        require(bytes(recipient).length > 0, "invalid recipient");
-        require(target != bytes32(0), "invalid target");
-
-        _transfer(sender, _module, amount + fee);
-
-        IFIP20CrossChain(0x0000000000000000000000000000000000001004)
-            .fip20CrossChain(sender, recipient, amount, fee, target, "");
     }
 
     // solhint-disable-next-line no-empty-blocks

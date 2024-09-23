@@ -2,12 +2,11 @@
 
 pragma solidity ^0.8.10;
 
-import {IFIP20CrossChain} from "./IFIP20CrossChain.sol";
 import {IBridgeCall} from "./IBridgeCall.sol";
 
 // NOTE: if using an interface to invoke the precompiled contract
 // need to use solidity version 0.8.10 and later.
-interface ICrossChain is IFIP20CrossChain, IBridgeCall {
+interface ICrossChain is IBridgeCall {
     function crossChain(
         address _token,
         string memory _receipt,

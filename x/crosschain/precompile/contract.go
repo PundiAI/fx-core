@@ -40,7 +40,6 @@ func NewPrecompiledContract(
 
 			NewCancelSendToExternalMethod(keeper),
 			NewIncreaseBridgeFeeMethod(keeper),
-			NewFIP20CrossChainMethod(keeper),
 			NewCrossChainMethod(keeper),
 			NewBridgeCallMethod(keeper),
 			NewCancelPendingBridgeCallMethod(keeper),
