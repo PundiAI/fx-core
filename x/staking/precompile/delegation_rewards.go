@@ -1,9 +1,10 @@
 package precompile
 
 import (
-	"fmt"
+	"errors"
 	"math/big"
 
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
@@ -41,20 +42,29 @@ func (m *DelegationRewardsMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 		return nil, err
 	}
 	stateDB := evm.StateDB.(types.ExtStateDB)
-	cacheCtx := stateDB.CacheContext()
+	cacheCtx := stateDB.Context()
 
 	valAddr := args.GetValidator()
-	validator, found := m.stakingKeeper.GetValidator(cacheCtx, valAddr)
-	if !found {
-		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
+	validator, err := m.stakingKeeper.GetValidator(cacheCtx, valAddr)
+	if err != nil {
+		return nil, err
 	}
-	delegation, found := m.stakingKeeper.GetDelegation(cacheCtx, args.Delegator.Bytes(), valAddr)
-	if !found {
+	delegation, err := m.stakingKeeper.GetDelegation(cacheCtx, args.Delegator.Bytes(), valAddr)
+	if err != nil {
+		if !errors.Is(err, stakingtypes.ErrNoDelegation) {
+			return nil, err
+		}
 		return m.PackOutput(big.NewInt(0))
 	}
 
-	endingPeriod := m.distrKeeper.IncrementValidatorPeriod(cacheCtx, validator)
-	rewards := m.distrKeeper.CalculateDelegationRewards(cacheCtx, validator, delegation, endingPeriod)
+	endingPeriod, err := m.distrKeeper.IncrementValidatorPeriod(cacheCtx, validator)
+	if err != nil {
+		return nil, err
+	}
+	rewards, err := m.distrKeeper.CalculateDelegationRewards(cacheCtx, validator, delegation, endingPeriod)
+	if err != nil {
+		return nil, err
+	}
 
 	return m.PackOutput(rewards.AmountOf(m.stakingDenom).TruncateInt().BigInt())
 }

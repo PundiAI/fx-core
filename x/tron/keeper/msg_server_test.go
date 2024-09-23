@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
@@ -62,7 +61,7 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			malleate: func() {
 				newOutgoingTx := suite.NewOutgoingTxBatch()
 				_, bridger, externalKey := suite.NewOracleByBridger()
-				params, err := suite.queryServer.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
+				params, err := suite.queryServer.Params(suite.ctx, &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				suite.Require().NoError(err)
 				batchHash, err := trontypes.GetCheckpointConfirmBatch(newOutgoingTx, params.Params.GravityId)
 				suite.Require().NoError(err)
@@ -84,7 +83,7 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
 			testCase.malleate()
-			_, err := suite.msgServer.ConfirmBatch(sdk.WrapSDKContext(suite.ctx), msg)
+			_, err := suite.msgServer.ConfirmBatch(suite.ctx, msg)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 			} else {
@@ -144,7 +143,7 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 				newOracleSet := suite.NewOracleSet(externalKey)
 				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
 				suite.Require().NoError(err)
-				params, err := suite.queryServer.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
+				params, err := suite.queryServer.Params(suite.ctx, &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				suite.Require().NoError(err)
 				oracleSetHash, err := trontypes.GetCheckpointOracleSet(newOracleSet, params.Params.GravityId)
 				suite.Require().NoError(err)
@@ -164,7 +163,7 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			_, err := suite.msgServer.OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), msg)
+			_, err := suite.msgServer.OracleSetConfirm(suite.ctx, msg)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 			} else {

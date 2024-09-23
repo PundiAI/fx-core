@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,15 +18,6 @@ func (s *BankSuite) Init(ass *require.Assertions, ctx sdk.Context, bankKeeper ba
 	s.ctx = ctx
 	s.bankKeeper = bankKeeper
 	return s
-}
-
-func (s *BankSuite) NewSigner(ctx sdk.Context) *Signer {
-	signer := NewSigner(NewEthPrivKey())
-	err := s.bankKeeper.MintCoins(ctx, banktypes.ModuleName, NewStakingCoins(10_000, 18))
-	s.NoError(err)
-	err = s.bankKeeper.SendCoinsFromModuleToAccount(ctx, banktypes.ModuleName, signer.AccAddress(), NewStakingCoins(10_000, 18))
-	s.NoError(err)
-	return signer
 }
 
 func (s *BankSuite) GetTotalSupply() sdk.Coins {

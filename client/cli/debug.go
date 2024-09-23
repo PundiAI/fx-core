@@ -14,18 +14,17 @@ import (
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32" // nolint:staticcheck
+	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/spf13/cobra"
@@ -40,14 +39,13 @@ func Debug() *cobra.Command {
 	cmd.AddCommand(
 		ToStringCmd(),
 		ToBytes32Cmd(),
-		ModuleAddressCmd(),
 		ChecksumEthAddressCmd(),
 		CovertTxDataToHashCmd(),
 		DecodeSimulateTxCmd(),
-		VerifyTxCmd(),
 		PubkeyCmd(),
 		AddrCmd(),
 		debug.RawBytesCmd(),
+		GetCmdDenomToIBcDenom(),
 	)
 	cmd.PersistentFlags().StringP(tmcli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
@@ -97,106 +95,6 @@ func ToBytes32Cmd() *cobra.Command {
 			return nil
 		},
 	}
-}
-
-// ModuleAddressCmd
-// Deprecated: please use `fxcored query auth module-account`
-func ModuleAddressCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "module-addr <module name>",
-		Short: "Get module address",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Println("Deprecated: please use `fxcored query auth module-account`")
-			cmd.Println(authtypes.NewModuleAddress(args[0]).String())
-			return nil
-		},
-	}
-	return cmd
-}
-
-func VerifyTxCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "verify-tx [base64TxData]",
-		Short:   "Verify tx",
-		Example: fmt.Sprintf("%s debug verify-tx 'CucHC...==='", version.AppName),
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			txBytes, err := base64.StdEncoding.DecodeString(args[0])
-			if err != nil {
-				return err
-			}
-			sdkTx, err := clientCtx.TxConfig.TxDecoder()(txBytes)
-			if err != nil {
-				return err
-			}
-
-			builder, err := clientCtx.TxConfig.WrapTxBuilder(sdkTx)
-			if err != nil {
-				return err
-			}
-			stdTx := builder.GetTx()
-
-			sigTx, ok := sdkTx.(authsigning.SigVerifiableTx)
-			if !ok {
-				return errors.New("invalid transaction type")
-			}
-			// stdSigs contains the sequence number, account number, and signatures.
-			// When simulating, this would just be a 0-length slice.
-			sigs, err := sigTx.GetSignaturesV2()
-			if err != nil {
-				return fmt.Errorf("get signature error %s", err.Error())
-			}
-			signerAddrs := sigTx.GetSigners()
-
-			// check that signer length and signature length are the same
-			if len(sigs) != len(signerAddrs) {
-				return fmt.Errorf("invalid number of signer;  expected: %d, got %d", len(signerAddrs), len(sigs))
-			}
-			status, err := clientCtx.Client.Status(cmd.Context())
-			if err != nil {
-				return err
-			}
-			chainId := status.NodeInfo.Network
-			queryClient := authtypes.NewQueryClient(clientCtx)
-			for i, sig := range sigs {
-				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: signerAddrs[i].String()})
-				if err != nil {
-					return err
-				}
-				var acc authtypes.AccountI
-				err = clientCtx.InterfaceRegistry.UnpackAny(accountResponse.GetAccount(), &acc)
-				if err != nil {
-					return err
-				}
-				// retrieve pubkey
-				pubKey := acc.GetPubKey()
-				sequence := sig.Sequence
-				signerData := authsigning.SignerData{
-					ChainID:       chainId,
-					AccountNumber: acc.GetAccountNumber(),
-					Sequence:      sequence,
-				}
-
-				bz := legacytx.StdSignBytes(
-					chainId, acc.GetAccountNumber(), sequence, stdTx.GetTimeoutHeight(),
-					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
-					sdkTx.GetMsgs(), stdTx.GetMemo(), nil,
-				)
-				if err = clientCtx.PrintString(string(bz) + "\n"); err != nil {
-					return err
-				}
-
-				if err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), sdkTx); err != nil {
-					return err
-				}
-			}
-			return nil
-		},
-	}
-	return cmd
 }
 
 func CovertTxDataToHashCmd() *cobra.Command {
@@ -283,17 +181,18 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 				if err != nil {
 					return err
 				}
-				pubkey, err = cryptocodec.FromTmPubKeyInterface(valPubKey)
+				pubkey, err = cryptocodec.FromCmtPubKeyInterface(valPubKey)
 				if err != nil {
 					return err
 				}
 			} else {
 				if err = clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
-					if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ConsPK, args[0]); err == nil { // nolint:staticcheck
-					} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.AccPK, args[0]); err == nil { // nolint:staticcheck
-					} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ValPK, args[0]); err == nil { // nolint:staticcheck
-					} else {
-						return fmt.Errorf("pubkey '%s' invalid", args[0])
+					if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ConsPK, args[0]); err != nil {
+						if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.AccPK, args[0]); err != nil {
+							if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ValPK, args[0]); err != nil {
+								return fmt.Errorf("pubkey '%s' invalid", args[0])
+							}
+						}
 					}
 				}
 			}
@@ -378,5 +277,39 @@ func AddrCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("prefix", "p", "fx", "Bech32 Prefix to encode to")
+	return cmd
+}
+
+func GetCmdDenomToIBcDenom() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "ibc-denom-convert",
+		Short:   "Covert denom to ibc denom",
+		Args:    cobra.ExactArgs(1),
+		Example: fmt.Sprintf("$ %s query ibc denom-convert transfer/{channel}/{denom}", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			denomTrace := transfertypes.ParseDenomTrace(args[0])
+
+			type output struct {
+				Prefix   string
+				Denom    string
+				IBCDenom string
+			}
+
+			marshal, err := json.Marshal(output{
+				Prefix:   denomTrace.GetPrefix(),
+				Denom:    denomTrace.GetBaseDenom(),
+				IBCDenom: denomTrace.IBCDenom(),
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintBytes(marshal)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

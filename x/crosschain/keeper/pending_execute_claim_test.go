@@ -1,8 +1,7 @@
 package keeper_test
 
 import (
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -23,10 +22,10 @@ func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
 				Sender:         helpers.GenExternalAddr(s.moduleName),
 				Refund:         helpers.GenExternalAddr(s.moduleName),
 				TokenContracts: []string{helpers.GenExternalAddr(s.moduleName)},
-				Amounts:        []math.Int{sdk.NewInt(1)},
+				Amounts:        []sdkmath.Int{sdkmath.NewInt(1)},
 				To:             helpers.GenExternalAddr(s.moduleName),
 				Data:           "",
-				Value:          sdk.NewInt(0),
+				Value:          sdkmath.NewInt(0),
 				Memo:           "",
 				TxOrigin:       "",
 			},
@@ -37,7 +36,7 @@ func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
 				EventNonce:     1,
 				BlockHeight:    100,
 				TokenContract:  helpers.GenExternalAddr(s.moduleName),
-				Amount:         sdk.NewInt(1),
+				Amount:         sdkmath.NewInt(1),
 				Sender:         helpers.GenExternalAddr(s.moduleName),
 				Receiver:       helpers.GenExternalAddr(s.moduleName),
 				TargetIbc:      "",

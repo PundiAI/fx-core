@@ -22,7 +22,7 @@ message Params {
     (gogoproto.jsontag) = "min_initial_deposit,omitempty"
   ];
 
-  google.protobuf.Duration voting_period = 4 [(gogoproto.stdduration) = true];
+  google.protobuf.Duration voting_period = 4 [ (gogoproto.stdduration) = true ];
 
   string quorum = 5 [
     (cosmos_proto.scalar) = "cosmos.Dec",
@@ -46,7 +46,7 @@ message Params {
 
   //  The ratio representing the proportion of the deposit value that must be
   //  paid at proposal submission.
-  string min_initial_deposit_ratio = 9 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  string min_initial_deposit_ratio = 9 [ (cosmos_proto.scalar) = "cosmos.Dec" ];
 
   // burn deposits if a proposal does not meet quorum
   bool burn_vote_quorum = 10;

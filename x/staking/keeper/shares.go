@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math/big"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v8/x/staking/types"
@@ -30,7 +31,7 @@ func (k Keeper) GetAllowance(ctx sdk.Context, valAddr sdk.ValAddress, owner, spe
 func (k Keeper) IterateAllAllowance(ctx sdk.Context, handler func(valAddr sdk.ValAddress, owner, spender sdk.AccAddress, allowance *big.Int) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
-	iter := sdk.KVStorePrefixIterator(store, types.AllowanceKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.AllowanceKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

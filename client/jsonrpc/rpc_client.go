@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"cosmossdk.io/log"
 	"github.com/coder/websocket"
 	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 )
@@ -136,7 +136,7 @@ func (ws *WSClient) Close() {
 func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan<- ctypes.ResultEvent) (err error) {
 	id, err := ws.send(ctx, "subscribe", map[string]interface{}{"query": query})
 	if err != nil {
-		return
+		return err
 	}
 	response := make(chan RPCResponse, len(event))
 	ws.addResponseChan(id, query, response)
@@ -264,9 +264,8 @@ func (ws *WSClient) delResponseChan(id string) error {
 	if _, ok := ws.responseChan[id]; ok {
 		delete(ws.responseChan, id)
 		return nil
-	} else {
-		return errors.New("subscription not found")
 	}
+	return errors.New("subscription not found")
 }
 
 func (ws *WSClient) response(id string) (string, chan RPCResponse) {

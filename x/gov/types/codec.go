@@ -5,21 +5,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 
 	"github.com/functionx/fx-core/v8/x/gov/legacy"
 )
-
-// ModuleCdc is the codec for the module
-var ModuleCdc = codec.NewAminoCodec(codec.NewLegacyAmino())
-
-func init() {
-	RegisterLegacyAminoCodec(ModuleCdc.LegacyAmino)
-
-	// Register all Amino interfaces and concrete types on the authz Amino codec so that this can later be
-	// used to properly serialize MsgGrant and MsgExec instances
-	RegisterLegacyAminoCodec(authzcodec.Amino)
-}
 
 // RegisterInterfaces register implementations
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -29,7 +17,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateEGFParams{},
 		&MsgUpdateStore{},
 		&MsgUpdateSwitchParams{},
-		&legacy.MsgUpdateParams{}, // nolint: staticcheck
+		&legacy.MsgUpdateParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

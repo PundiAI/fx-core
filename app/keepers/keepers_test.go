@@ -4,9 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	dbm "github.com/cometbft/cometbft-db"
-	tmlog "github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/functionx/fx-core/v8/app"
@@ -15,26 +17,26 @@ import (
 )
 
 func TestNewAppKeeper(t *testing.T) {
-	encodingConfig := app.MakeEncodingConfig()
-	appCodec := encodingConfig.Codec
-	legacyAmino := encodingConfig.Amino
-
+	interfaceRegistry := app.NewInterfaceRegistry()
+	appCodec := codec.NewProtoCodec(interfaceRegistry)
+	txConfig := authtx.NewTxConfig(appCodec, authtx.DefaultSignModes)
 	baseApp := baseapp.NewBaseApp(
 		fxtypes.Name,
-		tmlog.NewNopLogger(),
+		log.NewNopLogger(),
 		dbm.NewMemDB(),
-		encodingConfig.TxConfig.TxDecoder(),
+		txConfig.TxDecoder(),
 	)
 
 	appKeeper := keepers.NewAppKeeper(
 		appCodec,
 		baseApp,
-		legacyAmino,
+		codec.NewLegacyAmino(),
 		app.GetMaccPerms(),
 		nil,
 		nil,
 		fxtypes.GetDefaultNodeHome(),
 		0,
+		log.NewNopLogger(),
 		app.EmptyAppOptions{},
 	)
 	assert.NotNil(t, appKeeper)
@@ -43,6 +45,7 @@ func TestNewAppKeeper(t *testing.T) {
 	checkStructField(t, valueOf, typeOf.Name())
 }
 
+//nolint:gocyclo
 func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
 	valueOf = reflect.Indirect(valueOf)
 	if valueOf.Kind() != reflect.Struct ||
@@ -71,7 +74,9 @@ func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
 
 		if valueOfField.Kind() == reflect.Pointer || valueOfField.Kind() == reflect.Interface {
 			if typeOfField.Name == "QueryServer" ||
-				(name == "EvidenceKeeper" && typeOfField.Name == "router") {
+				(name == "EvidenceKeeper" && typeOfField.Name == "router") ||
+				(name == "FeeGrantKeeper" && typeOfField.Name == "bankKeeper") || // deprecated in v0.50
+				(name == "AuthzKeeper" && typeOfField.Name == "bankKeeper") { // deprecated in v0.50
 				return
 			}
 			assert.Falsef(t, valueOfField.IsNil(), "%s-%s-%s", valueOf.Type().PkgPath(), typeOfField.Name, name)

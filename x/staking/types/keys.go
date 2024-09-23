@@ -2,25 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/kv"
 )
-
-const GrantPrivilegeSignaturePrefix = "GrantPrivilege:"
-
-type CProcess []byte
-
-var (
-	ProcessStart CProcess = []byte{0x1}
-	ProcessEnd   CProcess = []byte{0x2}
-)
-
-var DisablePKBytes = [33]byte{
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff,
-}
 
 var (
 	AllowanceKey         = []byte{0x90}
@@ -42,26 +24,4 @@ func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []by
 	copy(key[offset+3+len(valAddr)+len(owner):], spender.Bytes())
 
 	return key
-}
-
-func GetValidatorOperatorKey(addr sdk.ValAddress) []byte {
-	return append(ValidatorOperatorKey, addr...)
-}
-
-func GetConsensusPubKey(addr sdk.ValAddress) []byte {
-	return append(ConsensusPubKey, addr...)
-}
-
-func GetConsensusProcessKey(process CProcess, addr sdk.ValAddress) []byte {
-	return append(ConsensusProcessKey, append(process, addr...)...)
-}
-
-func AddressFromConsensusPubKey(key []byte) []byte {
-	kv.AssertKeyAtLeastLength(key, 2)
-	return key[1:] // remove prefix bytes
-}
-
-func AddressFromConsensusProcessKey(key []byte) []byte {
-	kv.AssertKeyAtLeastLength(key, 3)
-	return key[2:] // remove prefix bytes and process bytes
 }

@@ -13,9 +13,6 @@ const (
 
 	// CompatibleModuleName is the query and tx module name
 	CompatibleModuleName = "fxtransfer"
-
-	// RouterKey is the message route for IBC transfer
-	RouterKey = CompatibleModuleName
 )
 
 func IntermediateSender(sourcePort, sourceChannel, sender string) common.Address {

@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -276,7 +276,7 @@ func (suite *IntegrationTest) LiquidityTest() {
 	ethChain := suite.GetCrossChainByName(ethtypes.ModuleName)
 	bscChain := suite.GetCrossChainByName(bsctypes.ModuleName)
 
-	transferAmount := sdk.NewInt(100)
+	transferAmount := sdkmath.NewInt(100)
 	ethChain.SendToFxClaimAndCheckBalance(moduleTokenMap[ethtypes.ModuleName], transferAmount, "", sdk.NewCoin(metadata.Base, transferAmount))
 	ethChain.CheckBalance(ethChain.AccAddress(), sdk.NewCoin(metadata.Base, transferAmount))
 	ethChain.CheckBalance(ethChain.AccAddress(), sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName], sdkmath.NewInt(0)))
@@ -333,7 +333,7 @@ func (suite *IntegrationTest) BridgeCallTest() {
 	ethChain := suite.GetCrossChainByName(ethtypes.ModuleName)
 	bscChain := suite.GetCrossChainByName(bsctypes.ModuleName)
 
-	transferAmount := sdk.NewInt(100)
+	transferAmount := sdkmath.NewInt(100)
 	ethChain.SendToFxClaimAndCheckBalance(moduleTokenMap[ethtypes.ModuleName+token1], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token1].Base, transferAmount))
 	ethChain.SendToFxClaimAndCheckBalance(moduleTokenMap[ethtypes.ModuleName+token2], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token2].Base, transferAmount))
 	bscChain.SendToFxClaimAndCheckBalance(moduleTokenMap[bsctypes.ModuleName+token2], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token2].Base, transferAmount))
@@ -355,7 +355,7 @@ func (suite *IntegrationTest) BridgeCallTest() {
 		sdk.NewCoins(
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
-		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+		).Equal(suite.QueryBalances(erc20ModuleAddr)))
 
 	// case 2: cancel first pending bridge call
 	bscChain.CancelBridgeCall([]uint64{nonce})
@@ -364,18 +364,18 @@ func (suite *IntegrationTest) BridgeCallTest() {
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
 			sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token2], transferAmount),
-		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+		).Equal(suite.QueryBalances(erc20ModuleAddr)))
 
 	// case 3: send bridge call again + add pending rewards + provide liquidity + confirm + claim with failed
 	nonce = bscChain.BridgeCall(bridgeCallCoins)
-	pendingPoolReward := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))
+	pendingPoolReward := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))
 	bscChain.AddPendingPoolRewards(nonce, pendingPoolReward)
 
 	pendingBridgeCalls = bscChain.QueryPendingBridgeCallByNonce(nonce)
 	suite.True(sdk.NewCoins(
 		sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token1], transferAmount),
-	).IsEqual(pendingBridgeCalls.NotLiquidCoins))
-	suite.True(sdk.NewCoins(pendingPoolReward).IsEqual(pendingBridgeCalls.Rewards))
+	).Equal(pendingBridgeCalls.NotLiquidCoins))
+	suite.True(sdk.NewCoins(pendingPoolReward).Equal(pendingBridgeCalls.Rewards))
 
 	// provide liquidity
 	bscChain.SendToFxClaimAndCheckBalance(moduleTokenMap[bsctypes.ModuleName+token1], transferAmount, "", sdk.NewCoin(tokenMetaDatasMap[token1].Base, transferAmount), pendingPoolReward)
@@ -387,7 +387,7 @@ func (suite *IntegrationTest) BridgeCallTest() {
 		sdk.NewCoins(
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
-		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+		).Equal(suite.QueryBalances(erc20ModuleAddr)))
 
 	//  bridge call result confirm with failed, refund tokens
 	bscChain.BridgeCallConfirm(nonce, false)
@@ -396,7 +396,7 @@ func (suite *IntegrationTest) BridgeCallTest() {
 		sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
 		sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token1], transferAmount),
 		sdk.NewCoin(moduleDenomMap[bsctypes.ModuleName+token2], transferAmount),
-	).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
+	).Equal(suite.QueryBalances(erc20ModuleAddr)))
 
 	// case 4: bridge call result confirm with success.
 	nonce = bscChain.BridgeCall(bridgeCallCoins)
@@ -406,8 +406,8 @@ func (suite *IntegrationTest) BridgeCallTest() {
 		sdk.NewCoins(
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token1], transferAmount),
 			sdk.NewCoin(moduleDenomMap[ethtypes.ModuleName+token2], transferAmount),
-		).IsEqual(suite.QueryBalances(erc20ModuleAddr)))
-	suite.True(bscAccAddrBalances.IsEqual(suite.QueryBalances(bscChain.AccAddress())))
+		).Equal(suite.QueryBalances(erc20ModuleAddr)))
+	suite.True(bscAccAddrBalances.Equal(suite.QueryBalances(bscChain.AccAddress())))
 
 	// Clear test tokens
 	bscChain.Send(ethChain.AccAddress(), bridgeCallCoins...)

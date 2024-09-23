@@ -7,11 +7,14 @@ import "cosmos_proto/cosmos.proto";
 import "fx/gravity/crosschain/v1/types.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
 // Msg defines the state transitions possible within gravity
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   rpc BondedOracle(MsgBondedOracle) returns (MsgBondedOracleResponse);
   rpc AddDelegate(MsgAddDelegate) returns (MsgAddDelegateResponse);
   rpc ReDelegate(MsgReDelegate) returns (MsgReDelegateResponse);
@@ -19,51 +22,67 @@ service Msg {
   rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
   rpc UnbondedOracle(MsgUnbondedOracle) returns (MsgUnbondedOracleResponse);
 
-  rpc OracleSetConfirm(MsgOracleSetConfirm) returns (MsgOracleSetConfirmResponse);
+  rpc OracleSetConfirm(MsgOracleSetConfirm)
+      returns (MsgOracleSetConfirmResponse);
 
   rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
-  rpc CancelSendToExternal(MsgCancelSendToExternal) returns (MsgCancelSendToExternalResponse);
+  rpc CancelSendToExternal(MsgCancelSendToExternal)
+      returns (MsgCancelSendToExternalResponse);
 
   rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
 
   rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
-  rpc CancelPendingBridgeCall(MsgCancelPendingBridgeCall) returns (MsgCancelPendingBridgeCallResponse);
+  rpc CancelPendingBridgeCall(MsgCancelPendingBridgeCall)
+      returns (MsgCancelPendingBridgeCallResponse);
 
-  rpc BridgeCallConfirm(MsgBridgeCallConfirm) returns (MsgBridgeCallConfirmResponse);
+  rpc BridgeCallConfirm(MsgBridgeCallConfirm)
+      returns (MsgBridgeCallConfirmResponse);
 
   // UpdateParams defines a governance operation for updating the x/crosschain
   // module parameters. The authority is hard-coded to the x/gov module account.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
-  rpc IncreaseBridgeFee(MsgIncreaseBridgeFee) returns (MsgIncreaseBridgeFeeResponse);
-  rpc AddPendingPoolRewards(MsgAddPendingPoolRewards) returns (MsgAddPendingPoolRewardsResponse);
+  rpc IncreaseBridgeFee(MsgIncreaseBridgeFee)
+      returns (MsgIncreaseBridgeFeeResponse);
+  rpc AddPendingPoolRewards(MsgAddPendingPoolRewards)
+      returns (MsgAddPendingPoolRewardsResponse);
 
-  rpc UpdateChainOracles(MsgUpdateChainOracles) returns (MsgUpdateChainOraclesResponse);
+  rpc UpdateChainOracles(MsgUpdateChainOracles)
+      returns (MsgUpdateChainOraclesResponse);
 
   rpc Claim(MsgClaim) returns (MsgClaimResponse) {}
 }
 
 message MsgBondedOracle {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgBondedOracle";
+
   string chain_name = 1;
   string oracle_address = 2;
   string bridger_address = 3;
   string external_address = 4;
   string validator_address = 5;
-  cosmos.base.v1beta1.Coin delegate_amount = 6 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin delegate_amount = 6 [ (gogoproto.nullable) = false ];
 }
 
 message MsgBondedOracleResponse {}
 
 message MsgAddDelegate {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgAddDelegate";
+
   string chain_name = 1;
   string oracle_address = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
 }
 
 message MsgAddDelegateResponse {}
 
 message MsgReDelegate {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgReDelegate";
+
   string chain_name = 1;
   string oracle_address = 2;
   string validator_address = 3;
@@ -72,6 +91,9 @@ message MsgReDelegate {
 message MsgReDelegateResponse {}
 
 message MsgEditBridger {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgEditBridger";
+
   string chain_name = 1;
   string oracle_address = 2;
   string bridger_address = 3;
@@ -80,6 +102,9 @@ message MsgEditBridger {
 message MsgEditBridgerResponse {}
 
 message MsgUnbondedOracle {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgUnbondedOracle";
+
   string chain_name = 1;
   string oracle_address = 2;
 }
@@ -87,6 +112,9 @@ message MsgUnbondedOracle {
 message MsgUnbondedOracleResponse {}
 
 message MsgWithdrawReward {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgWithdrawReward";
+
   string chain_name = 1;
   string oracle_address = 2;
 }
@@ -109,6 +137,9 @@ message MsgWithdrawRewardResponse {}
 // chain store and submit them to Ethereum to update the validator set
 // -------------
 message MsgOracleSetConfirm {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgOracleSetConfirm";
+
   uint64 nonce = 1;
   string bridger_address = 2;
   string external_address = 3;
@@ -121,10 +152,13 @@ message MsgOracleSetConfirmResponse {}
 // This informs the Cosmos module that a validator
 // set has been updated.
 message MsgOracleSetUpdatedClaim {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgOracleSetUpdatedClaim";
+
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   uint64 oracle_set_nonce = 3;
-  repeated BridgeValidator members = 4 [(gogoproto.nullable) = false];
+  repeated BridgeValidator members = 4 [ (gogoproto.nullable) = false ];
   string bridger_address = 6;
   string chain_name = 7;
 }
@@ -137,11 +171,15 @@ message MsgOracleSetUpdatedClaimResponse {}
 // issued to the Payment address in question
 // -------------
 message MsgSendToFxClaim {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgSendToFxClaim";
+
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   string token_contract = 3;
   string amount = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string sender = 5;
@@ -154,6 +192,9 @@ message MsgSendToFxClaim {
 message MsgSendToFxClaimResponse {}
 
 message MsgBridgeCallClaim {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgBridgeCallClaim";
+
   string chain_name = 1;
   string bridger_address = 2;
   uint64 event_nonce = 3;
@@ -162,13 +203,15 @@ message MsgBridgeCallClaim {
   string refund = 6;
   repeated string token_contracts = 7;
   repeated string amounts = 8 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string to = 9;
   string data = 10;
   string value = 11 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string memo = 12;
@@ -178,6 +221,9 @@ message MsgBridgeCallClaim {
 message MsgBridgeCallClaimResponse {}
 
 message MsgBridgeCallResultClaim {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgBridgeCallResultClaim";
+
   string chain_name = 1;
   string bridger_address = 2;
   uint64 event_nonce = 3;
@@ -203,21 +249,25 @@ message MsgBridgeCallResultClaimResponse {}
 // actually send this message in the first place. So a successful send has
 // two layers of fees for the user
 message MsgSendToExternal {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgSendToExternal";
+
   string sender = 1;
   string dest = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin bridge_fee = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
   string chain_name = 5;
 }
 
-message MsgSendToExternalResponse {
-  uint64 outgoing_tx_id = 1;
-}
+message MsgSendToExternalResponse { uint64 outgoing_tx_id = 1; }
 
 // This call allows the sender (and only the sender)
 // to cancel a given MsgSendToExternal and recieve a refund
 // of the tokens
 message MsgCancelSendToExternal {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgCancelSendToExternal";
+
   uint64 transaction_id = 1;
   string sender = 2;
   string chain_name = 3;
@@ -236,23 +286,26 @@ message MsgCancelSendToExternalResponse {}
 // -------------
 // feeReceive:
 message MsgRequestBatch {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgRequestBatch";
+
   string sender = 1;
   string denom = 2;
   string minimum_fee = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string fee_receive = 4;
   string chain_name = 5;
   string base_fee = 6 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
 
-message MsgRequestBatchResponse {
-  uint64 batch_nonce = 1;
-}
+message MsgRequestBatchResponse { uint64 batch_nonce = 1; }
 
 // MsgConfirmBatch
 // When validators observe a MsgRequestBatch they form a batch by ordering
@@ -263,6 +316,9 @@ message MsgRequestBatchResponse {
 // as well as an Bsc signature over this batch by the validator
 // -------------
 message MsgConfirmBatch {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgConfirmBatch";
+
   uint64 nonce = 1;
   string token_contract = 2;
   string bridger_address = 3;
@@ -276,6 +332,9 @@ message MsgConfirmBatchResponse {}
 // SendToExternalClaim claims that a batch of withdrawal
 // operations on the bridge contract was executed.
 message MsgSendToExternalClaim {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgSendToExternalClaim";
+
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   uint64 batch_nonce = 3;
@@ -287,6 +346,9 @@ message MsgSendToExternalClaim {
 message MsgSendToExternalClaimResponse {}
 
 message MsgBridgeTokenClaim {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgBridgeTokenClaim";
+
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   string token_contract = 3;
@@ -301,6 +363,9 @@ message MsgBridgeTokenClaim {
 message MsgBridgeTokenClaimResponse {}
 
 message MsgBridgeCallConfirm {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgBridgeCallConfirm";
+
   string chain_name = 1;
   string bridger_address = 2;
   string external_address = 3;
@@ -312,32 +377,40 @@ message MsgBridgeCallConfirmResponse {}
 
 // Deprecated: after block 5713000
 message MsgSetOrchestratorAddress {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgSetOrchestratorAddress";
+
   string oracle_address = 1;
   string bridger_address = 2;
   string external_address = 3;
-  cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin deposit = 4 [ (gogoproto.nullable) = false ];
   string chain_name = 5;
 }
 
 // Deprecated: after block 5713000
 message MsgAddOracleDeposit {
+  option (cosmos.msg.v1.signer) = "oracle_address";
+  option (amino.name) = "crosschain/MsgAddOracleDeposit";
+
   string oracle_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
   string chain_name = 3;
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
-  string chain_name = 1;
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "crosschain/MsgUpdateParams";
+
+  string chain_name = 1;
 
   // authority is the address of the governance account.
-  string authority = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // params defines the x/crosschain parameters to update.
   //
   // NOTE: All parameters must be supplied.
-  Params params = 3 [(gogoproto.nullable) = false];
+  Params params = 3 [ (gogoproto.nullable) = false ];
 }
 
 // MsgUpdateParamsResponse defines the response structure for executing a
@@ -345,20 +418,25 @@ message MsgUpdateParams {
 message MsgUpdateParamsResponse {}
 
 message MsgIncreaseBridgeFee {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgIncreaseBridgeFee";
+
   string chain_name = 1;
   uint64 transaction_id = 2;
   string sender = 3;
-  cosmos.base.v1beta1.Coin add_bridge_fee = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin add_bridge_fee = 4 [ (gogoproto.nullable) = false ];
 }
 
 message MsgIncreaseBridgeFeeResponse {}
 
 message MsgUpdateChainOracles {
-  string chain_name = 1;
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "crosschain/MsgUpdateChainOracles";
+
+  string chain_name = 1;
 
   // authority is the address of the governance account.
-  string authority = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   repeated string oracles = 3;
 }
@@ -366,6 +444,9 @@ message MsgUpdateChainOracles {
 message MsgUpdateChainOraclesResponse {}
 
 message MsgBridgeCall {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgBridgeCall";
+
   string chain_name = 1;
   string sender = 2;
   string refund = 3;
@@ -376,7 +457,8 @@ message MsgBridgeCall {
   string to = 5;
   string data = 6;
   string value = 7 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string memo = 8;
@@ -385,6 +467,9 @@ message MsgBridgeCall {
 message MsgBridgeCallResponse {}
 
 message MsgCancelPendingBridgeCall {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgCancelPendingBridgeCall";
+
   uint64 nonce = 1;
   string sender = 2;
   string chain_name = 3;
@@ -393,6 +478,9 @@ message MsgCancelPendingBridgeCall {
 message MsgCancelPendingBridgeCallResponse {}
 
 message MsgAddPendingPoolRewards {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgAddPendingPoolRewards";
+
   string chain_name = 1;
   uint64 id = 2;
   string sender = 3;
@@ -405,8 +493,13 @@ message MsgAddPendingPoolRewards {
 message MsgAddPendingPoolRewardsResponse {}
 
 message MsgClaim {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgClaim";
+
   string chain_name = 1;
-  google.protobuf.Any claim = 3 [(cosmos_proto.accepts_interface) = "ExternalClaim"];
+  string bridger_address = 2;
+  google.protobuf.Any claim = 3
+      [ (cosmos_proto.accepts_interface) = "ExternalClaim" ];
 }
 
 message MsgClaimResponse {}

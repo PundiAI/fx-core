@@ -5,9 +5,9 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hashicorp/go-metrics"
 )
 
 var maxFloat32, _ = big.NewInt(0).SetString(fmt.Sprintf("%.0f", math.MaxFloat32), 10)

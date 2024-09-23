@@ -3,28 +3,35 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
-	fxibctesting "github.com/functionx/fx-core/v8/x/ibc/testing"
+	erc20keeper "github.com/functionx/fx-core/v8/x/erc20/keeper"
+	fxevmkeeper "github.com/functionx/fx-core/v8/x/evm/keeper"
+	fxtransfer "github.com/functionx/fx-core/v8/x/ibc/applications/transfer"
+	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/keeper"
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	app *app.App
+	ctx sdk.Context
+	cdc codec.Codec
 
-	// testing chains used for convenience and readability
-	// chainA/chainB is fxApp, chainC is simApp
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
-
-	queryClient types.QueryClient
+	fxIBCTransferKeeper keeper.Keeper
+	bankKeeper          bankkeeper.Keeper
+	erc20Keeper         erc20keeper.Keeper
+	evmKeeper           *fxevmkeeper.Keeper
+	accountKeeper       authkeeper.AccountKeeper
+	ibcMiddleware       porttypes.Middleware
 }
 
 var s *KeeperTestSuite
@@ -39,18 +46,18 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) DoSetupTest(t *testing.T) {
-	suite.coordinator = fxibctesting.NewCoordinator(t, 2, 1)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(1, sdk.Coins{})
+	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	suite.ctx = suite.app.NewContext(false)
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.GetApp(suite.chainA.App).InterfaceRegistry())
-	transfertypes.RegisterQueryServer(queryHelper, suite.GetApp(suite.chainA.App).IBCTransferKeeper)
-	suite.queryClient = transfertypes.NewQueryClient(queryHelper)
-}
+	suite.cdc = suite.app.AppCodec()
 
-func (suite *KeeperTestSuite) GetApp(testingApp ibctesting.TestingApp) *helpers.TestingApp {
-	result, ok := testingApp.(*helpers.TestingApp)
-	suite.Require().True(ok)
-	return result
+	suite.fxIBCTransferKeeper = suite.app.FxTransferKeeper
+	suite.bankKeeper = suite.app.BankKeeper
+	suite.erc20Keeper = suite.app.Erc20Keeper
+	suite.evmKeeper = suite.app.EvmKeeper
+	suite.accountKeeper = suite.app.AccountKeeper
+
+	transferIBCModule := transfer.NewIBCModule(suite.fxIBCTransferKeeper.Keeper)
+	suite.ibcMiddleware = fxtransfer.NewIBCMiddleware(suite.fxIBCTransferKeeper, transferIBCModule)
 }

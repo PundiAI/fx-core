@@ -1,16 +1,12 @@
 package keeper
 
 import (
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 )
@@ -18,56 +14,21 @@ import (
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
 	ibctransferkeeper.Keeper
-	storeKey   storetypes.StoreKey
-	cdc        codec.Codec
-	paramSpace paramtypes.Subspace
+	cdc codec.Codec
 
-	ics4Wrapper   porttypes.ICS4Wrapper
-	channelKeeper transfertypes.ChannelKeeper
-	portKeeper    transfertypes.PortKeeper
-	authKeeper    transfertypes.AccountKeeper
-	bankKeeper    transfertypes.BankKeeper
-	scopedKeeper  capabilitykeeper.ScopedKeeper
-	erc20Keeper   types.Erc20Keeper
-	evmKeeper     types.EvmKeeper
-	router        *types.Router
-	refundHook    types.RefundHook
+	ics4Wrapper porttypes.ICS4Wrapper
+	erc20Keeper types.Erc20Keeper
+	evmKeeper   types.EvmKeeper
+	refundHook  types.RefundHook
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
-func NewKeeper(keeper ibctransferkeeper.Keeper,
-	cdc codec.Codec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper transfertypes.ChannelKeeper, portKeeper transfertypes.PortKeeper,
-	authKeeper transfertypes.AccountKeeper, bankKeeper transfertypes.BankKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
-) Keeper {
-	// ensure ibc transfer module account is set
-	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
-		panic("the FX IBC transfer module account has not been set")
-	}
-
+func NewKeeper(keeper ibctransferkeeper.Keeper, cdc codec.Codec, ics4Wrapper porttypes.ICS4Wrapper) Keeper {
 	return Keeper{
-		Keeper:        keeper,
-		cdc:           cdc,
-		storeKey:      key,
-		paramSpace:    paramSpace,
-		ics4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		authKeeper:    authKeeper,
-		bankKeeper:    bankKeeper,
-		scopedKeeper:  scopedKeeper,
+		Keeper:      keeper,
+		cdc:         cdc,
+		ics4Wrapper: ics4Wrapper,
 	}
-}
-
-// SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
-// there is an existing router that's already sealed.
-func (k Keeper) SetRouter(rtr types.Router) Keeper {
-	if k.router != nil && k.router.Sealed() {
-		panic("cannot reset a sealed router")
-	}
-	k.router = &rtr
-	k.router.Seal()
-	return k
 }
 
 func (k Keeper) SetRefundHook(hook types.RefundHook) Keeper {

@@ -1,11 +1,14 @@
 package network
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"path/filepath"
-	"time"
 
+	"cosmossdk.io/log"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
@@ -13,27 +16,28 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 	"github.com/cometbft/cometbft/rpc/client/local"
 	"github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/codec"
+	cmttime "github.com/cometbft/cometbft/types/time"
+	cosmosserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
-	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
+	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/evmos/ethermint/server"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	ethermintserver "github.com/evmos/ethermint/server"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/functionx/fx-core/v8/app"
+	"github.com/functionx/fx-core/v8/server"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
 // StartInProcess creates and starts an in-process local test network.
 //
 //gocyclo:ignore
-func StartInProcess(appConstructor AppConstructor, val *Validator) error {
+func StartInProcess(ctx context.Context, errGroup *errgroup.Group, appConstructor AppConstructor, val *Validator) error {
 	logger := val.Ctx.Logger
 	tmCfg := val.Ctx.Config
 
@@ -48,16 +52,25 @@ func StartInProcess(appConstructor AppConstructor, val *Validator) error {
 
 	myApp := appConstructor(val.AppConfig, val.Ctx)
 
-	genDocProvider := node.DefaultGenesisDocProviderFunc(tmCfg)
-	tmNode, err := node.NewNode(
+	cmtApp := cosmosserver.NewCometABCIWrapper(myApp)
+	appGenesisProvider := func() (*types.GenesisDoc, error) {
+		appGenesis, err := genutiltypes.AppGenesisFromFile(tmCfg.GenesisFile())
+		if err != nil {
+			return nil, err
+		}
+
+		return appGenesis.ToGenesisDoc()
+	}
+	tmNode, err := node.NewNodeWithContext(
+		ctx,
 		tmCfg,
 		pvm.LoadOrGenFilePV(tmCfg.PrivValidatorKeyFile(), tmCfg.PrivValidatorStateFile()),
 		nodeKey,
-		proxy.NewLocalClientCreator(myApp),
-		genDocProvider,
-		node.DefaultDBProvider,
+		proxy.NewLocalClientCreator(cmtApp),
+		appGenesisProvider,
+		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(tmCfg.Instrumentation),
-		logger.With("module", val.Ctx.Config.Moniker),
+		servercmtlog.CometLoggerWrapper{Logger: logger.With("module", val.Ctx.Config.Moniker)},
 	)
 	if err != nil {
 		return err
@@ -74,62 +87,28 @@ func StartInProcess(appConstructor AppConstructor, val *Validator) error {
 	if val.AppConfig.API.Address != "" || val.AppConfig.GRPC.Enable {
 		val.ClientCtx = val.ClientCtx.WithClient(val.RPCClient)
 
-		// Add the tx service in the gRPC router.
 		myApp.RegisterTxService(val.ClientCtx)
-
-		// Add the tendermint queries service in the gRPC router.
 		myApp.RegisterTendermintService(val.ClientCtx)
-		myApp.RegisterNodeService(val.ClientCtx)
+		myApp.RegisterNodeService(val.ClientCtx, val.AppConfig.Config)
 	}
 
 	if val.AppConfig.GRPC.Enable {
-		maxSendMsgSize := val.AppConfig.GRPC.MaxSendMsgSize
-		if maxSendMsgSize == 0 {
-			maxSendMsgSize = srvconfig.DefaultGRPCMaxSendMsgSize
-		}
-
-		maxRecvMsgSize := val.AppConfig.GRPC.MaxRecvMsgSize
-		if maxRecvMsgSize == 0 {
-			maxRecvMsgSize = srvconfig.DefaultGRPCMaxRecvMsgSize
-		}
-
-		// If grpc is enabled, configure grpc client for grpc gateway.
-		grpcClient, err := grpc.Dial(
-			val.AppConfig.GRPC.Address,
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithDefaultCallOptions(
-				grpc.ForceCodec(codec.NewProtoCodec(val.ClientCtx.InterfaceRegistry).GRPCCodec()),
-				grpc.MaxCallRecvMsgSize(maxRecvMsgSize),
-				grpc.MaxCallSendMsgSize(maxSendMsgSize),
-			),
-		)
+		val.grpc, err = servergrpc.NewGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC)
 		if err != nil {
 			return err
 		}
-		val.ClientCtx = val.ClientCtx.WithGRPCClient(grpcClient)
+		errGroup.Go(func() error {
+			return servergrpc.StartGRPCServer(context.Background(), logger.With(log.ModuleKey, "grpc-server"), val.AppConfig.GRPC, val.grpc)
+		})
 	}
 
 	if val.AppConfig.API.Enable && val.AppConfig.API.Address != "" {
-		val.api = api.New(val.ClientCtx, logger.With("module", "api-server"))
+		val.api = api.New(val.ClientCtx, logger.With("module", "api-server"), val.grpc)
 		myApp.RegisterAPIRoutes(val.api, val.AppConfig.API)
 
-		go func() {
-			_ = val.api.Start(val.AppConfig.Config)
-		}()
-	}
-
-	if val.AppConfig.GRPC.Enable {
-		val.grpc, err = StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC)
-		if err != nil {
-			return err
-		}
-
-		if val.AppConfig.GRPCWeb.Enable {
-			val.grpcWeb, err = servergrpc.StartGRPCWeb(val.grpc, val.AppConfig.Config)
-			if err != nil {
-				return err
-			}
-		}
+		errGroup.Go(func() error {
+			return val.api.Start(context.Background(), val.AppConfig.Config)
+		})
 	}
 
 	if val.AppConfig.JSONRPC.Enable && val.AppConfig.JSONRPC.Address != "" {
@@ -137,8 +116,8 @@ func StartInProcess(appConstructor AppConstructor, val *Validator) error {
 			return fmt.Errorf("validator %s context is nil", val.Ctx.Config.Moniker)
 		}
 
-		val.ClientCtx = val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
-		val.jsonrpc, val.jsonrpcDone, err = StartJSONRPC(val.Ctx, val.ClientCtx, val.AppConfig.ToEthermintConfig(), nil, myApp.(server.AppWithPendingTxStream))
+		val.ClientCtx = val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155(val.ClientCtx.ChainID))
+		val.jsonrpc, err = server.StartJSONRPC(ctx, val.Ctx, val.ClientCtx, errGroup, val.AppConfig.ToEthermintConfig(), nil, myApp.(ethermintserver.AppWithPendingTxStream))
 		if err != nil {
 			return err
 		}
@@ -154,6 +133,7 @@ func StartInProcess(appConstructor AppConstructor, val *Validator) error {
 }
 
 func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
+	genTime := cmttime.Now()
 	for i := 0; i < cfg.NumValidators; i++ {
 		tmCfg := vals[i].Ctx.Config
 
@@ -161,13 +141,19 @@ func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
 		initCfg := genutiltypes.NewInitConfig(cfg.ChainID, gentxsDir, vals[i].NodeID, vals[i].PubKey)
 
 		genFile := tmCfg.GenesisFile()
-		genDoc, err := types.GenesisDocFromFile(genFile)
+		appGenesis, err := genutiltypes.AppGenesisFromFile(genFile)
 		if err != nil {
 			return err
 		}
-
-		_, err = genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig, tmCfg, initCfg, *genDoc, banktypes.GenesisBalancesIterator{}, genutiltypes.DefaultMessageValidator)
+		appState, err := genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig,
+			tmCfg, initCfg, appGenesis, banktypes.GenesisBalancesIterator{}, genutiltypes.DefaultMessageValidator,
+			cfg.TxConfig.SigningContext().ValidatorAddressCodec())
 		if err != nil {
+			return err
+		}
+		appGenesis.GenesisTime = genTime
+		appGenesis.AppState = appState
+		if err = appGenesis.SaveAs(genFile); err != nil {
 			return err
 		}
 	}
@@ -198,14 +184,15 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 		return err
 	}
 
-	genDoc := types.GenesisDoc{
-		GenesisTime:     time.Now(),
-		ChainID:         cfg.ChainID,
-		InitialHeight:   1,
-		ConsensusParams: app.CustomGenesisConsensusParams(),
-		Validators:      nil,
-		AppHash:         nil,
-		AppState:        appGenStateJSON,
+	genDoc := genutiltypes.AppGenesis{
+		AppName:       fxtypes.Name,
+		ChainID:       cfg.ChainID,
+		InitialHeight: 1,
+		Consensus: &genutiltypes.ConsensusGenesis{
+			Validators: nil,
+			Params:     app.CustomGenesisConsensusParams(),
+		},
+		AppState: appGenStateJSON,
 	}
 
 	// generate empty genesis files for each validator and save
@@ -225,4 +212,16 @@ func writeFile(name string, dir string, contents []byte) error {
 
 	file := filepath.Join(dir, name)
 	return tmos.WriteFile(file, contents, 0o644)
+}
+
+func FreeTCPAddr() (addr, port string, err error) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return "", "", err
+	}
+
+	portI := l.Addr().(*net.TCPAddr).Port
+	port = fmt.Sprintf("%d", portI)
+	addr = fmt.Sprintf("tcp://0.0.0.0:%s", port)
+	return
 }

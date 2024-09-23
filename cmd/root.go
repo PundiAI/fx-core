@@ -8,10 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/snapshots"
+	snapshottypes "cosmossdk.io/store/snapshots/types"
+	storetypes "cosmossdk.io/store/types"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
@@ -21,18 +24,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/snapshots"
-	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/evmos/ethermint/crypto/hd"
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/functionx/fx-core/v8/app"
 	fxcli "github.com/functionx/fx-core/v8/client/cli"
@@ -48,14 +53,27 @@ import (
 func NewRootCmd() *cobra.Command {
 	fxtypes.SetConfig(false)
 
-	encodingConfig := app.MakeEncodingConfig()
+	tempApplication := app.New(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil,
+		true,
+		map[int64]bool{},
+		fxtypes.GetDefaultNodeHome(),
+		viper.New(),
+	)
+	defer func() {
+		if err := tempApplication.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
-		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithTxConfig(encodingConfig.TxConfig).
-		WithLegacyAmino(encodingConfig.Amino).
+		WithCodec(tempApplication.AppCodec()).
+		WithInterfaceRegistry(tempApplication.InterfaceRegistry()).
+		WithLegacyAmino(tempApplication.LegacyAmino()).
+		WithTxConfig(tempApplication.GetTxConfig()).
 		WithInput(os.Stdin).
-		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastSync).
 		WithHomeDir(fxtypes.GetDefaultNodeHome()).
@@ -71,6 +89,7 @@ func NewRootCmd() *cobra.Command {
 			cmd.SetErr(cmd.ErrOrStderr())
 
 			// read flag
+			initClientCtx = initClientCtx.WithCmdContext(cmd.Context())
 			initClientCtx, err = client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
@@ -82,54 +101,79 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
+			// This needs to go after ReadFromClientConfig, as that function
+			// sets the RPC client needed for SIGN_MODE_TEXTUAL. This sign mode
+			// is only available if the client is online.
+			if !initClientCtx.Offline {
+				enabledSignModes := append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL)
+				txConfigOpts := tx.ConfigOptions{
+					EnabledSignModes:           enabledSignModes,
+					TextualCoinMetadataQueryFn: authtxconfig.NewGRPCCoinMetadataQueryFn(initClientCtx),
+				}
+				txConfig, err := tx.NewTxConfigWithOptions(
+					initClientCtx.Codec,
+					txConfigOpts,
+				)
+				if err != nil {
+					return err
+				}
+
+				initClientCtx = initClientCtx.WithTxConfig(txConfig)
+			}
+
 			// set clientCtx
 			if err = client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
 
 			customAppTemplate, customAppConfig := fxcfg.AppConfig(fxtypes.GetDefGasPrice())
-			if err = sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, fxcfg.DefaultTendermintConfig()); err != nil {
-				return err
-			}
-			return nil
+			return sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, fxcfg.DefaultTendermintConfig())
 		},
 	}
 
-	initRootCmd(rootCmd, encodingConfig, fxtypes.GetDefaultNodeHome())
+	initRootCmd(rootCmd, tempApplication.ModuleBasics, tempApplication.GetTxConfig())
+
+	// add keyring to autocli opts
+	autoCliOpts := tempApplication.AutoCliOpts()
+	autoCliOpts.ClientCtx = initClientCtx
+
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 	return rootCmd
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defaultNodeHome string) {
-	myAppCreator := appCreator{encodingConfig}
-	genesisCmd := fxcli.GenesisCoreCommand(app.ModuleBasics, defaultNodeHome)
+func initRootCmd(
+	rootCmd *cobra.Command,
+	basicManager module.BasicManager,
+	txConfig client.TxConfig,
+) {
+	defaultNodeHome := fxtypes.GetDefaultNodeHome()
 	rootCmd.AddCommand(
-		fxcli.InitCmd(defaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec), app.CustomGenesisConsensusParams()),
-		genesisCmd,
-		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		genutilcli.InitCmd(basicManager, defaultNodeHome),
+		genutilcli.Commands(txConfig, basicManager, defaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		testnetCmd(encodingConfig),
-		pruningCommand(myAppCreator.newApp, defaultNodeHome),
+		testnetCmd(),
+		pruningCommand(newApp, defaultNodeHome),
 	)
-	rootCmd.AddCommand(genesisCmd.Commands()...)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		version.NewVersionCommand(),
-		sdkserver.NewRollbackCmd(myAppCreator.newApp, defaultNodeHome),
-		sdkserver.ExportCmd(myAppCreator.appExport, defaultNodeHome),
-		rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
-		snapshot.Cmd(myAppCreator.newApp),
+		sdkserver.NewRollbackCmd(newApp, defaultNodeHome),
+		sdkserver.ExportCmd(appExport, defaultNodeHome),
+		snapshot.Cmd(newApp),
 		ethermintserver.NewIndexTxCmd(),
 		fxcli.Debug(),
-		fxcli.StatusCommand(),
+		sdkserver.StatusCommand(),
 		fxserver.DataCmd(),
-		fxserver.StartCmd(myAppCreator.newApp, defaultNodeHome),
+		fxserver.StartCmd(newApp, defaultNodeHome),
 		fxserver.TendermintCommand(),
-		fxserver.CometCommand(myAppCreator.newApp),
+		fxserver.CometCommand(newApp),
 		configCmd(),
 		keyCommands(defaultNodeHome),
 		queryCommand(),
-		txCommand(),
+		txCommand(basicManager),
 		preUpgradeCmd(),
 		doctorCmd(),
 		exportDelegatesCmd(defaultNodeHome),
@@ -147,25 +191,25 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
 		authcmd.QueryTxCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		rpc.ValidatorCommand(),
 		rpc.QueryEventForTxCmd(),
-		fxcli.BlockCommand(),
+		sdkserver.QueryBlocksCmd(),
+		sdkserver.QueryBlockCmd(),
+		sdkserver.QueryBlockResultsCmd(),
 		fxcli.QueryStoreCmd(),
 		fxcli.QueryValidatorByConsAddr(),
 		fxcli.QueryGasPricesCmd(),
 		crosschaincli.GetQueryCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
 	)
 
-	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
 
-func txCommand() *cobra.Command {
+func txCommand(basicManager module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
@@ -183,11 +227,10 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
 		crosschaincli.GetTxCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
 	)
 
-	app.ModuleBasics.AddTxCommands(cmd)
+	basicManager.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -204,13 +247,8 @@ func pruningCommand(appCreator servertypes.AppCreator, nodeHome string) *cobra.C
 	return pruningCmd
 }
 
-type appCreator struct {
-	encCfg app.EncodingConfig
-}
-
-// newApp is an AppCreator
-func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
+func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(sdkserver.FlagInterBlockCache)) {
 		cache = store.NewCommitKVStoreCacheManager()
@@ -221,12 +259,24 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		skipUpgradeHeights[int64(h)] = true
 	}
 
+	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
+	chainID := cast.ToString(appOpts.Get(flags.FlagChainID))
+	if chainID == "" {
+		// fallback to genesis chain-id
+		genDocFile := filepath.Join(homeDir, cast.ToString(appOpts.Get("genesis_file")))
+		appGenesis, err := genutiltypes.AppGenesisFromFile(genDocFile)
+		if err != nil {
+			panic(err)
+		}
+		chainID = appGenesis.ChainID
+	}
+
 	pruningOpts, err := sdkserver.GetPruningOptionsFromFlags(appOpts)
 	if err != nil {
 		panic(err)
 	}
 
-	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
+	snapshotDir := filepath.Join(homeDir, "data", "snapshots")
 	snapshotDB, err := dbm.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
 	if err != nil {
 		panic(err)
@@ -246,11 +296,14 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		cast.ToUint32(appOpts.Get(sdkserver.FlagStateSyncSnapshotKeepRecent)),
 	)
 	return app.New(
-		logger, db, traceStore, true, skipUpgradeHeights,
+		logger,
+		db,
+		traceStore,
+		true,
+		skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
-		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
-		a.encCfg,
 		appOpts,
+		baseapp.SetChainID(chainID),
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(gasPrice),
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(sdkserver.FlagMinRetainBlocks))),
@@ -262,12 +315,10 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
 		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(sdkserver.FlagIAVLCacheSize))),
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(sdkserver.FlagDisableIAVLFastNode))),
-		baseapp.SetChainID(fxtypes.ChainId()),
 	)
 }
 
-// appExport creates a new simapp (optionally at a given height)
-func (a appCreator) appExport(
+func appExport(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
@@ -285,7 +336,7 @@ func (a appCreator) appExport(
 
 	if height != -1 {
 		anApp = app.New(logger, db, traceStore, false, map[int64]bool{},
-			homePath, cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)), a.encCfg, appOpts,
+			homePath, appOpts,
 		)
 
 		if err := anApp.LoadHeight(height); err != nil {
@@ -293,7 +344,7 @@ func (a appCreator) appExport(
 		}
 	} else {
 		anApp = app.New(logger, db, traceStore, true, map[int64]bool{},
-			homePath, cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)), a.encCfg, appOpts,
+			homePath, appOpts,
 		)
 	}
 

@@ -47,7 +47,7 @@ func init() {
 }
 
 func GetDefGasPrice() sdk.Coin {
-	return sdk.NewCoin(DefaultDenom, sdk.NewInt(4_000).MulRaw(1e9))
+	return sdk.NewCoin(DefaultDenom, sdkmath.NewInt(4_000).MulRaw(1e9))
 }
 
 func GetDefaultNodeHome() string {
@@ -67,7 +67,7 @@ func SetConfig(isCosmosCoinType bool) {
 	}
 	config.Seal()
 
-	if err := sdk.RegisterDenom(DefaultDenom, sdk.NewDecWithPrec(1, 18)); err != nil {
+	if err := sdk.RegisterDenom(DefaultDenom, sdkmath.LegacyNewDecWithPrec(1, 18)); err != nil {
 		panic(err)
 	}
 }

@@ -66,7 +66,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 	}
 	refundPackFunc := func(moduleName string, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-		externalTx, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+		externalTx, err := queryServer.GetPendingSendToExternal(suite.ctx,
 			&crosschaintypes.QueryPendingSendToExternalRequest{
 				ChainName:     moduleName,
 				SenderAddress: signer.AccAddress().String(),
@@ -95,7 +95,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -115,7 +115,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -213,7 +213,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -265,7 +265,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -465,7 +465,7 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 
 	coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 	helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-	_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+	_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 		Coin:     coin,
 		Receiver: signer.Address().Hex(),
 		Sender:   signer.AccAddress().String(),

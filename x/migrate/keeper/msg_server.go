@@ -55,7 +55,7 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 
 	defer func() {
 		telemetry.IncrCounter(1,
-			types.ModuleName, msg.Type(),
+			types.ModuleName, sdk.MsgTypeURL(msg),
 		)
 	}()
 

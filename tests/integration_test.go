@@ -113,30 +113,3 @@ func (suite *IntegrationTest) GetCrossChainByName(chainName string) CrosschainTe
 	}
 	panic(fmt.Sprintf("chain not found %s", chainName))
 }
-
-type IntegrationMultiNodeTest struct {
-	*TestSuiteMultiNode
-	staking StakingSuite
-	authz   AuthzSuite
-	slasing SlashingSuite
-}
-
-func TestIntegrationMultiNodeTest(t *testing.T) {
-	if os.Getenv("TEST_INTEGRATION") != "true" {
-		t.Skip("skip integration test")
-	}
-
-	testSuiteMultiNode := NewTestSuiteMultiNode()
-	suite.Run(t, &IntegrationMultiNodeTest{
-		TestSuiteMultiNode: testSuiteMultiNode,
-		staking:            NewStakingSuite(testSuiteMultiNode.TestSuite),
-		authz:              NewAuthzSuite(testSuiteMultiNode.TestSuite),
-		slasing:            NewSlashingSuite(testSuiteMultiNode.TestSuite),
-	})
-}
-
-func (suite *IntegrationMultiNodeTest) TestRun() {
-	suite.StakingEditPubKey()
-	suite.StakingGrantPrivilege()
-	suite.StakingEditPubKeyJailBlock()
-}

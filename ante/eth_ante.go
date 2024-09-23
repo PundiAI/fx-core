@@ -2,7 +2,6 @@ package ante
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 	evmante "github.com/evmos/ethermint/app/ante"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
@@ -27,7 +26,7 @@ func (d TxListenerDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate boo
 	if ctx.IsCheckTx() && !simulate && d.pendingTxListener != nil {
 		for _, msg := range tx.GetMsgs() {
 			if ethTx, ok := msg.(*evmtypes.MsgEthereumTx); ok {
-				d.pendingTxListener(common.HexToHash(ethTx.Hash))
+				d.pendingTxListener(ethTx.Hash())
 			}
 		}
 	}

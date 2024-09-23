@@ -73,8 +73,8 @@ func (k Keeper) UnbondedOracleFromProposal(ctx sdk.Context, oracle types.Oracle)
 	if err != nil {
 		return err
 	}
-	msgUndelegate := stakingtypes.NewMsgUndelegate(delegateAddr, valAddr, types.NewDelegateAmount(getOracleDelegateToken))
-	if _, err = k.stakingMsgServer.Undelegate(sdk.WrapSDKContext(ctx), msgUndelegate); err != nil {
+	msgUndelegate := stakingtypes.NewMsgUndelegate(delegateAddr.String(), valAddr.String(), types.NewDelegateAmount(getOracleDelegateToken))
+	if _, err = k.stakingMsgServer.Undelegate(ctx, msgUndelegate); err != nil {
 		return err
 	}
 

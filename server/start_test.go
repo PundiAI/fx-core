@@ -21,9 +21,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/app"
 	fxserver "github.com/functionx/fx-core/v8/server"
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
 
 var errCancelledInPreRun = errors.New("cancelled in prerun")
@@ -415,16 +415,16 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	tempDir := t.TempDir()
 	err := os.Mkdir(filepath.Join(tempDir, "config"), os.ModePerm)
 	require.NoError(t, err)
-	encCfg := app.MakeEncodingConfig()
 
+	myApp := helpers.NewApp()
 	// Run InitCmd to create necessary config files.
-	clientCtx := client.Context{}.WithHomeDir(tempDir).WithCodec(encCfg.Codec).WithViper("")
+	clientCtx := client.Context{}.WithHomeDir(tempDir).WithCodec(myApp.AppCodec()).WithViper("")
 	clientCtx, err = sdkcfg.ReadFromClientConfig(clientCtx)
 	require.NoError(t, err)
 	serverCtx := server.NewDefaultContext()
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
-	cmd := genutilcli.InitCmd(app.ModuleBasics, tempDir)
+	cmd := genutilcli.InitCmd(myApp.ModuleBasics, tempDir)
 	cmd.SetArgs([]string{"appnode-test"})
 	err = cmd.ExecuteContext(ctx)
 	require.NoError(t, err)

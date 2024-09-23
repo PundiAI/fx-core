@@ -431,7 +431,7 @@ func (suite *CrosschainTestSuite) SendIncreaseBridgeFee(txId uint64, bridgeFee s
 
 func (suite *CrosschainTestSuite) CheckIncreaseBridgeFee(sender sdk.AccAddress, txId uint64) {
 	unbatchedTxs := suite.QueryPendingUnbatchedTx(sender)
-	bridgeFee := sdk.ZeroInt()
+	bridgeFee := sdkmath.ZeroInt()
 	bridgeToken := ""
 	for _, tx := range unbatchedTxs {
 		if tx.Id != txId {

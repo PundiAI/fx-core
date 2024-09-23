@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -30,7 +31,7 @@ func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, 
 // IterateOracleSetConfirmByNonce iterates through all oracleSet confirms by nonce
 func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(*types.MsgOracleSetConfirm) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetOracleSetConfirmKey(nonce, sdk.AccAddress{}))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetOracleSetConfirmKey(nonce, sdk.AccAddress{}))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -45,7 +46,7 @@ func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb
 
 func (k Keeper) DeleteOracleSetConfirm(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetOracleSetConfirmKey(nonce, sdk.AccAddress{}))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetOracleSetConfirmKey(nonce, sdk.AccAddress{}))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

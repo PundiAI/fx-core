@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,14 +10,14 @@ import (
 	"testing"
 	"time"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/crypto/ed25519"
-	"github.com/cometbft/cometbft/libs/log"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -25,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -33,20 +33,20 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/functionx/fx-core/v8/app"
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func Test_ExportGenesisAndRunNode(t *testing.T) {
 	helpers.SkipTest(t, "Skipping local test:", t.Name())
 
 	fxtypes.SetConfig(true)
-	encCfg := app.MakeEncodingConfig()
+	myApp := helpers.NewApp()
 
 	home := filepath.Join(os.Getenv("HOME"), "tmp/export")
 	require.NoError(t, os.RemoveAll(home))
@@ -58,7 +58,7 @@ func Test_ExportGenesisAndRunNode(t *testing.T) {
 	exportHome := filepath.Join(os.Getenv("HOME"), "tmp")
 	genesisDoc := exportGenesisDoc(t, exportHome)
 	genesisDoc.ChainID = chainId
-	updateGenesisState(t, home, encCfg.Codec, genesisDoc)
+	updateGenesisState(t, home, myApp.AppCodec(), genesisDoc)
 	require.NoError(t, genesisDoc.SaveAs(genesisFile))
 
 	appCfg := fxcfg.DefaultConfig()
@@ -70,13 +70,13 @@ func Test_ExportGenesisAndRunNode(t *testing.T) {
 	clientCtx := client.Context{}.
 		WithHomeDir(home).
 		WithChainID(chainId).
-		WithInterfaceRegistry(encCfg.InterfaceRegistry).
-		WithCodec(encCfg.Codec).
-		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(myApp.InterfaceRegistry()).
+		WithCodec(myApp.AppCodec()).
+		WithTxConfig(myApp.GetTxConfig()).
 		WithAccountRetriever(authtypes.AccountRetriever{})
 
 	srvCtx := server.NewDefaultContext()
-	srvCtx.Logger = log.NewTMLogger(os.Stdout)
+	srvCtx.Logger = log.NewTestLogger(t)
 	srvCtx.Config.Moniker = "moniker"
 	srvCtx.Config.DBBackend = string(dbm.MemDBBackend)
 	srvCtx.Config.Consensus = tmcfg.TestConsensusConfig()
@@ -95,14 +95,14 @@ func Test_ExportGenesisAndRunNode(t *testing.T) {
 		ClientCtx: clientCtx,
 		Ctx:       srvCtx,
 	}
-	require.NoError(t, network.StartInProcess(func(appConfig *fxcfg.Config, ctx *server.Context) servertypes.Application {
-		return app.New(
-			ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool),
-			ctx.Config.RootDir, 0, encCfg, ctx.Viper,
-			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(appConfig.Pruning)),
-			baseapp.SetMinGasPrices(appConfig.MinGasPrices),
-		)
-	}, &val))
+	ctx := context.Background()
+	group, ctx := errgroup.WithContext(ctx)
+	myAppConstructor := func(appConfig *fxcfg.Config, ctx *server.Context) servertypes.Application {
+		return helpers.NewApp(func(opts helpers.AppOpts) {
+			opts.Home = ctx.Config.RootDir
+		})
+	}
+	require.NoError(t, network.StartInProcess(ctx, group, myAppConstructor, &val))
 	select {}
 }
 
@@ -110,12 +110,11 @@ func exportGenesisDoc(t *testing.T, home string) *types.GenesisDoc {
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
 	require.NoError(t, err)
 
-	appEncodingCfg := app.MakeEncodingConfig()
-	logger := log.NewTMLogger(os.Stdout)
-	myApp := app.New(logger, db,
-		nil, true, map[int64]bool{}, home, 0,
-		appEncodingCfg, app.EmptyAppOptions{},
-	)
+	myApp := helpers.NewApp(func(opts helpers.AppOpts) {
+		opts.Logger = log.NewTestLogger(t)
+		opts.Home = home
+		opts.DB = db
+	})
 	exportedApp, err := myApp.ExportAppStateAndValidators(false, []string{}, []string{})
 	require.NoError(t, err)
 	genesisDoc := &types.GenesisDoc{
@@ -141,7 +140,7 @@ func updateGenesisState(t *testing.T, home string, cdc codec.Codec, genesisDoc *
 }
 
 func updateStakingGenesisState(cdc codec.Codec, appState app.GenesisState, newPubKey *codectypes.Any) stakingtypes.Validator {
-	stakingGenesisState := new(fxstakingtypes.GenesisState)
+	stakingGenesisState := new(stakingtypes.GenesisState)
 	cdc.MustUnmarshalJSON(appState[stakingtypes.ModuleName], stakingGenesisState)
 	sort.Slice(stakingGenesisState.Validators, func(i, j int) bool {
 		return stakingGenesisState.Validators[i].ConsensusPower(sdk.DefaultPowerReduction) > stakingGenesisState.Validators[j].ConsensusPower(sdk.DefaultPowerReduction)
@@ -158,7 +157,7 @@ func updateStakingGenesisState(cdc codec.Codec, appState app.GenesisState, newPu
 	}
 	for i := 0; i < len(stakingGenesisState.LastValidatorPowers); i++ {
 		if stakingGenesisState.LastValidatorPowers[i].Address == validator.OperatorAddress {
-			stakingGenesisState.LastTotalPower = sdk.NewInt(stakingGenesisState.LastValidatorPowers[i].Power)
+			stakingGenesisState.LastTotalPower = sdkmath.NewInt(stakingGenesisState.LastValidatorPowers[i].Power)
 			stakingGenesisState.LastValidatorPowers = []stakingtypes.LastValidatorPower{
 				stakingGenesisState.LastValidatorPowers[i],
 			}
@@ -212,7 +211,7 @@ func newPrivValidatorKey(t *testing.T, home string) *codectypes.Any {
 	filePV := privval.NewFilePV(ed25519.GenPrivKeyFromSecret(secret), privKeyFile, privStateFile)
 	filePV.Save()
 
-	pubkey, err := cryptocodec.FromTmPubKeyInterface(filePV.Key.PubKey)
+	pubkey, err := cryptocodec.FromCmtPubKeyInterface(filePV.Key.PubKey)
 	require.NoError(t, err)
 	pubAny, err := codectypes.NewAnyWithValue(pubkey)
 	require.NoError(t, err)

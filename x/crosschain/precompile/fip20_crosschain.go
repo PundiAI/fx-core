@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain/legacy"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
@@ -72,9 +71,6 @@ func (m *FIP20CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte,
 			return err
 		}
 		EmitEvent(evm, data, topic)
-
-		legacy.Fip20CrossChainEvents(ctx, args.Sender, tokenPair.GetERC20Contract(), args.Receipt,
-			fxtypes.Byte32ToString(args.Target), tokenPair.GetDenom(), args.Amount, args.Fee)
 		return nil
 	}); err != nil {
 		return nil, err

@@ -7,8 +7,6 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type PubKeyDecorator struct {
@@ -29,9 +27,12 @@ func (pkd PubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool,
 	if err != nil {
 		return ctx, err
 	}
-	signers := sigTx.GetSigners()
+	signers, err := sigTx.GetSigners()
+	if err != nil {
+		return ctx, err
+	}
 	for i := range pubkeys {
-		if err = checkPubKey(ctx, pkd.ak, signers[i]); err != nil {
+		if err = checkPubKeyDisabled(ctx, pkd.ak, signers[i]); err != nil {
 			return ctx, err
 		}
 	}
@@ -55,7 +56,7 @@ func (epkd EthPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 		}
 
 		from := common.BytesToAddress(msgEthTx.From)
-		if err := checkPubKey(ctx, epkd.ak, from.Bytes()); err != nil {
+		if err := checkPubKeyDisabled(ctx, epkd.ak, from.Bytes()); err != nil {
 			return ctx, err
 		}
 	}
@@ -63,10 +64,19 @@ func (epkd EthPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 	return next(ctx, tx, simulate)
 }
 
-func checkPubKey(ctx sdk.Context, ak ante.AccountKeeper, address sdk.AccAddress) error {
+func checkPubKeyDisabled(ctx sdk.Context, ak ante.AccountKeeper, address sdk.AccAddress) error {
 	signerAcc, err := ante.GetSignerAcc(ctx, ak, address)
 	if err != nil {
 		return err
 	}
-	return fxstakingtypes.CheckPubKey(signerAcc.GetPubKey())
+	pubKey := signerAcc.GetPubKey()
+	if pubKey == nil {
+		return nil
+	}
+	for _, b := range pubKey.Bytes() {
+		if b != 0xff {
+			return nil
+		}
+	}
+	return sdkerrors.ErrInvalidAddress.Wrap("account disabled")
 }

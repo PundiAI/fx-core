@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -50,7 +51,7 @@ func (k Keeper) GetOracleDelegateMultiple(ctx sdk.Context) int64 {
 	return k.GetParams(ctx).DelegateMultiple
 }
 
-func (k Keeper) GetSlashFraction(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetSlashFraction(ctx sdk.Context) sdkmath.LegacyDec {
 	return k.GetParams(ctx).SlashFraction
 }
 
@@ -62,7 +63,7 @@ func (k Keeper) GetIbcTransferTimeoutHeight(ctx sdk.Context) uint64 {
 	return k.GetParams(ctx).IbcTransferTimeoutHeight
 }
 
-func (k Keeper) GetOracleSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetOracleSetUpdatePowerChangePercent(ctx sdk.Context) sdkmath.LegacyDec {
 	return k.GetParams(ctx).OracleSetUpdatePowerChangePercent
 }
 

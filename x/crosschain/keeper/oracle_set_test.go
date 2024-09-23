@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 		})
 	}
 
-	wrapSDKContext := sdk.WrapSDKContext(suite.ctx)
+	wrapSDKContext := suite.ctx
 	for _, testCase := range testCases {
 		oracle := types.Oracle{
 			OracleAddress:  testCase.OracleAddress.String(),

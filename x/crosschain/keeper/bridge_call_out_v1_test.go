@@ -17,7 +17,14 @@ import (
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.bondedOracle()
+	oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0])
+	suite.Require().True(found)
+	suite.Require().EqualValues(oracleAddr.Bytes(), suite.oracleAddrs[0].Bytes())
 	suite.Commit()
+
+	oracleAddr, found = suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0])
+	suite.Require().True(found)
+	suite.Require().EqualValues(oracleAddr.Bytes(), suite.oracleAddrs[0].Bytes())
 
 	bridgeToken := helpers.GenHexAddress()
 	bridgeTokenStr := types.ExternalAddrToStr(suite.chainName, bridgeToken.Bytes())
@@ -32,7 +39,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0]) + 1,
 		BlockHeight:    uint64(randomBlock),
 		TokenContract:  bridgeTokenStr,
-		Amount:         sdk.NewInt(randomAmount),
+		Amount:         sdkmath.NewInt(randomAmount),
 		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenHexAddress().Bytes()),
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      "",
@@ -50,7 +57,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		Sender:    sdk.AccAddress(fxAddr1.Bytes()).String(),
 		Refund:    bridgeCallRefundAddr.String(),
 		Coins:     sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewInt(randomAmount))),
-		Value:     sdk.ZeroInt(),
+		Value:     sdkmath.ZeroInt(),
 	})
 	suite.NoError(err)
 
@@ -68,7 +75,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0]) + 1,
 		BlockHeight:    outgoingBridgeCall.Timeout,
 		TokenContract:  bridgeTokenStr,
-		Amount:         sdk.NewInt(randomAmount),
+		Amount:         sdkmath.NewInt(randomAmount),
 		Sender:         types.ExternalAddrToStr(suite.chainName, helpers.GenHexAddress().Bytes()),
 		Receiver:       sdk.AccAddress(fxAddr1.Bytes()).String(),
 		TargetIbc:      hex.EncodeToString([]byte(fxtypes.ERC20Target)),

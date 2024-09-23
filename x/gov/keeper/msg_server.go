@@ -9,12 +9,13 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/armon/go-metrics"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/hashicorp/go-metrics"
 
 	"github.com/functionx/fx-core/v8/x/gov/types"
 )
@@ -24,7 +25,7 @@ type msgServer struct {
 	*Keeper
 }
 
-// NewMsgServerImpl returns an implementation of the gov MsgServer interface
+// NewMsgServerImpl returns an implementation of the gov msgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(m v1.MsgServer, k *Keeper) types.MsgServerPro {
 	return &msgServer{MsgServer: m, Keeper: k}
@@ -59,7 +60,7 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 		msgType = sdk.MsgTypeURL(pMsg)
 	}
 
-	proposal, err := k.Keeper.SubmitProposal(ctx, proposalMsgs, msg.Metadata, msg.Title, msg.Summary, proposer)
+	proposal, err := k.Keeper.SubmitProposal(ctx, proposalMsgs, msg.Metadata, msg.Title, msg.Summary, proposer, false)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +77,7 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 
 	minInitialDeposit := k.Keeper.GetMinInitialDeposit(ctx, types.ExtractMsgTypeURL(proposal.Messages))
 
-	if sdk.Coins(msgInitialDeposit).IsAllLT(sdk.NewCoins(minInitialDeposit)) {
+	if msgInitialDeposit.IsAllLT(sdk.NewCoins(minInitialDeposit)) {
 		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msgInitialDeposit, minInitialDeposit)
 	}
 
@@ -185,8 +186,11 @@ func (k msgServer) UpdateSwitchParams(c context.Context, req *types.MsgUpdateSwi
 // required at the time of proposal submission. This threshold amount is determined by
 // the deposit parameters. Returns nil on success, error otherwise.
 func (keeper Keeper) validateInitialDeposit(ctx sdk.Context, initialDeposit sdk.Coins) error {
-	params := keeper.GetParams(ctx)
-	minInitialDepositRatio, err := sdk.NewDecFromStr(params.MinInitialDepositRatio)
+	params, err := keeper.Keeper.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
+	minInitialDepositRatio, err := sdkmath.LegacyNewDecFromStr(params.MinInitialDepositRatio)
 	if err != nil {
 		return err
 	}
@@ -195,7 +199,7 @@ func (keeper Keeper) validateInitialDeposit(ctx sdk.Context, initialDeposit sdk.
 	}
 	minDepositCoins := params.MinDeposit
 	for i := range minDepositCoins {
-		minDepositCoins[i].Amount = sdk.NewDecFromInt(minDepositCoins[i].Amount).Mul(minInitialDepositRatio).RoundInt()
+		minDepositCoins[i].Amount = sdkmath.LegacyNewDecFromInt(minDepositCoins[i].Amount).Mul(minInitialDepositRatio).RoundInt()
 	}
 	if !initialDeposit.IsAllGTE(minDepositCoins) {
 		return govtypes.ErrMinDepositTooSmall.Wrapf("was (%s), need (%s)", initialDeposit, minDepositCoins)

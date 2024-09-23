@@ -1,6 +1,14 @@
 package app
 
 import (
+	"cosmossdk.io/x/evidence"
+	evidencetypes "cosmossdk.io/x/evidence/types"
+	"cosmossdk.io/x/feegrant"
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
+	"cosmossdk.io/x/upgrade"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -10,18 +18,12 @@ import (
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/capability"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/cosmos/cosmos-sdk/x/evidence"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
@@ -34,15 +36,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/modules/capability"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -53,9 +53,7 @@ import (
 	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
 	"github.com/functionx/fx-core/v8/x/bsc"
 	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
-	crosschainclient "github.com/functionx/fx-core/v8/x/crosschain/client"
 	"github.com/functionx/fx-core/v8/x/erc20"
-	erc20client "github.com/functionx/fx-core/v8/x/erc20/client"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	"github.com/functionx/fx-core/v8/x/eth"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
@@ -97,66 +95,14 @@ var maccPerms = map[string][]string{
 	erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
 }
 
-// ModuleBasics defines the module BasicManager is in charge of setting up basic,
-// non-dependant module elements, such as codec registration
-// and genesis verification.
-var ModuleBasics = module.NewBasicManager(
-	auth.AppModuleBasic{},
-	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-	bank.AppModuleBasic{},
-	capability.AppModuleBasic{},
-	fxstaking.AppModuleBasic{},
-	mint.AppModuleBasic{},
-	distr.AppModuleBasic{},
-	fxgov.NewAppModuleBasic([]govclient.ProposalHandler{
-		paramsclient.ProposalHandler,
-		upgradeclient.LegacyProposalHandler,
-		upgradeclient.LegacyCancelProposalHandler,
-		ibcclientclient.UpdateClientProposalHandler,
-		ibcclientclient.UpgradeProposalHandler,
-		erc20client.LegacyRegisterCoinProposalHandler,
-		erc20client.LegacyRegisterERC20ProposalHandler,
-		erc20client.LegacyToggleTokenConversionProposalHandler,
-		erc20client.LegacyUpdateDenomAliasProposalHandler,
-		crosschainclient.LegacyUpdateChainOraclesProposalHandler,
-	}),
-	params.AppModuleBasic{},
-	crisis.AppModuleBasic{},
-	slashing.AppModuleBasic{},
-	feegrantmodule.AppModuleBasic{},
-	authzmodule.AppModuleBasic{},
-	ibc.AppModuleBasic{},
-	ibctm.AppModuleBasic{},
-	upgrade.AppModuleBasic{},
-	evidence.AppModuleBasic{},
-	ibctransfer.AppModuleBasic{},
-	fxibctransfer.AppModuleBasic{},
-	vesting.AppModuleBasic{},
-	bsc.AppModuleBasic{},
-	polygon.AppModuleBasic{},
-	avalanche.AppModuleBasic{},
-	eth.AppModuleBasic{},
-	tron.AppModuleBasic{},
-	arbitrum.AppModule{},
-	optimism.AppModule{},
-	layer2.AppModule{},
-	fxevm.AppModuleBasic{},
-	feemarket.AppModuleBasic{},
-	erc20.AppModuleBasic{},
-	migrate.AppModuleBasic{},
-	consensus.AppModuleBasic{},
-)
-
 func appModules(
 	app *App,
-	encodingConfig EncodingConfig,
+	appCodec codec.Codec,
+	txConfig client.TxEncodingConfig,
 	skipGenesisInvariants bool,
 ) []module.AppModule {
-	appCodec := encodingConfig.Codec
 	return []module.AppModule{
-		genutil.NewAppModule(
-			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig,
-		),
+		genutil.NewAppModule(app.AccountKeeper, app.StakingKeeper, app, txConfig),
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
@@ -164,13 +110,14 @@ func appModules(
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)),
 		fxgov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper.Keeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName)),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
 		fxstaking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
-		upgrade.NewAppModule(app.UpgradeKeeper),
+		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-		authzmodule.NewAppModule(appCodec, app.AuthzKeeper.Keeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		ibctm.NewAppModule(),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 
@@ -190,6 +137,22 @@ func appModules(
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	}
+}
+
+func newBasicManagerFromManager(app *App) module.BasicManager {
+	basicManager := module.NewBasicManagerFromManager(
+		app.mm,
+		map[string]module.AppModuleBasic{
+			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+			govtypes.ModuleName: fxgov.NewAppModuleBasic(
+				[]govclient.ProposalHandler{
+					paramsclient.ProposalHandler,
+				},
+			),
+		})
+	basicManager.RegisterLegacyAminoCodec(app.legacyAmino)
+	basicManager.RegisterInterfaces(app.interfaceRegistry)
+	return basicManager
 }
 
 // orderBeginBlockers Tell the app's module manager how to set the order of
@@ -228,6 +191,7 @@ func orderBeginBlockers() []string {
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 
+		ibctm.ModuleName,
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
 		ibcexported.ModuleName,
@@ -269,6 +233,7 @@ func orderEndBlockers() []string {
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 
+		ibctm.ModuleName,
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
 		ibcexported.ModuleName,
@@ -310,6 +275,7 @@ func orderInitBlockers() []string {
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 
+		ibctm.ModuleName,
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
 		ibcexported.ModuleName,
@@ -338,7 +304,9 @@ func ModuleAccountAddrs() map[string]bool {
 // BlockedAccountAddrs returns all the app's blocked module account addresses.
 func BlockedAccountAddrs() map[string]bool {
 	modAccAddrs := ModuleAccountAddrs()
-	// allow the following addresses to receive funds
+	// remove module accounts that are ALLOWED to received funds
 	delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	// Remove the ConsumerRewardsPool from the group of blocked recipient addresses in bank
+	// delete(modAccAddrs, authtypes.NewModuleAddress(providertypes.ConsumerRewardsPool).String())
 	return modAccAddrs
 }

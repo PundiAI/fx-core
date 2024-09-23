@@ -85,15 +85,6 @@ func (s *StakingPrecompileSuite) Approve(validator sdk.ValAddress, spender commo
 	return s.EthereumTx(data, nil, method.RequiredGas(), success)
 }
 
-func (s *StakingPrecompileSuite) Delegate(validator sdk.ValAddress, amount *big.Int, success bool) *evmtypes.MsgEthereumTxResponse {
-	method := precompile.NewDelegateMethod(nil)
-	data, err := method.PackInput(fxstakingtypes.DelegateArgs{
-		Validator: validator.String(),
-	})
-	s.NoError(err)
-	return s.EthereumTx(data, amount, method.RequiredGas(), success)
-}
-
 func (s *StakingPrecompileSuite) TransferShares(validator sdk.ValAddress, to common.Address, shares *big.Int, success bool) *evmtypes.MsgEthereumTxResponse {
 	method := precompile.NewTransferSharesMethod(nil)
 	data, err := method.PackInput(fxstakingtypes.TransferSharesArgs{
@@ -111,16 +102,6 @@ func (s *StakingPrecompileSuite) TransferFromShares(validator sdk.ValAddress, fr
 		Validator: validator.String(),
 		From:      from,
 		To:        to,
-		Shares:    shares,
-	})
-	s.NoError(err)
-	return s.EthereumTx(data, nil, method.RequiredGas(), success)
-}
-
-func (s *StakingPrecompileSuite) Undelegate(validator sdk.ValAddress, shares *big.Int, success bool) *evmtypes.MsgEthereumTxResponse {
-	method := precompile.NewUndelegateMethod(nil)
-	data, err := method.PackInput(fxstakingtypes.UndelegateArgs{
-		Validator: validator.String(),
 		Shares:    shares,
 	})
 	s.NoError(err)

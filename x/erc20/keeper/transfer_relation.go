@@ -13,7 +13,7 @@ func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, se
 		return
 	}
 	cacheCtx, commit := ctx.CacheContext()
-	_, err := k.ConvertCoin(sdk.WrapSDKContext(cacheCtx), &types.MsgConvertCoin{
+	_, err := k.ConvertCoin(cacheCtx, &types.MsgConvertCoin{
 		Coin:     amount,
 		Receiver: common.BytesToAddress(sender.Bytes()).String(),
 		Sender:   sender.String(),
@@ -45,7 +45,7 @@ func (k Keeper) DeleteIBCTransferRelation(ctx sdk.Context, channel string, seque
 }
 
 func (k Keeper) HookOutgoingRefund(ctx sdk.Context, moduleName string, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error {
-	if _, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
+	if _, err := k.ConvertCoin(ctx, &types.MsgConvertCoin{
 		Coin:     totalCoin,
 		Receiver: common.BytesToAddress(sender.Bytes()).String(),
 		Sender:   sender.String(),

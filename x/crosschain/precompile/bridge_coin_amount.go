@@ -45,7 +45,7 @@ func (m *BridgeCoinAmountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 	}
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-	ctx := stateDB.CacheContext()
+	ctx := stateDB.Context()
 
 	pair, has := m.erc20Keeper.GetTokenPair(ctx, args.Token.Hex())
 	if !has {

@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -27,14 +27,12 @@ type Erc20Keeper interface {
 }
 
 type BankKeeper interface {
-	GetSupply(ctx sdk.Context, denom string) sdk.Coin
-	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
-	MintCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
-	BurnCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
-	GetDenomMetaData(ctx sdk.Context, denom string) (banktypes.Metadata, bool)
+	GetSupply(ctx context.Context, denom string) sdk.Coin
+	GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	MintCoins(ctx context.Context, moduleName string, amounts sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	GetDenomMetaData(ctx context.Context, denom string) (banktypes.Metadata, bool)
 }
 
 type IBCTransferKeeper interface {

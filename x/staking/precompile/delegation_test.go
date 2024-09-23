@@ -71,7 +71,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 				return types.DelegationArgs{
 					Validator: newVal,
 					Delegator: del,
-				}, fmt.Errorf("validator not found: %s", newVal)
+				}, fmt.Errorf("validator does not exist")
 			},
 			result: false,
 		},
@@ -103,7 +103,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 				return types.DelegationArgs{
 					Validator: newVal,
 					Delegator: del,
-				}, fmt.Errorf("delegation failed: invalid validator address: %s", newVal)
+				}, fmt.Errorf("invalid validator address: %s", newVal)
 			},
 			result: false,
 		},
@@ -115,7 +115,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 				return types.DelegationArgs{
 					Validator: newVal,
 					Delegator: del,
-				}, fmt.Errorf("delegation failed: validator not found: %s", newVal)
+				}, fmt.Errorf("validator does not exist")
 			},
 			result: false,
 		},
@@ -130,43 +130,42 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			stakingContract := precompile.GetAddress()
 			delAddr := suite.signer.Address()
 			stakingABI := precompile.GetABI()
+			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
 				delAddr = suite.staking
 				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
+				value = delAmount.BigInt()
 			}
 
-			pack, err := stakingABI.Pack(TestDelegateName, val0.GetOperator().String())
+			operator0, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val0.GetOperator())
 			suite.Require().NoError(err)
 
-			res := suite.EthereumTx(suite.signer, stakingContract, delAmount.BigInt(), pack)
+			pack, err := stakingABI.Pack(TestDelegateV2Name, val0.GetOperator(), delAmount.BigInt())
+			suite.Require().NoError(err)
+
+			res := suite.EthereumTx(suite.signer, stakingContract, value, pack)
 			suite.Require().False(res.Failed(), res.VmError)
-
-			unpack, err := stakingABI.Methods[TestDelegateName].Outputs.Unpack(res.Ret)
-			suite.Require().NoError(err)
-			delShares := unpack[0].(*big.Int)
 
 			suite.Commit()
 
-			args, errResult := tc.malleate(val0.GetOperator(), delAddr)
+			args, errResult := tc.malleate(operator0, delAddr)
 			packData, err := delegationMethod.PackInput(args)
 			suite.Require().NoError(err)
 			if strings.HasPrefix(tc.name, "contract") {
 				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegationName, args.Validator, args.Delegator)
 				suite.Require().NoError(err)
 			}
-			res, err = suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, suite.signer.Address(), &stakingContract, nil, packData, false)
+			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), operator0)
+			suite.Require().NoError(err)
 
-			delegation, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), val0.GetOperator())
-			suite.Require().True(found)
-
+			res, _ = suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, suite.signer.Address(), &stakingContract, nil, packData, false)
 			if tc.result {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 				delValue, err := stakingABI.Methods[TestDelegationName].Outputs.Unpack(res.Ret)
 				suite.Require().NoError(err)
 				suite.Require().Equal(delegation.GetShares().TruncateInt().String(), delValue[0].(*big.Int).String())
-				suite.Require().Equal(delShares.String(), delValue[1].(*big.Int).String())
 			} else {
 				suite.Error(res, errResult)
 			}

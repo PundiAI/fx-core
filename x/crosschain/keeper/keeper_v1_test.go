@@ -7,7 +7,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -109,11 +108,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{
-		ChainID:         fxtypes.MainnetChainId,
-		Height:          suite.app.LastBlockHeight() + 1,
-		ProposerAddress: valSet.Proposer.Address.Bytes(),
-	})
+	suite.ctx = suite.app.GetContextForFinalizeBlock(nil)
 
 	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))
 	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
@@ -176,4 +171,9 @@ func (suite *KeeperTestSuite) SendClaimReturnErr(externalClaim types.ExternalCla
 	suite.Require().NoError(err)
 	_, err = suite.MsgServer().Claim(suite.ctx, &types.MsgClaim{Claim: value})
 	return err
+}
+
+func (suite *KeeperTestSuite) EndBlocker() {
+	_, err := suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 }

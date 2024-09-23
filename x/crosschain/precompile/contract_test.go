@@ -10,25 +10,23 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
+	storetypes "cosmossdk.io/store/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -74,14 +72,9 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+1, nil)
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{
-		Height:          suite.app.LastBlockHeight(),
-		ChainID:         fxtypes.ChainId(),
-		ProposerAddress: set.Proposer.Address,
-		Time:            time.Now().UTC(),
-	})
+	suite.ctx = suite.app.NewContext(false)
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
-	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
+	suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e18))
 
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
 
@@ -98,7 +91,7 @@ func (suite *PrecompileTestSuite) SetupSubTest() {
 
 func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.Address, amount *big.Int, data []byte) *evmtypes.MsgEthereumTxResponse {
 	ethTx := evmtypes.NewTx(
-		fxtypes.EIP155ChainID(),
+		fxtypes.EIP155ChainID(suite.ctx.ChainID()),
 		suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
 		&to,
 		amount,
@@ -110,29 +103,29 @@ func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.A
 		nil,
 	)
 	ethTx.From = signer.Address().Bytes()
-	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
+	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID(suite.ctx.ChainID())), signer)
 	suite.Require().NoError(err)
 
-	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), ethTx)
+	res, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, ethTx)
 	suite.Require().NoError(err)
 	return res
 }
 
 func (suite *PrecompileTestSuite) Commit() {
 	header := suite.ctx.BlockHeader()
-	suite.app.EndBlock(abci.RequestEndBlock{
-		Height: header.Height,
-	})
-	suite.app.Commit()
+	_, err := suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
+	_, err = suite.app.Commit()
+	suite.Require().NoError(err)
 	// after commit ctx header
 	header.Height += 1
 
 	// begin block
 	header.Time = time.Now().UTC()
 	header.Height += 1
-	suite.app.BeginBlock(abci.RequestBeginBlock{
-		Header: header,
-	})
+	suite.ctx = suite.ctx.WithBlockHeader(header)
+	_, err = suite.app.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	suite.ctx = suite.ctx.WithBlockHeight(header.Height)
 }
 
@@ -366,10 +359,10 @@ func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID strin
 	err = suite.app.ScopedTransferKeeper.ClaimCapability(suite.ctx, capabilitytypes.NewCapability(channelCapability.Index), host.ChannelCapabilityPath(portID, channelID))
 	suite.Require().NoError(err)
 
-	connectionEnd := connectiontypes.NewConnectionEnd(connectiontypes.OPEN, clientID, connectiontypes.Counterparty{ClientId: "clientId", ConnectionId: "connection-1", Prefix: commitmenttypes.NewMerklePrefix([]byte("prefix"))}, []*connectiontypes.Version{ibctesting.ConnectionVersion}, 500)
+	connectionEnd := connectiontypes.NewConnectionEnd(connectiontypes.OPEN, clientID, connectiontypes.Counterparty{ClientId: "clientId", ConnectionId: "connection-1", Prefix: commitmenttypes.NewMerklePrefix([]byte("prefix"))}, connectiontypes.GetCompatibleVersions(), 500)
 	suite.app.IBCKeeper.ConnectionKeeper.SetConnection(suite.ctx, connectionID, connectionEnd)
 
-	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(portID, channelID), []string{connectionID}, ibctesting.DefaultChannelVersion)
+	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(portID, channelID), []string{connectionID}, "mock-version")
 	suite.app.IBCKeeper.ChannelKeeper.SetChannel(suite.ctx, portID, channelID, channel)
 	suite.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.ctx, portID, channelID, uint64(tmrand.Intn(10000)+1))
 	suite.app.IBCKeeper.ChannelKeeper.SetNextChannelSequence(suite.ctx, channelSequence+1)
@@ -417,7 +410,7 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
-	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
+	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(suite.ctx,
 		&evmtypes.EthCallRequest{
 			Args:    args,
 			GasCap:  contract.DefaultGasCap,
@@ -443,7 +436,7 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 		SkipAccountChecks: false,
 	}
 
-	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, nil, true)
+	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, &msg, nil, true)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp.VmError)
 	return rsp

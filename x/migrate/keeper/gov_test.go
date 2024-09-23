@@ -1,196 +1,111 @@
 package keeper_test
 
 import (
+	"time"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxgovkeeper "github.com/functionx/fx-core/v8/x/gov/keeper"
 	migratekeeper "github.com/functionx/fx-core/v8/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateGovInactive() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
+	suite.MintToken(suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
-	keys := suite.GenerateAcc(1)
-	suite.Require().Equal(len(keys), 1)
-	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
+	keys := suite.GenerateAcc(2)
+	acc1 := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
+	acc2 := sdk.AccAddress(keys[1].PubKey().Address().Bytes())
+
 	ethKeys := suite.GenerateEthAcc(1)
-	suite.Require().Equal(len(ethKeys), 1)
-	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
+	ethAcc1 := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
-	content, bl := govv1beta1.ContentFromProposalType("title", "description", "Text")
-	suite.Require().True(bl)
-	legacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
+	content, _ := govv1beta1.ContentFromProposalType("title", "description", "Text")
+	legacyContent, _ := govv1.NewLegacyContent(content, suite.govAddr)
+	anys, _ := sdktx.SetMsgs([]sdk.Msg{legacyContent})
+	govImpl := fxgovkeeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.App.GovKeeper.Keeper), suite.App.GovKeeper)
+
+	// submit proposal
+	proposal, err := govImpl.SubmitProposal(suite.Ctx, &govv1.MsgSubmitProposal{
+		Messages:       anys,
+		InitialDeposit: helpers.NewStakingCoins(1000, 18),
+		Proposer:       acc1.String(),
+		Title:          content.GetTitle(),
+		Summary:        content.GetDescription(),
+	})
 	suite.Require().NoError(err)
 
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))))
-
-	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{legacyContent},
-		"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
+	// deposit proposal
+	_, err = govImpl.Deposit(suite.Ctx, &govv1.MsgDeposit{
+		ProposalId: proposal.ProposalId,
+		Depositor:  acc2.String(),
+		Amount:     helpers.NewStakingCoins(1000, 18),
+	})
 	suite.Require().NoError(err)
 
-	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, acc, amount)
-	suite.Require().NoError(err)
+	govParams, _ := suite.App.GovKeeper.Keeper.Params.Get(suite.Ctx)
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(*govParams.MaxDepositPeriod).Add(time.Second))
+	m := migratekeeper.NewGovMigrate(suite.App.GovKeeper, suite.App.AccountKeeper)
 
-	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, acc)
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit1.Amount...))
+	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc1, ethAcc1)
+	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
 
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, ethAcc.Bytes())
-	suite.Require().False(found)
-
-	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
-	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
-	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
-	suite.Require().NoError(err)
-
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, acc)
-	suite.Require().False(found)
-
-	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, ethAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit2.Amount...))
+	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc2, ethAcc1)
+	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
 }
 
 func (suite *KeeperTestSuite) TestMigrateGovActive() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
+	suite.MintToken(suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
-	keys := suite.GenerateAcc(1)
-	suite.Require().Equal(len(keys), 1)
-	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
-	ethKeys := suite.GenerateEthAcc(2)
-	suite.Require().Equal(len(ethKeys), 2)
-	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
-	toEthAcc := common.BytesToAddress(ethKeys[1].PubKey().Address().Bytes())
+	keys := suite.GenerateAcc(2)
+	acc1 := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
+	acc2 := sdk.AccAddress(keys[1].PubKey().Address().Bytes())
 
-	content, bl := govv1beta1.ContentFromProposalType("title", "description", "Text")
-	suite.Require().True(bl)
-	legacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
+	ethKeys := suite.GenerateEthAcc(1)
+	ethAcc1 := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
+
+	content, _ := govv1beta1.ContentFromProposalType("title", "description", "Text")
+	legacyContent, _ := govv1.NewLegacyContent(content, suite.govAddr)
+
+	anys, _ := sdktx.SetMsgs([]sdk.Msg{legacyContent})
+	govImpl := fxgovkeeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.App.GovKeeper.Keeper), suite.App.GovKeeper)
+
+	// submit proposal
+	proposal, err := govImpl.SubmitProposal(suite.Ctx, &govv1.MsgSubmitProposal{
+		Messages:       anys,
+		InitialDeposit: helpers.NewStakingCoins(30000, 18),
+		Proposer:       acc1.String(),
+		Metadata:       "",
+		Title:          content.GetTitle(),
+		Summary:        content.GetDescription(),
+		Expedited:      false,
+	})
 	suite.Require().NoError(err)
 
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(5000))))
-
-	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{legacyContent},
-		"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
+	// vote proposal
+	_, err = govImpl.Vote(suite.Ctx, &govv1.MsgVote{
+		ProposalId: proposal.ProposalId,
+		Voter:      acc2.String(),
+		Option:     govv1.OptionYes,
+	})
 	suite.Require().NoError(err)
 
-	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, acc, amount)
+	// check
+	govParams, err := suite.App.GovKeeper.Keeper.Params.Get(suite.Ctx)
 	suite.Require().NoError(err)
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(*govParams.MaxDepositPeriod).Add(time.Second))
+	m := migratekeeper.NewGovMigrate(suite.App.GovKeeper, suite.App.AccountKeeper)
 
-	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, ethAcc.Bytes(), amount)
-	suite.Require().NoError(err)
+	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc1, ethAcc1)
+	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
 
-	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, acc)
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit1.Amount...))
-
-	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, ethAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit2.Amount...))
-
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, toEthAcc.Bytes())
-	suite.Require().False(found)
-
-	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
-	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
-	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
-	suite.Require().NoError(err)
-
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, acc)
-	suite.Require().False(found)
-
-	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, ethAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit3.Amount...))
-
-	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, toEthAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit4.Amount...))
-}
-
-func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
-
-	keys := suite.GenerateAcc(1)
-	suite.Require().Equal(len(keys), 1)
-	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
-	ethKeys := suite.GenerateEthAcc(2)
-	suite.Require().Equal(len(ethKeys), 2)
-	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
-	toEthAcc := common.BytesToAddress(ethKeys[1].PubKey().Address().Bytes())
-
-	// add proposal
-	content, bl := govv1beta1.ContentFromProposalType("title", "description", "Text")
-	suite.Require().True(bl)
-	legacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
-	suite.Require().NoError(err)
-
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(5000))))
-	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{legacyContent},
-		"", content.GetTitle(), content.GetDescription(), sdk.MustAccAddressFromBech32(suite.govAddr))
-	suite.Require().NoError(err)
-
-	// acc deposit
-	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, acc, amount)
-	suite.Require().NoError(err)
-
-	// eth acc deposit
-	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, ethAcc.Bytes(), amount)
-	suite.Require().NoError(err)
-
-	// acc vote
-	err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.Id, acc, govv1.NewNonSplitVoteOption(govv1.OptionYes), "")
-	suite.Require().NoError(err)
-
-	// check acc deposit
-	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, acc)
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit1.Amount...))
-	// check eth acc deposit
-	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, ethAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit2.Amount...))
-
-	// check acc vote
-	vote, found := suite.app.GovKeeper.GetVote(suite.ctx, proposal.Id, acc)
-	suite.Require().True(found)
-	suite.Require().Equal(vote.Options, []*govv1.WeightedVoteOption{{Option: govv1.VoteOption_VOTE_OPTION_YES, Weight: "1.000000000000000000"}})
-
-	// check to address deposit vote
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, toEthAcc.Bytes())
-	suite.Require().False(found)
-
-	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.Id, toEthAcc.Bytes())
-	suite.Require().False(found)
-
-	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
-	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
-	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
-	suite.Require().NoError(err)
-
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, acc)
-	suite.Require().False(found)
-
-	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, ethAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit3.Amount...))
-
-	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.Id, toEthAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(amount, sdk.NewCoins(deposit4.Amount...))
-
-	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.Id, acc)
-	suite.Require().False(found)
-
-	vote, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.Id, toEthAcc.Bytes())
-	suite.Require().True(found)
-	suite.Require().Equal(vote.Options, []*govv1.WeightedVoteOption{{Option: govv1.VoteOption_VOTE_OPTION_YES, Weight: "1.000000000000000000"}})
+	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc2, ethAcc1)
+	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
 }

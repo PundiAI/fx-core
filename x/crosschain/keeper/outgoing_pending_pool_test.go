@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"go.uber.org/mock/gomock"
@@ -17,8 +18,8 @@ func (s *KeeperMockSuite) TestSendToExternal() {
 	senderAddr := helpers.GenAccAddress()
 	sendMsg := types.MsgSendToExternal{
 		Sender:    senderAddr.String(),
-		Amount:    sdk.NewCoin("usdt", sdk.NewInt(int64(tmrand.Uint32()))),
-		BridgeFee: sdk.NewCoin("usdt", sdk.NewInt(int64(tmrand.Uint32()))),
+		Amount:    sdk.NewCoin("usdt", sdkmath.NewInt(int64(tmrand.Uint32()))),
+		BridgeFee: sdk.NewCoin("usdt", sdkmath.NewInt(int64(tmrand.Uint32()))),
 		ChainName: s.moduleName,
 	}
 	s.erc20Keeper.EXPECT().ConvertDenomToTarget(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).

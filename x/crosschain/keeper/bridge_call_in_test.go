@@ -140,8 +140,8 @@ func (s *KeeperMockSuite) TestBridgeCallHandler() {
 
 func (s *KeeperMockSuite) Test_CoinsToBridgeCallTokens() {
 	input := sdk.Coins{
-		sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e18)),
-		sdk.NewCoin("aaa", sdk.NewInt(2e18)),
+		sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e18)),
+		sdk.NewCoin("aaa", sdkmath.NewInt(2e18)),
 	}
 	s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), "aaa").Return(erc20types.TokenPair{
 		Erc20Address: "0x0000000000000000000000000000000000000001",

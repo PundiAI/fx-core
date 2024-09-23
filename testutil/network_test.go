@@ -2,7 +2,6 @@ package testutil_test
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/testutil/network"
@@ -30,17 +28,13 @@ func TestIntegrationTestSuite(t *testing.T) {
 func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	encCfg := app.MakeEncodingConfig()
-	cfg := testutil.DefaultNetworkConfig(encCfg, func(config *network.Config) {
-		// config.EnableTMLogging = true
+	cfg := testutil.DefaultNetworkConfig(func(config *network.Config) {
+		config.EnableTMLogging = true
 	})
 
-	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
-	suite.Require().NoError(err)
-	suite.network, err = network.New(suite.T(), baseDir, cfg)
-	suite.Require().NoError(err)
+	suite.network = network.New(suite.T(), cfg)
 
-	_, err = suite.network.WaitForHeight(1)
+	_, err := suite.network.WaitForHeight(1)
 	suite.Require().NoError(err)
 }
 

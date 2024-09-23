@@ -145,7 +145,7 @@ func NewConvertDenomCmd() *cobra.Command {
 					return err
 				}
 			}
-			target, err := cmd.Flags().GetString(FlagTarget)
+			target, err := cmd.Flags().GetString("target")
 			if err != nil {
 				return err
 			}
@@ -158,7 +158,7 @@ func NewConvertDenomCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
-	cmd.Flags().String(FlagTarget, "", "target of chain(gravity,bsc,polygon,tron)")
+	cmd.Flags().String("target", "", "target of chain(gravity,bsc,polygon,tron)")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

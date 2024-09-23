@@ -1,27 +1,16 @@
 package tests
 
 import (
-	"fmt"
 	"math/big"
-	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
-	"google.golang.org/grpc/metadata"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	stakingprecompile "github.com/functionx/fx-core/v8/x/staking/precompile"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func (suite *IntegrationTest) StakingTest() {
@@ -34,7 +23,7 @@ func (suite *IntegrationTest) StakingTest() {
 	suite.Send(delAddr, sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
 
 	// delegate
-	suite.staking.Delegate(suite.staking.privKey, valAddr.String(), delBalance.BigInt())
+	suite.staking.DelegateV2(suite.staking.privKey, valAddr.String(), delBalance.BigInt())
 
 	// query delegate
 	share, delegateAmount := suite.staking.Delegation(valAddr.String(), suite.staking.Address())
@@ -62,7 +51,7 @@ func (suite *IntegrationTest) StakingTest() {
 	suite.Require().True(afterBalance.IsAllGTE(beforeBalance))
 
 	// undelegate
-	suite.staking.UnDelegate(suite.staking.privKey, valAddr.String(), delBalance.BigInt())
+	suite.staking.UnDelegateV2(suite.staking.privKey, valAddr.String(), delBalance.BigInt())
 	afterBalance2 := suite.QueryBalances(rewardAddress)
 	suite.Require().True(afterBalance2.IsAllGTE(beforeBalance))
 }
@@ -82,7 +71,7 @@ func (suite *IntegrationTest) StakingContractTest() {
 	txFee1 := suite.evm.TxFee(txHash)
 
 	// delegate by contract
-	receipt := suite.staking.DelegateByContract(delSigner.PrivKey(), contract, valAddr.String(), delBalance.BigInt())
+	receipt := suite.staking.DelegateV2(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
 	txFee2 := suite.evm.TxFee(receipt.TxHash)
 
 	delBal := suite.QueryBalances(delSigner.AccAddress())
@@ -114,7 +103,7 @@ func (suite *IntegrationTest) StakingContractTest() {
 	suite.Require().True(delBal.AmountOf(fxtypes.DefaultDenom).GT(sdkmath.NewInt(0)))
 
 	// undelegate by contract
-	receipt = suite.staking.UndelegateByContract(delSigner.PrivKey(), contract, valAddr.String(), shares)
+	receipt = suite.staking.UnDelegateV2(delSigner.PrivKey(), valAddr.String(), shares)
 	txFee4 := suite.evm.TxFee(receipt.TxHash)
 
 	delBal = suite.QueryBalances(delSigner.AccAddress())
@@ -153,7 +142,7 @@ func (suite *IntegrationTest) StakingSharesTest() {
 	suite.Send(receiptAccAddr, sdk.NewCoin(fxtypes.DefaultDenom, receiptInitBalance))
 
 	// delegate
-	receipt := suite.staking.Delegate(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
+	receipt := suite.staking.DelegateV2(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
 	txFee1 := suite.evm.TxFee(receipt.TxHash)
 
 	// check receipt delegate
@@ -272,7 +261,7 @@ func (suite *IntegrationTest) StakingSharesTest() {
 	delBal = suite.QueryBalances(delSigner.AccAddress())
 	txFee = sdkmath.NewIntFromBigInt(txFee1).Add(sdkmath.NewIntFromBigInt(txFee2).Add(sdkmath.NewIntFromBigInt(txFee3).Add(sdkmath.NewIntFromBigInt(txFee5).Add(sdkmath.NewIntFromBigInt(txFee6)))))
 	totalReward := big.NewInt(0).Add(big.NewInt(0).Add(reward1, reward2), reward5)
-	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(sdk.NewIntFromBigInt(totalReward))
+	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(sdkmath.NewIntFromBigInt(totalReward))
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check receipt balance
@@ -298,7 +287,7 @@ func (suite *IntegrationTest) StakingSharesContractTest() {
 	txFee1 := suite.evm.TxFee(txHash)
 
 	// delegate
-	receipt := suite.staking.Delegate(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
+	receipt := suite.staking.DelegateV2(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
 	txFee2 := suite.evm.TxFee(receipt.TxHash)
 
 	// check del balance
@@ -342,7 +331,7 @@ func (suite *IntegrationTest) StakingSharesContractTest() {
 	// check del balance
 	delBal = suite.QueryBalances(delSigner.AccAddress())
 	txFee = sdkmath.NewIntFromBigInt(txFee1).Add(sdkmath.NewIntFromBigInt(txFee2).Add(sdkmath.NewIntFromBigInt(txFee3).Add(sdkmath.NewIntFromBigInt(txFee4))))
-	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(sdk.NewIntFromBigInt(reward1))
+	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(sdkmath.NewIntFromBigInt(reward1))
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check contract balance
@@ -448,7 +437,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateTest() {
 	suite.Send(valNew.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
 
 	// delegate
-	receipt := suite.staking.Delegate(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
+	receipt := suite.staking.DelegateV2(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
 	txFee1 := suite.evm.TxFee(receipt.TxHash)
 
 	delBal := suite.QueryBalances(delSigner.AccAddress())
@@ -469,7 +458,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateTest() {
 	resp := suite.staking.CreateValidator(valNew.PrivKey(), false)
 	suite.Equal(resp.Code, uint32(0))
 
-	receipt = suite.staking.Redelegate(delSigner.PrivKey(), valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), valAddrShares1)
+	receipt = suite.staking.RedelegateV2(delSigner.PrivKey(), valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), valAddrShares1)
 	txFee2 := suite.evm.TxFee(receipt.TxHash)
 
 	valAddrShares2, _ := suite.staking.Delegation(valAddr.String(), hexAddr)
@@ -503,7 +492,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 	txFee1 := suite.evm.TxFee(txHash)
 
 	// delegate by contract
-	receipt := suite.staking.DelegateByContract(delSigner.PrivKey(), contract, valAddr.String(), delBalance.BigInt())
+	receipt := suite.staking.DelegateV2(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
 	txFee2 := suite.evm.TxFee(receipt.TxHash)
 
 	delBal := suite.QueryBalances(delSigner.AccAddress())
@@ -516,7 +505,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 	resp := suite.staking.CreateValidator(valNew.PrivKey(), false)
 	suite.Equal(resp.Code, uint32(0))
 
-	receipt = suite.staking.RedelegateByContract(delSigner.PrivKey(), contract, valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), valAddrShares1)
+	receipt = suite.staking.RedelegateV2(delSigner.PrivKey(), valAddr.String(), sdk.ValAddress(valNew.AccAddress()).String(), valAddrShares1)
 	txFee3 := suite.evm.TxFee(receipt.TxHash)
 
 	valAddrShares2, _ := suite.staking.Delegation(valAddr.String(), contract)
@@ -582,262 +571,4 @@ func (suite *IntegrationTest) StakingPrecompileV2() {
 		_, valSelfDelegation := suite.staking.Delegation(sdk.ValAddress(valNew.AccAddress()).String(), valNew.Address())
 		suite.staking.UnDelegateV2(valNew.PrivKey(), sdk.ValAddress(valNew.AccAddress()).String(), valSelfDelegation)
 	}
-}
-
-func (suite *IntegrationMultiNodeTest) StakingGrantPrivilege() {
-	initBalance := sdkmath.NewInt(2000).MulRaw(1e18)
-	suite.Send(suite.staking.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
-
-	allVals := suite.GetAllValidators()
-	valAddr := allVals[1].ValAddress
-
-	from := sdk.AccAddress(valAddr)
-	to := sdk.AccAddress(suite.staking.privKey.PubKey().Address())
-
-	to2 := suite.staking.GrantAddress()
-	suite.Send(to2, sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
-
-	// check val with to grants
-	grantResp, err := suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
-	suite.Require().NoError(err)
-	suite.Require().Equal(0, len(grantResp.Grants))
-
-	// grant privilege val with to address
-	msg, err := fxstakingtypes.NewMsgGrantPrivilege(valAddr, sdk.AccAddress(valAddr), suite.staking.privKey.PubKey())
-	suite.Require().NoError(err)
-	suite.BroadcastTx(suite.GetValidatorPrivKeys(from), msg)
-
-	// check val with to grants
-	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
-	suite.Require().NoError(err)
-	suite.Require().Equal(1, len(grantResp.Grants))
-
-	// val send coins error, not have privilege
-	msgSend := banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))))
-	_, err = suite.GRPCClient().BuildTxRaw(suite.GetValidatorPrivKeys(from), []sdk.Msg{msgSend}, 500000, 0, "")
-	suite.Require().Error(err)
-
-	// grant MsgSend privilege with to address
-	exp := time.Now().Add(time.Hour)
-	msgGrant, err := authz.NewMsgGrant(from, to, authz.NewGenericAuthorization(sdk.MsgTypeURL(&banktypes.MsgSend{})), &exp)
-	suite.Require().NoError(err)
-	msgExec := authz.NewMsgExec(to, []sdk.Msg{msgGrant, msgSend})
-
-	_, err = suite.GRPCClient().BuildTxRaw(suite.staking.privKey, []sdk.Msg{&msgExec}, 500000, 0, "")
-	suite.Require().NoError(err)
-	tx := suite.BroadcastTx(suite.staking.privKey, &msgExec)
-	suite.Require().Equal(uint32(0), tx.Code)
-
-	// check val with to grants
-	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
-	suite.Require().NoError(err)
-	suite.Require().Equal(2, len(grantResp.Grants))
-
-	// val grant to to2 address error, val not have privilege
-	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, from, suite.staking.GrantPrivKey().PubKey())
-	suite.Require().NoError(err)
-	_, err = suite.GRPCClient().BuildTxRaw(suite.staking.privKey, []sdk.Msg{msg}, 500000, 0, "")
-	suite.Require().Error(err)
-
-	// to grant to to2 address
-	msg, err = fxstakingtypes.NewMsgGrantPrivilege(valAddr, to, suite.staking.GrantPrivKey().PubKey())
-	suite.Require().NoError(err)
-	_, err = suite.GRPCClient().BuildTxRaw(suite.staking.privKey, []sdk.Msg{msg}, 500000, 0, "")
-	suite.NoError(err)
-	suite.BroadcastTx(suite.staking.privKey, msg)
-
-	// check val with to grants
-	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to.String()})
-	suite.Require().NoError(err)
-	suite.Require().Equal(0, len(grantResp.Grants))
-
-	// check to with to2 grants
-	grantResp, err = suite.authz.AuthzQuery().Grants(suite.ctx, &authz.QueryGrantsRequest{Granter: from.String(), Grantee: to2.String()})
-	suite.Require().NoError(err)
-	suite.Require().Equal(1, len(grantResp.Grants))
-
-	//  grant privilege edit consenus pubkey
-	msgGrant, err = authz.NewMsgGrant(from, suite.staking.GrantAddress(), authz.NewGenericAuthorization(sdk.MsgTypeURL(&fxstakingtypes.MsgEditConsensusPubKey{})), &exp)
-	suite.Require().NoError(err)
-
-	// edit consenus pubkey
-	newPriKey := ed25519.GenPrivKey()
-	msgEdit, err := fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, suite.staking.GrantAddress(), newPriKey.PubKey())
-	suite.Require().NoError(err)
-
-	msgExec = authz.NewMsgExec(suite.staking.GrantAddress(), []sdk.Msg{msgGrant, msgEdit})
-	tx = suite.BroadcastTx(suite.staking.GrantPrivKey(), &msgExec)
-	suite.Require().Equal(uint32(0), tx.Code)
-}
-
-func (suite *IntegrationMultiNodeTest) StakingEditPubKey() {
-	if suite.QueryBalances(suite.staking.AccAddress()).IsZero() {
-		suite.Send(suite.staking.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(2000).MulRaw(1e18)))
-	}
-
-	// query all validator
-	allVals := suite.GetAllValidators()
-	valAddr := allVals[2].ValAddress
-	valResp, err := suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
-	suite.Require().NoError(err)
-	//	val addr
-	validator := valResp.Validator
-	// val consensus pubkey
-	var oldPubKey cryptotypes.PubKey
-	err = app.MakeEncodingConfig().InterfaceRegistry.UnpackAny(validator.ConsensusPubkey, &oldPubKey)
-	suite.Require().NoError(err)
-	valFrom := sdk.AccAddress(valAddr)
-	// new consenus pubkey
-	newPriKey := ed25519.GenPrivKey()
-
-	// check signing info
-	infos, err := suite.slasing.SlashingQuery().SigningInfos(suite.ctx, &slashingtypes.QuerySigningInfosRequest{})
-	suite.Require().NoError(err)
-	for _, info := range infos.Info {
-		suite.True(info.MissedBlocksCounter == 0)
-	}
-
-	// edit consensus pubkey to new consenus pubkey
-	msg, err := fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, valFrom, newPriKey.PubKey())
-	suite.Require().NoError(err)
-	suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), msg)
-
-	// wait 15 block
-	_, err = suite.network.WaitNumberBlock(15)
-	suite.Require().NoError(err)
-
-	// check signing info
-	infos, err = suite.slasing.SlashingQuery().SigningInfos(suite.ctx, &slashingtypes.QuerySigningInfosRequest{})
-	suite.Require().NoError(err)
-	for _, info := range infos.Info {
-		if info.Address == sdk.ConsAddress(newPriKey.PubKey().Address()).String() {
-			suite.True(info.MissedBlocksCounter > 0)
-			continue
-		}
-		suite.True(info.MissedBlocksCounter == 0)
-	}
-
-	// validator jailed
-	valResp, err = suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
-	suite.Require().NoError(err)
-	suite.Require().True(valResp.Validator.Jailed)
-
-	// edit consensus pubkey to old consenus pubkey
-	msg, err = fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, valFrom, oldPubKey)
-	suite.Require().NoError(err)
-	suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), msg)
-
-	// check signing info
-	infos, err = suite.slasing.SlashingQuery().SigningInfos(suite.ctx, &slashingtypes.QuerySigningInfosRequest{})
-	suite.Require().NoError(err)
-	for _, info := range infos.Info {
-		if info.Address == sdk.ConsAddress(oldPubKey.Address()).String() || info.Address == sdk.ConsAddress(newPriKey.PubKey().Address()).String() {
-			suite.True(info.MissedBlocksCounter > 0)
-			continue
-		}
-		suite.True(info.MissedBlocksCounter == 0)
-	}
-
-	// unjail validator
-	msgUnjail := slashingtypes.NewMsgUnjail(valAddr)
-	suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), msgUnjail)
-
-	// check validator unjailed
-	valResp, err = suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
-	suite.Require().NoError(err)
-	suite.Require().False(valResp.Validator.Jailed)
-
-	// check signing info
-	infoResp, err := suite.slasing.SlashingQuery().SigningInfo(suite.ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: sdk.ConsAddress(oldPubKey.Address()).String()})
-	suite.Require().NoError(err)
-	missBlock := infoResp.ValSigningInfo.MissedBlocksCounter
-
-	// wait 15 block
-	_, err = suite.network.WaitNumberBlock(15)
-	suite.Require().NoError(err)
-
-	// check signing info
-	infoResp, err = suite.slasing.SlashingQuery().SigningInfo(suite.ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: sdk.ConsAddress(oldPubKey.Address()).String()})
-	suite.Require().NoError(err)
-	suite.Require().Equal(missBlock, infoResp.ValSigningInfo.MissedBlocksCounter)
-}
-
-func (suite *IntegrationMultiNodeTest) StakingEditPubKeyJailBlock() {
-	if suite.QueryBalances(suite.staking.AccAddress()).IsZero() {
-		suite.Send(suite.staking.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(2000).MulRaw(1e18)))
-	}
-
-	// query all validator
-	allVals := suite.GetAllValidators()
-	valAddr := allVals[3].ValAddress
-	valResp, err := suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
-	suite.Require().NoError(err)
-	validator := valResp.Validator
-
-	// val consensus pubkey
-	var oldPubKey cryptotypes.PubKey
-	err = app.MakeEncodingConfig().InterfaceRegistry.UnpackAny(validator.ConsensusPubkey, &oldPubKey)
-	suite.Require().NoError(err)
-	oldConsAddr := sdk.ConsAddress(oldPubKey.Address())
-
-	valFrom := sdk.AccAddress(valAddr)
-	// new consenus pubkey
-	newPriKey := ed25519.GenPrivKey()
-	newPubKey := newPriKey.PubKey()
-	newConsAddr := sdk.ConsAddress(newPubKey.Address())
-
-	// edit consensus pubkey to new consenus pubkey and undelegate all
-	editPubkeyMsg, err := fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, valFrom, newPubKey)
-	suite.Require().NoError(err)
-	undelegateMsg := stakingtypes.NewMsgUndelegate(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(fxtypes.DefaultDenom, validator.Tokens))
-	txResp := suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), editPubkeyMsg, undelegateMsg)
-	suite.Require().Equal(uint32(0), txResp.Code)
-	suite.Require().Greater(txResp.Height, int64(0))
-
-	_, _ = suite.network.WaitNumberBlock(10)
-
-	valResp, err = suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
-	suite.Require().NoError(err)
-	suite.Require().True(valResp.Validator.Jailed)
-
-	height := txResp.Height + 1 // val update, edit skip to next block
-
-	// block tx process
-	ctx := metadata.AppendToOutgoingContext(suite.ctx, grpctypes.GRPCBlockHeightHeader, fmt.Sprintf("%d", height))
-	info1, err := suite.slasing.SlashingQuery().SigningInfo(ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: oldConsAddr.String()})
-	suite.NoError(err)
-	info2, err := suite.slasing.SlashingQuery().SigningInfo(ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: newConsAddr.String()})
-	suite.NoError(err)
-	suite.Equal(info1.ValSigningInfo.IndexOffset, info2.ValSigningInfo.IndexOffset)
-	suite.Equal(info1.ValSigningInfo.MissedBlocksCounter, info2.ValSigningInfo.MissedBlocksCounter)
-
-	// block tx process +1
-	ctx = metadata.AppendToOutgoingContext(suite.ctx, grpctypes.GRPCBlockHeightHeader, fmt.Sprintf("%d", height+1))
-	info1, err = suite.slasing.SlashingQuery().SigningInfo(ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: oldConsAddr.String()})
-	suite.NoError(err)
-	info2, err = suite.slasing.SlashingQuery().SigningInfo(ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: newConsAddr.String()})
-	suite.NoError(err)
-	suite.Equal(info1.ValSigningInfo.IndexOffset, info2.ValSigningInfo.IndexOffset)
-	suite.Equal(info1.ValSigningInfo.MissedBlocksCounter, info2.ValSigningInfo.MissedBlocksCounter)
-
-	// block tx process +2
-	ctx = metadata.AppendToOutgoingContext(suite.ctx, grpctypes.GRPCBlockHeightHeader, fmt.Sprintf("%d", height+2))
-	_, err = suite.slasing.SlashingQuery().SigningInfo(ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: oldConsAddr.String()})
-	suite.Error(err)
-	info2, err = suite.slasing.SlashingQuery().SigningInfo(ctx, &slashingtypes.QuerySigningInfoRequest{ConsAddress: newConsAddr.String()})
-	suite.NoError(err)
-	suite.Equal(info1.ValSigningInfo.IndexOffset, info2.ValSigningInfo.IndexOffset)
-
-	// delegate and unjail
-	delegateMsg := stakingtypes.NewMsgDelegate(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(fxtypes.DefaultDenom, validator.Tokens))
-	unjailMsg := slashingtypes.NewMsgUnjail(valAddr)
-	editPubkeyMsg, err = fxstakingtypes.NewMsgEditConsensusPubKey(valAddr, valFrom, oldPubKey)
-	suite.Require().NoError(err)
-	_ = suite.BroadcastTx(suite.GetValidatorPrivKeys(valFrom), delegateMsg, unjailMsg, editPubkeyMsg)
-
-	_, _ = suite.network.WaitNumberBlock(3)
-
-	valResp, err = suite.staking.StakingQuery().Validator(suite.ctx, &stakingtypes.QueryValidatorRequest{ValidatorAddr: valAddr.String()})
-	suite.Require().NoError(err)
-	suite.Require().False(valResp.Validator.Jailed)
 }

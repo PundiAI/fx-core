@@ -5,9 +5,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/armon/go-metrics"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hashicorp/go-metrics"
 
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -153,7 +154,7 @@ func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ERC20Token, 
 // GetUnbatchedTxById grabs a tx from the pool given only the txID
 // note that due to the way unbatched txs are indexed, the GetUnbatchedTxByFeeAndId method is much faster
 func (k Keeper) GetUnbatchedTxById(ctx sdk.Context, txID uint64) (*types.OutgoingTransferTx, error) {
-	var r *types.OutgoingTransferTx = nil
+	var r *types.OutgoingTransferTx
 	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
 		if tx.Id == txID {
 			r = tx
@@ -183,7 +184,7 @@ func (k Keeper) GetUnbatchedTransactions(ctx sdk.Context) []*types.OutgoingTrans
 func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, tokenContract string, cb func(tx *types.OutgoingTransferTx) bool) {
 	store := ctx.KVStore(k.storeKey)
 	prefixKey := types.GetOutgoingTxPoolContractPrefix(tokenContract)
-	iter := sdk.KVStoreReversePrefixIterator(store, prefixKey)
+	iter := storetypes.KVStoreReversePrefixIterator(store, prefixKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var transact types.OutgoingTransferTx

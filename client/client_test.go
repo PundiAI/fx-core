@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -44,8 +43,8 @@ type rpcTestClient interface {
 	GetMintDenom() (denom string, err error)
 	GetGasPrices() (sdk.Coins, error)
 	GetAddressPrefix() (prefix string, err error)
-	GetModuleAccounts() ([]authtypes.AccountI, error)
-	QueryAccount(address string) (authtypes.AccountI, error)
+	GetModuleAccounts() ([]sdk.AccountI, error)
+	QueryAccount(address string) (sdk.AccountI, error)
 	QueryBalance(address string, denom string) (sdk.Coin, error)
 	QueryBalances(address string) (sdk.Coins, error)
 	QuerySupply() (sdk.Coins, error)
@@ -70,18 +69,16 @@ func (suite *rpcTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	fxtypes.SetConfig(true)
-	cfg := testutil.DefaultNetworkConfig(app.MakeEncodingConfig(), func(config *network.Config) {
+	cfg := testutil.DefaultNetworkConfig(func(config *network.Config) {
 		// config.EnableTMLogging = true
 	})
 	cfg.TimeoutCommit = 100 * time.Millisecond
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 
-	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
-	suite.Require().NoError(err)
-	suite.network, err = network.New(suite.T(), baseDir, cfg)
-	suite.Require().NoError(err)
-	_, err = suite.network.WaitForHeight(1)
+	suite.network = network.New(suite.T(), cfg)
+
+	_, err := suite.network.WaitForHeight(1)
 	suite.Require().NoError(err)
 
 	suite.FirstValidatorTransferTo(1, sdkmath.NewInt(1_000).MulRaw(1e18))

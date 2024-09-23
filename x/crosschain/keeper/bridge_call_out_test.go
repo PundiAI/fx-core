@@ -76,7 +76,7 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 			name: "success - FX",
 			data: Data{
 				sender: helpers.GenAccAddress(),
-				coin:   sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1)),
+				coin:   sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)),
 			},
 			mock: func(data Data) (want types.ERC20Token) {
 				s.erc20Keeper.EXPECT().ConvertDenomToTarget(gomock.Any(), data.sender, data.coin, fxtypes.ParseFxTarget(s.moduleName)).Return(data.coin, nil).Times(1)
@@ -94,7 +94,7 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 			name: "success - bridge denom",
 			data: Data{
 				sender: helpers.GenAccAddress(),
-				coin:   sdk.NewCoin(types.NewBridgeDenom(s.moduleName, helpers.GenExternalAddr(s.moduleName)), sdk.NewInt(1)),
+				coin:   sdk.NewCoin(types.NewBridgeDenom(s.moduleName, helpers.GenExternalAddr(s.moduleName)), sdkmath.NewInt(1)),
 			},
 			mock: func(data Data) (want types.ERC20Token) {
 				contract := data.coin.Denom[len(s.moduleName):]
@@ -116,7 +116,7 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 			name: "success - base denom",
 			data: Data{
 				sender: helpers.GenAccAddress(),
-				coin:   sdk.NewCoin("usdt", sdk.NewInt(1)),
+				coin:   sdk.NewCoin("usdt", sdkmath.NewInt(1)),
 			},
 			mock: func(data Data) (want types.ERC20Token) {
 				contract := helpers.GenHexAddress().String()

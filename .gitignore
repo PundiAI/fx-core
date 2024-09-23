@@ -17,3 +17,4 @@ typechain-types
 swagger-proto
 tmp-swagger-gen
 tests/scripts/.env
+third_party

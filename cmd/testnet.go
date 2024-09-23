@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil"
 	"github.com/functionx/fx-core/v8/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -26,8 +26,8 @@ const (
 )
 
 // testnetCmd get cmd to initialize all files for tendermint testnet and application
-func testnetCmd(encCfg app.EncodingConfig) *cobra.Command {
-	networkConfig := testutil.DefaultNetworkConfig(encCfg)
+func testnetCmd() *cobra.Command {
+	networkConfig := testutil.DefaultNetworkConfig()
 	cmd := &cobra.Command{
 		Use:   "testnet",
 		Short: "Initialize files for a fxcore local testnet",
@@ -45,7 +45,11 @@ Example:
 			networkConfig.StakingTokens = sdkmath.NewIntWithDecimal(stakingTokens, fxtypes.DenomUnit)
 			bondedTokens, _ := cmd.Flags().GetInt64("bonded-tokens")
 			networkConfig.BondedTokens = sdkmath.NewIntWithDecimal(bondedTokens, fxtypes.DenomUnit)
-			validators, err := network.GenerateGenesisAndValidators(outputDir, &networkConfig)
+			logger := log.NewNopLogger()
+			if networkConfig.EnableTMLogging {
+				logger = log.NewLogger(os.Stdout)
+			}
+			validators, err := network.GenerateGenesisAndValidators(outputDir, &networkConfig, logger)
 			if err != nil {
 				return err
 			}

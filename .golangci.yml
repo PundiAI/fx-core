@@ -1,16 +1,15 @@
 run:
-  # Timeout for analysis, e.g. 30s, 5m.
-  # Default: 1m
   timeout: 5m
-
-  # Include test files or not.
-  # Default: true
   tests: true
-
-  # Define the Go version limit.
-  # Mainly related to generics support since go1.23.
-  # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.23
   go: '1.23'
+  sort-results: true
+  allow-parallel-runners: true
+
+issues:
+  exclude-files:
+    - ".*\\.pb\\.go$"
+    - ".*\\.pb\\.gw\\.go$"
+    - ".*\\.pulsar\\.go$"
 
 linters:
   enable:
@@ -26,8 +25,21 @@ linters:
     - dogsled
     - gosec
     - errcheck
+#    - goconst
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+#    - nakedret
+    - nolintlint
+    - staticcheck
+    - revive
+    - typecheck
+    - unused
 
 linters-settings:
+  staticcheck:
+    checks: ["all", "-SA1019"]
   stylecheck:
     checks: ["all", "-ST1003"]
   gocyclo:
@@ -45,3 +57,13 @@ linters-settings:
   errcheck:
     check-type-assertions: false
     check-blank: false
+  revive:
+    # https://golangci-lint.run/usage/linters/#revive
+    enable-all-rules: false
+    rules:
+      - name: var-naming
+        disabled: false
+        arguments:
+          - [ "ID", "IDS", "URL", "JSON", "RPC" ] # AllowList
+          - [ "" ] # DenyList
+          - - upperCaseConst: true

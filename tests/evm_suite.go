@@ -64,7 +64,7 @@ func (suite *EvmTestSuite) TransactOpts() *bind.TransactOpts {
 	ecdsa, err := crypto.ToECDSA(suite.privKey.Bytes())
 	suite.Require().NoError(err)
 
-	transactOpts, err := bind.NewKeyedTransactorWithChainID(ecdsa, fxtypes.EIP155ChainID())
+	transactOpts, err := bind.NewKeyedTransactorWithChainID(ecdsa, fxtypes.EIP155ChainID(suite.network.Config.ChainID))
 	suite.Require().NoError(err)
 
 	return transactOpts

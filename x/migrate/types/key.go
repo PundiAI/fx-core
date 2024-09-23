@@ -11,9 +11,6 @@ const (
 
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName
-
-	// RouterKey is the module name router key
-	RouterKey = ModuleName
 )
 
 const (
@@ -34,13 +31,9 @@ const (
 	EventTypeMigrateStakingDelegate   = "migrate_staking_delegate"
 	EventTypeMigrateStakingUndelegate = "migrate_staking_undelegate"
 	EventTypeMigrateStakingRedelegate = "migrate_staking_redelegate"
-	EventTypeMigrateGovDeposit        = "migrate_gov_deposit"
-	EventTypeMigrateGovVote           = "migrate_gov_vote"
 	AttributeKeyValidatorAddr         = "validator_address"
 	AttributeKeyValidatorSrcAddr      = "validator_src_address"
 	AttributeKeyValidatorDstAddr      = "validator_dst_address"
-	AttributeKeyProposalId            = "proposal_id"
-	AttributeKeyVoteOption            = "vote_option"
 )
 
 var (

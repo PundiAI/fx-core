@@ -34,13 +34,13 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 	withdrawMethod := precompile.NewWithdrawMethod(nil)
 	testCases := []struct {
 		name     string
-		malleate func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error)
+		malleate func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error)
 		error    func(errArgs []string) string
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
 				return types.WithdrawArgs{
 					Validator: val.String(),
 				}, nil
@@ -49,7 +49,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "failed invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
 				newVal := val.String() + "1"
 				return types.WithdrawArgs{
 					Validator: newVal,
@@ -59,18 +59,18 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "failed validator not found",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
 
 				return types.WithdrawArgs{
 					Validator: newVal,
-				}, fmt.Errorf("no validator distribution info")
+				}, fmt.Errorf("validator does not exist")
 			},
 			result: false,
 		},
 		{
 			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
 				return types.WithdrawArgs{
 					Validator: val.String(),
 				}, nil
@@ -79,22 +79,22 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "contract - failed invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
 				newVal := val.String() + "1"
 				return types.WithdrawArgs{
 					Validator: newVal,
-				}, fmt.Errorf("withdraw failed: invalid validator address: %s", newVal)
+				}, fmt.Errorf("invalid validator address: %s", newVal)
 			},
 			result: false,
 		},
 		{
 			name: "contract - failed validator not found",
-			malleate: func(val sdk.ValAddress, shares sdk.Dec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
 
 				return types.WithdrawArgs{
 					Validator: newVal,
-				}, fmt.Errorf("withdraw failed: no validator distribution info")
+				}, fmt.Errorf("validator does not exist")
 			},
 			result: false,
 		},
@@ -111,16 +111,21 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			stakingContract := precompile.GetAddress()
 			stakingABI := precompile.GetABI()
 			delAddr := signer.Address()
+			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
 				stakingContract = suite.staking
 				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
 				delAddr = suite.staking
+				value = delAmt.BigInt()
 			}
 
-			pack, err := stakingABI.Pack(TestDelegateName, val.GetOperator().String())
+			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 			suite.Require().NoError(err)
 
-			res := suite.EthereumTx(signer, stakingContract, delAmt.BigInt(), pack)
+			pack, err := stakingABI.Pack(TestDelegateV2Name, val.GetOperator(), delAmt.BigInt())
+			suite.Require().NoError(err)
+
+			res := suite.EthereumTx(signer, stakingContract, value, pack)
 			suite.Require().False(res.Failed(), res.VmError)
 
 			suite.Commit()
@@ -130,9 +135,9 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			totalBefore, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			delegation := suite.GetDelegation(delAddr.Bytes(), val.GetOperator())
+			delegation := suite.GetDelegation(delAddr.Bytes(), operator)
 
-			args, errResult := tc.malleate(val.GetOperator(), delegation.Shares)
+			args, errResult := tc.malleate(operator, delegation.Shares)
 			packData, err := withdrawMethod.PackInput(args)
 			suite.Require().NoError(err)
 			if strings.HasPrefix(tc.name, "contract") {
@@ -151,7 +156,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				unpack, err := stakingABI.Unpack(TestWithdrawName, res.Ret)
 				suite.Require().NoError(err)
 				reward := unpack[0].(*big.Int)
-				suite.Require().True(reward.Cmp(big.NewInt(0)) == 1, reward.String())
+				suite.Require().Equal(reward.String(), big.NewInt(0).String())
 				chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
 
@@ -163,7 +168,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 						event, err := withdrawMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.Sender, delAddr)
-						suite.Require().Equal(event.Validator, val.GetOperator().String())
+						suite.Require().Equal(event.Validator, val.GetOperator())
 						suite.Require().Equal(event.Reward.String(), chainBalances.AmountOf(fxtypes.DefaultDenom).BigInt().String())
 						existLog = true
 					}
@@ -175,7 +180,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 					if event.Type == distritypes.EventTypeWithdrawRewards {
 						for _, attr := range event.Attributes {
 							if attr.Key == distritypes.AttributeKeyValidator {
-								suite.Require().Equal(attr.Value, val.GetOperator().String())
+								suite.Require().Equal(attr.Value, val.GetOperator())
 								existEvent = true
 							}
 							if attr.Key == sdk.AttributeKeyAmount {

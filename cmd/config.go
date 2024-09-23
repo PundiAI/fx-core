@@ -3,9 +3,9 @@ package cmd
 import (
 	"path/filepath"
 
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
@@ -20,11 +20,11 @@ const (
 
 // configCmd returns a CLI command to interactively create an application CLI config file.
 func configCmd() *cobra.Command {
-	cmd := sdkcfg.Cmd()
+	cmd := confixcmd.ConfigCommand()
 	cmd.AddCommand(
 		updateCfgCmd(),
 		appTomlCfgCmd(),
-		tmTomlCfgCmd(),
+		cmtTomlCfgCmd(),
 	)
 	return cmd
 }
@@ -33,7 +33,7 @@ func updateCfgCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update app.toml and config.toml files to the latest version, default only missing parts are added",
-		Args:  cobra.RangeArgs(0, 2),
+		Args:  cobra.NoArgs,
 		RunE:  updateConfig,
 	}
 	return cmd
@@ -75,10 +75,10 @@ func appTomlCfgCmd() *cobra.Command {
 	return cmd
 }
 
-func tmTomlCfgCmd() *cobra.Command {
+func cmtTomlCfgCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "tm [key] [value]",
-		Aliases: []string{"config.toml"},
+		Use:     "cmt [key] [value]",
+		Aliases: []string{"config.toml", "tm"},
 		Short:   "Create or query an `.fxcore/config/config.toml` file",
 		Args:    cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {

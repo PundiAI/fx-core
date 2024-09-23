@@ -13,8 +13,8 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/contract"
@@ -48,7 +48,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -131,7 +131,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -153,7 +153,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -182,7 +182,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				addAmount := big.NewInt(0).Add(randMint, big.NewInt(1))
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(addAmount))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -220,7 +220,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				// add relay token
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -246,7 +246,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, *types.TokenPair, *big.Int, string, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				// _, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				// _, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 				// 	&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				// suite.Require().NoError(err)
 
@@ -281,7 +281,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				err = suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, signer.AccAddress(), types.ModuleName, sdk.NewCoins(aliasCoin))
 				suite.Require().NoError(err)
 
-				_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: randCoin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -322,7 +322,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 			if len(moduleName) > 0 {
 				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				resp, err := queryServer.GetPendingSendToExternal(suite.ctx,
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -364,14 +364,14 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 
 				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
 				if tc.isPendingPool {
-					resp, err := queryServer.GetPendingPoolSendToExternal(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryPendingPoolSendToExternalRequest{
+					resp, err := queryServer.GetPendingPoolSendToExternal(suite.ctx, &crosschaintypes.QueryPendingPoolSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
 					})
 					suite.Require().NoError(err)
 					suite.Require().Equal(1, len(resp.Txs))
 				} else {
-					resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+					resp, err := queryServer.GetPendingSendToExternal(suite.ctx,
 						&crosschaintypes.QueryPendingSendToExternalRequest{
 							ChainName:     moduleName,
 							SenderAddress: signer.AccAddress().String(),
@@ -409,7 +409,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
 
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -438,7 +438,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -466,7 +466,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
 				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -525,7 +525,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 				err = suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, signer.AccAddress(), types.ModuleName, sdk.NewCoins(aliasCoin))
 				suite.Require().NoError(err)
 
-				_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
+				_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
 					&types.MsgConvertCoin{Coin: randCoin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -570,7 +570,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 
 			queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
 			if len(moduleName) > 0 {
-				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				resp, err := queryServer.GetPendingSendToExternal(suite.ctx,
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -618,7 +618,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainExternal() {
 					}
 				}
 
-				resp, err := queryServer.GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+				resp, err := queryServer.GetPendingSendToExternal(suite.ctx,
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -654,7 +654,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				// add relay token
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -682,7 +682,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 				// add relay token
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -737,7 +737,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int, sourcePort, sourceChannel string) ([]byte, *types.TokenPair, *big.Int, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -789,7 +789,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int, sourcePort, sourceChannel string) ([]byte, *types.TokenPair, *big.Int, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -820,7 +820,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 			malleate: func(pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int, sourcePort, sourceChannel string) ([]byte, *types.TokenPair, *big.Int, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -937,7 +937,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 						continue
 					}
 					var packet ibctransfertypes.FungibleTokenPacketData
-					err = types.ModuleCdc.UnmarshalJSON(data, &packet)
+					err = suite.app.LegacyAmino().UnmarshalJSON(data, &packet)
 					suite.Require().NoError(err)
 					suite.Require().Equal(signer.AccAddress().String(), packet.Sender)
 					suite.Require().Equal(randMint.String(), packet.Amount)
@@ -964,7 +964,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
 				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -994,7 +994,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
 				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
 
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -1024,7 +1024,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
 				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
 
-				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -1171,7 +1171,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 						continue
 					}
 					var packet ibctransfertypes.FungibleTokenPacketData
-					err = types.ModuleCdc.UnmarshalJSON(data, &packet)
+					err = suite.app.LegacyAmino().UnmarshalJSON(data, &packet)
 					suite.Require().NoError(err)
 					suite.Require().Equal(signer.AccAddress().String(), packet.Sender)
 					suite.Require().Equal(randMint.String(), packet.Amount)

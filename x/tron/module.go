@@ -1,9 +1,11 @@
 package tron
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -22,9 +24,13 @@ import (
 
 // type check to ensure the interface is properly implemented
 var (
-	_ module.AppModule         = AppModule{}
-	_ module.AppModuleBasic    = AppModuleBasic{}
-	_ module.EndBlockAppModule = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasServices    = AppModule{}
+	_ module.HasInvariants  = AppModule{}
+	_ module.HasABCIGenesis = AppModule{}
+
+	_ appmodule.AppModule     = AppModule{}
+	_ appmodule.HasEndBlocker = AppModule{}
 )
 
 // AppModuleBasic object for module implementation
@@ -84,6 +90,12 @@ func NewAppModule(keeper keeper.Keeper) AppModule {
 	}
 }
 
+func (am AppModule) IsOnePerModuleType() {
+}
+
+func (am AppModule) IsAppModule() {
+}
+
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
@@ -116,7 +128,7 @@ func (am AppModule) ConsensusVersion() uint64 {
 }
 
 // EndBlock implements app module
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.EndBlocker(ctx)
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx context.Context) error {
+	am.keeper.EndBlocker(sdk.UnwrapSDKContext(ctx))
+	return nil
 }

@@ -1,7 +1,6 @@
 package precompile
 
 import (
-	"fmt"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,9 +48,12 @@ func (m *ValidatorListMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, e
 	}
 
 	stateDB := evm.StateDB.(types.ExtStateDB)
-	cacheCtx := stateDB.CacheContext()
+	cacheCtx := stateDB.Context()
 
-	bondedVals := m.stakingKeeper.GetLastValidators(cacheCtx)
+	bondedVals, err := m.stakingKeeper.GetLastValidators(cacheCtx)
+	if err != nil {
+		return nil, err
+	}
 
 	valAddrs := make([]string, 0, len(bondedVals))
 	switch args.GetSortBy() {
@@ -82,9 +84,9 @@ func (m *ValidatorListMethod) ValidatorListMissedBlock(ctx sdk.Context, bondedVa
 		if err != nil {
 			return nil, err
 		}
-		info, found := m.slashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
-		if !found {
-			return nil, fmt.Errorf("signing info %s not found", consAddr.String())
+		info, err := m.slashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
+		if err != nil {
+			return nil, err
 		}
 		valList = append(valList, ValidatorList{
 			ValAddr:      val.OperatorAddress,

@@ -4,12 +4,11 @@ import (
 	"bytes"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v8/x/migrate/types"
@@ -112,7 +111,7 @@ func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr common.Address) boo
 }
 
 // checkMigrateFrom check migrate from address
-func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtypes.AccountI, error) {
+func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (sdk.AccountI, error) {
 	fromAccount := k.accountKeeper.GetAccount(ctx, addr)
 	if fromAccount == nil {
 		return nil, errorsmod.Wrapf(types.ErrInvalidAddress, "empty account: %s", addr.String())
@@ -129,7 +128,7 @@ func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtype
 
 func (k Keeper) IterateMigrateRecords(ctx sdk.Context, cb func(types.MigrateRecord) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.KeyPrefixMigratedRecord)
+	iter := storetypes.KVStorePrefixIterator(store, types.KeyPrefixMigratedRecord)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

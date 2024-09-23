@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -13,7 +14,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -76,20 +76,19 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperMockSuite) SetupTest() {
-	key := sdk.NewKVStoreKey(s.moduleName)
+	key := storetypes.NewKVStoreKey(s.moduleName)
 
-	testCtx := testutil.DefaultContextWithDB(s.T(), key, sdk.NewTransientStoreKey("transient_test"))
+	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	s.ctx = testCtx.Ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
 	s.ctx = testCtx.Ctx.WithConsensusParams(
-		&tmproto.ConsensusParams{
+		tmproto.ConsensusParams{
 			Block: &tmproto.BlockParams{
 				MaxGas: types.MaxGasLimit,
 			},
 		},
 	)
 
-	encCfg := app.MakeEncodingConfig()
-	types.RegisterInterfaces(encCfg.InterfaceRegistry)
+	myApp := helpers.NewApp()
 
 	ctrl := gomock.NewController(s.T())
 	s.stakingKeeper = mock.NewMockStakingKeeper(ctrl)
@@ -104,7 +103,7 @@ func (s *KeeperMockSuite) SetupTest() {
 	s.accountKeeper.EXPECT().GetModuleAddress(s.moduleName).Return(authtypes.NewEmptyModuleAccount(s.moduleName).GetAddress()).Times(1)
 
 	s.crosschainKeeper = crosschainkeeper.NewKeeper(
-		encCfg.Codec,
+		myApp.AppCodec(),
 		s.moduleName,
 		key,
 		s.stakingKeeper,
@@ -118,13 +117,11 @@ func (s *KeeperMockSuite) SetupTest() {
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	types.RegisterInterfaces(encCfg.InterfaceRegistry)
-
 	crosschainRouter := crosschainkeeper.NewRouter()
 	crosschainRouter.AddRoute(s.moduleName, crosschainkeeper.NewModuleHandler(s.crosschainKeeper))
 	crosschainRouterKeeper := crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
-	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, encCfg.InterfaceRegistry)
+	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, myApp.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
 	s.queryClient = types.NewQueryClient(queryHelper)
 	s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)

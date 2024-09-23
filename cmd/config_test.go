@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/log"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	tmcfg "github.com/cometbft/cometbft/config"
-	tmlog "github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
@@ -62,7 +62,7 @@ func TestPublicTmConfig(t *testing.T) {
 	defer assert.NoError(t, os.RemoveAll(tempDir))
 	assert.NoError(t, os.MkdirAll(tempDir, 0o700))
 
-	serverCtx := server.NewContext(viper.New(), fxcfg.DefaultTendermintConfig(), tmlog.NewNopLogger())
+	serverCtx := server.NewContext(viper.New(), fxcfg.DefaultTendermintConfig(), log.NewNopLogger())
 	fileName := fmt.Sprintf("%s/config.toml", t.TempDir())
 	serverCtx.Config.BaseConfig.Moniker = "your-moniker"
 	serverCtx.Config.Consensus.TimeoutCommit = 5 * time.Second
@@ -102,10 +102,10 @@ func TestPublicAppConfig(t *testing.T) {
 	appConfig.Telemetry.EnableServiceLabel = true
 	appConfig.Telemetry.Enabled = true
 	appConfig.Telemetry.PrometheusRetentionTime = 60
+	appConfig.Mempool.MaxTxs = 5000
 	appConfig.API.Enable = true
 	appConfig.API.Swagger = true
 	appConfig.EVM.MaxTxGasWanted = 0
-	appConfig.Rosetta.DenomToSuggest = "FX"
 
 	fileName := fmt.Sprintf("%s/app.toml", t.TempDir())
 	config.WriteConfigFile(fileName, appConfig)

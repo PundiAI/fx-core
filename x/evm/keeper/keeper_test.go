@@ -27,7 +27,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (s *KeeperTestSuite) SetupTest() {
 	s.BaseSuite.SetupTest()
-	s.EVMSuite.Init(s.Require(), s.Ctx, s.App.EvmKeeper, s.BaseSuite.NewSigner())
+	s.EVMSuite.Init(s.Require(), s.Ctx, s.App.EvmKeeper, s.BaseSuite.AddTestSigner())
 	s.EVMSuite.WithGasPrice(big.NewInt(500 * 1e9))
 }
 
@@ -38,7 +38,8 @@ func (s *KeeperTestSuite) NewERC20Suite() testutil.ERC20Suite {
 func (s *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 	err := s.App.BankKeeper.MintCoins(s.Ctx, evmtypes.ModuleName, coins)
 	s.Require().NoError(err)
-	err = s.App.BankKeeper.SendCoinsFromModuleToModule(s.Ctx, evmtypes.ModuleName, authtypes.FeeCollectorName, coins)
+	evmModuleAccount := s.App.AccountKeeper.GetModuleAccount(s.Ctx, evmtypes.ModuleName)
+	err = s.App.BankKeeper.SendCoinsFromAccountToModuleVirtual(s.Ctx, evmModuleAccount.GetAddress(), authtypes.FeeCollectorName, coins)
 	s.Require().NoError(err)
 }
 

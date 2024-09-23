@@ -22,8 +22,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -41,8 +41,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -60,8 +60,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          10,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -79,8 +79,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      1,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -98,8 +98,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 sdk.NewCoin("PX", sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -117,8 +117,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          1,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -136,8 +136,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDec(2),            // 200%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDec(2),            // 200%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -155,8 +155,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDec(2),            // 200%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDec(2),            // 200%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,
@@ -174,8 +174,8 @@ func (suite *KeeperTestSuite) TestParams() {
 				AverageExternalBlockTime:          5_000,
 				ExternalBatchTimeout:              12 * 3600 * 1000,
 				SignedWindow:                      30_000,
-				SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
-				OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
+				SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
+				OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 				IbcTransferTimeoutHeight:          20_000,
 				DelegateThreshold:                 types.NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
 				DelegateMultiple:                  10,

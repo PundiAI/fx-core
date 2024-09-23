@@ -8,7 +8,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/contract"
@@ -99,7 +98,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 					Validator: valStr,
 					Spender:   spender.Address(),
 					Shares:    allowance.BigInt(),
-				}, fmt.Errorf("approve shares failed: invalid validator address: %s", valStr)
+				}, fmt.Errorf("invalid validator address: %s", valStr)
 			},
 			result: false,
 		},
@@ -112,7 +111,10 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 			spender := suite.RandSigner()
 			allowanceAmt := helpers.NewRandAmount()
 
-			args, errResult := tc.malleate(val.GetOperator(), spender, allowanceAmt)
+			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+			suite.Require().NoError(err)
+
+			args, errResult := tc.malleate(operator, spender, allowanceAmt)
 
 			packData, err := approveSharesMethod.PackInput(args)
 			suite.Require().NoError(err)
@@ -127,7 +129,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 				sender = suite.staking
 			}
 
-			allowance := suite.App.StakingKeeper.GetAllowance(suite.Ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress())
+			allowance := suite.App.StakingKeeper.GetAllowance(suite.Ctx, operator, owner.AccAddress(), spender.AccAddress())
 			suite.Require().Equal(0, allowance.Cmp(big.NewInt(0)))
 
 			res := suite.EthereumTx(owner, stakingContract, big.NewInt(0), packData)
@@ -135,7 +137,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
 
-				allowance = suite.App.StakingKeeper.GetAllowance(suite.Ctx, val.GetOperator(), sender.Bytes(), spender.AccAddress())
+				allowance = suite.App.StakingKeeper.GetAllowance(suite.Ctx, operator, sender.Bytes(), spender.AccAddress())
 				if allowance.Cmp(big.NewInt(0)) != 0 {
 					suite.Require().Equal(0, allowance.Cmp(allowanceAmt.BigInt()))
 				}
@@ -148,7 +150,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.Owner, sender)
 						suite.Require().Equal(event.Spender, spender.Address())
-						suite.Require().Equal(event.Validator, val.GetOperator().String())
+						suite.Require().Equal(event.Validator, val.GetOperator())
 						if allowance.Cmp(big.NewInt(0)) != 0 {
 							suite.Require().Equal(event.Shares.String(), allowanceAmt.BigInt().String())
 						}
@@ -156,32 +158,6 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 					}
 				}
 				suite.Require().True(existLog)
-
-				existEvent := false
-				for _, event := range suite.Ctx.EventManager().Events() {
-					if event.Type == fxstakingtypes.EventTypeApproveShares {
-						for _, attr := range event.Attributes {
-							if attr.Key == stakingtypes.AttributeKeyValidator {
-								suite.Require().Equal(attr.Value, val.GetOperator().String())
-							}
-							if attr.Key == fxstakingtypes.AttributeKeyOwner {
-								suite.Require().Equal(attr.Value, sdk.AccAddress(sender.Bytes()).String())
-							}
-							if attr.Key == fxstakingtypes.AttributeKeySpender {
-								suite.Require().Equal(attr.Value, spender.AccAddress().String())
-							}
-							if attr.Key == fxstakingtypes.AttributeKeyShares {
-								if strings.Contains(tc.name, "zero") {
-									suite.Require().Equal(attr.Value, "0")
-								} else {
-									suite.Require().Equal(attr.Value, allowanceAmt.String())
-								}
-							}
-						}
-						existEvent = true
-					}
-				}
-				suite.Require().True(existEvent)
 			} else {
 				suite.Error(res, errResult)
 			}

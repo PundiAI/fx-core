@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -26,9 +27,13 @@ import (
 )
 
 var (
-	_ module.AppModule         = AppModule{}
-	_ module.AppModuleBasic    = AppModuleBasic{}
-	_ module.EndBlockAppModule = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasServices    = AppModule{}
+	_ module.HasInvariants  = AppModule{}
+	_ module.HasABCIGenesis = AppModule{}
+
+	_ appmodule.AppModule     = AppModule{}
+	_ appmodule.HasEndBlocker = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the gov module.
@@ -109,14 +114,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
 	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
-	govv1.RegisterQueryServer(cfg.QueryServer(), am.keeper.Keeper)
+	govv1.RegisterQueryServer(cfg.QueryServer(), govkeeper.NewQueryServer(am.keeper.Keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
-	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
-	err := cfg.RegisterMigration(govtypes.ModuleName, 3, m.Migrate3to4)
-	if err != nil {
-		panic(fmt.Sprintf("failed to migrate x/gov from version 3 to 4: %v", err))
-	}
 }
 
 // InitGenesis performs genesis initialization for the gov module. It returns
@@ -134,7 +133,6 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.EndBlocker(ctx)
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx context.Context) error {
+	return gov.EndBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.Keeper)
 }

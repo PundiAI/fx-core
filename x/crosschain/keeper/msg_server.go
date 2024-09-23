@@ -7,12 +7,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/hashicorp/go-metrics"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -85,8 +85,8 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	if err = s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(msg.DelegateAmount)); err != nil {
 		return nil, err
 	}
-	msgDelegate := stakingtypes.NewMsgDelegate(delegateAddr, valAddr, msg.DelegateAmount)
-	if _, err = s.stakingMsgServer.Delegate(sdk.WrapSDKContext(ctx), msgDelegate); err != nil {
+	msgDelegate := stakingtypes.NewMsgDelegate(delegateAddr.String(), valAddr.String(), msg.DelegateAmount)
+	if _, err = s.stakingMsgServer.Delegate(ctx, msgDelegate); err != nil {
 		return nil, err
 	}
 
@@ -154,7 +154,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		if err = s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(delegateCoin)); err != nil {
 			return nil, err
 		}
-		msgDelegate := stakingtypes.NewMsgDelegate(delegateAddr, oracle.GetValidator(), delegateCoin)
+		msgDelegate := stakingtypes.NewMsgDelegate(delegateAddr.String(), oracle.GetValidator().String(), delegateCoin)
 		if _, err = s.stakingMsgServer.Delegate(c, msgDelegate); err != nil {
 			return nil, err
 		}
@@ -216,7 +216,7 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 	if err != nil {
 		return nil, err
 	}
-	msgBeginRedelegate := stakingtypes.NewMsgBeginRedelegate(delegateAddr, valSrcAddress, valDstAddress, types.NewDelegateAmount(delegateToken))
+	msgBeginRedelegate := stakingtypes.NewMsgBeginRedelegate(delegateAddr.String(), valSrcAddress.String(), valDstAddress.String(), types.NewDelegateAmount(delegateToken))
 	if _, err = s.stakingMsgServer.BeginRedelegate(c, msgBeginRedelegate); err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawRewar
 	}
 
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
-	msgWithdrawDelegatorReward := distributiontypes.NewMsgWithdrawDelegatorReward(delegateAddr, oracle.GetValidator())
+	msgWithdrawDelegatorReward := distributiontypes.NewMsgWithdrawDelegatorReward(delegateAddr.String(), oracle.GetValidator().String())
 	if _, err = s.distributionKeeper.WithdrawDelegatorReward(c, msgWithdrawDelegatorReward); err != nil {
 		return nil, err
 	}
@@ -313,8 +313,8 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 	}
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	validatorAddr := oracle.GetValidator()
-	if _, found = s.stakingKeeper.GetUnbondingDelegation(ctx, delegateAddr, validatorAddr); found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "exist unbonding delegation")
+	if _, err = s.stakingKeeper.GetUnbondingDelegation(ctx, delegateAddr, validatorAddr); err != nil {
+		return nil, errorsmod.Wrap(err, "unbonding delegation")
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
 	slashAmount := types.NewDelegateAmount(oracle.GetSlashAmount(s.GetSlashFraction(ctx)))

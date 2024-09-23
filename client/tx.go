@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
 )
 
@@ -19,7 +18,7 @@ const DefGasLimit uint64 = 200000
 
 type buildTxClient interface {
 	GetChainId() (string, error)
-	QueryAccount(address string) (authtypes.AccountI, error)
+	QueryAccount(address string) (sdk.AccountI, error)
 	GetGasPrices() (sdk.Coins, error)
 	GetAddressPrefix() (string, error)
 	EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error)
@@ -116,7 +115,7 @@ func WaitMined(cli waitMinedClient, txHash string, timeout, pollInterval time.Du
 	return nil, errors.New("waiting for tx timeout")
 }
 
-func GetChainInfo(cli buildTxClient, from string) (account authtypes.AccountI, chainId string, gasPrice sdk.Coin, err error) {
+func GetChainInfo(cli buildTxClient, from string) (account sdk.AccountI, chainId string, gasPrice sdk.Coin, err error) {
 	account, err = cli.QueryAccount(from)
 	if err != nil {
 		return nil, "", sdk.Coin{}, err

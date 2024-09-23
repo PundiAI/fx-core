@@ -5,20 +5,19 @@ import (
 	"math/big"
 	"os"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
+	storetypes "cosmossdk.io/store/types"
 	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
 	tendermintos "github.com/cometbft/cometbft/libs/os"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
@@ -50,7 +49,7 @@ func exportDelegatesCmd(defaultNodeHome string) *cobra.Command {
 			denom := serverCtx.Viper.GetString("denom")
 			height := serverCtx.Viper.GetInt64("height")
 
-			db, err := server.NewDatabase(serverCtx.Config, clientCtx.Codec)
+			db, err := server.NewDatabase(serverCtx.Config)
 			if err != nil {
 				return err
 			}
@@ -86,8 +85,8 @@ func exportDelegatesCmd(defaultNodeHome string) *cobra.Command {
 	return cmd
 }
 
-func allDelegates(kvStore types.KVStore, codec codec.Codec) map[string]sdkmath.Int {
-	iterator := sdk.KVStorePrefixIterator(kvStore, stakingtypes.DelegationKey)
+func allDelegates(kvStore storetypes.KVStore, codec codec.Codec) map[string]sdkmath.Int {
+	iterator := storetypes.KVStorePrefixIterator(kvStore, stakingtypes.DelegationKey)
 	defer iterator.Close()
 
 	delegations := make(map[string]sdkmath.Int)
@@ -108,14 +107,18 @@ func allHolder(ctx sdk.Context, myApp *app.App, contractAddrStr string, denom st
 	denomHolder := map[string]sdkmath.Int{}
 	contractHolders := map[string]sdkmath.Int{}
 
-	consAddr, err := myApp.StakingKeeper.GetValidators(ctx, 1)[0].GetConsAddr()
+	validators, err := myApp.StakingKeeper.GetValidators(ctx, 1)
+	if err != nil {
+		panic(err)
+	}
+	consAddr, err := validators[0].GetConsAddr()
 	if err != nil {
 		panic(err)
 	}
 	ctx = ctx.WithProposer(consAddr)
 	contractAddr := common.HexToAddress(contractAddrStr)
 
-	myApp.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
+	myApp.AccountKeeper.IterateAccounts(ctx, func(account sdk.AccountI) (stop bool) {
 		queryContractBalance(myApp, ctx, contractAddr, common.Address(account.GetAddress()), contractHolders)
 		queryDenomBalance(myApp, ctx, account, denom, denomHolder)
 		return false
@@ -123,7 +126,7 @@ func allHolder(ctx sdk.Context, myApp *app.App, contractAddrStr string, denom st
 	return denomHolder, contractHolders
 }
 
-func queryDenomBalance(myApp *app.App, ctx sdk.Context, account authtypes.AccountI, denom string, holder map[string]sdkmath.Int) {
+func queryDenomBalance(myApp *app.App, ctx sdk.Context, account sdk.AccountI, denom string, holder map[string]sdkmath.Int) {
 	if len(denom) == 0 {
 		return
 	}
@@ -151,14 +154,13 @@ func queryContractBalance(myApp *app.App, ctx sdk.Context, contractAddr, address
 }
 
 func buildApp(db dbm.DB, height int64) (*app.App, sdk.Context, error) {
-	myApp := app.New(log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowAll()),
-		db, nil, false, map[int64]bool{}, "", 0,
-		app.MakeEncodingConfig(), app.EmptyAppOptions{})
+	myApp := app.New(log.NewNopLogger(), db, nil,
+		false, map[int64]bool{}, "", app.EmptyAppOptions{})
 
 	if err := myApp.LoadLatestVersion(); err != nil {
 		return nil, sdk.Context{}, errors.Wrap(err, "failed to load latest version")
 	}
-	var multiStore types.CacheMultiStore
+	var multiStore storetypes.CacheMultiStore
 
 	if height > 0 {
 		var err error
@@ -170,9 +172,8 @@ func buildApp(db dbm.DB, height int64) (*app.App, sdk.Context, error) {
 		multiStore = myApp.CommitMultiStore().CacheMultiStore()
 	}
 
-	ctx := myApp.NewUncachedContext(false, tmproto.Header{
-		ChainID: fxtypes.ChainId(), Height: myApp.LastBlockHeight(),
-	}).WithMultiStore(multiStore)
+	ctx := myApp.NewUncachedContext(false,
+		tmproto.Header{Height: myApp.LastBlockHeight()}).WithMultiStore(multiStore)
 
 	return myApp, ctx, nil
 }

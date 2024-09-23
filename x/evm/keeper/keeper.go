@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +20,6 @@ import (
 	"github.com/evmos/ethermint/x/evm/types"
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
@@ -33,7 +33,6 @@ type Keeper struct {
 }
 
 func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper, bk types.BankKeeper) *Keeper {
-	ek.WithChainID(sdk.Context{}.WithChainID(fxtypes.ChainIdWithEIP155()))
 	addr := ak.GetModuleAddress(types.ModuleName)
 	if addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
@@ -56,7 +55,7 @@ func (k *Keeper) CallEVMWithoutGas(
 	commit bool,
 ) (*types.MsgEthereumTxResponse, error) {
 	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
@@ -65,14 +64,14 @@ func (k *Keeper) CallEVMWithoutGas(
 
 	gasLimit := fxcontract.DefaultGasCap
 	params := ctx.ConsensusParams()
-	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
+	if params.Block != nil && params.Block.MaxGas > 0 {
 		gasLimit = uint64(params.Block.MaxGas)
 	}
 
 	if value == nil {
 		value = big.NewInt(0)
 	}
-	msg := core.Message{
+	msg := &core.Message{
 		From:              from,
 		To:                contract,
 		Nonce:             nonce,
@@ -116,21 +115,21 @@ func (k *Keeper) CallEVM(
 	commit bool,
 ) (*types.MsgEthereumTxResponse, error) {
 	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
 		return nil, err
 	}
 	params := ctx.ConsensusParams()
-	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
+	if params.Block != nil && params.Block.MaxGas > 0 {
 		gasLimit = uint64(params.Block.MaxGas)
 	}
 
 	if value == nil {
 		value = big.NewInt(0)
 	}
-	msg := core.Message{
+	msg := &core.Message{
 		To:                contract,
 		From:              from,
 		Nonce:             nonce,

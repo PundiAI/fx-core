@@ -6,7 +6,6 @@ import (
 	"time"
 
 	cmtdbm "github.com/cometbft/cometbft-db"
-	tmnode "github.com/cometbft/cometbft/node"
 	sm "github.com/cometbft/cometbft/state"
 	"github.com/cometbft/cometbft/store"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -46,7 +45,7 @@ func dataQueryBlockCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 			ctx.Config.DBBackend = ctx.Viper.GetString(flagDBBackend)
-			blockStoreDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: BlockDBName, Config: ctx.Config})
+			blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(ctx.Config.DBBackend), ctx.Config.DBDir())
 			if err != nil {
 				return err
 			}
@@ -96,15 +95,15 @@ func pruneAllCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 
-			blockStoreDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: BlockDBName, Config: ctx.Config})
+			blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(ctx.Config.DBBackend), ctx.Config.DBDir())
 			if err != nil {
 				return err
 			}
-			stateDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: StateDBName, Config: ctx.Config})
+			stateDB, err := cmtdbm.NewDB(StateDBName, cmtdbm.BackendType(ctx.Config.DBBackend), ctx.Config.DBDir())
 			if err != nil {
 				return err
 			}
-			appDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: AppDBName, Config: ctx.Config})
+			appDB, err := cmtdbm.NewDB(AppDBName, cmtdbm.BackendType(ctx.Config.DBBackend), ctx.Config.DBDir())
 			if err != nil {
 				return err
 			}
@@ -136,7 +135,7 @@ func pruneAppCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 
-			appDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: AppDBName, Config: ctx.Config})
+			appDB, err := cmtdbm.NewDB(AppDBName, cmtdbm.BackendType(ctx.Config.DBBackend), ctx.Config.DBDir())
 			if err != nil {
 				return err
 			}
@@ -160,11 +159,11 @@ func pruneBlockCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 
-			blockStoreDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: BlockDBName, Config: ctx.Config})
+			blockStoreDB, err := cmtdbm.NewDB(BlockDBName, cmtdbm.BackendType(ctx.Config.DBBackend), ctx.Config.DBDir())
 			if err != nil {
 				return err
 			}
-			stateDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: StateDBName, Config: ctx.Config})
+			stateDB, err := cmtdbm.NewDB(StateDBName, cmtdbm.BackendType(ctx.Config.DBBackend), ctx.Config.DBDir())
 			if err != nil {
 				return err
 			}
@@ -212,7 +211,7 @@ func pruneBlockData(cmd *cobra.Command, blockStoreDB cmtdbm.DB, stateDB cmtdbm.D
 		fmt.Printf("base height greater than equal to full height, skip pruning!baseHeight:%d,currentHeight:%d,toHeight:%d\n", baseHeight, currentHeight, toHeight)
 		return nil
 	}
-	fmt.Printf("--------- pruning start... from:%d,to:%d,sieze:%d---------\n", baseHeight, toHeight, fullHeight)
+	fmt.Printf("--------- pruning start... from:%d,to:%d,size:%d---------\n", baseHeight, toHeight, fullHeight)
 	var wg sync.WaitGroup
 	wg.Add(2)
 	start := time.Now()
@@ -229,7 +228,7 @@ func pruneBlocks(blockStoreDB cmtdbm.DB, baseHeight, toHeight int64, wg *sync.Wa
 
 	fmt.Printf("Prune blocks start from %d to %d, pruneSize: %d\n", baseHeight, toHeight, toHeight-baseHeight)
 	start := time.Now()
-	_, err := store.NewBlockStore(blockStoreDB).PruneBlocks(toHeight)
+	_, _, err := store.NewBlockStore(blockStoreDB).PruneBlocks(toHeight, sm.State{})
 	if err != nil {
 		panic(fmt.Errorf("failed to prune block store: %w", err))
 	}
@@ -248,7 +247,7 @@ func pruneStates(stateDB cmtdbm.DB, from, to int64, wg *sync.WaitGroup) {
 	stateStore := sm.NewStore(stateDB, sm.StoreOptions{
 		DiscardABCIResponses: false,
 	})
-	if err := stateStore.PruneStates(from, to); err != nil {
+	if err := stateStore.PruneStates(from, to, 0); err != nil {
 		panic(fmt.Errorf("failed to prune state database: %w", err))
 	}
 

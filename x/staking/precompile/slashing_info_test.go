@@ -78,10 +78,13 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 			spender := suite.RandSigner()
 			allowanceAmt := helpers.NewRandAmount()
 
-			// set allowance
-			suite.App.StakingKeeper.SetAllowance(suite.Ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
+			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+			suite.Require().NoError(err)
 
-			args, errResult := tc.malleate(val.GetOperator())
+			// set allowance
+			suite.App.StakingKeeper.SetAllowance(suite.Ctx, operator, owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
+
+			args, errResult := tc.malleate(operator)
 
 			packData, err := slashingInfoMethod.PackInput(args)
 			suite.Require().NoError(err)
@@ -99,13 +102,13 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 				suite.Require().False(res.Failed(), res.VmError)
 				jailed, missed, err := slashingInfoMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
-				validator, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, val.GetOperator())
-				suite.True(found)
+				validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, operator)
+				suite.NoError(err)
 				suite.Equal(validator.Jailed, jailed)
 				consAddr, err := validator.GetConsAddr()
 				suite.NoError(err)
-				signingInfo, found := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
-				suite.True(found)
+				signingInfo, err := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
+				suite.NoError(err)
 				suite.Equal(signingInfo.MissedBlocksCounter, missed.Int64())
 			} else {
 				suite.Error(res, errResult)

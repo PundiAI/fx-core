@@ -8,7 +8,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
-	updateOracle := &types.UpdateChainOraclesProposal{ // nolint:staticcheck
+	updateOracle := &types.UpdateChainOraclesProposal{
 		Title:       "Test UpdateCrossChainOracles",
 		Description: "test",
 		Oracles:     []string{},

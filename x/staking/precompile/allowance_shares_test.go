@@ -96,7 +96,7 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 					Validator: valStr,
 					Owner:     suite.RandSigner().Address(),
 					Spender:   spender.Address(),
-				}, fmt.Errorf("allowance shares failed: invalid validator address: %s", valStr)
+				}, fmt.Errorf("invalid validator address: %s", valStr)
 			},
 			result: false,
 		},
@@ -110,9 +110,11 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 			allowanceAmt := helpers.NewRandAmount()
 
 			// set allowance
-			suite.App.StakingKeeper.SetAllowance(suite.Ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
+			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+			suite.Require().NoError(err)
+			suite.App.StakingKeeper.SetAllowance(suite.Ctx, operator, owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
-			args, errResult := tc.malleate(val.GetOperator(), owner, spender)
+			args, errResult := tc.malleate(operator, owner, spender)
 
 			packData, err := allowanceSharesMethod.PackInput(args)
 			suite.Require().NoError(err)

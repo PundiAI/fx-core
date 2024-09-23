@@ -16,7 +16,7 @@ import (
 	"github.com/functionx/fx-core/v8/client"
 )
 
-func (c *NodeRPC) GetModuleAccounts() ([]authtypes.AccountI, error) {
+func (c *NodeRPC) GetModuleAccounts() ([]sdk.AccountI, error) {
 	data, err := proto.Marshal(&authtypes.QueryModuleAccountsRequest{})
 	if err != nil {
 		return nil, err
@@ -29,9 +29,9 @@ func (c *NodeRPC) GetModuleAccounts() ([]authtypes.AccountI, error) {
 	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
 		return nil, err
 	}
-	accounts := make([]authtypes.AccountI, 0, len(response.Accounts))
+	accounts := make([]sdk.AccountI, 0, len(response.Accounts))
 	for _, acc := range response.Accounts {
-		var account authtypes.AccountI
+		var account sdk.AccountI
 		if err = client.NewAccountCodec().UnpackAny(acc, &account); err != nil {
 			return nil, err
 		}
@@ -40,7 +40,7 @@ func (c *NodeRPC) GetModuleAccounts() ([]authtypes.AccountI, error) {
 	return accounts, nil
 }
 
-func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
+func (c *NodeRPC) QueryAccount(address string) (sdk.AccountI, error) {
 	data, err := proto.Marshal(&authtypes.QueryAccountRequest{Address: address})
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
 	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
 		return nil, err
 	}
-	var account authtypes.AccountI
+	var account sdk.AccountI
 	if err = client.NewAccountCodec().UnpackAny(response.GetAccount(), &account); err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	gogotypes "github.com/cosmos/gogoproto/types"
@@ -308,7 +309,7 @@ func (k Keeper) IteratorBridgeCallNotLiquidsByDenom(ctx sdk.Context, denom strin
 	cb func(bridgeCallNonce uint64, notLiquidCoins sdk.Coins) bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetNotLiquidCoinKey(denom))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetNotLiquidCoinKey(denom))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		bridgeCallNonce := types.ParseBridgeCallNotLiquidNonce(iter.Key(), denom)
@@ -324,7 +325,7 @@ func (k Keeper) IteratorBridgeCallNotLiquidsByDenom(ctx sdk.Context, denom strin
 
 func (k Keeper) IteratePendingOutgoingBridgeCallsByAddress(ctx sdk.Context, senderAddr string, cb func(outCall *types.PendingOutgoingBridgeCall) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.GetPendingOutgoingBridgeCallAddressKey(senderAddr))
+	iterator := storetypes.KVStorePrefixIterator(store, types.GetPendingOutgoingBridgeCallAddressKey(senderAddr))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		nonce := types.ParsePendingOutgoingBridgeCallNonce(iterator.Key(), senderAddr)
