@@ -325,19 +325,6 @@ func NewAppKeeper(
 		// appKeepers.tkeys[feemarkettypes.TransientKey],
 		appKeepers.GetSubspace(feemarkettypes.ModuleName),
 	)
-	allKeys := make(map[string]storetypes.StoreKey, len(appKeepers.keys)+len(appKeepers.tkeys)+len(appKeepers.memKeys)+len(appKeepers.objKeys))
-	for k, v := range appKeepers.keys {
-		allKeys[k] = v
-	}
-	for k, v := range appKeepers.tkeys {
-		allKeys[k] = v
-	}
-	for k, v := range appKeepers.memKeys {
-		allKeys[k] = v
-	}
-	for k, v := range appKeepers.objKeys {
-		allKeys[k] = v
-	}
 
 	// cross chain precompile
 	precompileRouter := crosschainprecompile.NewRouter()
