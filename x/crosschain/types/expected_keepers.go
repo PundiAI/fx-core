@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -27,10 +26,6 @@ type StakingMsgServer interface {
 	Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error)
 	BeginRedelegate(goCtx context.Context, msg *stakingtypes.MsgBeginRedelegate) (*stakingtypes.MsgBeginRedelegateResponse, error)
 	Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndelegate) (*stakingtypes.MsgUndelegateResponse, error)
-}
-
-type DistributionKeeper interface {
-	GetDelegatorStartingInfo(ctx sdk.Context, val sdk.ValAddress, del sdk.AccAddress) (period distributiontypes.DelegatorStartingInfo)
 }
 
 type DistributionMsgServer interface {
@@ -53,7 +48,7 @@ type BankKeeper interface {
 
 type Erc20Keeper interface {
 	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _, _ bool) error
-	ConvertCoin(goCtx context.Context, msg *erc20types.MsgConvertCoin) (*erc20types.MsgConvertCoinResponse, error)
+	ConvertCoin(ctx context.Context, msg *erc20types.MsgConvertCoin) (*erc20types.MsgConvertCoinResponse, error)
 	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error)
 	HookOutgoingRefund(ctx sdk.Context, moduleName string, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error
 	SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
@@ -72,7 +67,7 @@ type EVMKeeper interface {
 }
 
 type IBCTransferKeeper interface {
-	Transfer(goCtx context.Context, msg *tranfsertypes.MsgTransfer) (*tranfsertypes.MsgTransferResponse, error)
+	Transfer(ctx context.Context, msg *tranfsertypes.MsgTransfer) (*tranfsertypes.MsgTransferResponse, error)
 
 	SetDenomTrace(ctx sdk.Context, denomTrace tranfsertypes.DenomTrace)
 }
@@ -83,16 +78,3 @@ type AccountKeeper interface {
 	SetAccount(ctx context.Context, acc sdk.AccountI)
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 }
-
-type (
-	ParamSet = paramtypes.ParamSet
-	// Subspace defines an interface that implements the legacy x/params Subspace
-	// type.
-	//
-	// NOTE: This is used solely for migration of x/params managed parameters.
-	Subspace interface {
-		GetParamSet(ctx sdk.Context, ps ParamSet)
-		HasKeyTable() bool
-		WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
-	}
-)
