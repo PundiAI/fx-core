@@ -5,7 +5,8 @@ import (
 )
 
 var (
-	AllowanceKey         = []byte{0x90}
+	AllowanceKey = []byte{0x90}
+	// todo: remove this key in migrate v8
 	ValidatorOperatorKey = []byte{0x91}
 	ConsensusPubKey      = []byte{0x92}
 	ConsensusProcessKey  = []byte{0x93}
