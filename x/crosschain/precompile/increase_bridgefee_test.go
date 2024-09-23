@@ -15,7 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
@@ -50,18 +49,6 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		suite.Require().NoError(err)
 
 		res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), value, data)
-		suite.Require().False(res.Failed(), res.VmError)
-	}
-	transferCrossChainTxFunc := func(signer *helpers.Signer, contactAddr common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := contract.GetFIP20().ABI.Pack(
-			"transferCrossChain",
-			helpers.GenExternalAddr(moduleName),
-			amount,
-			fee,
-			fxtypes.MustStrToByte32(moduleName),
-		)
-		suite.Require().NoError(err)
-		res := suite.EthereumTx(signer, contactAddr, value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
@@ -121,46 +108,6 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 
 				crossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, randMint, big.NewInt(0), big.NewInt(0))
 				return pair, moduleName, ""
-			},
-			malleate: increaseBridgeFeeFunc,
-			result:   true,
-		},
-		{
-			name: "ok - fip20 contract + erc20 token",
-			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
-					Coin:     coin,
-					Receiver: signer.Address().Hex(),
-					Sender:   signer.AccAddress().String(),
-				})
-				suite.Require().NoError(err)
-				fee := big.NewInt(1)
-				amount := big.NewInt(0).Sub(randMint, fee)
-				transferCrossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, amount, fee, big.NewInt(0))
-
-				return pair, moduleName, ""
-			},
-			malleate: increaseBridgeFeeFunc,
-			result:   true,
-		},
-		{
-			name: "ok - fip20 contract + evm token",
-			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				moduleName := ethtypes.ModuleName
-				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
-				suite.Require().True(found)
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), pair.GetDenom())
-
-				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-
-				fee := big.NewInt(1)
-				amount := big.NewInt(0).Sub(randMint, fee)
-				transferCrossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, amount, fee, randMint)
-
-				return &pair, moduleName, fxtypes.DefaultDenom
 			},
 			malleate: increaseBridgeFeeFunc,
 			result:   true,
@@ -511,18 +458,6 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), value, data)
 		suite.Require().False(res.Failed(), res.VmError)
 	}
-	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
-		data, err := contract.GetFIP20().ABI.Pack(
-			"transferCrossChain",
-			helpers.GenExternalAddr(moduleName),
-			amount,
-			fee,
-			fxtypes.MustStrToByte32(moduleName),
-		)
-		suite.Require().NoError(err)
-		res := suite.EthereumTx(signer, contact, value, data)
-		suite.Require().False(res.Failed(), res.VmError)
-	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
 		pendingTx, err := queryServer.GetPendingSendToExternal(suite.ctx,
@@ -584,29 +519,6 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschaintypes.GetAddress(), randMint)
 
 				crossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, randMint, big.NewInt(0), big.NewInt(0))
-				return pair, moduleName, ""
-			},
-			malleate: increaseBridgeFeeFunc,
-			result:   true,
-		},
-		{
-			name: "ok - fip20 contract + erc20 token",
-			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
-
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
-					Coin:     coin,
-					Receiver: signer.Address().Hex(),
-					Sender:   signer.AccAddress().String(),
-				})
-				suite.Require().NoError(err)
-				fee := big.NewInt(1)
-				amount := big.NewInt(0).Sub(randMint, fee)
-				transferCrossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, amount, fee, big.NewInt(0))
-
 				return pair, moduleName, ""
 			},
 			malleate: increaseBridgeFeeFunc,

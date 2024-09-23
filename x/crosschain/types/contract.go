@@ -50,31 +50,6 @@ func (args *CancelSendToExternalArgs) Validate() error {
 	return nil
 }
 
-type FIP20CrossChainArgs struct {
-	Sender  common.Address `abi:"_sender"`
-	Receipt string         `abi:"_receipt"`
-	Amount  *big.Int       `abi:"_amount"`
-	Fee     *big.Int       `abi:"_fee"`
-	Target  [32]byte       `abi:"_target"`
-	Memo    string         `abi:"_memo"`
-}
-
-func (args *FIP20CrossChainArgs) Validate() error {
-	if args.Receipt == "" {
-		return errors.New("empty receipt")
-	}
-	if args.Amount == nil || args.Amount.Sign() <= 0 {
-		return errors.New("invalid amount")
-	}
-	if args.Fee == nil || args.Fee.Sign() < 0 {
-		return errors.New("invalid fee")
-	}
-	if args.Target == [32]byte{} {
-		return errors.New("empty target")
-	}
-	return nil
-}
-
 type CrossChainArgs struct {
 	Token   common.Address `abi:"_token"`
 	Receipt string         `abi:"_receipt"`

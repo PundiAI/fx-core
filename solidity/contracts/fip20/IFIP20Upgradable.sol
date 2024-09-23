@@ -97,21 +97,6 @@ interface IFIP20Upgradable {
     function burn(address from, uint256 amount) external;
 
     /**
-     * @dev Cross chain moves `amount + fee` tokens from `sender` to `recipient`
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {TransferCrossChain} event.
-     */
-    // Deprecated: use pre-compiled contract crossChain
-    function transferCrossChain(
-        string memory recipient,
-        uint256 amount,
-        uint256 fee,
-        bytes32 target
-    ) external returns (bool);
-
-    /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
      * another (`to`).
      *
@@ -127,17 +112,5 @@ interface IFIP20Upgradable {
         address indexed owner,
         address indexed spender,
         uint256 value
-    );
-
-    /**
-     * @dev Emitted when `amount + fee` tokens are cross chain moved from one account (`from`) to
-     * another (`to`) through (`target`).
-     */
-    event TransferCrossChain(
-        address indexed from,
-        string recipient,
-        uint256 amount,
-        uint256 fee,
-        bytes32 target
     );
 }

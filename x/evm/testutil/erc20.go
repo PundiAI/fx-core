@@ -51,7 +51,7 @@ func (s *ERC20Suite) Deploy(symbol string) common.Address {
 	rsp, err := s.evmKeeper.ApplyMessage(s.ctx, msg, nil, true)
 	s.NoError(err)
 	s.False(rsp.Failed(), rsp.VmError)
-	s.Equal(uint64(1_600_010), rsp.GasUsed)
+	s.Equal(uint64(1_407_757), rsp.GasUsed)
 	addr := crypto.CreateAddress(s.signer.Address(), nonce)
 	s.contractAddr = addr
 	s.Initialize(symbol, true)
