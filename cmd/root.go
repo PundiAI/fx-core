@@ -195,6 +195,7 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxsByEventsCmd(),
 		rpc.ValidatorCommand(),
 		rpc.QueryEventForTxCmd(),
+		rpc.WaitTxCmd(),
 		sdkserver.QueryBlocksCmd(),
 		sdkserver.QueryBlockCmd(),
 		sdkserver.QueryBlockResultsCmd(),
