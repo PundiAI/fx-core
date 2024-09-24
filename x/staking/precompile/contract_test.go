@@ -63,6 +63,7 @@ func (suite *PrecompileTestSuite) SetupSubTest() {
 }
 
 func (suite *PrecompileTestSuite) SetupTest() {
+	suite.MintValNumber = 2
 	suite.BaseSuite.SetupTest()
 	suite.Commit(10)
 

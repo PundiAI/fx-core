@@ -34,18 +34,6 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive st
 	return nil
 }
 
-func (k Keeper) PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error) {
-	return k.RemoveFromOutgoingPoolAndRefund(ctx, txID, sender)
-}
-
-func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error {
-	return k.AddUnbatchedTxBridgeFee(ctx, txID, sender, addBridgeFee)
-}
-
-func (k Keeper) PrecompileAddPendingPoolRewards(ctx sdk.Context, txID uint64, sender sdk.AccAddress, reward sdk.Coin) error {
-	return k.AddPendingPoolRewards(ctx, txID, sender.Bytes(), sdk.NewCoins(reward))
-}
-
 func (k Keeper) PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (nonce uint64, err error) {
 	tokens, notLiquidCoins, err := k.BridgeCallCoinsToERC20Token(ctx, sender.Bytes(), coins)
 	if err != nil {
@@ -64,8 +52,4 @@ func (k Keeper) PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Addr
 	}
 
 	return outCallNonce, nil
-}
-
-func (k Keeper) PrecompileCancelPendingBridgeCall(ctx sdk.Context, nonce uint64, sender sdk.AccAddress) (sdk.Coins, error) {
-	return k.HandleCancelPendingOutgoingBridgeCall(ctx, nonce, sender)
 }
