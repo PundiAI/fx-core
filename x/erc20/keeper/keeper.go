@@ -23,6 +23,7 @@ type Keeper struct {
 	accountKeeper     types.AccountKeeper
 	bankKeeper        types.BankKeeper
 	evmKeeper         types.EVMKeeper
+	evmErc20Keeper    types.EvmERC20Keeper
 	ibcTransferKeeper types.IBCTransferKeeper
 
 	moduleAddress common.Address
@@ -38,6 +39,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	evmKeeper types.EVMKeeper,
+	evmErc20Keeper types.EvmERC20Keeper,
 	ibcTransferKeeper types.IBCTransferKeeper,
 	authority string,
 ) Keeper {
@@ -52,6 +54,7 @@ func NewKeeper(
 		accountKeeper:     ak,
 		bankKeeper:        bk,
 		evmKeeper:         evmKeeper,
+		evmErc20Keeper:    evmErc20Keeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		moduleAddress:     common.BytesToAddress(moduleAddress),
 		authority:         authority,
