@@ -5,6 +5,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "fx/gravity/crosschain/v1/types.proto";
+import "fx/gravity/crosschain/v1/legacy.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "amino/amino.proto";
@@ -25,10 +26,13 @@ service Msg {
   rpc OracleSetConfirm(MsgOracleSetConfirm)
       returns (MsgOracleSetConfirmResponse);
 
+  // Deprecated: Please use BridgeCall
   rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
+  // Deprecated: do not use
   rpc CancelSendToExternal(MsgCancelSendToExternal)
       returns (MsgCancelSendToExternalResponse);
 
+  // Deprecated: do not use
   rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
 
@@ -236,77 +240,6 @@ message MsgBridgeCallResultClaim {
 
 message MsgBridgeCallResultClaimResponse {}
 
-// MsgSendToExternal
-// This is the message that a user calls when they want to bridge an asset
-// it will later be removed when it is included in a batch and successfully
-// submitted tokens are removed from the users balance immediately
-// -------------
-// AMOUNT:
-// the coin to send across the bridge, note the restriction that this is a
-// single coin not a set of coins that is normal in other Payment messages
-// FEE:
-// the fee paid for the bridge, distinct from the fee paid to the chain to
-// actually send this message in the first place. So a successful send has
-// two layers of fees for the user
-message MsgSendToExternal {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "crosschain/MsgSendToExternal";
-
-  string sender = 1;
-  string dest = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
-  cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
-  string chain_name = 5;
-}
-
-message MsgSendToExternalResponse { uint64 outgoing_tx_id = 1; }
-
-// This call allows the sender (and only the sender)
-// to cancel a given MsgSendToExternal and recieve a refund
-// of the tokens
-message MsgCancelSendToExternal {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "crosschain/MsgCancelSendToExternal";
-
-  uint64 transaction_id = 1;
-  string sender = 2;
-  string chain_name = 3;
-}
-
-message MsgCancelSendToExternalResponse {}
-
-// MsgRequestBatch
-// this is a message anyone can send that requests a batch of transactions to
-// send across the bridge be created for whatever block height this message is
-// included in. This acts as a coordination point, the handler for this message
-// looks at the AddToOutgoingPool tx's in the store and generates a batch, also
-// available in the store tied to this message. The validators then grab this
-// batch, sign it, submit the signatures with a MsgConfirmBatch before a relayer
-// can finally submit the batch
-// -------------
-// feeReceive:
-message MsgRequestBatch {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "crosschain/MsgRequestBatch";
-
-  string sender = 1;
-  string denom = 2;
-  string minimum_fee = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-  string fee_receive = 4;
-  string chain_name = 5;
-  string base_fee = 6 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-}
-
-message MsgRequestBatchResponse { uint64 batch_nonce = 1; }
-
 // MsgConfirmBatch
 // When validators observe a MsgRequestBatch they form a batch by ordering
 // transactions currently in the txqueue in order of highest to lowest fee,
@@ -374,28 +307,6 @@ message MsgBridgeCallConfirm {
 }
 
 message MsgBridgeCallConfirmResponse {}
-
-// Deprecated: after block 5713000
-message MsgSetOrchestratorAddress {
-  option (cosmos.msg.v1.signer) = "oracle_address";
-  option (amino.name) = "crosschain/MsgSetOrchestratorAddress";
-
-  string oracle_address = 1;
-  string bridger_address = 2;
-  string external_address = 3;
-  cosmos.base.v1beta1.Coin deposit = 4 [ (gogoproto.nullable) = false ];
-  string chain_name = 5;
-}
-
-// Deprecated: after block 5713000
-message MsgAddOracleDeposit {
-  option (cosmos.msg.v1.signer) = "oracle_address";
-  option (amino.name) = "crosschain/MsgAddOracleDeposit";
-
-  string oracle_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
-  string chain_name = 3;
-}
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
