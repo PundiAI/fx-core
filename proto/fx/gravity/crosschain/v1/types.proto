@@ -235,36 +235,6 @@ message Params {
   bool enable_bridge_call_pending = 15;
 }
 
-// Deprecated: after block 5713000
-message InitCrossChainParamsProposal {
-  option (gogoproto.equal) = false;
-  option (gogoproto.goproto_getters) = false;
-  option (gogoproto.goproto_stringer) = false;
-
-  string title = 1;
-  string description = 2;
-  Params params = 3;
-  string chain_name = 4;
-}
-
-// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
-// longer a need for an explicit UpdateChainOraclesProposal. Update crosschain
-// oracles, a simple MsgUpdateChainOracles can be invoked from the x/gov
-// module via a v1 governance proposal.
-message UpdateChainOraclesProposal {
-  option (gogoproto.equal) = false;
-  option (gogoproto.goproto_getters) = false;
-  option (gogoproto.goproto_stringer) = false;
-
-  // the title of the update proposal
-  string title = 1;
-  // the description of the proposal
-  string description = 2;
-
-  repeated string oracles = 3;
-  string chain_name = 4;
-}
-
 message OutgoingBridgeCall {
   string sender = 1;
   string refund = 2;
