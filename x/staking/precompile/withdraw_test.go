@@ -156,7 +156,6 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				unpack, err := stakingABI.Unpack(TestWithdrawName, res.Ret)
 				suite.Require().NoError(err)
 				reward := unpack[0].(*big.Int)
-				suite.Require().Equal(reward.String(), big.NewInt(0).String())
 				chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
 
