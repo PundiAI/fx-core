@@ -9,7 +9,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -17,7 +16,6 @@ import (
 	"github.com/hashicorp/go-metrics"
 	"golang.org/x/exp/slices"
 
-	"github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
@@ -189,12 +187,10 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 		return errorsmod.Wrap(err, "failed to escrow coins")
 	}
 
-	erc20 := contract.GetFIP20().ABI
 	erc20Contract := pair.GetERC20Contract()
 
 	// Mint Tokens and send to receiver
-	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, erc20Contract, nil, erc20, "mint", receiver, coin.Amount.BigInt())
-	if err != nil {
+	if err := k.evmErc20Keeper.ERE20Mint(ctx, erc20Contract, k.moduleAddress, receiver, coin.Amount.BigInt()); err != nil {
 		return err
 	}
 
@@ -212,12 +208,10 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 //   - Check if coin balance increased by amount
 //   - Check if token balance decreased by amount
 func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
-	erc20 := contract.GetFIP20().ABI
 	erc20Contract := pair.GetERC20Contract()
 
 	// Burn escrowed tokens
-	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, erc20Contract, nil, erc20, "burn", sender, amount.BigInt())
-	if err != nil {
+	if err := k.evmErc20Keeper.ERE20Burn(ctx, erc20Contract, k.moduleAddress, sender, amount.BigInt()); err != nil {
 		return err
 	}
 
@@ -246,23 +240,10 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 //   - Check if token balance decreased by amount
 //   - Check for unexpected `approve` event in logs
 func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
-	erc20 := contract.GetFIP20().ABI
-
 	// Escrow tokens on module account
 	erc20Contract := pair.GetERC20Contract()
-	res, err := k.evmKeeper.ApplyContract(ctx, sender, erc20Contract, nil, erc20, "transfer", k.moduleAddress, amount.BigInt())
-	if err != nil {
+	if err := k.evmErc20Keeper.ERE20Transfer(ctx, erc20Contract, sender, k.moduleAddress, amount.BigInt()); err != nil {
 		return err
-	}
-
-	// Check unpackedRet execution
-	var unpackedRet struct{ Value bool }
-	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return errorsmod.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
-	}
-
-	if !unpackedRet.Value {
-		return errorsmod.Wrap(errortypes.ErrLogic, "failed to execute transfer")
 	}
 
 	// Mint coins
@@ -277,10 +258,6 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 		return err
 	}
 
-	// Check for unexpected `approve` event in logs
-	if err = k.monitorApprovalEvent(res); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -300,34 +277,16 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 		return errorsmod.Wrap(err, "failed to escrow coins")
 	}
 
-	erc20 := contract.GetFIP20().ABI
-	erc20Contract := pair.GetERC20Contract()
-
 	// Unescrow Tokens and send to receiver
-	res, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, erc20Contract, nil, erc20, "transfer", receiver, coin.Amount.BigInt())
-	if err != nil {
+	if err := k.evmErc20Keeper.ERE20Transfer(ctx, pair.GetERC20Contract(), k.moduleAddress, receiver, coin.Amount.BigInt()); err != nil {
 		return err
-	}
-
-	// Check unpackedRet execution
-	var unpackedRet struct{ Value bool }
-	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return errorsmod.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
-	}
-
-	if !unpackedRet.Value {
-		return errorsmod.Wrap(errortypes.ErrLogic, "failed to execute unescrow tokens from user")
 	}
 
 	// Burn escrowed Coins
-	if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
+	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
 		return errorsmod.Wrap(err, "failed to burn coins")
 	}
 
-	// Check for unexpected `approve` event in logs
-	if err = k.monitorApprovalEvent(res); err != nil {
-		return err
-	}
 	return nil
 }
 
