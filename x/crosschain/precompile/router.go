@@ -47,7 +47,7 @@ func (rtr *Router) AddRoute(module string, hook crosschainkeeper.Keeper) *Router
 	return rtr
 }
 
-func (rtr *Router) GetRoute(module string) (crosschainkeeper.Keeper, bool) {
+func (rtr *Router) GetRoute(module string) (CrosschainKeeper, bool) {
 	hook, found := rtr.routes[module]
 	return hook, found
 }

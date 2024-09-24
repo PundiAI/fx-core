@@ -60,7 +60,7 @@ func (m *CancelSendToExternalMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		if _, err = route.PrecompileCancelSendToExternal(ctx, args.TxID.Uint64(), sender.Bytes()); err != nil {
+		if _, err = route.RemoveFromOutgoingPoolAndRefund(ctx, args.TxID.Uint64(), sender.Bytes()); err != nil {
 			return err
 		}
 
