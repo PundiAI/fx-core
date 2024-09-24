@@ -41,8 +41,11 @@ type BankKeeper interface {
 	BurnCoins(ctx context.Context, name string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	HasBalance(ctx context.Context, addr sdk.AccAddress, amt sdk.Coin) bool
-	HasDenomMetaData(ctx context.Context, denom string) bool
 	GetSupply(ctx context.Context, denom string) sdk.Coin
+
+	GetDenomMetaData(ctx context.Context, denom string) (bank.Metadata, bool)
+	HasDenomMetaData(ctx context.Context, denom string) bool
+	SetDenomMetaData(ctx context.Context, denomMetaData bank.Metadata)
 	IterateAllDenomMetaData(ctx context.Context, cb func(bank.Metadata) bool)
 }
 
@@ -77,4 +80,12 @@ type AccountKeeper interface {
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	SetAccount(ctx context.Context, acc sdk.AccountI)
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+}
+
+type BridgeTokenKeeper interface {
+	HasDenom(ctx context.Context, denom string) (bool, error)
+	GetAliases(ctx context.Context, denom string) ([]string, error)
+	GetAllBridgeTokens(ctx context.Context) ([]BridgeToken, error)
+	UpdateAliases(ctx context.Context, denom string, aliases ...string) error
+	SetBridgeToken(ctx context.Context, name, symbol string, decimals uint32, aliases ...string) error
 }
