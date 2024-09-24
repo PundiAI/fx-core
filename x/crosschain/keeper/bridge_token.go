@@ -1,6 +1,10 @@
 package keeper
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -17,11 +21,6 @@ func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTo
 	k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token",
 		claim.TokenContract, "channelIbc", claim.ChannelIbc)
 	if claim.Symbol == fxtypes.DefaultDenom {
-		// Check if denom exists
-		if !k.bankKeeper.HasDenomMetaData(ctx, claim.Symbol) {
-			return types.ErrUnknown.Wrapf("denom not found %s", claim.Symbol)
-		}
-
 		if uint64(fxtypes.DenomUnit) != claim.Decimals {
 			return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d", fxtypes.DefaultDenom,
 				claim.Decimals, fxtypes.DenomUnit)
@@ -115,4 +114,50 @@ func (k Keeper) TransferBridgeCoinToExternal(ctx sdk.Context, sender sdk.AccAddr
 	}
 	// If it is an external blockchain asset, burn vouchers to send them back to external blockchain
 	return k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(targetCoin))
+}
+
+func (k Keeper) HasDenom(ctx context.Context, denom string) (bool, error) {
+	ok := k.bankKeeper.HasDenomMetaData(ctx, denom)
+	return ok, nil
+}
+
+func (k Keeper) GetAliases(ctx context.Context, denom string) ([]string, error) {
+	metadata, ok := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	if !ok {
+		return nil, fmt.Errorf("denom %s not found", denom)
+	}
+	if len(metadata.DenomUnits) == 0 {
+		return nil, fmt.Errorf("denom %s denom units is empty", denom)
+	}
+	aliases := metadata.DenomUnits[0].Aliases
+	if len(aliases) == 0 {
+		return nil, fmt.Errorf("denom %s aliases is empty", denom)
+	}
+	return aliases, nil
+}
+
+func (k Keeper) GetAllBridgeTokens(ctx context.Context) ([]types.BridgeToken, error) {
+	panic("not implemented") // TODO implement me
+}
+
+func (k Keeper) UpdateAliases(ctx context.Context, denom string, aliases ...string) error {
+	metadata, ok := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	if !ok {
+		return fmt.Errorf("denom %s not found", denom)
+	}
+	if len(metadata.DenomUnits) == 0 {
+		return fmt.Errorf("denom %s denom units is empty", denom)
+	}
+	metadata.DenomUnits[0].Aliases = aliases
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+	return nil
+}
+
+func (k Keeper) SetBridgeToken(ctx context.Context, name, symbol string, decimals uint32, aliases ...string) error {
+	if ok := k.bankKeeper.HasDenomMetaData(ctx, strings.ToLower(name)); ok {
+		return fmt.Errorf("denom %s already exist", name)
+	}
+	metadata := fxtypes.GetCrossChainMetadataManyToOne(name, symbol, decimals, aliases...)
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+	return nil
 }
