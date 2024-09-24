@@ -50,7 +50,7 @@ func TestCrossChainGrpcTestSuite_eth(t *testing.T) {
 
 func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	suite.BaseSuite.SetupTest()
-	suite.Commit(1000)
+	suite.Commit(10)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.App.CrosschainRouterKeeper)
@@ -86,7 +86,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_CurrentOracleSet() {
 		{
 			name: "no oracle set",
 			malleate: func() *types.QueryCurrentOracleSetResponse {
-				return &types.QueryCurrentOracleSetResponse{OracleSet: types.NewOracleSet(1, 1001, nil)}
+				return &types.QueryCurrentOracleSetResponse{OracleSet: types.NewOracleSet(1, 11, nil)}
 			},
 			expPass: true,
 		},
@@ -119,7 +119,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_CurrentOracleSet() {
 					}
 				}
 				suite.Ctx = suite.Ctx.WithBlockHeight(100)
-				newOracleSet.Height = 1001
+				newOracleSet.Height = 11
 				suite.Keeper().SetLatestOracleSetNonce(suite.Ctx, 10)
 				newOracleSet.Nonce = 11
 				return &types.QueryCurrentOracleSetResponse{OracleSet: newOracleSet}
@@ -2167,11 +2167,11 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_ProjectedBatchTimeoutHeight() {
 		{
 			name: "ProjectedBatchTimeoutHeight exist",
 			malleate: func() {
-				suite.Ctx = suite.Ctx.WithBlockHeight(100)
+				suite.Ctx = suite.Ctx.WithBlockHeight(5)
 				suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 99, uint64(suite.Ctx.BlockHeight()))
 				heights := suite.Keeper().GetLastObservedBlockHeight(suite.Ctx)
 				suite.Assert().Equal(uint64(99), heights.ExternalBlockHeight)
-				suite.Assert().Equal(uint64(100), heights.BlockHeight)
+				suite.Assert().Equal(uint64(5), heights.BlockHeight)
 
 				request = &types.QueryProjectedBatchTimeoutHeightRequest{
 					ChainName: suite.chainName,
@@ -2179,9 +2179,9 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_ProjectedBatchTimeoutHeight() {
 				var timeoutHeight uint64
 				switch suite.chainName {
 				case ethtypes.ModuleName:
-					timeoutHeight = 3399
+					timeoutHeight = 2981
 				case bsctypes.ModuleName:
-					timeoutHeight = 16601
+					timeoutHeight = 14513
 				}
 				response = &types.QueryProjectedBatchTimeoutHeightResponse{
 					TimeoutHeight: timeoutHeight,

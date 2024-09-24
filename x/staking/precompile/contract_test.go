@@ -64,7 +64,7 @@ func (suite *PrecompileTestSuite) SetupSubTest() {
 
 func (suite *PrecompileTestSuite) SetupTest() {
 	suite.BaseSuite.SetupTest()
-	suite.Commit(100)
+	suite.Commit(10)
 
 	priv, err := ethsecp256k1.GenerateKey()
 	suite.Require().NoError(err)
