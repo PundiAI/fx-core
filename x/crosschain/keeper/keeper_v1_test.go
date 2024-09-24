@@ -14,7 +14,6 @@ import (
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
@@ -31,14 +30,11 @@ import (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	helpers.BaseSuite
 
-	app          *app.App
-	ctx          sdk.Context
 	oracleAddrs  []sdk.AccAddress
 	bridgerAddrs []sdk.AccAddress
 	externalPris []*ecdsa.PrivateKey
-	valAddrs     []sdk.ValAddress
 	chainName    string
 }
 
@@ -69,13 +65,13 @@ func TestCrosschainKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) MsgServer() types.MsgServer {
 	if suite.chainName == trontypes.ModuleName {
-		return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
+		return tronkeeper.NewMsgServerImpl(suite.App.TronKeeper)
 	}
 	return keeper.NewMsgServerImpl(suite.Keeper())
 }
 
 func (suite *KeeperTestSuite) QueryClient() types.QueryClient {
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.Keeper()))
 	return types.NewQueryClient(queryHelper)
 }
@@ -83,21 +79,21 @@ func (suite *KeeperTestSuite) QueryClient() types.QueryClient {
 func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 	switch suite.chainName {
 	case bsctypes.ModuleName:
-		return suite.app.BscKeeper
+		return suite.App.BscKeeper
 	case polygontypes.ModuleName:
-		return suite.app.PolygonKeeper
+		return suite.App.PolygonKeeper
 	case trontypes.ModuleName:
-		return suite.app.TronKeeper.Keeper
+		return suite.App.TronKeeper.Keeper
 	case ethtypes.ModuleName:
-		return suite.app.EthKeeper
+		return suite.App.EthKeeper
 	case avalanchetypes.ModuleName:
-		return suite.app.AvalancheKeeper
+		return suite.App.AvalancheKeeper
 	case arbitrumtypes.ModuleName:
-		return suite.app.ArbitrumKeeper
+		return suite.App.ArbitrumKeeper
 	case optimismtypes.ModuleName:
-		return suite.app.OptimismKeeper
+		return suite.App.OptimismKeeper
 	case layer2types.ModuleName:
-		return suite.app.Layer2Keeper
+		return suite.App.Layer2Keeper
 	default:
 		panic("invalid chain name")
 	}
@@ -105,25 +101,18 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	valNumber := tmrand.Intn(types.MaxOracleSize-4) + 4
+	suite.MintValNumber = valNumber
+	suite.BaseSuite.SetupTest()
 
-	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
-	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
-	suite.ctx = suite.app.GetContextForFinalizeBlock(nil)
-
-	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
+	suite.oracleAddrs = helpers.AddTestAddrs(suite.App, suite.Ctx, valNumber, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgerAddrs = helpers.AddTestAddrs(suite.App, suite.Ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
 	suite.externalPris = helpers.CreateMultiECDSA(valNumber)
-
-	suite.valAddrs = make([]sdk.ValAddress, valNumber)
-	for i := 0; i < valNumber; i++ {
-		suite.valAddrs[i] = valAccounts[i].GetAddress().Bytes()
-	}
 
 	proposalOracle := &types.ProposalOracle{}
 	for _, oracle := range suite.oracleAddrs {
 		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
 	}
-	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)
+	suite.Keeper().SetProposalOracle(suite.Ctx, proposalOracle)
 }
 
 func (suite *KeeperTestSuite) SetupSubTest() {
@@ -135,13 +124,9 @@ func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) st
 	return types.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
-func (suite *KeeperTestSuite) Commit(block ...int64) {
-	suite.ctx = helpers.MintBlock(suite.app, suite.ctx, block...)
-}
-
 func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, oracleSet *types.OracleSet) (string, []byte) {
 	externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
-	gravityId := suite.Keeper().GetGravityID(suite.ctx)
+	gravityId := suite.Keeper().GetGravityID(suite.Ctx)
 	checkpoint, err := oracleSet.GetCheckpoint(gravityId)
 	suite.NoError(err)
 	signature, err := types.NewEthereumSignature(checkpoint, external)
@@ -162,18 +147,18 @@ func (suite *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {
 	err := suite.SendClaimReturnErr(externalClaim)
 	suite.Require().NoError(err)
 
-	err = suite.Keeper().ExecuteClaim(suite.ctx, externalClaim.GetEventNonce())
+	err = suite.Keeper().ExecuteClaim(suite.Ctx, externalClaim.GetEventNonce())
 	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) SendClaimReturnErr(externalClaim types.ExternalClaim) error {
 	value, err := codectypes.NewAnyWithValue(externalClaim)
 	suite.Require().NoError(err)
-	_, err = suite.MsgServer().Claim(suite.ctx, &types.MsgClaim{Claim: value})
+	_, err = suite.MsgServer().Claim(suite.Ctx, &types.MsgClaim{Claim: value})
 	return err
 }
 
 func (suite *KeeperTestSuite) EndBlocker() {
-	_, err := suite.app.EndBlocker(suite.ctx)
+	_, err := suite.App.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 }

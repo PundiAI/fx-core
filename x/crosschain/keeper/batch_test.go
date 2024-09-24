@@ -41,8 +41,8 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 		},
 	}
 	for i := uint64(1); i <= 3; i++ {
-		suite.ctx = suite.ctx.WithBlockHeight(int64(i))
-		err := suite.Keeper().StoreBatch(suite.ctx, &types.OutgoingTxBatch{
+		suite.Ctx = suite.Ctx.WithBlockHeight(int64(i))
+		err := suite.Keeper().StoreBatch(suite.Ctx, &types.OutgoingTxBatch{
 			Block:      i,
 			BatchNonce: i,
 			Transactions: types.OutgoingTransferTxs{{
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 		suite.Require().NoError(err)
 	}
 
-	wrapSDKContext := suite.ctx
+	wrapSDKContext := suite.Ctx
 	for _, testCase := range testCases {
 		oracle := types.Oracle{
 			OracleAddress:  testCase.OracleAddress.String(),
@@ -62,8 +62,8 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 			StartHeight:    testCase.StartHeight,
 		}
 		// save oracle
-		suite.Keeper().SetOracle(suite.ctx, oracle)
-		suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, testCase.BridgerAddress, oracle.GetOracle())
+		suite.Keeper().SetOracle(suite.Ctx, oracle)
+		suite.Keeper().SetOracleAddrByBridgerAddr(suite.Ctx, testCase.BridgerAddress, oracle.GetOracle())
 
 		response, err := suite.QueryClient().LastPendingBatchRequestByAddr(wrapSDKContext,
 			&types.QueryLastPendingBatchRequestByAddrRequest{
@@ -100,10 +100,10 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		Block:         100,
 		FeeReceive:    helpers.GenHexAddress().Hex(),
 	}
-	suite.NoError(suite.Keeper().StoreBatch(suite.ctx, batch))
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
 
-	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedBatchBlock(suite.ctx))
-	batches := suite.Keeper().GetUnSlashedBatches(suite.ctx, batch.Block+1)
+	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedBatchBlock(suite.Ctx))
+	batches := suite.Keeper().GetUnSlashedBatches(suite.Ctx, batch.Block+1)
 	suite.Equal(1, len(batches))
 
 	msgConfirmBatch := &types.MsgConfirmBatch{
@@ -114,14 +114,14 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 	for i, oracle := range suite.oracleAddrs {
 		msgConfirmBatch.BridgerAddress = suite.bridgerAddrs[i].String()
 		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
-		suite.Keeper().SetBatchConfirm(suite.ctx, oracle, msgConfirmBatch)
+		suite.Keeper().SetBatchConfirm(suite.Ctx, oracle, msgConfirmBatch)
 	}
-	suite.Keeper().OutgoingTxBatchExecuted(suite.ctx, batch.TokenContract, batch.BatchNonce)
+	suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, batch.TokenContract, batch.BatchNonce)
 
 	for _, oracle := range suite.oracleAddrs {
-		suite.Nil(suite.Keeper().GetBatchConfirm(suite.ctx, batch.TokenContract, batch.BatchNonce, oracle))
+		suite.Nil(suite.Keeper().GetBatchConfirm(suite.Ctx, batch.TokenContract, batch.BatchNonce, oracle))
 	}
-	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.ctx, batch.TokenContract, batch.BatchNonce))
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
@@ -150,10 +150,10 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
 			Block:         uint64(100 + i),
 			FeeReceive:    helpers.GenHexAddress().Hex(),
 		}
-		suite.NoError(suite.Keeper().StoreBatch(suite.ctx, batch))
+		suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
 	}
 	var batchs []*types.OutgoingTxBatch
-	suite.Keeper().IterateBatchByBlockHeight(suite.ctx, 100+1, uint64(100+index+1),
+	suite.Keeper().IterateBatchByBlockHeight(suite.Ctx, 100+1, uint64(100+index+1),
 		func(batch *types.OutgoingTxBatch) bool {
 			batchs = append(batchs, batch)
 			return false

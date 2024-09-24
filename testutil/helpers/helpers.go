@@ -9,7 +9,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmed25519 "github.com/cometbft/cometbft/crypto/ed25519"
 	tmtypes "github.com/cometbft/cometbft/types"
-	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -168,41 +167,4 @@ func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk
 	if err != nil {
 		panic(err)
 	}
-}
-
-// Deprecated: please use BaseSuite.Commit
-func MintBlock(myApp *app.App, ctx sdk.Context, block ...int64) sdk.Context {
-	lastBlockHeight := ctx.BlockHeight()
-	nextHeight := lastBlockHeight + 1
-	if len(block) > 0 {
-		nextHeight = lastBlockHeight + block[0]
-	}
-	for i := lastBlockHeight; i < nextHeight; i++ {
-		// 1. try to finalize the block + commit finalizeBlockState
-		if _, err := myApp.FinalizeBlock(&abci.RequestFinalizeBlock{
-			Height:          i,
-			Time:            tmtime.Now(),
-			ProposerAddress: ctx.BlockHeader().ProposerAddress,
-		}); err != nil {
-			panic(err)
-		}
-
-		// 2. commit lastCommitInfo
-		if _, err := myApp.Commit(); err != nil {
-			panic(err)
-		}
-
-		// 3. prepare to process new blocks (myApp.GetContextForFinalizeBlock(nil))
-		if _, err := myApp.ProcessProposal(&abci.RequestProcessProposal{
-			Height:          i + 1,
-			Time:            tmtime.Now(),
-			ProposerAddress: ctx.BlockHeader().ProposerAddress,
-		}); err != nil {
-			panic(err)
-		}
-
-		// 4. get new ctx for finalizeBlockState
-		ctx = myApp.GetContextForFinalizeBlock(nil)
-	}
-	return ctx
 }
