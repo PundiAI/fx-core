@@ -8,13 +8,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -65,24 +63,8 @@ func (suite *PrecompileTestSuite) SetupSubTest() {
 }
 
 func (suite *PrecompileTestSuite) SetupTest() {
-	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+3, nil)
-	suite.App = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
-
-	suite.Ctx = suite.App.GetContextForFinalizeBlock(nil)
-	suite.Ctx = suite.Ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
-	suite.Ctx = suite.Ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e18))
-
-	for _, validator := range set.Validators {
-		signingInfo := slashingtypes.NewValidatorSigningInfo(
-			validator.Address.Bytes(),
-			suite.Ctx.BlockHeight(),
-			0,
-			time.Unix(0, 0),
-			false,
-			0,
-		)
-		suite.Require().NoError(suite.App.SlashingKeeper.SetValidatorSigningInfo(suite.Ctx, validator.Address.Bytes(), signingInfo))
-	}
+	suite.BaseSuite.SetupTest()
+	suite.Commit(100)
 
 	priv, err := ethsecp256k1.GenerateKey()
 	suite.Require().NoError(err)
@@ -124,10 +106,6 @@ func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.A
 	res, err := suite.App.EvmKeeper.EthereumTx(suite.Ctx, ethTx)
 	suite.Require().NoError(err)
 	return res
-}
-
-func (suite *PrecompileTestSuite) Commit() {
-	suite.BaseSuite.Commit()
 }
 
 func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {

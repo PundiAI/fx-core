@@ -305,10 +305,10 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 
 			suite.Commit()
 
-			fromBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
-			suite.Require().True(fromBalances.Empty())
-			toBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, toWithdrawAddr.Bytes())
-			suite.Require().True(toBalances.Empty())
+			fromBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, fromWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
+			suite.Require().True(fromBalance.IsZero())
+			toBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, toWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
+			suite.Require().True(toBalance.IsZero())
 
 			fromDelBefore := suite.GetDelegation(delAddr.Bytes(), operator)
 			found2 := true
@@ -351,8 +351,8 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 					tc.suftransfer(operator, delAddr, toSigner.Address(), delAmt)
 				}
 
-				fromBalances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
-				suite.Equal(fromBeforeRewards.Rewards.String(), fromBalances.String())
+				fromBalance = suite.App.BankKeeper.GetBalance(suite.Ctx, fromWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
+				suite.Equal(fromBeforeRewards.Rewards.String(), sdk.NewDecCoinFromCoin(fromBalance).String())
 
 				existLog := false
 				for _, log := range res.Logs {
@@ -660,10 +660,10 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 			suite.Commit()
 
-			fromBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
-			suite.Require().True(fromBalances.Empty())
-			toBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, toWithdrawAddr.Bytes())
-			suite.Require().True(toBalances.Empty())
+			fromBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, fromWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
+			suite.Require().True(fromBalance.IsZero())
+			toBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, toWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
+			suite.Require().True(toBalance.IsZero())
 
 			fromDelBefore := suite.GetDelegation(delAddr.Bytes(), operator)
 			found2 := true
@@ -716,14 +716,14 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 					tc.suftransfer(operator, delAddr, toSigner.Address(), delAmt)
 				}
 
-				fromBalances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, fromWithdrawAddr.Bytes())
-				suite.Require().Equal(fromBeforeRewards.Rewards.String(), fromBalances.String())
+				fromBalance = suite.App.BankKeeper.GetBalance(suite.Ctx, fromWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
+				suite.Require().Equal(fromBeforeRewards.Rewards.String(), sdk.NewDecCoinFromCoin(fromBalance).String())
 
-				toBalances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, toWithdrawAddr.Bytes())
+				toBalance = suite.App.BankKeeper.GetBalance(suite.Ctx, toWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
 				if found2 {
-					suite.Require().Equal(toBeforeRewards.Rewards.String(), toBalances.String())
+					suite.Require().Equal(toBeforeRewards.Rewards.String(), sdk.NewDecCoinFromCoin(toBalance).String())
 				} else {
-					suite.Require().True(toBalances.Empty())
+					suite.Require().True(toBalance.IsZero())
 				}
 
 				existLog := false
