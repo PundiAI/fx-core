@@ -33,9 +33,11 @@ func (s *BaseSuite) SetupTest() {
 	}
 	valSet, valAccounts, valBalances := GenerateGenesisValidator(valNumber, sdk.Coins{})
 	s.ValSet = valSet
-	for _, account := range valAccounts {
-		s.ValAddr = append(s.ValAddr, account.GetAddress().Bytes())
+	s.ValAddr = make([]sdk.ValAddress, valNumber)
+	for i := 0; i < valNumber; i++ {
+		s.ValAddr[i] = valAccounts[i].GetAddress().Bytes()
 	}
+
 	s.App = SetupWithGenesisValSet(s.T(), valSet, valAccounts, valBalances...)
 	s.Ctx = s.App.GetContextForFinalizeBlock(nil)
 	s.Ctx = s.Ctx.WithProposer(s.ValSet.Proposer.Address.Bytes())

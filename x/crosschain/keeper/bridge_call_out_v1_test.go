@@ -17,12 +17,12 @@ import (
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.bondedOracle()
-	oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0])
+	oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.Ctx, suite.bridgerAddrs[0])
 	suite.Require().True(found)
 	suite.Require().EqualValues(oracleAddr.Bytes(), suite.oracleAddrs[0].Bytes())
 	suite.Commit()
 
-	oracleAddr, found = suite.Keeper().GetOracleAddrByBridgerAddr(suite.ctx, suite.bridgerAddrs[0])
+	oracleAddr, found = suite.Keeper().GetOracleAddrByBridgerAddr(suite.Ctx, suite.bridgerAddrs[0])
 	suite.Require().True(found)
 	suite.Require().EqualValues(oracleAddr.Bytes(), suite.oracleAddrs[0].Bytes())
 
@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	randomBlock := tmrand.Int63n(1000000000)
 	randomAmount := tmrand.Int63n(1000000000)
 	claim := &types.MsgSendToFxClaim{
-		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0]) + 1,
+		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, suite.oracleAddrs[0]) + 1,
 		BlockHeight:    uint64(randomBlock),
 		TokenContract:  bridgeTokenStr,
 		Amount:         sdkmath.NewInt(randomAmount),
@@ -47,12 +47,12 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	}
 	suite.SendClaim(claim)
 
-	pair, b := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, "ttt")
+	pair, b := suite.App.Erc20Keeper.GetTokenPair(suite.Ctx, "ttt")
 	suite.True(b)
-	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
+	suite.Equal(sdkmath.NewInt(randomAmount), suite.App.BankKeeper.GetBalance(suite.Ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 
 	bridgeCallRefundAddr := helpers.GenAccAddress()
-	_, err := suite.MsgServer().BridgeCall(suite.ctx, &types.MsgBridgeCall{
+	_, err := suite.MsgServer().BridgeCall(suite.Ctx, &types.MsgBridgeCall{
 		ChainName: suite.chainName,
 		Sender:    sdk.AccAddress(fxAddr1.Bytes()).String(),
 		Refund:    bridgeCallRefundAddr.String(),
@@ -61,10 +61,10 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	})
 	suite.NoError(err)
 
-	suite.Equal(sdkmath.NewInt(0), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
+	suite.Equal(sdkmath.NewInt(0), suite.App.BankKeeper.GetBalance(suite.Ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 
 	var outgoingBridgeCall *types.OutgoingBridgeCall
-	suite.Keeper().IterateOutgoingBridgeCallsByAddress(suite.ctx, types.ExternalAddrToStr(suite.chainName, fxAddr1.Bytes()), func(value *types.OutgoingBridgeCall) bool {
+	suite.Keeper().IterateOutgoingBridgeCallsByAddress(suite.Ctx, types.ExternalAddrToStr(suite.chainName, fxAddr1.Bytes()), func(value *types.OutgoingBridgeCall) bool {
 		outgoingBridgeCall = value
 		return true
 	})
@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 
 	// Triggering the SendtoFx claim once is just to trigger timeout
 	sendToFxClaim := &types.MsgSendToFxClaim{
-		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0]) + 1,
+		EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, suite.oracleAddrs[0]) + 1,
 		BlockHeight:    outgoingBridgeCall.Timeout,
 		TokenContract:  bridgeTokenStr,
 		Amount:         sdkmath.NewInt(randomAmount),
@@ -84,15 +84,15 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.SendClaim(sendToFxClaim)
 	// expect balance = sendToFx value + outgointBridgeCallRefund value
 	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount))
-	suite.Equal(sdkmath.NewInt(0), suite.app.BankKeeper.GetBalance(suite.ctx, fxAddr1.Bytes(), pair.Denom).Amount)
-	suite.Equal(sdkmath.NewInt(randomAmount), suite.app.BankKeeper.GetBalance(suite.ctx, bridgeCallRefundAddr, pair.Denom).Amount)
+	suite.Equal(sdkmath.NewInt(0), suite.App.BankKeeper.GetBalance(suite.Ctx, fxAddr1.Bytes(), pair.Denom).Amount)
+	suite.Equal(sdkmath.NewInt(randomAmount), suite.App.BankKeeper.GetBalance(suite.Ctx, bridgeCallRefundAddr, pair.Denom).Amount)
 }
 
 func (suite *KeeperTestSuite) checkBalanceOf(contractAddr, address common.Address, expectBalance *big.Int) {
 	var balanceRes struct {
 		Value *big.Int
 	}
-	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contractAddr, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, address)
+	err := suite.App.EvmKeeper.QueryContract(suite.Ctx, contractAddr, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, address)
 	suite.Require().NoError(err)
 	suite.EqualValuesf(expectBalance.Cmp(balanceRes.Value), 0, "expect balance %s, got %s", expectBalance.String(), balanceRes.Value.String())
 }

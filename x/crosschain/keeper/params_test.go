@@ -188,8 +188,8 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			expected := suite.Keeper().GetParams(suite.ctx)
-			err := suite.Keeper().SetParams(suite.ctx, tc.input)
+			expected := suite.Keeper().GetParams(suite.Ctx)
+			err := suite.Keeper().SetParams(suite.Ctx, tc.input)
 			if tc.expectErr {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expErrMsg)
@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				expected = *tc.input
 				suite.Require().NoError(err)
 			}
-			params := suite.Keeper().GetParams(suite.ctx)
+			params := suite.Keeper().GetParams(suite.Ctx)
 			suite.Require().Equal(expected, params)
 		})
 	}

@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 	}
 
 	for i := 1; i <= 3; i++ {
-		suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
+		suite.Keeper().StoreOracleSet(suite.Ctx, &types.OracleSet{
 			Nonce: uint64(i),
 			Members: types.BridgeValidators{{
 				Power:           uint64(i),
@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 		})
 	}
 
-	wrapSDKContext := suite.ctx
+	wrapSDKContext := suite.Ctx
 	for _, testCase := range testCases {
 		oracle := types.Oracle{
 			OracleAddress:  testCase.OracleAddress.String(),
@@ -59,8 +59,8 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 			StartHeight:    testCase.StartHeight,
 		}
 		// save oracle
-		suite.Keeper().SetOracle(suite.ctx, oracle)
-		suite.Keeper().SetOracleAddrByBridgerAddr(suite.ctx, testCase.BridgerAddress, oracle.GetOracle())
+		suite.Keeper().SetOracle(suite.Ctx, oracle)
+		suite.Keeper().SetOracleAddrByBridgerAddr(suite.Ctx, testCase.BridgerAddress, oracle.GetOracle())
 
 		response, err := suite.QueryClient().LastPendingOracleSetRequestByAddr(wrapSDKContext,
 			&types.QueryLastPendingOracleSetRequestByAddrRequest{
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 	height := 100
 	index := 10
 	for i := 1; i <= index; i++ {
-		suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
+		suite.Keeper().StoreOracleSet(suite.Ctx, &types.OracleSet{
 			Nonce: uint64(i),
 			Members: types.BridgeValidators{{
 				Power:           tmrand.Uint64(),
@@ -84,16 +84,16 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 			Height: uint64(height + i),
 		})
 	}
-	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedOracleSetNonce(suite.ctx))
+	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedOracleSetNonce(suite.Ctx))
 
-	sets := suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
+	sets := suite.Keeper().GetUnSlashedOracleSets(suite.Ctx, uint64(height+index))
 	suite.Require().EqualValues(index-1, sets.Len())
 
-	suite.Keeper().SetLastSlashedOracleSetNonce(suite.ctx, 1)
-	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
+	suite.Keeper().SetLastSlashedOracleSetNonce(suite.Ctx, 1)
+	sets = suite.Keeper().GetUnSlashedOracleSets(suite.Ctx, uint64(height+index))
 	suite.Require().EqualValues(index-2, sets.Len())
 
-	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index+1))
+	sets = suite.Keeper().GetUnSlashedOracleSets(suite.Ctx, uint64(height+index+1))
 	suite.Require().EqualValues(index-1, sets.Len())
 }
 
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 	index := tmrand.Intn(20) + 1
 	for i := uint64(1); i <= uint64(index); i++ {
 		for _, oracle := range suite.oracleAddrs {
-			suite.Keeper().SetOracleSetConfirm(suite.ctx, oracle,
+			suite.Keeper().SetOracleSetConfirm(suite.Ctx, oracle,
 				&types.MsgOracleSetConfirm{
 					Nonce:           i,
 					BridgerAddress:  helpers.GenAccAddress().String(),
@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 
 	index = tmrand.Intn(index) + 1
 	var confirms []*types.MsgOracleSetConfirm
-	suite.Keeper().IterateOracleSetConfirmByNonce(suite.ctx, uint64(index), func(confirm *types.MsgOracleSetConfirm) bool {
+	suite.Keeper().IterateOracleSetConfirmByNonce(suite.Ctx, uint64(index), func(confirm *types.MsgOracleSetConfirm) bool {
 		confirms = append(confirms, confirm)
 		return false
 	})
@@ -134,13 +134,13 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 	oracleSet := &types.OracleSet{
 		Nonce:   1,
 		Members: member,
-		Height:  uint64(suite.ctx.BlockHeight()),
+		Height:  uint64(suite.Ctx.BlockHeight()),
 	}
-	suite.Keeper().StoreOracleSet(suite.ctx, oracleSet)
+	suite.Keeper().StoreOracleSet(suite.Ctx, oracleSet)
 
 	for i, external := range suite.externalPris {
 		externalAddress, signature := suite.SignOracleSetConfirm(external, oracleSet)
-		suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracleAddrs[i],
+		suite.Keeper().SetOracleSetConfirm(suite.Ctx, suite.oracleAddrs[i],
 			&types.MsgOracleSetConfirm{
 				Nonce:           oracleSet.Nonce,
 				BridgerAddress:  suite.bridgerAddrs[i].String(),
@@ -150,24 +150,24 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 			},
 		)
 	}
-	suite.Keeper().SetLastObservedOracleSet(suite.ctx,
+	suite.Keeper().SetLastObservedOracleSet(suite.Ctx,
 		&types.OracleSet{
 			Nonce: oracleSet.Nonce + 1,
 		},
 	)
 
-	params := suite.Keeper().GetParams(suite.ctx)
+	params := suite.Keeper().GetParams(suite.Ctx)
 	params.SignedWindow = 10
-	err := suite.Keeper().SetParams(suite.ctx, &params)
+	err := suite.Keeper().SetParams(suite.Ctx, &params)
 	suite.Require().NoError(err)
 	suite.Commit()
 	for _, oracle := range suite.oracleAddrs {
-		suite.NotNil(suite.Keeper().GetOracleSetConfirm(suite.ctx, oracleSet.Nonce, oracle))
+		suite.NotNil(suite.Keeper().GetOracleSetConfirm(suite.Ctx, oracleSet.Nonce, oracle))
 	}
 
 	suite.Commit(int64(params.SignedWindow + 1))
 	for _, oracle := range suite.oracleAddrs {
-		suite.Nil(suite.Keeper().GetOracleSetConfirm(suite.ctx, oracleSet.Nonce, oracle))
+		suite.Nil(suite.Keeper().GetOracleSetConfirm(suite.Ctx, oracleSet.Nonce, oracle))
 	}
 }
 
@@ -180,7 +180,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
 		})
 	}
 	for i := 1; i <= 10; i++ {
-		suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
+		suite.Keeper().StoreOracleSet(suite.Ctx, &types.OracleSet{
 			Nonce:   uint64(i),
 			Members: member,
 			Height:  uint64(i + 100),
@@ -188,7 +188,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
 	}
 	i := uint64(0)
 	oracleSets := types.OracleSets{}
-	suite.Keeper().IterateOracleSetByNonce(suite.ctx, 0, func(oracleSet *types.OracleSet) bool {
+	suite.Keeper().IterateOracleSetByNonce(suite.Ctx, 0, func(oracleSet *types.OracleSet) bool {
 		i = i + 1
 		suite.Equal(i, oracleSet.Nonce)
 		oracleSets = append(oracleSets, oracleSet)
@@ -197,26 +197,26 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
 	suite.Equal(len(oracleSets), 10)
 
 	oracleSets = types.OracleSets{}
-	suite.Keeper().IterateOracleSetByNonce(suite.ctx, 1, func(oracleSet *types.OracleSet) bool {
+	suite.Keeper().IterateOracleSetByNonce(suite.Ctx, 1, func(oracleSet *types.OracleSet) bool {
 		oracleSets = append(oracleSets, oracleSet)
 		return false
 	})
 	suite.Equal(len(oracleSets), 10)
 
 	oracleSets = types.OracleSets{}
-	suite.Keeper().IterateOracleSetByNonce(suite.ctx, 2, func(oracleSet *types.OracleSet) bool {
+	suite.Keeper().IterateOracleSetByNonce(suite.Ctx, 2, func(oracleSet *types.OracleSet) bool {
 		oracleSets = append(oracleSets, oracleSet)
 		return false
 	})
 	suite.Equal(len(oracleSets), 9)
 
-	suite.Keeper().IterateOracleSets(suite.ctx, true, func(oracleSet *types.OracleSet) bool {
+	suite.Keeper().IterateOracleSets(suite.Ctx, true, func(oracleSet *types.OracleSet) bool {
 		suite.Equal(i, oracleSet.Nonce, oracleSet.Nonce)
 		i = i - 1
 		return false
 	})
 
-	suite.Keeper().IterateOracleSets(suite.ctx, false, func(oracleSet *types.OracleSet) bool {
+	suite.Keeper().IterateOracleSets(suite.Ctx, false, func(oracleSet *types.OracleSet) bool {
 		i = i + 1
 		suite.Equal(i, oracleSet.Nonce)
 		return false

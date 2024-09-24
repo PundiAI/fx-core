@@ -23,17 +23,17 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 			Denom: types.NewBridgeDenom(suite.chainName, contractAddress),
 		}
 		bridgeTokens[i] = bridgeToken
-		denom, err := suite.Keeper().SetIbcDenomTrace(suite.ctx, bridgeToken.Token, "")
+		denom, err := suite.Keeper().SetIbcDenomTrace(suite.Ctx, bridgeToken.Token, "")
 		suite.Require().NoError(err)
 		suite.Require().Equal(denom, bridgeToken.Denom)
-		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom)
+		suite.Keeper().AddBridgeToken(suite.Ctx, bridgeToken.Token, denom)
 
 		for _, bridger := range suite.bridgerAddrs {
 			voucher := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(9990))
-			err := suite.app.BankKeeper.MintCoins(suite.ctx, suite.chainName, sdk.NewCoins(voucher))
+			err := suite.App.BankKeeper.MintCoins(suite.Ctx, suite.chainName, sdk.NewCoins(voucher))
 			suite.Require().NoError(err)
 
-			err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, suite.chainName, bridger, sdk.NewCoins(voucher))
+			err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, suite.chainName, bridger, sdk.NewCoins(voucher))
 			suite.Require().NoError(err)
 		}
 	}
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		feeToken := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(int64(fee)))
 
 		// add transaction to the pool
-		nextTxID, err := suite.Keeper().AddToOutgoingPool(suite.ctx, sender, receiver, amountToken, feeToken)
+		nextTxID, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, receiver, amountToken, feeToken)
 		suite.Require().NoError(err)
 
 		txs[i] = &types.OutgoingTransferTx{
@@ -70,15 +70,15 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		}
 	}
 
-	suite.Keeper().SetLastObservedBlockHeight(suite.ctx, 10, 10)
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 10, 10)
 
 	// CREATE BATCHES
 	// ==================
 	// Want to create batches for half of the transactions for each contract
 	// with 100 tx in each batch, 1000 txs per contrac we want 5 batches per contract to batch 500 txs per contract
 	for i, bridgeToken := range bridgeTokens {
-		suite.ctx = suite.ctx.WithBlockHeight(int64(50 + i))
-		batch, err := suite.Keeper().BuildOutgoingTxBatch(suite.ctx, bridgeToken.Token, bridgeToken.Token, 100, sdkmath.NewInt(1), sdkmath.NewInt(1))
+		suite.Ctx = suite.Ctx.WithBlockHeight(int64(50 + i))
+		batch, err := suite.Keeper().BuildOutgoingTxBatch(suite.Ctx, bridgeToken.Token, bridgeToken.Token, 100, sdkmath.NewInt(1), sdkmath.NewInt(1))
 		suite.Require().NoError(err)
 		suite.Require().EqualValues(100, len(batch.Transactions))
 		suite.Require().EqualValues(50+i, batch.Block)
@@ -94,30 +94,30 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 
 	// export
 	suite.checkAllTransactionsExist(txs)
-	genesisState := keeper.ExportGenesis(suite.ctx, suite.Keeper())
+	genesisState := keeper.ExportGenesis(suite.Ctx, suite.Keeper())
 
 	// clear data
-	storeKey := suite.app.GetKey(suite.chainName)
-	store := suite.ctx.KVStore(storeKey)
+	storeKey := suite.App.GetKey(suite.chainName)
+	store := suite.Ctx.KVStore(storeKey)
 	iterator := store.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
 	}
-	unbatched := suite.Keeper().GetUnbatchedTransactions(suite.ctx)
+	unbatched := suite.Keeper().GetUnbatchedTransactions(suite.Ctx)
 	suite.Require().Empty(unbatched)
-	batches := suite.Keeper().GetOutgoingTxBatches(suite.ctx)
+	batches := suite.Keeper().GetOutgoingTxBatches(suite.Ctx)
 	suite.Require().Empty(batches)
 
 	// import
-	keeper.InitGenesis(suite.ctx, suite.Keeper(), genesisState)
+	keeper.InitGenesis(suite.Ctx, suite.Keeper(), genesisState)
 	suite.checkAllTransactionsExist(txs)
 }
 
 // Requires that all transactions in txs exist in keeper
 func (suite *KeeperTestSuite) checkAllTransactionsExist(txs types.OutgoingTransferTxs) {
-	unbatched := suite.Keeper().GetUnbatchedTransactions(suite.ctx)
-	batches := suite.Keeper().GetOutgoingTxBatches(suite.ctx)
+	unbatched := suite.Keeper().GetUnbatchedTransactions(suite.Ctx)
+	batches := suite.Keeper().GetOutgoingTxBatches(suite.Ctx)
 	// Collect all txs into an array
 	var gotTxs types.OutgoingTransferTxs
 	gotTxs = append(gotTxs, unbatched...)
