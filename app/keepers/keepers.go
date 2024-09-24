@@ -362,6 +362,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.EvmKeeper,
+		appKeepers.EvmKeeper,
 		appKeepers.IBCTransferKeeper,
 		authAddr,
 	)
