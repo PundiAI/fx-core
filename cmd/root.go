@@ -173,7 +173,7 @@ func initRootCmd(
 		configCmd(),
 		keyCommands(defaultNodeHome),
 		queryCommand(),
-		txCommand(basicManager),
+		txCommand(),
 		preUpgradeCmd(),
 		doctorCmd(),
 		exportDelegatesCmd(defaultNodeHome),
@@ -209,7 +209,7 @@ func queryCommand() *cobra.Command {
 	return cmd
 }
 
-func txCommand(basicManager module.BasicManager) *cobra.Command {
+func txCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
@@ -227,10 +227,10 @@ func txCommand(basicManager module.BasicManager) *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
+		authcmd.GetSimulateCmd(),
 		crosschaincli.GetTxCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
 	)
 
-	basicManager.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
