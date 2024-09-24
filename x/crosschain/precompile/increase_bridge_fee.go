@@ -86,7 +86,7 @@ func (m *IncreaseBridgeFeeMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 			return err
 		}
 
-		if err = route.PrecompileIncreaseBridgeFee(ctx, args.TxID.Uint64(), sender.Bytes(), addBridgeFee); err != nil {
+		if err = route.AddUnbatchedTxBridgeFee(ctx, args.TxID.Uint64(), sender.Bytes(), addBridgeFee); err != nil {
 			return err
 		}
 

@@ -86,7 +86,7 @@ func (m *AddPendingPoolRewardsMethod) Run(evm *vm.EVM, contract *vm.Contract) ([
 			return err
 		}
 
-		if err = route.PrecompileAddPendingPoolRewards(ctx, args.TxID.Uint64(), sender.Bytes(), addReward); err != nil {
+		if err = route.AddPendingPoolRewards(ctx, args.TxID.Uint64(), sender.Bytes(), sdk.NewCoins(addReward)); err != nil {
 			return err
 		}
 

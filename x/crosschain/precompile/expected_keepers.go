@@ -45,11 +45,12 @@ type AccountKeeper interface {
 
 type CrosschainKeeper interface {
 	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken, insufficientLiquidity bool) error
-	PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
-	PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
+	RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
+	AddUnbatchedTxBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
 	PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (uint64, error)
-	PrecompileCancelPendingBridgeCall(ctx sdk.Context, nonce uint64, sender sdk.AccAddress) (sdk.Coins, error)
-	PrecompileAddPendingPoolRewards(ctx sdk.Context, txID uint64, sender sdk.AccAddress, reward sdk.Coin) error
+	HandleCancelPendingOutgoingBridgeCall(ctx sdk.Context, nonce uint64, sender sdk.AccAddress) (sdk.Coins, error)
+	AddPendingPoolRewards(ctx sdk.Context, txID uint64, sender sdk.AccAddress, reward sdk.Coins) error
+	ExecuteClaim(ctx sdk.Context, eventNonce uint64) error
 }
 
 type GovKeeper interface {
