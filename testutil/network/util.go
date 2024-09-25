@@ -36,7 +36,7 @@ import (
 
 // StartInProcess creates and starts an in-process local test network.
 //
-//gocyclo:ignore
+//nolint:gocyclo
 func StartInProcess(ctx context.Context, errGroup *errgroup.Group, appConstructor AppConstructor, val *Validator) error {
 	logger := val.Ctx.Logger
 	tmCfg := val.Ctx.Config

@@ -81,7 +81,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 	return cmd
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.AccAddress) ([]sdk.Msg, error) {
 	// query balances
 	bankClient := banktypes.NewQueryClient(cliCtx)

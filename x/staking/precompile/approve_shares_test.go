@@ -26,7 +26,6 @@ func TestStakingApproveSharesABI(t *testing.T) {
 	require.Equal(t, 4, len(approveSharesMethod.Event.Inputs))
 }
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestApproveShares() {
 	approveSharesMethod := precompile.NewApproveSharesMethod(nil)
 	testCases := []struct {

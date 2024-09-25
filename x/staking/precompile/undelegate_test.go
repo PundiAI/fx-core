@@ -15,7 +15,6 @@ import (
 	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestUndelegate() {
 	undelegateV2Method := precompile.NewUndelegateV2Method(nil)
 	testCases := []struct {

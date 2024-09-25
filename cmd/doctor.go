@@ -203,7 +203,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockch
 	return database, nil
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) (bool, error) {
 	if bc == nil {
 		return false, nil
@@ -374,7 +374,7 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 	return nil
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func checkCosmovisor(rootPath string, bc blockchain) error {
 	cosmovisorPath := filepath.Join(rootPath, "cosmovisor")
 	if _, err := os.Stat(cosmovisorPath); err != nil {
