@@ -53,7 +53,7 @@ consisting of all the keys provided by name and multisig threshold.`,
 	return cmd
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 	k := new(keyring.Record)
 	clientCtx, err := client.GetClientQueryContext(cmd)

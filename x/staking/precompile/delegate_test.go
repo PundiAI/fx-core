@@ -20,7 +20,6 @@ import (
 	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestDelegate() {
 	delegateV2Method := precompile.NewDelegateV2Method(nil)
 	testCases := []struct {

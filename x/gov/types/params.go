@@ -138,7 +138,7 @@ func EGFProposalParams(minDeposit []sdk.Coin, minInitialDeposit sdk.Coin, voting
 
 // ValidateBasic performs basic validation on governance parameters.
 //
-//gocyclo:ignore
+//nolint:gocyclo
 func (p *Params) ValidateBasic() error {
 	if p.MsgType != "" && proto.MessageType(strings.TrimPrefix(p.MsgType, "/")) == nil {
 		return fmt.Errorf("proto message un registered: %s", p.MsgType)

@@ -9,8 +9,6 @@ import (
 )
 
 // AttestationHandler Handle is the entry point for Attestation processing.
-//
-//gocyclo:ignore
 func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.ExternalClaim) error {
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToFxClaim, *types.MsgBridgeCallClaim, *types.MsgBridgeCallResultClaim:

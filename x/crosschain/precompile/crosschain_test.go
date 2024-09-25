@@ -39,7 +39,7 @@ func TestCrossChainABI(t *testing.T) {
 	require.Equal(t, 8, len(crossChain.Event.Inputs))
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func (suite *PrecompileTestSuite) TestCrossChain() {
 	testCases := []struct {
 		name     string
@@ -1403,7 +1403,7 @@ func (suite *PrecompileTestSuite) TestCrossChainExternal() {
 	}
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 	testCases := []struct {
 		name     string
@@ -2075,7 +2075,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 	}
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func (suite *PrecompileTestSuite) TestCrossChainIBCExternal() {
 	testCases := []struct {
 		name     string

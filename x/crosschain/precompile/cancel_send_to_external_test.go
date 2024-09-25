@@ -34,7 +34,7 @@ func TestCancelSendToExternalABI(t *testing.T) {
 	require.Equal(t, 3, len(cancelSendToExternal.Event.Inputs))
 }
 
-//gocyclo:ignore
+//nolint:gocyclo
 func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 	crossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
 		data, err := crosschaintypes.GetABI().Pack(

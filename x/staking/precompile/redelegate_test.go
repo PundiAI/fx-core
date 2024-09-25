@@ -16,7 +16,6 @@ import (
 	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestRedelegate() {
 	testABI := contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
 	redelegateV2Method := precompile.NewRedelegateV2Method(nil)

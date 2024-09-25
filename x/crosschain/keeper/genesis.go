@@ -9,7 +9,7 @@ import (
 
 // InitGenesis import module genesis
 //
-//gocyclo:ignore
+//nolint:gocyclo
 func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	if err := k.SetParams(ctx, &state.Params); err != nil {
 		panic(err)

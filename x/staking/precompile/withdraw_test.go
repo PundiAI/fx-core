@@ -29,7 +29,6 @@ func TestStakingWithdrawABI(t *testing.T) {
 	require.Equal(t, 3, len(withdrawMethod.Event.Inputs))
 }
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestWithdraw() {
 	withdrawMethod := precompile.NewWithdrawMethod(nil)
 	testCases := []struct {

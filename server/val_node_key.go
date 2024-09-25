@@ -27,7 +27,7 @@ const (
 
 // UnsafeRestPrivValidatorCmd Reset validator node consensus private key file
 //
-//gocyclo:ignore
+//nolint:gocyclo
 func UnsafeRestPrivValidatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsafe-reset-priv-validator [secret]",

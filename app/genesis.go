@@ -45,7 +45,7 @@ type GenesisState map[string]json.RawMessage
 
 // NewDefAppGenesisByDenom return new genesis state
 //
-//gocyclo:ignore
+//nolint:gocyclo
 func NewDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManager) GenesisState {
 	denom := fxtypes.DefaultDenom
 	fxTotalSupply, ok := sdkmath.NewIntFromString(InitTotalSupply)

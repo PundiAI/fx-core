@@ -31,7 +31,6 @@ func TestStakingTransferSharesABI(t *testing.T) {
 	require.Equal(t, 5, len(transferSharesMethod.Event.Inputs))
 }
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestTransferShares() {
 	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
 	testCases := []struct {
@@ -382,7 +381,6 @@ func TestStakingTransferFromSharesABI(t *testing.T) {
 	require.Equal(t, 2, len(transferFromSharesMethod.Method.Outputs))
 }
 
-//gocyclo:ignore
 func (suite *PrecompileTestSuite) TestTransferFromShares() {
 	transferFromSharesMethod := precompile.NewTransferFromSharesMethod(nil)
 	testCases := []struct {

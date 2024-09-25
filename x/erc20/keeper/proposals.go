@@ -75,7 +75,7 @@ func (k Keeper) RegisterNativeCoin(ctx sdk.Context, coinMetadata banktypes.Metad
 
 // RegisterNativeERC20 creates a cosmos coin and registers the token pair between the coin and the ERC20
 //
-//gocyclo:ignore
+//nolint:gocyclo
 func (k Keeper) RegisterNativeERC20(ctx sdk.Context, contract common.Address, aliases ...string) (*types.TokenPair, error) {
 	if !k.GetEnableErc20(ctx) {
 		return nil, errorsmod.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
