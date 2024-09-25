@@ -23,10 +23,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 			Denom: types.NewBridgeDenom(suite.chainName, contractAddress),
 		}
 		bridgeTokens[i] = bridgeToken
-		denom, err := suite.Keeper().SetIbcDenomTrace(suite.Ctx, bridgeToken.Token, "")
-		suite.Require().NoError(err)
-		suite.Require().Equal(denom, bridgeToken.Denom)
-		suite.Keeper().AddBridgeToken(suite.Ctx, bridgeToken.Token, denom)
+		suite.Keeper().AddBridgeToken(suite.Ctx, bridgeToken.Denom, bridgeToken.Denom)
 
 		for _, bridger := range suite.bridgerAddrs {
 			voucher := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(9990))

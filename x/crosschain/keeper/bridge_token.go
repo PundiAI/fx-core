@@ -14,75 +14,81 @@ import (
 )
 
 func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTokenClaim) error {
-	// Check if it already exists
-	if has := k.HasBridgeToken(ctx, claim.TokenContract); has {
-		return types.ErrInvalid.Wrap("bridge token is exist")
-	}
-
 	k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token",
 		claim.TokenContract, "channelIbc", claim.ChannelIbc)
+	bridgeDenom := types.NewBridgeDenom(k.moduleName, claim.TokenContract)
+	denomToken := bridgeDenom
+
+	// Check if it already exists
+	if has := k.HasBridgeToken(ctx, bridgeDenom); has {
+		return types.ErrInvalid.Wrapf("bridge token is exist %s", bridgeDenom)
+	}
+
 	if claim.Symbol == fxtypes.DefaultDenom {
 		if uint64(fxtypes.DenomUnit) != claim.Decimals {
 			return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d", fxtypes.DefaultDenom,
 				claim.Decimals, fxtypes.DenomUnit)
 		}
-
-		k.AddBridgeToken(ctx, claim.TokenContract, fxtypes.DefaultDenom)
-		return nil
+		k.AddBridgeToken(ctx, fxtypes.DefaultDenom, bridgeDenom)
+		denomToken = fxtypes.DefaultDenom
 	}
 
-	denom, err := k.SetIbcDenomTrace(ctx, claim.TokenContract, claim.ChannelIbc)
-	if err != nil {
-		return err
-	}
-	k.AddBridgeToken(ctx, claim.TokenContract, denom)
+	k.AddBridgeToken(ctx, bridgeDenom, denomToken)
 	return nil
 }
 
-func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *types.BridgeToken {
+func (k Keeper) GetBridgeDenomByContract(ctx sdk.Context, tokenContract string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.GetDenomToTokenKey(tokenContract))
+	bridgeDenom := types.NewBridgeDenom(k.moduleName, tokenContract)
+	data := store.Get(types.GetBridgeDenomKey(bridgeDenom))
 	if len(data) == 0 {
-		return nil
+		return "", false
 	}
-	return &types.BridgeToken{
-		Denom: string(data),
-		Token: tokenContract,
+	result := string(data)
+	// result = (value == key ？key : value)
+	if bridgeDenom == result {
+		result = bridgeDenom
 	}
+	return result, true
 }
 
-func (k Keeper) GetDenomBridgeToken(ctx sdk.Context, denom string) *types.BridgeToken {
+func (k Keeper) GetContractByBridgeDenom(ctx sdk.Context, bridgeDenom string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.GetTokenToDenomKey(denom))
+	data := store.Get(types.GetBridgeDenomKey(bridgeDenom))
 	if len(data) == 0 {
-		return nil
+		return "", false
 	}
-	return &types.BridgeToken{
-		Denom: denom,
-		Token: string(data),
+	result := string(data)
+	if bridgeDenom == result || result == fxtypes.DefaultDenom {
+		return types.BridgeDenomToContract(k.moduleName, bridgeDenom), true
 	}
+	// bridgeDenom should not be eth0xfx
+	return types.BridgeDenomToContract(k.moduleName, result), true
 }
 
-func (k Keeper) HasBridgeToken(ctx sdk.Context, tokenContract string) bool {
+func (k Keeper) HasBridgeToken(ctx sdk.Context, denom string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetDenomToTokenKey(tokenContract))
+	return store.Has(types.GetTokenToDenomKey(denom))
 }
 
-func (k Keeper) AddBridgeToken(ctx sdk.Context, token, denom string) {
+func (k Keeper) AddBridgeToken(ctx sdk.Context, bridgeDenom, baseDenom string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetTokenToDenomKey(denom), []byte(token))
-	store.Set(types.GetDenomToTokenKey(token), []byte(denom))
+	store.Set(types.GetBridgeDenomKey(bridgeDenom), []byte(baseDenom))
 }
 
-func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
+func (k Keeper) IteratorBridgeDenomWithContract(ctx sdk.Context, cb func(token *types.BridgeToken) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := storetypes.KVStorePrefixIterator(store, types.TokenToDenomKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.BridgeDenomKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
+		if string(iter.Value()) == fxtypes.DefaultDenom {
+			continue
+		}
+
 		bridgeToken := &types.BridgeToken{
-			Denom: string(iter.Key()[len(types.TokenToDenomKey):]),
-			Token: string(iter.Value()),
+			Denom: string(iter.Key()[len(types.BridgeDenomKey):]),
+			Token: types.BridgeDenomToContract(k.moduleName, string(iter.Value())),
 		}
 		// cb returns true to stop early
 		if cb(bridgeToken) {
@@ -91,6 +97,7 @@ func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.Bridge
 	}
 }
 
+// Deprecated: do not use
 func (k Keeper) SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error) {
 	denom := types.NewBridgeDenom(k.moduleName, token)
 	denomTrace, err := fxtypes.GetIbcDenomTrace(denom, channelIBC)

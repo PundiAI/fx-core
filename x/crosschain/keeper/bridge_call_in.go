@@ -61,10 +61,13 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	if err == nil {
 		for i := 0; i < len(erc20Token); i++ {
-			bridgeToken := k.GetBridgeTokenDenom(ctx, erc20Token[i].Contract)
+			bridgeDenom, found := k.GetBridgeDenomByContract(ctx, erc20Token[i].Contract)
+			if !found {
+				continue
+			}
 			// no need for a double check here, as the bridge token should exist
-			k.HandlePendingOutgoingTx(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeToken)
-			k.HandlePendingOutgoingBridgeCall(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeToken)
+			k.HandlePendingOutgoingTx(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeDenom, erc20Token[i].Contract)
+			k.HandlePendingOutgoingBridgeCall(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeDenom)
 		}
 	}
 	return nil
@@ -104,15 +107,15 @@ func (k Keeper) bridgeCallTransferCoins(ctx sdk.Context, sender sdk.AccAddress, 
 	mintCoins := sdk.NewCoins()
 	unlockCoins := sdk.NewCoins()
 	for i := 0; i < len(tokens); i++ {
-		bridgeToken := k.GetBridgeTokenDenom(ctx, tokens[i].Contract)
-		if bridgeToken == nil {
+		bridgeDenom, found := k.GetBridgeDenomByContract(ctx, tokens[i].Contract)
+		if !found {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 		}
 		if !tokens[i].Amount.IsPositive() {
 			continue
 		}
-		coin := sdk.NewCoin(bridgeToken.Denom, tokens[i].Amount)
-		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+		coin := sdk.NewCoin(bridgeDenom, tokens[i].Amount)
+		isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeDenom)
 		if !isOriginOrConverted {
 			mintCoins = mintCoins.Add(coin)
 		}

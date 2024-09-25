@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"sort"
 	"strconv"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -519,6 +520,10 @@ func NewPendingOutgoingTx(txID uint64, sender sdk.AccAddress, receiver string, t
 
 func NewBridgeDenom(moduleName string, token string) string {
 	return fmt.Sprintf("%s%s", moduleName, token)
+}
+
+func BridgeDenomToContract(moduleName string, bridgeDenom string) string {
+	return strings.TrimPrefix(bridgeDenom, moduleName)
 }
 
 func NewERC20Tokens(module string, tokenAddrs []gethcommon.Address, tokenAmounts []*big.Int) ([]ERC20Token, error) {

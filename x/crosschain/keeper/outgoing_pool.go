@@ -31,8 +31,8 @@ func (k Keeper) AddToOutgoingPoolWithTxId(ctx sdk.Context, sender sdk.AccAddress
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin, txID uint64) error {
-	bridgeToken := k.GetDenomBridgeToken(ctx, amount.Denom)
-	if bridgeToken == nil {
+	tokenContract, found := k.GetContractByBridgeDenom(ctx, amount.Denom)
+	if !found {
 		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
@@ -47,8 +47,8 @@ func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		Id:          txID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
-		Token:       types.NewERC20Token(amount.Amount, bridgeToken.Token),
-		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.Token),
+		Token:       types.NewERC20Token(amount.Amount, tokenContract),
+		Fee:         types.NewERC20Token(fee.Amount, tokenContract),
 	}
 
 	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {
@@ -228,16 +228,16 @@ func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types
 func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress, tokenContract string, refundAmount sdkmath.Int) (sdk.Coin, error) {
 	// 1. handler refund
 	// query denom, if not exist, return error
-	bridgeToken := k.GetBridgeTokenDenom(ctx, tokenContract)
-	if bridgeToken == nil {
+	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, tokenContract)
+	if !found {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tokenContract)
 	}
 	// reissue the amount and the fee
-	totalToRefund := sdk.NewCoin(bridgeToken.Denom, refundAmount)
+	totalToRefund := sdk.NewCoin(bridgeDenom, refundAmount)
 	totalToRefundCoins := sdk.NewCoins(totalToRefund)
 
 	// check bridge denom is origin denom or converted alias
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeDenom)
 	if isOriginOrConverted {
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
 			return sdk.Coin{}, err
@@ -268,12 +268,12 @@ func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccA
 }
 
 func (k Keeper) handleCancelPendingPoolRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress, tokenContract string, refundAmount sdkmath.Int) (sdk.Coin, error) {
-	bridgeToken := k.GetBridgeTokenDenom(ctx, tokenContract)
-	if bridgeToken == nil {
+	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, tokenContract)
+	if !found {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tokenContract)
 	}
 	// 1. handler refund
-	targetCoin, err := k.erc20Keeper.RefundLiquidity(ctx, sender, sdk.NewCoin(bridgeToken.Denom, refundAmount))
+	targetCoin, err := k.erc20Keeper.RefundLiquidity(ctx, sender, sdk.NewCoin(bridgeDenom, refundAmount))
 	if err != nil {
 		return sdk.Coin{}, errorsmod.Wrap(err, "convert denom to erc20")
 	}

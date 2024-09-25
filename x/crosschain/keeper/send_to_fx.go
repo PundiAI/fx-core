@@ -23,12 +23,11 @@ import (
 )
 
 func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim) error {
-	bridgeToken := k.GetBridgeTokenDenom(ctx, claim.TokenContract)
-	if bridgeToken == nil {
+	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, claim.TokenContract)
+	if !found {
 		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
-
-	coin := sdk.NewCoin(bridgeToken.Denom, claim.Amount)
+	coin := sdk.NewCoin(bridgeDenom, claim.Amount)
 	if !ctx.IsCheckTx() {
 		defer func() {
 			telemetry.IncrCounterWithLabels(
@@ -49,7 +48,7 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrInvalid, "receiver address")
 	}
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeDenom)
 	if !isOriginOrConverted {
 		// If it is not fxcore originated, mint the coins (aka vouchers)
 		if err = k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
@@ -75,8 +74,8 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 		return nil
 	}
 
-	k.HandlePendingOutgoingTx(ctx, receiveAddr, claim.GetEventNonce(), bridgeToken)
-	k.HandlePendingOutgoingBridgeCall(ctx, receiveAddr, claim.GetEventNonce(), bridgeToken)
+	k.HandlePendingOutgoingTx(ctx, receiveAddr, claim.GetEventNonce(), bridgeDenom, claim.TokenContract)
+	k.HandlePendingOutgoingBridgeCall(ctx, receiveAddr, claim.GetEventNonce(), bridgeDenom)
 	return nil
 }
 

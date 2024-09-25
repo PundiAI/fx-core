@@ -360,7 +360,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 
 	token := fmt.Sprintf("0x%s", tmrand.Str(40))
 	denom := types.NewBridgeDenom(suite.chainName, token)
-	suite.Keeper().AddBridgeToken(suite.Ctx, token, denom)
+	suite.Keeper().AddBridgeToken(suite.Ctx, denom, denom)
 
 	privateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
@@ -972,13 +972,13 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 
 	suite.Keeper().EndBlocker(suite.Ctx)
 
-	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, sendToFxToken)
-	suite.Require().NotNil(bridgeDenomData)
+	bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, sendToFxToken)
+	suite.Require().True(found)
 	tokenDenom := types.NewBridgeDenom(suite.chainName, sendToFxToken)
-	suite.Require().EqualValues(tokenDenom, bridgeDenomData.Denom)
-	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.Ctx, tokenDenom)
-	suite.Require().NotNil(bridgeTokenData)
-	suite.Require().EqualValues(sendToFxToken, bridgeTokenData.Token)
+	suite.Require().EqualValues(tokenDenom, bridgeDenom)
+	tokenContract, found := suite.Keeper().GetContractByBridgeDenom(suite.Ctx, tokenDenom)
+	suite.Require().True(found)
+	suite.Require().EqualValues(sendToFxToken, tokenContract)
 
 	// 4. sendToFx.
 	sendToFxClaim := new(types.MsgSendToFxClaim)
@@ -1247,13 +1247,13 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 
 	suite.Keeper().EndBlocker(suite.Ctx)
 
-	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, sendToFxToken)
-	suite.Require().NotNil(bridgeDenomData)
+	bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, sendToFxToken)
+	suite.Require().True(found)
 	tokenDenom := types.NewBridgeDenom(suite.chainName, sendToFxToken)
-	suite.Require().EqualValues(tokenDenom, bridgeDenomData.Denom)
-	bridgeTokenData := suite.Keeper().GetDenomBridgeToken(suite.Ctx, tokenDenom)
-	suite.Require().NotNil(bridgeTokenData)
-	suite.Require().EqualValues(sendToFxToken, bridgeTokenData.Token)
+	suite.Require().EqualValues(tokenDenom, bridgeDenom)
+	tokenContract, found := suite.Keeper().GetContractByBridgeDenom(suite.Ctx, tokenDenom)
+	suite.Require().True(found)
+	suite.Require().EqualValues(sendToFxToken, tokenContract)
 
 	// 4. register coin
 	tokenPair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, banktypes.Metadata{

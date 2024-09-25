@@ -45,7 +45,7 @@ func (s *KeeperMockSuite) TestSendToExternal() {
 	s.bankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), senderAddr, s.moduleName, sdk.NewCoins(sendToken)).Return(nil).Times(1)
 	s.bankKeeper.EXPECT().BurnCoins(gomock.Any(), s.moduleName, sdk.NewCoins(sendToken)).Return(nil).Times(1)
 
-	s.crosschainKeeper.HandlePendingOutgoingTx(s.ctx, helpers.GenHexAddress().Bytes(), 1, bridgeToken)
+	s.crosschainKeeper.HandlePendingOutgoingTx(s.ctx, helpers.GenHexAddress().Bytes(), 1, bridgeToken.Denom, bridgeToken.Token)
 
 	// check pending send to external tx is removed
 	_, found = s.crosschainKeeper.GetPendingPoolTxById(s.ctx, external.OutgoingTxId)

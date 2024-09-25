@@ -10,7 +10,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -68,10 +67,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 
 	allBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(sendToFxClaim.Receiver))
 	denom := types.NewBridgeDenom(suite.chainName, bridgeToken)
-	trace, err := fxtypes.GetIbcDenomTrace(denom, addBridgeTokenClaim.ChannelIbc)
-	suite.NoError(err)
-	denom = trace.IBCDenom()
-	suite.Require().EqualValues(sdk.Coin{Amount: sendToFxClaim.Amount, Denom: denom}.String(), allBalances.String())
+	suite.Require().EqualValues(sdk.NewCoin(denom, sendToFxClaim.Amount).String(), allBalances.String())
 }
 
 func (suite *KeeperTestSuite) TestOracleUpdate() {

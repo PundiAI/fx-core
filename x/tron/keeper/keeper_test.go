@@ -139,12 +139,13 @@ func (suite *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []crosschai
 			ChannelIbc:     channelIBC,
 		})
 		suite.Require().NoError(err)
-		denom := suite.app.TronKeeper.GetBridgeTokenDenom(suite.ctx, bridgeTokens[i].Token)
-		bridgeTokens[i].Denom = denom.Denom
-		bridgeDenom := sdk.NewCoins(sdk.NewCoin(bridgeTokens[i].Denom, sdkmath.NewInt(1e6).MulRaw(1e18)))
-		err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, bridgeDenom)
+		bridgeDenom, found := suite.app.TronKeeper.GetBridgeDenomByContract(suite.ctx, bridgeTokens[i].Token)
+		suite.Require().True(found)
+		bridgeTokens[i].Denom = bridgeDenom
+		bridgeDenomCoins := sdk.NewCoins(sdk.NewCoin(bridgeTokens[i].Denom, sdkmath.NewInt(1e6).MulRaw(1e18)))
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, bridgeDenomCoins)
 		suite.NoError(err)
-		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.signer.AccAddress(), bridgeDenom)
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.signer.AccAddress(), bridgeDenomCoins)
 		suite.NoError(err)
 	}
 	return bridgeTokens
