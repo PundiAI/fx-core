@@ -181,3 +181,11 @@ func (k msgServer) Claim(ctx context.Context, msg *types.MsgClaim) (*types.MsgCl
 		return queryServer.Claim(ctx, msg)
 	}
 }
+
+func (k msgServer) Confirm(ctx context.Context, msg *types.MsgConfirm) (*types.MsgConfirmResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.Confirm(ctx, msg)
+	}
+}

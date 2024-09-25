@@ -36,14 +36,14 @@ func TestRegisterInterfaces(t *testing.T) {
 	for interfaceImpls.Next() {
 		count1++
 	}
-	assert.Equal(t, 31, count1)
+	assert.Equal(t, 32, count1)
 
 	implInterfaces := interfaceRegistry.FieldByName("implInterfaces").MapRange()
 	var count2 int
 	for implInterfaces.Next() {
 		count2++
 	}
-	assert.Equal(t, 305, count2)
+	assert.Equal(t, 307, count2)
 
 	typeURLMap := interfaceRegistry.FieldByName("typeURLMap").MapRange()
 	for typeURLMap.Next() {

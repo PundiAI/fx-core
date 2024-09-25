@@ -83,7 +83,6 @@ import (
 	polygontypes "github.com/functionx/fx-core/v8/x/polygon/types"
 	fxstakingkeeper "github.com/functionx/fx-core/v8/x/staking/keeper"
 	stakingprecompile "github.com/functionx/fx-core/v8/x/staking/precompile"
-	tronkeeper "github.com/functionx/fx-core/v8/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
@@ -92,7 +91,7 @@ type CrossChainKeepers struct {
 	PolygonKeeper   crosschainkeeper.Keeper
 	AvalancheKeeper crosschainkeeper.Keeper
 	EthKeeper       crosschainkeeper.Keeper
-	TronKeeper      tronkeeper.Keeper
+	TronKeeper      crosschainkeeper.Keeper
 	ArbitrumKeeper  crosschainkeeper.Keeper
 	OptimismKeeper  crosschainkeeper.Keeper
 	Layer2Keeper    crosschainkeeper.Keeper
@@ -466,7 +465,7 @@ func NewAppKeeper(
 		appKeepers.EvmKeeper,
 		authAddr,
 	)
-	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
+	appKeepers.TronKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
 		trontypes.ModuleName,
 		appKeepers.keys[trontypes.StoreKey],
@@ -479,7 +478,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
-	))
+	)
 
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()
@@ -491,7 +490,7 @@ func NewAppKeeper(
 		AddRoute(arbitrumtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.ArbitrumKeeper)).
 		AddRoute(optimismtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.OptimismKeeper)).
 		AddRoute(layer2types.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.Layer2Keeper)).
-		AddRoute(trontypes.ModuleName, tronkeeper.NewModuleHandler(appKeepers.TronKeeper))
+		AddRoute(trontypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.TronKeeper))
 
 	appKeepers.CrosschainRouterKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
@@ -504,7 +503,7 @@ func NewAppKeeper(
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
 		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
 		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper).
-		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper.Keeper)
+		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
