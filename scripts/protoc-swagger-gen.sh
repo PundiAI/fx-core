@@ -3,7 +3,7 @@
 set -eo pipefail
 
 mkdir -p ./tmp-swagger-gen ./third_party ./build
-trap 'rm -rf ./tmp-swagger-gen ./third_party ./build' EXIT
+trap 'rm -rf ./tmp-swagger-gen ./third_party' EXIT
 
 commit_hash=$(go list -m -f '{{.Replace.Version}}' github.com/evmos/ethermint | awk -F '-' '{print $NF}')
 if [[ ! -f "./build/$commit_hash.zip" ]]; then

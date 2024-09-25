@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/functionx/fx-core/v8/types/legacy"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	govlegacy "github.com/functionx/fx-core/v8/x/gov/legacy"
 )
 
 func Test_MsgServiceRouter(t *testing.T) {
@@ -18,7 +18,7 @@ func Test_MsgServiceRouter(t *testing.T) {
 	deprecated := map[string]struct{}{
 		sdk.MsgTypeURL(&crosschaintypes.MsgSetOrchestratorAddress{}): {},
 		sdk.MsgTypeURL(&crosschaintypes.MsgAddOracleDeposit{}):       {},
-		sdk.MsgTypeURL(&govlegacy.MsgUpdateParams{}):                 {},
+		sdk.MsgTypeURL(&legacy.MsgUpdateParams{}):                    {},
 	}
 	for _, msg := range myApp.InterfaceRegistry().ListImplementations(sdk.MsgInterfaceProtoName) {
 		if _, ok := deprecated[msg]; ok {

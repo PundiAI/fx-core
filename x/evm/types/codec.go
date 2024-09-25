@@ -8,7 +8,7 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
-	"github.com/functionx/fx-core/v8/x/evm/legacy"
+	"github.com/functionx/fx-core/v8/types/legacy"
 )
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
