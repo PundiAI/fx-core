@@ -64,10 +64,10 @@ var (
 	// KeyLastOutgoingBatchID indexes the lastBatchID
 	KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
 
-	// DenomToTokenKey prefixes the index of asset denom to external token
+	// Deprecated: DenomToTokenKey prefixes the index of asset denom to external token
 	DenomToTokenKey = []byte{0x26}
 
-	// TokenToDenomKey prefixes the index of assets external token to denom
+	// Deprecated: TokenToDenomKey prefixes the index of assets external token to denom
 	TokenToDenomKey = []byte{0x27}
 
 	// LastSlashedOracleSetNonce indexes the latest slashed oracleSet nonce
@@ -128,6 +128,9 @@ var (
 	NotLiquidCoinsNonceKey = []byte{0x53}
 
 	PendingExecuteClaimKey = []byte{0x54}
+
+	// BridgeDenomKey -> value BridgeDenom
+	BridgeDenomKey = []byte{0x60}
 )
 
 // GetOracleKey returns the following key format
@@ -211,12 +214,12 @@ func GetLastEventBlockHeightByOracleKey(oracleAddr sdk.AccAddress) []byte {
 	return append(LastEventBlockHeightByOracleKey, oracleAddr.Bytes()...)
 }
 
-// GetDenomToTokenKey returns the following key format
+// Deprecated: GetDenomToTokenKey returns the following key format
 func GetDenomToTokenKey(tokenContract string) []byte {
 	return append(DenomToTokenKey, []byte(tokenContract)...)
 }
 
-// GetTokenToDenomKey returns the following key format
+// Deprecated GetTokenToDenomKey returns the following key format
 func GetTokenToDenomKey(denom string) []byte {
 	return append(TokenToDenomKey, []byte(denom)...)
 }
@@ -285,4 +288,8 @@ func GetBridgeCallFromMsgKey(txID uint64) []byte {
 
 func GetPendingExecuteClaimKey(nonce uint64) []byte {
 	return append(PendingExecuteClaimKey, sdk.Uint64ToBigEndian(nonce)...)
+}
+
+func GetBridgeDenomKey(denom string) []byte {
+	return append(BridgeDenomKey, []byte(denom)...)
 }

@@ -438,8 +438,8 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	bridgeToken := s.GetDenomBridgeToken(ctx, msg.Denom)
-	if bridgeToken == nil {
+	tokenContract, found := s.GetContractByBridgeDenom(ctx, msg.Denom)
+	if !found {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
@@ -449,7 +449,7 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 		}
 	}
 
-	batch, err := s.BuildOutgoingTxBatch(ctx, bridgeToken.Token, msg.FeeReceive, types.OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
+	batch, err := s.BuildOutgoingTxBatch(ctx, tokenContract, msg.FeeReceive, types.OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}

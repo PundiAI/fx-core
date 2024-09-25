@@ -13,11 +13,10 @@ import (
 )
 
 func (k Keeper) AddToOutgoingPendingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	bridgeToken := k.GetDenomBridgeToken(ctx, amount.Denom)
-	if bridgeToken == nil {
-		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+	tokenContract, found := k.GetContractByBridgeDenom(ctx, amount.Denom)
+	if !found {
+		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
 	}
-
 	// add pending pool switch
 	if !k.GetParams(ctx).EnableSendToExternalPending {
 		return 0, types.ErrInvalid.Wrapf("not enough liquidity")
@@ -25,7 +24,7 @@ func (k Keeper) AddToOutgoingPendingPool(ctx sdk.Context, sender sdk.AccAddress,
 
 	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
 
-	pendingOutgoingTx := types.NewPendingOutgoingTx(nextTxID, sender, receiver, bridgeToken.Token, amount, fee, sdk.NewCoins())
+	pendingOutgoingTx := types.NewPendingOutgoingTx(nextTxID, sender, receiver, tokenContract, amount, fee, sdk.NewCoins())
 	k.SetPendingTx(ctx, &pendingOutgoingTx)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -59,7 +58,7 @@ func (k Keeper) HandleAddPendingPoolReward(ctx sdk.Context, id uint64, reward sd
 	return true
 }
 
-func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.AccAddress, eventNonce uint64, bridgeToken *types.BridgeToken) {
+func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.AccAddress, eventNonce uint64, bridgeDenom, tokenContract string) {
 	cacheContext, commit := ctx.CacheContext()
 
 	erc20ModuleAddress := k.ak.GetModuleAddress(erc20types.ModuleName)
@@ -68,14 +67,14 @@ func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.A
 	var rewards sdk.Coins
 	liquidationSize := 0
 	// iterator pending outgoing tx by bridgeToken contract address
-	k.IteratorPendingOutgoingTxByBridgeTokenContractAddr(cacheContext, bridgeToken.Token, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
+	k.IteratorPendingOutgoingTxByBridgeTokenContractAddr(cacheContext, tokenContract, func(pendingOutgoingTx types.PendingOutgoingTransferTx) bool {
 		// only allow to provide liquidity for MaxLiquidationSize times, avoid to exceed the limit
 		liquidationSize++
 		if liquidationSize >= types.MaxLiquidationSize {
 			return true
 		}
 		// 1. check erc20 module has enough balance
-		transferCoin := sdk.NewCoin(bridgeToken.Denom, pendingOutgoingTx.Token.Amount.Add(pendingOutgoingTx.Fee.Amount))
+		transferCoin := sdk.NewCoin(bridgeDenom, pendingOutgoingTx.Token.Amount.Add(pendingOutgoingTx.Fee.Amount))
 		if !k.bankKeeper.HasBalance(ctx, erc20ModuleAddress, transferCoin) {
 			return false
 		}
@@ -88,7 +87,7 @@ func (k Keeper) HandlePendingOutgoingTx(ctx sdk.Context, liquidityProvider sdk.A
 		}
 
 		// 3. remove pending outgoing tx
-		k.RemovePendingOutgoingTx(cacheContext, bridgeToken.Token, pendingOutgoingTx.Id)
+		k.RemovePendingOutgoingTx(cacheContext, tokenContract, pendingOutgoingTx.Id)
 
 		// 4. add to outgoing tx
 		if err = k.AddToOutgoingPoolWithTxId(cacheContext, sender, pendingOutgoingTx.DestAddress, pendingOutgoingTx.Token, pendingOutgoingTx.Fee, pendingOutgoingTx.Id); err != nil {

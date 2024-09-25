@@ -42,7 +42,7 @@ func (k Keeper) AddPendingOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr
 	return outCall.Nonce, nil
 }
 
-func (k Keeper) HandlePendingOutgoingBridgeCall(ctx sdk.Context, liquidityProvider []byte, eventNonce uint64, bridgeToken *types.BridgeToken) {
+func (k Keeper) HandlePendingOutgoingBridgeCall(ctx sdk.Context, liquidityProvider []byte, eventNonce uint64, bridgeDenom string) {
 	cacheContext, commit := ctx.CacheContext()
 
 	erc20ModuleAddress := k.ak.GetModuleAddress(erc20types.ModuleName)
@@ -51,7 +51,7 @@ func (k Keeper) HandlePendingOutgoingBridgeCall(ctx sdk.Context, liquidityProvid
 	var rewards sdk.Coins
 	liquidationSize := 0
 	// iterator pending outgoing tx by bridgeToken contract address
-	k.IteratorBridgeCallNotLiquidsByDenom(cacheContext, bridgeToken.Denom, func(bridgeCallNonce uint64, notLiquidCoins sdk.Coins) bool {
+	k.IteratorBridgeCallNotLiquidsByDenom(cacheContext, bridgeDenom, func(bridgeCallNonce uint64, notLiquidCoins sdk.Coins) bool {
 		iterCtx, iterCommit := cacheContext.CacheContext()
 		// only allow to provide liquidity for MaxLiquidationSize times, avoid to exceed the limit
 		liquidationSize++
@@ -140,12 +140,12 @@ func (k Keeper) HandleCancelPendingOutgoingBridgeCall(ctx sdk.Context, nonce uin
 			return nil, types.ErrInvalid.Wrapf("refund liquidity failed, error: %s", err)
 		}
 		notLiquidTargetCoins = notLiquidTargetCoins.Add(notLiquidTargetCoin)
-		bridgeToken := k.GetDenomBridgeToken(ctx, coin.GetDenom())
-		if bridgeToken == nil {
+		tokenContract, found := k.GetContractByBridgeDenom(ctx, coin.Denom)
+		if !found {
 			return nil, types.ErrInvalid.Wrapf("bridge token not found, denom: %s", coin.GetDenom())
 		}
 		for i := 0; i < len(outCall.Tokens); i++ {
-			if outCall.Tokens[i].Contract == bridgeToken.Token {
+			if outCall.Tokens[i].Contract == tokenContract {
 				outCall.Tokens = append(outCall.Tokens[:i], outCall.Tokens[i+1:]...)
 				break
 			}

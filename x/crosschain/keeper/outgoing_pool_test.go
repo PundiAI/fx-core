@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestKeeper_OutgoingPool() {
 	suite.NoError(err)
 	suite.Equal(sendAmount, suite.App.BankKeeper.GetSupply(suite.Ctx, denom))
 
-	suite.Keeper().AddBridgeToken(suite.Ctx, bridgeToken, denom)
+	suite.Keeper().AddBridgeToken(suite.Ctx, denom, denom)
 
 	suite.Equal(suite.App.BankKeeper.GetAllBalances(suite.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	receiver := helpers.GenHexAddress().Hex()
@@ -56,7 +56,9 @@ func (suite *KeeperTestSuite) TestKeeper_OutgoingPool2() {
 	}
 	suite.NoError(err)
 
-	suite.Keeper().AddBridgeToken(suite.Ctx, bridgeToken, denom)
+	bridgeDenom := types.NewBridgeDenom(suite.chainName, bridgeToken)
+	suite.Keeper().AddBridgeToken(suite.Ctx, bridgeDenom, denom)
+	suite.Keeper().AddBridgeToken(suite.Ctx, denom, bridgeDenom)
 
 	suite.Equal(suite.App.BankKeeper.GetAllBalances(suite.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	receiver := helpers.GenHexAddress().Hex()

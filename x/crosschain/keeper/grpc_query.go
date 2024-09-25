@@ -214,12 +214,12 @@ func (k QueryServer) DenomToToken(c context.Context, req *types.QueryDenomToToke
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
 
-	bridgeToken := k.GetDenomBridgeToken(sdk.UnwrapSDKContext(c), req.Denom)
-	if bridgeToken == nil {
+	tokenContract, found := k.GetContractByBridgeDenom(sdk.UnwrapSDKContext(c), req.Denom)
+	if !found {
 		return nil, status.Error(codes.NotFound, "bridge token")
 	}
 	return &types.QueryDenomToTokenResponse{
-		Token: bridgeToken.Token,
+		Token: tokenContract,
 	}, nil
 }
 
@@ -227,12 +227,12 @@ func (k QueryServer) TokenToDenom(c context.Context, req *types.QueryTokenToDeno
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetToken()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
-	bridgeToken := k.GetBridgeTokenDenom(sdk.UnwrapSDKContext(c), req.Token)
-	if bridgeToken == nil {
+	bridgeDenom, found := k.GetBridgeDenomByContract(sdk.UnwrapSDKContext(c), req.Token)
+	if !found {
 		return nil, status.Error(codes.NotFound, "bridge token")
 	}
 	return &types.QueryTokenToDenomResponse{
-		Denom: bridgeToken.Denom,
+		Denom: bridgeDenom,
 	}, nil
 }
 
@@ -363,7 +363,7 @@ func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.Que
 
 func (k QueryServer) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
 	bridgeTokens := make([]*types.BridgeToken, 0)
-	k.IterateBridgeTokenToDenom(sdk.UnwrapSDKContext(c), func(token *types.BridgeToken) bool {
+	k.IteratorBridgeDenomWithContract(sdk.UnwrapSDKContext(c), func(token *types.BridgeToken) bool {
 		bridgeTokens = append(bridgeTokens, token)
 		return false
 	})
@@ -405,8 +405,8 @@ func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridge
 		fxtypes.ParseFxTarget(req.GetChainName()),
 	)
 
-	token := k.GetDenomBridgeToken(ctx, bridgeCoinDenom)
-	if token == nil {
+	_, found := k.GetContractByBridgeDenom(ctx, bridgeCoinDenom)
+	if !found {
 		return nil, status.Error(codes.NotFound, "denom")
 	}
 

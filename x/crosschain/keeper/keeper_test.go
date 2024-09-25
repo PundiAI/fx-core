@@ -130,7 +130,9 @@ func (s *KeeperMockSuite) SetupTest() {
 	params.EnableSendToExternalPending = true
 	s.NoError(s.crosschainKeeper.SetParams(s.ctx, &params))
 
-	s.crosschainKeeper.AddBridgeToken(s.ctx, s.wfxTokenAddr, fxtypes.DefaultDenom)
+	bridgeDenom := types.NewBridgeDenom(s.moduleName, s.wfxTokenAddr)
+	s.crosschainKeeper.AddBridgeToken(s.ctx, bridgeDenom, fxtypes.DefaultDenom)
+	s.crosschainKeeper.AddBridgeToken(s.ctx, fxtypes.DefaultDenom, bridgeDenom)
 }
 
 func (s *KeeperMockSuite) SetupSubTest() {
@@ -170,7 +172,7 @@ func (s *KeeperMockSuite) SetOracleSet(nonce, power, height uint64) string {
 
 func (s *KeeperMockSuite) AddBridgeToken(contract string) (bridgeToken *types.BridgeToken) {
 	denom := types.NewBridgeDenom(s.moduleName, contract)
-	s.crosschainKeeper.AddBridgeToken(s.ctx, contract, denom)
+	s.crosschainKeeper.AddBridgeToken(s.ctx, denom, denom)
 	return &types.BridgeToken{
 		Token: contract,
 		Denom: denom,

@@ -78,11 +78,11 @@ func (suite *PrecompileTestSuite) SetupTest() {
 
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
 
-	suite.app.EthKeeper.AddBridgeToken(suite.ctx, helpers.GenExternalAddr(crossethtypes.ModuleName), fxtypes.DefaultDenom)
+	suite.AddFXBridgeToken(helpers.GenExternalAddr(crossethtypes.ModuleName))
 
-	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrossChainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
+	crosschainContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrossChainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
 	suite.Require().NoError(err)
-	suite.crosschain = stakingContract
+	suite.crosschain = crosschainContract
 }
 
 func (suite *PrecompileTestSuite) SetupSubTest() {
@@ -223,7 +223,7 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 		denomModules[index] = m
 
 		k := keepers[m]
-		k.AddBridgeToken(suite.ctx, address, crosschaintypes.NewBridgeDenom(m, address))
+		k.AddBridgeToken(suite.ctx, denom, denom)
 	}
 	if count >= len(modules) {
 		count = len(modules) - 1
@@ -467,4 +467,17 @@ func (m Metadata) GetDenom(moduleName string) string {
 
 func (m Metadata) GetMetadata() banktypes.Metadata {
 	return m.metadata
+}
+
+func (suite *PrecompileTestSuite) AddBridgeToken(moduleName, tokenContract string) string {
+	bridgeDenom := crosschaintypes.NewBridgeDenom(moduleName, tokenContract)
+	suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, bridgeDenom, bridgeDenom)
+	return bridgeDenom
+}
+
+func (suite *PrecompileTestSuite) AddFXBridgeToken(tokenContract string) {
+	bridgeDenom := crosschaintypes.NewBridgeDenom(crossethtypes.ModuleName, tokenContract)
+	ethKeeper := suite.CrossChainKeepers()[crossethtypes.ModuleName]
+	ethKeeper.AddBridgeToken(suite.ctx, bridgeDenom, fxtypes.DefaultDenom)
+	ethKeeper.AddBridgeToken(suite.ctx, fxtypes.DefaultDenom, bridgeDenom)
 }

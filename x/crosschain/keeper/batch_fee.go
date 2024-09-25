@@ -85,18 +85,18 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 	if err != nil {
 		return errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
-	bridgeToken := k.GetDenomBridgeToken(ctx, addBridgeFee.Denom)
-	if bridgeToken == nil {
+	tokenContract, found := k.GetContractByBridgeDenom(ctx, addBridgeFee.Denom)
+	if !found {
 		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
-	if tx.Fee.Contract != bridgeToken.Token {
+	if tx.Fee.Contract != tokenContract {
 		return errorsmod.Wrap(types.ErrInvalid, "token not equal tx fee token")
 	}
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
 	// If there is, lock the coins.
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
+	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, addBridgeFee.Denom)
 	if isOriginOrConverted {
 		// lock coins in module
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {

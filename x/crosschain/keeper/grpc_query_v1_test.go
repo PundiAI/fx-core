@@ -564,15 +564,16 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 					ChainName:      suite.chainName,
 				})
 				suite.Require().NoError(err)
-				denom := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, token)
+				bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token)
+				suite.Require().True(found)
 				initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
-				err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
+				err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
 				suite.Require().NoError(err)
-				err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
+				err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
 				suite.Require().NoError(err)
 				minBatchFee := []types.MinBatchFee{
 					{
-						TokenContract: denom.Token,
+						TokenContract: token,
 						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
 					},
 				}
@@ -581,8 +582,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						suite.Ctx,
 						suite.bridgerAddrs[0],
 						externalAcc.String(),
-						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
+						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 					suite.Require().NoError(err)
 				}
 				for i := uint64(1); i <= 2; i++ {
@@ -590,8 +591,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						suite.Ctx,
 						suite.bridgerAddrs[0],
 						externalAcc.String(),
-						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
+						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
 				}
 				request = &types.QueryBatchFeeRequest{
@@ -600,7 +601,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				}
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
-						TokenContract: denom.Token,
+						TokenContract: token,
 						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
 						TotalTxs:      3,
 						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
@@ -626,12 +627,13 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						ChainName:      suite.chainName,
 					})
 					suite.Require().NoError(err)
-					denom := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, token)
-					bridgeTokenList[i] = denom
+					bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token)
+					suite.Require().True(found)
+					bridgeTokenList[i] = &types.BridgeToken{Token: token, Denom: bridgeDenom}
 					initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
-					err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
+					err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
 					suite.Require().NoError(err)
-					err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
+					err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
 					suite.Require().NoError(err)
 				}
 				minBatchFee := []types.MinBatchFee{
@@ -1361,10 +1363,11 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 					Symbol:        "fxcoin",
 				})
 				suite.Require().NoError(err)
-				denom := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, token)
+				bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token)
+				suite.Require().True(found)
 				request = &types.QueryDenomToTokenRequest{
 					ChainName: suite.chainName,
-					Denom:     denom.Denom,
+					Denom:     bridgeDenom,
 				}
 				response = &types.QueryDenomToTokenResponse{
 					Token: token,
@@ -1437,9 +1440,10 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 					ChainName: suite.chainName,
 					Token:     token,
 				}
-				denom := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, token)
+				bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token)
+				suite.Require().True(found)
 				response = &types.QueryTokenToDenomResponse{
-					Denom: denom.Denom,
+					Denom: bridgeDenom,
 				}
 				expectedError = errorsmod.Wrap(types.ErrEmpty, "bridge token is not exist")
 			},
@@ -1801,25 +1805,26 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 					ChainName:      suite.chainName,
 				})
 				suite.Require().NoError(err)
-				denom := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, token.String())
+				bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token.String())
+				suite.Require().True(found)
 				initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
-				err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
+				err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
 				suite.Require().NoError(err)
-				err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, bridgeAcc, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
+				err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, bridgeAcc, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
 				suite.Require().NoError(err)
 				pool, err := suite.Keeper().AddToOutgoingPool(
 					suite.Ctx,
 					bridgeAcc,
 					externalAcc.String(),
-					sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
-					sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
+					sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
+					sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
 				)
 				suite.Require().NoError(err)
 				suite.Require().Equal(pool, uint64(1))
-				bridgeToken := suite.Keeper().GetDenomBridgeToken(suite.Ctx, denom.Denom)
-				suite.Require().Equal(bridgeToken.Denom, denom.Denom)
-				suite.Require().Equal(bridgeToken.Token, denom.Token)
-				bridgeTokenFee := types.NewERC20Token(sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), bridgeToken.Token)
+				tokenContract, found := suite.Keeper().GetContractByBridgeDenom(suite.Ctx, bridgeDenom)
+				suite.Require().True(found)
+				suite.Require().Equal(token.String(), tokenContract)
+				bridgeTokenFee := types.NewERC20Token(sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), tokenContract)
 
 				err = suite.Keeper().StoreBatch(suite.Ctx, &types.OutgoingTxBatch{
 					Transactions: []*types.OutgoingTransferTx{
@@ -1854,7 +1859,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 							DestAddress: externalAcc.String(),
 							Token: types.NewERC20Token(
 								sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))),
-								denom.Token,
+								token.String(),
 							),
 							Fee: bridgeTokenFee,
 						},
@@ -2224,23 +2229,24 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 					if i == 2 {
 						channelIbc = "transfer/channel-0"
 					}
+					tokenContract := common.BytesToAddress(key.PubKey().Address()).String()
 					err := suite.Keeper().AttestationHandler(suite.Ctx, &types.MsgBridgeTokenClaim{
-						TokenContract:  common.BytesToAddress(key.PubKey().Address()).String(),
+						TokenContract:  tokenContract,
 						BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 						ChannelIbc:     hex.EncodeToString([]byte(channelIbc)),
 					})
 
 					suite.Require().NoError(err)
-					bridgeTokenFromToken := suite.Keeper().GetBridgeTokenDenom(suite.Ctx, common.BytesToAddress(key.PubKey().Address()).String())
-					suite.Require().Equal(bridgeTokenFromToken.Token, common.BytesToAddress(key.PubKey().Address()).String())
+					bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, tokenContract)
+					suite.Require().True(found)
 
-					bridgeTokenFromDenom := suite.Keeper().GetDenomBridgeToken(suite.Ctx, bridgeTokenFromToken.Denom)
-					suite.Require().Equal(bridgeTokenFromDenom.Token, common.BytesToAddress(key.PubKey().Address()).String())
-					suite.Require().Equal(bridgeTokenFromDenom.Denom, bridgeTokenFromToken.Denom)
+					tokenContractByBridgeDenom, found := suite.Keeper().GetContractByBridgeDenom(suite.Ctx, bridgeDenom)
+					suite.Require().True(found)
+					suite.Require().Equal(tokenContract, tokenContractByBridgeDenom)
 
 					newBridgeTokens[i] = &types.BridgeToken{
-						Token: common.BytesToAddress(key.PubKey().Address()).String(),
-						Denom: bridgeTokenFromToken.Denom,
+						Token: tokenContract,
+						Denom: bridgeDenom,
 					}
 				}
 				return &types.QueryBridgeTokensResponse{BridgeTokens: newBridgeTokens}

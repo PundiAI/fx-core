@@ -117,7 +117,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				moduleName := ethtypes.ModuleName
 
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
+				suite.AddFXBridgeToken(helpers.GenHexAddress().String())
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
@@ -170,7 +170,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), fxtypes.DefaultDenom)
+				suite.AddFXBridgeToken(helpers.GenHexAddress().String())
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
@@ -197,19 +197,16 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		{
 			name: "ok - address + ibc token",
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				sourcePort, sourceChannel := suite.RandTransferChannel()
 				tokenAddress := helpers.GenHexAddress()
-				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx,
-					tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
-				suite.Require().NoError(err)
-				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenAddress.Hex(), denom)
+				bridgeDenom := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, tokenAddress.Hex())
+				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, bridgeDenom, bridgeDenom)
 
 				symbol := helpers.NewRandSymbol()
 				ibcMD := banktypes.Metadata{
 					Description: "The cross chain token of the Function X",
 					DenomUnits: []*banktypes.DenomUnit{
 						{
-							Denom:    denom,
+							Denom:    bridgeDenom,
 							Exponent: 0,
 						},
 						{
@@ -217,8 +214,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 							Exponent: 18,
 						},
 					},
-					Base:    denom,
-					Display: denom,
+					Base:    bridgeDenom,
+					Display: bridgeDenom,
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}

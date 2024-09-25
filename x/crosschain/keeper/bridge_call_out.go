@@ -28,11 +28,11 @@ func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddre
 		if err != nil && !erc20types.IsInsufficientLiquidityErr(err) {
 			return nil, nil, err
 		}
-		bridgeToken := k.GetDenomBridgeToken(ctx, targetCoin.Denom)
-		if bridgeToken == nil {
+		tokenContract, found := k.GetContractByBridgeDenom(ctx, targetCoin.Denom)
+		if !found {
 			return nil, nil, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
 		}
-		tokens = append(tokens, types.NewERC20Token(targetCoin.Amount, bridgeToken.Token))
+		tokens = append(tokens, types.NewERC20Token(targetCoin.Amount, tokenContract))
 		if erc20types.IsInsufficientLiquidityErr(err) {
 			notLiquidCoins = notLiquidCoins.Add(targetCoin)
 			continue
