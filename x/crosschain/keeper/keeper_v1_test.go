@@ -25,7 +25,6 @@ import (
 	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
 	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v8/x/polygon/types"
-	tronkeeper "github.com/functionx/fx-core/v8/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
@@ -64,9 +63,6 @@ func TestCrosschainKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) MsgServer() types.MsgServer {
-	if suite.chainName == trontypes.ModuleName {
-		return tronkeeper.NewMsgServerImpl(suite.App.TronKeeper)
-	}
 	return keeper.NewMsgServerImpl(suite.Keeper())
 }
 
@@ -83,7 +79,7 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 	case polygontypes.ModuleName:
 		return suite.App.PolygonKeeper
 	case trontypes.ModuleName:
-		return suite.App.TronKeeper.Keeper
+		return suite.App.TronKeeper
 	case ethtypes.ModuleName:
 		return suite.App.EthKeeper
 	case avalanchetypes.ModuleName:

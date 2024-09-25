@@ -4636,27 +4636,6 @@ paths:
                     type: string
                   chain_name:
                     type: string
-                title: >-
-                  MsgConfirmBatch
-
-                  When validators observe a MsgRequestBatch they form a batch by
-                  ordering
-
-                  transactions currently in the txqueue in order of highest to
-                  lowest fee,
-
-                  cutting off when the batch either reaches a hardcoded maximum
-                  size (to be
-
-                  decided, probably around 100) or when transactions stop being
-                  profitable
-
-                  (determine this without nondeterminism) This message includes
-                  the batch
-
-                  as well as an Bsc signature over this batch by the validator
-
-                  -------------
         default:
           description: An unexpected error response.
           schema:
@@ -4898,27 +4877,6 @@ paths:
                       type: string
                     chain_name:
                       type: string
-                  title: >-
-                    MsgConfirmBatch
-
-                    When validators observe a MsgRequestBatch they form a batch
-                    by ordering
-
-                    transactions currently in the txqueue in order of highest to
-                    lowest fee,
-
-                    cutting off when the batch either reaches a hardcoded
-                    maximum size (to be
-
-                    decided, probably around 100) or when transactions stop
-                    being profitable
-
-                    (determine this without nondeterminism) This message
-                    includes the batch
-
-                    as well as an Bsc signature over this batch by the validator
-
-                    -------------
         default:
           description: An unexpected error response.
           schema:
@@ -9742,46 +9700,6 @@ paths:
                     type: string
                   chain_name:
                     type: string
-                description: >-
-                  MsgOracleSetConfirm
-
-                  this is the message sent by the validators when they wish to
-                  submit their
-
-                  signatures over the validator set at a given block height. A
-                  validator must
-
-                  first call MsgSetEthAddress to set their Ethereum address to
-                  be used for
-
-                  signing. Then someone (anyone) must make a OracleSetRequest,
-                  the request is
-
-                  essentially a messaging mechanism to determine which block all
-                  validators
-
-                  should submit signatures over. Finally validators sign the
-                  validator set,
-
-                  powers, and Ethereum addresses of the entire validator set at
-                  the height of a
-
-                  OracleSetRequest and submit that signature with this message.
-
-
-                  If a sufficient number of validators (66% of voting power) (A)
-                  have set
-
-                  Ethereum addresses and (B) submit OracleSetConfirm messages
-                  with their
-
-                  signatures it is then possible for anyone to view these
-                  signatures in the
-
-                  chain store and submit them to Ethereum to update the
-                  validator set
-
-                  -------------
         default:
           description: An unexpected error response.
           schema:
@@ -10017,47 +9935,6 @@ paths:
                       type: string
                     chain_name:
                       type: string
-                  description: >-
-                    MsgOracleSetConfirm
-
-                    this is the message sent by the validators when they wish to
-                    submit their
-
-                    signatures over the validator set at a given block height. A
-                    validator must
-
-                    first call MsgSetEthAddress to set their Ethereum address to
-                    be used for
-
-                    signing. Then someone (anyone) must make a OracleSetRequest,
-                    the request is
-
-                    essentially a messaging mechanism to determine which block
-                    all validators
-
-                    should submit signatures over. Finally validators sign the
-                    validator set,
-
-                    powers, and Ethereum addresses of the entire validator set
-                    at the height of a
-
-                    OracleSetRequest and submit that signature with this
-                    message.
-
-
-                    If a sufficient number of validators (66% of voting power)
-                    (A) have set
-
-                    Ethereum addresses and (B) submit OracleSetConfirm messages
-                    with their
-
-                    signatures it is then possible for anyone to view these
-                    signatures in the
-
-                    chain store and submit them to Ethereum to update the
-                    validator set
-
-                    -------------
         default:
           description: An unexpected error response.
           schema:
@@ -45003,15 +44880,6 @@ definitions:
         type: string
       chain_name:
         type: string
-    title: |-
-      MsgConfirmBatch
-      When validators observe a MsgRequestBatch they form a batch by ordering
-      transactions currently in the txqueue in order of highest to lowest fee,
-      cutting off when the batch either reaches a hardcoded maximum size (to be
-      decided, probably around 100) or when transactions stop being profitable
-      (determine this without nondeterminism) This message includes the batch
-      as well as an Bsc signature over this batch by the validator
-      -------------
   fx.gravity.crosschain.v1.MsgOracleSetConfirm:
     type: object
     properties:
@@ -45026,38 +44894,6 @@ definitions:
         type: string
       chain_name:
         type: string
-    description: >-
-      MsgOracleSetConfirm
-
-      this is the message sent by the validators when they wish to submit their
-
-      signatures over the validator set at a given block height. A validator
-      must
-
-      first call MsgSetEthAddress to set their Ethereum address to be used for
-
-      signing. Then someone (anyone) must make a OracleSetRequest, the request
-      is
-
-      essentially a messaging mechanism to determine which block all validators
-
-      should submit signatures over. Finally validators sign the validator set,
-
-      powers, and Ethereum addresses of the entire validator set at the height
-      of a
-
-      OracleSetRequest and submit that signature with this message.
-
-
-      If a sufficient number of validators (66% of voting power) (A) have set
-
-      Ethereum addresses and (B) submit OracleSetConfirm messages with their
-
-      signatures it is then possible for anyone to view these signatures in the
-
-      chain store and submit them to Ethereum to update the validator set
-
-      -------------
   fx.gravity.crosschain.v1.Oracle:
     type: object
     properties:
@@ -45414,27 +45250,6 @@ definitions:
             type: string
           chain_name:
             type: string
-        title: >-
-          MsgConfirmBatch
-
-          When validators observe a MsgRequestBatch they form a batch by
-          ordering
-
-          transactions currently in the txqueue in order of highest to lowest
-          fee,
-
-          cutting off when the batch either reaches a hardcoded maximum size (to
-          be
-
-          decided, probably around 100) or when transactions stop being
-          profitable
-
-          (determine this without nondeterminism) This message includes the
-          batch
-
-          as well as an Bsc signature over this batch by the validator
-
-          -------------
   fx.gravity.crosschain.v1.QueryBatchConfirmsResponse:
     type: object
     properties:
@@ -45456,27 +45271,6 @@ definitions:
               type: string
             chain_name:
               type: string
-          title: >-
-            MsgConfirmBatch
-
-            When validators observe a MsgRequestBatch they form a batch by
-            ordering
-
-            transactions currently in the txqueue in order of highest to lowest
-            fee,
-
-            cutting off when the batch either reaches a hardcoded maximum size
-            (to be
-
-            decided, probably around 100) or when transactions stop being
-            profitable
-
-            (determine this without nondeterminism) This message includes the
-            batch
-
-            as well as an Bsc signature over this batch by the validator
-
-            -------------
   fx.gravity.crosschain.v1.QueryBatchFeeResponse:
     type: object
     properties:
@@ -46014,44 +45808,6 @@ definitions:
             type: string
           chain_name:
             type: string
-        description: >-
-          MsgOracleSetConfirm
-
-          this is the message sent by the validators when they wish to submit
-          their
-
-          signatures over the validator set at a given block height. A validator
-          must
-
-          first call MsgSetEthAddress to set their Ethereum address to be used
-          for
-
-          signing. Then someone (anyone) must make a OracleSetRequest, the
-          request is
-
-          essentially a messaging mechanism to determine which block all
-          validators
-
-          should submit signatures over. Finally validators sign the validator
-          set,
-
-          powers, and Ethereum addresses of the entire validator set at the
-          height of a
-
-          OracleSetRequest and submit that signature with this message.
-
-
-          If a sufficient number of validators (66% of voting power) (A) have
-          set
-
-          Ethereum addresses and (B) submit OracleSetConfirm messages with their
-
-          signatures it is then possible for anyone to view these signatures in
-          the
-
-          chain store and submit them to Ethereum to update the validator set
-
-          -------------
   fx.gravity.crosschain.v1.QueryOracleSetConfirmsByNonceResponse:
     type: object
     properties:
@@ -46071,45 +45827,6 @@ definitions:
               type: string
             chain_name:
               type: string
-          description: >-
-            MsgOracleSetConfirm
-
-            this is the message sent by the validators when they wish to submit
-            their
-
-            signatures over the validator set at a given block height. A
-            validator must
-
-            first call MsgSetEthAddress to set their Ethereum address to be used
-            for
-
-            signing. Then someone (anyone) must make a OracleSetRequest, the
-            request is
-
-            essentially a messaging mechanism to determine which block all
-            validators
-
-            should submit signatures over. Finally validators sign the validator
-            set,
-
-            powers, and Ethereum addresses of the entire validator set at the
-            height of a
-
-            OracleSetRequest and submit that signature with this message.
-
-
-            If a sufficient number of validators (66% of voting power) (A) have
-            set
-
-            Ethereum addresses and (B) submit OracleSetConfirm messages with
-            their
-
-            signatures it is then possible for anyone to view these signatures
-            in the
-
-            chain store and submit them to Ethereum to update the validator set
-
-            -------------
   fx.gravity.crosschain.v1.QueryOracleSetRequestResponse:
     type: object
     properties:

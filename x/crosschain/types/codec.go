@@ -41,6 +41,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgUpdateChainOracles{},
 
 		&MsgClaim{},
+		&MsgConfirm{},
 	)
 
 	registry.RegisterInterface(
@@ -52,6 +53,14 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgBridgeTokenClaim{},
 		&MsgOracleSetUpdatedClaim{},
 		&MsgBridgeCallResultClaim{},
+	)
+
+	registry.RegisterInterface(
+		"gravity.v1beta1.Confirm",
+		(*Confirm)(nil),
+		&MsgConfirmBatch{},
+		&MsgOracleSetConfirm{},
+		&MsgBridgeCallConfirm{},
 	)
 
 	registry.RegisterImplementations(
@@ -66,6 +75,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 // RegisterLegacyAminoCodec registers concrete types on the Amino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*ExternalClaim)(nil), nil)
+	cdc.RegisterInterface((*Confirm)(nil), nil)
 
 	cdc.RegisterConcrete(&MsgBondedOracle{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBondedOracle"), nil)
 	cdc.RegisterConcrete(&MsgAddDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddDelegate"), nil)

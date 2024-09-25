@@ -19,7 +19,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	tronkeeper "github.com/functionx/fx-core/v8/x/tron/keeper"
 )
 
 type KeeperTestSuite struct {
@@ -60,10 +59,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	})
 	suite.Require().NoError(err)
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	crosschaintypes.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.app.TronKeeper.Keeper))
+	crosschaintypes.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.app.TronKeeper))
 	suite.queryServer = crosschaintypes.NewQueryClient(queryHelper)
 
-	suite.msgServer = tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(suite.app.TronKeeper)
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
 }

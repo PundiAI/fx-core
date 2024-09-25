@@ -18,7 +18,6 @@ import (
 	crosschaincli "github.com/functionx/fx-core/v8/x/crosschain/client/cli"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	"github.com/functionx/fx-core/v8/x/tron/keeper"
 	"github.com/functionx/fx-core/v8/x/tron/types"
 )
 
@@ -79,11 +78,11 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper crosschainkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -101,7 +100,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	migrator := crosschainkeeper.NewMigrator(am.keeper.Keeper)
+	migrator := crosschainkeeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(am.Name(), 4, migrator.Migrate); err != nil {
 		panic(err)
 	}
@@ -112,13 +111,13 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	var genesisState crosschaintypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
-	crosschainkeeper.InitGenesis(ctx, am.keeper.Keeper, &genesisState)
+	crosschainkeeper.InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	state := crosschainkeeper.ExportGenesis(ctx, am.keeper.Keeper)
+	state := crosschainkeeper.ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(state)
 }
 

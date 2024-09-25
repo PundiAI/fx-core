@@ -161,6 +161,19 @@ func (m *MsgUnbondedOracle) ValidateBasic() (err error) {
 	return nil
 }
 
+type Confirm interface {
+	GetChainName() string
+	GetSignature() string
+	GetBridgerAddress() string
+	GetExternalAddress() string
+}
+
+var (
+	_ Confirm = &MsgBridgeCallConfirm{}
+	_ Confirm = &MsgConfirmBatch{}
+	_ Confirm = &MsgOracleSetConfirm{}
+)
+
 func (m *MsgOracleSetConfirm) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")

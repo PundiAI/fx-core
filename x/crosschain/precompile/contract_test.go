@@ -47,8 +47,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 	crossethtypes "github.com/functionx/fx-core/v8/x/eth/types"
-	tronkeeper "github.com/functionx/fx-core/v8/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 type PrecompileTestSuite struct {
@@ -188,8 +186,6 @@ func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeepe
 		chainName := strings.TrimSuffix(strings.TrimPrefix(gravityID, "fx-"), "-bridge")
 		if chainName == "bridge-eth" {
 			keepers["eth"] = value.Field(i).Interface().(crosschainkeeper.Keeper)
-		} else if chainName == trontypes.ModuleName {
-			keepers[trontypes.ModuleName] = value.Field(i).Interface().(tronkeeper.Keeper).Keeper
 		} else {
 			keepers[chainName] = value.Field(i).Interface().(crosschainkeeper.Keeper)
 		}

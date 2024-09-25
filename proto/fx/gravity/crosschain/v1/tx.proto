@@ -23,6 +23,7 @@ service Msg {
   rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
   rpc UnbondedOracle(MsgUnbondedOracle) returns (MsgUnbondedOracleResponse);
 
+  // Deprecated: do not use
   rpc OracleSetConfirm(MsgOracleSetConfirm)
       returns (MsgOracleSetConfirmResponse);
 
@@ -34,12 +35,14 @@ service Msg {
 
   // Deprecated: do not use
   rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
+  // Deprecated: do not use
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
 
   rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
   rpc CancelPendingBridgeCall(MsgCancelPendingBridgeCall)
       returns (MsgCancelPendingBridgeCallResponse);
 
+  // Deprecated: do not use
   rpc BridgeCallConfirm(MsgBridgeCallConfirm)
       returns (MsgBridgeCallConfirmResponse);
 
@@ -56,6 +59,7 @@ service Msg {
       returns (MsgUpdateChainOraclesResponse);
 
   rpc Claim(MsgClaim) returns (MsgClaimResponse) {}
+  rpc Confirm(MsgConfirm) returns (MsgConfirmResponse) {}
 }
 
 message MsgBondedOracle {
@@ -125,21 +129,6 @@ message MsgWithdrawReward {
 
 message MsgWithdrawRewardResponse {}
 
-// MsgOracleSetConfirm
-// this is the message sent by the validators when they wish to submit their
-// signatures over the validator set at a given block height. A validator must
-// first call MsgSetEthAddress to set their Ethereum address to be used for
-// signing. Then someone (anyone) must make a OracleSetRequest, the request is
-// essentially a messaging mechanism to determine which block all validators
-// should submit signatures over. Finally validators sign the validator set,
-// powers, and Ethereum addresses of the entire validator set at the height of a
-// OracleSetRequest and submit that signature with this message.
-//
-// If a sufficient number of validators (66% of voting power) (A) have set
-// Ethereum addresses and (B) submit OracleSetConfirm messages with their
-// signatures it is then possible for anyone to view these signatures in the
-// chain store and submit them to Ethereum to update the validator set
-// -------------
 message MsgOracleSetConfirm {
   option (cosmos.msg.v1.signer) = "bridger_address";
   option (amino.name) = "crosschain/MsgOracleSetConfirm";
@@ -153,8 +142,6 @@ message MsgOracleSetConfirm {
 
 message MsgOracleSetConfirmResponse {}
 
-// This informs the Cosmos module that a validator
-// set has been updated.
 message MsgOracleSetUpdatedClaim {
   option (cosmos.msg.v1.signer) = "bridger_address";
   option (amino.name) = "crosschain/MsgOracleSetUpdatedClaim";
@@ -169,11 +156,6 @@ message MsgOracleSetUpdatedClaim {
 
 message MsgOracleSetUpdatedClaimResponse {}
 
-// MsgSendToFxClaim
-// When more than 66% of the active validator set has
-// claimed to have seen the deposit enter the bsc blockchain coins are
-// issued to the Payment address in question
-// -------------
 message MsgSendToFxClaim {
   option (cosmos.msg.v1.signer) = "bridger_address";
   option (amino.name) = "crosschain/MsgSendToFxClaim";
@@ -240,14 +222,6 @@ message MsgBridgeCallResultClaim {
 
 message MsgBridgeCallResultClaimResponse {}
 
-// MsgConfirmBatch
-// When validators observe a MsgRequestBatch they form a batch by ordering
-// transactions currently in the txqueue in order of highest to lowest fee,
-// cutting off when the batch either reaches a hardcoded maximum size (to be
-// decided, probably around 100) or when transactions stop being profitable
-// (determine this without nondeterminism) This message includes the batch
-// as well as an Bsc signature over this batch by the validator
-// -------------
 message MsgConfirmBatch {
   option (cosmos.msg.v1.signer) = "bridger_address";
   option (amino.name) = "crosschain/MsgConfirmBatch";
@@ -262,8 +236,6 @@ message MsgConfirmBatch {
 
 message MsgConfirmBatchResponse {}
 
-// SendToExternalClaim claims that a batch of withdrawal
-// operations on the bridge contract was executed.
 message MsgSendToExternalClaim {
   option (cosmos.msg.v1.signer) = "bridger_address";
   option (amino.name) = "crosschain/MsgSendToExternalClaim";
@@ -308,7 +280,6 @@ message MsgBridgeCallConfirm {
 
 message MsgBridgeCallConfirmResponse {}
 
-// MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "crosschain/MsgUpdateParams";
@@ -324,8 +295,6 @@ message MsgUpdateParams {
   Params params = 3 [ (gogoproto.nullable) = false ];
 }
 
-// MsgUpdateParamsResponse defines the response structure for executing a
-// MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
 
 message MsgIncreaseBridgeFee {
@@ -414,3 +383,15 @@ message MsgClaim {
 }
 
 message MsgClaimResponse {}
+
+message MsgConfirm {
+  option (cosmos.msg.v1.signer) = "bridger_address";
+  option (amino.name) = "crosschain/MsgConfirm";
+
+  string chain_name = 1;
+  string bridger_address = 2;
+  google.protobuf.Any confirm = 3
+      [ (cosmos_proto.accepts_interface) = "Confirm" ];
+}
+
+message MsgConfirmResponse {}

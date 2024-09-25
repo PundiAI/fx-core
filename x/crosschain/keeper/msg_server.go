@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -467,97 +465,20 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 
 func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-
-	// fetch the outgoing batch given the nonce
-	batch := s.GetOutgoingTxBatch(ctx, msg.TokenContract, msg.Nonce)
-	if batch == nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find batch")
-	}
-
-	checkpoint, err := batch.GetCheckpoint(s.GetGravityID(ctx))
-	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
-	}
-
-	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
-	if err != nil {
-		return nil, err
-	}
-	// check if we already have this confirm
-	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, oracleAddr) != nil {
-		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
-	}
-	s.SetBatchConfirm(ctx, oracleAddr, msg)
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
-	))
-
-	return &types.MsgConfirmBatchResponse{}, nil
+	err := s.ConfirmHandler(ctx, msg)
+	return &types.MsgConfirmBatchResponse{}, err
 }
 
 func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
-	if oracleSet == nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find oracleSet")
-	}
-
-	checkpoint, err := oracleSet.GetCheckpoint(s.GetGravityID(ctx))
-	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
-	}
-	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
-	if err != nil {
-		return nil, err
-	}
-	// check if we already have this confirm
-	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
-		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
-	}
-	s.SetOracleSetConfirm(ctx, oracleAddr, msg)
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
-	))
-
-	return &types.MsgOracleSetConfirmResponse{}, nil
+	err := s.ConfirmHandler(ctx, msg)
+	return &types.MsgOracleSetConfirmResponse{}, err
 }
 
 func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCallConfirm) (*types.MsgBridgeCallConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-
-	outgoingBridgeCall, found := s.GetOutgoingBridgeCallByNonce(ctx, msg.Nonce)
-	if !found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find outgoing bridge call")
-	}
-
-	checkpoint, err := outgoingBridgeCall.GetCheckpoint(s.GetGravityID(ctx))
-	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
-	}
-
-	oracleAddr, err := s.confirmHandlerCommon(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	if s.HasBridgeCallConfirm(ctx, msg.Nonce, oracleAddr) {
-		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
-	}
-	s.SetBridgeCallConfirm(ctx, oracleAddr, msg)
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
-	))
-
-	return &types.MsgBridgeCallConfirmResponse{}, nil
+	err := s.ConfirmHandler(ctx, msg)
+	return &types.MsgBridgeCallConfirmResponse{}, err
 }
 
 func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*types.MsgBridgeCallResponse, error) {
@@ -677,6 +598,16 @@ func (s MsgServer) Claim(c context.Context, msg *types.MsgClaim) (*types.MsgClai
 	return &types.MsgClaimResponse{}, nil
 }
 
+func (s MsgServer) Confirm(c context.Context, msg *types.MsgConfirm) (*types.MsgConfirmResponse, error) {
+	confirm, ok := msg.Confirm.GetCachedValue().(types.Confirm)
+	if !ok {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "invalid claim")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	err := s.ConfirmHandler(ctx, confirm)
+	return &types.MsgConfirmResponse{}, err
+}
+
 func (s MsgServer) claimLogicCheck(ctx sdk.Context, claim types.ExternalClaim) (err error) {
 	if claimMsg, ok := claim.(*types.MsgOracleSetUpdatedClaim); ok {
 		for _, member := range claimMsg.Members {
@@ -699,34 +630,6 @@ func (s MsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddr sdk.AccAddr
 	}
 	if !oracle.Online {
 		return oracleAddr, types.ErrOracleNotOnLine
-	}
-	return oracleAddr, nil
-}
-
-func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
-	sigBytes, err := hex.DecodeString(signature)
-	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
-	}
-
-	oracleAddr, found := s.GetOracleAddrByExternalAddr(ctx, signatureAddr)
-	if !found {
-		return nil, types.ErrNoFoundOracle
-	}
-
-	oracle, found := s.GetOracle(ctx, oracleAddr)
-	if !found {
-		return nil, types.ErrNoFoundOracle
-	}
-
-	if oracle.ExternalAddress != signatureAddr {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
-	}
-	if oracle.BridgerAddress != bridgerAddr {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
-	}
-	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
 	return oracleAddr, nil
 }
