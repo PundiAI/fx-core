@@ -83,9 +83,10 @@ type AccountKeeper interface {
 }
 
 type BridgeTokenKeeper interface {
-	HasDenom(ctx context.Context, denom string) (bool, error)
-	GetAliases(ctx context.Context, denom string) ([]string, error)
-	GetAllBridgeTokens(ctx context.Context) ([]BridgeToken, error)
-	UpdateAliases(ctx context.Context, denom string, aliases ...string) error
-	SetBridgeToken(ctx context.Context, name, symbol string, decimals uint32, aliases ...string) error
+	HasToken(ctx context.Context, denom string) (bool, error)
+	GetBridgeDenom(ctx context.Context, denom string) ([]string, error)
+	GetBaseDenom(ctx context.Context, alias string) (string, error)
+	GetAllTokens(ctx context.Context) ([]string, error)
+	UpdateBridgeDenom(ctx context.Context, denom string, bridgeDenoms ...string) error
+	SetToken(ctx context.Context, name, symbol string, decimals uint32, bridgeDenoms ...string) error
 }
