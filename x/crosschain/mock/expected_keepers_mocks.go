@@ -22,8 +22,7 @@ import (
 	common "github.com/ethereum/go-ethereum/common"
 	types4 "github.com/evmos/ethermint/x/evm/types"
 	types5 "github.com/functionx/fx-core/v8/types"
-	types6 "github.com/functionx/fx-core/v8/x/crosschain/types"
-	types7 "github.com/functionx/fx-core/v8/x/erc20/types"
+	types6 "github.com/functionx/fx-core/v8/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -413,10 +412,10 @@ func (m *MockErc20Keeper) EXPECT() *MockErc20KeeperMockRecorder {
 }
 
 // ConvertCoin mocks base method.
-func (m *MockErc20Keeper) ConvertCoin(ctx context.Context, msg *types7.MsgConvertCoin) (*types7.MsgConvertCoinResponse, error) {
+func (m *MockErc20Keeper) ConvertCoin(ctx context.Context, msg *types6.MsgConvertCoin) (*types6.MsgConvertCoinResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertCoin", ctx, msg)
-	ret0, _ := ret[0].(*types7.MsgConvertCoinResponse)
+	ret0, _ := ret[0].(*types6.MsgConvertCoinResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -455,10 +454,10 @@ func (mr *MockErc20KeeperMockRecorder) DeleteOutgoingTransferRelation(ctx, modul
 }
 
 // GetTokenPair mocks base method.
-func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types7.TokenPair, bool) {
+func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types6.TokenPair, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenPair", ctx, tokenOrDenom)
-	ret0, _ := ret[0].(types7.TokenPair)
+	ret0, _ := ret[0].(types6.TokenPair)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -768,85 +767,100 @@ func (m *MockBridgeTokenKeeper) EXPECT() *MockBridgeTokenKeeperMockRecorder {
 	return m.recorder
 }
 
-// GetAliases mocks base method.
-func (m *MockBridgeTokenKeeper) GetAliases(ctx context.Context, denom string) ([]string, error) {
+// GetAllTokens mocks base method.
+func (m *MockBridgeTokenKeeper) GetAllTokens(ctx context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAliases", ctx, denom)
+	ret := m.ctrl.Call(m, "GetAllTokens", ctx)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAliases indicates an expected call of GetAliases.
-func (mr *MockBridgeTokenKeeperMockRecorder) GetAliases(ctx, denom any) *gomock.Call {
+// GetAllTokens indicates an expected call of GetAllTokens.
+func (mr *MockBridgeTokenKeeperMockRecorder) GetAllTokens(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAliases", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetAliases), ctx, denom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllTokens", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetAllTokens), ctx)
 }
 
-// GetAllBridgeTokens mocks base method.
-func (m *MockBridgeTokenKeeper) GetAllBridgeTokens(ctx context.Context) ([]types6.BridgeToken, error) {
+// GetBaseDenom mocks base method.
+func (m *MockBridgeTokenKeeper) GetBaseDenom(ctx context.Context, alias string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllBridgeTokens", ctx)
-	ret0, _ := ret[0].([]types6.BridgeToken)
+	ret := m.ctrl.Call(m, "GetBaseDenom", ctx, alias)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllBridgeTokens indicates an expected call of GetAllBridgeTokens.
-func (mr *MockBridgeTokenKeeperMockRecorder) GetAllBridgeTokens(ctx any) *gomock.Call {
+// GetBaseDenom indicates an expected call of GetBaseDenom.
+func (mr *MockBridgeTokenKeeperMockRecorder) GetBaseDenom(ctx, alias any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllBridgeTokens", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetAllBridgeTokens), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBaseDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetBaseDenom), ctx, alias)
 }
 
-// HasDenom mocks base method.
-func (m *MockBridgeTokenKeeper) HasDenom(ctx context.Context, denom string) (bool, error) {
+// GetBridgeDenom mocks base method.
+func (m *MockBridgeTokenKeeper) GetBridgeDenom(ctx context.Context, denom string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasDenom", ctx, denom)
+	ret := m.ctrl.Call(m, "GetBridgeDenom", ctx, denom)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBridgeDenom indicates an expected call of GetBridgeDenom.
+func (mr *MockBridgeTokenKeeperMockRecorder) GetBridgeDenom(ctx, denom any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetBridgeDenom), ctx, denom)
+}
+
+// HasToken mocks base method.
+func (m *MockBridgeTokenKeeper) HasToken(ctx context.Context, denom string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasToken", ctx, denom)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// HasDenom indicates an expected call of HasDenom.
-func (mr *MockBridgeTokenKeeperMockRecorder) HasDenom(ctx, denom any) *gomock.Call {
+// HasToken indicates an expected call of HasToken.
+func (mr *MockBridgeTokenKeeperMockRecorder) HasToken(ctx, denom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).HasDenom), ctx, denom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasToken", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).HasToken), ctx, denom)
 }
 
-// SetBridgeToken mocks base method.
-func (m *MockBridgeTokenKeeper) SetBridgeToken(ctx context.Context, name, symbol string, decimals uint32, aliases ...string) error {
+// SetToken mocks base method.
+func (m *MockBridgeTokenKeeper) SetToken(ctx context.Context, name, symbol string, decimals uint32, bridgeDenoms ...string) error {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, name, symbol, decimals}
-	for _, a := range aliases {
+	for _, a := range bridgeDenoms {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "SetBridgeToken", varargs...)
+	ret := m.ctrl.Call(m, "SetToken", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SetBridgeToken indicates an expected call of SetBridgeToken.
-func (mr *MockBridgeTokenKeeperMockRecorder) SetBridgeToken(ctx, name, symbol, decimals any, aliases ...any) *gomock.Call {
+// SetToken indicates an expected call of SetToken.
+func (mr *MockBridgeTokenKeeperMockRecorder) SetToken(ctx, name, symbol, decimals any, bridgeDenoms ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, name, symbol, decimals}, aliases...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBridgeToken", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).SetBridgeToken), varargs...)
+	varargs := append([]any{ctx, name, symbol, decimals}, bridgeDenoms...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).SetToken), varargs...)
 }
 
-// UpdateAliases mocks base method.
-func (m *MockBridgeTokenKeeper) UpdateAliases(ctx context.Context, denom string, aliases ...string) error {
+// UpdateBridgeDenom mocks base method.
+func (m *MockBridgeTokenKeeper) UpdateBridgeDenom(ctx context.Context, denom string, bridgeDenoms ...string) error {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, denom}
-	for _, a := range aliases {
+	for _, a := range bridgeDenoms {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "UpdateAliases", varargs...)
+	ret := m.ctrl.Call(m, "UpdateBridgeDenom", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateAliases indicates an expected call of UpdateAliases.
-func (mr *MockBridgeTokenKeeperMockRecorder) UpdateAliases(ctx, denom any, aliases ...any) *gomock.Call {
+// UpdateBridgeDenom indicates an expected call of UpdateBridgeDenom.
+func (mr *MockBridgeTokenKeeperMockRecorder) UpdateBridgeDenom(ctx, denom any, bridgeDenoms ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, denom}, aliases...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAliases", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).UpdateAliases), varargs...)
+	varargs := append([]any{ctx, denom}, bridgeDenoms...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBridgeDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).UpdateBridgeDenom), varargs...)
 }

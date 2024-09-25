@@ -7,6 +7,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -116,12 +117,12 @@ func (k Keeper) TransferBridgeCoinToExternal(ctx sdk.Context, sender sdk.AccAddr
 	return k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(targetCoin))
 }
 
-func (k Keeper) HasDenom(ctx context.Context, denom string) (bool, error) {
+func (k Keeper) HasToken(ctx context.Context, denom string) (bool, error) {
 	ok := k.bankKeeper.HasDenomMetaData(ctx, denom)
 	return ok, nil
 }
 
-func (k Keeper) GetAliases(ctx context.Context, denom string) ([]string, error) {
+func (k Keeper) GetBridgeDenom(ctx context.Context, denom string) ([]string, error) {
 	metadata, ok := k.bankKeeper.GetDenomMetaData(ctx, denom)
 	if !ok {
 		return nil, fmt.Errorf("denom %s not found", denom)
@@ -136,11 +137,31 @@ func (k Keeper) GetAliases(ctx context.Context, denom string) ([]string, error) 
 	return aliases, nil
 }
 
-func (k Keeper) GetAllBridgeTokens(ctx context.Context) ([]types.BridgeToken, error) {
+func (k Keeper) GetBaseDenom(ctx context.Context, alias string) (string, error) {
+	var baseDenom string
+	k.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
+		if len(metadata.DenomUnits) == 0 {
+			return false
+		}
+		for _, a := range metadata.DenomUnits[0].Aliases {
+			if a == alias {
+				baseDenom = metadata.Base
+				return true
+			}
+		}
+		return false
+	})
+	if baseDenom == "" {
+		return baseDenom, fmt.Errorf("alias %s not found", alias)
+	}
+	return baseDenom, nil
+}
+
+func (k Keeper) GetAllTokens(ctx context.Context) ([]string, error) {
 	panic("not implemented") // TODO implement me
 }
 
-func (k Keeper) UpdateAliases(ctx context.Context, denom string, aliases ...string) error {
+func (k Keeper) UpdateBridgeDenom(ctx context.Context, denom string, bridgeDenoms ...string) error {
 	metadata, ok := k.bankKeeper.GetDenomMetaData(ctx, denom)
 	if !ok {
 		return fmt.Errorf("denom %s not found", denom)
@@ -148,16 +169,16 @@ func (k Keeper) UpdateAliases(ctx context.Context, denom string, aliases ...stri
 	if len(metadata.DenomUnits) == 0 {
 		return fmt.Errorf("denom %s denom units is empty", denom)
 	}
-	metadata.DenomUnits[0].Aliases = aliases
+	metadata.DenomUnits[0].Aliases = bridgeDenoms
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	return nil
 }
 
-func (k Keeper) SetBridgeToken(ctx context.Context, name, symbol string, decimals uint32, aliases ...string) error {
+func (k Keeper) SetToken(ctx context.Context, name, symbol string, decimals uint32, bridgeDenoms ...string) error {
 	if ok := k.bankKeeper.HasDenomMetaData(ctx, strings.ToLower(name)); ok {
 		return fmt.Errorf("denom %s already exist", name)
 	}
-	metadata := fxtypes.GetCrossChainMetadataManyToOne(name, symbol, decimals, aliases...)
+	metadata := fxtypes.GetCrossChainMetadataManyToOne(name, symbol, decimals, bridgeDenoms...)
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	return nil
 }
