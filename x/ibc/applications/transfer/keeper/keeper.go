@@ -16,7 +16,7 @@ type Keeper struct {
 	ibctransferkeeper.Keeper
 	cdc codec.Codec
 
-	ics4Wrapper porttypes.ICS4Wrapper
+	porttypes.ICS4Wrapper
 	erc20Keeper types.Erc20Keeper
 	evmKeeper   types.EvmKeeper
 	refundHook  types.RefundHook
@@ -27,7 +27,7 @@ func NewKeeper(keeper ibctransferkeeper.Keeper, cdc codec.Codec, ics4Wrapper por
 	return Keeper{
 		Keeper:      keeper,
 		cdc:         cdc,
-		ics4Wrapper: ics4Wrapper,
+		ICS4Wrapper: ics4Wrapper,
 	}
 }
 
