@@ -64,6 +64,7 @@ import (
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	ibcmiddlewaretypes "github.com/functionx/fx-core/v8/x/ibc/middleware/types"
 )
 
 var _ servertypes.Application = (*App)(nil)
@@ -112,6 +113,9 @@ func New(
 	crosschaintypes.RegisterInterfaces(interfaceRegistry)
 
 	fxevmtypes.RegisterCryptoEthSecp256k1(legacyAmino)
+
+	ibcmiddlewaretypes.RegisterLegacyAminoCodec(legacyAmino)
+	ibcmiddlewaretypes.RegisterInterfaces(interfaceRegistry)
 
 	// App Opts
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))

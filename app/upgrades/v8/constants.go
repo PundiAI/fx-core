@@ -10,6 +10,10 @@ var Upgrade = upgrades.Upgrade{
 	UpgradeName:          "v8.0.x",
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: func() *storetypes.StoreUpgrades {
-		return &storetypes.StoreUpgrades{}
+		return &storetypes.StoreUpgrades{
+			Deleted: []string{
+				"fxtransfer",
+			},
+		}
 	},
 }

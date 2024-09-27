@@ -21,7 +21,7 @@ import (
 
 	"github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	fxtransfertypes "github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/x/ibc/middleware/types"
 )
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
@@ -61,10 +61,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				channelID := "channel-0"
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, transferAmount)
 				coins := sdk.NewCoins(coin)
-				err := suite.bankKeeper.MintCoins(suite.ctx, transfertypes.ModuleName, coins)
+				err := suite.bankKeeper.MintCoins(suite.Ctx, transfertypes.ModuleName, coins)
 				suite.Require().NoError(err)
 				portChannelAddr := transfertypes.GetEscrowAddress(protID, channelID)
-				err = suite.bankKeeper.SendCoinsFromModuleToAccount(suite.ctx, transfertypes.ModuleName, portChannelAddr, coins)
+				err = suite.bankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, transfertypes.ModuleName, portChannelAddr, coins)
 				suite.Require().NoError(err)
 
 				packetData := transfertypes.FungibleTokenPacketData{}
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}.GetFullDenomPath()
 				packet.Data = packetData.GetBytes()
 
-				suite.fxIBCTransferKeeper.SetTotalEscrowForDenom(suite.ctx, coin)
+				suite.ibcTransferKeeper.SetTotalEscrowForDenom(suite.Ctx, coin)
 			},
 			expPass:       true,
 			checkBalance:  true,
@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 						},
 					},
 				}
-				_, err := suite.erc20Keeper.RegisterNativeCoin(suite.ctx, meta)
+				_, err := suite.erc20Keeper.RegisterNativeCoin(suite.Ctx, meta)
 				suite.Require().NoError(err)
 			},
 			expPass:       true,
@@ -119,11 +119,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			afterFn: func(packetData transfertypes.FungibleTokenPacketData) {
 				expectBalance, ok := sdkmath.NewIntFromString(packetData.Amount)
 				suite.Require().True(ok)
-				erc20TokenAddr, found := suite.erc20Keeper.GetTokenPair(suite.ctx, ibcDenomTrace.IBCDenom())
+				erc20TokenAddr, found := suite.erc20Keeper.GetTokenPair(suite.Ctx, ibcDenomTrace.IBCDenom())
 				suite.Require().True(found)
 				toAddress := common.HexToAddress(packetData.Receiver)
 				var balanceRes struct{ Value *big.Int }
-				err := suite.evmKeeper.QueryContract(suite.ctx, common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), contract.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
+				err := suite.evmKeeper.QueryContract(suite.Ctx, common.Address{}, common.HexToAddress(erc20TokenAddr.Erc20Address), contract.GetFIP20().ABI, "balanceOf", &balanceRes, toAddress)
 				suite.Require().NoError(err)
 				suite.Require().EqualValues(expectBalance.String(), sdkmath.NewIntFromBigInt(balanceRes.Value).String())
 			},
@@ -162,17 +162,17 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData := transfertypes.FungibleTokenPacketData{}
 				transfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 
-				hexIbcSender := fxtransfertypes.IntermediateSender(transfertypes.PortID, "channel-0", senderAddr.String())
+				hexIbcSender := types.IntermediateSender(transfertypes.PortID, "channel-0", senderAddr.String())
 				ibcCallBaseAcc := authtypes.NewBaseAccountWithAddress(hexIbcSender.Bytes())
 				suite.NoError(ibcCallBaseAcc.SetSequence(0))
-				acc := suite.accountKeeper.NewAccount(suite.ctx, ibcCallBaseAcc)
-				suite.accountKeeper.SetAccount(suite.ctx, acc)
-				evmPacket := fxtransfertypes.IbcCallEvmPacket{
+				acc := suite.accountKeeper.NewAccount(suite.Ctx, ibcCallBaseAcc)
+				suite.accountKeeper.SetAccount(suite.Ctx, acc)
+				evmPacket := types.IbcCallEvmPacket{
 					To:    common.BigToAddress(big.NewInt(0)).String(),
 					Value: sdkmath.ZeroInt(),
 					Data:  "",
 				}
-				bz, err := suite.cdc.MarshalInterfaceJSON(&evmPacket)
+				bz, err := suite.App.AppCodec().MarshalInterfaceJSON(&evmPacket)
 				suite.Require().NoError(err)
 				packetData.Memo = string(bz)
 				packet.Data = packetData.GetBytes()
@@ -187,8 +187,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			suite.fxIBCTransferKeeper.SetTotalEscrowForDenom(suite.ctx, sdk.NewCoin(baseDenom, transferAmount))
+			suite.ibcTransferKeeper.SetTotalEscrowForDenom(suite.Ctx, sdk.NewCoin(baseDenom, transferAmount))
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
 			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, transfertypes.PortID, "channel-0", transfertypes.PortID, "channel-0", clienttypes.Height{
@@ -197,7 +196,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}, 0)
 			tc.malleate(&packet)
 
-			cacheCtx, writeFn := suite.ctx.CacheContext()
+			cacheCtx, writeFn := suite.Ctx.CacheContext()
 			cacheCtx = cacheCtx.WithConsensusParams(tenderminttypes.ConsensusParams{Block: &tenderminttypes.BlockParams{MaxGas: 5000000}})
 			ackI := suite.ibcMiddleware.OnRecvPacket(cacheCtx, packet, nil)
 			if ackI == nil || ackI.Success() {
@@ -207,7 +206,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			suite.Require().NotNil(ackI)
 
 			ack, ok := ackI.(channeltypes.Acknowledgement)
-			suite.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+			suite.Ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 			if tc.expPass {
 				suite.Require().Truef(ack.Success(), "ackError:%s,causeError:%s,packetData:%s", ack.GetError(), getOnRecvPacketErrorByEvent(cacheCtx), string(packet.GetData()))
@@ -218,7 +217,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}
 
 			if tc.checkBalance {
-				actualCoins := suite.bankKeeper.GetAllBalances(suite.ctx, tc.checkCoinAddr)
+				actualCoins := suite.bankKeeper.GetAllBalances(suite.Ctx, tc.checkCoinAddr)
 				suite.Require().True(tc.expCoins.Equal(actualCoins), "exp:%s,actual:%s", tc.expCoins, actualCoins)
 			}
 		})
@@ -230,7 +229,7 @@ func getOnRecvPacketErrorByEvent(ctx sdk.Context) string {
 	for _, event := range events {
 		if event.Type == transfertypes.EventTypePacket {
 			for _, attr := range event.Attributes {
-				if attr.Key == fxtransfertypes.AttributeKeyRecvError {
+				if attr.Key == types.AttributeKeyRecvError {
 					return attr.Value
 				}
 			}
@@ -256,7 +255,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			"pass - success ack - ibc transfer packet",
 			func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement) {
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
-				mintCoin(suite.T(), suite.ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount)))
+				mintCoin(suite.T(), suite.Ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount)))
 			},
 			true,
 			"",
@@ -269,7 +268,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				*ack = channeltypes.NewErrorAcknowledgement(fmt.Errorf("test"))
 
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
-				mintCoin(suite.T(), suite.ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount)))
+				mintCoin(suite.T(), suite.Ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount)))
 			},
 			true,
 			"",
@@ -280,8 +279,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			suite.fxIBCTransferKeeper.Keeper.SetTotalEscrowForDenom(suite.ctx, sdk.NewCoin(baseDenom, transferAmount))
+			suite.ibcTransferKeeper.SetTotalEscrowForDenom(suite.Ctx, sdk.NewCoin(baseDenom, transferAmount))
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
 			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, transfertypes.PortID, "channel-0", transfertypes.PortID, "channel-0", clienttypes.Height{
@@ -292,7 +290,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 			tc.malleate(&packet, &ack)
 
-			err := suite.ibcMiddleware.OnAcknowledgementPacket(suite.ctx, packet, ack.Acknowledgement(), nil)
+			err := suite.ibcMiddleware.OnAcknowledgementPacket(suite.Ctx, packet, ack.Acknowledgement(), nil)
 			if tc.expPass {
 				suite.Require().NoError(err, "packetData:%s", string(packet.GetData()))
 			} else {
@@ -302,7 +300,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			if tc.checkBalance {
 				bankKeeper := suite.bankKeeper
-				senderAddrCoins := bankKeeper.GetAllBalances(suite.ctx, senderAddr)
+				senderAddrCoins := bankKeeper.GetAllBalances(suite.Ctx, senderAddr)
 				suite.Require().True(tc.expCoins.Equal(senderAddrCoins), "exp:%s,actual:%s", tc.expCoins, senderAddrCoins)
 			}
 		})
@@ -330,7 +328,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"pass - normal - ibc transfer packet",
 			func(packet *channeltypes.Packet) {
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
-				mintCoin(suite.T(), suite.ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount)))
+				mintCoin(suite.T(), suite.Ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount)))
 			},
 			true,
 			"",
@@ -358,7 +356,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				packet.Data = packetData.GetBytes()
 
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
-				mintCoin(suite.T(), suite.ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Sub(sdkmath.NewInt(10)))))
+				mintCoin(suite.T(), suite.Ctx, suite.bankKeeper, escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Sub(sdkmath.NewInt(10)))))
 			},
 			false,
 			fmt.Sprintf("unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module: spendable balance %d%s is smaller than %d%s: insufficient funds", transferAmount.Sub(sdkmath.NewInt(10)).Uint64(), baseDenom, transferAmount.Uint64(), baseDenom),
@@ -369,8 +367,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			suite.fxIBCTransferKeeper.Keeper.SetTotalEscrowForDenom(suite.ctx, sdk.NewCoin(baseDenom, transferAmount))
+			suite.ibcTransferKeeper.SetTotalEscrowForDenom(suite.Ctx, sdk.NewCoin(baseDenom, transferAmount))
 			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
 			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, transfertypes.PortID, "channel-0", transfertypes.PortID, "channel-0", clienttypes.Height{
@@ -379,7 +376,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			}, 0)
 			tc.malleate(&packet)
 
-			err := suite.ibcMiddleware.OnTimeoutPacket(suite.ctx, packet, nil)
+			err := suite.ibcMiddleware.OnTimeoutPacket(suite.Ctx, packet, nil)
 			if tc.expPass {
 				suite.Require().NoError(err, "packetData:%s", string(packet.GetData()))
 			} else {
@@ -389,7 +386,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			if tc.checkBalance {
 				bankKeeper := suite.bankKeeper
-				senderAddrCoins := bankKeeper.GetAllBalances(suite.ctx, senderAddr)
+				senderAddrCoins := bankKeeper.GetAllBalances(suite.Ctx, senderAddr)
 				suite.Require().True(tc.expCoins.Equal(senderAddrCoins), "exp:%s,actual:%s", tc.expCoins, senderAddrCoins)
 			}
 		})
