@@ -59,17 +59,6 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		))
 	}
 
-	if err == nil {
-		for i := 0; i < len(erc20Token); i++ {
-			bridgeDenom, found := k.GetBridgeDenomByContract(ctx, erc20Token[i].Contract)
-			if !found {
-				continue
-			}
-			// no need for a double check here, as the bridge token should exist
-			k.HandlePendingOutgoingTx(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeDenom, erc20Token[i].Contract)
-			k.HandlePendingOutgoingBridgeCall(ctx, refundAddr.Bytes(), msg.EventNonce, bridgeDenom)
-		}
-	}
 	return nil
 }
 

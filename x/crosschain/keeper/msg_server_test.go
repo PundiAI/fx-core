@@ -13,7 +13,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -1325,70 +1324,6 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 			msg := testCase.malleate()
 
 			_, err = suite.MsgServer().BridgeCall(suite.Ctx, msg)
-			if testCase.pass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().NotNil(err)
-				suite.Require().Equal(err.Error(), testCase.err.Error())
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestAddPendingPoolRewards() {
-	txId := tmrand.Uint64()
-	initRewards := sdk.NewCoins()
-	addRewards := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)))
-	tx := types.NewPendingOutgoingTx(txId, helpers.GenHexAddress().Bytes(), helpers.GenExternalAddr(suite.chainName),
-		tmrand.Str(40), sdk.NewCoin("test", sdkmath.NewInt(100)), sdk.NewCoin("test", sdkmath.NewInt(100)),
-		initRewards)
-	suite.Keeper().SetPendingTx(suite.Ctx, &tx)
-
-	// mint add reward coins to sender.
-	sender := helpers.GenAccAddress()
-	suite.Require().NoError(suite.App.BankKeeper.MintCoins(suite.Ctx, suite.chainName, addRewards))
-	suite.Require().NoError(suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, suite.chainName, sender, addRewards))
-
-	testCases := []struct {
-		name         string
-		malleate     func() *types.MsgAddPendingPoolRewards
-		pass         bool
-		err          error
-		expectReward sdk.Coins
-	}{
-		{
-			name: "pass",
-			malleate: func() *types.MsgAddPendingPoolRewards {
-				return &types.MsgAddPendingPoolRewards{
-					ChainName: suite.chainName,
-					Id:        txId,
-					Sender:    sender.String(),
-					Rewards:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
-				}
-			},
-			pass:         true,
-			expectReward: initRewards.Add(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)))...),
-		},
-		{
-			name: "err - rewards not FX denom",
-			malleate: func() *types.MsgAddPendingPoolRewards {
-				return &types.MsgAddPendingPoolRewards{
-					ChainName: suite.chainName,
-					Id:        txId,
-					Sender:    sender.String(),
-					Rewards:   sdk.NewCoins(sdk.NewCoin("test", sdkmath.NewInt(1))),
-				}
-			},
-			pass: false,
-			err:  errors.ErrInvalidRequest.Wrapf("unsupported denomination %s, only %s is supported", "test", fxtypes.DefaultDenom),
-		},
-	}
-
-	for _, testCase := range testCases {
-		suite.T().Run(testCase.name, func(t *testing.T) {
-			msg := testCase.malleate()
-
-			_, err := suite.MsgServer().AddPendingPoolRewards(suite.Ctx, msg)
 			if testCase.pass {
 				suite.Require().NoError(err)
 			} else {

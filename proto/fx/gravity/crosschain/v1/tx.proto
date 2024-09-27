@@ -39,8 +39,6 @@ service Msg {
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
 
   rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
-  rpc CancelPendingBridgeCall(MsgCancelPendingBridgeCall)
-      returns (MsgCancelPendingBridgeCallResponse);
 
   // Deprecated: do not use
   rpc BridgeCallConfirm(MsgBridgeCallConfirm)
@@ -52,8 +50,6 @@ service Msg {
 
   rpc IncreaseBridgeFee(MsgIncreaseBridgeFee)
       returns (MsgIncreaseBridgeFeeResponse);
-  rpc AddPendingPoolRewards(MsgAddPendingPoolRewards)
-      returns (MsgAddPendingPoolRewardsResponse);
 
   rpc UpdateChainOracles(MsgUpdateChainOracles)
       returns (MsgUpdateChainOraclesResponse);
@@ -345,32 +341,6 @@ message MsgBridgeCall {
 }
 
 message MsgBridgeCallResponse {}
-
-message MsgCancelPendingBridgeCall {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "crosschain/MsgCancelPendingBridgeCall";
-
-  uint64 nonce = 1;
-  string sender = 2;
-  string chain_name = 3;
-}
-
-message MsgCancelPendingBridgeCallResponse {}
-
-message MsgAddPendingPoolRewards {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "crosschain/MsgAddPendingPoolRewards";
-
-  string chain_name = 1;
-  uint64 id = 2;
-  string sender = 3;
-  repeated cosmos.base.v1beta1.Coin rewards = 4 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-}
-
-message MsgAddPendingPoolRewardsResponse {}
 
 message MsgClaim {
   option (cosmos.msg.v1.signer) = "bridger_address";

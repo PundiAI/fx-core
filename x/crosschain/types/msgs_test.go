@@ -17,7 +17,6 @@ import (
 
 	_ "github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
@@ -1300,67 +1299,6 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
 				}
-				require.EqualValuesf(t, testCase.errReason, err.Error(), "%+v", testCase.msg)
-			}
-		})
-	}
-}
-
-func TestMsgAddPendingPoolRewardsValidate_ValidateBasic(t *testing.T) {
-	moduleName := getRandModule()
-	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
-
-	testCases := []struct {
-		testName   string
-		msg        *types.MsgAddPendingPoolRewards
-		expectPass bool
-		err        error
-		errReason  string
-	}{
-		{
-			testName: "success",
-			msg: &types.MsgAddPendingPoolRewards{
-				ChainName: moduleName,
-				Sender:    normalFxAddress,
-				Id:        1,
-				Rewards:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
-			},
-			expectPass: true,
-		},
-		{
-			testName: "err - duplicate coin",
-			msg: &types.MsgAddPendingPoolRewards{
-				ChainName: moduleName,
-				Sender:    normalFxAddress,
-				Id:        1,
-				Rewards:   []sdk.Coin{sdk.NewCoin("xxx", sdkmath.NewInt(1)), sdk.NewCoin("xxx", sdkmath.NewInt(2))},
-			},
-			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid or out-of-range rewards: invalid request",
-		},
-		{
-			testName: "err - empty coins",
-			msg: &types.MsgAddPendingPoolRewards{
-				ChainName: moduleName,
-				Sender:    normalFxAddress,
-				Id:        1,
-				Rewards:   []sdk.Coin{},
-			},
-			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
-			errReason:  "invalid or out-of-range rewards: invalid request",
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.testName, func(t *testing.T) {
-			err := testCase.msg.ValidateBasic()
-			if testCase.expectPass {
-				require.NoError(t, err)
-			} else {
-				require.NotNil(t, err)
-				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				require.EqualValuesf(t, testCase.errReason, err.Error(), "%+v", testCase.msg)
 			}
 		})

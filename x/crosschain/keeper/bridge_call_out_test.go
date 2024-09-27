@@ -139,7 +139,7 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallCoinsToERC20Token() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			want := tt.mock(tt.data)
-			got, _, err := s.crosschainKeeper.BridgeCallCoinsToERC20Token(s.ctx, tt.data.sender, sdk.NewCoins(tt.data.coin))
+			got, err := s.crosschainKeeper.BridgeCallCoinsToERC20Token(s.ctx, tt.data.sender, sdk.NewCoins(tt.data.coin))
 			if (err != nil) != tt.wantErr {
 				s.T().Errorf("BridgeCallCoinsToERC20Token() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -166,30 +166,4 @@ func (s *KeeperMockSuite) TestKeeper_DeleteOutgoingBridgeCall() {
 
 	s.Require().False(s.crosschainKeeper.HasOutgoingBridgeCall(s.ctx, outCall.Nonce))
 	s.Require().False(s.crosschainKeeper.HasOutgoingBridgeCallAddressAndNonce(s.ctx, outCall.Sender, outCall.Nonce))
-}
-
-func (s *KeeperMockSuite) TestKeeper_IteratorBridgeCallNotLiquidsByDenom() {
-	expectCoins := sdk.NewCoins()
-	for i := 0; i < int(tmrand.Int63n(10))+1; i++ {
-		newCoin := sdk.NewCoin(types.NewBridgeDenom(s.moduleName, helpers.GenExternalAddr(s.moduleName)), sdkmath.NewInt(int64(tmrand.Uint32())))
-		expectCoins = expectCoins.Add(newCoin)
-	}
-	pendingOutCall := &types.PendingOutgoingBridgeCall{
-		OutgoinBridgeCall: &types.OutgoingBridgeCall{
-			Sender: helpers.GenHexAddress().String(),
-			Nonce:  tmrand.Uint64(),
-		},
-		NotLiquidCoins: expectCoins,
-	}
-	s.crosschainKeeper.SetPendingOutgoingBridgeCall(s.ctx, pendingOutCall)
-	for _, coin := range expectCoins {
-		count := 0
-		s.crosschainKeeper.IteratorBridgeCallNotLiquidsByDenom(s.ctx, coin.Denom, func(bridgeCallNonce uint64, notLiquidCoins sdk.Coins) bool {
-			count++
-			s.Require().EqualValues(expectCoins, notLiquidCoins)
-			s.Require().EqualValues(expectCoins.String(), notLiquidCoins.String())
-			return false
-		})
-		s.Require().EqualValues(1, count)
-	}
 }

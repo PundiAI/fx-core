@@ -88,9 +88,6 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdBridgeCallByAddr(chainName),
 		CmdBridgeCallConfirm(chainName),
 		CmdLastPendingBridgeCall(chainName),
-		// pending bridge call
-		CmdGetPendingBridgeCalls(chainName),
-		CmdGetPendingBridgeCall(chainName),
 
 		CmdGetPendingExecuteClaim(chainName),
 	}
@@ -983,67 +980,6 @@ func CmdLastPendingBridgeCall(chainName string) *cobra.Command {
 			res, err := queryClient.LastPendingBridgeCallByAddr(cmd.Context(), &types.QueryLastPendingBridgeCallByAddrRequest{
 				ChainName:      chainName,
 				BridgerAddress: bridgerAddr.String(),
-			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-	return cmd
-}
-
-func CmdGetPendingBridgeCalls(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pending-bridge-calls [sender]",
-		Short: "Query pending bridge calls",
-		Args:  cobra.RangeArgs(0, 1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			sender := ""
-			if len(args) > 0 {
-				sender = args[0]
-			}
-			res, err := queryClient.PendingBridgeCalls(cmd.Context(), &types.QueryPendingBridgeCallsRequest{
-				ChainName:     chainName,
-				SenderAddress: sender,
-				Pagination:    pageReq,
-			})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-	flags.AddPaginationFlagsToCmd(cmd, "pending bridge calls")
-	return cmd
-}
-
-func CmdGetPendingBridgeCall(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pending-bridge-call [nonce]",
-		Short: "Query pending bridge call by event nonce",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			nonce, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.PendingBridgeCallByNonce(cmd.Context(), &types.QueryPendingBridgeCallByNonceRequest{
-				ChainName: chainName,
-				Nonce:     nonce,
 			})
 			if err != nil {
 				return err

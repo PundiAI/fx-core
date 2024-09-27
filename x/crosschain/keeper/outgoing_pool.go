@@ -21,10 +21,6 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	return nextTxID, k.addToOutgoingPool(ctx, sender, receiver, amount, fee, nextTxID)
 }
 
-func (k Keeper) AddToOutgoingPoolWithTxId(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin, txID uint64) error {
-	return k.addToOutgoingPool(ctx, sender, receiver, amount, fee, txID)
-}
-
 // AddToOutgoingPool
 // - checks a counterpart denominator exists for the given voucher type
 // - burns the voucher for transfer amount and fees
@@ -90,11 +86,11 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	// check that we actually have a tx with that id and what it's details are
-	if tx, err := k.GetUnbatchedTxById(ctx, txId); err == nil {
-		return k.handleRemoveFromOutgoingPoolAndRefund(ctx, tx, sender)
+	tx, err := k.GetUnbatchedTxById(ctx, txId)
+	if err != nil {
+		return sdk.Coin{}, err
 	}
-
-	return k.handleRemoveFromOutgoingPendingPoolAndRefund(ctx, txId, sender)
+	return k.handleRemoveFromOutgoingPoolAndRefund(ctx, tx, sender)
 }
 
 // AddUnbatchedTx creates a new transaction in the pool
@@ -206,7 +202,7 @@ func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
 	}
 
-	// An inconsistent entry should never enter the store, but this is the ideal place to exploit
+	// an inconsistent entry should never enter the store, but this is the ideal place to exploit
 	// it such a bug if it did ever occur, so we should double check to be really sure
 	if tx.Fee.Contract != tx.Token.Contract {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Inconsistent tokens to cancel!: %s %s", tx.Fee.Contract, tx.Token.Contract)
@@ -252,28 +248,6 @@ func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccA
 	}
 
 	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, totalToRefund, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
-	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrap(err, "convert denom to erc20")
-	}
-
-	// 2. handler hook
-	if err = k.handleOutgoingTransferRelation(ctx, txId, sender, targetCoin); err != nil {
-		return sdk.Coin{}, err
-	}
-
-	// 3. emit event
-	k.emitCancelEvent(ctx, txId)
-
-	return targetCoin, nil
-}
-
-func (k Keeper) handleCancelPendingPoolRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress, tokenContract string, refundAmount sdkmath.Int) (sdk.Coin, error) {
-	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, tokenContract)
-	if !found {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tokenContract)
-	}
-	// 1. handler refund
-	targetCoin, err := k.erc20Keeper.RefundLiquidity(ctx, sender, sdk.NewCoin(bridgeDenom, refundAmount))
 	if err != nil {
 		return sdk.Coin{}, errorsmod.Wrap(err, "convert denom to erc20")
 	}

@@ -114,18 +114,6 @@ message OutgoingTransferTx {
   ERC20Token fee = 5 [ (gogoproto.nullable) = false ];
 }
 
-// OutgoingTransferTx represents an individual send from gravity to ETH
-message PendingOutgoingTransferTx {
-  uint64 id = 1;
-  string sender = 2;
-  string dest_address = 3;
-  string token_contract = 4;
-  cosmos.base.v1beta1.Coin token = 5 [ (gogoproto.nullable) = false ];
-  cosmos.base.v1beta1.Coin fee = 6 [ (gogoproto.nullable) = false ];
-  repeated cosmos.base.v1beta1.Coin rewards = 7
-      [ (gogoproto.nullable) = false ];
-}
-
 // ERC20Token unique identifier for an Ethereum ERC20 token.
 message ERC20Token {
   string contract = 1;
@@ -231,7 +219,9 @@ message Params {
   int64 delegate_multiple = 11;
   uint64 bridge_call_timeout = 12;
   uint64 bridge_call_max_gas_limit = 13;
+  // Deprecated
   bool enable_send_to_external_pending = 14;
+  // Deprecated
   bool enable_bridge_call_pending = 15;
 }
 
@@ -246,16 +236,4 @@ message OutgoingBridgeCall {
   uint64 timeout = 8;
   uint64 block_height = 9;
   uint64 event_nonce = 10;
-}
-
-message PendingOutgoingBridgeCall {
-  OutgoingBridgeCall outgoin_bridge_call = 1;
-  repeated cosmos.base.v1beta1.Coin not_liquid_coins = 2 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-  repeated cosmos.base.v1beta1.Coin rewards = 3 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
 }

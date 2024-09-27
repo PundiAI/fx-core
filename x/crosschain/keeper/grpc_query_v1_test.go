@@ -12,7 +12,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -2373,42 +2372,4 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 			}
 		})
 	}
-}
-
-func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingPoolSendToExternal() {
-	ctx := suite.Ctx
-	sender := helpers.GenAccAddress()
-	randomNonce := tmrand.Uint64()
-	tx1 := types.NewPendingOutgoingTx(randomNonce, sender, helpers.GenExternalAddr(suite.chainName),
-		helpers.GenExternalAddr(suite.chainName), sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())),
-		sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())), sdk.NewCoins())
-	tx2 := types.NewPendingOutgoingTx(randomNonce+1, sender, helpers.GenExternalAddr(suite.chainName),
-		helpers.GenExternalAddr(suite.chainName), sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())),
-		sdk.NewCoin("FX", sdkmath.NewInt(tmrand.Int63())), sdk.NewCoins())
-
-	suite.Keeper().SetPendingTx(suite.Ctx, &tx1)
-	suite.Keeper().SetPendingTx(suite.Ctx, &tx2)
-	actual, err := suite.queryClient.GetPendingPoolSendToExternal(ctx, &types.QueryPendingPoolSendToExternalRequest{
-		ChainName:     suite.chainName,
-		SenderAddress: sender.String(),
-		Pagination: &query.PageRequest{
-			Offset:     0,
-			Limit:      1,
-			CountTotal: false,
-		},
-	})
-	suite.NoError(err)
-	suite.Equal(len(actual.Txs), 1)
-
-	actual, err = suite.queryClient.GetPendingPoolSendToExternal(ctx, &types.QueryPendingPoolSendToExternalRequest{
-		ChainName:     suite.chainName,
-		SenderAddress: sender.String(),
-		Pagination: &query.PageRequest{
-			Offset:     0,
-			Limit:      2,
-			CountTotal: false,
-		},
-	})
-	suite.NoError(err)
-	suite.Equal(len(actual.Txs), 2)
 }

@@ -27,13 +27,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgSendToExternal{},
 		&MsgCancelSendToExternal{},
 		&MsgIncreaseBridgeFee{},
-		&MsgAddPendingPoolRewards{},
 
 		&MsgRequestBatch{},
 		&MsgConfirmBatch{},
 
 		&MsgBridgeCall{},
-		&MsgCancelPendingBridgeCall{},
 
 		&MsgBridgeCallConfirm{},
 
@@ -94,13 +92,11 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCancelSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCancelSendToExternal"), nil)
 	cdc.RegisterConcrete(&MsgIncreaseBridgeFee{}, fmt.Sprintf("%s/%s", ModuleName, "MsgIncreaseBridgeFee"), nil)
 	cdc.RegisterConcrete(&MsgSendToExternalClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToExternalClaim"), nil)
-	cdc.RegisterConcrete(&MsgAddPendingPoolRewards{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddPendingPoolRewards"), nil)
 
 	cdc.RegisterConcrete(&MsgRequestBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRequestBatch"), nil)
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
 
 	cdc.RegisterConcrete(&MsgBridgeCall{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCall"), nil)
-	cdc.RegisterConcrete(&MsgCancelPendingBridgeCall{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCancelPendingBridgeCall"), nil)
 
 	cdc.RegisterConcrete(&MsgBridgeCallClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallClaim"), nil)
 	cdc.RegisterConcrete(&MsgBridgeCallConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallConfirm"), nil)

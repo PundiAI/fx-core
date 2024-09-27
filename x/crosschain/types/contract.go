@@ -123,42 +123,6 @@ func (args *BridgeCallArgs) Validate() error {
 	return nil
 }
 
-type CancelPendingBridgeCallArgs struct {
-	Chain string   `abi:"_chain"`
-	TxID  *big.Int `abi:"_txID"`
-}
-
-func (args *CancelPendingBridgeCallArgs) Validate() error {
-	if err := ValidateModuleName(args.Chain); err != nil {
-		return err
-	}
-	if args.TxID == nil || args.TxID.Sign() <= 0 {
-		return errors.New("invalid tx id")
-	}
-	return nil
-}
-
-type AddPendingPoolRewardArgs struct {
-	Chain  string         `abi:"_chain"`
-	TxID   *big.Int       `abi:"_txID"`
-	Token  common.Address `abi:"_token"`
-	Reward *big.Int       `abi:"_reward"`
-}
-
-func (args *AddPendingPoolRewardArgs) Validate() error {
-	if err := ValidateModuleName(args.Chain); err != nil {
-		return err
-	}
-
-	if args.TxID == nil || args.TxID.Sign() <= 0 {
-		return errors.New("invalid tx id")
-	}
-	if args.Reward == nil || args.Reward.Sign() <= 0 {
-		return errors.New("invalid add reward")
-	}
-	return nil
-}
-
 type ExecuteClaimArgs struct {
 	Chain      string   `abi:"_chain"`
 	EventNonce *big.Int `abi:"_eventNonce"`

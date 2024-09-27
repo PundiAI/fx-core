@@ -109,20 +109,17 @@ func (c *Keeper) handlerCrossChain(
 	total := sdk.NewCoin(amount.Denom, amount.Amount.Add(fee.Amount))
 	// convert denom to target coin
 	targetCoin, err := c.erc20Keeper.ConvertDenomToTarget(ctx, from.Bytes(), total, fxTarget)
-	if err != nil && !erc20types.IsInsufficientLiquidityErr(err) {
+	if err != nil {
 		return fmt.Errorf("convert denom: %s", err.Error())
 	}
 	amount.Denom = targetCoin.Denom
 	fee.Denom = targetCoin.Denom
 
 	if fxTarget.IsIBC() {
-		if err != nil {
-			return fmt.Errorf("convert denom: %s", err.Error())
-		}
 		return c.ibcTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, memo, originToken)
 	}
 
-	return c.outgoingTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, originToken, err != nil)
+	return c.outgoingTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, originToken)
 }
 
 func (c *Keeper) outgoingTransfer(
@@ -131,7 +128,7 @@ func (c *Keeper) outgoingTransfer(
 	to string,
 	amount, fee sdk.Coin,
 	fxTarget fxtypes.FxTarget,
-	originToken, insufficientLiquidit bool,
+	originToken bool,
 ) error {
 	if c.router == nil {
 		return errors.New("cross chain router empty")
@@ -140,7 +137,7 @@ func (c *Keeper) outgoingTransfer(
 	if !has {
 		return errors.New("invalid target")
 	}
-	if err := route.TransferAfter(ctx, from, to, amount, fee, originToken, insufficientLiquidit); err != nil {
+	if err := route.TransferAfter(ctx, from, to, amount, fee, originToken); err != nil {
 		return fmt.Errorf("cross chain error: %s", err.Error())
 	}
 	return nil

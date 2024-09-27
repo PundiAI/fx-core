@@ -14,7 +14,6 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 var _ types.MsgServer = MsgServer{}
@@ -359,18 +358,13 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	// convert denom to many
 	fxTarget := fxtypes.ParseFxTarget(s.moduleName)
 	targetCoin, err := s.erc20Keeper.ConvertDenomToTarget(ctx, sender, msg.Amount.Add(msg.BridgeFee), fxTarget)
-	if err != nil && !erc20types.IsInsufficientLiquidityErr(err) {
+	if err != nil {
 		return nil, err
 	}
 	msg.Amount.Denom = targetCoin.Denom
 	msg.BridgeFee.Denom = targetCoin.Denom
 
-	var txID uint64
-	if erc20types.IsInsufficientLiquidityErr(err) {
-		txID, err = s.AddToOutgoingPendingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
-	} else {
-		txID, err = s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
-	}
+	txID, err := s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
 	if err != nil {
 		return nil, err
 	}
@@ -488,17 +482,12 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	tokens, notLiquidCoins, err := s.BridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
+	tokens, err := s.BridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
 	if err != nil {
 		return nil, err
 	}
 
-	var outCallNonce uint64
-	if len(notLiquidCoins) > 0 {
-		outCallNonce, err = s.AddPendingOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0, notLiquidCoins)
-	} else {
-		outCallNonce, err = s.AddOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0)
-	}
+	outCallNonce, err := s.AddOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0)
 	if err != nil {
 		return nil, err
 	}
@@ -513,36 +502,6 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 	))
 
 	return &types.MsgBridgeCallResponse{}, nil
-}
-
-func (s MsgServer) CancelPendingBridgeCall(c context.Context, msg *types.MsgCancelPendingBridgeCall) (*types.MsgCancelPendingBridgeCallResponse, error) {
-	sender := sdk.MustAccAddressFromBech32(msg.Sender)
-	ctx := sdk.UnwrapSDKContext(c)
-
-	if _, err := s.HandleCancelPendingOutgoingBridgeCall(ctx, msg.Nonce, sender); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	))
-	return &types.MsgCancelPendingBridgeCallResponse{}, nil
-}
-
-func (s MsgServer) AddPendingPoolRewards(c context.Context, msg *types.MsgAddPendingPoolRewards) (*types.MsgAddPendingPoolRewardsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	sender := sdk.MustAccAddressFromBech32(msg.Sender)
-	if err := s.Keeper.AddPendingPoolRewards(ctx, msg.Id, sender, msg.Rewards); err != nil {
-		return nil, err
-	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	))
-	return &types.MsgAddPendingPoolRewardsResponse{}, nil
 }
 
 func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {

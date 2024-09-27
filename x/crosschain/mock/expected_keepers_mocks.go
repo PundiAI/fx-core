@@ -280,20 +280,6 @@ func (mr *MockBankKeeperMockRecorder) GetSupply(ctx, denom any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupply", reflect.TypeOf((*MockBankKeeper)(nil).GetSupply), ctx, denom)
 }
 
-// HasBalance mocks base method.
-func (m *MockBankKeeper) HasBalance(ctx context.Context, addr types.AccAddress, amt types.Coin) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasBalance", ctx, addr, amt)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// HasBalance indicates an expected call of HasBalance.
-func (mr *MockBankKeeperMockRecorder) HasBalance(ctx, addr, amt any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasBalance", reflect.TypeOf((*MockBankKeeper)(nil).HasBalance), ctx, addr, amt)
-}
-
 // HasDenomMetaData mocks base method.
 func (m *MockBankKeeper) HasDenomMetaData(ctx context.Context, denom string) bool {
 	m.ctrl.T.Helper()
@@ -510,21 +496,6 @@ func (mr *MockErc20KeeperMockRecorder) IsOriginOrConvertedDenom(ctx, denom any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOriginOrConvertedDenom", reflect.TypeOf((*MockErc20Keeper)(nil).IsOriginOrConvertedDenom), ctx, denom)
 }
 
-// RefundLiquidity mocks base method.
-func (m *MockErc20Keeper) RefundLiquidity(ctx types.Context, from types.AccAddress, coin types.Coin) (types.Coin, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RefundLiquidity", ctx, from, coin)
-	ret0, _ := ret[0].(types.Coin)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RefundLiquidity indicates an expected call of RefundLiquidity.
-func (mr *MockErc20KeeperMockRecorder) RefundLiquidity(ctx, from, coin any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefundLiquidity", reflect.TypeOf((*MockErc20Keeper)(nil).RefundLiquidity), ctx, from, coin)
-}
-
 // SetOutgoingTransferRelation mocks base method.
 func (m *MockErc20Keeper) SetOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) {
 	m.ctrl.T.Helper()
@@ -552,17 +523,17 @@ func (mr *MockErc20KeeperMockRecorder) ToTargetDenom(ctx, denom, base, aliases, 
 }
 
 // TransferAfter mocks base method.
-func (m *MockErc20Keeper) TransferAfter(ctx types.Context, sender types.AccAddress, receive string, coin, fee types.Coin, arg5, arg6 bool) error {
+func (m *MockErc20Keeper) TransferAfter(ctx types.Context, sender types.AccAddress, receive string, coin, fee types.Coin, arg5 bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransferAfter", ctx, sender, receive, coin, fee, arg5, arg6)
+	ret := m.ctrl.Call(m, "TransferAfter", ctx, sender, receive, coin, fee, arg5)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // TransferAfter indicates an expected call of TransferAfter.
-func (mr *MockErc20KeeperMockRecorder) TransferAfter(ctx, sender, receive, coin, fee, arg5, arg6 any) *gomock.Call {
+func (mr *MockErc20KeeperMockRecorder) TransferAfter(ctx, sender, receive, coin, fee, arg5 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferAfter", reflect.TypeOf((*MockErc20Keeper)(nil).TransferAfter), ctx, sender, receive, coin, fee, arg5, arg6)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferAfter", reflect.TypeOf((*MockErc20Keeper)(nil).TransferAfter), ctx, sender, receive, coin, fee, arg5)
 }
 
 // MockEVMKeeper is a mock of EVMKeeper interface.

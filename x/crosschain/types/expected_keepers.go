@@ -40,7 +40,6 @@ type BankKeeper interface {
 	MintCoins(ctx context.Context, name string, amt sdk.Coins) error
 	BurnCoins(ctx context.Context, name string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
-	HasBalance(ctx context.Context, addr sdk.AccAddress, amt sdk.Coin) bool
 	GetSupply(ctx context.Context, denom string) sdk.Coin
 
 	GetDenomMetaData(ctx context.Context, denom string) (bank.Metadata, bool)
@@ -50,7 +49,7 @@ type BankKeeper interface {
 }
 
 type Erc20Keeper interface {
-	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _, _ bool) error
+	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _ bool) error
 	ConvertCoin(ctx context.Context, msg *erc20types.MsgConvertCoin) (*erc20types.MsgConvertCoinResponse, error)
 	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error)
 	HookOutgoingRefund(ctx sdk.Context, moduleName string, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error
@@ -60,7 +59,6 @@ type Erc20Keeper interface {
 	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (erc20types.TokenPair, bool)
-	RefundLiquidity(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error)
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on crosschain
