@@ -133,7 +133,7 @@ func appModules(
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 		erc20.NewAppModule(app.Erc20Keeper),
 		migrate.NewAppModule(app.MigrateKeeper),
-		fxibctransfer.NewAppModule(app.FxTransferKeeper),
+		fxibctransfer.NewAppModule(),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	}

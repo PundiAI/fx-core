@@ -8,9 +8,6 @@ import (
 )
 
 const (
-	// ModuleName defines the IBC transfer name
-	ModuleName = "transfer"
-
 	// CompatibleModuleName is the query and tx module name
 	CompatibleModuleName = "fxtransfer"
 )
