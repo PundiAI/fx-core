@@ -74,8 +74,8 @@ import (
 	fxevmkeeper "github.com/functionx/fx-core/v8/x/evm/keeper"
 	fxgovkeeper "github.com/functionx/fx-core/v8/x/gov/keeper"
 	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
-	fxtransfer "github.com/functionx/fx-core/v8/x/ibc/applications/transfer"
-	fxtransferkeeper "github.com/functionx/fx-core/v8/x/ibc/applications/transfer/keeper"
+	ibcmiddleware "github.com/functionx/fx-core/v8/x/ibc/middleware"
+	ibcmiddlewarekeeper "github.com/functionx/fx-core/v8/x/ibc/middleware/keeper"
 	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
 	migratekeeper "github.com/functionx/fx-core/v8/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v8/x/migrate/types"
@@ -119,12 +119,12 @@ type AppKeepers struct {
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	IBCKeeper         *ibckeeper.Keeper
-	EvidenceKeeper    evidencekeeper.Keeper
-	FxTransferKeeper  fxtransferkeeper.Keeper
-	IBCTransferKeeper ibctransferkeeper.Keeper
-	FeeGrantKeeper    feegrantkeeper.Keeper
-	AuthzKeeper       authzkeeper.Keeper
+	IBCKeeper           *ibckeeper.Keeper
+	EvidenceKeeper      evidencekeeper.Keeper
+	IBCMiddlewareKeeper ibcmiddlewarekeeper.Keeper
+	IBCTransferKeeper   ibctransferkeeper.Keeper
+	FeeGrantKeeper      feegrantkeeper.Keeper
+	AuthzKeeper         authzkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -311,11 +311,6 @@ func NewAppKeeper(
 		appKeepers.BankKeeper,
 		appKeepers.ScopedTransferKeeper,
 		authAddr,
-	)
-	appKeepers.FxTransferKeeper = fxtransferkeeper.NewKeeper(
-		appKeepers.IBCTransferKeeper,
-		appCodec,
-		appKeepers.IBCKeeper.ChannelKeeper,
 	)
 	appKeepers.FeeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec,
@@ -536,12 +531,9 @@ func NewAppKeeper(
 		appCodec,
 		authAddr,
 	)
-	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
-	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetErc20Keeper(appKeepers.Erc20Keeper)
-	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetEvmKeeper(appKeepers.EvmKeeper)
-
+	appKeepers.IBCMiddlewareKeeper = ibcmiddlewarekeeper.NewKeeper(appCodec, appKeepers.Erc20Keeper, appKeepers.Erc20Keeper, appKeepers.EvmKeeper)
 	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
-	transferIBCModule := fxtransfer.NewIBCMiddleware(appKeepers.FxTransferKeeper, ibcTransferModule)
+	transferIBCModule := ibcmiddleware.NewIBCMiddleware(appKeepers.IBCMiddlewareKeeper, appKeepers.IBCKeeper.ChannelKeeper, ibcTransferModule)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()

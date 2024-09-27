@@ -59,8 +59,6 @@ import (
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	fxevm "github.com/functionx/fx-core/v8/x/evm"
 	fxgov "github.com/functionx/fx-core/v8/x/gov"
-	fxibctransfer "github.com/functionx/fx-core/v8/x/ibc/applications/transfer"
-	fxibctransfertypes "github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/v8/x/layer2"
 	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
 	"github.com/functionx/fx-core/v8/x/migrate"
@@ -133,7 +131,6 @@ func appModules(
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 		erc20.NewAppModule(app.Erc20Keeper),
 		migrate.NewAppModule(app.MigrateKeeper),
-		fxibctransfer.NewAppModule(),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	}
@@ -193,7 +190,6 @@ func orderBeginBlockers() []string {
 
 		ibctm.ModuleName,
 		ibctransfertypes.ModuleName,
-		fxibctransfertypes.CompatibleModuleName,
 		ibcexported.ModuleName,
 
 		consensustypes.ModuleName,
@@ -235,7 +231,6 @@ func orderEndBlockers() []string {
 
 		ibctm.ModuleName,
 		ibctransfertypes.ModuleName,
-		fxibctransfertypes.CompatibleModuleName,
 		ibcexported.ModuleName,
 
 		consensustypes.ModuleName,
@@ -277,7 +272,6 @@ func orderInitBlockers() []string {
 
 		ibctm.ModuleName,
 		ibctransfertypes.ModuleName,
-		fxibctransfertypes.CompatibleModuleName,
 		ibcexported.ModuleName,
 
 		consensustypes.ModuleName,

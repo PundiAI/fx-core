@@ -323,7 +323,6 @@
     },
     "block_gas": "0"
   },
-  "fxtransfer": null,
   "genutil": {
     "gen_txs": []
   },

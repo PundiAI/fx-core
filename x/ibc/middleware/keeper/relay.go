@@ -10,7 +10,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/x/ibc/middleware/types"
 )
 
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData) error {

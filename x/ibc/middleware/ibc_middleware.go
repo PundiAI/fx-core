@@ -1,4 +1,4 @@
-package transfer
+package middleware
 
 import (
 	errorsmod "cosmossdk.io/errors"
@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/keeper"
+	"github.com/functionx/fx-core/v8/x/ibc/middleware/keeper"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -19,14 +19,16 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 // IBCMiddleware implements the ICS26 interface for transfer given the transfer keeper.
 type IBCMiddleware struct {
 	porttypes.IBCModule
-	keeper.Keeper
+	porttypes.ICS4Wrapper
+	Keeper keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(k keeper.Keeper, ibcModule porttypes.IBCModule) IBCMiddleware {
+func NewIBCMiddleware(k keeper.Keeper, ics porttypes.ICS4Wrapper, ibcModule porttypes.IBCModule) IBCMiddleware {
 	return IBCMiddleware{
-		IBCModule: ibcModule,
-		Keeper:    k,
+		IBCModule:   ibcModule,
+		ICS4Wrapper: ics,
+		Keeper:      k,
 	}
 }
 

@@ -5,11 +5,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v8/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v8/x/ibc/middleware/types"
 )
 
 func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string, data transfertypes.FungibleTokenPacketData) error {
@@ -27,7 +28,7 @@ func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string
 		hexSender := types.IntermediateSender(sourcePort, sourceChannel, data.Sender)
 		return k.HandlerIbcCallEvm(ctx, hexSender, packet)
 	default:
-		return errorsmod.Wrapf(types.ErrMemoNotSupport, "invalid call type %s", mp.GetType())
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid call type %s", mp.GetType())
 	}
 }
 

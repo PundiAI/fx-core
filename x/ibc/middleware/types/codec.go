@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
@@ -12,7 +10,7 @@ import (
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*MemoPacket)(nil), nil)
 
-	cdc.RegisterConcrete(&IbcCallEvmPacket{}, fmt.Sprintf("%s/%s", CompatibleModuleName, "IbcCallEvmPacket"), nil)
+	cdc.RegisterConcrete(&IbcCallEvmPacket{}, "fxtransfer/IbcCallEvmPacket", nil)
 }
 
 // RegisterInterfaces register the ibc transfer module interfaces to protobuf
