@@ -37,12 +37,10 @@ var (
 	_ CrossChainMsg = &MsgCancelSendToExternal{}
 	_ CrossChainMsg = &MsgIncreaseBridgeFee{}
 	_ CrossChainMsg = &MsgSendToExternalClaim{}
-	_ CrossChainMsg = &MsgAddPendingPoolRewards{}
 	_ CrossChainMsg = &MsgRequestBatch{}
 	_ CrossChainMsg = &MsgConfirmBatch{}
 	_ CrossChainMsg = &MsgBridgeCallClaim{}
 	_ CrossChainMsg = &MsgBridgeCall{}
-	_ CrossChainMsg = &MsgCancelPendingBridgeCall{}
 	_ CrossChainMsg = &MsgBridgeCallConfirm{}
 	_ CrossChainMsg = &MsgBridgeCallResultClaim{}
 	_ CrossChainMsg = &MsgUpdateParams{}
@@ -64,12 +62,10 @@ var (
 	_ sdk.Msg = &MsgCancelSendToExternal{}
 	_ sdk.Msg = &MsgIncreaseBridgeFee{}
 	_ sdk.Msg = &MsgSendToExternalClaim{}
-	_ sdk.Msg = &MsgAddPendingPoolRewards{}
 	_ sdk.Msg = &MsgRequestBatch{}
 	_ sdk.Msg = &MsgConfirmBatch{}
 	_ sdk.Msg = &MsgBridgeCallClaim{}
 	_ sdk.Msg = &MsgBridgeCall{}
-	_ sdk.Msg = &MsgCancelPendingBridgeCall{}
 	_ sdk.Msg = &MsgBridgeCallConfirm{}
 	_ sdk.Msg = &MsgBridgeCallResultClaim{}
 	_ sdk.Msg = &MsgUpdateParams{}
@@ -303,22 +299,6 @@ func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
 	}
 	if !m.AddBridgeFee.IsValid() || !m.AddBridgeFee.IsPositive() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid bridge fee")
-	}
-	return nil
-}
-
-func (m *MsgAddPendingPoolRewards) ValidateBasic() (err error) {
-	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	}
-	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
-	}
-	if m.Id == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("id cannot be zero")
-	}
-	if m.Rewards.Empty() || !m.Rewards.IsValid() || !m.Rewards.IsAllPositive() || CheckRewardLimits(m.Rewards) != nil {
-		return errortypes.ErrInvalidRequest.Wrap("invalid or out-of-range rewards")
 	}
 	return nil
 }
@@ -842,17 +822,4 @@ func (m *MsgBridgeCall) MustMemo() []byte {
 		panic(err)
 	}
 	return bz
-}
-
-func (m *MsgCancelPendingBridgeCall) ValidateBasic() (err error) {
-	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	}
-	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
-	}
-	if m.Nonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid nonce: %d", m.Nonce)
-	}
-	return nil
 }

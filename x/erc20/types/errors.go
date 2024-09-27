@@ -16,9 +16,4 @@ var (
 	ErrERC20TokenPairDisabled = errorsmod.Register(ModuleName, 11, "erc20 token pair is disabled")
 	ErrInvalidDenom           = errorsmod.Register(ModuleName, 12, "invalid denom")
 	ErrInvalidAlias           = errorsmod.Register(ModuleName, 15, "invalid alias")
-	ErrInsufficientLiquidity  = errorsmod.Register(ModuleName, 16, "insufficient liquidity")
 )
-
-func IsInsufficientLiquidityErr(err error) bool {
-	return errorsmod.IsOf(err, ErrInsufficientLiquidity)
-}

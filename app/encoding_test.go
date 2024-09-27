@@ -43,7 +43,7 @@ func TestRegisterInterfaces(t *testing.T) {
 	for implInterfaces.Next() {
 		count2++
 	}
-	assert.Equal(t, 307, count2)
+	assert.Equal(t, 303, count2)
 
 	typeURLMap := interfaceRegistry.FieldByName("typeURLMap").MapRange()
 	for typeURLMap.Next() {

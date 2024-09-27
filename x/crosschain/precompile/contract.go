@@ -42,8 +42,6 @@ func NewPrecompiledContract(
 			NewIncreaseBridgeFeeMethod(keeper),
 			NewCrossChainMethod(keeper),
 			NewBridgeCallMethod(keeper),
-			NewCancelPendingBridgeCallMethod(keeper),
-			NewAddPendingPoolRewardsMethod(keeper),
 			NewExecuteClaimMethod(keeper),
 		},
 	}

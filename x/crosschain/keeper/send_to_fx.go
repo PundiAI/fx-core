@@ -74,8 +74,6 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 		return nil
 	}
 
-	k.HandlePendingOutgoingTx(ctx, receiveAddr, claim.GetEventNonce(), bridgeDenom, claim.TokenContract)
-	k.HandlePendingOutgoingBridgeCall(ctx, receiveAddr, claim.GetEventNonce(), bridgeDenom)
 	return nil
 }
 
@@ -102,7 +100,7 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 		// transfer to evm
 		cacheCtx, commit := ctx.CacheContext()
 		receiverHex := common.BytesToAddress(receiver.Bytes())
-		if err := k.erc20Keeper.TransferAfter(cacheCtx, receiver, receiverHex.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false, false); err != nil {
+		if err := k.erc20Keeper.TransferAfter(cacheCtx, receiver, receiverHex.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
 			k.Logger(cacheCtx).Error("transfer convert denom failed", "error", err.Error())
 			return err
 		}

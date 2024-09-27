@@ -18,7 +18,6 @@ const (
 	MaxKeepEventSize               = 100
 	DefBridgeCallTimeout           = 604_800_000 // 7 * 24 * 3600 * 1000
 	MaxGasLimit                    = 30_000_000
-	MaxLiquidationSize             = 100
 )
 
 var (

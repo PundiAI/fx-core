@@ -109,15 +109,6 @@ func (suite *CrosschainTestSuite) QueryPendingUnbatchedTx(sender sdk.AccAddress)
 	return pendingTx.UnbatchedTransfers
 }
 
-func (suite *CrosschainTestSuite) QueryPendingPoolSendToExternal(sender sdk.AccAddress) []*crosschaintypes.PendingOutgoingTransferTx {
-	response, err := suite.CrosschainQuery().GetPendingPoolSendToExternal(suite.ctx, &crosschaintypes.QueryPendingPoolSendToExternalRequest{
-		ChainName:     suite.chainName,
-		SenderAddress: sender.String(),
-	})
-	suite.NoError(err)
-	return response.GetTxs()
-}
-
 func (suite *CrosschainTestSuite) queryFxLastEventNonce() uint64 {
 	lastEventNonce, err := suite.CrosschainQuery().LastEventNonceByAddr(suite.ctx,
 		&crosschaintypes.QueryLastEventNonceByAddrRequest{
@@ -581,7 +572,7 @@ func (suite *CrosschainTestSuite) SendBridgeCallAndResponse(amount sdk.Coins) (*
 	txResponse := suite.BroadcastTx(suite.privKey, msg)
 	for _, eventLog := range txResponse.Logs {
 		for _, event := range eventLog.Events {
-			if event.Type != crosschaintypes.EventTypeBridgeCall && event.Type != crosschaintypes.EventTypePendingBridgeCall {
+			if event.Type != crosschaintypes.EventTypeBridgeCall {
 				continue
 			}
 			for _, attribute := range event.Attributes {
@@ -595,30 +586,6 @@ func (suite *CrosschainTestSuite) SendBridgeCallAndResponse(amount sdk.Coins) (*
 		}
 	}
 	return txResponse, 0
-}
-
-func (suite *CrosschainTestSuite) CancelBridgeCall(nonces []uint64) {
-	msgs := make([]sdk.Msg, 0, len(nonces))
-	for _, nonce := range nonces {
-		msg := &crosschaintypes.MsgCancelPendingBridgeCall{
-			Nonce:     nonce,
-			Sender:    suite.AccAddress().String(),
-			ChainName: suite.chainName,
-		}
-		msgs = append(msgs, msg)
-
-	}
-	suite.BroadcastTx(suite.privKey, msgs...)
-}
-
-func (suite *CrosschainTestSuite) AddPendingPoolRewards(id uint64, reward sdk.Coin) {
-	msg := &crosschaintypes.MsgAddPendingPoolRewards{
-		ChainName: suite.chainName,
-		Id:        id,
-		Sender:    suite.AccAddress().String(),
-		Rewards:   sdk.NewCoins(reward),
-	}
-	suite.BroadcastTx(suite.privKey, msg)
 }
 
 func (suite *CrosschainTestSuite) BridgeCallConfirm(nonce uint64, isSuccess bool) {
@@ -679,24 +646,6 @@ func (suite *CrosschainTestSuite) QueryBridgeCallByNonce(nonce uint64) *crosscha
 	})
 	suite.NoError(err)
 	return response.GetBridgeCall()
-}
-
-func (suite *CrosschainTestSuite) QueryPendingBridgeCallByNonce(nonce uint64) *crosschaintypes.PendingOutgoingBridgeCall {
-	response, err := suite.CrosschainQuery().PendingBridgeCallByNonce(suite.ctx, &crosschaintypes.QueryPendingBridgeCallByNonceRequest{
-		ChainName: suite.chainName,
-		Nonce:     nonce,
-	})
-	suite.NoError(err)
-	return response.GetBridgeCall()
-}
-
-func (suite *CrosschainTestSuite) QueryPendingBridgeCalls(senderAddr string) []*crosschaintypes.PendingOutgoingBridgeCall {
-	response, err := suite.CrosschainQuery().PendingBridgeCalls(suite.ctx, &crosschaintypes.QueryPendingBridgeCallsRequest{
-		ChainName:     suite.chainName,
-		SenderAddress: senderAddr,
-	})
-	suite.NoError(err)
-	return response.GetPendingBridgeCalls()
 }
 
 func (suite *CrosschainTestSuite) ExecuteClaim() *ethtypes.Transaction {

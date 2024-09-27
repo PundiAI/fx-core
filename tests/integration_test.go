@@ -67,7 +67,6 @@ func TestIntegrationTest(t *testing.T) {
 func (suite *IntegrationTest) TestRun() {
 	suite.CrossChainTest()
 	suite.BridgeCallTest()
-	suite.LiquidityTest()
 	suite.OriginalCrossChainTest()
 
 	suite.PrecompileTransferCrossChainTest()

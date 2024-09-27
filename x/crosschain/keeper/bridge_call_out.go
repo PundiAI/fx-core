@@ -17,31 +17,25 @@ import (
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, sdk.Coins, error) {
+func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, error) {
 	tokens := make([]types.ERC20Token, 0, len(coins))
-	notLiquidCoins := sdk.NewCoins()
 	for _, coin := range coins {
 		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, coin, fxtypes.ParseFxTarget(k.moduleName))
-		if err != nil && !erc20types.IsInsufficientLiquidityErr(err) {
-			return nil, nil, err
+		if err != nil {
+			return nil, err
 		}
 		tokenContract, found := k.GetContractByBridgeDenom(ctx, targetCoin.Denom)
 		if !found {
-			return nil, nil, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
+			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
 		}
 		tokens = append(tokens, types.NewERC20Token(targetCoin.Amount, tokenContract))
-		if erc20types.IsInsufficientLiquidityErr(err) {
-			notLiquidCoins = notLiquidCoins.Add(targetCoin)
-			continue
-		}
 		if err = k.TransferBridgeCoinToExternal(ctx, sender, targetCoin); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
-	return tokens, notLiquidCoins, nil
+	return tokens, nil
 }
 
 func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error) {

@@ -20,10 +20,6 @@ const (
 	AttributeKeyOutgoingTxID        = "outgoing_tx_id"
 	AttributeKeyPendingOutgoingTxID = "pending_outgoing_tx_id"
 	AttributeKeyIncreaseFee         = "increase_fee"
-	EventTypeAddPendingRewards      = "add_pending_rewards"
-	AttributeKeyPendingID           = "pending_id"
-	AttributeKeyPendingRewards      = "pending_rewards"
-	AttributeKeyPendingType         = "pending_type"
 
 	EventTypeOutgoingBatch           = "outgoing_batch"
 	EventTypeOutgoingBatchCanceled   = "outgoing_batch_canceled"
@@ -41,11 +37,7 @@ const (
 	EventTypeBridgeCallEvent = "bridge_call_event"
 
 	EventTypeBridgeCall         = "bridge_call"
-	EventTypePendingBridgeCall  = "pending_bridge_call"
 	AttributeKeyBridgeCallNonce = "bridge_call_nonce"
-
-	EventTypeProvideLiquidity         = "provide_liquidity"
-	AttributeKeyProvideLiquidityTxIds = "provide_liquidity_tx_ids"
 
 	EventTypeBridgeCallRefundOut = "bridge_call_refund_out"
 

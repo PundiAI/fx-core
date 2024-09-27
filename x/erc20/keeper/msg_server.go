@@ -330,40 +330,12 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 	if err = k.convertDenomToContractOwner(ctx, targetCoin, coin, metadata); err != nil {
 		return sdk.Coin{}, err
 	}
-	moduleAddress := k.accountKeeper.GetModuleAddress(types.ModuleName)
-	moduleTargetCoin := k.bankKeeper.GetBalance(ctx, moduleAddress, targetCoin.Denom)
-	if moduleTargetCoin.IsLT(targetCoin) {
-		return targetCoin, types.ErrInsufficientLiquidity.Wrapf("%s is smaller than %s", moduleTargetCoin, targetCoin)
-	}
 	// send alias denom to from addr
 	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)); err != nil {
 		return sdk.Coin{}, err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeConvertDenom,
-		sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
-		sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
-		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
-		sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
-	))
-	return targetCoin, nil
-}
-
-func (k Keeper) RefundLiquidity(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	targetCoin, metadata := k.GetTargetCoin(ctx, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
-	if coin.Denom == targetCoin.Denom {
-		return targetCoin, nil
-	}
-
-	if err := k.convertDenomToContractOwner(ctx, targetCoin, coin, metadata); err != nil {
-		return sdk.Coin{}, err
-	}
-	// send target denom to from addr
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)); err != nil {
-		return sdk.Coin{}, err
-	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeRefundLiquid,
 		sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
 		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),

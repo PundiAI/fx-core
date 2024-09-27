@@ -150,28 +150,12 @@ func (k msgServer) BridgeCall(ctx context.Context, msg *types.MsgBridgeCall) (*t
 	}
 }
 
-func (k msgServer) CancelPendingBridgeCall(ctx context.Context, msg *types.MsgCancelPendingBridgeCall) (*types.MsgCancelPendingBridgeCallResponse, error) {
-	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return server.CancelPendingBridgeCall(ctx, msg)
-	}
-}
-
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {
 		return nil, errorsmod.Wrap(errortypes.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", chainName))
 	}
 	return msgServerRouter.GetRoute(chainName).MsgServer, nil
-}
-
-func (k msgServer) AddPendingPoolRewards(ctx context.Context, msg *types.MsgAddPendingPoolRewards) (*types.MsgAddPendingPoolRewardsResponse, error) {
-	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return queryServer.AddPendingPoolRewards(ctx, msg)
-	}
 }
 
 func (k msgServer) Claim(ctx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
