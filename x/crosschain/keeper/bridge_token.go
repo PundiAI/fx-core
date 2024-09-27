@@ -68,7 +68,7 @@ func (k Keeper) GetContractByBridgeDenom(ctx sdk.Context, bridgeDenom string) (s
 
 func (k Keeper) HasBridgeToken(ctx sdk.Context, denom string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetTokenToDenomKey(denom))
+	return store.Has(types.GetBridgeDenomKey(denom))
 }
 
 func (k Keeper) AddBridgeToken(ctx sdk.Context, bridgeDenom, baseDenom string) {

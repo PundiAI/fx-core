@@ -18,6 +18,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeTokenCase() {
 		getBridgeDenomByContract map[string]string
 		getContractByBridgeDenom map[string]string
 		allBridgeTokenLen        int
+		malleate                 func(claim *types.MsgBridgeTokenClaim)
 	}{
 		{
 			name: "success with FX symbol",
@@ -50,10 +51,25 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeTokenCase() {
 			},
 			allBridgeTokenLen: 1,
 		},
+		{
+			name: "err duplicate token contract",
+			claim: &types.MsgBridgeTokenClaim{
+				TokenContract: "0x1",
+			},
+			pass: false,
+			malleate: func(claim *types.MsgBridgeTokenClaim) {
+				err := suite.Keeper().AddBridgeTokenExecuted(suite.Ctx, claim)
+				suite.Require().NoError(err)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			if tc.malleate != nil {
+				tc.malleate(tc.claim)
+			}
+
 			err := suite.Keeper().AddBridgeTokenExecuted(suite.Ctx, tc.claim)
 			if !tc.pass {
 				suite.Require().Error(err)
