@@ -136,9 +136,7 @@ func (s *BaseSuite) MintToken(address sdk.AccAddress, amount ...sdk.Coin) {
 }
 
 func (s *BaseSuite) MintTokenToModule(module string, amount ...sdk.Coin) {
-	acc := GenAccAddress()
-	s.MintToken(acc, amount...)
-	err := s.App.BankKeeper.SendCoinsFromAccountToModule(s.Ctx, acc, module, sdk.NewCoins(amount...))
+	err := s.App.BankKeeper.MintCoins(s.Ctx, module, sdk.NewCoins(amount...))
 	s.Require().NoError(err)
 }
 
