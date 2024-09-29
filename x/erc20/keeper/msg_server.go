@@ -190,7 +190,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 	erc20Contract := pair.GetERC20Contract()
 
 	// Mint Tokens and send to receiver
-	if err := k.evmErc20Keeper.ERE20Mint(ctx, erc20Contract, k.moduleAddress, receiver, coin.Amount.BigInt()); err != nil {
+	if err := k.evmErc20Keeper.ERC20Mint(ctx, erc20Contract, k.moduleAddress, receiver, coin.Amount.BigInt()); err != nil {
 		return err
 	}
 
@@ -211,7 +211,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 	erc20Contract := pair.GetERC20Contract()
 
 	// Burn escrowed tokens
-	if err := k.evmErc20Keeper.ERE20Burn(ctx, erc20Contract, k.moduleAddress, sender, amount.BigInt()); err != nil {
+	if err := k.evmErc20Keeper.ERC20Burn(ctx, erc20Contract, k.moduleAddress, sender, amount.BigInt()); err != nil {
 		return err
 	}
 
@@ -242,7 +242,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
 	// Escrow tokens on module account
 	erc20Contract := pair.GetERC20Contract()
-	if err := k.evmErc20Keeper.ERE20Transfer(ctx, erc20Contract, sender, k.moduleAddress, amount.BigInt()); err != nil {
+	if err := k.evmErc20Keeper.ERC20Transfer(ctx, erc20Contract, sender, k.moduleAddress, amount.BigInt()); err != nil {
 		return err
 	}
 
@@ -278,7 +278,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 	}
 
 	// Unescrow Tokens and send to receiver
-	if err := k.evmErc20Keeper.ERE20Transfer(ctx, pair.GetERC20Contract(), k.moduleAddress, receiver, coin.Amount.BigInt()); err != nil {
+	if err := k.evmErc20Keeper.ERC20Transfer(ctx, pair.GetERC20Contract(), k.moduleAddress, receiver, coin.Amount.BigInt()); err != nil {
 		return err
 	}
 
