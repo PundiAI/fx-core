@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/suite"
@@ -21,6 +22,7 @@ import (
 	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
 	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
@@ -115,6 +117,10 @@ func (suite *KeeperTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
+func (suite *KeeperTestSuite) ModuleAddress() sdk.AccAddress {
+	return authtypes.NewModuleAddress(suite.chainName)
+}
+
 func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
 	address := crypto.PubkeyToAddress(publicKey)
 	return types.ExternalAddrToStr(suite.chainName, address.Bytes())
@@ -156,5 +162,27 @@ func (suite *KeeperTestSuite) SendClaimReturnErr(externalClaim types.ExternalCla
 
 func (suite *KeeperTestSuite) EndBlocker() {
 	_, err := suite.App.EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) SetToken(symbol string, bridgeDenoms ...string) {
+	if symbol == fxtypes.DefaultDenom {
+		bridgeDenoms = []string{}
+	}
+	err := suite.Keeper().SetToken(suite.Ctx, "Test Token", symbol, 18, bridgeDenoms...)
+	suite.NoError(err)
+}
+
+func (suite *KeeperTestSuite) AddTokenPair(denom string, isNative bool) {
+	contractOwner := erc20types.OWNER_EXTERNAL
+	if isNative {
+		contractOwner = erc20types.OWNER_MODULE
+	}
+	suite.App.Erc20Keeper.AddTokenPair(suite.Ctx, erc20types.TokenPair{Erc20Address: helpers.GenHexAddress().String(), Denom: denom, Enabled: true, ContractOwner: contractOwner})
+}
+
+func (suite *KeeperTestSuite) AddBridgeToken(contractAddr string, symbol string) {
+	bridgeTokenClaim := &types.MsgBridgeTokenClaim{TokenContract: contractAddr, Name: "Test Token", Symbol: symbol, Decimals: 18, ChainName: suite.chainName}
+	err := suite.Keeper().AddBridgeTokenExecuted(suite.Ctx, bridgeTokenClaim)
 	suite.Require().NoError(err)
 }

@@ -37,6 +37,16 @@ func (k *Keeper) ERE20Decimals(ctx context.Context, contractAddr common.Address)
 	return decimalRes.Value, nil
 }
 
+func (k *Keeper) ERC20BalanceOf(ctx context.Context, contractAddr, addr common.Address) (*big.Int, error) {
+	var balanceRes struct {
+		Value *big.Int
+	}
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.module, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, addr); err != nil {
+		return big.NewInt(0), err
+	}
+	return balanceRes.Value, nil
+}
+
 func (k *Keeper) ERE20Mint(ctx context.Context, contractAddr common.Address, from, receiver common.Address, amount *big.Int) error {
 	_, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, contract.GetFIP20().ABI, "mint", receiver, amount)
 	return err
