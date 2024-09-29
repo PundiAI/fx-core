@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) TestConversionCoin() {
 func (suite *KeeperTestSuite) TestDepositBridgeToken() {
 	amount := helpers.NewRandAmount()
 	baseCoin := suite.NewCoin(amount)
-	birdgeCoin, _ := suite.NewBridgeCoin(suite.chainName, amount)
+	bridgeCoin, _ := suite.NewBridgeCoin(suite.chainName, amount)
 
 	testCases := []struct {
 		Name         string
@@ -219,13 +219,13 @@ func (suite *KeeperTestSuite) TestDepositBridgeToken() {
 		},
 		{
 			Name:         "success - deposit native coin bridge token",
-			BridgeToken:  birdgeCoin,
+			BridgeToken:  bridgeCoin,
 			IsNativeCoin: true,
 			Success:      true,
 		},
 		{
 			Name:        "success - deposit native erc20 bridge token",
-			BridgeToken: birdgeCoin,
+			BridgeToken: bridgeCoin,
 			Success:     true,
 		},
 		{
@@ -239,7 +239,7 @@ func (suite *KeeperTestSuite) TestDepositBridgeToken() {
 	for _, tc := range testCases {
 		suite.Run(tc.Name, func() {
 			acc := helpers.GenAccAddress()
-			suite.SetToken(strings.ToUpper(baseCoin.Denom), birdgeCoin.Denom)
+			suite.SetToken(strings.ToUpper(baseCoin.Denom), bridgeCoin.Denom)
 			suite.AddTokenPair(baseCoin.Denom, tc.IsNativeCoin)
 
 			moduleBalance := suite.Balance(suite.ModuleAddress())
