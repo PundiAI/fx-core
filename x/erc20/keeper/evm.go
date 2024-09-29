@@ -13,17 +13,17 @@ import (
 
 // QueryERC20 returns the data of a deployed ERC20 contract
 func (k Keeper) QueryERC20(ctx sdk.Context, contractAddr common.Address) (types.ERC20Data, error) {
-	name, err := k.evmErc20Keeper.ERE20Name(ctx, contractAddr)
+	name, err := k.evmErc20Keeper.ERC20Name(ctx, contractAddr)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
 
-	symbol, err := k.evmErc20Keeper.ERE20Symbol(ctx, contractAddr)
+	symbol, err := k.evmErc20Keeper.ERC20Symbol(ctx, contractAddr)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
 
-	decimals, err := k.evmErc20Keeper.ERE20Decimals(ctx, contractAddr)
+	decimals, err := k.evmErc20Keeper.ERC20Decimals(ctx, contractAddr)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
