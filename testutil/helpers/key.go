@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -126,7 +125,7 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(err)
 	}
 	if len(pkBytes) != ed25519.PubKeySize {
-		panic(errorsmod.Wrap(errortypes.ErrInvalidPubKey, "invalid pubkey size"))
+		panic(errortypes.ErrInvalidPubKey.Wrap("size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
@@ -118,7 +117,7 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr common.Address
 		return err
 	}
 	if txResp.Failed() {
-		return errorsmod.Wrap(types.ErrInvalid, txResp.VmError)
+		return types.ErrInvalid.Wrap(txResp.VmError)
 	}
 	return nil
 }

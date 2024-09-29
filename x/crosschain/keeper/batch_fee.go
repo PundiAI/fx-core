@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -78,20 +77,20 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 
 func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error {
 	if ctx.IsZero() || txId < 1 || sender.Empty() || addBridgeFee.IsZero() {
-		return errorsmod.Wrap(types.ErrInvalid, "arguments")
+		return types.ErrInvalid.Wrapf("arguments")
 	}
 	// check that we actually have a tx with that id and what it's details are
 	tx, err := k.GetUnbatchedTxById(ctx, txId)
 	if err != nil {
-		return errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
+		return types.ErrInvalid.Wrapf("txId %d not in unbatched index! Must be in a batch!", txId)
 	}
 	tokenContract, found := k.GetContractByBridgeDenom(ctx, addBridgeFee.Denom)
 	if !found {
-		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+		return types.ErrInvalid.Wrapf("bridge token is not exist")
 	}
 
 	if tx.Fee.Contract != tokenContract {
-		return errorsmod.Wrap(types.ErrInvalid, "token not equal tx fee token")
+		return types.ErrInvalid.Wrapf("token not equal tx fee token")
 	}
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.

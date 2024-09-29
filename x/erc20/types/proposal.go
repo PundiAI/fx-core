@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -62,15 +62,15 @@ func (*RegisterCoinProposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *RegisterCoinProposal) ValidateBasic() error {
 	if err := m.Metadata.Validate(); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
 	}
 
 	if err := fxtypes.ValidateMetadata(m.Metadata); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
 	}
 
 	if err := ibctransfertypes.ValidateIBCDenom(m.Metadata.Base); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata base: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid metadata base: %s", err.Error())
 	}
 
 	return govv1betal.ValidateAbstract(m)
@@ -97,18 +97,18 @@ func (*RegisterERC20Proposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *RegisterERC20Proposal) ValidateBasic() error {
 	if err := contract.ValidateEthereumAddress(m.Erc20Address); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
 	}
 	seenAliases := make(map[string]bool)
 	for _, alias := range m.Aliases {
 		if seenAliases[alias] {
-			return errortypes.ErrInvalidAddress.Wrapf("duplicate denomination unit alias %s", alias)
+			return sdkerrors.ErrInvalidAddress.Wrapf("duplicate denomination unit alias %s", alias)
 		}
 		if strings.TrimSpace(alias) == "" {
-			return errortypes.ErrInvalidAddress.Wrapf("alias for denom unit %s cannot be blank", alias)
+			return sdkerrors.ErrInvalidAddress.Wrapf("alias for denom unit %s cannot be blank", alias)
 		}
 		if err := sdk.ValidateDenom(alias); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid alias")
+			return sdkerrors.ErrInvalidRequest.Wrap("invalid alias")
 		}
 		seenAliases[alias] = true
 	}
@@ -138,7 +138,7 @@ func (m *ToggleTokenConversionProposal) ValidateBasic() error {
 	// denom
 	if err := contract.ValidateEthereumAddress(m.Token); err != nil {
 		if err := sdk.ValidateDenom(m.Token); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid token")
+			return sdkerrors.ErrInvalidRequest.Wrap("invalid token")
 		}
 	}
 
@@ -166,10 +166,10 @@ func (*UpdateDenomAliasProposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *UpdateDenomAliasProposal) ValidateBasic() error {
 	if err := sdk.ValidateDenom(m.Denom); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid denom: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid denom: %s", err.Error())
 	}
 	if err := sdk.ValidateDenom(m.Alias); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid alias: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid alias: %s", err.Error())
 	}
 	return govv1betal.ValidateAbstract(m)
 }

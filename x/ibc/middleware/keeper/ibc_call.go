@@ -3,7 +3,6 @@ package keeper
 import (
 	"strconv"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -55,7 +54,7 @@ func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPac
 	evmSuccess = !txResp.Failed()
 	evmErrCause = txResp.VmError
 	if txResp.Failed() {
-		return errorsmod.Wrap(evmtypes.ErrVMExecution, txResp.VmError)
+		return evmtypes.ErrVMExecution.Wrap(txResp.VmError)
 	}
 	return nil
 }

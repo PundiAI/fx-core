@@ -7,7 +7,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -79,7 +79,7 @@ func (k Keeper) ModuleAddress() common.Address {
 // TransferAfter ibc transfer after
 func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _ bool) error {
 	if err := contract.ValidateEthereumAddress(receive); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err.Error())
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err.Error())
 	}
 	_, err := k.ConvertCoin(ctx, &types.MsgConvertCoin{
 		Coin:     coin.Add(fee),

@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
@@ -24,7 +23,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		return k.UpdateOracleSetExecuted(ctx, claim)
 
 	default:
-		return errorsmod.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
+		return types.ErrInvalid.Wrapf("event type: %s", claim.GetType())
 	}
 	return nil
 }
@@ -32,7 +31,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) error {
 	externalClaim, found := k.GetPendingExecuteClaim(ctx, eventNonce)
 	if !found {
-		return errortypes.ErrInvalidRequest.Wrap("claim not found")
+		return sdkerrors.ErrInvalidRequest.Wrap("claim not found")
 	}
 	k.DeletePendingExecuteClaim(ctx, eventNonce)
 	switch claim := externalClaim.(type) {
@@ -43,7 +42,7 @@ func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) error {
 	case *types.MsgBridgeCallResultClaim:
 		k.BridgeCallResultHandler(ctx, claim)
 	default:
-		return errortypes.ErrInvalidRequest.Wrapf("invalid claim type: %s", claim.GetType())
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid claim type: %s", claim.GetType())
 	}
 	return nil
 }

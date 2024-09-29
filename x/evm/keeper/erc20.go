@@ -4,9 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v8/contract"
@@ -67,10 +66,10 @@ func (k *Keeper) ERC20Transfer(ctx context.Context, contractAddr common.Address,
 	// Check unpackedRet execution
 	var unpackedRet struct{ Value bool }
 	if err = erc20ABI.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return errorsmod.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
+		return types.ErrABIUnpack.Wrapf("failed to unpack transfer: %s", err.Error())
 	}
 	if !unpackedRet.Value {
-		return errorsmod.Wrap(errortypes.ErrLogic, "failed to execute transfer")
+		return sdkerrors.ErrLogic.Wrap("failed to execute transfer")
 	}
 	return nil
 }

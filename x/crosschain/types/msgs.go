@@ -2,15 +2,13 @@ package types
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -75,84 +73,84 @@ var (
 
 func (m *MsgBondedOracle) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if !m.DelegateAmount.IsValid() || m.DelegateAmount.IsNegative() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid delegation amount")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid delegation amount")
 	}
 	if m.OracleAddress == m.BridgerAddress {
-		return errortypes.ErrInvalidRequest.Wrap("same address")
+		return sdkerrors.ErrInvalidRequest.Wrap("same address")
 	}
 	return nil
 }
 
 func (m *MsgAddDelegate) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	return nil
 }
 
 func (m *MsgReDelegate) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 	}
 	if _, err = sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
 	}
 	return nil
 }
 
 func (m *MsgEditBridger) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 	}
 	if _, err = sdk.ValAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if m.OracleAddress == m.BridgerAddress {
-		return errortypes.ErrInvalidRequest.Wrap("same address")
+		return sdkerrors.ErrInvalidRequest.Wrap("same address")
 	}
 	return nil
 }
 
 func (m *MsgWithdrawReward) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 	}
 	return nil
 }
 
 func (m *MsgUnbondedOracle) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 	}
 	return nil
 }
@@ -172,133 +170,133 @@ var (
 
 func (m *MsgOracleSetConfirm) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if len(m.Signature) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty signature")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty signature")
 	}
 	if _, err = hex.DecodeString(m.Signature); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
+		return sdkerrors.ErrInvalidRequest.Wrap("could not hex decode signature")
 	}
 	return nil
 }
 
 func (m *MsgSendToExternal) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.Dest); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid dest address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid dest address: %s", err)
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	if m.Amount.Denom != m.BridgeFee.Denom {
-		return errortypes.ErrInvalidRequest.Wrap("bridge fee denom not equal amount denom")
+		return sdkerrors.ErrInvalidRequest.Wrap("bridge fee denom not equal amount denom")
 	}
 	if !m.BridgeFee.IsValid() || !m.BridgeFee.IsPositive() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid bridge fee")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid bridge fee")
 	}
 	return nil
 }
 
 func (m *MsgRequestBatch) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if len(m.Denom) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty denom")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty denom")
 	}
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid minimum fee")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid minimum fee")
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.FeeReceive); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid fee receive address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid fee receive address: %s", err)
 	}
 	if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid base fee")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid base fee")
 	}
 	return nil
 }
 
 func (m *MsgConfirmBatch) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if len(m.Signature) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty signature")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty signature")
 	}
 	if _, err = hex.DecodeString(m.Signature); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
+		return sdkerrors.ErrInvalidRequest.Wrap("could not hex decode signature")
 	}
 	return nil
 }
 
 func (m *MsgBridgeCallConfirm) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if len(m.Signature) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty signature")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty signature")
 	}
 	if _, err = hex.DecodeString(m.Signature); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
+		return sdkerrors.ErrInvalidRequest.Wrap("could not hex decode signature")
 	}
 	return nil
 }
 
 func (m *MsgCancelSendToExternal) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if m.TransactionId == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero transaction id")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero transaction id")
 	}
 	return nil
 }
 
 func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if m.TransactionId == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero transaction id")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero transaction id")
 	}
 	if !m.AddBridgeFee.IsValid() || !m.AddBridgeFee.IsPositive() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid bridge fee")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid bridge fee")
 	}
 	return nil
 }
@@ -343,14 +341,14 @@ func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (Exter
 
 func (m *MsgClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if m.Claim == nil {
-		return errortypes.ErrInvalidRequest.Wrap("empty claim")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty claim")
 	}
 	claim, ok := m.Claim.GetCachedValue().(ExternalClaim)
 	if !ok {
-		return errortypes.ErrInvalidRequest.Wrapf("expected claim type %T, got %T", new(ExternalClaim), m.Claim.GetCachedValue())
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected claim type %T, got %T", new(ExternalClaim), m.Claim.GetCachedValue())
 	}
 	return claim.ValidateBasic()
 }
@@ -358,7 +356,7 @@ func (m *MsgClaim) ValidateBasic() (err error) {
 func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	claim, ok := m.Claim.GetCachedValue().(ExternalClaim)
 	if !ok {
-		panic(errortypes.ErrInvalidRequest.Wrapf("expected claim type %T, got %T", new(ExternalClaim), m.Claim.GetCachedValue()))
+		panic(sdkerrors.ErrInvalidRequest.Wrapf("expected claim type %T, got %T", new(ExternalClaim), m.Claim.GetCachedValue()))
 	}
 	return []sdk.AccAddress{claim.GetClaimer()}
 }
@@ -369,31 +367,31 @@ func (m *MsgSendToFxClaim) GetType() ClaimType {
 
 func (m *MsgSendToFxClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Receiver); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if m.Amount.IsNil() || m.Amount.IsNegative() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	if _, err = hex.DecodeString(m.TargetIbc); len(m.TargetIbc) > 0 && err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("could not decode hex targetIbc")
+		return sdkerrors.ErrInvalidRequest.Wrap("could not decode hex targetIbc")
 	}
 	if m.EventNonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
 	}
 	return nil
 }
@@ -413,14 +411,14 @@ func (m *MsgBridgeCallClaim) GetType() ClaimType {
 
 func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if len(m.TokenContracts) != len(m.Amounts) {
-		return errortypes.ErrInvalidRequest.Wrap("mismatched token contracts and amounts")
+		return sdkerrors.ErrInvalidRequest.Wrap("mismatched token contracts and amounts")
 	}
 	for _, contract := range m.TokenContracts {
 		if err = ValidateExternalAddr(m.ChainName, contract); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+			return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 		}
 	}
 	return m.validateBasic()
@@ -428,37 +426,37 @@ func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
 
 func (m *MsgBridgeCallClaim) validateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid to contract: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.Refund); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
 	}
 	if m.Value.IsNil() || m.Value.IsNegative() {
-		return errortypes.ErrInvalidRequest.Wrap("invalid value")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid value")
 	}
 	if len(m.Data) > 0 {
 		if _, err = hex.DecodeString(m.Data); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid data")
+			return sdkerrors.ErrInvalidRequest.Wrap("invalid data")
 		}
 	}
 	if m.EventNonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.TxOrigin); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
 	}
 	if len(m.Memo) > 0 {
 		if _, err = hex.DecodeString(m.Memo); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid memo")
+			return sdkerrors.ErrInvalidRequest.Wrap("invalid memo")
 		}
 	}
 	return nil
@@ -530,26 +528,26 @@ func (m *MsgBridgeCallResultClaim) GetType() ClaimType {
 
 func (m *MsgBridgeCallResultClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if m.Nonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero nonce")
 	}
 	if m.EventNonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.TxOrigin); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid tx origin: %s", err)
 	}
 	if len(m.Cause) > 0 {
 		if _, err = hex.DecodeString(m.Cause); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid cause")
+			return sdkerrors.ErrInvalidRequest.Wrap("invalid cause")
 		}
 	}
 	return nil
@@ -574,22 +572,22 @@ func (m *MsgSendToExternalClaim) GetType() ClaimType {
 
 func (m *MsgSendToExternalClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if m.EventNonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
 	}
 	if m.BatchNonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero batch nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero batch nonce")
 	}
 	return nil
 }
@@ -605,28 +603,28 @@ func (m *MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
 
 func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err = hex.DecodeString(m.ChannelIbc); len(m.ChannelIbc) > 0 && err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("could not decode hex channelIbc string")
+		return sdkerrors.ErrInvalidRequest.Wrap("could not decode hex channelIbc string")
 	}
 	if len(m.Name) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty token name")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty token name")
 	}
 	if len(m.Symbol) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty token symbol")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty token symbol")
 	}
 	if m.EventNonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
 	}
 	return nil
 }
@@ -650,27 +648,27 @@ func (m *MsgOracleSetUpdatedClaim) GetType() ClaimType {
 
 func (m *MsgOracleSetUpdatedClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}
 	if len(m.Members) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty members")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty members")
 	}
 	for _, member := range m.Members {
 		if err = ValidateExternalAddr(m.ChainName, member.ExternalAddress); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+			return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 		}
 		if member.Power == 0 {
-			return errortypes.ErrInvalidRequest.Wrap("zero power")
+			return sdkerrors.ErrInvalidRequest.Wrap("zero power")
 		}
 	}
 	if m.EventNonce == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
 	}
 	return nil
 }
@@ -702,37 +700,37 @@ func (m *MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "authority")
+		return sdkerrors.ErrInvalidAddress.Wrapf("authority")
 	}
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "params")
+		return sdkerrors.ErrInvalidRequest.Wrapf("params err: %s", err.Error())
 	}
 	if len(m.Params.Oracles) > 0 {
-		return errors.New("deprecated oracles")
+		return sdkerrors.ErrInvalidRequest.Wrap("deprecated oracles")
 	}
 	return nil
 }
 
 func (m *MsgUpdateChainOracles) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "authority")
+		return sdkerrors.ErrInvalidAddress.Wrap("authority")
 	}
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if len(m.Oracles) == 0 {
-		return errors.New("empty oracles")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty oracles")
 	}
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return errorsmod.Wrap(err, "oracle address")
+			return sdkerrors.ErrInvalidAddress.Wrap("oracle address")
 		}
 		if oraclesMap[addr] {
-			return errors.New("duplicate oracle address")
+			return sdkerrors.ErrInvalidRequest.Wrap("duplicate oracle address")
 		}
 		oraclesMap[addr] = true
 	}
@@ -741,41 +739,41 @@ func (m *MsgUpdateChainOracles) ValidateBasic() error {
 
 func (m *MsgBridgeCall) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	return m.validateBasic()
 }
 
 func (m *MsgBridgeCall) validateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
 	}
 	if m.Value.Sign() != 0 {
-		return errortypes.ErrInvalidRequest.Wrap("value must be zero")
+		return sdkerrors.ErrInvalidRequest.Wrap("value must be zero")
 	}
 	if err = m.Coins.Validate(); err != nil {
-		return errortypes.ErrInvalidCoins.Wrap(err.Error())
+		return sdkerrors.ErrInvalidCoins.Wrap(err.Error())
 	}
 	if len(m.Coins) > 0 || len(m.Refund) > 0 {
 		if _, err = sdk.AccAddressFromBech32(m.Refund); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
+			return sdkerrors.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
 		}
 	}
 	if len(m.Data) > 0 {
 		if _, err = hex.DecodeString(m.Data); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid data")
+			return sdkerrors.ErrInvalidRequest.Wrap("invalid data")
 		}
 	}
 	if len(m.Memo) > 0 {
 		if _, err = hex.DecodeString(m.Memo); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid memo")
+			return sdkerrors.ErrInvalidRequest.Wrap("invalid memo")
 		}
 	}
 	if m.Coins.Len() == 0 && len(m.Data) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("coins and data cannot be empty at the same time")
+		return sdkerrors.ErrInvalidRequest.Wrap("coins and data cannot be empty at the same time")
 	}
 	return nil
 }

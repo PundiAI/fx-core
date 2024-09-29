@@ -2,9 +2,9 @@ package types
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/abi"
 
@@ -23,11 +23,11 @@ func GetCheckpointOracleSet(oracleSet *types.OracleSet, gravityIDStr string) ([]
 
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse gravity id")
+		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 	checkpoint, err := fxtypes.StrToByte32("checkpoint")
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse checkpoint")
+		return nil, fmt.Errorf("parse checkpoint: %w", err)
 	}
 
 	params := []abi.Param{
@@ -57,11 +57,11 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse gravity id")
+		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 	transactionBatch, err := fxtypes.StrToByte32("transactionBatch")
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse checkpoint")
+		return nil, fmt.Errorf("parse transaction batch: %w", err)
 	}
 
 	params := []abi.Param{
@@ -86,19 +86,19 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 func GetCheckpointBridgeCall(bridgeCall *types.OutgoingBridgeCall, gravityIDStr string) ([]byte, error) {
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse gravity id")
+		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 	bridgeCallMethodName, err := fxtypes.StrToByte32("bridgeCall")
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse checkpoint")
+		return nil, fmt.Errorf("parse bridge call method name: %w", err)
 	}
 	dataBytes, err := hex.DecodeString(bridgeCall.Data)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse data")
+		return nil, fmt.Errorf("parse data: %w", err)
 	}
 	memeBytes, err := hex.DecodeString(bridgeCall.Memo)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse memo")
+		return nil, fmt.Errorf("parse memo: %w", err)
 	}
 	contracts := make([]string, 0, len(bridgeCall.Tokens))
 	amounts := make([]*big.Int, 0, len(bridgeCall.Tokens))

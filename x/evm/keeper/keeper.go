@@ -6,11 +6,11 @@ import (
 	"math/big"
 	"strconv"
 
-	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -97,7 +97,7 @@ func (k *Keeper) CallEVMWithoutGas(
 				errStr = cause
 			}
 		}
-		return res, errorsmod.Wrap(types.ErrVMExecution, errStr)
+		return res, types.ErrVMExecution.Wrap(errStr)
 	}
 
 	ctx.WithGasMeter(gasMeter)
@@ -172,11 +172,11 @@ func (k *Keeper) CallEVM(
 
 	txLogAttrs := make([]sdk.Attribute, len(res.Logs))
 	for i, log := range res.Logs {
-		value, err := json.Marshal(log)
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "failed to encode log")
+		logStr, e := json.Marshal(log)
+		if e != nil {
+			return nil, sdkerrors.ErrJSONMarshal.Wrapf("failed to marshal tx log: %s", e.Error())
 		}
-		txLogAttrs[i] = sdk.NewAttribute(types.AttributeKeyTxLog, string(value))
+		txLogAttrs[i] = sdk.NewAttribute(types.AttributeKeyTxLog, string(logStr))
 	}
 
 	// emit events

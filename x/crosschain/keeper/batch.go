@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,14 +20,14 @@ import (
 //   - emit an event
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive string, maxElements uint, minimumFee, baseFee sdkmath.Int) (*types.OutgoingTxBatch, error) {
 	if maxElements == 0 {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "max elements value")
+		return nil, types.ErrInvalid.Wrapf("max elements value")
 	}
 
 	// if there is a more profitable batch for this token type do not create a new batch
 	if lastBatch := k.GetLastOutgoingBatchByToken(ctx, tokenContract); lastBatch != nil {
 		currentFees := k.GetBatchFeesByTokenType(ctx, tokenContract, maxElements, baseFee)
 		if lastBatch.GetFees().GT(currentFees.TotalFees) {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "new batch would not be more profitable")
+			return nil, types.ErrInvalid.Wrapf("new batch would not be more profitable")
 		}
 	}
 	selectedTx, err := k.pickUnBatchedTx(ctx, tokenContract, maxElements, baseFee)
@@ -36,14 +35,14 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 		return nil, err
 	}
 	if len(selectedTx) == 0 {
-		return nil, errorsmod.Wrap(types.ErrEmpty, "no batch tx")
+		return nil, types.ErrInvalid.Wrapf("no batch tx")
 	}
 	if types.OutgoingTransferTxs(selectedTx).TotalFee().LT(minimumFee) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "total fee less than minimum fee")
+		return nil, types.ErrInvalid.Wrapf("total fee less than minimum fee")
 	}
 	batchTimeout := k.CalExternalTimeoutHeight(ctx, GetExternalBatchTimeout)
 	if batchTimeout <= 0 {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "batch timeout height")
+		return nil, types.ErrInvalid.Wrapf("batch timeout height")
 	}
 	nextID := k.autoIncrementID(ctx, types.KeyLastOutgoingBatchID)
 	batch := &types.OutgoingTxBatch{
@@ -121,7 +120,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
 	// Note: Only one OutgoingTxBatch can be submitted in a block
 	if store.Has(blockKey) {
-		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
+		return types.ErrInvalid.Wrapf("block:[%v] has batch request", batch.Block)
 	}
 	store.Set(blockKey, k.cdc.MustMarshal(batch))
 	return nil
@@ -151,11 +150,11 @@ func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchN
 func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) error {
 	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
 	if batch == nil {
-		return types.ErrUnknown
+		return types.ErrInvalid.Wrapf("batch not found %s %d", tokenContract, batchNonce)
 	}
 	for _, tx := range batch.Transactions {
 		if err := k.AddUnbatchedTx(ctx, tx); err != nil {
-			panic(errorsmod.Wrapf(err, "unable to add batched transaction back into pool %v", tx))
+			panic(fmt.Errorf("unable to add batched transaction back into pool %v, err: %w", tx, err))
 		}
 	}
 

@@ -1,7 +1,6 @@
 package ante
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	txsigning "cosmossdk.io/x/tx/signing"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -37,25 +36,25 @@ type HandlerOptions struct {
 
 func (options HandlerOptions) Validate() error {
 	if options.AccountKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "account keeper is required for AnteHandler")
+		return errortypes.ErrLogic.Wrap("account keeper is required for AnteHandler")
 	}
 	if options.BankKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "bank keeper is required for AnteHandler")
+		return errortypes.ErrLogic.Wrap("bank keeper is required for AnteHandler")
 	}
 	if options.SignModeHandler == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "sign mode handler is required for ante builder")
+		return errortypes.ErrLogic.Wrap("sign mode handler is required for ante builder")
 	}
 	if options.FeeMarketKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "fee market keeper is required for AnteHandler")
+		return errortypes.ErrLogic.Wrap("fee market keeper is required for AnteHandler")
 	}
 	if options.EvmKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "evm keeper is required for AnteHandler")
+		return errortypes.ErrLogic.Wrap("evm keeper is required for AnteHandler")
 	}
 	if options.IbcKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "ibc keeper is required for AnteHandler")
+		return errortypes.ErrLogic.Wrap("ibc keeper is required for AnteHandler")
 	}
 	if options.GovKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "gov keeper is required for AnteHandler")
+		return errortypes.ErrLogic.Wrap("gov keeper is required for AnteHandler")
 	}
 	return nil
 }
@@ -68,7 +67,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
 		blockCfg, err := options.EvmKeeper.EVMBlockConfig(ctx, options.EvmKeeper.ChainID())
 		if err != nil {
-			return ctx, errorsmod.Wrap(errortypes.ErrLogic, err.Error())
+			return ctx, errortypes.ErrLogic.Wrap(err.Error())
 		}
 		evmParams := &blockCfg.Params
 		evmDenom := evmParams.EvmDenom
@@ -79,7 +78,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		// all transactions must implement FeeTx
 		_, ok := tx.(sdk.FeeTx)
 		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidType, "invalid transaction type %T, expected sdk.FeeTx", tx)
+			return ctx, errortypes.ErrInvalidType.Wrapf("invalid transaction type %T, expected sdk.FeeTx", tx)
 		}
 
 		// We need to setup an empty gas config so that the gas is consistent with Ethereum.

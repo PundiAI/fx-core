@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -11,8 +10,7 @@ import (
 
 func (k Keeper) UpdateProposalOracles(ctx sdk.Context, oracles []string) error {
 	if len(oracles) > types.MaxOracleSize {
-		return errorsmod.Wrapf(types.ErrInvalid,
-			"oracle length must be less than or equal: %d", types.MaxOracleSize)
+		return types.ErrInvalid.Wrapf("oracle length must be less than or equal: %d", types.MaxOracleSize)
 	}
 
 	newOracleMap := make(map[string]bool, len(oracles))
@@ -51,7 +49,7 @@ func (k Keeper) UpdateProposalOracles(ctx sdk.Context, oracles []string) error {
 	k.Logger(ctx).Info("update chain oracles proposal",
 		"maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
 	if deleteTotalPower.GT(sdkmath.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
-		return errorsmod.Wrapf(types.ErrInvalid, "max change power, "+
+		return types.ErrInvalid.Wrapf("max change power, "+
 			"maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}
 
