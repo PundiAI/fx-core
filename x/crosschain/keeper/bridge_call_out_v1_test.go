@@ -7,9 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -83,16 +81,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	}
 	suite.SendClaim(sendToFxClaim)
 	// expect balance = sendToFx value + outgointBridgeCallRefund value
-	suite.checkBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount))
+	suite.CheckBalanceOf(pair.GetERC20Contract(), fxAddr1, big.NewInt(randomAmount))
 	suite.Equal(sdkmath.NewInt(0), suite.App.BankKeeper.GetBalance(suite.Ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 	suite.Equal(sdkmath.NewInt(randomAmount), suite.App.BankKeeper.GetBalance(suite.Ctx, bridgeCallRefundAddr, pair.Denom).Amount)
-}
-
-func (suite *KeeperTestSuite) checkBalanceOf(contractAddr, address common.Address, expectBalance *big.Int) {
-	var balanceRes struct {
-		Value *big.Int
-	}
-	err := suite.App.EvmKeeper.QueryContract(suite.Ctx, contractAddr, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, address)
-	suite.Require().NoError(err)
-	suite.EqualValuesf(expectBalance.Cmp(balanceRes.Value), 0, "expect balance %s, got %s", expectBalance.String(), balanceRes.Value.String())
 }

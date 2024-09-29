@@ -1,8 +1,10 @@
 package helpers
 
 import (
+	"math/big"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	tenderminttypes "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -12,9 +14,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/app"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 type BaseSuite struct {
@@ -124,9 +128,57 @@ func (s *BaseSuite) AddTestSigners(accNum int, coin sdk.Coin) []*Signer {
 	return signers
 }
 
-func (s *BaseSuite) MintToken(address sdk.AccAddress, amount sdk.Coin) {
-	err := s.App.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, sdk.NewCoins(amount))
+func (s *BaseSuite) MintToken(address sdk.AccAddress, amount ...sdk.Coin) {
+	err := s.App.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, sdk.NewCoins(amount...))
 	s.Require().NoError(err)
-	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, address.Bytes(), sdk.NewCoins(amount))
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, address.Bytes(), sdk.NewCoins(amount...))
 	s.Require().NoError(err)
+}
+
+func (s *BaseSuite) MintTokenToModule(module string, amount ...sdk.Coin) {
+	acc := GenAccAddress()
+	s.MintToken(acc, amount...)
+	err := s.App.BankKeeper.SendCoinsFromAccountToModule(s.Ctx, acc, module, sdk.NewCoins(amount...))
+	s.Require().NoError(err)
+}
+
+func (s *BaseSuite) Balance(acc sdk.AccAddress) sdk.Coins {
+	return s.App.BankKeeper.GetAllBalances(s.Ctx, acc)
+}
+
+func (s *BaseSuite) CheckBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
+	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
+	for _, bal := range expBal {
+		s.Equal(bal.Amount, balances.AmountOf(bal.Denom), bal.Denom)
+	}
+}
+
+func (s *BaseSuite) CheckAllBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
+	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
+	s.Equal(sdk.NewCoins(expBal...).String(), balances.String())
+}
+
+func (s *BaseSuite) CheckBalanceOf(contractAddr, address common.Address, expBal *big.Int) {
+	balanceOf, err := s.App.EvmKeeper.ERC20BalanceOf(s.Ctx, contractAddr, address)
+	s.Require().NoError(err)
+	s.Equal(expBal.String(), balanceOf.String())
+}
+
+func (s *BaseSuite) NewCoin(amounts ...sdkmath.Int) sdk.Coin {
+	amount := NewRandAmount()
+	if len(amounts) > 0 && amounts[0].IsPositive() {
+		amount = amounts[0]
+	}
+	denom := NewRandDenom()
+	return sdk.NewCoin(denom, amount)
+}
+
+func (s *BaseSuite) NewBridgeCoin(module string, amounts ...sdkmath.Int) (sdk.Coin, string) {
+	amount := NewRandAmount()
+	if len(amounts) > 0 && amounts[0].IsPositive() {
+		amount = amounts[0]
+	}
+	tokenAddr := GenExternalAddr(module)
+	bridgeDenom := crosschaintypes.NewBridgeDenom(module, tokenAddr)
+	return sdk.NewCoin(bridgeDenom, amount), tokenAddr
 }
