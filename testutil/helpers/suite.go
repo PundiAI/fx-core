@@ -58,9 +58,13 @@ func (s *BaseSuite) SetupTest() {
 	s.Ctx = s.Ctx.WithProposer(s.ValSet.Proposer.Address.Bytes())
 }
 
-func (s *BaseSuite) AddTestSigner() *Signer {
+func (s *BaseSuite) AddTestSigner(amount ...int64) *Signer {
 	signer := NewSigner(NewEthPrivKey())
-	s.MintToken(signer.AccAddress(), NewStakingCoin(100, 18))
+	defAmount := int64(100)
+	if len(amount) > 0 {
+		defAmount = amount[0]
+	}
+	s.MintToken(signer.AccAddress(), NewStakingCoin(defAmount, 18))
 	return signer
 }
 
