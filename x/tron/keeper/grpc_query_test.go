@@ -61,8 +61,8 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					},
 				}
 				for i := uint64(1); i <= 3; i++ {
-					_, err := suite.app.TronKeeper.AddToOutgoingPool(
-						suite.ctx,
+					_, err := suite.App.TronKeeper.AddToOutgoingPool(
+						suite.Ctx,
 						suite.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
@@ -70,8 +70,8 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					suite.Require().NoError(err)
 				}
 				for i := uint64(1); i <= 2; i++ {
-					_, err := suite.app.TronKeeper.AddToOutgoingPool(
-						suite.ctx,
+					_, err := suite.App.TronKeeper.AddToOutgoingPool(
+						suite.Ctx,
 						suite.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
@@ -108,24 +108,24 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					},
 				}
 				for i := 1; i <= 2; i++ {
-					_, err := suite.app.TronKeeper.AddToOutgoingPool(
-						suite.ctx,
+					_, err := suite.App.TronKeeper.AddToOutgoingPool(
+						suite.Ctx,
 						suite.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
 						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
 				}
-				_, err := suite.app.TronKeeper.AddToOutgoingPool(
-					suite.ctx,
+				_, err := suite.App.TronKeeper.AddToOutgoingPool(
+					suite.Ctx,
 					suite.signer.AccAddress(),
 					helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
 					sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 				suite.Require().NoError(err)
 				for i := 1; i <= 3; i++ {
-					_, err = suite.app.TronKeeper.AddToOutgoingPool(
-						suite.ctx,
+					_, err = suite.App.TronKeeper.AddToOutgoingPool(
+						suite.Ctx,
 						suite.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 						sdk.NewCoin(bridgeToken[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
-			ctx := suite.ctx
+			ctx := suite.Ctx
 			testCase.malleate()
 			res, err := suite.queryServer.BatchFees(ctx, request)
 			if testCase.expPass {
@@ -190,7 +190,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: bridgeToken[0].Token,
 					Nonce:         3,
 				}
-				err := suite.app.TronKeeper.StoreBatch(suite.ctx, &types.OutgoingTxBatch{
+				err := suite.App.TronKeeper.StoreBatch(suite.Ctx, &types.OutgoingTxBatch{
 					BatchNonce:   3,
 					BatchTimeout: 10000,
 					Transactions: []*types.OutgoingTransferTx{
@@ -282,7 +282,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.queryServer.BatchRequestByNonce(suite.ctx, request)
+			res, err := suite.queryServer.BatchRequestByNonce(suite.Ctx, request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.Batch, res.Batch)
@@ -333,7 +333,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 					TokenContract: bridgeToken[0].Token,
 					Nonce:         2,
 				}
-				suite.app.TronKeeper.SetBatchConfirm(suite.ctx, suite.signer.AccAddress(), &types.MsgConfirmBatch{
+				suite.App.TronKeeper.SetBatchConfirm(suite.Ctx, suite.signer.AccAddress(), &types.MsgConfirmBatch{
 					Nonce: 1,
 				})
 				response = &types.QueryBatchConfirmsResponse{}
@@ -358,7 +358,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 					ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),
 					Signature:       helpers.GenHexAddress().Hex(),
 				}
-				suite.app.TronKeeper.SetBatchConfirm(suite.ctx, suite.signer.AccAddress(), newConfirmBatch)
+				suite.App.TronKeeper.SetBatchConfirm(suite.Ctx, suite.signer.AccAddress(), newConfirmBatch)
 				response = &types.QueryBatchConfirmsResponse{Confirms: []*types.MsgConfirmBatch{newConfirmBatch}}
 			},
 			true,
@@ -368,7 +368,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 
-			ctx := suite.ctx
+			ctx := suite.Ctx
 			testCase.malleate()
 
 			res, err := suite.queryServer.BatchConfirms(ctx, request)
@@ -446,7 +446,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 
-			ctx := suite.ctx
+			ctx := suite.Ctx
 			testCase.malleate()
 
 			res, err := suite.queryServer.TokenToDenom(ctx, request)
@@ -513,7 +513,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetOracleByExternalAddr() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.queryServer.GetOracleByExternalAddr(suite.ctx, request)
+			res, err := suite.queryServer.GetOracleByExternalAddr(suite.Ctx, request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.Oracle, res.Oracle)

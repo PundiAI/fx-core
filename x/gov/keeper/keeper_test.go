@@ -8,7 +8,6 @@ import (
 
 	"cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,7 +31,6 @@ import (
 type KeeperTestSuite struct {
 	helpers.BaseSuite
 
-	addrs       []sdk.AccAddress
 	govAcct     string
 	msgServer   types.MsgServerPro
 	queryClient types.QueryClient
@@ -43,11 +41,9 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	valNumber := tmrand.Intn(10) + 1
-	suite.BaseSuite.MintValNumber = valNumber
+	suite.BaseSuite.MintValNumber = 1
 	suite.BaseSuite.SetupTest()
 
-	suite.addrs = helpers.AddTestAddrs(suite.App, suite.Ctx, 5, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e8).MulRaw(1e18))))
 	suite.govAcct = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	suite.msgServer = keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.App.GovKeeper.Keeper), suite.App.GovKeeper)
 
@@ -57,18 +53,15 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) addFundCommunityPool() {
-	sender := helpers.GenAccAddress()
-	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(5 * 1e8).MulRaw(1e18)}
-	helpers.AddTestAddr(suite.App, suite.Ctx, sender, sdk.NewCoins(coin))
-	err := suite.App.DistrKeeper.FundCommunityPool(suite.Ctx, sdk.NewCoins(coin), sender)
+	sender := suite.AddTestSigner(5 * 1e8)
+	balances := suite.Balance(sender.AccAddress())
+
+	err := suite.App.DistrKeeper.FundCommunityPool(suite.Ctx, balances, sender.AccAddress())
 	suite.NoError(err)
 }
 
 func (suite *KeeperTestSuite) newAddress() sdk.AccAddress {
-	address := helpers.GenAccAddress()
-	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(50_000).MulRaw(1e18)}
-	helpers.AddTestAddr(suite.App, suite.Ctx, address, sdk.NewCoins(coin))
-	return address
+	return suite.AddTestSigner(50_000).AccAddress()
 }
 
 func (suite *KeeperTestSuite) TestDeposits() {
@@ -87,7 +80,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 	suite.True(initCoins.IsAllLT(params.MinDeposit))
 
 	// first deposit
-	firstCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1e3).MulRaw(1e18)}}
+	firstCoins := helpers.NewStakingCoins(1000, 18)
 	votingStarted, err := suite.App.GovKeeper.AddDeposit(suite.Ctx, proposal.Id, addr, firstCoins)
 	suite.NoError(err)
 	suite.False(votingStarted)
@@ -102,7 +95,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 	suite.True(initCoins.Add(firstCoins...).IsAllLT(params.MinDeposit))
 
 	// second deposit
-	secondCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(9 * 1e3).MulRaw(1e18)}}
+	secondCoins := helpers.NewStakingCoins(9_000, 18)
 	votingStarted, err = suite.App.GovKeeper.AddDeposit(suite.Ctx, proposal.Id, addr, secondCoins)
 	suite.NoError(err)
 	suite.True(votingStarted)
@@ -117,7 +110,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 }
 
 func (suite *KeeperTestSuite) getTextProposal() (sdk.Coins, *govv1.MsgSubmitProposal, error) {
-	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1e3).MulRaw(1e18)}}
+	initCoins := helpers.NewStakingCoins(1000, 18)
 	content := govv1beta1.NewTextProposal("Test", "description")
 	msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAcct)
 	suite.NoError(err)
