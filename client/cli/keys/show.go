@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -178,7 +178,7 @@ func fetchKey(kb keyring.Keyring, keyref string) (*keyring.Record, error) {
 	k, err := kb.Key(keyref)
 	// if the key is not there or if we have a problem with a keyring itself then we move to a
 	// fallback: searching for key by address.
-	if err == nil || !errorsmod.IsOf(err, errortypes.ErrIO, errortypes.ErrKeyNotFound) {
+	if err == nil || !errorsmod.IsOf(err, sdkerrors.ErrIO, sdkerrors.ErrKeyNotFound) {
 		return k, err
 	}
 	accAddr, err := sdk.AccAddressFromBech32(keyref)

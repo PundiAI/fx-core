@@ -2,7 +2,7 @@ package ante
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 )
 
@@ -23,10 +23,10 @@ var _ sdk.AnteDecorator = RejectExtensionOptionsDecorator{}
 func (r RejectExtensionOptionsDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	if hasExtOptsTx, ok := tx.(ante.HasExtensionOptionsTx); ok {
 		if len(hasExtOptsTx.GetExtensionOptions()) != 0 {
-			return ctx, errortypes.ErrUnknownExtensionOptions
+			return ctx, sdkerrors.ErrUnknownExtensionOptions
 		}
 		if len(hasExtOptsTx.GetNonCriticalExtensionOptions()) != 0 {
-			return ctx, errortypes.ErrUnknownRequest.Wrap("unknown non critical extension options")
+			return ctx, sdkerrors.ErrUnknownRequest.Wrap("unknown non critical extension options")
 		}
 	}
 	return next(ctx, tx, simulate)
