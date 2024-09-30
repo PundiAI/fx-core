@@ -15,7 +15,6 @@ import (
 
 	"github.com/functionx/fx-core/v8/contract"
 	testscontract "github.com/functionx/fx-core/v8/tests/contract"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
@@ -108,7 +107,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(1000) + 100)).MulRaw(1e18)
 			signer := suite.RandSigner()
-			helpers.AddTestAddr(suite.App, suite.Ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
+			suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
 
 			stakingContract := precompile.GetAddress()
 			stakingABI := precompile.GetABI()

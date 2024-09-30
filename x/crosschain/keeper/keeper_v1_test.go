@@ -101,8 +101,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.MintValNumber = valNumber
 	suite.BaseSuite.SetupTest()
 
-	suite.oracleAddrs = helpers.AddTestAddrs(suite.App, suite.Ctx, valNumber, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.App, suite.Ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
+	suite.oracleAddrs = suite.AddTestAddress(valNumber, types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18)))
+	suite.bridgerAddrs = suite.AddTestAddress(valNumber, sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18)))
 	suite.externalPris = helpers.CreateMultiECDSA(valNumber)
 
 	proposalOracle := &types.ProposalOracle{}

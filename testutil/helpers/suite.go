@@ -46,14 +46,14 @@ func (s *BaseSuite) SetupTest() {
 	if valNumber <= 0 {
 		valNumber = tmrand.Intn(10) + 1
 	}
-	valSet, valAccounts, valBalances := GenerateGenesisValidator(valNumber, sdk.Coins{})
+	valSet, valAccounts, valBalances := generateGenesisValidator(valNumber, sdk.Coins{})
 	s.ValSet = valSet
 	s.ValAddr = make([]sdk.ValAddress, valNumber)
 	for i := 0; i < valNumber; i++ {
 		s.ValAddr[i] = valAccounts[i].GetAddress().Bytes()
 	}
 
-	s.App = SetupWithGenesisValSet(s.T(), valSet, valAccounts, valBalances...)
+	s.App = setupWithGenesisValSet(s.T(), valSet, valAccounts, valBalances...)
 	s.Ctx = s.App.GetContextForFinalizeBlock(nil)
 	s.Ctx = s.Ctx.WithProposer(s.ValSet.Proposer.Address.Bytes())
 }
@@ -137,10 +137,19 @@ func (s *BaseSuite) Commit(block ...int64) sdk.Context {
 func (s *BaseSuite) AddTestSigners(accNum int, coin sdk.Coin) []*Signer {
 	signers := make([]*Signer, accNum)
 	for i := 0; i < accNum; i++ {
-		signer := NewSigner(NewEthPrivKey())
-		s.MintToken(signer.AccAddress(), coin)
+		signers[i] = NewSigner(NewEthPrivKey())
+		s.MintToken(signers[i].AccAddress(), coin)
 	}
 	return signers
+}
+
+func (s *BaseSuite) AddTestAddress(accNum int, coin sdk.Coin) []sdk.AccAddress {
+	accAddresses := make([]sdk.AccAddress, accNum)
+	signers := s.AddTestSigners(accNum, coin)
+	for i := 0; i < accNum; i++ {
+		accAddresses[i] = signers[i].AccAddress()
+	}
+	return accAddresses
 }
 
 func (s *BaseSuite) MintToken(address sdk.AccAddress, amount ...sdk.Coin) {

@@ -51,7 +51,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 	}
 	refundPackFunc := func(moduleName string, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-		externalTx, err := queryServer.GetPendingSendToExternal(suite.ctx,
+		externalTx, err := queryServer.GetPendingSendToExternal(suite.Ctx,
 			&crosschaintypes.QueryPendingSendToExternalRequest{
 				ChainName:     moduleName,
 				SenderAddress: signer.AccAddress().String(),
@@ -79,8 +79,8 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			name: "ok - address + erc20 token",
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+				suite.MintToken(signer.AccAddress(), coin)
+				_, err := suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -103,9 +103,9 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				suite.AddFXBridgeToken(helpers.GenHexAddress().String())
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintToken(signer.AccAddress().Bytes(), coin)
 
-				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				pair, found := suite.App.Erc20Keeper.GetTokenPair(suite.Ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
 				fee := big.NewInt(1)
@@ -121,21 +121,21 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		{
 			name: "ok - address + origin token",
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), pair.GetDenom())
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.Ctx, helpers.GenHexAddress().String(), pair.GetDenom())
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintToken(signer.AccAddress().Bytes(), coin)
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
 
 				// convert denom to many
 				fxTarget := fxtypes.ParseFxTarget(moduleName)
-				targetCoin, err := suite.app.Erc20Keeper.ConvertDenomToTarget(suite.ctx, signer.AccAddress(),
+				targetCoin, err := suite.App.Erc20Keeper.ConvertDenomToTarget(suite.Ctx, signer.AccAddress(),
 					sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint)), fxTarget)
 				suite.Require().NoError(err)
 
-				_, err = suite.CrossChainKeepers()[moduleName].AddToOutgoingPool(suite.ctx,
+				_, err = suite.CrossChainKeepers()[moduleName].AddToOutgoingPool(suite.Ctx,
 					signer.AccAddress(), signer.Address().String(),
 					sdk.NewCoin(targetCoin.Denom, sdkmath.NewIntFromBigInt(amount)),
 					sdk.NewCoin(targetCoin.Denom, sdkmath.NewIntFromBigInt(fee)))
@@ -150,15 +150,15 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			name: "ok - address + wrapper origin token",
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				moduleName := ethtypes.ModuleName
-				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				pair, found := suite.App.Erc20Keeper.GetTokenPair(suite.Ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
 				suite.AddFXBridgeToken(helpers.GenHexAddress().String())
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintToken(signer.AccAddress().Bytes(), coin)
 
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+				_, err := suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -202,12 +202,12 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 		//			Name:    fmt.Sprintf("%s Token", symbol),
 		//			Symbol:  symbol,
 		//		}
-		//		pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
+		//		pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, ibcMD)
 		//		suite.Require().NoError(err)
 		//
 		//		coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-		//		helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-		//		_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
+		//		suite.MintToken(signer.AccAddress(), sdk.NewCoins(coin))
+		//		_, err = suite.App.Erc20Keeper.ConvertCoin(suite.Ctx,
 		//			&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 		//		suite.Require().NoError(err)
 		//
@@ -287,7 +287,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
-			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, md.GetMetadata())
 			suite.Require().NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
@@ -297,13 +297,13 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 
 			if len(originToken) > 0 && originToken != fxtypes.DefaultDenom {
 				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-				petxs, err := queryServer.GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
+				petxs, err := queryServer.GetPendingSendToExternal(suite.Ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
 					ChainName:     moduleName,
 					SenderAddress: signer.AccAddress().String(),
 				})
 				suite.Require().NoError(err)
 				if len(petxs.UnbatchedTransfers) > 0 && !strings.Contains(tc.name, "ok - address + origin token") { // send by chain, not add relation
-					relation := suite.app.Erc20Keeper.HasOutgoingTransferRelation(suite.ctx, moduleName, petxs.UnbatchedTransfers[0].Id)
+					relation := suite.App.Erc20Keeper.HasOutgoingTransferRelation(suite.Ctx, moduleName, petxs.UnbatchedTransfers[0].Id)
 					suite.Require().True(relation)
 				}
 			}
@@ -311,13 +311,13 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			packData, errArgs := tc.malleate(moduleName, md, signer, randMint)
 
 			// check init balance zero
-			chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
+			chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, signer.AccAddress())
 			suite.Require().True(chainBalances.IsZero(), chainBalances.String())
 			balance := suite.BalanceOf(pair.GetERC20Contract(), signer.Address())
 			suite.Require().True(balance.Cmp(big.NewInt(0)) == 0, balance.String())
 
 			// get total supply
-			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+			totalBefore, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
 			res := suite.EthereumTx(signer, crosschaintypes.GetAddress(), big.NewInt(0), packData)
@@ -325,7 +325,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
 				// check balance after tx
-				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
+				chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, signer.AccAddress())
 				balance := suite.BalanceOf(pair.GetERC20Contract(), signer.Address())
 				if len(originToken) > 0 {
 					suite.Require().True(chainBalances.AmountOf(originToken).Equal(sdkmath.NewIntFromBigInt(randMint)), chainBalances.String())
@@ -341,13 +341,13 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 
 				// check total supply equal
 				manyToOne := make(map[string]bool)
-				suite.app.BankKeeper.IterateAllDenomMetaData(suite.ctx, func(md banktypes.Metadata) bool {
+				suite.App.BankKeeper.IterateAllDenomMetaData(suite.Ctx, func(md banktypes.Metadata) bool {
 					if len(md.DenomUnits) > 0 && len(md.DenomUnits[0].Aliases) > 0 {
 						manyToOne[md.Base] = true
 					}
 					return false
 				})
-				totalAfter, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+				totalAfter, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 				suite.Require().NoError(err)
 
 				for _, coin := range totalAfter.Supply {
@@ -356,7 +356,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 					}
 					expect := totalBefore.Supply.AmountOf(coin.Denom)
 
-					md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.GetDenom())
+					md, found := suite.App.BankKeeper.GetDenomMetaData(suite.Ctx, pair.GetDenom())
 					suite.Require().True(found)
 
 					has := false
@@ -399,15 +399,15 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 	signer := suite.RandSigner()
 	// token pair
 	md := suite.GenerateCrossChainDenoms()
-	pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
+	pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, md.GetMetadata())
 	suite.Require().NoError(err)
 	randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 	suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
 	moduleName := md.RandModule()
 
 	coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-	helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-	_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+	suite.MintToken(signer.AccAddress().Bytes(), coin)
+	_, err = suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 		Coin:     coin,
 		Receiver: signer.Address().Hex(),
 		Sender:   signer.AccAddress().String(),
@@ -427,7 +427,7 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 
 	// get crosschain pending tx
 	queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-	petxs, err := queryServer.GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
+	petxs, err := queryServer.GetPendingSendToExternal(suite.Ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
 		ChainName:     moduleName,
 		SenderAddress: signer.AccAddress().String(),
 	})
@@ -437,18 +437,18 @@ func (suite *PrecompileTestSuite) TestDeleteOutgoingTransferRelation() {
 	txId := petxs.UnbatchedTransfers[0].Id
 	txContract := petxs.UnbatchedTransfers[0].Token.Contract
 
-	suite.CrossChainKeepers()[moduleName].SetLastObservedBlockHeight(suite.ctx, 100, uint64(suite.ctx.BlockHeight()))
+	suite.CrossChainKeepers()[moduleName].SetLastObservedBlockHeight(suite.Ctx, 100, uint64(suite.Ctx.BlockHeight()))
 
-	batch, err := suite.CrossChainKeepers()[moduleName].BuildOutgoingTxBatch(suite.ctx, txContract,
+	batch, err := suite.CrossChainKeepers()[moduleName].BuildOutgoingTxBatch(suite.Ctx, txContract,
 		signer.Address().String(), 100, sdkmath.NewInt(0), sdkmath.NewInt(1))
 	suite.Require().NoError(err)
 	batchNonce := batch.BatchNonce
 
-	relation := suite.app.Erc20Keeper.HasOutgoingTransferRelation(suite.ctx, moduleName, txId)
+	relation := suite.App.Erc20Keeper.HasOutgoingTransferRelation(suite.Ctx, moduleName, txId)
 	suite.Require().True(relation)
 
-	suite.CrossChainKeepers()[moduleName].OutgoingTxBatchExecuted(suite.ctx, txContract, batchNonce)
+	suite.CrossChainKeepers()[moduleName].OutgoingTxBatchExecuted(suite.Ctx, txContract, batchNonce)
 
-	relation = suite.app.Erc20Keeper.HasOutgoingTransferRelation(suite.ctx, moduleName, txId)
+	relation = suite.App.Erc20Keeper.HasOutgoingTransferRelation(suite.Ctx, moduleName, txId)
 	suite.Require().False(relation)
 }

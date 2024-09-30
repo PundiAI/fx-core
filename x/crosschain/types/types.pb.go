@@ -851,9 +851,9 @@ type Params struct {
 	DelegateMultiple      int64       `protobuf:"varint,11,opt,name=delegate_multiple,json=delegateMultiple,proto3" json:"delegate_multiple,omitempty"`
 	BridgeCallTimeout     uint64      `protobuf:"varint,12,opt,name=bridge_call_timeout,json=bridgeCallTimeout,proto3" json:"bridge_call_timeout,omitempty"`
 	BridgeCallMaxGasLimit uint64      `protobuf:"varint,13,opt,name=bridge_call_max_gas_limit,json=bridgeCallMaxGasLimit,proto3" json:"bridge_call_max_gas_limit,omitempty"`
-	// Deprecated
+	// Deprecated: do not use
 	EnableSendToExternalPending bool `protobuf:"varint,14,opt,name=enable_send_to_external_pending,json=enableSendToExternalPending,proto3" json:"enable_send_to_external_pending,omitempty"`
-	// Deprecated
+	// Deprecated: do not use
 	EnableBridgeCallPending bool `protobuf:"varint,15,opt,name=enable_bridge_call_pending,json=enableBridgeCallPending,proto3" json:"enable_bridge_call_pending,omitempty"`
 }
 

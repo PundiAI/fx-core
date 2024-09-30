@@ -53,7 +53,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-		pendingTx, err := queryServer.GetPendingSendToExternal(suite.ctx,
+		pendingTx, err := queryServer.GetPendingSendToExternal(suite.Ctx,
 			&crosschaintypes.QueryPendingSendToExternalRequest{
 				ChainName:     moduleName,
 				SenderAddress: signer.AccAddress().String(),
@@ -64,8 +64,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		suite.Require().Equal(randMint.String(), totalAmount.String())
 
 		coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randBridgeFee))
-		helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-		_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+		suite.MintToken(signer.AccAddress(), coin)
+		_, err = suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 			Coin:     coin,
 			Receiver: signer.Address().Hex(),
 			Sender:   signer.AccAddress().String(),
@@ -96,8 +96,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			name: "ok - address + erc20 token",
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+				suite.MintToken(signer.AccAddress(), coin)
+				_, err := suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -120,9 +120,9 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				suite.AddFXBridgeToken(helpers.GenHexAddress().String())
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintToken(signer.AccAddress(), coin)
 
-				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				pair, found := suite.App.Erc20Keeper.GetTokenPair(suite.Ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
 				fee := big.NewInt(1)
@@ -138,21 +138,21 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 		{
 			name: "ok - address + origin token",
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
-				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, helpers.GenHexAddress().String(), pair.GetDenom())
+				suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.Ctx, helpers.GenHexAddress().String(), pair.GetDenom())
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintToken(signer.AccAddress(), coin)
 
 				fee := big.NewInt(1)
 				amount := big.NewInt(0).Sub(randMint, fee)
 
 				// convert denom to many
 				fxTarget := fxtypes.ParseFxTarget(moduleName)
-				targetCoin, err := suite.app.Erc20Keeper.ConvertDenomToTarget(suite.ctx, signer.AccAddress(),
+				targetCoin, err := suite.App.Erc20Keeper.ConvertDenomToTarget(suite.Ctx, signer.AccAddress(),
 					sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint)), fxTarget)
 				suite.Require().NoError(err)
 
-				_, err = suite.CrossChainKeepers()[moduleName].AddToOutgoingPool(suite.ctx,
+				_, err = suite.CrossChainKeepers()[moduleName].AddToOutgoingPool(suite.Ctx,
 					signer.AccAddress(), signer.Address().String(),
 					sdk.NewCoin(targetCoin.Denom, sdkmath.NewIntFromBigInt(amount)),
 					sdk.NewCoin(targetCoin.Denom, sdkmath.NewIntFromBigInt(fee)))
@@ -167,15 +167,15 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			name: "ok - address + wrapper origin token",
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				moduleName := ethtypes.ModuleName
-				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				pair, found := suite.App.Erc20Keeper.GetTokenPair(suite.Ctx, fxtypes.DefaultDenom)
 				suite.Require().True(found)
 
 				suite.AddFXBridgeToken(helpers.GenHexAddress().String())
 
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintToken(signer.AccAddress(), coin)
 
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+				_, err := suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -199,7 +199,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				tokenAddress := helpers.GenHexAddress()
 				bridgeDenom := crosschaintypes.NewBridgeDenom(bsctypes.ModuleName, tokenAddress.Hex())
-				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, bridgeDenom, bridgeDenom)
+				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.Ctx, bridgeDenom, bridgeDenom)
 
 				symbol := helpers.NewRandSymbol()
 				ibcMD := banktypes.Metadata{
@@ -219,12 +219,12 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
+				pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(coin))
-				_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx,
+				suite.MintToken(signer.AccAddress(), coin)
+				_, err = suite.App.Erc20Keeper.ConvertCoin(suite.Ctx,
 					&types.MsgConvertCoin{Coin: coin, Receiver: signer.Address().Hex(), Sender: signer.AccAddress().String()})
 				suite.Require().NoError(err)
 
@@ -331,8 +331,8 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randBridgeFee))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+				suite.MintToken(signer.AccAddress(), coin)
+				_, err := suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -364,7 +364,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
-			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, md.GetMetadata())
 			suite.Require().NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(big.NewInt(0).Add(randMint, randBridgeFee)))
@@ -373,13 +373,13 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			pair, moduleName, evmToken := tc.prepare(pair, moduleName, signer, randMint)
 
 			// check init balance zero
-			chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
+			chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, signer.AccAddress())
 			suite.Require().True(chainBalances.IsZero(), chainBalances.String())
 			balance := suite.BalanceOf(pair.GetERC20Contract(), signer.Address())
 			suite.Require().True(balance.Cmp(big.NewInt(0)) == 0, balance.String())
 
 			// get total supply
-			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+			totalBefore, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
 			packData, errArgs := tc.malleate(moduleName, pair, md, signer, randMint)
@@ -389,7 +389,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				suite.Require().False(res.Failed(), res.VmError)
 
 				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-				pendingTx, err := queryServer.GetPendingSendToExternal(suite.ctx,
+				pendingTx, err := queryServer.GetPendingSendToExternal(suite.Ctx,
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -399,7 +399,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 				totalAmount := pendingTx.UnbatchedTransfers[0].Token.Amount.Add(pendingTx.UnbatchedTransfers[0].Fee.Amount)
 				suite.Require().Equal(big.NewInt(0).Add(randMint, randBridgeFee).String(), totalAmount.String())
 
-				totalAfter, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+				totalAfter, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 				suite.Require().NoError(err)
 
 				for _, coin := range totalBefore.Supply {
@@ -457,7 +457,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 	}
 	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
 		queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-		pendingTx, err := queryServer.GetPendingSendToExternal(suite.ctx,
+		pendingTx, err := queryServer.GetPendingSendToExternal(suite.Ctx,
 			&crosschaintypes.QueryPendingSendToExternalRequest{
 				ChainName:     moduleName,
 				SenderAddress: signer.AccAddress().String(),
@@ -468,10 +468,10 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 		suite.Require().Equal(randMint.String(), totalAmount.String())
 
 		coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randBridgeFee))
-		helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-		suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randBridgeFee)
+		suite.MintToken(signer.AccAddress(), coin)
+		suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.App.Erc20Keeper.ModuleAddress(), randBridgeFee)
 
-		_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+		_, err = suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 			Coin:     coin,
 			Receiver: signer.Address().Hex(),
 			Sender:   signer.AccAddress().String(),
@@ -503,10 +503,10 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
 
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
+				suite.MintToken(signer.AccAddress(), coin)
+				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.App.Erc20Keeper.ModuleAddress(), randMint)
 
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+				_, err := suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -615,9 +615,9 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			},
 			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, _ *big.Int) ([]byte, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randBridgeFee))
-				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randBridgeFee)
-				_, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, &types.MsgConvertCoin{
+				suite.MintToken(signer.AccAddress(), coin)
+				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.App.Erc20Keeper.ModuleAddress(), randBridgeFee)
+				_, err := suite.App.Erc20Keeper.ConvertCoin(suite.Ctx, &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
 					Sender:   signer.AccAddress().String(),
@@ -651,10 +651,10 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			md := suite.GenerateCrossChainDenoms()
 
 			// deploy fip20 external
-			fip20External, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, signer.Address(), "Test token", "TEST", 18)
+			fip20External, err := suite.App.Erc20Keeper.DeployUpgradableToken(suite.Ctx, signer.Address(), "Test token", "TEST", 18)
 			suite.Require().NoError(err)
 			// token pair
-			pair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, fip20External, md.GetMetadata().DenomUnits[0].Aliases...)
+			pair, err := suite.App.Erc20Keeper.RegisterNativeERC20(suite.Ctx, fip20External, md.GetMetadata().DenomUnits[0].Aliases...)
 			suite.Require().NoError(err)
 
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
@@ -664,13 +664,13 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			pair, moduleName, _ = tc.prepare(pair, moduleName, signer, randMint)
 
 			// check init balance zero
-			chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
+			chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, signer.AccAddress())
 			suite.Require().True(chainBalances.IsZero(), chainBalances.String())
 			balance := suite.BalanceOf(pair.GetERC20Contract(), signer.Address())
 			suite.Require().True(balance.Cmp(big.NewInt(0)) == 0, balance.String())
 
 			// get total supply
-			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+			totalBefore, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
 			packData, errArgs := tc.malleate(moduleName, pair, md, signer, randMint)
@@ -680,7 +680,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				suite.Require().False(res.Failed(), res.VmError)
 
 				queryServer := crosschainkeeper.NewQueryServerImpl(suite.CrossChainKeepers()[moduleName])
-				pendingTx, err := queryServer.GetPendingSendToExternal(suite.ctx,
+				pendingTx, err := queryServer.GetPendingSendToExternal(suite.Ctx,
 					&crosschaintypes.QueryPendingSendToExternalRequest{
 						ChainName:     moduleName,
 						SenderAddress: signer.AccAddress().String(),
@@ -690,7 +690,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 				totalAmount := pendingTx.UnbatchedTransfers[0].Token.Amount.Add(pendingTx.UnbatchedTransfers[0].Fee.Amount)
 				suite.Require().Equal(big.NewInt(0).Add(randMint, randBridgeFee).String(), totalAmount.String())
 
-				totalAfter, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+				totalAfter, err := suite.App.BankKeeper.TotalSupply(suite.Ctx, &banktypes.QueryTotalSupplyRequest{})
 				suite.Require().NoError(err)
 
 				for _, coin := range totalBefore.Supply {

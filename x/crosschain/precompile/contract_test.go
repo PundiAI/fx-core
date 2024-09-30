@@ -33,12 +33,9 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/app"
 	"github.com/functionx/fx-core/v8/contract"
 	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
@@ -50,9 +47,8 @@ import (
 )
 
 type PrecompileTestSuite struct {
-	suite.Suite
-	ctx        sdk.Context
-	app        *app.App
+	helpers.BaseSuite
+
 	signer     *helpers.Signer
 	crosschain common.Address
 }
@@ -62,23 +58,14 @@ func TestPrecompileTestSuite(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) SetupTest() {
-	// account key
-	priv, err := ethsecp256k1.GenerateKey()
-	require.NoError(suite.T(), err)
-	suite.signer = helpers.NewSigner(priv)
+	suite.BaseSuite.SetupTest()
+	suite.Ctx = suite.Ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
+	suite.Ctx = suite.Ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e18))
 
-	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+1, nil)
-	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
-
-	suite.ctx = suite.app.NewContext(false)
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
-	suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e18))
-
-	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
-
+	suite.signer = suite.AddTestSigner(10_000)
 	suite.AddFXBridgeToken(helpers.GenExternalAddr(crossethtypes.ModuleName))
 
-	crosschainContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrossChainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
+	crosschainContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrossChainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
 	suite.Require().NoError(err)
 	suite.crosschain = crosschainContract
 }
@@ -89,8 +76,8 @@ func (suite *PrecompileTestSuite) SetupSubTest() {
 
 func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.Address, amount *big.Int, data []byte) *evmtypes.MsgEthereumTxResponse {
 	ethTx := evmtypes.NewTx(
-		fxtypes.EIP155ChainID(suite.ctx.ChainID()),
-		suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
+		fxtypes.EIP155ChainID(suite.Ctx.ChainID()),
+		suite.App.EvmKeeper.GetNonce(suite.Ctx, signer.Address()),
 		&to,
 		amount,
 		contract.DefaultGasCap,
@@ -101,37 +88,37 @@ func (suite *PrecompileTestSuite) EthereumTx(signer *helpers.Signer, to common.A
 		nil,
 	)
 	ethTx.From = signer.Address().Bytes()
-	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID(suite.ctx.ChainID())), signer)
+	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID(suite.Ctx.ChainID())), signer)
 	suite.Require().NoError(err)
 
-	res, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, ethTx)
+	res, err := suite.App.EvmKeeper.EthereumTx(suite.Ctx, ethTx)
 	suite.Require().NoError(err)
 	return res
 }
 
 func (suite *PrecompileTestSuite) Commit() {
-	header := suite.ctx.BlockHeader()
-	_, err := suite.app.EndBlocker(suite.ctx)
+	header := suite.Ctx.BlockHeader()
+	_, err := suite.App.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
-	_, err = suite.app.Commit()
+	_, err = suite.App.Commit()
 	suite.Require().NoError(err)
-	// after commit ctx header
+	// after commit Ctx header
 	header.Height += 1
 
 	// begin block
 	header.Time = time.Now().UTC()
 	header.Height += 1
-	suite.ctx = suite.ctx.WithBlockHeader(header)
-	_, err = suite.app.BeginBlocker(suite.ctx)
+	suite.Ctx = suite.Ctx.WithBlockHeader(header)
+	_, err = suite.App.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
-	suite.ctx = suite.ctx.WithBlockHeight(header.Height)
+	suite.Ctx = suite.Ctx.WithBlockHeight(header.Height)
 }
 
 func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
 	privKey := helpers.NewEthPrivKey()
-	// helpers.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
+	// suite.MintToken(privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
 	signer := helpers.NewSigner(privKey)
-	suite.app.AccountKeeper.SetAccount(suite.ctx, suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.AccAddress()))
+	suite.App.AccountKeeper.SetAccount(suite.Ctx, suite.App.AccountKeeper.NewAccountWithAddress(suite.Ctx, signer.AccAddress()))
 	return signer
 }
 
@@ -154,17 +141,17 @@ func (suite *PrecompileTestSuite) Error(res *evmtypes.MsgEthereumTxResponse, err
 }
 
 func (suite *PrecompileTestSuite) MintFeeCollector(coins sdk.Coins) {
-	err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins)
+	err := suite.App.BankKeeper.MintCoins(suite.Ctx, types.ModuleName, coins)
 	suite.Require().NoError(err)
-	err = suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, types.ModuleName, authtypes.FeeCollectorName, coins)
+	err = suite.App.BankKeeper.SendCoinsFromModuleToModule(suite.Ctx, types.ModuleName, authtypes.FeeCollectorName, coins)
 	suite.Require().NoError(err)
 }
 
 func (suite *PrecompileTestSuite) DeployContract(from common.Address) (common.Address, error) {
-	contractAddr, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
+	contractAddr, err := suite.App.Erc20Keeper.DeployUpgradableToken(suite.Ctx, suite.App.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
 
-	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, nil, contract.GetFIP20().ABI, "transferOwnership", from)
+	_, err = suite.App.EvmKeeper.ApplyContract(suite.Ctx, suite.App.Erc20Keeper.ModuleAddress(), contractAddr, nil, contract.GetFIP20().ABI, "transferOwnership", from)
 	suite.Require().NoError(err)
 	return contractAddr, nil
 }
@@ -172,16 +159,16 @@ func (suite *PrecompileTestSuite) DeployContract(from common.Address) (common.Ad
 func (suite *PrecompileTestSuite) DeployFXRelayToken() (types.TokenPair, banktypes.Metadata) {
 	fxToken := fxtypes.GetFXMetaData()
 
-	pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, fxToken)
+	pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, fxToken)
 	suite.Require().NoError(err)
 	return *pair, fxToken
 }
 
 func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeeper.Keeper {
-	value := reflect.ValueOf(suite.app.CrossChainKeepers)
+	value := reflect.ValueOf(suite.App.CrossChainKeepers)
 	keepers := make(map[string]crosschainkeeper.Keeper)
 	for i := 0; i < value.NumField(); i++ {
-		res := value.Field(i).MethodByName("GetGravityID").Call([]reflect.Value{reflect.ValueOf(suite.ctx)})
+		res := value.Field(i).MethodByName("GetGravityID").Call([]reflect.Value{reflect.ValueOf(suite.Ctx)})
 		gravityID := res[0].String()
 		chainName := strings.TrimSuffix(strings.TrimPrefix(gravityID, "fx-"), "-bridge")
 		if chainName == "bridge-eth" {
@@ -191,14 +178,6 @@ func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeepe
 		}
 	}
 	return keepers
-}
-
-func (suite *PrecompileTestSuite) SetCorsschainEnablePending(moduleName string, isEnable bool) {
-	crosschainKeeper := suite.CrossChainKeepers()[moduleName]
-	params := crosschainKeeper.GetParams(suite.ctx)
-	params.EnableBridgeCallPending = isEnable
-	params.EnableSendToExternalPending = isEnable
-	suite.NoError(crosschainKeeper.SetParams(suite.ctx, &params))
 }
 
 func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Metadata {
@@ -219,7 +198,7 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 		denomModules[index] = m
 
 		k := keepers[m]
-		k.AddBridgeToken(suite.ctx, denom, denom)
+		k.AddBridgeToken(suite.Ctx, denom, denom)
 	}
 	if count >= len(modules) {
 		count = len(modules) - 1
@@ -254,9 +233,9 @@ func (suite *PrecompileTestSuite) GenerateOracles(moduleName string, online bool
 			DelegateValidator: sdk.ValAddress(helpers.GenAccAddress()).String(),
 			SlashTimes:        0,
 		}
-		keeper.SetOracle(suite.ctx, oracle)
-		keeper.SetOracleAddrByExternalAddr(suite.ctx, oracle.ExternalAddress, oracle.GetOracle())
-		keeper.SetOracleAddrByBridgerAddr(suite.ctx, oracle.GetBridger(), oracle.GetOracle())
+		keeper.SetOracle(suite.Ctx, oracle)
+		keeper.SetOracleAddrByExternalAddr(suite.Ctx, oracle.ExternalAddress, oracle.GetOracle())
+		keeper.SetOracleAddrByBridgerAddr(suite.Ctx, oracle.GetBridger(), oracle.GetOracle())
 		oracles = append(oracles, Oracle{
 			moduleName: moduleName,
 			oracle:     oracle,
@@ -273,7 +252,7 @@ func (suite *PrecompileTestSuite) GenerateRandOracle(moduleName string, online b
 func (suite *PrecompileTestSuite) InitObservedBlockHeight() {
 	keepers := suite.CrossChainKeepers()
 	for _, k := range keepers {
-		k.SetLastObservedBlockHeight(suite.ctx, 10, uint64(suite.ctx.BlockHeight()))
+		k.SetLastObservedBlockHeight(suite.Ctx, 10, uint64(suite.Ctx.BlockHeight()))
 	}
 }
 
@@ -286,8 +265,8 @@ func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metad
 		for _, alias := range md.DenomUnits[0].Aliases {
 			// add alias for erc20 module
 			coins := sdk.NewCoins(sdk.NewCoin(alias, amt))
-			helpers.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), coins)
-			err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, generateAddress.Bytes(), types.ModuleName, coins)
+			suite.MintToken(generateAddress.Bytes(), coins...)
+			err := suite.App.BankKeeper.SendCoinsFromAccountToModule(suite.Ctx, generateAddress.Bytes(), types.ModuleName, coins)
 			suite.Require().NoError(err)
 		}
 		count = len(md.DenomUnits[0].Aliases)
@@ -295,8 +274,8 @@ func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metad
 
 	// add denom to erc20 module
 	coin := sdk.NewCoin(md.Base, amt.Mul(sdkmath.NewInt(int64(count))))
-	helpers.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), sdk.NewCoins(coin))
-	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, generateAddress.Bytes(), types.ModuleName, sdk.NewCoins(coin))
+	suite.MintToken(generateAddress.Bytes(), coin)
+	err := suite.App.BankKeeper.SendCoinsFromAccountToModule(suite.Ctx, generateAddress.Bytes(), types.ModuleName, sdk.NewCoins(coin))
 	suite.Require().NoError(err)
 
 	return coin
@@ -304,7 +283,7 @@ func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metad
 
 func (suite *PrecompileTestSuite) BalanceOf(contractAddr, account common.Address) *big.Int {
 	var balanceRes struct{ Value *big.Int }
-	err := suite.app.EvmKeeper.QueryContract(suite.ctx, account, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, account)
+	err := suite.App.EvmKeeper.QueryContract(suite.Ctx, account, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, account)
 	suite.Require().NoError(err)
 	return balanceRes.Value
 }
@@ -318,7 +297,7 @@ func (suite *PrecompileTestSuite) MintERC20Token(signer *helpers.Signer, contrac
 
 func (suite *PrecompileTestSuite) ModuleMintERC20Token(contractAddr, to common.Address, amount *big.Int) {
 	erc20 := contract.GetFIP20()
-	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, nil, erc20.ABI, "mint", to, amount)
+	rsp, err := suite.App.EvmKeeper.ApplyContract(suite.Ctx, suite.App.Erc20Keeper.ModuleAddress(), contractAddr, nil, erc20.ABI, "mint", to, amount)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 }
@@ -339,14 +318,14 @@ func (suite *PrecompileTestSuite) ERC20Approve(signer *helpers.Signer, contractA
 
 func (suite *PrecompileTestSuite) ERC20Allowance(contractAddr, owner, spender common.Address) *big.Int {
 	var allowanceRes struct{ Value *big.Int }
-	err := suite.app.EvmKeeper.QueryContract(suite.ctx, owner, contractAddr, contract.GetFIP20().ABI, "allowance", &allowanceRes, owner, spender)
+	err := suite.App.EvmKeeper.QueryContract(suite.Ctx, owner, contractAddr, contract.GetFIP20().ABI, "allowance", &allowanceRes, owner, spender)
 	suite.Require().NoError(err)
 	return allowanceRes.Value
 }
 
 func (suite *PrecompileTestSuite) TransferERC20TokenToModule(signer *helpers.Signer, contractAddr common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
 	erc20 := contract.GetFIP20()
-	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+	moduleAddress := suite.App.AccountKeeper.GetModuleAddress(types.ModuleName)
 	transferData, err := erc20.ABI.Pack("transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)
 	return suite.sendEvmTx(signer, contractAddr, transferData)
@@ -354,8 +333,8 @@ func (suite *PrecompileTestSuite) TransferERC20TokenToModule(signer *helpers.Sig
 
 func (suite *PrecompileTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr, from common.Address, amount *big.Int) {
 	erc20 := contract.GetFIP20()
-	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
-	_, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, from, contractAddr, nil, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
+	moduleAddress := suite.App.AccountKeeper.GetModuleAddress(types.ModuleName)
+	_, err := suite.App.EvmKeeper.ApplyContract(suite.Ctx, from, contractAddr, nil, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)
 }
 
@@ -372,38 +351,38 @@ func (suite *PrecompileTestSuite) RandPrefixAndAddress() (string, string) {
 func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID string) {
 	portID = "transfer"
 
-	channelSequence := suite.app.IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.ctx)
+	channelSequence := suite.App.IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.Ctx)
 	channelID = fmt.Sprintf("channel-%d", channelSequence)
 	connectionID := connectiontypes.FormatConnectionIdentifier(uint64(tmrand.Intn(100)))
 	clientID := clienttypes.FormatClientIdentifier(exported.Localhost, uint64(tmrand.Intn(100)))
 
-	revision := clienttypes.ParseChainID(suite.ctx.ChainID())
-	localHostClient := localhost.NewClientState(clienttypes.NewHeight(revision, uint64(suite.ctx.BlockHeight())))
-	suite.app.IBCKeeper.ClientKeeper.SetClientState(suite.ctx, clientID, localHostClient)
+	revision := clienttypes.ParseChainID(suite.Ctx.ChainID())
+	localHostClient := localhost.NewClientState(clienttypes.NewHeight(revision, uint64(suite.Ctx.BlockHeight())))
+	suite.App.IBCKeeper.ClientKeeper.SetClientState(suite.Ctx, clientID, localHostClient)
 
-	params := suite.app.IBCKeeper.ClientKeeper.GetParams(suite.ctx)
+	params := suite.App.IBCKeeper.ClientKeeper.GetParams(suite.Ctx)
 	params.AllowedClients = append(params.AllowedClients, localHostClient.ClientType())
-	suite.app.IBCKeeper.ClientKeeper.SetParams(suite.ctx, params)
+	suite.App.IBCKeeper.ClientKeeper.SetParams(suite.Ctx, params)
 
 	prevConsState := &ibctm.ConsensusState{
-		Timestamp:          suite.ctx.BlockTime(),
-		NextValidatorsHash: suite.ctx.BlockHeader().NextValidatorsHash,
+		Timestamp:          suite.Ctx.BlockTime(),
+		NextValidatorsHash: suite.Ctx.BlockHeader().NextValidatorsHash,
 	}
-	height := clienttypes.NewHeight(0, uint64(suite.ctx.BlockHeight()))
-	suite.app.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, clientID, height, prevConsState)
+	height := clienttypes.NewHeight(0, uint64(suite.Ctx.BlockHeight()))
+	suite.App.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.Ctx, clientID, height, prevConsState)
 
-	channelCapability, err := suite.app.ScopedIBCKeeper.NewCapability(suite.ctx, host.ChannelCapabilityPath(portID, channelID))
+	channelCapability, err := suite.App.ScopedIBCKeeper.NewCapability(suite.Ctx, host.ChannelCapabilityPath(portID, channelID))
 	suite.Require().NoError(err)
-	err = suite.app.ScopedTransferKeeper.ClaimCapability(suite.ctx, capabilitytypes.NewCapability(channelCapability.Index), host.ChannelCapabilityPath(portID, channelID))
+	err = suite.App.ScopedTransferKeeper.ClaimCapability(suite.Ctx, capabilitytypes.NewCapability(channelCapability.Index), host.ChannelCapabilityPath(portID, channelID))
 	suite.Require().NoError(err)
 
 	connectionEnd := connectiontypes.NewConnectionEnd(connectiontypes.OPEN, clientID, connectiontypes.Counterparty{ClientId: "clientId", ConnectionId: "connection-1", Prefix: commitmenttypes.NewMerklePrefix([]byte("prefix"))}, connectiontypes.GetCompatibleVersions(), 500)
-	suite.app.IBCKeeper.ConnectionKeeper.SetConnection(suite.ctx, connectionID, connectionEnd)
+	suite.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.Ctx, connectionID, connectionEnd)
 
 	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(portID, channelID), []string{connectionID}, "mock-version")
-	suite.app.IBCKeeper.ChannelKeeper.SetChannel(suite.ctx, portID, channelID, channel)
-	suite.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.ctx, portID, channelID, uint64(tmrand.Intn(10000)+1))
-	suite.app.IBCKeeper.ChannelKeeper.SetNextChannelSequence(suite.ctx, channelSequence+1)
+	suite.App.IBCKeeper.ChannelKeeper.SetChannel(suite.Ctx, portID, channelID, channel)
+	suite.App.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.Ctx, portID, channelID, uint64(tmrand.Intn(10000)+1))
+	suite.App.IBCKeeper.ChannelKeeper.SetNextChannelSequence(suite.Ctx, channelSequence+1)
 	return portID, channelID
 }
 
@@ -412,14 +391,14 @@ func (suite *PrecompileTestSuite) AddIBCToken(portID, channelID string) string {
 		Path:      fmt.Sprintf("%s/%s", portID, channelID),
 		BaseDenom: "test",
 	}
-	suite.app.IBCTransferKeeper.SetDenomTrace(suite.ctx, denomTrace)
+	suite.App.IBCTransferKeeper.SetDenomTrace(suite.Ctx, denomTrace)
 	return denomTrace.IBCDenom()
 }
 
 func (suite *PrecompileTestSuite) AddTokenToModule(module string, amt sdk.Coins) {
 	tmpAddr := helpers.GenHexAddress()
-	helpers.AddTestAddr(suite.app, suite.ctx, tmpAddr.Bytes(), amt)
-	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, tmpAddr.Bytes(), module, amt)
+	suite.MintToken(tmpAddr.Bytes(), amt...)
+	err := suite.App.BankKeeper.SendCoinsFromAccountToModule(suite.Ctx, tmpAddr.Bytes(), module, amt)
 	suite.Require().NoError(err)
 }
 
@@ -446,27 +425,27 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &contractAddr, From: &from, Data: (*hexutil.Bytes)(&data)})
 	suite.Require().NoError(err)
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
-	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(suite.ctx,
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
+	evmtypes.RegisterQueryServer(queryHelper, suite.App.EvmKeeper)
+	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(suite.Ctx,
 		&evmtypes.EthCallRequest{
 			Args:    args,
 			GasCap:  contract.DefaultGasCap,
-			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
+			ChainId: suite.App.EvmKeeper.ChainID().Int64(),
 		},
 	)
 	suite.Require().NoError(err)
 
 	// Mint the max gas to the FeeCollector to ensure balance in case of refund
-	// suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
+	// suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(suite.App.FeeMarketKeeper.GetBaseFee(suite.Ctx).Int64()*int64(res.Gas)))))
 
 	msg := core.Message{
 		To:                &contractAddr,
 		From:              signer.Address(),
-		Nonce:             suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
+		Nonce:             suite.App.EvmKeeper.GetNonce(suite.Ctx, signer.Address()),
 		Value:             big.NewInt(0),
 		GasLimit:          res.Gas,
-		GasPrice:          suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
+		GasPrice:          suite.App.FeeMarketKeeper.GetBaseFee(suite.Ctx),
 		GasFeeCap:         nil,
 		GasTipCap:         nil,
 		Data:              data,
@@ -474,7 +453,7 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 		SkipAccountChecks: false,
 	}
 
-	rsp, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, &msg, nil, true)
+	rsp, err := suite.App.EvmKeeper.ApplyMessage(suite.Ctx, &msg, nil, true)
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp.VmError)
 	return rsp
@@ -509,15 +488,15 @@ func (m Metadata) GetMetadata() banktypes.Metadata {
 
 func (suite *PrecompileTestSuite) AddBridgeToken(moduleName, tokenContract string) string {
 	bridgeDenom := crosschaintypes.NewBridgeDenom(moduleName, tokenContract)
-	suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.ctx, bridgeDenom, bridgeDenom)
+	suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.Ctx, bridgeDenom, bridgeDenom)
 	return bridgeDenom
 }
 
 func (suite *PrecompileTestSuite) AddFXBridgeToken(tokenContract string) {
 	bridgeDenom := crosschaintypes.NewBridgeDenom(crossethtypes.ModuleName, tokenContract)
 	ethKeeper := suite.CrossChainKeepers()[crossethtypes.ModuleName]
-	ethKeeper.AddBridgeToken(suite.ctx, bridgeDenom, fxtypes.DefaultDenom)
-	ethKeeper.AddBridgeToken(suite.ctx, fxtypes.DefaultDenom, bridgeDenom)
+	ethKeeper.AddBridgeToken(suite.Ctx, bridgeDenom, fxtypes.DefaultDenom)
+	ethKeeper.AddBridgeToken(suite.Ctx, fxtypes.DefaultDenom, bridgeDenom)
 }
 
 type Oracle struct {

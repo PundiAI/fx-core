@@ -41,7 +41,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 		{
 			name: "ok - v2 delegate - multiple",
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
-				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
 				validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
 				suite.Require().NoError(err)
@@ -79,7 +79,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 		{
 			name: "contract - ok - v2 delegate - multiple",
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
-				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
 				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
 				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, val.String(), delAmount.BigInt())
@@ -177,7 +177,7 @@ func (suite *PrecompileTestSuite) TestDelegateCompare() {
 	signer1 := suite.RandSigner()
 	signer2 := suite.RandSigner()
 
-	helpers.AddTestAddr(suite.App, suite.Ctx, signer1.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	suite.MintToken(signer1.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
 	// signer1 chain delegate to val
 	shares1, err := suite.App.StakingKeeper.Delegate(suite.Ctx, signer1.AccAddress(), delAmount, stakingtypes.Unbonded, val, true)
@@ -234,7 +234,7 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 		{
 			name: "ok - delegate - multiple",
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
-				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
 				validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
 				suite.Require().NoError(err)
@@ -272,7 +272,7 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 		{
 			name: "contract - ok - delegate - multiple",
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
-				helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
 				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
 				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, val.String(), delAmount.BigInt())
@@ -311,7 +311,7 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 			stakingContract := precompile.GetAddress()
 			delAddr := suite.signer.Address()
 
-			helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+			suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 			packData, err := delegateV2Method.PackInput(args)
 			suite.Require().NoError(err)
 			if strings.HasPrefix(tc.name, "contract") {

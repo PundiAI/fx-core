@@ -105,7 +105,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 
 			delAmt := helpers.NewRandAmount()
 			signer := suite.RandSigner()
-			helpers.AddTestAddr(suite.App, suite.Ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
+			suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
 
 			stakingContract := precompile.GetAddress()
 			stakingABI := precompile.GetABI()
