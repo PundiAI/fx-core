@@ -22,11 +22,6 @@ import (
 )
 
 func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim) error {
-	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, claim.TokenContract)
-	if !found {
-		return types.ErrInvalid.Wrapf("bridge token is not exist")
-	}
-	coin := sdk.NewCoin(bridgeDenom, claim.Amount)
 	if !ctx.IsCheckTx() {
 		defer func() {
 			telemetry.IncrCounterWithLabels(
@@ -38,42 +33,23 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 			)
 			fxtelemetry.SetGaugeLabelsWithDenom(
 				[]string{types.ModuleName, "send_to_fx_amount"},
-				coin.Denom, coin.Amount.BigInt(),
+				claim.TokenContract, claim.Amount.BigInt(),
 				telemetry.NewLabel("module", k.moduleName),
 			)
 		}()
 	}
+
 	receiveAddr, err := sdk.AccAddressFromBech32(claim.Receiver)
 	if err != nil {
 		return types.ErrInvalid.Wrapf("receiver address")
 	}
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeDenom)
-	if !isOriginOrConverted {
-		// If it is not fxcore originated, mint the coins (aka vouchers)
-		if err = k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
-			return err
-		}
-	}
-	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, sdk.NewCoins(coin)); err != nil {
+
+	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, claim.TokenContract, claim.Amount.BigInt(), receiveAddr)
+	if err != nil {
 		return err
 	}
 
-	// convert to base denom
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(cacheCtx, receiveAddr, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
-	if err != nil {
-		k.Logger(ctx).Info("failed to convert base denom", "error", err)
-		return nil
-	}
-	commit()
-
-	// relay transfer
-	if err = k.RelayTransferHandler(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, targetCoin); err != nil {
-		k.Logger(ctx).Info("failed to relay transfer", "error", err)
-		return nil
-	}
-
-	return nil
+	return k.RelayTransferHandler(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, baseCoin)
 }
 
 func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetHex string, receiver sdk.AccAddress, coin sdk.Coin) error {
@@ -83,32 +59,20 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 
 	if fxTarget.IsIBC() {
 		// transfer to ibc
-		cacheCtx, commit := ctx.CacheContext()
-		targetIBCCoin, err1 := k.erc20Keeper.ConvertDenomToTarget(cacheCtx, receiver, coin, fxTarget)
-		var err2 error
-		if err1 == nil {
-			if err2 = k.transferIBCHandler(cacheCtx, eventNonce, receiver, targetIBCCoin, fxTarget); err2 == nil {
-				commit()
-				return nil
-			}
-		}
-		k.Logger(ctx).Info("failed to transfer ibc", "err1", err1, "err2", err2)
+		// todo convert to ibc token
+		return k.transferIBCHandler(ctx, eventNonce, receiver, coin, fxTarget)
 	}
 
 	if fxTarget.GetTarget() == fxtypes.ERC20Target {
 		// transfer to evm
-		cacheCtx, commit := ctx.CacheContext()
-		receiverHex := common.BytesToAddress(receiver.Bytes())
-		if err := k.erc20Keeper.TransferAfter(cacheCtx, receiver, receiverHex.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
-			k.Logger(cacheCtx).Error("transfer convert denom failed", "error", err.Error())
+		if err := k.erc20Keeper.TransferAfter(ctx, receiver, common.BytesToAddress(receiver.Bytes()).String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
 			return err
 		}
-		cacheCtx.EventManager().EmitEvent(sdk.NewEvent(
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeEvmTransfer,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
 		))
-		commit()
 	}
 	return nil
 }
