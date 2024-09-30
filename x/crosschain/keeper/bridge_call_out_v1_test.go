@@ -11,6 +11,7 @@ import (
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
@@ -48,6 +49,9 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	pair, b := suite.App.Erc20Keeper.GetTokenPair(suite.Ctx, "ttt")
 	suite.True(b)
 	suite.Equal(sdkmath.NewInt(randomAmount), suite.App.BankKeeper.GetBalance(suite.Ctx, fxAddr1.Bytes(), pair.Denom).Amount)
+
+	// todo remove after bridge call refactor
+	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin(types.NewBridgeDenom(suite.chainName, bridgeTokenStr), sdkmath.NewInt(randomAmount)))
 
 	bridgeCallRefundAddr := helpers.GenAccAddress()
 	_, err := suite.MsgServer().BridgeCall(suite.Ctx, &types.MsgBridgeCall{

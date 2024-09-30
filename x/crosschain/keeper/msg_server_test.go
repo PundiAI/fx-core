@@ -362,6 +362,10 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 
 	privateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
+
+	suite.SetToken("TEST", types.NewBridgeDenom(suite.chainName, token))
+	suite.AddTokenPair("test", true)
+
 	sendToMsg := &types.MsgSendToFxClaim{
 		EventNonce:    1,
 		BlockHeight:   100,
@@ -419,7 +423,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 	suite.Require().NoError(err)
 
 	balances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
-	suite.Require().Equal(balances.String(), sdk.NewCoins(sdk.NewCoin(denom, sendToMsg.Amount)).String())
+	suite.Require().Equal(balances.String(), sdk.NewCoins(sdk.NewCoin("test", sendToMsg.Amount)).String())
 }
 
 func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
@@ -952,6 +956,8 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	suite.Require().NoError(err)
 	sendToFxToken := suite.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
 
+	suite.AddTokenPair("usdt", true)
+	suite.SetToken("USDT", types.NewBridgeDenom(suite.chainName, sendToFxToken))
 	for i, oracle := range suite.oracleAddrs {
 		normalMsg := &types.MsgBridgeTokenClaim{
 			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, oracle) + 1,
@@ -999,10 +1005,9 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	err = suite.Keeper().ExecuteClaim(suite.Ctx, sendToFxClaim.EventNonce)
 	suite.Require().NoError(err)
 
-	balance := suite.App.BankKeeper.GetBalance(suite.Ctx, sendToFxReceiveAddr, tokenDenom)
+	balance := suite.App.BankKeeper.GetBalance(suite.Ctx, sendToFxReceiveAddr, "usdt")
 	suite.Require().NotNil(balance)
-	suite.Require().EqualValues(balance.Denom, tokenDenom)
-	suite.Require().True(balance.Amount.Equal(sendToFxAmount))
+	suite.Require().EqualValues(balance.Amount, sendToFxAmount)
 
 	sendToExternal := func(bridgeFees []sdkmath.Int) {
 		for _, bridgeFee := range bridgeFees {
@@ -1013,6 +1018,8 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 				BridgeFee: sdk.NewCoin(tokenDenom, bridgeFee),
 				ChainName: suite.chainName,
 			}
+			// todo remove after send to external refactor
+			suite.MintToken(sendToFxReceiveAddr, sdk.NewCoin(tokenDenom, sendToExternal.Amount.Amount.Add(sendToExternal.BridgeFee.Amount)))
 			_, err := suite.MsgServer().SendToExternal(suite.Ctx, sendToExternal)
 			suite.Require().NoError(err)
 		}
@@ -1294,6 +1301,9 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 	suite.Require().NoError(err)
 
 	suite.Equal(sendToFxAmount, suite.App.BankKeeper.GetBalance(suite.Ctx, sendToFxReceiveAddr, tokenPair.GetDenom()).Amount)
+
+	// todo remove after bridge call refactor
+	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin(types.NewBridgeDenom(suite.chainName, sendToFxToken), sendToFxAmount))
 
 	testCases := []struct {
 		name     string

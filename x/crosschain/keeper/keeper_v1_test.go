@@ -22,7 +22,6 @@ import (
 	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
 	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
@@ -171,14 +170,6 @@ func (suite *KeeperTestSuite) SetToken(symbol string, bridgeDenoms ...string) {
 	}
 	err := suite.Keeper().SetToken(suite.Ctx, "Test Token", symbol, 18, bridgeDenoms...)
 	suite.NoError(err)
-}
-
-func (suite *KeeperTestSuite) AddTokenPair(denom string, isNative bool) {
-	contractOwner := erc20types.OWNER_EXTERNAL
-	if isNative {
-		contractOwner = erc20types.OWNER_MODULE
-	}
-	suite.App.Erc20Keeper.AddTokenPair(suite.Ctx, erc20types.TokenPair{Erc20Address: helpers.GenHexAddress().String(), Denom: denom, Enabled: true, ContractOwner: contractOwner})
 }
 
 func (suite *KeeperTestSuite) AddBridgeToken(contractAddr string, symbol string) {

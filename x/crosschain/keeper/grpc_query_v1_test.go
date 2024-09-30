@@ -2318,6 +2318,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeCoinByToken() {
 					Name:    "Tether USD",
 					Symbol:  "USDT",
 				})
+				suite.AddTokenPair("usdt", true)
 				err := suite.Keeper().AttestationHandler(suite.Ctx, &types.MsgBridgeTokenClaim{
 					ChainName:      suite.chainName,
 					TokenContract:  token,

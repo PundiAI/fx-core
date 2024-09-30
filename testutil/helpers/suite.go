@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
@@ -14,11 +15,21 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/app"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 type BaseSuite struct {
@@ -179,4 +190,50 @@ func (s *BaseSuite) NewBridgeCoin(module string, amounts ...sdkmath.Int) (sdk.Co
 	tokenAddr := GenExternalAddr(module)
 	bridgeDenom := crosschaintypes.NewBridgeDenom(module, tokenAddr)
 	return sdk.NewCoin(bridgeDenom, amount), tokenAddr
+}
+
+func (s *BaseSuite) AddTokenPair(denom string, isNative bool) {
+	contractOwner := erc20types.OWNER_EXTERNAL
+	if isNative {
+		contractOwner = erc20types.OWNER_MODULE
+	}
+	s.App.Erc20Keeper.AddTokenPair(s.Ctx, erc20types.TokenPair{Erc20Address: GenHexAddress().String(), Denom: denom, Enabled: true, ContractOwner: contractOwner})
+}
+
+func (s *BaseSuite) GenIBCTransferChannel() (portID, channelID string) {
+	portID = "transfer"
+
+	channelSequence := s.App.IBCKeeper.ChannelKeeper.GetNextChannelSequence(s.Ctx)
+	channelID = fmt.Sprintf("channel-%d", channelSequence)
+	connectionID := connectiontypes.FormatConnectionIdentifier(uint64(tmrand.Intn(100)))
+	clientID := clienttypes.FormatClientIdentifier(exported.Localhost, uint64(tmrand.Intn(100)))
+
+	revision := clienttypes.ParseChainID(s.Ctx.ChainID())
+	localHostClient := localhost.NewClientState(clienttypes.NewHeight(revision, uint64(s.Ctx.BlockHeight())))
+	s.App.IBCKeeper.ClientKeeper.SetClientState(s.Ctx, clientID, localHostClient)
+
+	params := s.App.IBCKeeper.ClientKeeper.GetParams(s.Ctx)
+	params.AllowedClients = append(params.AllowedClients, localHostClient.ClientType())
+	s.App.IBCKeeper.ClientKeeper.SetParams(s.Ctx, params)
+
+	prevConsState := &ibctm.ConsensusState{
+		Timestamp:          s.Ctx.BlockTime(),
+		NextValidatorsHash: s.Ctx.BlockHeader().NextValidatorsHash,
+	}
+	height := clienttypes.NewHeight(0, uint64(s.Ctx.BlockHeight()))
+	s.App.IBCKeeper.ClientKeeper.SetClientConsensusState(s.Ctx, clientID, height, prevConsState)
+
+	channelCapability, err := s.App.ScopedIBCKeeper.NewCapability(s.Ctx, host.ChannelCapabilityPath(portID, channelID))
+	s.Require().NoError(err)
+	err = s.App.ScopedTransferKeeper.ClaimCapability(s.Ctx, capabilitytypes.NewCapability(channelCapability.Index), host.ChannelCapabilityPath(portID, channelID))
+	s.Require().NoError(err)
+
+	connectionEnd := connectiontypes.NewConnectionEnd(connectiontypes.OPEN, clientID, connectiontypes.Counterparty{ClientId: "clientId", ConnectionId: "connection-1", Prefix: commitmenttypes.NewMerklePrefix([]byte("prefix"))}, connectiontypes.GetCompatibleVersions(), 500)
+	s.App.IBCKeeper.ConnectionKeeper.SetConnection(s.Ctx, connectionID, connectionEnd)
+
+	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(portID, channelID), []string{connectionID}, "mock-version")
+	s.App.IBCKeeper.ChannelKeeper.SetChannel(s.Ctx, portID, channelID, channel)
+	s.App.IBCKeeper.ChannelKeeper.SetNextSequenceSend(s.Ctx, portID, channelID, uint64(tmrand.Intn(10000)+1))
+	s.App.IBCKeeper.ChannelKeeper.SetNextChannelSequence(s.Ctx, channelSequence+1)
+	return portID, channelID
 }

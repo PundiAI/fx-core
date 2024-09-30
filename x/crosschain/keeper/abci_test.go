@@ -26,8 +26,10 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.Require().NoError(err)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
-
 	suite.EndBlocker()
+
+	portID, channelID := suite.GenIBCTransferChannel()
+	portChannel := fmt.Sprintf("%s/%s", portID, channelID)
 
 	bridgeToken := helpers.GenExternalAddr(suite.chainName)
 	sendToFxSendAddr := helpers.GenExternalAddr(suite.chainName)
@@ -39,7 +41,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		Symbol:         "TEST",
 		Decimals:       18,
 		BridgerAddress: suite.bridgerAddrs[0].String(),
-		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+		ChannelIbc:     hex.EncodeToString([]byte(portChannel)),
 		ChainName:      suite.chainName,
 	}
 
@@ -49,6 +51,9 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
 	suite.EndBlocker()
 
+	suite.SetToken("TEST", types.NewBridgeDenom(suite.chainName, bridgeToken))
+	suite.AddTokenPair("test", true)
+
 	sendToFxClaim := &types.MsgSendToFxClaim{
 		EventNonce:     2,
 		BlockHeight:    1001,
@@ -56,7 +61,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		Amount:         sdkmath.NewInt(1234),
 		Sender:         sendToFxSendAddr,
 		Receiver:       helpers.GenAccAddress().String(),
-		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
+		TargetIbc:      hex.EncodeToString([]byte(fmt.Sprintf("px/%s", portChannel))),
 		BridgerAddress: suite.bridgerAddrs[0].String(),
 		ChainName:      suite.chainName,
 	}
@@ -66,8 +71,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.EndBlocker()
 
 	allBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(sendToFxClaim.Receiver))
-	denom := types.NewBridgeDenom(suite.chainName, bridgeToken)
-	suite.Require().EqualValues(sdk.NewCoin(denom, sendToFxClaim.Amount).String(), allBalances.String())
+	suite.Require().EqualValues(sdk.NewCoins().String(), allBalances.String())
 }
 
 func (suite *KeeperTestSuite) TestOracleUpdate() {
