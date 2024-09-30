@@ -50,6 +50,16 @@ interface ICrossChain is IBridgeCall {
         uint256 _eventNonce
     ) external returns (bool _result);
 
+    function hasOracle(
+        string memory _chain,
+        address _externalAddress
+    ) external view returns (bool _result);
+
+    function isOracleOnline(
+        string memory _chain,
+        address _externalAddress
+    ) external view returns (bool _result);
+
     event CrossChain(
         address indexed sender,
         address indexed token,

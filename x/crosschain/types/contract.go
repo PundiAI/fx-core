@@ -137,3 +137,33 @@ func (args *ExecuteClaimArgs) Validate() error {
 	}
 	return nil
 }
+
+type HasOracleArgs struct {
+	Chain           string         `abi:"_chain"`
+	ExternalAddress common.Address `abi:"_externalAddress"`
+}
+
+func (args *HasOracleArgs) Validate() error {
+	if err := ValidateModuleName(args.Chain); err != nil {
+		return err
+	}
+	if contract.IsZeroEthAddress(args.ExternalAddress) {
+		return errors.New("invalid external address")
+	}
+	return nil
+}
+
+type IsOracleOnlineArgs struct {
+	Chain           string         `abi:"_chain"`
+	ExternalAddress common.Address `abi:"_externalAddress"`
+}
+
+func (args *IsOracleOnlineArgs) Validate() error {
+	if err := ValidateModuleName(args.Chain); err != nil {
+		return err
+	}
+	if contract.IsZeroEthAddress(args.ExternalAddress) {
+		return errors.New("invalid external address")
+	}
+	return nil
+}
