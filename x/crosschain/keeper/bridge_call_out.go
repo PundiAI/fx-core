@@ -6,7 +6,6 @@ import (
 	"math"
 	"strconv"
 
-	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,7 +27,7 @@ func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddre
 		}
 		tokenContract, found := k.GetContractByBridgeDenom(ctx, targetCoin.Denom)
 		if !found {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token not found")
+			return nil, types.ErrInvalid.Wrapf("bridge token not found")
 		}
 		tokens = append(tokens, types.NewERC20Token(targetCoin.Amount, tokenContract))
 		if err = k.TransferBridgeCoinToExternal(ctx, sender, targetCoin); err != nil {
@@ -80,7 +79,7 @@ func (k Keeper) AddOutgoingBridgeCallWithoutBuild(ctx sdk.Context, outCall *type
 func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender common.Address, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data []byte, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, GetBridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge call timeout height")
+		return nil, types.ErrInvalid.Wrapf("bridge call timeout height")
 	}
 
 	nextID := k.autoIncrementID(ctx, types.KeyLastBridgeCallID)

@@ -3,12 +3,12 @@ package keeper
 import (
 	"bytes"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v8/x/migrate/types"
@@ -114,14 +114,14 @@ func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr common.Address) boo
 func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (sdk.AccountI, error) {
 	fromAccount := k.accountKeeper.GetAccount(ctx, addr)
 	if fromAccount == nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidAddress, "empty account: %s", addr.String())
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("empty account: %s", addr.String())
 	}
 	fromPubKey := fromAccount.GetPubKey()
 	if fromPubKey == nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidPublicKey, "empty public key: %s", addr.String())
+		return nil, sdkerrors.ErrInvalidPubKey.Wrapf("empty public key: %s", addr.String())
 	}
 	if fromPubKey.Type() != new(secp256k1.PubKey).Type() {
-		return nil, errorsmod.Wrapf(types.ErrInvalidPublicKey, "account type not support: %s(%s)", addr.String(), fromPubKey.Type())
+		return nil, sdkerrors.ErrInvalidPubKey.Wrapf("account type not support: %s(%s)", addr.String(), fromPubKey.Type())
 	}
 	return fromAccount, nil
 }

@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,15 +30,15 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (*types.MsgBondedOracleResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
+		return nil, types.ErrInvalid.Wrapf("oracle address")
 	}
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address")
+		return nil, types.ErrInvalid.Wrapf("bridger address")
 	}
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "validator address")
+		return nil, types.ErrInvalid.Wrapf("validator address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if !s.IsProposalOracle(ctx, msg.OracleAddress) {
@@ -47,15 +46,15 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	}
 	// check oracle has set bridger address
 	if s.HasOracle(ctx, oracleAddr) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle existed bridger address")
+		return nil, types.ErrInvalid.Wrapf("oracle existed bridger address")
 	}
 	// check bridger address is bound to oracle
 	if s.HasOracleAddrByBridgerAddr(ctx, bridgerAddr) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
+		return nil, types.ErrInvalid.Wrapf("bridger address is bound to oracle")
 	}
 	// check external address is bound to oracle
 	if s.HasOracleAddrByExternalAddr(ctx, msg.ExternalAddress) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "external address is bound to oracle")
+		return nil, types.ErrInvalid.Wrapf("external address is bound to oracle")
 	}
 	threshold := s.GetOracleDelegateThreshold(ctx)
 	oracle := types.Oracle{
@@ -69,7 +68,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 		SlashTimes:        0,
 	}
 	if threshold.Denom != msg.DelegateAmount.Denom {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
+		return nil, types.ErrInvalid.Wrapf("delegate denom got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
 	}
 	if msg.DelegateAmount.IsLT(threshold) {
 		return nil, types.ErrDelegateAmountBelowMinimum
@@ -105,7 +104,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*types.MsgAddDelegateResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
+		return nil, types.ErrInvalid.Wrapf("oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if !s.IsProposalOracle(ctx, msg.OracleAddress) {
@@ -119,12 +118,12 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	threshold := s.GetOracleDelegateThreshold(ctx)
 
 	if threshold.Denom != msg.Amount.Denom {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
+		return nil, types.ErrInvalid.Wrapf("delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
 
 	slashAmount := types.NewDelegateAmount(oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() && msg.Amount.Amount.LT(slashAmount.Amount) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "not sufficient slash amount")
+		return nil, types.ErrInvalid.Wrapf("not sufficient slash amount")
 	}
 
 	delegateCoin := types.NewDelegateAmount(msg.Amount.Amount.Sub(slashAmount.Amount))
@@ -190,11 +189,11 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*types.MsgReDelegateResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
+		return nil, types.ErrInvalid.Wrapf("oracle address")
 	}
 	valDstAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "validator address")
+		return nil, types.ErrInvalid.Wrapf("validator address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
@@ -205,7 +204,7 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 		return nil, types.ErrOracleNotOnLine
 	}
 	if oracle.DelegateValidator == msg.ValidatorAddress {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "validator address is not changed")
+		return nil, types.ErrInvalid.Wrapf("validator address is not changed")
 	}
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	valSrcAddress := oracle.GetValidator()
@@ -225,11 +224,11 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*types.MsgEditBridgerResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
+		return nil, types.ErrInvalid.Wrapf("oracle address")
 	}
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
+		return nil, types.ErrInvalid.Wrapf("oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
@@ -240,10 +239,10 @@ func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*t
 		return nil, types.ErrOracleNotOnLine
 	}
 	if oracle.BridgerAddress == msg.BridgerAddress {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is not changed")
+		return nil, types.ErrInvalid.Wrapf("bridger address is not changed")
 	}
 	if s.HasOracleAddrByBridgerAddr(ctx, bridgerAddr) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
+		return nil, types.ErrInvalid.Wrapf("bridger address is bound to oracle")
 	}
 	s.DelOracleAddrByBridgerAddr(ctx, oracle.GetBridger())
 	oracle.BridgerAddress = msg.BridgerAddress
@@ -261,7 +260,7 @@ func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*t
 func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
+		return nil, types.ErrInvalid.Wrapf("oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
@@ -279,7 +278,7 @@ func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawRewar
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
 	if !balances.IsAllPositive() {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "rewards is empty")
+		return nil, types.ErrInvalid.Wrapf("rewards is empty")
 	}
 	if err = s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, balances); err != nil {
 		return nil, err
@@ -295,29 +294,29 @@ func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawRewar
 func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracle) (*types.MsgUnbondedOracleResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
+		return nil, types.ErrInvalid.Wrapf("oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if s.IsProposalOracle(ctx, msg.OracleAddress) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbind")
+		return nil, types.ErrInvalid.Wrapf("need to pass a proposal to unbind")
 	}
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
 		return nil, types.ErrNoFoundOracle
 	}
 	if oracle.Online {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle on line")
+		return nil, types.ErrInvalid.Wrapf("oracle on line")
 	}
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	validatorAddr := oracle.GetValidator()
 	if _, err = s.stakingKeeper.GetUnbondingDelegation(ctx, delegateAddr, validatorAddr); err != nil {
-		return nil, errorsmod.Wrap(err, "unbonding delegation")
+		return nil, err
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
 	slashAmount := types.NewDelegateAmount(oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() {
 		if balances.AmountOf(slashAmount.Denom).LT(slashAmount.Amount) {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "not sufficient slash amount")
+			return nil, types.ErrInvalid.Wrapf("not sufficient slash amount")
 		}
 		if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, delegateAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
@@ -350,7 +349,7 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+		return nil, types.ErrInvalid.Wrapf("sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -383,7 +382,7 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+		return nil, types.ErrInvalid.Wrapf("sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -404,7 +403,7 @@ func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelS
 func (s MsgServer) IncreaseBridgeFee(c context.Context, msg *types.MsgIncreaseBridgeFee) (*types.MsgIncreaseBridgeFeeResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+		return nil, types.ErrInvalid.Wrapf("sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -425,19 +424,19 @@ func (s MsgServer) IncreaseBridgeFee(c context.Context, msg *types.MsgIncreaseBr
 func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+		return nil, types.ErrInvalid.Wrapf("sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
 	tokenContract, found := s.GetContractByBridgeDenom(ctx, msg.Denom)
 	if !found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+		return nil, types.ErrInvalid.Wrapf("bridge token is not exist")
 	}
 
 	if !s.HasOracleAddrByBridgerAddr(ctx, sender) {
 		if !s.IsProposalOracle(ctx, msg.Sender) {
-			return nil, errorsmod.Wrap(types.ErrEmpty, "sender must be oracle or bridger")
+			return nil, types.ErrInvalid.Wrapf("sender must be oracle or bridger")
 		}
 	}
 
@@ -478,7 +477,7 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*types.MsgBridgeCallResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+		return nil, types.ErrInvalid.Wrapf("sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -506,7 +505,7 @@ func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*typ
 
 func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if s.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, req.Authority)
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", s.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := s.SetParams(ctx, &req.Params); err != nil {
@@ -517,7 +516,7 @@ func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (
 
 func (s MsgServer) UpdateChainOracles(c context.Context, req *types.MsgUpdateChainOracles) (*types.MsgUpdateChainOraclesResponse, error) {
 	if s.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, req.Authority)
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", s.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := s.UpdateProposalOracles(ctx, req.Oracles); err != nil {
@@ -529,7 +528,7 @@ func (s MsgServer) UpdateChainOracles(c context.Context, req *types.MsgUpdateCha
 func (s MsgServer) Claim(c context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
 	claim, ok := msg.Claim.GetCachedValue().(types.ExternalClaim)
 	if !ok {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "invalid claim")
+		return nil, types.ErrInvalid.Wrapf("invalid claim")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -560,7 +559,7 @@ func (s MsgServer) Claim(c context.Context, msg *types.MsgClaim) (*types.MsgClai
 func (s MsgServer) Confirm(c context.Context, msg *types.MsgConfirm) (*types.MsgConfirmResponse, error) {
 	confirm, ok := msg.Confirm.GetCachedValue().(types.Confirm)
 	if !ok {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "invalid claim")
+		return nil, types.ErrInvalid.Wrapf("invalid claim")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	err := s.ConfirmHandler(ctx, confirm)
@@ -571,7 +570,7 @@ func (s MsgServer) claimLogicCheck(ctx sdk.Context, claim types.ExternalClaim) (
 	if claimMsg, ok := claim.(*types.MsgOracleSetUpdatedClaim); ok {
 		for _, member := range claimMsg.Members {
 			if !s.HasOracleAddrByExternalAddr(ctx, member.ExternalAddress) {
-				return errorsmod.Wrap(types.ErrInvalid, "external address")
+				return types.ErrInvalid.Wrapf("external address")
 			}
 		}
 	}

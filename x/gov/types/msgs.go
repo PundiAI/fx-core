@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -22,10 +21,10 @@ func NewMsgUpdateFXParams(authority string, params Params) *MsgUpdateFXParams {
 
 func (m *MsgUpdateFXParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "authority")
+		return sdkerrors.ErrInvalidAddress.Wrap("authority")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "params")
+		return sdkerrors.ErrInvalidRequest.Wrapf("params err: %s", err.Error())
 	}
 	return nil
 }
@@ -36,10 +35,10 @@ func NewMsgUpdateEGFParams(authority string, params EGFParams) *MsgUpdateEGFPara
 
 func (m *MsgUpdateEGFParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "authority")
+		return sdkerrors.ErrInvalidAddress.Wrap("authority")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "params")
+		return sdkerrors.ErrInvalidRequest.Wrapf("params err: %s", err.Error())
 	}
 	return nil
 }
@@ -50,7 +49,7 @@ func NewMsgUpdateStore(authority string, updateStores []UpdateStore) *MsgUpdateS
 
 func (m *MsgUpdateStore) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "authority")
+		return sdkerrors.ErrInvalidAddress.Wrap("authority")
 	}
 	if len(m.UpdateStores) == 0 {
 		return sdkerrors.ErrInvalidRequest.Wrap("stores are empty")
@@ -120,10 +119,10 @@ func NewMsgUpdateSwitchParams(authority string, params SwitchParams) *MsgUpdateS
 
 func (m *MsgUpdateSwitchParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "authority")
+		return sdkerrors.ErrInvalidAddress.Wrap("authority")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "params")
+		return sdkerrors.ErrInvalidRequest.Wrapf("params err: %s", err.Error())
 	}
 	return nil
 }

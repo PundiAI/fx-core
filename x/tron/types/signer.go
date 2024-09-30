@@ -3,7 +3,6 @@ package types
 import (
 	"crypto/ecdsa"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/address"
 
@@ -15,7 +14,7 @@ const tronSignaturePrefix = "\x19TRON Signed Message:\n32"
 // NewTronSignature creates a new signuature over a given byte array
 func NewTronSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	if privateKey == nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "private key")
+		return nil, types.ErrInvalid.Wrapf("private key")
 	}
 	protectedHash := crypto.Keccak256Hash(append([]uint8(tronSignaturePrefix), hash...))
 	return crypto.Sign(protectedHash.Bytes(), privateKey)
@@ -23,7 +22,7 @@ func NewTronSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error)
 
 func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
 	if len(signature) < 65 {
-		return "", errorsmod.Wrap(types.ErrInvalid, "signature too short")
+		return "", types.ErrInvalid.Wrapf("signature too short")
 	}
 	// To verify signature
 	// - use crypto.SigToPub to get the public key
@@ -46,7 +45,7 @@ func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
 	protectedHash := crypto.Keccak256Hash(append([]uint8(tronSignaturePrefix), hash...))
 	pubkey, err := crypto.SigToPub(protectedHash.Bytes(), signature)
 	if err != nil {
-		return "", errorsmod.Wrap(err, "signature to public key")
+		return "", types.ErrInvalid.Wrapf("signature verification failed: %s", err.Error())
 	}
 
 	addr := address.PubkeyToAddress(*pubkey)
@@ -61,7 +60,7 @@ func ValidateTronSignature(hash []byte, signature []byte, ethAddress string) err
 		return err
 	}
 	if addr != ethAddress {
-		return errorsmod.Wrap(types.ErrInvalid, "signature not matching")
+		return types.ErrInvalid.Wrapf("signature not matching")
 	}
 	return nil
 }

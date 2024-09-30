@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,7 +24,7 @@ import (
 func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim) error {
 	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, claim.TokenContract)
 	if !found {
-		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+		return types.ErrInvalid.Wrapf("bridge token is not exist")
 	}
 	coin := sdk.NewCoin(bridgeDenom, claim.Amount)
 	if !ctx.IsCheckTx() {
@@ -46,17 +45,17 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 	}
 	receiveAddr, err := sdk.AccAddressFromBech32(claim.Receiver)
 	if err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, "receiver address")
+		return types.ErrInvalid.Wrapf("receiver address")
 	}
 	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeDenom)
 	if !isOriginOrConverted {
 		// If it is not fxcore originated, mint the coins (aka vouchers)
 		if err = k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
-			return errorsmod.Wrapf(err, "mint vouchers coins")
+			return err
 		}
 	}
 	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, sdk.NewCoins(coin)); err != nil {
-		return errorsmod.Wrap(err, "transfer vouchers")
+		return err
 	}
 
 	// convert to base denom

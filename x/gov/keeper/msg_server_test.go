@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 	suite.NoError(err)
 	_, err = suite.msgServer.SubmitProposal(suite.Ctx, errProposalMsg)
 	suite.Error(err)
-	suite.EqualValues(fmt.Sprintf("%v is smaller than %v: initial amount too low", errInitCoin, initialDeposit), err.Error())
+	suite.EqualValues(fmt.Sprintf("initial deposit must be at least %s: invalid request", initialDeposit), err.Error())
 
 	differentMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent, &erc20types.MsgUpdateParams{Authority: suite.govAcct, Params: erc20types.DefaultParams()}}, sdk.NewCoins(errInitCoin), suite.newAddress().String(),
 		"", TestProposal.GetTitle(), TestProposal.GetDescription(), false)

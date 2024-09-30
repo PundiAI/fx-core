@@ -1,7 +1,6 @@
 package ante
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -27,7 +26,7 @@ func (r RejectExtensionOptionsDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, 
 			return ctx, errortypes.ErrUnknownExtensionOptions
 		}
 		if len(hasExtOptsTx.GetNonCriticalExtensionOptions()) != 0 {
-			return ctx, errorsmod.Wrap(errortypes.ErrUnknownRequest, "unknown non critical extension options")
+			return ctx, errortypes.ErrUnknownRequest.Wrap("unknown non critical extension options")
 		}
 	}
 	return next(ctx, tx, simulate)

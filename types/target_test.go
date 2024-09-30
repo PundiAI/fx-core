@@ -293,7 +293,7 @@ func TestGetIbcDenomTrace(t *testing.T) {
 			},
 			want: ibctransfertypes.DenomTrace{},
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				assert.ErrorContains(t, err, "decode hex channel-ibc err")
+				assert.ErrorContains(t, err, "invalid channel-ibc")
 				return true
 			},
 		},

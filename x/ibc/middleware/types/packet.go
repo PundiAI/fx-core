@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/hex"
 
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -24,13 +24,13 @@ func (icep IbcCallEvmPacket) GetType() IbcCallType {
 
 func (icep IbcCallEvmPacket) ValidateBasic() error {
 	if err := contract.ValidateEthereumAddress(icep.To); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("to address: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("to address: %s", err.Error())
 	}
 	if icep.Value.IsNegative() {
-		return errortypes.ErrInvalidRequest.Wrapf("value: %s", icep.Value.String())
+		return sdkerrors.ErrInvalidRequest.Wrapf("value: %s", icep.Value.String())
 	}
 	if _, err := hex.DecodeString(icep.Data); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("data: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("data: %s", err.Error())
 	}
 	return nil
 }

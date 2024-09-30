@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -47,7 +47,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -56,7 +56,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandSymbol(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -66,7 +66,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				OracleAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid oracle address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -76,7 +76,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				OracleAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid oracle address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -87,7 +87,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				BridgerAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -98,7 +98,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -110,7 +110,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				ExternalAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
@@ -122,9 +122,9 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				ExternalAddress: externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid external address: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "error - oracle address is same bridge address",
@@ -136,7 +136,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				DelegateAmount:  sdk.NewCoin(helpers.NewRandDenom(), sdkmath.NewInt(0)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "same address: invalid request",
 		},
 		{
@@ -204,7 +204,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -213,7 +213,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -224,7 +224,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 				Amount:        types.NewDelegateAmount(sdkmath.NewInt(1)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid oracle address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -235,7 +235,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 				Amount:        types.NewDelegateAmount(sdkmath.NewInt(1)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid oracle address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -246,7 +246,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 				Amount:        types.NewDelegateAmount(sdkmath.NewInt(0)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "invalid amount: invalid request",
 		},
 		{
@@ -300,7 +300,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -309,7 +309,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -319,7 +319,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				BridgerAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -329,7 +329,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -340,7 +340,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				ExternalAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
@@ -351,9 +351,9 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				ExternalAddress: externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid external address: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - empty signature",
@@ -364,7 +364,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				Signature:       "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "empty signature: invalid request",
 		},
 		{
@@ -376,7 +376,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				Signature:       tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "could not hex decode signature: invalid request",
 		},
 		{
@@ -432,7 +432,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -441,7 +441,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -451,7 +451,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				BridgerAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -461,7 +461,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -472,7 +472,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				Members:        nil,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "empty members: invalid request",
 		},
 		{
@@ -488,7 +488,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
@@ -504,7 +504,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero power: invalid request",
 		},
 		{
@@ -520,9 +520,9 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid external address: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err event nonce",
@@ -538,7 +538,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				EventNonce: 0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero event nonce: invalid request",
 		},
 		{
@@ -556,7 +556,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				BlockHeight: 0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero block height: invalid request",
 		},
 		{
@@ -617,7 +617,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -626,7 +626,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -636,7 +636,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				BridgerAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -646,7 +646,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -657,7 +657,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				TokenContract:  "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
@@ -668,9 +668,9 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				TokenContract:  externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid token contract: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - invalid channelIBC",
@@ -681,7 +681,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				ChannelIbc:     tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "could not decode hex channelIbc string: invalid request",
 		},
 		{
@@ -694,7 +694,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				Name:           "empty token name: invalid request",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "empty token symbol: invalid request",
 		},
 		{
@@ -708,7 +708,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				Symbol:         "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "empty token symbol: invalid request",
 		},
 		{
@@ -723,7 +723,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				EventNonce:     0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero event nonce: invalid request",
 		},
 		{
@@ -739,7 +739,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				BlockHeight:    0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero block height: invalid request",
 		},
 		{
@@ -812,7 +812,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -821,7 +821,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -831,7 +831,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				BridgerAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -841,7 +841,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -852,7 +852,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				Sender:         "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid sender address: empty: invalid address",
 		},
 		{
@@ -863,9 +863,9 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				Sender:         externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid sender address: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - tokenContract address",
@@ -876,7 +876,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				TokenContract:  "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
@@ -888,9 +888,9 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				TokenContract:  externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid token contract: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - invalid receiver address",
@@ -902,7 +902,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				Receiver:       errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid receiver address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -916,7 +916,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				Amount:         sdkmath.Int{},
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "invalid amount: invalid request",
 		},
 		{
@@ -930,7 +930,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				Amount:         sdkmath.ZeroInt().Sub(sdkmath.NewInt(10000)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "invalid amount: invalid request",
 		},
 		{
@@ -945,7 +945,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				TargetIbc:      tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "could not decode hex targetIbc: invalid request",
 		},
 		{
@@ -961,7 +961,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				EventNonce:     0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero event nonce: invalid request",
 		},
 		{
@@ -977,7 +977,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 				BlockHeight:    0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero block height: invalid request",
 		},
 		{
@@ -1035,7 +1035,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1044,7 +1044,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1054,7 +1054,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				Sender:    errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -1065,7 +1065,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				Dest:      "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid dest address: empty: invalid address",
 		},
 		{
@@ -1076,9 +1076,9 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				Dest:      externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid dest address: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - empty amount",
@@ -1089,7 +1089,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				Amount:    sdk.NewCoin("demo", sdkmath.NewInt(0)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "invalid amount: invalid request",
 		},
 		{
@@ -1102,7 +1102,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				BridgeFee: sdk.NewCoin(helpers.NewRandDenom(), sdkmath.NewInt(0)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "bridge fee denom not equal amount denom: invalid request",
 		},
 		{
@@ -1115,7 +1115,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				BridgeFee: sdk.NewCoin("demo", sdkmath.NewInt(0)),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "invalid bridge fee: invalid request",
 		},
 		{
@@ -1168,7 +1168,7 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1178,7 +1178,7 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 				Sender:    errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -1189,7 +1189,7 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 				TransactionId: 0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero transaction id: invalid request",
 		},
 		{
@@ -1240,7 +1240,7 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1250,7 +1250,7 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 				Sender:    errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -1261,7 +1261,7 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 				TransactionId: 0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero transaction id: invalid request",
 		},
 		{
@@ -1273,7 +1273,7 @@ func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
 				AddBridgeFee:  sdk.Coin{},
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "invalid bridge fee: invalid request",
 		},
 		{
@@ -1326,7 +1326,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1335,7 +1335,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1345,7 +1345,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -1356,7 +1356,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				TokenContract:  "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
@@ -1367,9 +1367,9 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				TokenContract:  externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid token contract: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - zero event nonce",
@@ -1380,7 +1380,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				EventNonce:     0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero event nonce: invalid request",
 		},
 		{
@@ -1393,7 +1393,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				BlockHeight:    0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero block height: invalid request",
 		},
 		{
@@ -1407,7 +1407,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				BatchNonce:     0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "zero batch nonce: invalid request",
 		},
 		{
@@ -1462,7 +1462,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1471,7 +1471,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1481,7 +1481,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				Sender:    errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -1492,7 +1492,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				Denom:     "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "empty denom: invalid request",
 		},
 		{
@@ -1504,7 +1504,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				MinimumFee: sdkmath.NewInt(-1),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "invalid minimum fee: invalid request",
 		},
 		{
@@ -1517,7 +1517,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				FeeReceive: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid fee receive address: empty: invalid address",
 		},
 		{
@@ -1530,9 +1530,9 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				FeeReceive: externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid fee receive address: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 
 		{
@@ -1587,7 +1587,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1596,7 +1596,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1606,7 +1606,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				BridgerAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
 		},
 		{
@@ -1616,7 +1616,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
@@ -1627,7 +1627,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				ExternalAddress: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
@@ -1638,9 +1638,9 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				ExternalAddress: externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid external address: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - empty token contract address",
@@ -1652,7 +1652,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				Nonce:           0,
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
@@ -1664,9 +1664,9 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				TokenContract:   externalAddressToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid token contract: mismatch expected: %s, got: %s: %s",
-				normalExternalAddress, externalAddressToUpper(normalExternalAddress), errortypes.ErrInvalidAddress.Error()),
+				normalExternalAddress, externalAddressToUpper(normalExternalAddress), sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err signature",
@@ -1678,7 +1678,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				Signature:       "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "empty signature: invalid request",
 		},
 		{
@@ -1692,7 +1692,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 				Signature:       tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "could not hex decode signature: invalid request",
 		},
 		{
@@ -1748,7 +1748,7 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
@@ -1759,8 +1759,8 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 				Description: tmrand.Str(20),
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
-			errReason:  fmt.Sprintf("empty oracles: %s", errortypes.ErrInvalidRequest),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  fmt.Sprintf("empty oracles: %s", sdkerrors.ErrInvalidRequest),
 		},
 		{
 			testName: "err external address",
@@ -1773,9 +1773,9 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason: fmt.Sprintf("invalid oracle address: invalid Bech32 prefix; expected %s, got %s: %s",
-				sdk.Bech32MainPrefix, randomAddrPrefix, errortypes.ErrInvalidAddress.Error()),
+				sdk.Bech32MainPrefix, randomAddrPrefix, sdkerrors.ErrInvalidAddress.Error()),
 		},
 		{
 			testName: "err - duplicate oracle",
@@ -1789,7 +1789,7 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidAddress,
+			err:        sdkerrors.ErrInvalidAddress,
 			errReason:  fmt.Sprintf("duplicate oracle address: %s: invalid address", normalOracleAddress),
 		},
 		{
@@ -1842,7 +1842,7 @@ func TestMsgBridgeCallConfirm_ValidateBasic(t *testing.T) {
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        errortypes.ErrInvalidRequest,
+			err:        sdkerrors.ErrInvalidRequest,
 			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{

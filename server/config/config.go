@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -52,19 +51,19 @@ type Config struct {
 // ValidateBasic returns an error any of the application configuration fields are invalid
 func (c *Config) ValidateBasic() error {
 	if err := c.BypassMinFee.Validate(); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid bypass-min-fee config value: %s", err.Error())
+		return errortypes.ErrAppConfig.Wrapf("invalid bypass-min-fee config value: %s", err.Error())
 	}
 
 	if err := c.EVM.Validate(); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid evm config value: %s", err.Error())
+		return errortypes.ErrAppConfig.Wrapf("invalid evm config value: %s", err.Error())
 	}
 
 	if err := c.JSONRPC.Validate(); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid json-rpc config value: %s", err.Error())
+		return errortypes.ErrAppConfig.Wrapf("invalid json-rpc config value: %s", err.Error())
 	}
 
 	if err := c.TLS.Validate(); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid tls config value: %s", err.Error())
+		return errortypes.ErrAppConfig.Wrapf("invalid tls config value: %s", err.Error())
 	}
 
 	return c.Config.ValidateBasic()

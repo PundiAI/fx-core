@@ -3,11 +3,11 @@ package keeper
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/hashicorp/go-metrics"
 
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
@@ -29,7 +29,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin, txID uint64) error {
 	tokenContract, found := k.GetContractByBridgeDenom(ctx, amount.Denom)
 	if !found {
-		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+		return types.ErrInvalid.Wrapf("bridge token is not exist")
 	}
 
 	if err := k.TransferBridgeCoinToExternal(ctx, sender, amount.Add(fee)); err != nil {
@@ -82,7 +82,7 @@ func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 // - issues the tokens back to the sender
 func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress) (sdk.Coin, error) {
 	if ctx.IsZero() || txId < 1 || sender.Empty() {
-		return sdk.Coin{}, errorsmod.Wrap(types.ErrInvalid, "arguments")
+		return sdk.Coin{}, types.ErrInvalid.Wrapf("arguments")
 	}
 
 	// check that we actually have a tx with that id and what it's details are
@@ -98,7 +98,7 @@ func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.Outgoi
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(outgoingTransferTx.Fee, outgoingTransferTx.Id)
 	if store.Has(idxKey) {
-		return errorsmod.Wrap(types.ErrDuplicate, "transaction already in pool")
+		return sdkerrors.ErrInvalidRequest.Wrapf("tx with id %d already in pool", outgoingTransferTx.Id)
 	}
 
 	store.Set(idxKey, k.cdc.MustMarshal(outgoingTransferTx))
@@ -129,7 +129,7 @@ func (k Keeper) removeUnbatchedTx(ctx sdk.Context, fee types.ERC20Token, txID ui
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(fee, txID)
 	if !store.Has(idxKey) {
-		return errorsmod.Wrap(types.ErrUnknown, "pool transaction")
+		return types.ErrInvalid.Wrapf("tx with id %d not in pool", txID)
 	}
 	store.Delete(idxKey)
 	return nil
@@ -140,7 +140,7 @@ func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ERC20Token, 
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOutgoingTxPoolKey(fee, txID))
 	if bz == nil {
-		return nil, errorsmod.Wrap(types.ErrUnknown, "pool transaction")
+		return nil, types.ErrInvalid.Wrapf("tx with id %d not in pool", txID)
 	}
 	var r types.OutgoingTransferTx
 	err := k.cdc.Unmarshal(bz, &r)
@@ -161,7 +161,7 @@ func (k Keeper) GetUnbatchedTxById(ctx sdk.Context, txID uint64) (*types.Outgoin
 
 	if r == nil {
 		// We have no return tx, it was either batched or never existed
-		return nil, errorsmod.Wrap(types.ErrUnknown, "pool transaction")
+		return nil, types.ErrInvalid.Wrapf("tx with id %d not in pool", txID)
 	}
 	return r, nil
 }
@@ -199,23 +199,23 @@ func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types
 	// else transaction to themselves.
 	txSender := sdk.MustAccAddressFromBech32(tx.Sender)
 	if !txSender.Equals(sender) {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
+		return sdk.Coin{}, types.ErrInvalid.Wrapf("Sender %s did not send Id %d", sender, txId)
 	}
 
 	// an inconsistent entry should never enter the store, but this is the ideal place to exploit
 	// it such a bug if it did ever occur, so we should double check to be really sure
 	if tx.Fee.Contract != tx.Token.Contract {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Inconsistent tokens to cancel!: %s %s", tx.Fee.Contract, tx.Token.Contract)
+		return sdk.Coin{}, types.ErrInvalid.Wrapf("Inconsistent tokens to cancel!: %s %s", tx.Fee.Contract, tx.Token.Contract)
 	}
 
 	// delete this tx from the pool
 	if err := k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
+		return sdk.Coin{}, types.ErrInvalid.Wrapf("txId %d not in unbatched index! Must be in a batch!", txId)
 	}
 	// Make sure the tx was removed
 	oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, tx.Fee, tx.Id)
 	if oldTx != nil || oldTxErr == nil {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "tx with id %d was not fully removed from the pool, a duplicate must exist", txId)
+		return sdk.Coin{}, types.ErrInvalid.Wrapf("tx with id %d was not fully removed from the pool, a duplicate must exist", txId)
 	}
 
 	return k.handleCancelRefund(ctx, txId, sender, tx.Token.Contract, tx.Token.Amount.Add(tx.Fee.Amount))
@@ -226,7 +226,7 @@ func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccA
 	// query denom, if not exist, return error
 	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, tokenContract)
 	if !found {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tokenContract)
+		return sdk.Coin{}, types.ErrInvalid.Wrapf("Invalid token, contract %s", tokenContract)
 	}
 	// reissue the amount and the fee
 	totalToRefund := sdk.NewCoin(bridgeDenom, refundAmount)
@@ -240,16 +240,16 @@ func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccA
 		}
 	} else {
 		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
+			return sdk.Coin{}, err
 		}
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, errorsmod.Wrap(err, "transfer vouchers")
+			return sdk.Coin{}, err
 		}
 	}
 
 	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, totalToRefund, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrap(err, "convert denom to erc20")
+		return sdk.Coin{}, err
 	}
 
 	// 2. handler hook
@@ -269,7 +269,7 @@ func (k Keeper) handleOutgoingTransferRelation(ctx sdk.Context, txId uint64, sen
 		return nil
 	}
 	if err := k.erc20Keeper.HookOutgoingRefund(ctx, k.moduleName, txId, sender, targetCoin); err != nil {
-		return errorsmod.Wrap(err, "outgoing refund")
+		return err
 	}
 	return nil
 }

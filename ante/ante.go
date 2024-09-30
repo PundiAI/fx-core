@@ -3,7 +3,6 @@ package ante
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,8 +27,7 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 					// handle as *evmtypes.MsgEthereumTx
 					return newEthAnteHandler(options)(ctx, tx, sim)
 				default:
-					return ctx, errorsmod.Wrapf(
-						errortypes.ErrUnknownExtensionOptions,
+					return ctx, errortypes.ErrUnknownExtensionOptions.Wrapf(
 						"rejecting tx with unsupported extension option: %s", typeURL,
 					)
 				}
@@ -41,7 +39,7 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		case sdk.Tx:
 			return newCosmosAnteHandler(options)(ctx, tx, sim)
 		default:
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid transaction type: %T", tx)
+			return ctx, errortypes.ErrUnknownRequest.Wrapf("invalid transaction type: %T", tx)
 		}
 	}
 }

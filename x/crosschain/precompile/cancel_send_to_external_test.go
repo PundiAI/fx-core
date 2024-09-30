@@ -178,7 +178,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			result:   true,
 		},
 		// todo: fix this test case
-		//{
+		// {
 		//	name: "ok - address + ibc token",
 		//	prepare: func(_ *types.TokenPair, _ string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 		//		tokenAddress := helpers.GenHexAddress()
@@ -276,7 +276,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 				return data, []string{txID.String()}
 			},
 			error: func(args []string) string {
-				return "pool transaction: unknown"
+				return "tx with id 10 not in pool: invalid"
 			},
 			result: false,
 		},

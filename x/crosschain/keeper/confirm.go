@@ -2,10 +2,9 @@ package keeper
 
 import (
 	"encoding/hex"
-	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
@@ -41,7 +40,7 @@ func (k Keeper) BatchConfirmHandler(ctx sdk.Context, msg *types.MsgConfirmBatch)
 	// fetch the outgoing batch given the nonce
 	batch := k.GetOutgoingTxBatch(ctx, msg.TokenContract, msg.Nonce)
 	if batch == nil {
-		return errorsmod.Wrap(types.ErrInvalid, "couldn't find batch")
+		return types.ErrInvalid.Wrapf("couldn't find batch")
 	}
 
 	var checkpoint []byte
@@ -49,12 +48,12 @@ func (k Keeper) BatchConfirmHandler(ctx sdk.Context, msg *types.MsgConfirmBatch)
 	if k.moduleName == trontypes.ModuleName {
 		checkpoint, err = trontypes.GetCheckpointConfirmBatch(batch, k.GetGravityID(ctx))
 		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, "checkpoint generation")
+			return types.ErrInvalid.Wrapf("checkpoint generation")
 		}
 	} else {
 		checkpoint, err = batch.GetCheckpoint(k.GetGravityID(ctx))
 		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, err.Error())
+			return types.ErrInvalid.Wrap(err.Error())
 		}
 	}
 
@@ -64,7 +63,7 @@ func (k Keeper) BatchConfirmHandler(ctx sdk.Context, msg *types.MsgConfirmBatch)
 	}
 	// check if we already have this confirm
 	if k.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, oracleAddr) != nil {
-		return errorsmod.Wrap(types.ErrDuplicate, "signature")
+		return sdkerrors.ErrInvalidRequest.Wrapf("duplicate confirm: %s", oracleAddr.String())
 	}
 	k.SetBatchConfirm(ctx, oracleAddr, msg)
 	return nil
@@ -73,7 +72,7 @@ func (k Keeper) BatchConfirmHandler(ctx sdk.Context, msg *types.MsgConfirmBatch)
 func (k Keeper) OracleSetConfirmHandler(ctx sdk.Context, msg *types.MsgOracleSetConfirm) error {
 	oracleSet := k.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
-		return errorsmod.Wrap(types.ErrInvalid, "couldn't find oracleSet")
+		return types.ErrInvalid.Wrapf("couldn't find oracleSet")
 	}
 
 	var checkpoint []byte
@@ -86,7 +85,7 @@ func (k Keeper) OracleSetConfirmHandler(ctx sdk.Context, msg *types.MsgOracleSet
 	} else {
 		checkpoint, err = oracleSet.GetCheckpoint(k.GetGravityID(ctx))
 		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, err.Error())
+			return types.ErrInvalid.Wrap(err.Error())
 		}
 	}
 
@@ -96,7 +95,7 @@ func (k Keeper) OracleSetConfirmHandler(ctx sdk.Context, msg *types.MsgOracleSet
 	}
 	// check if we already have this confirm
 	if k.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
-		return errorsmod.Wrap(types.ErrDuplicate, "signature")
+		return sdkerrors.ErrInvalidRequest.Wrapf("duplicate confirm: %s", oracleAddr.String())
 	}
 	k.SetOracleSetConfirm(ctx, oracleAddr, msg)
 	return nil
@@ -105,7 +104,7 @@ func (k Keeper) OracleSetConfirmHandler(ctx sdk.Context, msg *types.MsgOracleSet
 func (k Keeper) BridgeCallConfirmHandler(ctx sdk.Context, msg *types.MsgBridgeCallConfirm) error {
 	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, msg.Nonce)
 	if !found {
-		return errorsmod.Wrap(types.ErrInvalid, "couldn't find outgoing bridge call")
+		return types.ErrInvalid.Wrapf("couldn't find outgoing bridge call")
 	}
 
 	var checkpoint []byte
@@ -113,12 +112,12 @@ func (k Keeper) BridgeCallConfirmHandler(ctx sdk.Context, msg *types.MsgBridgeCa
 	if k.moduleName == trontypes.ModuleName {
 		checkpoint, err = trontypes.GetCheckpointBridgeCall(outgoingBridgeCall, k.GetGravityID(ctx))
 		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, err.Error())
+			return types.ErrInvalid.Wrap(err.Error())
 		}
 	} else {
 		checkpoint, err = outgoingBridgeCall.GetCheckpoint(k.GetGravityID(ctx))
 		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, err.Error())
+			return types.ErrInvalid.Wrap(err.Error())
 		}
 	}
 
@@ -128,7 +127,7 @@ func (k Keeper) BridgeCallConfirmHandler(ctx sdk.Context, msg *types.MsgBridgeCa
 	}
 
 	if k.HasBridgeCallConfirm(ctx, msg.Nonce, oracleAddr) {
-		return errorsmod.Wrap(types.ErrDuplicate, "signature")
+		return sdkerrors.ErrInvalidRequest.Wrapf("duplicate confirm: %s", oracleAddr.String())
 	}
 	k.SetBridgeCallConfirm(ctx, oracleAddr, msg)
 	return nil
@@ -137,7 +136,7 @@ func (k Keeper) BridgeCallConfirmHandler(ctx sdk.Context, msg *types.MsgBridgeCa
 func (k Keeper) ValidateConfirmSign(ctx sdk.Context, bridgerAddr, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
+		return nil, types.ErrInvalid.Wrapf("signature decoding")
 	}
 
 	oracleAddr, found := k.GetOracleAddrByExternalAddr(ctx, signatureAddr)
@@ -151,18 +150,18 @@ func (k Keeper) ValidateConfirmSign(ctx sdk.Context, bridgerAddr, signatureAddr,
 	}
 
 	if oracle.ExternalAddress != signatureAddr {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
+		return nil, types.ErrInvalid.Wrapf("got %s, expected %s", signatureAddr, oracle.ExternalAddress)
 	}
 	if oracle.BridgerAddress != bridgerAddr {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
+		return nil, types.ErrInvalid.Wrapf("got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
 	}
 	if k.moduleName == trontypes.ModuleName {
 		if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
-			return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+			return nil, types.ErrInvalid.Wrapf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature)
 		}
 	} else {
 		if err = types.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
-			return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+			return nil, types.ErrInvalid.Wrapf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature)
 		}
 	}
 	return oracleAddr, nil

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
@@ -111,7 +110,7 @@ func (i FxTarget) IBCValidate() bool {
 func GetIbcDenomTrace(denom string, channelIBC string) (ibctransfertypes.DenomTrace, error) {
 	channelPath, err := hex.DecodeString(channelIBC)
 	if err != nil {
-		return ibctransfertypes.DenomTrace{}, errorsmod.Wrapf(err, "decode hex channel-ibc err")
+		return ibctransfertypes.DenomTrace{}, fmt.Errorf("invalid channel-ibc: %w", err)
 	}
 
 	// transfer/channel-0
