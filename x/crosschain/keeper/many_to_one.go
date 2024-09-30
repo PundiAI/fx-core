@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 )
@@ -33,22 +32,22 @@ func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, tokenAddr string, amo
 	return sdk.NewCoin(baseDenom, bridgeToken.Amount), nil
 }
 
-func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, module string, coin sdk.Coin, holder sdk.AccAddress) (common.Address, *big.Int, error) {
+func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, module string, coin sdk.Coin, holder sdk.AccAddress) (string, *big.Int, error) {
 	bridgeDenom, err := k.ManyToOne(ctx, coin.Denom, module)
 	if err != nil {
-		return common.Address{}, nil, err
+		return "", nil, err
 	}
 	if err = k.ConversionCoin(ctx, holder, coin, coin.Denom, bridgeDenom); err != nil {
-		return common.Address{}, nil, err
+		return "", nil, err
 	}
 	if err = k.WithdrawBridgeToken(ctx, sdk.NewCoin(bridgeDenom, coin.Amount), holder); err != nil {
-		return common.Address{}, nil, err
+		return "", nil, err
 	}
 	tokenAddr, found := k.GetContractByBridgeDenom(sdk.UnwrapSDKContext(ctx), bridgeDenom)
 	if !found {
-		return common.Address{}, nil, err
+		return "", nil, sdkerrors.ErrInvalidRequest.Wrapf("bridge token not found %s", bridgeDenom)
 	}
-	return common.HexToAddress(tokenAddr), coin.Amount.BigInt(), nil
+	return tokenAddr, coin.Amount.BigInt(), nil
 }
 
 // DepositBridgeToken get bridge token from crosschain module

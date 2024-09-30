@@ -385,12 +385,13 @@ func (suite *KeeperTestSuite) TestBridgeTokenToBaseCoin() {
 func (suite *KeeperTestSuite) TestBaseCoinToBridgeToken() {
 	amount := helpers.NewRandAmount()
 	baseCoin := suite.NewCoin(amount)
-	bridgeCoin, _ := suite.NewBridgeCoin(suite.chainName, amount)
+	bridgeCoin, tokenAddr := suite.NewBridgeCoin(suite.chainName, amount)
 
 	testCases := []struct {
 		Name             string
 		Coin             sdk.Coin
 		BridgeDenom      string
+		TokenAddr        string
 		IsNativeCoin     bool
 		Success          bool
 		ModuleExpBalance sdk.Coins
@@ -399,6 +400,7 @@ func (suite *KeeperTestSuite) TestBaseCoinToBridgeToken() {
 			Name:             "success - FX",
 			Coin:             sdk.NewCoin(fxtypes.DefaultDenom, amount),
 			BridgeDenom:      fxtypes.DefaultDenom,
+			TokenAddr:        helpers.GenHexAddress().String(),
 			Success:          true,
 			ModuleExpBalance: sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amount)),
 		},
@@ -406,6 +408,7 @@ func (suite *KeeperTestSuite) TestBaseCoinToBridgeToken() {
 			Name:             "success - native coin",
 			Coin:             baseCoin,
 			BridgeDenom:      bridgeCoin.Denom,
+			TokenAddr:        tokenAddr,
 			IsNativeCoin:     true,
 			Success:          true,
 			ModuleExpBalance: sdk.NewCoins(),
@@ -414,6 +417,7 @@ func (suite *KeeperTestSuite) TestBaseCoinToBridgeToken() {
 			Name:             "success - native erc20",
 			Coin:             baseCoin,
 			BridgeDenom:      bridgeCoin.Denom,
+			TokenAddr:        tokenAddr,
 			Success:          true,
 			ModuleExpBalance: sdk.NewCoins(bridgeCoin),
 		},
@@ -425,6 +429,7 @@ func (suite *KeeperTestSuite) TestBaseCoinToBridgeToken() {
 			suite.MintToken(acc, tc.Coin)
 			suite.SetToken(strings.ToLower(tc.Coin.Denom), tc.BridgeDenom)
 			suite.AddTokenPair(strings.ToLower(tc.Coin.Denom), tc.IsNativeCoin)
+			suite.AddBridgeToken(tc.TokenAddr, strings.ToUpper(tc.Coin.Denom))
 
 			tc.ModuleExpBalance = tc.ModuleExpBalance.Add(suite.Balance(suite.ModuleAddress())...)
 
