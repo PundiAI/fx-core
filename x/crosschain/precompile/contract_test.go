@@ -228,6 +228,48 @@ func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) 
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 
+func (suite *PrecompileTestSuite) GenerateModuleName() string {
+	keepers := suite.CrossChainKeepers()
+	modules := make([]string, 0, len(keepers))
+	for m := range keepers {
+		modules = append(modules, m)
+	}
+	if len(modules) == 0 {
+		return ""
+	}
+	return modules[tmrand.Intn(len(modules))]
+}
+
+func (suite *PrecompileTestSuite) GenerateOracles(moduleName string, online bool, num int) []Oracle {
+	keeper := suite.CrossChainKeepers()[moduleName]
+	oracles := make([]Oracle, 0, num)
+	for i := 0; i < num; i++ {
+		oracle := crosschaintypes.Oracle{
+			OracleAddress:     helpers.GenAccAddress().String(),
+			BridgerAddress:    helpers.GenAccAddress().String(),
+			ExternalAddress:   helpers.GenExternalAddr(moduleName),
+			DelegateAmount:    sdkmath.NewInt(1e18).MulRaw(1000),
+			StartHeight:       1,
+			Online:            online,
+			DelegateValidator: sdk.ValAddress(helpers.GenAccAddress()).String(),
+			SlashTimes:        0,
+		}
+		keeper.SetOracle(suite.ctx, oracle)
+		keeper.SetOracleAddrByExternalAddr(suite.ctx, oracle.ExternalAddress, oracle.GetOracle())
+		keeper.SetOracleAddrByBridgerAddr(suite.ctx, oracle.GetBridger(), oracle.GetOracle())
+		oracles = append(oracles, Oracle{
+			moduleName: moduleName,
+			oracle:     oracle,
+		})
+	}
+	return oracles
+}
+
+func (suite *PrecompileTestSuite) GenerateRandOracle(moduleName string, online bool) Oracle {
+	oracles := suite.GenerateOracles(moduleName, online, 1)
+	return oracles[0]
+}
+
 func (suite *PrecompileTestSuite) InitObservedBlockHeight() {
 	keepers := suite.CrossChainKeepers()
 	for _, k := range keepers {
@@ -476,4 +518,13 @@ func (suite *PrecompileTestSuite) AddFXBridgeToken(tokenContract string) {
 	ethKeeper := suite.CrossChainKeepers()[crossethtypes.ModuleName]
 	ethKeeper.AddBridgeToken(suite.ctx, bridgeDenom, fxtypes.DefaultDenom)
 	ethKeeper.AddBridgeToken(suite.ctx, fxtypes.DefaultDenom, bridgeDenom)
+}
+
+type Oracle struct {
+	moduleName string
+	oracle     crosschaintypes.Oracle
+}
+
+func (o Oracle) GetExternalHexAddr() common.Address {
+	return crosschaintypes.ExternalAddrToHexAddr(o.moduleName, o.oracle.ExternalAddress)
 }

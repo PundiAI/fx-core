@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
@@ -49,6 +50,10 @@ type CrosschainKeeper interface {
 	AddUnbatchedTxBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
 	PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (uint64, error)
 	ExecuteClaim(ctx sdk.Context, eventNonce uint64) error
+
+	HasOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) bool
+	GetOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) (sdk.AccAddress, bool)
+	GetOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) (oracle crosschaintypes.Oracle, found bool)
 }
 
 type GovKeeper interface {

@@ -37,6 +37,8 @@ func NewPrecompiledContract(
 		govKeeper: govKeeper,
 		methods: []contract.PrecompileMethod{
 			NewBridgeCoinAmountMethod(keeper),
+			NewHasOracleMethod(keeper),
+			NewIsOracleOnlineMethod(keeper),
 
 			NewCancelSendToExternalMethod(keeper),
 			NewIncreaseBridgeFeeMethod(keeper),
