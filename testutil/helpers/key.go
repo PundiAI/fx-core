@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -41,7 +41,7 @@ func PrivKeyFromMnemonic(mnemonic string, algo hd.PubKeyType, account, index uin
 	case hd2.EthSecp256k1Type:
 		hdPath = hd.CreateHDPath(60, account, index)
 	default:
-		return nil, errortypes.ErrInvalidPubKey
+		return nil, sdkerrors.ErrInvalidPubKey
 	}
 	signAlgo, err := keyring.NewSigningAlgoFromString(string(algo), hd2.SupportedAlgorithms)
 	if err != nil {
@@ -125,7 +125,7 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(err)
 	}
 	if len(pkBytes) != ed25519.PubKeySize {
-		panic(errortypes.ErrInvalidPubKey.Wrap("size"))
+		panic(sdkerrors.ErrInvalidPubKey.Wrap("size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
 }

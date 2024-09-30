@@ -6,7 +6,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -27,7 +27,7 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 					// handle as *evmtypes.MsgEthereumTx
 					return newEthAnteHandler(options)(ctx, tx, sim)
 				default:
-					return ctx, errortypes.ErrUnknownExtensionOptions.Wrapf(
+					return ctx, sdkerrors.ErrUnknownExtensionOptions.Wrapf(
 						"rejecting tx with unsupported extension option: %s", typeURL,
 					)
 				}
@@ -39,7 +39,7 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		case sdk.Tx:
 			return newCosmosAnteHandler(options)(ctx, tx, sim)
 		default:
-			return ctx, errortypes.ErrUnknownRequest.Wrapf("invalid transaction type: %T", tx)
+			return ctx, sdkerrors.ErrUnknownRequest.Wrapf("invalid transaction type: %T", tx)
 		}
 	}
 }

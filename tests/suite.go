@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -435,7 +435,7 @@ func (suite *TestSuite) CheckDelegate(delegatorAddr sdk.AccAddress, validatorAdd
 		ValidatorAddr: validatorAddr.String(),
 	})
 	if delegation.IsZero() {
-		suite.Error(errortypes.ErrNotFound)
+		suite.Error(sdkerrors.ErrNotFound)
 	} else {
 		suite.NoError(err)
 		suite.Equal(delegation.String(), delegationResp.DelegationResponse.Balance.String())
