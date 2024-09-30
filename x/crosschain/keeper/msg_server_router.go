@@ -2,10 +2,8 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
@@ -153,7 +151,7 @@ func (k msgServer) BridgeCall(ctx context.Context, msg *types.MsgBridgeCall) (*t
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {
-		return nil, errorsmod.Wrap(errortypes.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", chainName))
+		return nil, sdkerrors.ErrInvalidRequest.Wrapf("Unrecognized cross chain type:%s", chainName)
 	}
 	return msgServerRouter.GetRoute(chainName).MsgServer, nil
 }

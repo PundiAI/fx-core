@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"strconv"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -65,7 +64,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 func (k Keeper) BridgeCallTransferAndCallEvm(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, value sdkmath.Int) error {
 	if senderAccount := k.ak.GetAccount(ctx, sender.Bytes()); senderAccount != nil {
 		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
-			return errorsmod.Wrap(types.ErrInvalid, "sender is module account")
+			return types.ErrInvalid.Wrapf("sender is module account")
 		}
 	}
 	isMemoSendCallTo := types.IsMemoSendCallTo(memo)
@@ -98,7 +97,7 @@ func (k Keeper) bridgeCallTransferCoins(ctx sdk.Context, sender sdk.AccAddress, 
 	for i := 0; i < len(tokens); i++ {
 		bridgeDenom, found := k.GetBridgeDenomByContract(ctx, tokens[i].Contract)
 		if !found {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+			return nil, types.ErrInvalid.Wrapf("bridge token is not exist")
 		}
 		if !tokens[i].Amount.IsPositive() {
 			continue
@@ -112,12 +111,12 @@ func (k Keeper) bridgeCallTransferCoins(ctx sdk.Context, sender sdk.AccAddress, 
 	}
 	if mintCoins.IsAllPositive() {
 		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, mintCoins); err != nil {
-			return nil, errorsmod.Wrapf(err, "mint vouchers coins")
+			return nil, err
 		}
 	}
 	if unlockCoins.IsAllPositive() {
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, unlockCoins); err != nil {
-			return nil, errorsmod.Wrap(err, "transfer vouchers")
+			return nil, err
 		}
 	}
 
@@ -125,7 +124,7 @@ func (k Keeper) bridgeCallTransferCoins(ctx sdk.Context, sender sdk.AccAddress, 
 	for _, coin := range unlockCoins {
 		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
 		if err != nil {
-			return nil, errorsmod.Wrap(err, "convert to target coin")
+			return nil, err
 		}
 		targetCoins = targetCoins.Add(targetCoin)
 	}

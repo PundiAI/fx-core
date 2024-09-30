@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +21,7 @@ func (k Keeper) UpdateOracleSetExecuted(ctx sdk.Context, claim *types.MsgOracleS
 		trustedOracleSet := k.GetOracleSet(ctx, claim.OracleSetNonce)
 		if trustedOracleSet == nil {
 			k.Logger(ctx).Error("Received attestation for a oracle set which does not exist in store", "oracleSetNonce", claim.OracleSetNonce, "claim", claim)
-			return errorsmod.Wrapf(types.ErrInvalid, "attested oracleSet (%v) does not exist in store", claim.OracleSetNonce)
+			return types.ErrInvalid.Wrapf("attested oracleSet (%v) does not exist in store", claim.OracleSetNonce)
 		}
 		// overwrite the height, since it's not part of the claim
 		observedOracleSet.Height = trustedOracleSet.Height

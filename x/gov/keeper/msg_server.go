@@ -8,11 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/hashicorp/go-metrics"
@@ -78,7 +77,7 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 	minInitialDeposit := k.Keeper.GetMinInitialDeposit(ctx, types.ExtractMsgTypeURL(proposal.Messages))
 
 	if msgInitialDeposit.IsAllLT(sdk.NewCoins(minInitialDeposit)) {
-		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msgInitialDeposit, minInitialDeposit)
+		return nil, sdkerrors.ErrInvalidRequest.Wrapf("initial deposit must be at least %s", minInitialDeposit.String())
 	}
 
 	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msgInitialDeposit)
@@ -130,7 +129,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *v1.MsgDeposit) (*v1.MsgDe
 
 func (k msgServer) UpdateFXParams(c context.Context, req *types.MsgUpdateFXParams) (*types.MsgUpdateFXParamsResponse, error) {
 	if k.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", k.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := k.SetFXParams(ctx, &req.Params); err != nil {
@@ -141,7 +140,7 @@ func (k msgServer) UpdateFXParams(c context.Context, req *types.MsgUpdateFXParam
 
 func (k msgServer) UpdateEGFParams(c context.Context, req *types.MsgUpdateEGFParams) (*types.MsgUpdateEGFParamsResponse, error) {
 	if k.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", k.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := k.SetEGFParams(ctx, &req.Params); err != nil {
@@ -152,19 +151,19 @@ func (k msgServer) UpdateEGFParams(c context.Context, req *types.MsgUpdateEGFPar
 
 func (k msgServer) UpdateStore(c context.Context, req *types.MsgUpdateStore) (*types.MsgUpdateStoreResponse, error) {
 	if k.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", k.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	for _, updateStore := range req.UpdateStores {
 		key, ok := k.Keeper.storeKeys[updateStore.Space]
 		if !ok {
-			return nil, errortypes.ErrInvalidRequest.Wrap("invalid store space")
+			return nil, sdkerrors.ErrInvalidRequest.Wrap("invalid store space")
 		}
 		kvStore := ctx.KVStore(key)
 		keyBt := updateStore.KeyToBytes()
 		storeValue := kvStore.Get(keyBt)
 		if !bytes.Equal(storeValue, updateStore.OldValueToBytes()) {
-			return nil, errortypes.ErrInvalidRequest.Wrapf("old value not equal store value: %s", hex.EncodeToString(storeValue))
+			return nil, sdkerrors.ErrInvalidRequest.Wrapf("old value not equal store value: %s", hex.EncodeToString(storeValue))
 		}
 		kvStore.Set(keyBt, updateStore.ValueToBytes())
 	}
@@ -173,7 +172,7 @@ func (k msgServer) UpdateStore(c context.Context, req *types.MsgUpdateStore) (*t
 
 func (k msgServer) UpdateSwitchParams(c context.Context, req *types.MsgUpdateSwitchParams) (*types.MsgUpdateSwitchParamsResponse, error) {
 	if k.authority != req.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", k.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := k.SetSwitchParams(ctx, &req.Params); err != nil {

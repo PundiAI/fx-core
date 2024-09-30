@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"testing"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -1444,7 +1443,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 				response = &types.QueryTokenToDenomResponse{
 					Denom: bridgeDenom,
 				}
-				expectedError = errorsmod.Wrap(types.ErrEmpty, "bridge token is not exist")
+				expectedError = types.ErrInvalid.Wrapf("bridge token is not exist")
 			},
 			true,
 		},

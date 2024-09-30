@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -59,23 +59,23 @@ func (m *UpdateChainOraclesProposal) ProposalType() string {
 
 func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if err := govv1betal.ValidateAbstract(m); err != nil {
 		return err
 	}
 
 	if len(m.Oracles) == 0 {
-		return errortypes.ErrInvalidRequest.Wrap("empty oracles")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty oracles")
 	}
 
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err.Error())
+			return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err.Error())
 		}
 		if oraclesMap[addr] {
-			return errortypes.ErrInvalidAddress.Wrapf("duplicate oracle address: %s", addr)
+			return sdkerrors.ErrInvalidAddress.Wrapf("duplicate oracle address: %s", addr)
 		}
 		oraclesMap[addr] = true
 	}

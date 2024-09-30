@@ -8,14 +8,9 @@ import (
 	"github.com/functionx/fx-core/v8/contract"
 )
 
-const (
-	codeErrABIPack   = 10001
-	codeErrABIUnpack = 10002
-)
-
 var (
-	ErrABIPack   = errorsmod.Register(types.ModuleName, codeErrABIPack, "failed abi pack args")
-	ErrABIUnpack = errorsmod.Register(types.ModuleName, codeErrABIUnpack, "failed abi unpack data")
+	ErrABIPack   = errorsmod.Register(types.ModuleName, 10001, "failed abi pack args")
+	ErrABIUnpack = errorsmod.Register(types.ModuleName, 10002, "failed abi unpack data")
 )
 
 func PackRetError(err error) ([]byte, error) {

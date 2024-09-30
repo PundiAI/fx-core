@@ -8,7 +8,6 @@ import (
 	"sort"
 	"testing"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
@@ -1037,7 +1036,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			baseFee:        sdkmath.NewInt(1000),
 			pass:           false,
 			expectTotalTxs: 3,
-			err:            errorsmod.Wrap(types.ErrEmpty, "no batch tx"),
+			err:            types.ErrInvalid.Wrapf("no batch tx"),
 		},
 		{
 			testName:       "Support - baseFee 2",
@@ -1051,7 +1050,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			baseFee:        sdkmath.NewInt(0),
 			pass:           false,
 			expectTotalTxs: 0,
-			err:            errorsmod.Wrap(types.ErrInvalid, "new batch would not be more profitable"),
+			err:            types.ErrInvalid.Wrapf("new batch would not be more profitable"),
 		},
 	}
 

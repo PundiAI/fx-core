@@ -5,7 +5,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -55,10 +55,10 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	m := migratekeeper.NewGovMigrate(suite.App.GovKeeper, suite.App.AccountKeeper)
 
 	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc1, ethAcc1)
-	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
+	suite.Require().ErrorIs(err, sdkerrors.ErrInvalidRequest)
 
 	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc2, ethAcc1)
-	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
+	suite.Require().ErrorIs(err, sdkerrors.ErrInvalidRequest)
 }
 
 func (suite *KeeperTestSuite) TestMigrateGovActive() {
@@ -104,8 +104,8 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	m := migratekeeper.NewGovMigrate(suite.App.GovKeeper, suite.App.AccountKeeper)
 
 	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc1, ethAcc1)
-	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
+	suite.Require().ErrorIs(err, sdkerrors.ErrInvalidRequest)
 
 	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc2, ethAcc1)
-	suite.Require().ErrorIs(err, errortypes.ErrInvalidRequest)
+	suite.Require().ErrorIs(err, sdkerrors.ErrInvalidRequest)
 }

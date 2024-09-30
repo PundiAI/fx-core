@@ -13,7 +13,6 @@ import (
 	"runtime/pprof"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	cmtdbm "github.com/cometbft/cometbft-db"
 	abciserver "github.com/cometbft/cometbft/abci/server"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -491,7 +490,7 @@ func startGrpcServer(
 	}
 	_, _, err := net.SplitHostPort(config.Address)
 	if err != nil {
-		return nil, clientCtx, errorsmod.Wrapf(err, "invalid grpc address %s", config.Address)
+		return nil, clientCtx, fmt.Errorf("invalid grpc address %s, err: %s", config.Address, err.Error())
 	}
 
 	maxSendMsgSize := config.MaxSendMsgSize

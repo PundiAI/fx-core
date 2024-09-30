@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -172,11 +171,11 @@ func CmdSendToExternal(chainName string) *cobra.Command {
 
 			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return errorsmod.Wrap(err, "amount")
+				return fmt.Errorf("amount: %w", err)
 			}
 			bridgeFee, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
-				return errorsmod.Wrap(err, "bridge fee")
+				return fmt.Errorf("bridge fee: %w", err)
 			}
 
 			msg := types.MsgSendToExternal{
@@ -208,7 +207,7 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 			if len(args) >= 2 {
 				coins, err = sdk.ParseCoinsNormalized(args[1])
 				if err != nil {
-					return errorsmod.Wrap(err, "coins")
+					return fmt.Errorf("coins: %w", err)
 				}
 
 				if len(args) != 3 {
@@ -286,7 +285,7 @@ func CmdIncreaseBridgeFee(chainName string) *cobra.Command {
 			}
 			addBridgeFee, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return errorsmod.Wrap(err, "add bridge fee")
+				return fmt.Errorf("amount: %w", err)
 			}
 
 			msg := &types.MsgIncreaseBridgeFee{

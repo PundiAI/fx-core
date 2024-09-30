@@ -3,7 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/ethereum/go-ethereum/common"
@@ -42,17 +42,17 @@ func (m *GovMigrate) DepositPeriodCallback(ctx sdk.Context, from sdk.AccAddress,
 		}
 
 		if from.Equals(sdk.AccAddress(proposer)) {
-			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s is proposer of %d", from.String(), proposal.Id)
+			return false, sdkerrors.ErrInvalidRequest.Wrapf("can not migrate, %s is proposer of %d", from.String(), proposal.Id)
 		}
 		if sdk.AccAddress(to.Bytes()).Equals(sdk.AccAddress(proposer)) {
-			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s is proposer of %d", to.String(), proposal.Id)
+			return false, sdkerrors.ErrInvalidRequest.Wrapf("can not migrate, %s is proposer of %d", to.String(), proposal.Id)
 		}
 		hasDeposit, err := m.govKeeper.HasDeposit(ctx, proposal.Id, from)
 		if err != nil {
 			return false, err
 		}
 		if hasDeposit {
-			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have deposit of proposal %d", from.String(), proposal.Id)
+			return false, sdkerrors.ErrInvalidRequest.Wrapf("can not migrate, %s have deposit of proposal %d", from.String(), proposal.Id)
 		}
 
 		hasDeposit, err = m.govKeeper.HasDeposit(ctx, proposal.Id, to.Bytes())
@@ -60,7 +60,7 @@ func (m *GovMigrate) DepositPeriodCallback(ctx sdk.Context, from sdk.AccAddress,
 			return false, err
 		}
 		if hasDeposit {
-			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have deposit of proposal %d", to.String(), proposal.Id)
+			return false, sdkerrors.ErrInvalidRequest.Wrapf("can not migrate, %s have deposit of proposal %d", to.String(), proposal.Id)
 		}
 		return false, nil
 	}
@@ -77,7 +77,7 @@ func (m *GovMigrate) VotePeriodCallback(ctx sdk.Context, from sdk.AccAddress, to
 			return false, err
 		}
 		if hasVote {
-			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have vote of proposal %d", from.String(), proposal.Id)
+			return false, sdkerrors.ErrInvalidRequest.Wrapf("can not migrate, %s have vote of proposal %d", from.String(), proposal.Id)
 		}
 
 		hasVote, err = m.govKeeper.HasVote(ctx, proposal.Id, to.Bytes())
@@ -85,7 +85,7 @@ func (m *GovMigrate) VotePeriodCallback(ctx sdk.Context, from sdk.AccAddress, to
 			return false, err
 		}
 		if hasVote {
-			return false, errortypes.ErrInvalidRequest.Wrapf("can not migrate, %s have vote of proposal %d", to.String(), proposal.Id)
+			return false, sdkerrors.ErrInvalidRequest.Wrapf("can not migrate, %s have vote of proposal %d", to.String(), proposal.Id)
 		}
 		return false, nil
 	}

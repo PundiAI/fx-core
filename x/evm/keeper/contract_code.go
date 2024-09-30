@@ -3,11 +3,10 @@ package keeper
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -44,11 +43,11 @@ func (k *Keeper) CreateContractWithCode(ctx sdk.Context, address common.Address,
 func (k *Keeper) UpdateContractCode(ctx sdk.Context, address common.Address, contractCode []byte) error {
 	acc := k.GetAccount(ctx, address)
 	if acc == nil {
-		return errorsmod.Wrap(evmtypes.ErrInvalidAccount, address.String())
+		return evmtypes.ErrInvalidAccount.Wrap(address.String())
 	}
 	codeHash := crypto.Keccak256Hash(contractCode).Bytes()
 	if bytes.Equal(codeHash, acc.CodeHash) {
-		return fmt.Errorf("update the same code hash: %s", address.String())
+		return sdkerrors.ErrInvalidRequest.Wrapf("update the same code hash: %s", address.String())
 	}
 
 	acc.CodeHash = codeHash
@@ -71,7 +70,7 @@ func (k *Keeper) UpdateContractCode(ctx sdk.Context, address common.Address, con
 func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, args ...interface{}) (common.Address, error) {
 	data, err := abi.Pack("", args...)
 	if err != nil {
-		return common.Address{}, errorsmod.Wrap(types.ErrABIPack, err.Error())
+		return common.Address{}, types.ErrABIPack.Wrap(err.Error())
 	}
 	data = append(bin, data...)
 
@@ -114,14 +113,14 @@ func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Ad
 func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error {
 	data, err := abi.Pack(method, args...)
 	if err != nil {
-		return errorsmod.Wrap(types.ErrABIPack, err.Error())
+		return types.ErrABIPack.Wrap(err.Error())
 	}
 	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, nil, data, false)
 	if err != nil {
 		return err
 	}
 	if err = abi.UnpackIntoInterface(res, method, resp.Ret); err != nil {
-		return errorsmod.Wrap(types.ErrABIUnpack, err.Error())
+		return types.ErrABIUnpack.Wrap(err.Error())
 	}
 	return nil
 }
@@ -130,7 +129,7 @@ func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, a
 func (k *Keeper) ApplyContract(ctx sdk.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
 	args, err := abi.Pack(method, constructorData...)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrABIPack, err.Error())
+		return nil, types.ErrABIPack.Wrap(err.Error())
 	}
 	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, value, args, true)
 	if err != nil {

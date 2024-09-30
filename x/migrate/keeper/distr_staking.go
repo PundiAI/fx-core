@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,10 +29,10 @@ func NewDistrStakingMigrate(distrKey, stakingKey storetypes.StoreKey, stakingKee
 func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	// check validator
 	if _, err := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(from)); err == nil {
-		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", from.String())
+		return sdkerrors.ErrInvalidAddress.Wrapf("can not migrate, %s is the validator address", from.String())
 	}
 	if _, err := m.stakingKeeper.GetValidator(ctx, to.Bytes()); err == nil {
-		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", to.String())
+		return sdkerrors.ErrInvalidAddress.Wrapf("can not migrate, %s is the validator address", to.String())
 	}
 
 	// check delegation
@@ -41,7 +41,7 @@ func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, fro
 		return err
 	}
 	if len(delegations) > 0 {
-		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has delegation record", to.String())
+		return sdkerrors.ErrInvalidAddress.Wrapf("can not migrate, address %s has delegation record", to.String())
 	}
 
 	// check undelegatetion
@@ -50,7 +50,7 @@ func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, fro
 		return err
 	}
 	if len(undelegations) > 0 {
-		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has undelegate record", to.String())
+		return sdkerrors.ErrInvalidAddress.Wrapf("can not migrate, address %s has undelegate record", to.String())
 	}
 
 	// check redelegation
@@ -59,7 +59,7 @@ func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, fro
 		return err
 	}
 	if len(redelegations) > 0 {
-		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has redelegation record", to.String())
+		return sdkerrors.ErrInvalidAddress.Wrapf("can not migrate, address %s has redelegation record", to.String())
 	}
 
 	return nil

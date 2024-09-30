@@ -7,7 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
@@ -16,7 +16,7 @@ import (
 func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, tokenAddr string, amount *big.Int, holder sdk.AccAddress) (sdk.Coin, error) {
 	bridgeDenom, found := k.GetBridgeDenomByContract(sdk.UnwrapSDKContext(ctx), tokenAddr)
 	if !found {
-		return sdk.Coin{}, errortypes.ErrInvalidCoins.Wrapf("bridge denom not found %s", tokenAddr)
+		return sdk.Coin{}, sdkerrors.ErrInvalidCoins.Wrapf("bridge denom not found %s", tokenAddr)
 	}
 	bridgeToken := sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(amount))
 	if err := k.DepositBridgeToken(ctx, bridgeToken, holder); err != nil {
@@ -61,7 +61,7 @@ func (k Keeper) DepositBridgeToken(ctx context.Context, bridgeToken sdk.Coin, ho
 	}
 	tokenPair, found := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), baseDenom)
 	if !found {
-		return errortypes.ErrInvalidCoins.Wrapf("token pair not found: %s", baseDenom)
+		return sdkerrors.ErrInvalidCoins.Wrapf("token pair not found: %s", baseDenom)
 	}
 
 	if tokenPair.IsNativeCoin() && tokenPair.GetDenom() != fxtypes.DefaultDenom {
@@ -86,7 +86,7 @@ func (k Keeper) WithdrawBridgeToken(ctx context.Context, bridgeToken sdk.Coin, h
 	}
 	tokenPair, found := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), baseDenom)
 	if !found {
-		return errortypes.ErrInvalidCoins.Wrapf("token pair not found: %s", baseDenom)
+		return sdkerrors.ErrInvalidCoins.Wrapf("token pair not found: %s", baseDenom)
 	}
 	if tokenPair.IsNativeERC20() {
 		return nil
@@ -144,7 +144,7 @@ func (k Keeper) BaseDenomToBridgeDenom(ctx context.Context, baseDenom, target st
 			return bd, nil
 		}
 	}
-	return "", errortypes.ErrInvalidCoins.Wrapf("not found bridge denom: %s, %s", baseDenom, target)
+	return "", sdkerrors.ErrInvalidCoins.Wrapf("not found bridge denom: %s, %s", baseDenom, target)
 }
 
 // ConversionCoin Convert coin between base and bridge
@@ -157,7 +157,7 @@ func (k Keeper) ConversionCoin(ctx context.Context, holder sdk.AccAddress, coin 
 	}
 	tokenPair, found := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), baseDenom)
 	if !found {
-		return errortypes.ErrInvalidCoins.Wrapf("token pair not found %s", baseDenom)
+		return sdkerrors.ErrInvalidCoins.Wrapf("token pair not found %s", baseDenom)
 	}
 
 	targetCoin := sdk.NewCoin(targetDenom, coin.Amount)

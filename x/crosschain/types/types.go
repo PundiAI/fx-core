@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -32,10 +31,10 @@ func NewERC20Token(amount sdkmath.Int, contract string) ERC20Token {
 // ValidateBasic permforms stateless validation
 func (m *ERC20Token) ValidateBasic() error {
 	if err := contract.ValidateEthereumAddress(m.Contract); err != nil {
-		return errorsmod.Wrap(err, "invalid contract address")
+		return ErrInvalid.Wrap("contract address")
 	}
 	if !m.Amount.IsPositive() {
-		return errorsmod.Wrap(ErrInvalid, "amount")
+		return ErrInvalid.Wrapf("amount")
 	}
 	return nil
 }
@@ -63,10 +62,10 @@ func (e ERC20Tokens) GetAmounts() []sdkmath.Int {
 // ValidateBasic performs stateless checks on validity
 func (m *BridgeValidator) ValidateBasic() error {
 	if m.Power == 0 {
-		return errorsmod.Wrap(ErrEmpty, "power")
+		return ErrInvalid.Wrapf("power")
 	}
 	if err := contract.ValidateEthereumAddress(m.ExternalAddress); err != nil {
-		return errorsmod.Wrap(ErrInvalid, "external address")
+		return ErrInvalid.Wrapf("external address")
 	}
 	return nil
 }
@@ -159,15 +158,15 @@ func (b BridgeValidators) GetPowers() []uint64 {
 // ValidateBasic performs stateless checks
 func (b BridgeValidators) ValidateBasic() error {
 	if len(b) == 0 {
-		return ErrEmpty
+		return ErrInvalid.Wrapf("no members")
 	}
 	for i := range b {
 		if err := b[i].ValidateBasic(); err != nil {
-			return errorsmod.Wrapf(err, "member %d", i)
+			return err
 		}
 	}
 	if b.HasDuplicates() {
-		return errorsmod.Wrap(ErrDuplicate, "address")
+		return ErrInvalid.Wrapf("duplicate members")
 	}
 	return nil
 }
@@ -207,7 +206,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// will panic if gravityId is too long to fit in 32 bytes
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse gravity id")
+		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 	checkpoint, err := fxtypes.StrToByte32("checkpoint")
 	if err != nil {
@@ -223,12 +222,11 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	packBytes, packErr := contract.GetFxBridgeABI().Pack("oracleSetCheckpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
-
+	packBytes, err := contract.GetFxBridgeABI().Pack("oracleSetCheckpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
-	if packErr != nil {
-		return nil, errorsmod.Wrap(err, "packing checkpoint")
+	if err != nil {
+		return nil, fmt.Errorf("encode oracle set checkpoint: %w", err)
 	}
 
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant
@@ -240,15 +238,15 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 
 func (m *OracleSet) Equal(o *OracleSet) (bool, error) {
 	if m.Height != o.Height {
-		return false, errorsmod.Wrap(ErrInvalid, "oracle set heights mismatch")
+		return false, ErrInvalid.Wrapf("oracle set heights mismatch")
 	}
 
 	if m.Nonce != o.Nonce {
-		return false, errorsmod.Wrap(ErrInvalid, "oracle set nonce mismatch")
+		return false, ErrInvalid.Wrapf("oracle set nonce mismatch")
 	}
 
 	if !BridgeValidators(m.Members).Equal(o.Members) {
-		return false, errorsmod.Wrap(ErrInvalid, "oracle set members mismatch")
+		return false, ErrInvalid.Wrapf("oracle set members mismatch")
 	}
 
 	return true, nil
@@ -324,7 +322,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// will panic if gravityId is too long to fit in 32 bytes
 	gravityID, err := fxtypes.StrToByte32(gravityIDString)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse gravity id")
+		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 
 	// Create the methodName argument which salts the signature
@@ -360,7 +358,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "packing checkpoint")
+		return nil, fmt.Errorf("encode batch checkpoint: %w", err)
 	}
 
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant
@@ -446,7 +444,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	// will panic if gravityId is too long to fit in 32 bytes
 	gravityID, err := fxtypes.StrToByte32(gravityIDString)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse gravity id")
+		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 
 	// Create the methodName argument which salts the signature
@@ -457,11 +455,11 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 
 	dataBytes, err := hex.DecodeString(m.Data)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse data")
+		return nil, fmt.Errorf("parse data: %w", err)
 	}
 	memoBytes, err := hex.DecodeString(m.Memo)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse memo")
+		return nil, fmt.Errorf("parse memo: %w", err)
 	}
 	contracts := make([]gethcommon.Address, 0, len(m.Tokens))
 	amounts := make([]*big.Int, 0, len(m.Tokens))
@@ -490,7 +488,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "packing checkpoint")
+		return nil, fmt.Errorf("encode bridge call checkpoint: %w", err)
 	}
 
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant
