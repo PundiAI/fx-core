@@ -234,6 +234,9 @@ func (suite *PrecompileTestSuite) GenerateModuleName() string {
 	for m := range keepers {
 		modules = append(modules, m)
 	}
+	if len(modules) == 0 {
+		return ""
+	}
 	return modules[tmrand.Intn(len(modules))]
 }
 
@@ -248,7 +251,7 @@ func (suite *PrecompileTestSuite) GenerateOracles(moduleName string, online bool
 			DelegateAmount:    sdkmath.NewInt(1e18).MulRaw(1000),
 			StartHeight:       1,
 			Online:            online,
-			DelegateValidator: sdk.ValAddress([]byte("val")).String(),
+			DelegateValidator: sdk.ValAddress(helpers.GenAccAddress()).String(),
 			SlashTimes:        0,
 		}
 		keeper.SetOracle(suite.ctx, oracle)
