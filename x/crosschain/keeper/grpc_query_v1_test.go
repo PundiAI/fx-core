@@ -54,8 +54,8 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.App.CrosschainRouterKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	suite.oracleAddrs = helpers.AddTestAddrs(suite.App, suite.Ctx, types.MaxOracleSize, sdk.NewCoins(types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.App, suite.Ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
+	suite.oracleAddrs = suite.AddTestAddress(types.MaxOracleSize, types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18)))
+	suite.bridgerAddrs = suite.AddTestAddress(types.MaxOracleSize, sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18)))
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
 }
 

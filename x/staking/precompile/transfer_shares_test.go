@@ -752,7 +752,7 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	signer2 := suite.RandSigner()
 	signer3 := suite.RandSigner()
 
-	helpers.AddTestAddr(suite.App, suite.Ctx, signer1.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	suite.MintToken(signer1.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
 	operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 	suite.Require().NoError(err)

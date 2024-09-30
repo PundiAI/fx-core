@@ -115,7 +115,7 @@ func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_WFX() {
 	s.Require().True(erc20Suite.BalanceOf(erc20Suite.HexAddr()).Cmp(big.NewInt(100)) == 0)
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
-	helpers.AddTestAddr(s.App, s.Ctx, newSigner.AccAddress(), helpers.NewStakingCoins(100, 18))
+	s.MintToken(newSigner.AccAddress(), helpers.NewStakingCoin(100, 18))
 	erc20Suite.Transfer(newSigner.Address(), big.NewInt(100), true)
 
 	erc20Suite.Approve(newSigner.Address(), big.NewInt(100), true)

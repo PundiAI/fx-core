@@ -11419,10 +11419,10 @@ paths:
                     format: uint64
                   enable_send_to_external_pending:
                     type: boolean
-                    title: Deprecated
+                    title: 'Deprecated: do not use'
                   enable_bridge_call_pending:
                     type: boolean
-                    title: Deprecated
+                    title: 'Deprecated: do not use'
                 description: >-
                   If power change between validators of CurrentOracleSet and
                   latest oracle set
@@ -44080,10 +44080,10 @@ definitions:
         format: uint64
       enable_send_to_external_pending:
         type: boolean
-        title: Deprecated
+        title: 'Deprecated: do not use'
       enable_bridge_call_pending:
         type: boolean
-        title: Deprecated
+        title: 'Deprecated: do not use'
     description: >-
       If power change between validators of CurrentOracleSet and latest oracle
       set
@@ -44862,10 +44862,10 @@ definitions:
             format: uint64
           enable_send_to_external_pending:
             type: boolean
-            title: Deprecated
+            title: 'Deprecated: do not use'
           enable_bridge_call_pending:
             type: boolean
-            title: Deprecated
+            title: 'Deprecated: do not use'
         description: >-
           If power change between validators of CurrentOracleSet and latest
           oracle set

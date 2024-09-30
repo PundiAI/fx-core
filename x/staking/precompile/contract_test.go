@@ -70,13 +70,13 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	priv, err := ethsecp256k1.GenerateKey()
 	suite.Require().NoError(err)
 	suite.signer = helpers.NewSigner(priv)
-	helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
+	suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
 
 	stakingContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.StakingTestMetaData.ABI), contract.MustDecodeHex(testscontract.StakingTestMetaData.Bin))
 	suite.Require().NoError(err)
 	suite.staking = stakingContract
 
-	helpers.AddTestAddr(suite.App, suite.Ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
+	suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
 
 	suite.StakingSuite.Init(suite.Require(), suite.Ctx, suite.App.StakingKeeper)
 }
@@ -117,7 +117,7 @@ func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
 }
 
 func (suite *PrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ common.Address, delAmount sdkmath.Int) {
-	helpers.AddTestAddr(suite.App, suite.Ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: val.String(),
@@ -134,7 +134,7 @@ func (suite *PrecompileTestSuite) undelegateToFunc(val sdk.ValAddress, _, to com
 }
 
 func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
-	helpers.AddTestAddr(suite.App, suite.Ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: val.String(),
@@ -142,7 +142,7 @@ func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, t
 	})
 	suite.Require().NoError(err)
 
-	helpers.AddTestAddr(suite.App, suite.Ctx, to.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	suite.MintToken(to.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
 		ValidatorAddress: val.String(),
@@ -152,7 +152,7 @@ func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, t
 }
 
 func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
-	helpers.AddTestAddr(suite.App, suite.Ctx, to.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	suite.MintToken(to.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
 		ValidatorAddress: val.String(),
@@ -160,7 +160,7 @@ func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, t
 	})
 	suite.Require().NoError(err)
 
-	helpers.AddTestAddr(suite.App, suite.Ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
 		ValidatorAddress: val.String(),
@@ -253,7 +253,7 @@ func (suite *PrecompileTestSuite) PrecompileStakingDelegation(val sdk.ValAddress
 }
 
 func (suite *PrecompileTestSuite) PrecompileStakingDelegateV2(signer *helpers.Signer, val sdk.ValAddress, amt *big.Int) *big.Int {
-	helpers.AddTestAddr(suite.App, suite.Ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amt))))
+	suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amt)))
 	pack, err := precompile.GetABI().Pack(TestDelegateV2Name, val.String(), amt)
 	suite.Require().NoError(err)
 
@@ -325,7 +325,7 @@ func (suite *PrecompileTestSuite) PrecompileStakingTransferFromShares(signer *he
 
 func (suite *PrecompileTestSuite) Delegate(val sdk.ValAddress, amount sdkmath.Int, dels ...sdk.AccAddress) {
 	for _, del := range dels {
-		helpers.AddTestAddr(suite.App, suite.Ctx, del, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amount)))
+		suite.MintToken(del, sdk.NewCoin(fxtypes.DefaultDenom, amount))
 		validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
 		suite.Require().NoError(err)
 		_, err = suite.App.StakingKeeper.Delegate(suite.Ctx, del, amount, stakingtypes.Unbonded, validator, true)

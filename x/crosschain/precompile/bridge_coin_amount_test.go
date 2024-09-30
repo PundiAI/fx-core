@@ -67,7 +67,7 @@ func (suite *PrecompileTestSuite) TestBridgeCoinAmount() {
 			bridgeCoinAmount := precompile.NewBridgeCoinAmountMethod(nil)
 
 			md := suite.GenerateCrossChainDenoms()
-			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, md.GetMetadata())
 			suite.Require().NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
@@ -77,7 +77,7 @@ func (suite *PrecompileTestSuite) TestBridgeCoinAmount() {
 			suite.Require().NoError(err)
 
 			contractAddr := types.GetAddress()
-			res, err := suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, signer.Address(), &contractAddr, nil, packData, false)
+			res, err := suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, signer.Address(), &contractAddr, nil, packData, false)
 
 			if tc.success {
 				suite.Require().NoError(err)

@@ -82,7 +82,7 @@ func (suite *PrecompileTestSuite) TestIsOracleOnline() {
 
 			contractAddr := crosschaintypes.GetAddress()
 
-			res, err := suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, signer.Address(), &contractAddr, nil, packData, false)
+			res, err := suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, signer.Address(), &contractAddr, nil, packData, false)
 			if err != nil {
 				suite.Require().EqualError(err, expectErr.Error())
 				return

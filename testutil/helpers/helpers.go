@@ -12,13 +12,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
@@ -38,8 +36,7 @@ func newGenesisState(cdc codec.JSONCodec, moduleBasics module.BasicManager) app.
 	return genesis
 }
 
-// Deprecated: please use BaseSuite
-func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tmtypes.ValidatorSet, genAccs authtypes.GenesisAccounts, balances []banktypes.Balance) {
+func generateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tmtypes.ValidatorSet, genAccs authtypes.GenesisAccounts, balances []banktypes.Balance) {
 	if initCoins == nil || initCoins.Len() <= 0 {
 		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)))
 	}
@@ -63,8 +60,7 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tm
 	return tmtypes.NewValidatorSet(validators), genAccs, balances
 }
 
-// Deprecated: please use BaseSuite
-func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
+func setupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
 	t.Helper()
 
 	myApp := NewApp()
@@ -144,27 +140,4 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	require.NoError(t, err)
 
 	return myApp
-}
-
-// Deprecated: please use BaseSuite.AddTestSigners
-func AddTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, coins sdk.Coins) []sdk.AccAddress {
-	testAddrs := make([]sdk.AccAddress, accNum)
-	for i := 0; i < accNum; i++ {
-		testAddrs[i] = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
-		AddTestAddr(myApp, ctx, testAddrs[i], coins)
-	}
-	return testAddrs
-}
-
-// Deprecated: please use BaseSuite.MintToken
-func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
-	err := myApp.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
-	if err != nil {
-		panic(err)
-	}
-
-	err = myApp.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, coins)
-	if err != nil {
-		panic(err)
-	}
 }
