@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
@@ -16,22 +15,14 @@ import (
 // Tests that batches and transactions are preserved during chain restart
 func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 	bridgeTokens := make([]types.BridgeToken, 10)
+	bridgeToBaseMap := make(map[string]string)
 	for i := 0; i < len(bridgeTokens); i++ {
-		contractAddress := helpers.GenHexAddress().Hex()
-		bridgeToken := types.BridgeToken{
-			Token: contractAddress,
-			Denom: types.NewBridgeDenom(suite.chainName, contractAddress),
-		}
-		bridgeTokens[i] = bridgeToken
-		suite.Keeper().AddBridgeToken(suite.Ctx, bridgeToken.Denom, bridgeToken.Denom)
+		baseDenom, bridgeDenom, tokenContract := suite.AddRandomBaseToken(false)
+		bridgeTokens[i] = types.BridgeToken{Token: tokenContract, Denom: bridgeDenom}
+		bridgeToBaseMap[bridgeDenom] = baseDenom
 
 		for _, bridger := range suite.bridgerAddrs {
-			voucher := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(9990))
-			err := suite.App.BankKeeper.MintCoins(suite.Ctx, suite.chainName, sdk.NewCoins(voucher))
-			suite.Require().NoError(err)
-
-			err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, suite.chainName, bridger, sdk.NewCoins(voucher))
-			suite.Require().NoError(err)
+			suite.MintBaseToken(bridger, baseDenom, bridgeDenom, sdkmath.NewInt(9990))
 		}
 	}
 
@@ -50,9 +41,10 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		sender := suite.bridgerAddrs[i%len(suite.bridgerAddrs)]
 		receiver := crypto.PubkeyToAddress(suite.externalPris[i%len(suite.externalPris)].PublicKey).String()
 		bridgeToken := bridgeTokens[i%len(bridgeTokens)]
+		baseDenom := bridgeToBaseMap[bridgeToken.Denom]
 
-		amountToken := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(int64(amount)))
-		feeToken := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(int64(fee)))
+		amountToken := sdk.NewCoin(baseDenom, sdkmath.NewInt(int64(amount)))
+		feeToken := sdk.NewCoin(baseDenom, sdkmath.NewInt(int64(fee)))
 
 		// add transaction to the pool
 		nextTxID, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, receiver, amountToken, feeToken)

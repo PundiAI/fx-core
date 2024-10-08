@@ -11,7 +11,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/hashicorp/go-metrics"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -353,16 +352,6 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
-	// convert denom to many
-	fxTarget := fxtypes.ParseFxTarget(s.moduleName)
-	targetCoin, err := s.erc20Keeper.ConvertDenomToTarget(ctx, sender, msg.Amount.Add(msg.BridgeFee), fxTarget)
-	if err != nil {
-		return nil, err
-	}
-	msg.Amount.Denom = targetCoin.Denom
-	msg.BridgeFee.Denom = targetCoin.Denom
-
 	txID, err := s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
 	if err != nil {
 		return nil, err

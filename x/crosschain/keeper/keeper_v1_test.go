@@ -177,3 +177,23 @@ func (suite *KeeperTestSuite) AddBridgeToken(contractAddr string, symbol string)
 	err := suite.Keeper().AddBridgeTokenExecuted(suite.Ctx, bridgeTokenClaim)
 	suite.Require().NoError(err)
 }
+
+func (suite *KeeperTestSuite) AddRandomBaseToken(isNativeERC20 bool) (string, string, string) {
+	baseDenom := helpers.NewRandDenom()
+	tokenContract := helpers.GenExternalAddr(suite.chainName)
+	bridgeDenom := types.NewBridgeDenom(suite.chainName, tokenContract)
+
+	// set bank token metadata
+	suite.SetToken(baseDenom, bridgeDenom)
+	// add bridge token to module
+	suite.AddBridgeToken(tokenContract, bridgeDenom)
+	// register erc20 token pair
+	suite.AddTokenPair(baseDenom, isNativeERC20)
+
+	return baseDenom, bridgeDenom, tokenContract
+}
+
+func (suite *KeeperTestSuite) MintBaseToken(acc sdk.AccAddress, baseDenom, bridgeDenom string, amount sdkmath.Int) {
+	suite.MintTokenToModule(suite.chainName, sdk.NewCoin(bridgeDenom, amount))
+	suite.MintToken(acc, sdk.NewCoin(baseDenom, amount))
+}
