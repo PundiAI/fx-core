@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -12,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
-	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
@@ -20,20 +20,34 @@ import (
 
 func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {
 	k.CreateBridgeAccount(ctx, msg.TxOrigin)
+	if senderAccount := k.ak.GetAccount(ctx, msg.GetSenderAddr().Bytes()); senderAccount != nil {
+		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
+			return types.ErrInvalid.Wrapf("sender is module account")
+		}
+	}
+	isMemoSendCallTo := types.IsMemoSendCallTo(msg.MustMemo())
+	receiverTokenAddr := msg.GetToAddr()
+	if isMemoSendCallTo {
+		receiverTokenAddr = msg.GetSenderAddr()
+	}
 
-	tokens := msg.GetTokensAddr()
-	erc20Token, err := types.NewERC20Tokens(k.moduleName, tokens, msg.GetAmounts())
+	erc20Token, err := types.NewERC20Tokens(k.moduleName, msg.GetTokensAddr(), msg.GetAmounts())
 	if err != nil {
 		return err
 	}
-	refundAddr := msg.GetRefundAddr()
-	cacheCtx, commit := ctx.CacheContext()
-	if err = k.BridgeCallTransferAndCallEvm(cacheCtx, msg.GetSenderAddr(), refundAddr, erc20Token, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), msg.Value); err != nil {
-		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
-	} else {
-		commit()
+
+	_, tokenAddrs, tokenAmounts, err := k.BridgeTokenToERC20(ctx, receiverTokenAddr.Bytes(), erc20Token...)
+	if err != nil {
+		return err
 	}
 
+	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
+	if err = k.BridgeCallEvm(cacheCtx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
+		tokenAddrs, tokenAmounts, msg.MustData(), msg.MustMemo(), msg.Value, isMemoSendCallTo); err == nil {
+		commit()
+		return nil
+	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
 	if !ctx.IsCheckTx() {
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "bridge_call_in"},
@@ -44,51 +58,81 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 			},
 		)
 	}
+	return k.BridgeCallFailedRefund(ctx, msg.GetRefundAddr(), erc20Token, msg.EventNonce)
+}
 
-	if err != nil && len(tokens) > 0 {
-		// new outgoing bridge call to refund
-		outCallNonce, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, erc20Token, common.Address{}, nil, nil, msg.EventNonce)
+func (k Keeper) BridgeTokenToERC20(ctx context.Context, holder sdk.AccAddress, tokens ...types.ERC20Token) (sdk.Coins, []common.Address, []*big.Int, error) {
+	baseCoins := sdk.NewCoins()
+	tokenAddrs := make([]common.Address, 0, len(tokens))
+	tokenAmounts := make([]*big.Int, 0, len(tokens))
+
+	for _, token := range tokens {
+		coin, err := k.BridgeTokenToBaseCoin(ctx, token.Contract, token.Amount.BigInt(), holder)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		baseCoins = baseCoins.Add(coin)
+
+		tokenAmounts = append(tokenAmounts, coin.Amount.BigInt())
+		if coin.Denom == fxtypes.DefaultDenom {
+			tokenAddrs = append(tokenAddrs, common.Address{})
+			continue
+		}
+		// todo replace convert coin, return token pair
+		if _, err = k.erc20Keeper.ConvertCoin(ctx, &erc20types.MsgConvertCoin{
+			Coin:     coin,
+			Receiver: common.BytesToAddress(holder.Bytes()).String(),
+			Sender:   holder.String(),
+		}); err != nil {
+			return nil, nil, nil, err
+		}
+		pair, _ := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), coin.Denom)
+		tokenAddrs = append(tokenAddrs, pair.GetERC20Contract())
+	}
+	return baseCoins, tokenAddrs, tokenAmounts, nil
+}
+
+func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to common.Address, tokens []common.Address, amounts []*big.Int, data, memo []byte, value sdkmath.Int, isMemoSendCallTo bool) error {
+	if !k.evmKeeper.IsContract(ctx, to) {
+		return nil
+	}
+	var callEvmSender common.Address
+	var args []byte
+
+	if isMemoSendCallTo {
+		args = data
+		callEvmSender = sender
+	} else {
+		var err error
+		args, err = types.PackBridgeCallback(sender, refundAddr, tokens, amounts, data, memo)
 		if err != nil {
 			return err
 		}
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeBridgeCallRefundOut,
-			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", msg.EventNonce)),
-			sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCallNonce)),
-		))
+		callEvmSender = k.GetCallbackFrom()
 	}
 
-	return nil
-}
-
-func (k Keeper) BridgeCallTransferAndCallEvm(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, value sdkmath.Int) error {
-	if senderAccount := k.ak.GetAccount(ctx, sender.Bytes()); senderAccount != nil {
-		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
-			return types.ErrInvalid.Wrapf("sender is module account")
-		}
-	}
-	isMemoSendCallTo := types.IsMemoSendCallTo(memo)
-	receiverTokenAddr := to
-	if isMemoSendCallTo {
-		receiverTokenAddr = sender
-	}
-	coins, err := k.bridgeCallTransferCoins(ctx, receiverTokenAddr.Bytes(), tokens)
+	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
+	txResp, err := k.evmKeeper.CallEVM(ctx, callEvmSender, &to, value.BigInt(), gasLimit, args, true)
 	if err != nil {
 		return err
 	}
-
-	if !ctx.IsCheckTx() {
-		fxtelemetry.SetGaugeLabelsWithCoins(
-			[]string{types.ModuleName, "bridge_call_in_amount"},
-			coins,
-			telemetry.NewLabel("module", k.moduleName),
-		)
+	if txResp.Failed() {
+		return types.ErrInvalid.Wrap(txResp.VmError)
 	}
+	return nil
+}
 
-	if err = k.bridgeCallTransferTokens(ctx, receiverTokenAddr.Bytes(), receiverTokenAddr.Bytes(), coins); err != nil {
+func (k Keeper) BridgeCallFailedRefund(ctx sdk.Context, refundAddr common.Address, erc20Token []types.ERC20Token, eventNonce uint64) error {
+	outCallNonce, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, erc20Token, common.Address{}, nil, nil, eventNonce)
+	if err != nil {
 		return err
 	}
-	return k.BridgeCallEvm(ctx, sender, refundAddr, coins, to, data, memo, value, isMemoSendCallTo)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeBridgeCallRefundOut,
+		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", eventNonce)),
+		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCallNonce)),
+	))
+	return nil
 }
 
 func (k Keeper) bridgeCallTransferCoins(ctx sdk.Context, sender sdk.AccAddress, tokens []types.ERC20Token) (sdk.Coins, error) {
