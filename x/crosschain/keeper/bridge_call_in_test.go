@@ -72,6 +72,8 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 }
 
 func (suite *KeeperTestSuite) BridgeCallClaimInitialize(msg types.MsgBridgeCallClaim, tokenIsNativeCoin []bool) (baseDenoms, bridgeDenoms []string, erc20Addrs []common.Address) {
+	suite.Require().Equal(len(tokenIsNativeCoin), len(msg.TokenContracts))
+
 	baseDenoms = make([]string, 0, len(msg.TokenContracts))
 	bridgeDenoms = make([]string, 0, len(msg.TokenContracts))
 	erc20Addrs = make([]common.Address, 0, len(msg.TokenContracts))

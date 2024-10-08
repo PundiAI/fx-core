@@ -212,8 +212,8 @@ func (s *BaseSuite) AddTokenPair(denom string, isNative bool) common.Address {
 	if isNative {
 		contractOwner = erc20types.OWNER_MODULE
 	}
-	erc20ModuelAddr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
-	erc20Addr, err := s.App.Erc20Keeper.DeployUpgradableToken(sdk.UnwrapSDKContext(s.Ctx), erc20ModuelAddr, "Test Token", strings.ToUpper(denom), 18)
+	erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
+	erc20Addr, err := s.App.Erc20Keeper.DeployUpgradableToken(sdk.UnwrapSDKContext(s.Ctx), erc20ModuleAddr, "Test Token", strings.ToUpper(denom), 18)
 	s.Require().NoError(err)
 	s.App.Erc20Keeper.AddTokenPair(s.Ctx, erc20types.TokenPair{Erc20Address: erc20Addr.String(), Denom: denom, Enabled: true, ContractOwner: contractOwner})
 	return erc20Addr

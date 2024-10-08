@@ -22,7 +22,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	k.CreateBridgeAccount(ctx, msg.TxOrigin)
 	if senderAccount := k.ak.GetAccount(ctx, msg.GetSenderAddr().Bytes()); senderAccount != nil {
 		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
-			return types.ErrInvalid.Wrapf("sender is module account")
+			return types.ErrInvalid.Wrap("sender is module account")
 		}
 	}
 	isMemoSendCallTo := types.IsMemoSendCallTo(msg.MustMemo())
@@ -86,6 +86,7 @@ func (k Keeper) BridgeTokenToERC20(ctx context.Context, holder sdk.AccAddress, t
 		}); err != nil {
 			return nil, nil, nil, err
 		}
+		// NOTE: convert coin already checked
 		pair, _ := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), coin.Denom)
 		tokenAddrs = append(tokenAddrs, pair.GetERC20Contract())
 	}
