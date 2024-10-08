@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-metrics"
 
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -27,12 +26,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin, txID uint64) error {
-	tokenContract, found := k.GetContractByBridgeDenom(ctx, amount.Denom)
-	if !found {
-		return types.ErrInvalid.Wrapf("bridge token is not exist")
-	}
-
-	if err := k.TransferBridgeCoinToExternal(ctx, sender, amount.Add(fee)); err != nil {
+	tokenContract, _, err := k.BaseCoinToBridgeToken(ctx, k.moduleName, amount.Add(fee), sender)
+	if err != nil {
 		return err
 	}
 
@@ -222,45 +217,21 @@ func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types
 }
 
 func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress, tokenContract string, refundAmount sdkmath.Int) (sdk.Coin, error) {
-	// 1. handler refund
-	// query denom, if not exist, return error
-	bridgeDenom, found := k.GetBridgeDenomByContract(ctx, tokenContract)
-	if !found {
-		return sdk.Coin{}, types.ErrInvalid.Wrapf("Invalid token, contract %s", tokenContract)
-	}
-	// reissue the amount and the fee
-	totalToRefund := sdk.NewCoin(bridgeDenom, refundAmount)
-	totalToRefundCoins := sdk.NewCoins(totalToRefund)
-
-	// check bridge denom is origin denom or converted alias
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeDenom)
-	if isOriginOrConverted {
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, err
-		}
-	} else {
-		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, err
-		}
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
-			return sdk.Coin{}, err
-		}
-	}
-
-	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, totalToRefund, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+	// 1. handler refund and convert to base coin
+	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, tokenContract, refundAmount.BigInt(), sender)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
 
 	// 2. handler hook
-	if err = k.handleOutgoingTransferRelation(ctx, txId, sender, targetCoin); err != nil {
+	if err = k.handleOutgoingTransferRelation(ctx, txId, sender, baseCoin); err != nil {
 		return sdk.Coin{}, err
 	}
 
 	// 3. emit event
 	k.emitCancelEvent(ctx, txId)
 
-	return targetCoin, nil
+	return baseCoin, nil
 }
 
 func (k Keeper) handleOutgoingTransferRelation(ctx sdk.Context, txId uint64, sender sdk.AccAddress, targetCoin sdk.Coin) error {

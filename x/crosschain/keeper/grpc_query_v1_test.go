@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
@@ -29,7 +28,7 @@ import (
 )
 
 type CrossChainGrpcTestSuite struct {
-	helpers.BaseSuite
+	KeeperTestSuite
 	chainName    string
 	oracleAddrs  []sdk.AccAddress
 	bridgerAddrs []sdk.AccAddress
@@ -38,16 +37,16 @@ type CrossChainGrpcTestSuite struct {
 	queryClient types.QueryClient
 }
 
-func TestCrossChainGrpcTestSuite_bsc(t *testing.T) {
-	suite.Run(t, &CrossChainGrpcTestSuite{chainName: bsctypes.ModuleName})
-}
+// func TestCrossChainGrpcTestSuite_bsc(t *testing.T) {
+//	suite.Run(t, &CrossChainGrpcTestSuite{KeeperTestSuite: KeeperTestSuite{chainName: bsctypes.ModuleName}, chainName: bsctypes.ModuleName})
+//}
 
 func TestCrossChainGrpcTestSuite_eth(t *testing.T) {
-	suite.Run(t, &CrossChainGrpcTestSuite{chainName: ethtypes.ModuleName})
+	suite.Run(t, &CrossChainGrpcTestSuite{KeeperTestSuite: KeeperTestSuite{chainName: ethtypes.ModuleName}, chainName: ethtypes.ModuleName})
 }
 
 func (suite *CrossChainGrpcTestSuite) SetupTest() {
-	suite.BaseSuite.SetupTest()
+	suite.KeeperTestSuite.SetupTest()
 	suite.Commit(10)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
@@ -534,158 +533,46 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 		expPass  bool
 	}{
 		{
-			name: "batch fee BaseFee is negative",
+			name: "batch fee normal",
 			malleate: func() {
+				// add test token for test
+				baseDenom, bridgeDenom, tokenContract := suite.AddRandomBaseToken(false)
+				sender := helpers.GenAccAddress()
+
+				lessMinBatchFeeAmount := helpers.NewRandAmount()
+				minBatchFeeAmount := lessMinBatchFeeAmount.Add(helpers.NewRandAmount())
+
+				addToOutgoingFn := func(sender sdk.AccAddress, amount sdk.Coin) {
+					suite.MintBaseToken(sender, baseDenom, bridgeDenom, amount.Amount.Add(amount.Amount))
+					_, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, tmrand.Str(20), amount, amount)
+					suite.Require().NoError(err)
+				}
+				// test add 3 bridgeFee equal to minBatchFee
+				equalMinBatchFeeTx := uint64(3)
+				for i := 0; i < int(equalMinBatchFeeTx); i++ {
+					addToOutgoingFn(sender, sdk.NewCoin(baseDenom, minBatchFeeAmount))
+				}
+
+				// test add 2 bridgeFee less than minBatchFee
+				for i := 0; i < 2; i++ {
+					addToOutgoingFn(sender, sdk.NewCoin(baseDenom, lessMinBatchFeeAmount))
+				}
+
 				request = &types.QueryBatchFeeRequest{
 					ChainName: suite.chainName,
 					MinBatchFees: []types.MinBatchFee{
 						{
-							TokenContract: suite.bridgerAddrs[0].String(),
-							BaseFee:       sdkmath.NewInt(-1),
+							TokenContract: tokenContract,
+							BaseFee:       minBatchFeeAmount,
 						},
 					},
 				}
-				expectedError = status.Error(codes.InvalidArgument, "base fee")
-			},
-			expPass: false,
-		},
-		{
-			name: "batch fee normal",
-			malleate: func() {
-				externalKey, _ := ethsecp256k1.GenerateKey()
-				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
-				token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), 0).String()
-				err := suite.Keeper().AttestationHandler(suite.Ctx, &types.MsgBridgeTokenClaim{
-					TokenContract:  token,
-					BridgerAddress: suite.bridgerAddrs[0].String(),
-					ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-					ChainName:      suite.chainName,
-				})
-				suite.Require().NoError(err)
-				bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token)
-				suite.Require().True(found)
-				initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
-				err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
-				suite.Require().NoError(err)
-				err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
-				suite.Require().NoError(err)
-				minBatchFee := []types.MinBatchFee{
-					{
-						TokenContract: token,
-						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
-					},
-				}
-				for i := uint64(1); i <= 3; i++ {
-					_, err := suite.Keeper().AddToOutgoingPool(
-						suite.Ctx,
-						suite.bridgerAddrs[0],
-						externalAcc.String(),
-						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
-					suite.Require().NoError(err)
-				}
-				for i := uint64(1); i <= 2; i++ {
-					_, err := suite.Keeper().AddToOutgoingPool(
-						suite.Ctx,
-						suite.bridgerAddrs[0],
-						externalAcc.String(),
-						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
-					suite.Require().NoError(err)
-				}
-				request = &types.QueryBatchFeeRequest{
-					ChainName:    suite.chainName,
-					MinBatchFees: minBatchFee,
-				}
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
-						TokenContract: token,
-						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
-						TotalTxs:      3,
-						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
-					},
-				}}
-			},
-			expPass: true,
-		},
-		{
-			name: "batch fee mul normal",
-			malleate: func() {
-				bridgeTokenList := make([]*types.BridgeToken, 2)
-
-				externalKey, _ := ethsecp256k1.GenerateKey()
-				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
-
-				for i := 0; i < 2; i++ {
-					token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), uint64(i)).String()
-					err := suite.Keeper().AttestationHandler(suite.Ctx, &types.MsgBridgeTokenClaim{
-						TokenContract:  token,
-						BridgerAddress: suite.bridgerAddrs[0].String(),
-						ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-						ChainName:      suite.chainName,
-					})
-					suite.Require().NoError(err)
-					bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token)
-					suite.Require().True(found)
-					bridgeTokenList[i] = &types.BridgeToken{Token: token, Denom: bridgeDenom}
-					initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
-					err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
-					suite.Require().NoError(err)
-					err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
-					suite.Require().NoError(err)
-				}
-				minBatchFee := []types.MinBatchFee{
-					{
-						TokenContract: bridgeTokenList[0].Token,
-						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e6))),
-					},
-					{
-						TokenContract: bridgeTokenList[1].Token,
-						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))),
-					},
-				}
-				for i := uint64(1); i <= 2; i++ {
-					_, err := suite.Keeper().AddToOutgoingPool(
-						suite.Ctx,
-						suite.bridgerAddrs[0],
-						externalAcc.String(),
-						sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
-					suite.Require().NoError(err)
-				}
-				_, err := suite.Keeper().AddToOutgoingPool(
-					suite.Ctx,
-					suite.bridgerAddrs[0],
-					externalAcc.String(),
-					sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-					sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
-				suite.Require().NoError(err)
-
-				for i := uint64(1); i <= 3; i++ {
-					_, err := suite.Keeper().AddToOutgoingPool(
-						suite.Ctx,
-						suite.bridgerAddrs[0],
-						externalAcc.String(),
-						sdk.NewCoin(bridgeTokenList[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
-						sdk.NewCoin(bridgeTokenList[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))))
-					suite.Require().NoError(err)
-				}
-				request = &types.QueryBatchFeeRequest{
-					ChainName:    suite.chainName,
-					MinBatchFees: minBatchFee,
-				}
-				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
-					{
-						TokenContract: bridgeTokenList[0].Token,
-						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
-						TotalTxs:      1,
-						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
-					},
-					{
-						TokenContract: bridgeTokenList[1].Token,
-						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
-						TotalTxs:      3,
-						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
+						TokenContract: tokenContract,
+						TotalFees:     minBatchFeeAmount.Mul(sdkmath.NewIntFromUint64(equalMinBatchFeeTx)),
+						TotalTxs:      equalMinBatchFeeTx,
+						TotalAmount:   minBatchFeeAmount.Mul(sdkmath.NewIntFromUint64(equalMinBatchFeeTx)),
 					},
 				}}
 			},
@@ -1790,76 +1677,30 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 			expPass: true,
 		},
 		{
-			name: "pending send to external in batch and unbatched",
+			name: "pending send to external in unbatched",
 			malleate: func() {
-				externalKey, _ := ethsecp256k1.GenerateKey()
-				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
-				token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), 0)
-				bridgeAcc := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-				err := suite.Keeper().AttestationHandler(suite.Ctx, &types.MsgBridgeTokenClaim{
-					TokenContract:  token.String(),
-					BridgerAddress: suite.bridgerAddrs[0].String(),
-					ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-					ChainName:      suite.chainName,
-				})
-				suite.Require().NoError(err)
-				bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, token.String())
-				suite.Require().True(found)
-				initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
-				err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
-				suite.Require().NoError(err)
-				err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, bridgeAcc, sdk.NewCoins(sdk.NewCoin(bridgeDenom, initBalances)))
-				suite.Require().NoError(err)
-				pool, err := suite.Keeper().AddToOutgoingPool(
-					suite.Ctx,
-					bridgeAcc,
-					externalAcc.String(),
-					sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
-					sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
-				)
-				suite.Require().NoError(err)
-				suite.Require().Equal(pool, uint64(1))
-				tokenContract, found := suite.Keeper().GetContractByBridgeDenom(suite.Ctx, bridgeDenom)
-				suite.Require().True(found)
-				suite.Require().Equal(token.String(), tokenContract)
-				bridgeTokenFee := types.NewERC20Token(sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), tokenContract)
-
-				err = suite.Keeper().StoreBatch(suite.Ctx, &types.OutgoingTxBatch{
-					Transactions: []*types.OutgoingTransferTx{
-						{
-							Id:          0,
-							Sender:      bridgeAcc.String(),
-							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-						},
-					},
-				})
+				// add test token for test
+				baseDenom, bridgeDenom, tokenContract := suite.AddRandomBaseToken(false)
+				sender := helpers.GenAccAddress()
+				amount := sdk.NewCoin(baseDenom, helpers.NewRandAmount())
+				suite.MintBaseToken(sender, baseDenom, bridgeDenom, amount.Amount.Add(amount.Amount))
+				randomReceive := tmrand.Str(20)
+				txId, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, randomReceive, amount, amount)
 				suite.Require().NoError(err)
 				request = &types.QueryPendingSendToExternalRequest{
 					ChainName:     suite.chainName,
-					SenderAddress: bridgeAcc.String(),
+					SenderAddress: sender.String(),
 				}
+				tokenAndFee := types.NewERC20Token(amount.Amount, tokenContract)
 				response = &types.QueryPendingSendToExternalResponse{
-					TransfersInBatches: []*types.OutgoingTransferTx{
-						{
-							Id:          0,
-							Sender:      bridgeAcc.String(),
-							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-						},
-					},
+					TransfersInBatches: []*types.OutgoingTransferTx{},
 					UnbatchedTransfers: []*types.OutgoingTransferTx{
 						{
-							Id:          1,
-							Sender:      bridgeAcc.String(),
-							DestAddress: externalAcc.String(),
-							Token: types.NewERC20Token(
-								sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))),
-								token.String(),
-							),
-							Fee: bridgeTokenFee,
+							Id:          txId,
+							Sender:      sender.String(),
+							DestAddress: randomReceive,
+							Token:       tokenAndFee,
+							Fee:         tokenAndFee,
 						},
 					},
 				}

@@ -417,10 +417,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		suite.False(suite.Keeper().HasOracleAddrByBridgerAddr(suite.Ctx, bridger))
 	}
 
-	_, err = suite.App.EndBlocker(suite.Ctx)
-	suite.Require().NoError(err)
 	suite.Commit()
-	suite.Require().NoError(err)
 
 	balances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
 	suite.Require().Equal(balances.String(), sdk.NewCoins(sdk.NewCoin("test", sendToMsg.Amount)).String())
@@ -440,8 +437,9 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 
 	latestOracleSetNonce := suite.Keeper().GetLatestOracleSetNonce(suite.Ctx)
 	suite.Require().EqualValues(0, latestOracleSetNonce)
-	_, err = suite.App.EndBlocker(suite.Ctx)
-	suite.Require().NoError(err)
+
+	suite.Commit()
+
 	latestOracleSetNonce = suite.Keeper().GetLatestOracleSetNonce(suite.Ctx)
 	suite.Require().EqualValues(1, latestOracleSetNonce)
 
@@ -451,7 +449,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 
 	nonce1OracleSet := suite.Keeper().GetOracleSet(suite.Ctx, 1)
 	suite.Require().EqualValues(uint64(1), nonce1OracleSet.Nonce)
-	suite.Require().EqualValues(uint64(1), nonce1OracleSet.Height)
+	suite.Require().EqualValues(uint64(suite.Ctx.BlockHeight()-1), nonce1OracleSet.Height)
 	suite.Require().EqualValues(1, len(nonce1OracleSet.Members))
 	suite.Require().EqualValues(normalMsg.ExternalAddress, nonce1OracleSet.Members[0].ExternalAddress)
 	suite.Require().EqualValues(math.MaxUint32, nonce1OracleSet.Members[0].Power)
@@ -562,15 +560,14 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	_, err := suite.MsgServer().BondedOracle(suite.Ctx, normalMsg)
 	suite.Require().NoError(err)
 
-	_, err = suite.App.EndBlocker(suite.Ctx)
-	suite.Require().NoError(err)
-	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
+	suite.Commit()
+
 	latestOracleSetNonce := suite.Keeper().GetLatestOracleSetNonce(suite.Ctx)
 	suite.Require().EqualValues(1, latestOracleSetNonce)
 
 	nonce1OracleSet := suite.Keeper().GetOracleSet(suite.Ctx, latestOracleSetNonce)
 	suite.Require().EqualValues(uint64(1), nonce1OracleSet.Nonce)
-	suite.Require().EqualValues(uint64(1), nonce1OracleSet.Height)
+	suite.Require().EqualValues(uint64(suite.Ctx.BlockHeight()-1), nonce1OracleSet.Height)
 
 	var gravityId string
 	suite.Require().NotPanics(func() {
@@ -898,186 +895,74 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 }
 
 func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
-	// 1. First sets up a valid validator
-	totalPower := sdkmath.ZeroInt()
-	delegateAmounts := make([]sdkmath.Int, 0, len(suite.oracleAddrs))
-	for i, oracle := range suite.oracleAddrs {
-		normalMsg := &types.MsgBondedOracle{
-			OracleAddress:    oracle.String(),
-			BridgerAddress:   suite.bridgerAddrs[i].String(),
-			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValAddr[0].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
-			ChainName:        suite.chainName,
-		}
-		if len(suite.ValAddr) > i {
-			normalMsg.ValidatorAddress = suite.ValAddr[i].String()
-		}
-		delegateAmounts = append(delegateAmounts, normalMsg.DelegateAmount.Amount)
-		totalPower = totalPower.Add(normalMsg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
-		_, err := suite.MsgServer().BondedOracle(suite.Ctx, normalMsg)
-		suite.Require().NoError(err)
-	}
-
-	suite.Keeper().EndBlocker(suite.Ctx)
-
-	var externalOracleMembers types.BridgeValidators
-	for i, key := range suite.externalPris {
-		power := delegateAmounts[i].Quo(sdk.DefaultPowerReduction).MulRaw(math.MaxUint32).Quo(totalPower)
-		bridgeVal := types.BridgeValidator{
-			Power:           power.Uint64(),
-			ExternalAddress: suite.PubKeyToExternalAddr(key.PublicKey),
-		}
-		externalOracleMembers = append(externalOracleMembers, bridgeVal)
-	}
-	sort.Sort(externalOracleMembers)
-
-	// 2. oracle update claim
-	for i := range suite.oracleAddrs {
-		normalMsg := &types.MsgOracleSetUpdatedClaim{
-			EventNonce:     1,
-			BlockHeight:    1,
-			OracleSetNonce: 1,
-			Members:        externalOracleMembers,
-			BridgerAddress: suite.bridgerAddrs[i].String(),
-			ChainName:      suite.chainName,
-		}
-		err := suite.SendClaimReturnErr(normalMsg)
-		suite.Require().NoError(err)
-	}
-
-	suite.Keeper().EndBlocker(suite.Ctx)
-
-	// 3. add bridge token.
-	sendToFxSendAddr := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
-	sendToFxReceiveAddr := suite.bridgerAddrs[0]
-	sendToFxAmount := sdkmath.NewIntWithDecimal(1000, 18)
-	randomPrivateKey, err := crypto.GenerateKey()
-	suite.Require().NoError(err)
-	sendToFxToken := suite.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
-
-	suite.AddTokenPair("usdt", true)
-	suite.SetToken("USDT", types.NewBridgeDenom(suite.chainName, sendToFxToken))
-	for i, oracle := range suite.oracleAddrs {
-		normalMsg := &types.MsgBridgeTokenClaim{
-			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, oracle) + 1,
-			BlockHeight:    1,
-			TokenContract:  sendToFxToken,
-			Name:           "Test USDT",
-			Symbol:         "USDT",
-			Decimals:       18,
-			BridgerAddress: suite.bridgerAddrs[i].String(),
-			ChannelIbc:     "",
-			ChainName:      suite.chainName,
-		}
-		err = suite.SendClaimReturnErr(normalMsg)
-		suite.Require().NoError(err)
-	}
-
-	suite.Keeper().EndBlocker(suite.Ctx)
-
-	bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, sendToFxToken)
-	suite.Require().True(found)
-	tokenDenom := types.NewBridgeDenom(suite.chainName, sendToFxToken)
-	suite.Require().EqualValues(tokenDenom, bridgeDenom)
-	tokenContract, found := suite.Keeper().GetContractByBridgeDenom(suite.Ctx, tokenDenom)
-	suite.Require().True(found)
-	suite.Require().EqualValues(sendToFxToken, tokenContract)
-
-	// 4. sendToFx.
-	sendToFxClaim := new(types.MsgSendToFxClaim)
-	for i, oracle := range suite.oracleAddrs {
-		sendToFxClaim = &types.MsgSendToFxClaim{
-			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, oracle) + 1,
-			BlockHeight:    1,
-			TokenContract:  sendToFxToken,
-			Amount:         sendToFxAmount,
-			Sender:         sendToFxSendAddr,
-			Receiver:       sendToFxReceiveAddr.String(),
-			TargetIbc:      "",
-			BridgerAddress: suite.bridgerAddrs[i].String(),
-			ChainName:      suite.chainName,
-		}
-		err = suite.SendClaimReturnErr(sendToFxClaim)
-		suite.Require().NoError(err)
-	}
-
-	err = suite.Keeper().ExecuteClaim(suite.Ctx, sendToFxClaim.EventNonce)
-	suite.Require().NoError(err)
-
-	balance := suite.App.BankKeeper.GetBalance(suite.Ctx, sendToFxReceiveAddr, "usdt")
-	suite.Require().NotNil(balance)
-	suite.Require().EqualValues(balance.Amount, sendToFxAmount)
-
-	sendToExternal := func(bridgeFees []sdkmath.Int) {
-		for _, bridgeFee := range bridgeFees {
-			sendToExternal := &types.MsgSendToExternal{
-				Sender:    sendToFxReceiveAddr.String(),
-				Dest:      sendToFxSendAddr,
-				Amount:    sdk.NewCoin(tokenDenom, sdkmath.NewInt(3)),
-				BridgeFee: sdk.NewCoin(tokenDenom, bridgeFee),
-				ChainName: suite.chainName,
-			}
-			// todo remove after send to external refactor
-			suite.MintToken(sendToFxReceiveAddr, sdk.NewCoin(tokenDenom, sendToExternal.Amount.Amount.Add(sendToExternal.BridgeFee.Amount)))
-			_, err := suite.MsgServer().SendToExternal(suite.Ctx, sendToExternal)
-			suite.Require().NoError(err)
-		}
-	}
-
-	sendToExternal([]sdkmath.Int{sdkmath.NewInt(1), sdkmath.NewInt(2), sdkmath.NewInt(3)})
-	usdtBatchFee := suite.Keeper().GetBatchFeesByTokenType(suite.Ctx, sendToFxToken, 100, sdkmath.NewInt(0))
-	suite.Require().EqualValues(sendToFxToken, usdtBatchFee.TokenContract)
-	suite.Require().EqualValues(3, usdtBatchFee.TotalTxs)
-	suite.Require().EqualValues(sdkmath.NewInt(6), usdtBatchFee.TotalFees)
-
 	testCases := []struct {
-		testName       string
-		baseFee        sdkmath.Int
-		pass           bool
-		expectTotalTxs uint64
-		err            error
+		testName             string
+		baseFee              sdkmath.Int
+		pass                 bool
+		requestAfterTotalTxs uint64
+		err                  error
 	}{
 		{
-			testName:       "Support - baseFee 1000",
-			baseFee:        sdkmath.NewInt(1000),
-			pass:           false,
-			expectTotalTxs: 3,
-			err:            types.ErrInvalid.Wrapf("no batch tx"),
+			testName:             "Support - baseFee 1000",
+			baseFee:              sdkmath.NewInt(1000),
+			pass:                 false,
+			requestAfterTotalTxs: 3,
+			err:                  types.ErrInvalid.Wrapf("no batch tx"),
 		},
 		{
-			testName:       "Support - baseFee 2",
-			baseFee:        sdkmath.NewInt(2),
-			pass:           true,
-			expectTotalTxs: 1,
-			err:            nil,
+			testName:             "Support - baseFee 2",
+			baseFee:              sdkmath.NewInt(2),
+			pass:                 true,
+			requestAfterTotalTxs: 1,
+			err:                  nil,
 		},
 		{
-			testName:       "Support - baseFee 0",
-			baseFee:        sdkmath.NewInt(0),
-			pass:           false,
-			expectTotalTxs: 0,
-			err:            types.ErrInvalid.Wrapf("new batch would not be more profitable"),
+			testName:             "Support - baseFee 0",
+			baseFee:              sdkmath.NewInt(0),
+			pass:                 true,
+			requestAfterTotalTxs: 0,
 		},
 	}
 
 	for _, testCase := range testCases {
-		_, err := suite.MsgServer().RequestBatch(suite.Ctx, &types.MsgRequestBatch{
-			Sender:     suite.bridgerAddrs[0].String(),
-			Denom:      tokenDenom,
-			MinimumFee: sdkmath.NewInt(1),
-			FeeReceive: "0x0000000000000000000000000000000000000000",
-			ChainName:  suite.chainName,
-			BaseFee:    testCase.baseFee,
+		suite.Run(testCase.testName, func() {
+			suite.bondedOracle()
+			baseDenom, bridgeDenom, tokenContract := suite.AddRandomBaseToken(false)
+			sender := helpers.GenAccAddress()
+			amount := helpers.NewRandAmount()
+			baseFees := []sdkmath.Int{sdkmath.NewInt(1), sdkmath.NewInt(2), sdkmath.NewInt(3)}
+			for i := range baseFees {
+				suite.MintBaseToken(sender, baseDenom, bridgeDenom, amount.Add(baseFees[i]))
+				_, err := suite.MsgServer().SendToExternal(suite.Ctx, &types.MsgSendToExternal{
+					Sender:    sender.String(),
+					Dest:      tmrand.Str(20),
+					Amount:    sdk.NewCoin(baseDenom, amount),
+					BridgeFee: sdk.NewCoin(baseDenom, baseFees[i]),
+					ChainName: suite.chainName,
+				})
+				suite.Require().NoError(err)
+			}
+
+			suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 1000, uint64(suite.Ctx.BlockHeight()-1))
+
+			_, err := suite.MsgServer().RequestBatch(suite.Ctx, &types.MsgRequestBatch{
+				Sender:     suite.bridgerAddrs[0].String(),
+				Denom:      bridgeDenom,
+				MinimumFee: sdkmath.NewInt(1),
+				FeeReceive: helpers.GenExternalAddr(suite.chainName),
+				ChainName:  suite.chainName,
+				BaseFee:    testCase.baseFee,
+			})
+
+			if testCase.pass {
+				suite.Require().NoError(err)
+				batchFee := suite.Keeper().GetBatchFeesByTokenType(suite.Ctx, tokenContract, 100, sdkmath.NewInt(0))
+				suite.Require().EqualValues(testCase.requestAfterTotalTxs, batchFee.TotalTxs)
+			} else {
+				suite.Require().NotNil(err)
+				suite.Require().Equal(err.Error(), testCase.err.Error())
+			}
 		})
-		if testCase.pass {
-			suite.Require().NoError(err)
-			usdtBatchFee = suite.Keeper().GetBatchFeesByTokenType(suite.Ctx, sendToFxToken, 100, sdkmath.NewInt(0))
-			suite.Require().EqualValues(testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
-		} else {
-			suite.Require().NotNil(err)
-			suite.Require().Equal(err.Error(), testCase.err.Error())
-		}
 	}
 }
 
@@ -1197,7 +1082,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 		suite.Require().NoError(err)
 	}
 
-	suite.Keeper().EndBlocker(suite.Ctx)
+	suite.Commit()
 
 	var externalOracleMembers types.BridgeValidators
 	for i, key := range suite.externalPris {
@@ -1224,7 +1109,7 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 		suite.Require().NoError(err)
 	}
 
-	suite.Keeper().EndBlocker(suite.Ctx)
+	suite.Commit()
 
 	// 3. add bridge token.
 	sendToFxSendAddr := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
@@ -1249,8 +1134,6 @@ func (suite *KeeperTestSuite) TestMsgBridgeCall() {
 		err = suite.SendClaimReturnErr(normalMsg)
 		suite.Require().NoError(err)
 	}
-
-	suite.Keeper().EndBlocker(suite.Ctx)
 
 	bridgeDenom, found := suite.Keeper().GetBridgeDenomByContract(suite.Ctx, sendToFxToken)
 	suite.Require().True(found)

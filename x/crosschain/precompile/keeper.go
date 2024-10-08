@@ -106,15 +106,6 @@ func (c *Keeper) handlerCrossChain(
 	memo string,
 	originToken bool,
 ) error {
-	total := sdk.NewCoin(amount.Denom, amount.Amount.Add(fee.Amount))
-	// convert denom to target coin
-	targetCoin, err := c.erc20Keeper.ConvertDenomToTarget(ctx, from.Bytes(), total, fxTarget)
-	if err != nil {
-		return fmt.Errorf("convert denom: %s", err.Error())
-	}
-	amount.Denom = targetCoin.Denom
-	fee.Denom = targetCoin.Denom
-
 	if fxTarget.IsIBC() {
 		return c.ibcTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, memo, originToken)
 	}
@@ -165,6 +156,7 @@ func (c *Keeper) ibcTransfer(
 		}
 	}
 
+	// todo: need convert coin to ibc coin
 	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(c.erc20Keeper.GetIbcTimeout(ctx))
 	transferResponse, err := c.ibcTransferKeeper.Transfer(ctx,
 		transfertypes.NewMsgTransfer(
