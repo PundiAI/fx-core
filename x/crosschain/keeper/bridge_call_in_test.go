@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"errors"
 	"math/big"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,126 +16,83 @@ import (
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-func (s *KeeperMockSuite) TestBridgeCallHandler() {
-	callEvmMock := func(msg *types.MsgBridgeCallClaim, sender common.Address, getTokenPairTimes int) {
-		s.crosschainKeeper.SetLastObservedBlockHeight(s.ctx, 1000, msg.BlockHeight-1)
-
-		s.erc20Keeper.EXPECT().GetTokenPair(gomock.Any(), gomock.Any()).Return(erc20types.TokenPair{}, true).
-			Times(getTokenPairTimes)
-		contract := types.ExternalAddrToHexAddr(msg.ChainName, msg.To)
-		s.evmKeeper.EXPECT().IsContract(gomock.Any(), contract).Return(true).Times(1)
-		s.evmKeeper.EXPECT().CallEVM(gomock.Any(),
-			sender,
-			&contract,
-			big.NewInt(0),
-			uint64(types.MaxGasLimit),
-			gomock.Any(),
-			true,
-		).Return(nil, errors.New("call evm error")).Times(1)
-	}
-
-	tests := []struct {
-		name       string
-		initData   func(msg *types.MsgBridgeCallClaim)
-		customMock func(msg *types.MsgBridgeCallClaim)
-		error      string
-		refund     bool
+func (suite *KeeperTestSuite) TestBridgeCallHandler() {
+	testCases := []struct {
+		Name              string
+		Msg               types.MsgBridgeCallClaim
+		TokenIsNativeCoin []bool
+		Success           bool
+		CallContract      bool
 	}{
 		{
-			name: "ok - pass",
-			customMock: func(msg *types.MsgBridgeCallClaim) {
-				s.evmKeeper.EXPECT().IsContract(gomock.Any(), gomock.Any()).Return(false).Times(1)
-			},
-		},
-		{
-			name: "ok - pass - no token",
-			initData: func(msg *types.MsgBridgeCallClaim) {
-				msg.TokenContracts = []string{}
-				msg.Amounts = []sdkmath.Int{}
-			},
-			customMock: func(msg *types.MsgBridgeCallClaim) {
-				s.evmKeeper.EXPECT().IsContract(gomock.Any(), gomock.Any()).Return(false).Times(1)
-			},
-		},
-		{
-			name: "ok - call evm error refund",
-			initData: func(msg *types.MsgBridgeCallClaim) {
-				msg.To = helpers.GenExternalAddr(s.moduleName)
-			},
-			customMock: func(msg *types.MsgBridgeCallClaim) {
-				// data = "transfer(address,uint256)" "0x0000000000000000000000000000000000000000" 1
-				msg.Data = "a9059cbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
-				callEvmMock(msg, s.crosschainKeeper.GetCallbackFrom(), len(msg.TokenContracts))
-			},
-			refund: true,
-		},
-		{
-			name: "ok - memo is send to call evm",
-			initData: func(msg *types.MsgBridgeCallClaim) {
-				msg.Memo = "0000000000000000000000000000000000000000000000000000000000010000"
-				// data = "transfer(address,uint256)" "0x0000000000000000000000000000000000000000" 1
-				msg.Data = "a9059cbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
-			},
-			customMock: func(msg *types.MsgBridgeCallClaim) {
-				callEvmMock(msg, types.ExternalAddrToHexAddr(msg.ChainName, msg.Sender), 0)
-			},
-		},
-	}
-	for _, t := range tests {
-		s.Run(t.name, func() {
-			msg := &types.MsgBridgeCallClaim{
-				ChainName: s.moduleName,
-				Sender:    helpers.GenExternalAddr(s.moduleName),
-				Refund:    helpers.GenExternalAddr(s.moduleName),
-				To:        helpers.GenExternalAddr(s.moduleName),
-				Data:      "",
-				Memo:      "",
-				Value:     sdkmath.NewInt(0),
+			Name: "success - token",
+			Msg: types.MsgBridgeCallClaim{
+				ChainName:      suite.chainName,
+				BridgerAddress: helpers.GenAccAddress().String(),
+				EventNonce:     1,
+				BlockHeight:    1,
+				Sender:         helpers.GenExternalAddr(suite.chainName),
+				Refund:         helpers.GenExternalAddr(suite.chainName),
 				TokenContracts: []string{
-					helpers.GenExternalAddr(s.moduleName),
-					helpers.GenExternalAddr(s.moduleName),
+					helpers.GenExternalAddr(suite.chainName),
+					helpers.GenExternalAddr(suite.chainName),
 				},
 				Amounts: []sdkmath.Int{
-					sdkmath.NewInt(1e18),
-					sdkmath.NewInt(1e18).Mul(sdkmath.NewInt(2)),
+					helpers.NewRandAmount(),
+					helpers.NewRandAmount(),
 				},
-				EventNonce:     10,
-				BlockHeight:    100,
-				BridgerAddress: helpers.GenAccAddress().String(),
-				TxOrigin:       helpers.GenExternalAddr(s.moduleName),
-			}
-			if t.initData != nil {
-				t.initData(msg)
-			}
-			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-			s.accountKeeper.EXPECT().NewAccountWithAddress(gomock.Any(), gomock.Any()).Times(1)
+				To:       helpers.GenExternalAddr(suite.chainName),
+				Data:     "",
+				Value:    sdkmath.ZeroInt(),
+				Memo:     "",
+				TxOrigin: helpers.GenExternalAddr(suite.chainName),
+			},
+			TokenIsNativeCoin: []bool{true, true},
+			Success:           true,
+		},
+	}
 
-			s.MockBridgeCallToken(msg.GetERC20Tokens())
+	for _, tc := range testCases {
+		suite.Run(tc.Name, func() {
+			_, _, erc20Addrs := suite.BridgeCallClaimInitialize(tc.Msg, tc.TokenIsNativeCoin)
 
-			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), msg.GetSenderAddr().Bytes()).Return(nil).Times(1)
-
-			if t.customMock != nil {
-				t.customMock(msg)
-			}
-
-			err := s.crosschainKeeper.BridgeCallHandler(s.ctx, msg)
-			if len(t.error) > 0 {
-				s.EqualError(err, t.error)
-			} else {
-				s.NoError(err)
-			}
-
-			if t.refund {
-				refundEvent := false
-				for _, event := range s.ctx.EventManager().Events().ToABCIEvents() {
-					if event.Type == types.EventTypeBridgeCallRefundOut {
-						refundEvent = true
+			err := suite.Keeper().BridgeCallHandler(suite.Ctx, &tc.Msg)
+			if tc.Success {
+				suite.Require().NoError(err)
+				if !tc.CallContract {
+					for i, addr := range erc20Addrs {
+						suite.CheckBalanceOf(addr, tc.Msg.GetToAddr(), tc.Msg.Amounts[i].BigInt())
 					}
 				}
-				s.True(refundEvent)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) BridgeCallClaimInitialize(msg types.MsgBridgeCallClaim, tokenIsNativeCoin []bool) (baseDenoms, bridgeDenoms []string, erc20Addrs []common.Address) {
+	suite.Require().Equal(len(tokenIsNativeCoin), len(msg.TokenContracts))
+
+	baseDenoms = make([]string, 0, len(msg.TokenContracts))
+	bridgeDenoms = make([]string, 0, len(msg.TokenContracts))
+	erc20Addrs = make([]common.Address, 0, len(msg.TokenContracts))
+	for i, c := range msg.TokenContracts {
+		baseDenom := helpers.NewRandDenom()
+		bridgeDenom := types.NewBridgeDenom(suite.chainName, c)
+		suite.SetToken(strings.ToUpper(baseDenom), bridgeDenom)
+		suite.AddBridgeToken(c, strings.ToLower(baseDenom))
+		erc20Addr := suite.AddTokenPair(baseDenom, tokenIsNativeCoin[i])
+
+		baseDenoms = append(baseDenoms, baseDenom)
+		bridgeDenoms = append(bridgeDenoms, bridgeDenom)
+		erc20Addrs = append(erc20Addrs, erc20Addr)
+
+		if !tokenIsNativeCoin[i] {
+			suite.MintTokenToModule(suite.chainName, sdk.NewCoin(bridgeDenom, msg.Amounts[i]))
+		}
+	}
+	return baseDenoms, bridgeDenoms, erc20Addrs
 }
 
 func (s *KeeperMockSuite) Test_CoinsToBridgeCallTokens() {

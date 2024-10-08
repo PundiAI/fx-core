@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -89,35 +88,4 @@ func (k Keeper) autoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
 	bz = sdk.Uint64ToBigEndian(id + 1)
 	store.Set(idKey, bz)
 	return id
-}
-
-func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr common.Address, coins sdk.Coins, to common.Address, data, memo []byte, value sdkmath.Int, isMemoSendCallTo bool) error {
-	if !k.evmKeeper.IsContract(ctx, to) {
-		return nil
-	}
-	var callEvmSender common.Address
-	var args []byte
-
-	if isMemoSendCallTo {
-		args = data
-		callEvmSender = sender
-	} else {
-		callTokens, callAmounts := k.CoinsToBridgeCallTokens(ctx, coins)
-		var err error
-		args, err = types.PackBridgeCallback(sender, refundAddr, callTokens, callAmounts, data, memo)
-		if err != nil {
-			return err
-		}
-		callEvmSender = k.GetCallbackFrom()
-	}
-
-	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
-	txResp, err := k.evmKeeper.CallEVM(ctx, callEvmSender, &to, value.BigInt(), gasLimit, args, true)
-	if err != nil {
-		return err
-	}
-	if txResp.Failed() {
-		return types.ErrInvalid.Wrap(txResp.VmError)
-	}
-	return nil
 }
