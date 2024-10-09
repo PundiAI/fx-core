@@ -17,12 +17,14 @@ import (
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
+// Deprecated: please use BridgeCallMethod
 type IncreaseBridgeFeeMethod struct {
 	*Keeper
 	abi.Method
 	abi.Event
 }
 
+// Deprecated: please use BridgeCallMethod
 func NewIncreaseBridgeFeeMethod(keeper *Keeper) *IncreaseBridgeFeeMethod {
 	return &IncreaseBridgeFeeMethod{
 		Keeper: keeper,
