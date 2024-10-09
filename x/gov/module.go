@@ -121,11 +121,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // InitGenesis performs genesis initialization for the gov module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState govv1.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	gov.InitGenesis(ctx, am.ak, am.bk, am.keeper.Keeper, &genesisState)
+	am.AppModule.InitGenesis(ctx, cdc, data)
+
 	// init fx gov params
-	if err := am.keeper.InitFxGovParams(ctx); err != nil {
+	if err := am.keeper.InitCustomParams(ctx); err != nil {
 		panic(err)
 	}
 	return []abci.ValidatorUpdate{}

@@ -4,17 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/hashicorp/go-metrics"
 
 	"github.com/functionx/fx-core/v8/x/gov/types"
 )
@@ -32,13 +29,40 @@ func NewMsgServerImpl(m v1.MsgServer, k *Keeper) types.MsgServerPro {
 
 var _ types.MsgServerPro = msgServer{}
 
+//nolint:gocyclo
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitProposal) (*v1.MsgSubmitProposalResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+	if msg.Title == "" {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("proposal title cannot be empty")
+	}
+	if msg.Summary == "" {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("proposal summary cannot be empty")
+	}
 
-	msgInitialDeposit := msg.GetInitialDeposit()
+	proposer, err := k.authKeeper.AddressCodec().StringToBytes(msg.GetProposer())
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
+	}
 
-	if err := k.validateInitialDeposit(ctx, msgInitialDeposit); err != nil {
-		return nil, err
+	// check that either metadata or Msgs length is non nil.
+	if len(msg.Messages) == 0 && len(msg.Metadata) == 0 {
+		return nil, govtypes.ErrNoProposalMsgs.Wrap("either metadata or Msgs length must be non-nil")
+	}
+
+	// verify that if present, the metadata title and summary equals the proposal title and summary
+	if len(msg.Metadata) != 0 {
+		proposalMetadata := govtypes.ProposalMetadata{}
+		if err := json.Unmarshal([]byte(msg.Metadata), &proposalMetadata); err == nil {
+			if proposalMetadata.Title != msg.Title {
+				return nil, govtypes.ErrInvalidProposalContent.Wrapf("metadata title '%s' must equal proposal title '%s'", proposalMetadata.Title, msg.Title)
+			}
+
+			if proposalMetadata.Summary != msg.Summary {
+				return nil, govtypes.ErrInvalidProposalContent.Wrapf("metadata summary '%s' must equal proposal summary '%s'", proposalMetadata.Summary, msg.Summary)
+			}
+		}
+
+		// if we can't unmarshal the metadata, this means the client didn't use the recommended metadata format
+		// nothing can be done here, and this is still a valid case, so we ignore the error
 	}
 
 	proposalMsgs, err := msg.GetMsgs()
@@ -46,20 +70,28 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 		return nil, err
 	}
 
-	proposer, err := sdk.AccAddressFromBech32(msg.GetProposer())
-	if err != nil {
+	// check that all proposal messages are of the same type
+	if err = checkProposalMsgs(proposalMsgs); err != nil {
 		return nil, err
 	}
 
-	msgType := ""
-	for _, pMsg := range proposalMsgs {
-		if msgType != "" && !strings.EqualFold(msgType, sdk.MsgTypeURL(pMsg)) {
-			return nil, govtypes.ErrInvalidProposalType.Wrapf("proposal MsgTypeURL is different")
-		}
-		msgType = sdk.MsgTypeURL(pMsg)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	initialDeposit := msg.GetInitialDeposit()
+
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get governance parameters: %w", err)
 	}
 
-	proposal, err := k.Keeper.SubmitProposal(ctx, proposalMsgs, msg.Metadata, msg.Title, msg.Summary, proposer, false)
+	if err = k.validateInitialDeposit(params, initialDeposit, msg.Expedited); err != nil {
+		return nil, err
+	}
+
+	if err = k.validateDepositDenom(params, initialDeposit); err != nil {
+		return nil, err
+	}
+
+	proposal, err := k.Keeper.SubmitProposal(ctx, proposalMsgs, msg.Metadata, msg.Title, msg.Summary, proposer, msg.Expedited)
 	if err != nil {
 		return nil, err
 	}
@@ -69,28 +101,23 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 		return nil, err
 	}
 
-	ctx.GasMeter().ConsumeGas(3*ctx.KVGasConfig().WriteCostPerByte*uint64(len(proposalBytes)),
-		"submit proposal")
+	// ref: https://github.com/cosmos/cosmos-sdk/issues/9683
+	ctx.GasMeter().ConsumeGas(
+		3*ctx.KVGasConfig().WriteCostPerByte*uint64(len(proposalBytes)),
+		"submit proposal",
+	)
 
-	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
-
-	minInitialDeposit := k.Keeper.GetMinInitialDeposit(ctx, types.ExtractMsgTypeURL(proposal.Messages))
-
-	if msgInitialDeposit.IsAllLT(sdk.NewCoins(minInitialDeposit)) {
-		return nil, sdkerrors.ErrInvalidRequest.Wrapf("initial deposit must be at least %s", minInitialDeposit.String())
-	}
-
-	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msgInitialDeposit)
+	votingStarted, err := k.AddDeposit(ctx, proposal.Id, proposer, msg.GetInitialDeposit())
 	if err != nil {
 		return nil, err
 	}
 
 	if votingStarted {
-		submitEvent := sdk.NewEvent(govtypes.EventTypeSubmitProposal,
-			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.Id)),
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(govtypes.EventTypeSubmitProposal,
+				sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.Id)),
+			),
 		)
-
-		ctx.EventManager().EmitEvent(submitEvent)
 	}
 
 	return &v1.MsgSubmitProposalResponse{
@@ -99,54 +126,31 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 }
 
 func (k msgServer) Deposit(goCtx context.Context, msg *v1.MsgDeposit) (*v1.MsgDepositResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	accAddr, err := sdk.AccAddressFromBech32(msg.Depositor)
+	accAddr, err := k.authKeeper.AddressCodec().StringToBytes(msg.Depositor)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid depositor address: %s", err)
 	}
-	votingStarted, err := k.Keeper.AddDeposit(ctx, msg.ProposalId, accAddr, msg.Amount)
-	if err != nil {
+
+	if err := validateDeposit(msg.Amount); err != nil {
 		return nil, err
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{govtypes.ModuleName, "deposit"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
-		},
-	)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	votingStarted, err := k.AddDeposit(ctx, msg.ProposalId, accAddr, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
 
 	if votingStarted {
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			govtypes.EventTypeProposalDeposit,
-			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalId)),
-		))
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				govtypes.EventTypeProposalDeposit,
+				sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalId)),
+			),
+		)
 	}
 
 	return &v1.MsgDepositResponse{}, nil
-}
-
-func (k msgServer) UpdateFXParams(c context.Context, req *types.MsgUpdateFXParams) (*types.MsgUpdateFXParamsResponse, error) {
-	if k.authority != req.Authority {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", k.authority, req.Authority)
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-	if err := k.SetFXParams(ctx, &req.Params); err != nil {
-		return nil, err
-	}
-	return &types.MsgUpdateFXParamsResponse{}, nil
-}
-
-func (k msgServer) UpdateEGFParams(c context.Context, req *types.MsgUpdateEGFParams) (*types.MsgUpdateEGFParamsResponse, error) {
-	if k.authority != req.Authority {
-		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", k.authority, req.Authority)
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-	if err := k.SetEGFParams(ctx, &req.Params); err != nil {
-		return nil, err
-	}
-	return &types.MsgUpdateEGFParamsResponse{}, nil
 }
 
 func (k msgServer) UpdateStore(c context.Context, req *types.MsgUpdateStore) (*types.MsgUpdateStoreResponse, error) {
@@ -181,27 +185,47 @@ func (k msgServer) UpdateSwitchParams(c context.Context, req *types.MsgUpdateSwi
 	return &types.MsgUpdateSwitchParamsResponse{}, nil
 }
 
-// validateInitialDeposit validates if initial deposit is greater than or equal to the minimum
-// required at the time of proposal submission. This threshold amount is determined by
-// the deposit parameters. Returns nil on success, error otherwise.
-func (keeper Keeper) validateInitialDeposit(ctx sdk.Context, initialDeposit sdk.Coins) error {
-	params, err := keeper.Keeper.Params.Get(ctx)
-	if err != nil {
-		return err
+func (k msgServer) UpdateCustomParams(ctx context.Context, req *types.MsgUpdateCustomParams) (*types.MsgUpdateCustomParamsResponse, error) {
+	if k.authority != req.Authority {
+		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", k.authority, req.Authority)
 	}
-	minInitialDepositRatio, err := sdkmath.LegacyNewDecFromStr(params.MinInitialDepositRatio)
-	if err != nil {
-		return err
+
+	// delete the message params if the params are empty
+	if req.GetCustomParams() == (types.CustomParams{}) {
+		if err := k.CustomerParams.Remove(ctx, req.MsgUrl); err != nil {
+			return nil, err
+		}
+
+		return &types.MsgUpdateCustomParamsResponse{}, nil
 	}
-	if minInitialDepositRatio.IsZero() {
-		return nil
+
+	if err := req.CustomParams.ValidateBasic(); err != nil {
+		return nil, err
 	}
-	minDepositCoins := params.MinDeposit
-	for i := range minDepositCoins {
-		minDepositCoins[i].Amount = sdkmath.LegacyNewDecFromInt(minDepositCoins[i].Amount).Mul(minInitialDepositRatio).RoundInt()
+
+	if err := k.CustomerParams.Set(ctx, req.MsgUrl, req.CustomParams); err != nil {
+		return nil, err
 	}
-	if !initialDeposit.IsAllGTE(minDepositCoins) {
-		return govtypes.ErrMinDepositTooSmall.Wrapf("was (%s), need (%s)", initialDeposit, minDepositCoins)
+
+	return &types.MsgUpdateCustomParamsResponse{}, nil
+}
+
+func checkProposalMsgs(proposalMsgs []sdk.Msg) error {
+	msgType := ""
+	for _, pMsg := range proposalMsgs {
+		if msgType != "" && !strings.EqualFold(msgType, sdk.MsgTypeURL(pMsg)) {
+			return govtypes.ErrInvalidProposalType.Wrapf("proposal MsgTypeURL is different")
+		}
+		msgType = sdk.MsgTypeURL(pMsg)
 	}
+	return nil
+}
+
+// validateDeposit validates the deposit amount, do not use for initial deposit.
+func validateDeposit(amount sdk.Coins) error {
+	if !amount.IsValid() || !amount.IsAllPositive() {
+		return sdkerrors.ErrInvalidCoins.Wrap(amount.String())
+	}
+
 	return nil
 }

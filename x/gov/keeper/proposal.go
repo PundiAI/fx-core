@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"time"
 
 	"cosmossdk.io/collections"
@@ -38,4 +39,55 @@ func (keeper Keeper) HasDeposit(ctx sdk.Context, proposalId uint64, depositor sd
 func (keeper Keeper) HasVote(ctx sdk.Context, proposalId uint64, voter sdk.AccAddress) (bool, error) {
 	key := collections.Join(proposalId, voter)
 	return keeper.Votes.Has(ctx, key)
+}
+
+// ActivateVotingPeriod activates the voting period of a proposal
+func (keeper Keeper) ActivateVotingPeriod(ctx context.Context, proposal v1.Proposal) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	startTime := sdkCtx.BlockHeader().Time
+	proposal.VotingStartTime = &startTime
+	var votingPeriod *time.Duration
+	params, err := keeper.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	if proposal.Expedited {
+		votingPeriod = params.ExpeditedVotingPeriod
+	} else {
+		votingPeriod = params.VotingPeriod
+	}
+
+	votingPeriod = keeper.GetCustomMsgVotingPeriod(ctx, votingPeriod, proposal)
+
+	endTime := proposal.VotingStartTime.Add(*votingPeriod)
+	proposal.VotingEndTime = &endTime
+	proposal.Status = v1.StatusVotingPeriod
+	err = keeper.SetProposal(ctx, proposal)
+	if err != nil {
+		return err
+	}
+
+	err = keeper.InactiveProposalsQueue.Remove(ctx, collections.Join(*proposal.DepositEndTime, proposal.Id))
+	if err != nil {
+		return err
+	}
+
+	return keeper.ActiveProposalsQueue.Set(ctx, collections.Join(*proposal.VotingEndTime, proposal.Id), proposal.Id)
+}
+
+func (keeper Keeper) GetCustomMsgVotingPeriod(ctx context.Context, defaultVotingPeriod *time.Duration, proposal v1.Proposal) *time.Duration {
+	msgType := getProposalMsgType(proposal)
+	if customParams, found := keeper.GetCustomParams(ctx, msgType); found {
+		return customParams.VotingPeriod
+	}
+	return defaultVotingPeriod
+}
+
+func getProposalMsgType(proposal v1.Proposal) string {
+	message := proposal.GetMessages()
+	for _, msg := range message {
+		return sdk.MsgTypeURL(msg)
+	}
+	return ""
 }

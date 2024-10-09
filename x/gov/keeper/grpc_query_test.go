@@ -1,50 +1,94 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 	govtypes "github.com/functionx/fx-core/v8/x/gov/types"
 )
 
-func (suite *KeeperTestSuite) TestGRPCQueryParams() {
-	response, err := suite.queryClient.Params(suite.Ctx, &govtypes.QueryParamsRequest{MsgType: sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{})})
-	suite.Require().NoError(err)
-	params := response.GetParams()
-	suite.Require().EqualValues(params.Quorum, govtypes.DefaultErc20Quorum.String())
+func (suite *KeeperTestSuite) TestGRPCQueryCustomParams() {
+	testCases := []struct {
+		name     string
+		msgUrl   string
+		malleate func(expect govtypes.CustomParams) govtypes.CustomParams
+	}{
+		{
+			name:   "distribution MsgCommunityPoolSpend",
+			msgUrl: sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{}),
+			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
+				expect.DepositRatio = govtypes.EGFCustomParamDepositRatio.String()
+				expect.VotingPeriod = &govtypes.DefaultEGFCustomParamVotingPeriod
+				return expect
+			},
+		},
+		{
+			name:   "evm MsgCallContract",
+			msgUrl: sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),
+			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
+				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
+				return expect
+			},
+		},
+		{
+			name:   "erc20 MsgRegisterCoin",
+			msgUrl: sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
+				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
+				return expect
+			},
+		},
+		{
+			name:   "erc20 MsgRegisterERC20",
+			msgUrl: sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}),
+			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
+				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
+				return expect
+			},
+		},
+		{
+			name:   "erc20 MsgToggleTokenConversion",
+			msgUrl: sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{}),
+			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
+				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
+				return expect
+			},
+		},
+		{
+			name:   "erc20 MsgUpdateDenomAlias",
+			msgUrl: sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
+			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
+				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
+				return expect
+			},
+		},
+		{
+			name:   "gov MsgUpdateSwitchParams",
+			msgUrl: sdk.MsgTypeURL(&govtypes.MsgUpdateSwitchParams{}),
+			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
+				appNewGenesisVotingPeriod := time.Hour * 24 * 14
+				expect.VotingPeriod = &appNewGenesisVotingPeriod
+				return expect
+			},
+		},
+	}
 
-	params.Quorum = "0.3"
-	_, err = suite.msgServer.UpdateFXParams(suite.Ctx, &govtypes.MsgUpdateFXParams{Authority: suite.govAcct, Params: params})
-	suite.Require().NoError(err)
-	response, err = suite.queryClient.Params(suite.Ctx, &govtypes.QueryParamsRequest{MsgType: sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{})})
-	suite.Require().NoError(err)
-	params = response.GetParams()
-	suite.Require().NotEqualValues(params.Quorum, govtypes.DefaultErc20Quorum.String())
-	suite.Require().EqualValues(params.Quorum, "0.3")
+	for _, tc := range testCases {
+		expectParams := govtypes.CustomParams{
+			DepositRatio: govtypes.DefaultCustomParamDepositRatio.String(),
+			VotingPeriod: &govtypes.DefaultCustomParamVotingPeriod,
+			Quorum:       govtypes.DefaultCustomParamQuorum40.String(),
+		}
+		suite.Run(tc.name, func() {
+			expect := tc.malleate(expectParams)
 
-	response, err = suite.queryClient.Params(suite.Ctx, &govtypes.QueryParamsRequest{MsgType: sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{})})
-	suite.Require().NoError(err)
-	params = response.GetParams()
-	suite.Require().EqualValues(params.Quorum, govtypes.DefaultErc20Quorum.String())
-	suite.Require().NotEqualValues(params.Quorum, "0.3")
-}
-
-func (suite *KeeperTestSuite) TestGRPCQueryEGFParams() {
-	response, err := suite.queryClient.EGFParams(suite.Ctx, &govtypes.QueryEGFParamsRequest{})
-	suite.Require().NoError(err)
-	params := response.GetParams()
-	suite.Require().EqualValues(params.EgfDepositThreshold.String(), sdk.NewCoin(fxtypes.DefaultDenom, govtypes.DefaultEgfDepositThreshold).String())
-	suite.Require().EqualValues(params.ClaimRatio, govtypes.DefaultClaimRatio.String())
-
-	params.ClaimRatio = "0.4"
-	params.EgfDepositThreshold = sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100000).MulRaw(1e18))
-	_, err = suite.msgServer.UpdateEGFParams(suite.Ctx, &govtypes.MsgUpdateEGFParams{Authority: suite.govAcct, Params: params})
-	suite.Require().NoError(err)
-	response, err = suite.queryClient.EGFParams(suite.Ctx, &govtypes.QueryEGFParamsRequest{})
-	suite.Require().NoError(err)
-	params = response.GetParams()
-	suite.Require().EqualValues(params.ClaimRatio, "0.4")
-	suite.Require().EqualValues(params.EgfDepositThreshold.String(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100000).MulRaw(1e18)).String())
+			actual, err := suite.queryClient.CustomParams(suite.Ctx, &govtypes.QueryCustomParamsRequest{MsgUrl: tc.msgUrl})
+			suite.Require().NoError(err)
+			suite.Require().Equal(expect, actual.GetParams())
+		})
+	}
 }

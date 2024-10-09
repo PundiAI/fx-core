@@ -18,7 +18,6 @@ import (
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
 )
 
 func TestAminoEncode(t *testing.T) {
@@ -182,36 +181,6 @@ func TestAminoEncode(t *testing.T) {
 							EnableEVMHook: true,
 							IbcTimeout:    1,
 						},
-					}),
-				},
-				InitialDeposit: nil,
-				Proposer:       "",
-				Metadata:       "",
-			},
-		},
-		{
-			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateFXParams",
-			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":[],"messages":[{"type":"gov/MsgUpdateFXParams","value":{"authority":"1","params":{"burn_vote_veto":true,"max_deposit_period":"172800000000000","min_deposit":[{"amount":"10000000","denom":"stake"}],"min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"},"min_initial_deposit_ratio":"0.000000000000000000","msg_type":"/fx.evm.v1.MsgCallContract","quorum":"0.334000000000000000","threshold":"0.500000000000000000","veto_threshold":"0.334000000000000000","voting_period":"172800000000000"}}}]}}`,
-			msg: govv1.MsgSubmitProposal{
-				Messages: []*codectypes.Any{
-					mustNewAnyWithValue(&fxgovtypes.MsgUpdateFXParams{
-						Authority: "1",
-						Params:    *fxgovtypes.DefaultParams(),
-					}),
-				},
-				InitialDeposit: nil,
-				Proposer:       "",
-				Metadata:       "",
-			},
-		},
-		{
-			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateEGFParams",
-			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":[],"messages":[{"type":"gov/MsgUpdateEGFParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"}}}}]}}`,
-			msg: govv1.MsgSubmitProposal{
-				Messages: []*codectypes.Any{
-					mustNewAnyWithValue(&fxgovtypes.MsgUpdateEGFParams{
-						Authority: "1",
-						Params:    *fxgovtypes.DefaultEGFParams(),
 					}),
 				},
 				InitialDeposit: nil,

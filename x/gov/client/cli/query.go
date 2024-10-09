@@ -25,97 +25,11 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	govQueryCmd.AddCommand(
-		// cli.GetCmdQueryProposal(),
-		// cli.GetCmdQueryProposals(),
-		// cli.GetCmdQueryVote(),
-		// cli.GetCmdQueryVotes(),
-		GetCmdQueryParams(),
-		GetCmdQueryEGFParams(),
 		GetCmdQuerySwitchParams(),
-		// cli.GetCmdQueryProposer(),
-		// cli.GetCmdQueryDeposit(),
-		// cli.GetCmdQueryDeposits(),
-		// cli.GetCmdQueryTally(),
+		GetCmdQueryCustomParams(),
 	)
 
 	return govQueryCmd
-}
-
-// GetCmdQueryParams implements the query params command.
-func GetCmdQueryParams() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "params",
-		Short: "Query the parameters of the governance process",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the all the parameters for the governance process.
-
-Example:
-$ %s query gov params
-`,
-				version.AppName,
-			),
-		),
-		Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := fxgovtypes.NewQueryClient(clientCtx)
-			ctx := cmd.Context()
-			msgType, err := cmd.Flags().GetString("msg-type")
-			if err != nil {
-				return err
-			}
-			res, err := queryClient.Params(
-				ctx,
-				&fxgovtypes.QueryParamsRequest{MsgType: msgType},
-			)
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().String("msg-type", "", "proto name to the type (pointer to struct) of the protocol buffer")
-	return cmd
-}
-
-// GetCmdQueryEGFParams implements the query params command.
-func GetCmdQueryEGFParams() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "egf-params",
-		Short: "Query the EGF parameters of the governance process",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the EGF parameters for the governance process.
-
-Example:
-$ %s query gov egf-params
-`,
-				version.AppName,
-			),
-		),
-		Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := fxgovtypes.NewQueryClient(clientCtx)
-			ctx := cmd.Context()
-			res, err := queryClient.EGFParams(
-				ctx,
-				&fxgovtypes.QueryEGFParamsRequest{},
-			)
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
 }
 
 func GetCmdQuerySwitchParams() *cobra.Command {
@@ -136,6 +50,42 @@ $ %s query gov switch-params
 			queryClient := fxgovtypes.NewQueryClient(clientCtx)
 			ctx := cmd.Context()
 			res, err := queryClient.SwitchParams(ctx, &fxgovtypes.QuerySwitchParamsRequest{})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func GetCmdQueryCustomParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "custom-params",
+		Short: "Query the custom params by msg url of the governance process",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the msgUrl custom param for the governance process.
+
+Example:
+$ %s query gov custom-params /cosmos.distribution.v1beta1.MsgCommunityPoolSpend
+`,
+				version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := fxgovtypes.NewQueryClient(clientCtx)
+			ctx := cmd.Context()
+
+			res, err := queryClient.CustomParams(
+				ctx,
+				&fxgovtypes.QueryCustomParamsRequest{MsgUrl: args[0]},
+			)
 			if err != nil {
 				return err
 			}
