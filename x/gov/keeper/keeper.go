@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/collections"
+	corestoretypes "cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/gov/types"
 )
 
@@ -32,73 +31,35 @@ type Keeper struct {
 
 	authority string
 
-	storeKeys map[string]*storetypes.KVStoreKey
+	storeKeys      map[string]*storetypes.KVStoreKey
+	CustomerParams collections.Map[string, types.CustomParams]
 }
 
-func NewKeeper(ak govtypes.AccountKeeper, bk govtypes.BankKeeper, sk govtypes.StakingKeeper, keys map[string]*storetypes.KVStoreKey, gk *govkeeper.Keeper, cdc codec.BinaryCodec, authority string) *Keeper {
+func NewKeeper(storeService corestoretypes.KVStoreService, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, sk govtypes.StakingKeeper, keys map[string]*storetypes.KVStoreKey, gk *govkeeper.Keeper, cdc codec.BinaryCodec, authority string) *Keeper {
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address: %s", authority))
 	}
+
+	sb := collections.NewSchemaBuilder(storeService)
 	return &Keeper{
-		storeKey:   keys[govtypes.StoreKey],
-		authKeeper: ak,
-		bankKeeper: bk,
-		sk:         sk,
-		Keeper:     gk,
-		cdc:        cdc,
-		authority:  authority,
-		storeKeys:  keys,
+		storeKey:       keys[govtypes.StoreKey],
+		authKeeper:     ak,
+		bankKeeper:     bk,
+		sk:             sk,
+		Keeper:         gk,
+		cdc:            cdc,
+		authority:      authority,
+		storeKeys:      keys,
+		CustomerParams: collections.NewMap(sb, types.CustomParamsKey, "customParams", collections.StringKey, codec.CollValue[types.CustomParams](cdc)),
 	}
 }
 
-func (keeper Keeper) NeedMinDeposit(ctx sdk.Context, proposal govv1.Proposal) sdk.Coins {
-	var minDeposit sdk.Coins
-	msgTypeURL := types.ExtractMsgTypeURL(proposal.Messages)
-	isEGF, needDeposit := types.CheckEGFProposalMsg(proposal.Messages)
-	if isEGF {
-		minDeposit = keeper.EGFProposalMinDeposit(ctx, msgTypeURL, needDeposit)
-	} else {
-		minDeposit = keeper.GetMinDeposit(ctx, msgTypeURL)
-	}
-	return minDeposit
-}
-
-func (keeper Keeper) EGFProposalMinDeposit(ctx sdk.Context, msgType string, claimCoin sdk.Coins) sdk.Coins {
-	egfParams := keeper.GetEGFParams(ctx)
-	egfDepositThreshold := egfParams.EgfDepositThreshold
-	claimRatio := egfParams.ClaimRatio
-	claimAmount := claimCoin.AmountOf(fxtypes.DefaultDenom)
-
-	if claimAmount.LTE(egfDepositThreshold.Amount) {
-		return sdk.NewCoins(keeper.GetMinInitialDeposit(ctx, msgType))
-	}
-	ratio := sdkmath.LegacyMustNewDecFromStr(claimRatio)
-	initialDeposit := sdkmath.LegacyNewDecFromInt(claimAmount).Mul(ratio).TruncateInt()
-	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initialDeposit))
-}
-
-func (keeper Keeper) InitFxGovParams(ctx sdk.Context) error {
-	params := keeper.GetFXParams(ctx, "")
-	erc20Params := types.Erc20ProposalParams(params.MinDeposit, params.MinInitialDeposit, params.VotingPeriod,
-		types.DefaultErc20Quorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold,
-		params.MinInitialDepositRatio, params.BurnVoteQuorum, params.BurnProposalDepositPrevote, params.BurnVoteVeto)
-	if err := keeper.SetAllParams(ctx, erc20Params); err != nil {
-		return err
-	}
-	evmParams := types.EVMProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEvmVotingPeriod,
-		types.DefaultEvmQuorum.String(), params.MaxDepositPeriod, params.Threshold, params.VetoThreshold,
-		params.MinInitialDepositRatio, params.BurnVoteQuorum, params.BurnProposalDepositPrevote, params.BurnVoteVeto)
-	if err := keeper.SetAllParams(ctx, evmParams); err != nil {
-		return err
-	}
-	egfParams := types.EGFProposalParams(params.MinDeposit, params.MinInitialDeposit, &types.DefaultEgfVotingPeriod,
-		params.Quorum, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold,
-		params.MinInitialDepositRatio, params.BurnVoteQuorum, params.BurnProposalDepositPrevote, params.BurnVoteVeto)
-	if err := keeper.SetAllParams(ctx, egfParams); err != nil {
-		return err
-	}
-	if err := keeper.SetEGFParams(ctx, types.DefaultEGFParams()); err != nil {
-		return err
+func (keeper Keeper) InitCustomParams(ctx sdk.Context) error {
+	customParamsList := types.DefaultInitGenesisCustomParams()
+	for _, customParams := range customParamsList {
+		if err := keeper.CustomerParams.Set(ctx, customParams.MsgType, customParams.Params); err != nil {
+			return err
+		}
 	}
 	return nil
 }

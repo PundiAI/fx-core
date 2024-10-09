@@ -523,6 +523,7 @@ func NewAppKeeper(
 	_govKeeper.SetLegacyRouter(govRouter)
 
 	appKeepers.GovKeeper = fxgovkeeper.NewKeeper(
+		runtime.NewKVStoreService(appKeepers.keys[govtypes.StoreKey]),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.StakingKeeper,

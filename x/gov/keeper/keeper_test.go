@@ -23,7 +23,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 	"github.com/functionx/fx-core/v8/x/gov/keeper"
 	"github.com/functionx/fx-core/v8/x/gov/types"
 )
@@ -40,6 +39,10 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+func (suite *KeeperTestSuite) SetupSubTest() {
+	suite.SetupTest()
+}
+
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.BaseSuite.MintValNumber = 1
 	suite.BaseSuite.SetupTest()
@@ -52,13 +55,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
-func (suite *KeeperTestSuite) addFundCommunityPool() {
+/*func (suite *KeeperTestSuite) addFundCommunityPool() {
 	sender := suite.AddTestSigner(5 * 1e8)
 	balances := suite.Balance(sender.AccAddress())
 
 	err := suite.App.DistrKeeper.FundCommunityPool(suite.Ctx, balances, sender.AccAddress())
 	suite.NoError(err)
-}
+}*/
 
 func (suite *KeeperTestSuite) newAddress() sdk.AccAddress {
 	return suite.AddTestSigner(50_000).AccAddress()
@@ -285,75 +288,6 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			}
 		})
 	}
-}
-
-func (suite *KeeperTestSuite) TestGetParams() {
-	govParams, err := suite.App.GovKeeper.Keeper.Params.Get(suite.Ctx)
-	suite.NoError(err)
-
-	tallyParamsVetoThreshold := govParams.VetoThreshold
-	tallyParamsThreshold := govParams.Threshold
-	tallyParamsQuorum := govParams.Quorum
-
-	depositParamsMinDeposit := govParams.MinDeposit
-	depositParamsMaxDepositPeriod := govParams.MaxDepositPeriod
-	votingParamsVotingPeriod := govParams.VotingPeriod
-
-	// unregistered Msg
-	params := suite.App.GovKeeper.GetFXParams(suite.Ctx, sdk.MsgTypeURL(&erc20types.MsgUpdateParams{}))
-	suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
-	suite.Require().EqualValues(params.MinDeposit, depositParamsMinDeposit)
-	suite.Require().EqualValues(params.MaxDepositPeriod, depositParamsMaxDepositPeriod)
-	suite.Require().EqualValues(params.VotingPeriod, votingParamsVotingPeriod)
-	suite.Require().EqualValues(params.VetoThreshold, tallyParamsVetoThreshold)
-	suite.Require().EqualValues(params.Threshold, tallyParamsThreshold)
-	suite.Require().EqualValues(params.Quorum, tallyParamsQuorum)
-	erc20MsgType := []string{
-		"/fx.erc20.v1.RegisterCoinProposal",
-		"/fx.erc20.v1.RegisterERC20Proposal",
-		"/fx.erc20.v1.ToggleTokenConversionProposal",
-		"/fx.erc20.v1.UpdateDenomAliasProposal",
-		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
-		sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}),
-		sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{}),
-		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
-	}
-	for _, erc20MsgType := range erc20MsgType {
-		// registered Msg
-		params = suite.App.GovKeeper.GetFXParams(suite.Ctx, erc20MsgType)
-		suite.Require().NoError(params.ValidateBasic())
-		suite.Require().EqualValues(params.MinDeposit, depositParamsMinDeposit)
-		suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
-		suite.Require().EqualValues(params.MaxDepositPeriod, depositParamsMaxDepositPeriod)
-		suite.Require().EqualValues(params.VotingPeriod, votingParamsVotingPeriod)
-		suite.Require().EqualValues(params.VetoThreshold, tallyParamsVetoThreshold)
-		suite.Require().EqualValues(params.Threshold, tallyParamsThreshold)
-		suite.Require().EqualValues(params.Quorum, types.DefaultErc20Quorum.String())
-	}
-
-	params = suite.App.GovKeeper.GetFXParams(suite.Ctx, sdk.MsgTypeURL(&evmtypes.MsgCallContract{}))
-	suite.Require().NoError(params.ValidateBasic())
-	suite.Require().EqualValues(params.MinDeposit, depositParamsMinDeposit)
-	suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
-	suite.Require().EqualValues(params.MaxDepositPeriod, depositParamsMaxDepositPeriod)
-	suite.Require().EqualValues(params.VotingPeriod.String(), types.DefaultEvmVotingPeriod.String())
-	suite.Require().EqualValues(params.VetoThreshold, tallyParamsVetoThreshold)
-	suite.Require().EqualValues(params.Threshold, tallyParamsThreshold)
-	suite.Require().EqualValues(params.Quorum, types.DefaultEvmQuorum.String())
-
-	params = suite.App.GovKeeper.GetFXParams(suite.Ctx, "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal")
-	egfParams := suite.App.GovKeeper.GetEGFParams(suite.Ctx)
-	suite.Require().NoError(params.ValidateBasic())
-	suite.Require().NoError(egfParams.ValidateBasic())
-	suite.Require().EqualValues(params.MinDeposit, depositParamsMinDeposit)
-	suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
-	suite.Require().EqualValues(params.MaxDepositPeriod, depositParamsMaxDepositPeriod)
-	suite.Require().EqualValues(params.VotingPeriod.String(), types.DefaultEgfVotingPeriod.String())
-	suite.Require().EqualValues(params.VetoThreshold, tallyParamsVetoThreshold)
-	suite.Require().EqualValues(params.Threshold, tallyParamsThreshold)
-	suite.Require().EqualValues(params.Quorum, tallyParamsQuorum)
-	suite.Require().EqualValues(egfParams.EgfDepositThreshold, sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultEgfDepositThreshold))
-	suite.Require().EqualValues(egfParams.ClaimRatio, types.DefaultClaimRatio.String())
 }
 
 func TestCheckContractAddressIsDisabled(t *testing.T) {

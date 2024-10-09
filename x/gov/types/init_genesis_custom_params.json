@@ -1,0 +1,50 @@
+[
+  {
+    "MsgType": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+    "Params": {
+      "deposit_ratio": "0.100000000000000000",
+      "voting_period": 1209600000000000,
+      "quorum": "0.400000000000000000"
+    }
+  },
+  {
+    "MsgType": "/fx.erc20.v1.MsgRegisterCoin",
+    "Params": {
+      "deposit_ratio": "0.000000000000000000",
+      "voting_period": 604800000000000,
+      "quorum": "0.250000000000000000"
+    }
+  },
+  {
+    "MsgType": "/fx.erc20.v1.MsgRegisterERC20",
+    "Params": {
+      "deposit_ratio": "0.000000000000000000",
+      "voting_period": 604800000000000,
+      "quorum": "0.250000000000000000"
+    }
+  },
+  {
+    "MsgType": "/fx.erc20.v1.MsgToggleTokenConversion",
+    "Params": {
+      "deposit_ratio": "0.000000000000000000",
+      "voting_period": 604800000000000,
+      "quorum": "0.250000000000000000"
+    }
+  },
+  {
+    "MsgType": "/fx.erc20.v1.MsgUpdateDenomAlias",
+    "Params": {
+      "deposit_ratio": "0.000000000000000000",
+      "voting_period": 604800000000000,
+      "quorum": "0.250000000000000000"
+    }
+  },
+  {
+    "MsgType": "/fx.evm.v1.MsgCallContract",
+    "Params": {
+      "deposit_ratio": "0.000000000000000000",
+      "voting_period": 604800000000000,
+      "quorum": "0.250000000000000000"
+    }
+  }
+]
