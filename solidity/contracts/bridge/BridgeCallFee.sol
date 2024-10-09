@@ -12,7 +12,7 @@ import {IBridgeCallback} from "./IBridgeCallback.sol";
 
 /* solhint-disable custom-errors */
 
-contract BridgeCallFeeUpgradeable is
+contract BridgeCallFee is
     IBridgeCallback,
     Initializable,
     ContextUpgradeable,

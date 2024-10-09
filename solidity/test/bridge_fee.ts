@@ -4,7 +4,7 @@ import { expect } from "chai";
 import {
   ERC20TokenTest,
   FxBridgeLogic,
-  BridgeCallFeeUpgradeable,
+  BridgeCallFee,
   BridgeCallbackTest,
 } from "../typechain-types";
 import { AbiCoder, encodeBytes32String } from "ethers";
@@ -16,7 +16,7 @@ describe("submit bridge call tests", function () {
   let user1: HardhatEthersSigner;
   let erc20Token: ERC20TokenTest;
   let fxBridge: FxBridgeLogic;
-  let bridgeCallFee: BridgeCallFeeUpgradeable;
+  let bridgeCallFee: BridgeCallFee;
   let bridgeCallback: BridgeCallbackTest;
 
   let token1: ERC20TokenTest;
@@ -94,7 +94,7 @@ describe("submit bridge call tests", function () {
     await erc20Token.transferOwnership(await fxBridge.getAddress());
 
     const bridgeCallFeeFactory = await ethers.getContractFactory(
-      "BridgeCallFeeUpgradeable"
+      "BridgeCallFee"
     );
     const bridgeCallFeeDeploy = await bridgeCallFeeFactory.deploy();
 
@@ -107,7 +107,7 @@ describe("submit bridge call tests", function () {
     );
 
     bridgeCallFee = await ethers.getContractAt(
-      "BridgeCallFeeUpgradeable",
+      "BridgeCallFee",
       await bridgeCallFeeProxy.getAddress()
     );
     await bridgeCallFee.initialize(await fxBridge.getAddress());
