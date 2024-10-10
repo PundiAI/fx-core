@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
@@ -23,8 +24,11 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov msgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(m v1.MsgServer, k *Keeper) types.MsgServerPro {
-	return &msgServer{MsgServer: m, Keeper: k}
+func NewMsgServerImpl(k *Keeper) types.MsgServerPro {
+	return &msgServer{
+		MsgServer: govkeeper.NewMsgServerImpl(k.Keeper),
+		Keeper:    k,
+	}
 }
 
 var _ types.MsgServerPro = msgServer{}

@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -48,10 +47,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.BaseSuite.SetupTest()
 
 	suite.govAcct = authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	suite.msgServer = keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.App.GovKeeper.Keeper), suite.App.GovKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(suite.App.GovKeeper)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.App.GovKeeper)
+	types.RegisterQueryServer(queryHelper, keeper.NewQueryServer(suite.App.GovKeeper))
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 

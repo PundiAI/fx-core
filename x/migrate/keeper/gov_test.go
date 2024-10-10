@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/ethereum/go-ethereum/common"
@@ -30,7 +29,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	content, _ := govv1beta1.ContentFromProposalType("title", "description", "Text")
 	legacyContent, _ := govv1.NewLegacyContent(content, suite.govAddr)
 	anys, _ := sdktx.SetMsgs([]sdk.Msg{legacyContent})
-	govImpl := fxgovkeeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.App.GovKeeper.Keeper), suite.App.GovKeeper)
+	govImpl := fxgovkeeper.NewMsgServerImpl(suite.App.GovKeeper)
 
 	// submit proposal
 	proposal, err := govImpl.SubmitProposal(suite.Ctx, &govv1.MsgSubmitProposal{
@@ -75,7 +74,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	legacyContent, _ := govv1.NewLegacyContent(content, suite.govAddr)
 
 	anys, _ := sdktx.SetMsgs([]sdk.Msg{legacyContent})
-	govImpl := fxgovkeeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.App.GovKeeper.Keeper), suite.App.GovKeeper)
+	govImpl := fxgovkeeper.NewMsgServerImpl(suite.App.GovKeeper)
 
 	// submit proposal
 	proposal, err := govImpl.SubmitProposal(suite.Ctx, &govv1.MsgSubmitProposal{
