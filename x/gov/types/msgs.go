@@ -99,10 +99,10 @@ func (m *MsgUpdateSwitchParams) ValidateBasic() error {
 // ValidateBasic performs basic validation on governance parameters.
 func (p *CustomParams) ValidateBasic() error {
 	if p.VotingPeriod == nil {
-		return fmt.Errorf("voting period must not be nil: %d", p.VotingPeriod)
+		return fmt.Errorf("voting period must not be nil")
 	}
 	if p.VotingPeriod.Seconds() <= 0 {
-		return fmt.Errorf("voting period must be positive: %s", p.VotingPeriod)
+		return fmt.Errorf("voting period must be positive: %v", p.VotingPeriod)
 	}
 
 	quorum, err := sdkmath.LegacyNewDecFromStr(p.Quorum)
