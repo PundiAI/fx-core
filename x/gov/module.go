@@ -133,5 +133,5 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx context.Context) error {
-	return gov.EndBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.Keeper)
+	return EndBlocker(sdk.UnwrapSDKContext(ctx), am.keeper)
 }

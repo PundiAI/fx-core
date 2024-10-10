@@ -33,6 +33,7 @@ type Keeper struct {
 
 	storeKeys      map[string]*storetypes.KVStoreKey
 	CustomerParams collections.Map[string, types.CustomParams]
+	FXSchema       collections.Schema
 }
 
 func NewKeeper(storeService corestoretypes.KVStoreService, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, sk govtypes.StakingKeeper, keys map[string]*storetypes.KVStoreKey, gk *govkeeper.Keeper, cdc codec.BinaryCodec, authority string) *Keeper {
@@ -41,7 +42,7 @@ func NewKeeper(storeService corestoretypes.KVStoreService, ak govtypes.AccountKe
 	}
 
 	sb := collections.NewSchemaBuilder(storeService)
-	return &Keeper{
+	k := &Keeper{
 		storeKey:       keys[govtypes.StoreKey],
 		authKeeper:     ak,
 		bankKeeper:     bk,
@@ -52,6 +53,14 @@ func NewKeeper(storeService corestoretypes.KVStoreService, ak govtypes.AccountKe
 		storeKeys:      keys,
 		CustomerParams: collections.NewMap(sb, types.CustomParamsKey, "customParams", collections.StringKey, codec.CollValue[types.CustomParams](cdc)),
 	}
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	k.FXSchema = schema
+	return k
 }
 
 func (keeper Keeper) InitCustomParams(ctx sdk.Context) error {

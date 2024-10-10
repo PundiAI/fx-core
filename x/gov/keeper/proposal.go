@@ -84,6 +84,14 @@ func (keeper Keeper) GetCustomMsgVotingPeriod(ctx context.Context, defaultVoting
 	return defaultVotingPeriod
 }
 
+func (keeper Keeper) GetCustomMsgQuorum(ctx context.Context, defaultQuorum string, proposal v1.Proposal) string {
+	msgType := getProposalMsgType(proposal)
+	if customParams, found := keeper.GetCustomParams(ctx, msgType); found {
+		return customParams.Quorum
+	}
+	return defaultQuorum
+}
+
 func getProposalMsgType(proposal v1.Proposal) string {
 	message := proposal.GetMessages()
 	for _, msg := range message {
