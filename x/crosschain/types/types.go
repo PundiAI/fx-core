@@ -505,20 +505,6 @@ func BridgeDenomToContract(moduleName string, bridgeDenom string) string {
 	return strings.TrimPrefix(bridgeDenom, moduleName)
 }
 
-func NewERC20Tokens(module string, tokenAddrs []gethcommon.Address, tokenAmounts []*big.Int) ([]ERC20Token, error) {
-	if len(tokenAddrs) != len(tokenAmounts) {
-		return nil, fmt.Errorf("invalid length")
-	}
-	tokens := make([]ERC20Token, 0, len(tokenAddrs))
-	for i := 0; i < len(tokenAddrs); i++ {
-		tokens = append(tokens, ERC20Token{
-			Contract: ExternalAddrToStr(module, tokenAddrs[i].Bytes()),
-			Amount:   sdkmath.NewIntFromBigInt(tokenAmounts[i]),
-		})
-	}
-	return tokens, nil
-}
-
 func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {
 	erc20Tokens := make([]ERC20Token, 0, len(m.TokenContracts))
 	for i, tokenContract := range m.TokenContracts {

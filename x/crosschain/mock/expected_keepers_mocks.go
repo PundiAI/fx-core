@@ -428,6 +428,21 @@ func (mr *MockErc20KeeperMockRecorder) ConvertDenomToTarget(ctx, from, coin, fxT
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertDenomToTarget", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertDenomToTarget), ctx, from, coin, fxTarget)
 }
 
+// ConvertERC20 mocks base method.
+func (m *MockErc20Keeper) ConvertERC20(goCtx context.Context, msg *types6.MsgConvertERC20) (*types6.MsgConvertERC20Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConvertERC20", goCtx, msg)
+	ret0, _ := ret[0].(*types6.MsgConvertERC20Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConvertERC20 indicates an expected call of ConvertERC20.
+func (mr *MockErc20KeeperMockRecorder) ConvertERC20(goCtx, msg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertERC20", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertERC20), goCtx, msg)
+}
+
 // DeleteIBCTransferRelation mocks base method.
 func (m *MockErc20Keeper) DeleteIBCTransferRelation(ctx types.Context, channel string, sequence uint64) bool {
 	m.ctrl.T.Helper()

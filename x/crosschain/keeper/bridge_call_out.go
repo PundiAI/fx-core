@@ -37,7 +37,15 @@ func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddre
 	return tokens, nil
 }
 
-func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error) {
+func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, baseCoins sdk.Coins, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error) {
+	tokens := make([]types.ERC20Token, 0, len(baseCoins))
+	for _, coin := range baseCoins {
+		tokenContract, err := k.BaseCoinToBridgeToken(ctx, coin, sender.Bytes())
+		if err != nil {
+			return 0, err
+		}
+		tokens = append(tokens, types.NewERC20Token(coin.Amount, tokenContract))
+	}
 	outCall, err := k.BuildOutgoingBridgeCall(ctx, sender, refundAddr, tokens, to, data, memo, eventNonce)
 	if err != nil {
 		return 0, err

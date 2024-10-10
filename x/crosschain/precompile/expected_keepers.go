@@ -2,6 +2,7 @@ package precompile
 
 import (
 	"context"
+	"math/big"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,7 +49,9 @@ type CrosschainKeeper interface {
 	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken bool) error
 	RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
 	AddUnbatchedTxBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
-	PrecompileBridgeCall(ctx sdk.Context, sender, refund common.Address, coins sdk.Coins, to common.Address, data, memo []byte) (uint64, error)
+
+	AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, baseCoins sdk.Coins, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error)
+	EvmToBaseCoin(ctx context.Context, tokenAddr string, amount *big.Int, holder common.Address) (sdk.Coin, error)
 	ExecuteClaim(ctx sdk.Context, eventNonce uint64) error
 
 	HasOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) bool

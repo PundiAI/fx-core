@@ -13,15 +13,49 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, tokenAddr string, amount *big.Int, holder sdk.AccAddress) (sdk.Coin, error) {
+func (k Keeper) EvmToBaseCoin(ctx context.Context, tokenAddr string, amount *big.Int, holder common.Address) (sdk.Coin, error) {
+	_, err := k.erc20Keeper.ConvertERC20(ctx, &erc20types.MsgConvertERC20{
+		ContractAddress: tokenAddr,
+		Amount:          sdkmath.NewIntFromBigInt(amount),
+		Receiver:        sdk.AccAddress(holder.Bytes()).String(),
+		Sender:          holder.String(),
+	})
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	tokenPair, ok := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), tokenAddr)
+	if !ok {
+		return sdk.Coin{}, types.ErrInvalid.Wrapf("not found %s token pair", tokenAddr)
+	}
+	return sdk.NewCoin(tokenPair.Denom, sdkmath.NewIntFromBigInt(amount)), nil
+}
+
+func (k Keeper) BaseCoinToEvm(ctx context.Context, coin sdk.Coin, holder common.Address) (string, error) {
+	_, err := k.erc20Keeper.ConvertCoin(ctx, &erc20types.MsgConvertCoin{
+		Coin:     coin,
+		Receiver: holder.String(),
+		Sender:   sdk.AccAddress(holder.Bytes()).String(),
+	})
+	if err != nil {
+		return "", err
+	}
+	tokenPair, ok := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), coin.Denom)
+	if !ok {
+		return "", types.ErrInvalid.Wrapf("not found %s token pair", coin.Denom)
+	}
+	return tokenPair.Erc20Address, nil
+}
+
+func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, tokenAddr string, amount sdkmath.Int, holder sdk.AccAddress) (sdk.Coin, error) {
 	bridgeDenom, found := k.GetBridgeDenomByContract(sdk.UnwrapSDKContext(ctx), tokenAddr)
 	if !found {
 		return sdk.Coin{}, sdkerrors.ErrInvalidCoins.Wrapf("bridge denom not found %s", tokenAddr)
 	}
-	bridgeToken := sdk.NewCoin(bridgeDenom, sdkmath.NewIntFromBigInt(amount))
+	bridgeToken := sdk.NewCoin(bridgeDenom, amount)
 	if err := k.DepositBridgeToken(ctx, bridgeToken, holder); err != nil {
 		return sdk.Coin{}, err
 	}
@@ -35,22 +69,22 @@ func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, tokenAddr string, amo
 	return sdk.NewCoin(baseDenom, bridgeToken.Amount), nil
 }
 
-func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, module string, coin sdk.Coin, holder sdk.AccAddress) (string, *big.Int, error) {
-	bridgeDenom, err := k.ManyToOne(ctx, coin.Denom, module)
+func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress) (string, error) {
+	bridgeDenom, err := k.ManyToOne(ctx, coin.Denom, k.moduleName)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 	if err = k.ConversionCoin(ctx, holder, coin, coin.Denom, bridgeDenom); err != nil {
-		return "", nil, err
+		return "", err
 	}
 	if err = k.WithdrawBridgeToken(ctx, sdk.NewCoin(bridgeDenom, coin.Amount), holder); err != nil {
-		return "", nil, err
+		return "", err
 	}
 	tokenAddr, found := k.GetContractByBridgeDenom(sdk.UnwrapSDKContext(ctx), bridgeDenom)
 	if !found {
-		return "", nil, sdkerrors.ErrInvalidRequest.Wrapf("bridge token not found %s", bridgeDenom)
+		return "", sdkerrors.ErrInvalidRequest.Wrapf("bridge token not found %s", bridgeDenom)
 	}
-	return tokenAddr, coin.Amount.BigInt(), nil
+	return tokenAddr, nil
 }
 
 // DepositBridgeToken get bridge token from crosschain module

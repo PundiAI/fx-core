@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -25,25 +24,25 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 			return types.ErrInvalid.Wrap("sender is module account")
 		}
 	}
-	isMemoSendCallTo := types.IsMemoSendCallTo(msg.MustMemo())
-	receiverTokenAddr := msg.GetToAddr()
+	isMemoSendCallTo := msg.IsMemoSendCallTo()
+	receiverAddr := msg.GetToAddr()
 	if isMemoSendCallTo {
-		receiverTokenAddr = msg.GetSenderAddr()
+		receiverAddr = msg.GetSenderAddr()
 	}
 
-	erc20Token, err := types.NewERC20Tokens(k.moduleName, msg.GetTokensAddr(), msg.GetAmounts())
-	if err != nil {
-		return err
-	}
-
-	_, tokenAddrs, tokenAmounts, err := k.BridgeTokenToERC20(ctx, receiverTokenAddr.Bytes(), erc20Token...)
-	if err != nil {
-		return err
+	baseCoins := sdk.NewCoins()
+	for i, address := range msg.TokenContracts {
+		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, address, msg.Amounts[i], receiverAddr.Bytes())
+		if err != nil {
+			return err
+		}
+		baseCoins = baseCoins.Add(baseCoin)
 	}
 
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
+	var err error
 	if err = k.BridgeCallEvm(cacheCtx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
-		tokenAddrs, tokenAmounts, msg.MustData(), msg.MustMemo(), msg.Value, isMemoSendCallTo); err == nil {
+		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), msg.Value, isMemoSendCallTo); err == nil {
 		commit()
 		return nil
 	}
@@ -58,42 +57,21 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 			},
 		)
 	}
-	return k.BridgeCallFailedRefund(ctx, msg.GetRefundAddr(), erc20Token, msg.EventNonce)
+	return k.BridgeCallFailedRefund(ctx, msg.GetRefundAddr(), baseCoins, msg.EventNonce)
 }
 
-func (k Keeper) BridgeTokenToERC20(ctx context.Context, holder sdk.AccAddress, tokens ...types.ERC20Token) (sdk.Coins, []common.Address, []*big.Int, error) {
-	baseCoins := sdk.NewCoins()
-	tokenAddrs := make([]common.Address, 0, len(tokens))
-	tokenAmounts := make([]*big.Int, 0, len(tokens))
-
-	for _, token := range tokens {
-		coin, err := k.BridgeTokenToBaseCoin(ctx, token.Contract, token.Amount.BigInt(), holder)
+func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, value sdkmath.Int, isMemoSendCallTo bool) error {
+	tokens := make([]common.Address, 0, baseCoins.Len())
+	amounts := make([]*big.Int, 0, baseCoins.Len())
+	for _, coin := range baseCoins {
+		tokenContract, err := k.BaseCoinToEvm(ctx, coin, receiverAddr)
 		if err != nil {
-			return nil, nil, nil, err
+			return err
 		}
-		baseCoins = baseCoins.Add(coin)
-
-		tokenAmounts = append(tokenAmounts, coin.Amount.BigInt())
-		if coin.Denom == fxtypes.DefaultDenom {
-			tokenAddrs = append(tokenAddrs, common.Address{})
-			continue
-		}
-		// todo replace convert coin, return token pair
-		if _, err = k.erc20Keeper.ConvertCoin(ctx, &erc20types.MsgConvertCoin{
-			Coin:     coin,
-			Receiver: common.BytesToAddress(holder.Bytes()).String(),
-			Sender:   holder.String(),
-		}); err != nil {
-			return nil, nil, nil, err
-		}
-		// NOTE: convert coin already checked
-		pair, _ := k.erc20Keeper.GetTokenPair(sdk.UnwrapSDKContext(ctx), coin.Denom)
-		tokenAddrs = append(tokenAddrs, pair.GetERC20Contract())
+		tokens = append(tokens, common.HexToAddress(tokenContract))
+		amounts = append(amounts, coin.Amount.BigInt())
 	}
-	return baseCoins, tokenAddrs, tokenAmounts, nil
-}
 
-func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to common.Address, tokens []common.Address, amounts []*big.Int, data, memo []byte, value sdkmath.Int, isMemoSendCallTo bool) error {
 	if !k.evmKeeper.IsContract(ctx, to) {
 		return nil
 	}
@@ -123,8 +101,8 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to common.Add
 	return nil
 }
 
-func (k Keeper) BridgeCallFailedRefund(ctx sdk.Context, refundAddr common.Address, erc20Token []types.ERC20Token, eventNonce uint64) error {
-	outCallNonce, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, erc20Token, common.Address{}, nil, nil, eventNonce)
+func (k Keeper) BridgeCallFailedRefund(ctx sdk.Context, refundAddr common.Address, baseCoins sdk.Coins, eventNonce uint64) error {
+	outCallNonce, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, baseCoins, common.Address{}, nil, nil, eventNonce)
 	if err != nil {
 		return err
 	}

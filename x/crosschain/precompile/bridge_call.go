@@ -57,24 +57,28 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	var result []byte
 	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		sender := contract.Caller()
-		coins := make([]sdk.Coin, 0, len(args.Tokens)+1)
+		baseCoins := make([]sdk.Coin, 0, len(args.Tokens)+1)
 		value := contract.Value()
 		if value.Cmp(big.NewInt(0)) == 1 {
-			totalCoin, err := m.handlerOriginToken(ctx, evm, sender, value)
+			coin, err := m.handlerOriginToken(ctx, evm, sender, value)
 			if err != nil {
 				return err
 			}
-			coins = append(coins, totalCoin)
+			baseCoins = append(baseCoins, coin)
 		}
 		for i, token := range args.Tokens {
-			coin, err := m.handlerERC20Token(ctx, evm, sender, token, args.Amounts[i])
+			crosschainKeeper, ok := m.router.GetRoute(args.DstChain)
+			if !ok {
+				return errors.New("invalid dstChain")
+			}
+			coin, err := crosschainKeeper.EvmToBaseCoin(ctx, token.String(), args.Amounts[i], sender)
 			if err != nil {
 				return err
 			}
-			coins = append(coins, coin)
+			baseCoins = append(baseCoins, coin)
 		}
 
-		bridgeCallNonce, err := route.PrecompileBridgeCall(ctx, sender, args.Refund, coins, args.To, args.Data, args.Memo)
+		bridgeCallNonce, err := route.AddOutgoingBridgeCall(ctx, sender, args.Refund, baseCoins, args.To, args.Data, args.Memo, 0)
 		if err != nil {
 			return err
 		}
