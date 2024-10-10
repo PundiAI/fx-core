@@ -3,11 +3,13 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -51,7 +53,9 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
 	suite.EndBlocker()
 
-	suite.SetToken("TEST", types.NewBridgeDenom(suite.chainName, bridgeToken))
+	denomTrace := suite.SetIBCDenom(portID, channelID, "test")
+	ibcDenom := fmt.Sprintf("ibc/%s", strings.ToUpper(denomTrace.Hash().String()))
+	suite.SetToken("TEST", types.NewBridgeDenom(suite.chainName, bridgeToken), ibcDenom)
 	suite.AddTokenPair("test", true)
 
 	sendToFxClaim := &types.MsgSendToFxClaim{
@@ -65,6 +69,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		BridgerAddress: suite.bridgerAddrs[0].String(),
 		ChainName:      suite.chainName,
 	}
+	suite.MintTokenToModule(ibctransfertypes.ModuleName, sdk.NewCoin(ibcDenom, sendToFxClaim.Amount))
 	suite.SendClaim(sendToFxClaim)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)

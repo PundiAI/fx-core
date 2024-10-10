@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -59,6 +60,8 @@ type Erc20Keeper interface {
 	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
 	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (erc20types.TokenPair, bool)
+	IbcRefund(ctx sdk.Context, channel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error
+	DeleteIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on crosschain
@@ -69,8 +72,8 @@ type EVMKeeper interface {
 
 type IBCTransferKeeper interface {
 	Transfer(ctx context.Context, msg *tranfsertypes.MsgTransfer) (*tranfsertypes.MsgTransferResponse, error)
-
 	SetDenomTrace(ctx sdk.Context, denomTrace tranfsertypes.DenomTrace)
+	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (tranfsertypes.DenomTrace, bool)
 }
 
 type AccountKeeper interface {

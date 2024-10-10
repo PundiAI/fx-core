@@ -3,12 +3,11 @@ package keeper
 import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	"github.com/functionx/fx-core/v8/x/ibc/middleware/types"
 )
 
@@ -33,19 +32,11 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		sdk.NewAttribute(transfertypes.AttributeKeyAmount, receiveCoin.String()),
 	))
 
-	if receiveCoin.GetDenom() != fxtypes.DefaultDenom && isEvmAddr {
-		// convert to base denom
-		receiveCoin, err = k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, receiveCoin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
-		if err != nil {
-			return err
+	if receiveCoin.GetDenom() != fxtypes.DefaultDenom {
+		if !isEvmAddr {
+			return sdkerrors.ErrInvalidAddress.Wrap("only support hex address")
 		}
-		// convert to erc20 token
-		_, err = k.erc20Keeper.ConvertCoin(ctx, &erc20types.MsgConvertCoin{
-			Coin:     receiveCoin,
-			Receiver: common.BytesToAddress(receiver).String(),
-			Sender:   receiver.String(),
-		})
-		if err != nil {
+		if err = k.crossChainKeeper.IBCCoinToEvm(ctx, receiveCoin, receiver); err != nil {
 			return err
 		}
 	}
@@ -64,9 +55,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	case *channeltypes.Acknowledgement_Error:
 		return k.refundPacketTokenHook(ctx, packet, data)
 	default:
-		if k.refundHook != nil {
-			k.refundHook.AckAfter(ctx, packet.SourceChannel, packet.Sequence)
-		}
+		k.crossChainKeeper.AfterIBCAckSuccess(ctx, packet.SourceChannel, packet.Sequence)
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
 		return nil
@@ -93,9 +82,5 @@ func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packe
 	if err != nil {
 		return err
 	}
-
-	if k.refundHook != nil {
-		k.refundHook.RefundAfter(ctx, packet.SourceChannel, packet.Sequence, sender, token)
-	}
-	return nil
+	return k.crossChainKeeper.IBCCoinRefund(ctx, token, sender, packet.SourceChannel, packet.Sequence)
 }

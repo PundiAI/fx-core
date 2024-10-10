@@ -87,6 +87,13 @@ func (i FxTarget) GetTarget() string {
 	return i.target
 }
 
+func (i FxTarget) String() string {
+	if i.isIBC {
+		return fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(i.SourceChannel, channeltypes.ChannelPrefix), i.Prefix)
+	}
+	return i.target
+}
+
 func (i FxTarget) IsIBC() bool {
 	return i.isIBC
 }

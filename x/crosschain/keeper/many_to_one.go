@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -9,8 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, tokenAddr string, amount *big.Int, holder sdk.AccAddress) (sdk.Coin, error) {
@@ -135,12 +138,24 @@ func (k Keeper) BaseDenomToBridgeDenom(ctx context.Context, baseDenom, target st
 		return "", err
 	}
 	ibcPrefix := ibctransfertypes.DenomPrefix + "/"
+	fxTarget := fxtypes.ParseFxTarget(target)
 	for _, bd := range bridgeDenom {
-		if strings.HasPrefix(bd, ibcPrefix) && strings.HasPrefix(target, ibcPrefix) {
-			// TODO ibc token
-			continue
+		if strings.HasPrefix(bd, ibcPrefix) && fxTarget.IsIBC() {
+			hexHash := strings.TrimPrefix(bd, ibctransfertypes.DenomPrefix+"/")
+			hash, err := ibctransfertypes.ParseHexHash(hexHash)
+			if err != nil {
+				return "", err
+			}
+			denomTrace, found := k.ibcTransferKeeper.GetDenomTrace(sdk.UnwrapSDKContext(ctx), hash)
+			if !found {
+				continue
+			}
+			if !strings.HasPrefix(denomTrace.GetPath(), fmt.Sprintf("%s/%s", fxTarget.SourcePort, fxTarget.SourceChannel)) {
+				continue
+			}
+			return bd, nil
 		}
-		if strings.HasPrefix(bd, target) {
+		if strings.HasPrefix(bd, fxTarget.GetTarget()) {
 			return bd, nil
 		}
 	}
@@ -180,4 +195,71 @@ func (k Keeper) ConversionCoin(ctx context.Context, holder sdk.AccAddress, coin 
 		return err
 	}
 	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, holder, sdk.NewCoins(targetCoin))
+}
+
+func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress) (sdk.Coin, error) {
+	if !strings.HasPrefix(coin.Denom, ibctransfertypes.DenomPrefix+"/") {
+		return coin, nil
+	}
+	baseDenom, err := k.ManyToOne(ctx, coin.Denom)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	baseCoin := sdk.NewCoin(baseDenom, coin.Amount)
+	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, ibctransfertypes.ModuleName, sdk.NewCoins(coin)); err != nil {
+		return sdk.Coin{}, err
+	}
+	if err = k.bankKeeper.MintCoins(ctx, ibctransfertypes.ModuleName, sdk.NewCoins(baseCoin)); err != nil {
+		return sdk.Coin{}, err
+	}
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, ibctransfertypes.ModuleName, holder, sdk.NewCoins(baseCoin)); err != nil {
+		return sdk.Coin{}, err
+	}
+	return baseCoin, nil
+}
+
+func (k Keeper) BaseCoinToIBCCoin(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcTarget string) (sdk.Coin, error) {
+	if strings.HasPrefix(coin.Denom, ibctransfertypes.DenomPrefix+"/") {
+		return coin, sdkerrors.ErrInvalidCoins.Wrapf("can not convert ibc denom")
+	}
+	ibcDenom, err := k.ManyToOne(ctx, coin.Denom, ibcTarget)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	ibcCoin := sdk.NewCoin(ibcDenom, coin.Amount)
+	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, ibctransfertypes.ModuleName, sdk.NewCoins(coin)); err != nil {
+		return sdk.Coin{}, err
+	}
+	if err = k.bankKeeper.BurnCoins(ctx, ibctransfertypes.ModuleName, sdk.NewCoins(coin)); err != nil {
+		return sdk.Coin{}, err
+	}
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, ibctransfertypes.ModuleName, holder, sdk.NewCoins(ibcCoin)); err != nil {
+		return sdk.Coin{}, err
+	}
+	return ibcCoin, nil
+}
+
+func (k Keeper) IBCCoinToEvm(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress) error {
+	baseCoin, err := k.IBCCoinToBaseCoin(ctx, coin, holder)
+	if err != nil {
+		return err
+	}
+	_, err = k.erc20Keeper.ConvertCoin(ctx, &erc20types.MsgConvertCoin{
+		Coin:     baseCoin,
+		Receiver: common.BytesToAddress(holder).String(),
+		Sender:   holder.String(),
+	})
+	return err
+}
+
+func (k Keeper) IBCCoinRefund(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcChannel string, ibcSequence uint64) error {
+	baseCoin, err := k.IBCCoinToBaseCoin(ctx, coin, holder)
+	if err != nil {
+		return err
+	}
+	return k.erc20Keeper.IbcRefund(sdk.UnwrapSDKContext(ctx), ibcChannel, ibcSequence, holder, baseCoin)
+}
+
+func (k Keeper) AfterIBCAckSuccess(ctx sdk.Context, sourceChannel string, sequence uint64) {
+	k.erc20Keeper.DeleteOutgoingTransferRelation(ctx, sourceChannel, sequence)
 }

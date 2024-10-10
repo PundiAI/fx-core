@@ -7,26 +7,17 @@ import (
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) {
+func (k Keeper) IbcRefund(ctx sdk.Context, channel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
 	// check exist
 	if !k.DeleteIBCTransferRelation(ctx, channel, sequence) {
-		return
+		return nil
 	}
-	cacheCtx, commit := ctx.CacheContext()
-	_, err := k.ConvertCoin(cacheCtx, &types.MsgConvertCoin{
+	_, err := k.ConvertCoin(ctx, &types.MsgConvertCoin{
 		Coin:     amount,
 		Receiver: common.BytesToAddress(sender.Bytes()).String(),
 		Sender:   sender.String(),
 	})
-	if err != nil {
-		k.Logger(ctx).Info("refund after", "channel", channel, "sequence", sequence, "sender", sender, "error", err)
-		return
-	}
-	commit()
-}
-
-func (k Keeper) AckAfter(ctx sdk.Context, channel string, sequence uint64) {
-	k.DeleteIBCTransferRelation(ctx, channel, sequence)
+	return err
 }
 
 func (k Keeper) SetIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) {

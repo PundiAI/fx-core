@@ -11,6 +11,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/suite"
@@ -196,4 +197,15 @@ func (suite *KeeperTestSuite) AddRandomBaseToken(isNativeERC20 bool) (string, st
 func (suite *KeeperTestSuite) MintBaseToken(acc sdk.AccAddress, baseDenom, bridgeDenom string, amount sdkmath.Int) {
 	suite.MintTokenToModule(suite.chainName, sdk.NewCoin(bridgeDenom, amount))
 	suite.MintToken(acc, sdk.NewCoin(baseDenom, amount))
+}
+
+func (suite *KeeperTestSuite) SetIBCDenom(portID, channelID, denom string) ibctransfertypes.DenomTrace {
+	sourcePrefix := ibctransfertypes.GetDenomPrefix(portID, channelID)
+	prefixedDenom := sourcePrefix + denom
+	denomTrace := ibctransfertypes.ParseDenomTrace(prefixedDenom)
+	traceHash := denomTrace.Hash()
+	if !suite.App.IBCTransferKeeper.HasDenomTrace(suite.Ctx, traceHash) {
+		suite.App.IBCTransferKeeper.SetDenomTrace(suite.Ctx, denomTrace)
+	}
+	return denomTrace
 }
