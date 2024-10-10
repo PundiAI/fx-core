@@ -25,7 +25,6 @@ func NewPrecompiledContract(
 	accountKeeper AccountKeeper,
 	govKeeper GovKeeper,
 	router *Router,
-	crossChainKeeper CrossChainKeeper,
 ) *Contract {
 	keeper := &Keeper{
 		bankKeeper:        bankKeeper,
@@ -33,7 +32,6 @@ func NewPrecompiledContract(
 		ibcTransferKeeper: ibcTransferKeeper,
 		accountKeeper:     accountKeeper,
 		router:            router,
-		crossChainKeeper:  crossChainKeeper,
 	}
 	return &Contract{
 		govKeeper: govKeeper,
