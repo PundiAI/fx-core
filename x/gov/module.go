@@ -82,10 +82,10 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 
 // AppModule implements an application module for the gov module.
 type AppModule struct {
-	gov.AppModule
+	AppModuleBasic
 	keeper         *keeper.Keeper
-	ak             govtypes.AccountKeeper
-	bk             govtypes.BankKeeper
+	accountKeeper  govtypes.AccountKeeper
+	bankKeeper     govtypes.BankKeeper
 	cdc            codec.Codec
 	legacySubspace govtypes.ParamSubspace
 }
@@ -93,37 +93,44 @@ type AppModule struct {
 // NewAppModule creates a new AppModule object
 func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ss govtypes.ParamSubspace) AppModule {
 	return AppModule{
-		AppModule:      gov.NewAppModule(cdc, keeper.Keeper, ak, bk, ss),
+		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		ak:             ak,
-		bk:             bk,
+		accountKeeper:  ak,
+		bankKeeper:     bk,
 		cdc:            cdc,
 		legacySubspace: ss,
 	}
 }
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
+
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	govMsgServer := govkeeper.NewMsgServerImpl(am.keeper.Keeper)
-	msgServer := keeper.NewMsgServerImpl(govMsgServer, am.keeper)
-
-	legacyMsgServer := govkeeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer)
+	msgServer := keeper.NewMsgServerImpl(am.keeper)
+	govModuleAddress := am.accountKeeper.GetModuleAddress(govtypes.ModuleName).String()
+	legacyMsgServer := govkeeper.NewLegacyMsgServerImpl(govModuleAddress, msgServer)
 	govv1betal.RegisterMsgServer(cfg.MsgServer(), legacyMsgServer)
 	govv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
 	types.RegisterMsgServer(cfg.MsgServer(), msgServer)
 
-	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
+	queryServer := keeper.NewQueryServer(am.keeper)
+	legacyQueryServer := keeper.NewLegacyQueryServer(queryServer, am.keeper)
 	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
-	govv1.RegisterQueryServer(cfg.QueryServer(), govkeeper.NewQueryServer(am.keeper.Keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	govv1.RegisterQueryServer(cfg.QueryServer(), queryServer)
+	types.RegisterQueryServer(cfg.QueryServer(), queryServer)
 }
 
 // InitGenesis performs genesis initialization for the gov module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	am.AppModule.InitGenesis(ctx, cdc, data)
+	var genesisState govv1.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	gov.InitGenesis(ctx, am.accountKeeper, am.bankKeeper, am.keeper.Keeper, &genesisState)
 
-	// init fx gov params
 	if err := am.keeper.InitCustomParams(ctx); err != nil {
 		panic(err)
 	}
@@ -135,3 +142,21 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 func (am AppModule) EndBlock(ctx context.Context) error {
 	return EndBlocker(sdk.UnwrapSDKContext(ctx), am.keeper)
 }
+
+// RegisterInvariants registers module invariants
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	govkeeper.RegisterInvariants(ir, am.keeper.Keeper, am.bankKeeper)
+}
+
+// ExportGenesis returns the exported genesis state as raw bytes for the gov
+// module.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	gs, err := gov.ExportGenesis(ctx, am.keeper.Keeper)
+	if err != nil {
+		panic(err)
+	}
+	return cdc.MustMarshalJSON(gs)
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return gov.ConsensusVersion }
