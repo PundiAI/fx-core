@@ -483,6 +483,10 @@ func (m *MsgBridgeCallClaim) GetToAddr() common.Address {
 	return ExternalAddrToHexAddr(m.ChainName, m.To)
 }
 
+func (m *MsgBridgeCallClaim) IsMemoSendCallTo() bool {
+	return IsMemoSendCallTo(m.MustMemo())
+}
+
 func (m *MsgBridgeCallClaim) MustData() []byte {
 	if len(m.Data) == 0 {
 		return []byte{}

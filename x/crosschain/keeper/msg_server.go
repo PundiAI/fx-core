@@ -464,18 +464,8 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 }
 
 func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*types.MsgBridgeCallResponse, error) {
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return nil, types.ErrInvalid.Wrapf("sender address")
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
-	tokens, err := s.BridgeCallCoinsToERC20Token(ctx, sender, msg.Coins)
-	if err != nil {
-		return nil, err
-	}
-
-	outCallNonce, err := s.AddOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0)
+	outCallNonce, err := s.AddOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.Coins, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0)
 	if err != nil {
 		return nil, err
 	}

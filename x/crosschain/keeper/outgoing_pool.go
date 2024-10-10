@@ -26,7 +26,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) addToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin, txID uint64) error {
-	tokenContract, _, err := k.BaseCoinToBridgeToken(ctx, k.moduleName, amount.Add(fee), sender)
+	tokenContract, err := k.BaseCoinToBridgeToken(ctx, amount.Add(fee), sender)
 	if err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func (k Keeper) handleRemoveFromOutgoingPoolAndRefund(ctx sdk.Context, tx *types
 
 func (k Keeper) handleCancelRefund(ctx sdk.Context, txId uint64, sender sdk.AccAddress, tokenContract string, refundAmount sdkmath.Int) (sdk.Coin, error) {
 	// 1. handler refund and convert to base coin
-	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, tokenContract, refundAmount.BigInt(), sender)
+	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, tokenContract, refundAmount, sender)
 	if err != nil {
 		return sdk.Coin{}, err
 	}

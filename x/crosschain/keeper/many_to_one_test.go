@@ -370,7 +370,7 @@ func (suite *KeeperTestSuite) TestBridgeTokenToBaseCoin() {
 				suite.MintTokenToModule(suite.chainName, sdk.NewCoin(tc.BridgeDenom, amount))
 			}
 
-			_, err := suite.Keeper().BridgeTokenToBaseCoin(suite.Ctx, tc.TokenAddr, amount.BigInt(), acc)
+			_, err := suite.Keeper().BridgeTokenToBaseCoin(suite.Ctx, tc.TokenAddr, amount, acc)
 			if tc.Success {
 				suite.NoError(err)
 				suite.CheckAllBalance(acc, sdk.NewCoin(tc.BaseDenom, amount))
@@ -437,7 +437,7 @@ func (suite *KeeperTestSuite) TestBaseCoinToBridgeToken() {
 				suite.MintTokenToModule(suite.chainName, sdk.NewCoin(tc.BridgeDenom, amount))
 			}
 
-			_, _, err := suite.Keeper().BaseCoinToBridgeToken(suite.Ctx, suite.chainName, tc.Coin, acc)
+			_, err := suite.Keeper().BaseCoinToBridgeToken(suite.Ctx, tc.Coin, acc)
 			if tc.Success {
 				suite.NoError(err)
 				suite.CheckAllBalance(acc, sdk.NewCoins()...)

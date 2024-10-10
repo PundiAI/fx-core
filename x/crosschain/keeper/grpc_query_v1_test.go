@@ -39,7 +39,7 @@ type CrossChainGrpcTestSuite struct {
 
 // func TestCrossChainGrpcTestSuite_bsc(t *testing.T) {
 //	suite.Run(t, &CrossChainGrpcTestSuite{KeeperTestSuite: KeeperTestSuite{chainName: bsctypes.ModuleName}, chainName: bsctypes.ModuleName})
-//}
+// }
 
 func TestCrossChainGrpcTestSuite_eth(t *testing.T) {
 	suite.Run(t, &CrossChainGrpcTestSuite{KeeperTestSuite: KeeperTestSuite{chainName: ethtypes.ModuleName}, chainName: ethtypes.ModuleName})

@@ -6,8 +6,13 @@ import (
 	"fmt"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/functionx/fx-core/v8/contract"
 )
 
 const (
@@ -28,7 +33,12 @@ type FxTarget struct {
 	SourceChannel string
 }
 
-func ParseFxTarget(targetStr string) FxTarget {
+func ParseFxTarget(targetStr string, isHex ...bool) FxTarget {
+	if len(isHex) > 0 && isHex[0] {
+		// ignore hex decode error
+		targetByte, _ := hex.DecodeString(targetStr)
+		targetStr = string(targetByte)
+	}
 	// module evm
 	if targetStr == LegacyERC20Target {
 		return FxTarget{isIBC: false, target: ERC20Target}
@@ -112,6 +122,13 @@ func (i FxTarget) IBCValidate() bool {
 		return false
 	}
 	return true
+}
+
+func (i FxTarget) ReceiveAddrToStr(receive sdk.AccAddress) (receiveAddrStr string, err error) {
+	if strings.ToLower(i.Prefix) == contract.EthereumAddressPrefix {
+		return common.BytesToAddress(receive.Bytes()).String(), nil
+	}
+	return bech32.ConvertAndEncode(i.Prefix, receive)
 }
 
 func GetIbcDenomTrace(denom string, channelIBC string) (ibctransfertypes.DenomTrace, error) {

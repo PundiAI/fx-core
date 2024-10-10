@@ -1,21 +1,16 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
-	"strings"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
-	"github.com/functionx/fx-core/v8/contract"
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -44,52 +39,37 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 		return types.ErrInvalid.Wrapf("receiver address")
 	}
 
-	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, claim.TokenContract, claim.Amount.BigInt(), receiveAddr)
+	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, claim.TokenContract, claim.Amount, receiveAddr)
 	if err != nil {
 		return err
 	}
 
-	return k.RelayTransferHandler(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, baseCoin)
-}
-
-func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetHex string, receiver sdk.AccAddress, coin sdk.Coin) error {
-	// ignore hex decode error
-	targetByte, _ := hex.DecodeString(targetHex)
-	fxTarget := fxtypes.ParseFxTarget(string(targetByte))
-
+	fxTarget := fxtypes.ParseFxTarget(claim.TargetIbc, true)
 	if fxTarget.IsIBC() {
-		// transfer to ibc
-		// todo convert to ibc token
-		return k.transferIBCHandler(ctx, eventNonce, receiver, coin, fxTarget)
+		return k.transferIBCHandler(ctx, claim.EventNonce, receiveAddr, baseCoin, fxTarget)
 	}
 
 	if fxTarget.GetTarget() == fxtypes.ERC20Target {
-		// transfer to evm
-		if err := k.erc20Keeper.TransferAfter(ctx, receiver, common.BytesToAddress(receiver.Bytes()).String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()), false); err != nil {
+		_, err = k.BaseCoinToEvm(ctx, baseCoin, common.BytesToAddress(receiveAddr.Bytes()))
+		if err != nil {
 			return err
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeEvmTransfer,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
+			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 		))
 	}
 	return nil
 }
 
 func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive sdk.AccAddress, coin sdk.Coin, target fxtypes.FxTarget) error {
-	var ibcReceiveAddress string
-	if strings.ToLower(target.Prefix) == contract.EthereumAddressPrefix {
-		ibcReceiveAddress = common.BytesToAddress(receive.Bytes()).String()
-	} else {
-		var err error
-		ibcReceiveAddress, err = bech32.ConvertAndEncode(target.Prefix, receive)
-		if err != nil {
-			return err
-		}
+	ibcCoin, err := k.BaseCoinToIBCCoin(ctx, coin, receive, target.String())
+	if err != nil {
+		return err
 	}
 
-	ibcCoin, err := k.BaseCoinToIBCCoin(ctx, coin, receive, target.String())
+	ibcReceiveAddress, err := target.ReceiveAddrToStr(receive)
 	if err != nil {
 		return err
 	}
