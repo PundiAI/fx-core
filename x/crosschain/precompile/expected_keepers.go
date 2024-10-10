@@ -26,6 +26,7 @@ type Erc20Keeper interface {
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (erc20types.TokenPair, bool)
 	IsOriginDenom(ctx sdk.Context, denom string) bool
 	HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool)
+	SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
 }
 
 type BankKeeper interface {
@@ -46,7 +47,6 @@ type AccountKeeper interface {
 }
 
 type CrosschainKeeper interface {
-	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken bool) error
 	RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
 	AddUnbatchedTxBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
 
@@ -57,6 +57,9 @@ type CrosschainKeeper interface {
 	HasOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) bool
 	GetOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) (sdk.AccAddress, bool)
 	GetOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) (oracle crosschaintypes.Oracle, found bool)
+
+	BaseCoinToIBCCoin(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcTarget string) (sdk.Coin, error)
+	AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error)
 }
 
 type GovKeeper interface {

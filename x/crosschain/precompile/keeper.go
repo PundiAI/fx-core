@@ -8,6 +8,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -18,6 +19,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 type Keeper struct {
@@ -26,7 +28,6 @@ type Keeper struct {
 	erc20Keeper       Erc20Keeper
 	ibcTransferKeeper IBCTransferKeeper
 	accountKeeper     AccountKeeper
-	crossChainKeeper  CrossChainKeeper
 }
 
 func (c *Keeper) handlerOriginToken(ctx sdk.Context, _ *vm.EVM, sender common.Address, amount *big.Int) (sdk.Coin, error) {
@@ -122,6 +123,9 @@ func (c *Keeper) outgoingTransfer(
 	fxTarget fxtypes.FxTarget,
 	originToken bool,
 ) error {
+	if err := crosschaintypes.ValidateExternalAddr(fxTarget.GetTarget(), to); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
+	}
 	if c.router == nil {
 		return errors.New("cross chain router empty")
 	}
@@ -129,8 +133,12 @@ func (c *Keeper) outgoingTransfer(
 	if !has {
 		return errors.New("invalid target")
 	}
-	if err := route.TransferAfter(ctx, from, to, amount, fee, originToken); err != nil {
-		return fmt.Errorf("cross chain error: %s", err.Error())
+	txID, err := route.AddToOutgoingPool(ctx, from, to, amount, fee)
+	if err != nil {
+		return err
+	}
+	if !originToken {
+		c.erc20Keeper.SetOutgoingTransferRelation(ctx, fxTarget.GetTarget(), txID)
 	}
 	return nil
 }
@@ -159,7 +167,11 @@ func (c *Keeper) ibcTransfer(
 
 	if !originToken {
 		var err error
-		amount, err = c.crossChainKeeper.BaseCoinToIBCCoin(ctx, amount, from, fxTarget.String())
+		crossChainKeeper, found := c.router.GetRoute(ethtypes.ModuleName)
+		if !found {
+			return sdkerrors.ErrInvalidRequest.Wrap("crosschain not found")
+		}
+		amount, err = crossChainKeeper.BaseCoinToIBCCoin(ctx, amount, from, fxTarget.String())
 		if err != nil {
 			return err
 		}

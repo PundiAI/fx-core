@@ -336,7 +336,7 @@ func NewAppKeeper(
 		[]evmkeeper.CustomContractFn{
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper,
-					appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter, appKeepers.EthKeeper) // TODO: replace by crosschain keeper
+					appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter)
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper,
