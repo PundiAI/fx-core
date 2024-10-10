@@ -26,6 +26,7 @@ type Keeper struct {
 	erc20Keeper       Erc20Keeper
 	ibcTransferKeeper IBCTransferKeeper
 	accountKeeper     AccountKeeper
+	crossChainKeeper  CrossChainKeeper
 }
 
 func (c *Keeper) handlerOriginToken(ctx sdk.Context, _ *vm.EVM, sender common.Address, amount *big.Int) (sdk.Coin, error) {
@@ -156,7 +157,14 @@ func (c *Keeper) ibcTransfer(
 		}
 	}
 
-	// todo: need convert coin to ibc coin
+	if !originToken {
+		var err error
+		amount, err = c.crossChainKeeper.BaseCoinToIBCCoin(ctx, amount, from, fxTarget.String())
+		if err != nil {
+			return err
+		}
+	}
+
 	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(c.erc20Keeper.GetIbcTimeout(ctx))
 	transferResponse, err := c.ibcTransferKeeper.Transfer(ctx,
 		transfertypes.NewMsgTransfer(

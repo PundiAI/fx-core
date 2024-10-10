@@ -14,6 +14,7 @@ import (
 	big "math/big"
 	reflect "reflect"
 
+	bytes "github.com/cometbft/cometbft/libs/bytes"
 	types "github.com/cosmos/cosmos-sdk/types"
 	types0 "github.com/cosmos/cosmos-sdk/x/bank/types"
 	types1 "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -427,6 +428,20 @@ func (mr *MockErc20KeeperMockRecorder) ConvertDenomToTarget(ctx, from, coin, fxT
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertDenomToTarget", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertDenomToTarget), ctx, from, coin, fxTarget)
 }
 
+// DeleteIBCTransferRelation mocks base method.
+func (m *MockErc20Keeper) DeleteIBCTransferRelation(ctx types.Context, channel string, sequence uint64) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteIBCTransferRelation", ctx, channel, sequence)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// DeleteIBCTransferRelation indicates an expected call of DeleteIBCTransferRelation.
+func (mr *MockErc20KeeperMockRecorder) DeleteIBCTransferRelation(ctx, channel, sequence any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteIBCTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteIBCTransferRelation), ctx, channel, sequence)
+}
+
 // DeleteOutgoingTransferRelation mocks base method.
 func (m *MockErc20Keeper) DeleteOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) {
 	m.ctrl.T.Helper()
@@ -480,6 +495,20 @@ func (m *MockErc20Keeper) HookOutgoingRefund(ctx types.Context, moduleName strin
 func (mr *MockErc20KeeperMockRecorder) HookOutgoingRefund(ctx, moduleName, txID, sender, totalCoin any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HookOutgoingRefund", reflect.TypeOf((*MockErc20Keeper)(nil).HookOutgoingRefund), ctx, moduleName, txID, sender, totalCoin)
+}
+
+// IbcRefund mocks base method.
+func (m *MockErc20Keeper) IbcRefund(ctx types.Context, channel string, sequence uint64, sender types.AccAddress, amount types.Coin) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IbcRefund", ctx, channel, sequence, sender, amount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IbcRefund indicates an expected call of IbcRefund.
+func (mr *MockErc20KeeperMockRecorder) IbcRefund(ctx, channel, sequence, sender, amount any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IbcRefund", reflect.TypeOf((*MockErc20Keeper)(nil).IbcRefund), ctx, channel, sequence, sender, amount)
 }
 
 // IsOriginOrConvertedDenom mocks base method.
@@ -609,6 +638,21 @@ func NewMockIBCTransferKeeper(ctrl *gomock.Controller) *MockIBCTransferKeeper {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIBCTransferKeeper) EXPECT() *MockIBCTransferKeeperMockRecorder {
 	return m.recorder
+}
+
+// GetDenomTrace mocks base method.
+func (m *MockIBCTransferKeeper) GetDenomTrace(ctx types.Context, denomTraceHash bytes.HexBytes) (types3.DenomTrace, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDenomTrace", ctx, denomTraceHash)
+	ret0, _ := ret[0].(types3.DenomTrace)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetDenomTrace indicates an expected call of GetDenomTrace.
+func (mr *MockIBCTransferKeeperMockRecorder) GetDenomTrace(ctx, denomTraceHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDenomTrace", reflect.TypeOf((*MockIBCTransferKeeper)(nil).GetDenomTrace), ctx, denomTraceHash)
 }
 
 // SetDenomTrace mocks base method.

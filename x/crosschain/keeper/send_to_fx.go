@@ -89,6 +89,11 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 		}
 	}
 
+	ibcCoin, err := k.BaseCoinToIBCCoin(ctx, coin, receive, target.String())
+	if err != nil {
+		return err
+	}
+
 	// Note: Height is fixed for 5 seconds
 	ibcTransferTimeoutHeight := k.GetIbcTransferTimeoutHeight(ctx) * 5
 	ibcTimeoutTime := ctx.BlockTime().Add(time.Second * time.Duration(ibcTransferTimeoutHeight))
@@ -97,7 +102,7 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 		transfertypes.NewMsgTransfer(
 			target.SourcePort,
 			target.SourceChannel,
-			coin,
+			ibcCoin,
 			receive.String(),
 			ibcReceiveAddress,
 			ibcclienttypes.ZeroHeight(),

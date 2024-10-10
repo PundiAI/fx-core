@@ -10,19 +10,16 @@ import (
 )
 
 type Keeper struct {
-	cdc codec.Codec
-
-	erc20Keeper types.Erc20Keeper
-	evmKeeper   types.EvmKeeper
-	refundHook  types.RefundHook
+	cdc              codec.Codec
+	evmKeeper        types.EvmKeeper
+	crossChainKeeper types.CrossChainKeeper
 }
 
-func NewKeeper(cdc codec.Codec, refundHook types.RefundHook, erc20Keeper types.Erc20Keeper, evmKeeper types.EvmKeeper) Keeper {
+func NewKeeper(cdc codec.Codec, evmKeeper types.EvmKeeper, crossChainKeeper types.CrossChainKeeper) Keeper {
 	return Keeper{
-		cdc:         cdc,
-		refundHook:  refundHook,
-		erc20Keeper: erc20Keeper,
-		evmKeeper:   evmKeeper,
+		cdc:              cdc,
+		evmKeeper:        evmKeeper,
+		crossChainKeeper: crossChainKeeper,
 	}
 }
 

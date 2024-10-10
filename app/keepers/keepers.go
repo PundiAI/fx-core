@@ -335,7 +335,8 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(evmtypes.ModuleName),
 		[]evmkeeper.CustomContractFn{
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
-				return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter)
+				return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper,
+					appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter, appKeepers.EthKeeper) // TODO: replace by crosschain keeper
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper,
@@ -532,7 +533,8 @@ func NewAppKeeper(
 		appCodec,
 		authAddr,
 	)
-	appKeepers.IBCMiddlewareKeeper = ibcmiddlewarekeeper.NewKeeper(appCodec, appKeepers.Erc20Keeper, appKeepers.Erc20Keeper, appKeepers.EvmKeeper)
+	appKeepers.IBCMiddlewareKeeper = ibcmiddlewarekeeper.NewKeeper(appCodec, appKeepers.EvmKeeper,
+		appKeepers.EthKeeper) // TODO: replace by crosschain keeper
 	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
 	transferIBCModule := ibcmiddleware.NewIBCMiddleware(appKeepers.IBCMiddlewareKeeper, appKeepers.IBCKeeper.ChannelKeeper, ibcTransferModule)
 

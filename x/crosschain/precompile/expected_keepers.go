@@ -59,3 +59,7 @@ type CrosschainKeeper interface {
 type GovKeeper interface {
 	CheckDisabledPrecompiles(ctx sdk.Context, contractAddress common.Address, methodId []byte) error
 }
+
+type CrossChainKeeper interface {
+	BaseCoinToIBCCoin(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcTarget string) (sdk.Coin, error)
+}
