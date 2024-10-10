@@ -111,3 +111,22 @@ message MsgRequestBatch {
 
 // Deprecated: do not use
 message MsgRequestBatchResponse { uint64 batch_nonce = 1; }
+
+message MsgIncreaseBridgeFee {
+  option deprecated = true;
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "crosschain/MsgIncreaseBridgeFee";
+
+  string chain_name = 1;
+  uint64 transaction_id = 2;
+  string sender = 3;
+  cosmos.base.v1beta1.Coin add_bridge_fee = 4 [ (gogoproto.nullable) = false ];
+}
+
+message MsgIncreaseBridgeFeeResponse { option deprecated = true; }
+
+message MsgOracleSetConfirmResponse { option deprecated = true; }
+
+message MsgConfirmBatchResponse { option deprecated = true; }
+
+message MsgBridgeCallConfirmResponse { option deprecated = true; }

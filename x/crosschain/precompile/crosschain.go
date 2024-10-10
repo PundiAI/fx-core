@@ -16,12 +16,14 @@ import (
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
+// Deprecated: please use BridgeCallMethod
 type CrossChainMethod struct {
 	*Keeper
 	abi.Method
 	abi.Event
 }
 
+// Deprecated: please use BridgeCallMethod
 func NewCrossChainMethod(keeper *Keeper) *CrossChainMethod {
 	return &CrossChainMethod{
 		Keeper: keeper,

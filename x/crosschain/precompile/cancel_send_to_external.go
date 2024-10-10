@@ -14,12 +14,14 @@ import (
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
+// Deprecated: please use BridgeCallMethod
 type CancelSendToExternalMethod struct {
 	*Keeper
 	Method abi.Method
 	Event  abi.Event
 }
 
+// Deprecated: please use BridgeCallMethod
 func NewCancelSendToExternalMethod(keeper *Keeper) *CancelSendToExternalMethod {
 	return &CancelSendToExternalMethod{
 		Keeper: keeper,
