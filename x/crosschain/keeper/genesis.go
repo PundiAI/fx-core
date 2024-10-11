@@ -81,14 +81,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		}
 	}
 
-	for i := 0; i < len(state.UnbatchedTransfers); i++ {
-		transfer := state.UnbatchedTransfers[i]
-		// 0x18
-		if err := k.AddUnbatchedTx(ctx, &transfer); err != nil {
-			panic(err)
-		}
-	}
-
 	for i := 0; i < len(state.Batches); i++ {
 		batch := state.Batches[i]
 		// 0x20 0x21
@@ -161,10 +153,6 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 	})
 	k.IterateAttestations(ctx, func(attestation *types.Attestation) bool {
 		state.Attestations = append(state.Attestations, *attestation)
-		return false
-	})
-	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
-		state.UnbatchedTransfers = append(state.UnbatchedTransfers, *tx)
 		return false
 	})
 	for _, vs := range state.OracleSets {

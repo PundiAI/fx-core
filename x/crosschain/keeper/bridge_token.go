@@ -97,33 +97,6 @@ func (k Keeper) IteratorBridgeDenomWithContract(ctx sdk.Context, cb func(token *
 	}
 }
 
-// Deprecated: do not use
-func (k Keeper) SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error) {
-	denom := types.NewBridgeDenom(k.moduleName, token)
-	denomTrace, err := fxtypes.GetIbcDenomTrace(denom, channelIBC)
-	if err != nil {
-		return denom, err
-	}
-	if denomTrace.Path != "" {
-		k.ibcTransferKeeper.SetDenomTrace(ctx, denomTrace)
-		return denomTrace.IBCDenom(), nil
-	}
-	return denomTrace.BaseDenom, nil
-}
-
-func (k Keeper) TransferBridgeCoinToExternal(ctx sdk.Context, sender sdk.AccAddress, targetCoin sdk.Coin) error {
-	// lock coins in module
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(targetCoin)); err != nil {
-		return err
-	}
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, targetCoin.Denom)
-	if isOriginOrConverted {
-		return nil
-	}
-	// If it is an external blockchain asset, burn vouchers to send them back to external blockchain
-	return k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(targetCoin))
-}
-
 func (k Keeper) HasToken(ctx context.Context, denom string) (bool, error) {
 	ok := k.bankKeeper.HasDenomMetaData(ctx, denom)
 	return ok, nil

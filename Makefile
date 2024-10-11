@@ -142,7 +142,7 @@ lint-install:
 	fi
 
 check-no-lint:
-	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 31 ]; then \
+	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 29 ]; then \
 		echo "\033[91m--> increase or decrease nolint, please recheck them\033[0m"; \
 		echo "\033[91m--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`\033[0m"; \
 		exit 1;\

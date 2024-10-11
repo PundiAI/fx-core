@@ -60,7 +60,7 @@ message MsgAddOracleDeposit {
   string chain_name = 3;
 }
 
-// Deprecated: Please use MsgBridgeCall
+// Deprecated: Please use precompile BridgeCall
 message MsgSendToExternal {
   option (cosmos.msg.v1.signer) = "sender";
   option (amino.name) = "crosschain/MsgSendToExternal";
@@ -73,7 +73,7 @@ message MsgSendToExternal {
 }
 
 // Deprecated: do not use
-message MsgSendToExternalResponse { uint64 outgoing_tx_id = 1; }
+message MsgSendToExternalResponse { uint64 batch_nonce = 1; }
 
 // Deprecated: do not use
 message MsgCancelSendToExternal {
@@ -84,9 +84,6 @@ message MsgCancelSendToExternal {
   string sender = 2;
   string chain_name = 3;
 }
-
-// Deprecated: do not use
-message MsgCancelSendToExternalResponse {}
 
 // Deprecated: do not use
 message MsgRequestBatch {
@@ -122,8 +119,6 @@ message MsgIncreaseBridgeFee {
   string sender = 3;
   cosmos.base.v1beta1.Coin add_bridge_fee = 4 [ (gogoproto.nullable) = false ];
 }
-
-message MsgIncreaseBridgeFeeResponse { option deprecated = true; }
 
 message MsgOracleSetConfirmResponse { option deprecated = true; }
 

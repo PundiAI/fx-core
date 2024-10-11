@@ -21,6 +21,9 @@ func Test_MsgServiceRouter(t *testing.T) {
 		sdk.MsgTypeURL(&legacy.MsgUpdateParams{}):                    {},
 		sdk.MsgTypeURL(&legacy.MsgUpdateFXParams{}):                  {},
 		sdk.MsgTypeURL(&legacy.MsgUpdateEGFParams{}):                 {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgCancelSendToExternal{}):   {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgIncreaseBridgeFee{}):      {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgRequestBatch{}):           {},
 	}
 	for _, msg := range myApp.InterfaceRegistry().ListImplementations(sdk.MsgInterfaceProtoName) {
 		if _, ok := deprecated[msg]; ok {

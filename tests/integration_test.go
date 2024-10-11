@@ -71,8 +71,6 @@ func (suite *IntegrationTest) TestRun() {
 
 	suite.PrecompileTransferCrossChainTest()
 	suite.PrecompileCrossChainTest()
-	suite.PrecompileCancelSendToExternalTest()
-	suite.PrecompileIncreaseBridgeFeeTest()
 	suite.PrecompileCrossChainConvertedDenomTest()
 
 	suite.ERC20TokenOriginTest()

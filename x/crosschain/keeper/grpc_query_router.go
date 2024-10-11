@@ -75,14 +75,6 @@ func (k RouterKeeper) LastPendingOracleSetRequestByAddr(c context.Context, req *
 	}
 }
 
-func (k RouterKeeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
-		return nil, err
-	} else {
-		return queryServer.BatchFees(c, req)
-	}
-}
-
 func (k RouterKeeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -99,11 +91,11 @@ func (k RouterKeeper) OutgoingTxBatches(c context.Context, req *types.QueryOutgo
 	}
 }
 
-func (k RouterKeeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
+func (k RouterKeeper) OutgoingTxBatch(c context.Context, req *types.QueryOutgoingTxBatchRequest) (*types.QueryOutgoingTxBatchResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.BatchRequestByNonce(c, req)
+		return queryServer.OutgoingTxBatch(c, req)
 	}
 }
 
@@ -168,14 +160,6 @@ func (k RouterKeeper) GetOracleByExternalAddr(c context.Context, req *types.Quer
 		return nil, err
 	} else {
 		return queryServer.GetOracleByExternalAddr(c, req)
-	}
-}
-
-func (k RouterKeeper) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
-		return nil, err
-	} else {
-		return queryServer.GetPendingSendToExternal(c, req)
 	}
 }
 

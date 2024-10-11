@@ -14,28 +14,8 @@ import (
 	"github.com/hashicorp/go-metrics"
 
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
-
-func (k Keeper) BridgeCallCoinsToERC20Token(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) ([]types.ERC20Token, error) {
-	tokens := make([]types.ERC20Token, 0, len(coins))
-	for _, coin := range coins {
-		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, coin, fxtypes.ParseFxTarget(k.moduleName))
-		if err != nil {
-			return nil, err
-		}
-		tokenContract, found := k.GetContractByBridgeDenom(ctx, targetCoin.Denom)
-		if !found {
-			return nil, types.ErrInvalid.Wrapf("bridge token not found")
-		}
-		tokens = append(tokens, types.NewERC20Token(targetCoin.Amount, tokenContract))
-		if err = k.TransferBridgeCoinToExternal(ctx, sender, targetCoin); err != nil {
-			return nil, err
-		}
-	}
-	return tokens, nil
-}
 
 func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, baseCoins sdk.Coins, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error) {
 	tokens := make([]types.ERC20Token, 0, len(baseCoins))

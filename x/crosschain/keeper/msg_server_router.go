@@ -84,30 +84,6 @@ func (k msgServer) SendToExternal(ctx context.Context, msg *types.MsgSendToExter
 	}
 }
 
-func (k msgServer) CancelSendToExternal(ctx context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
-	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return server.CancelSendToExternal(ctx, msg)
-	}
-}
-
-func (k msgServer) IncreaseBridgeFee(ctx context.Context, msg *types.MsgIncreaseBridgeFee) (*types.MsgIncreaseBridgeFeeResponse, error) {
-	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return server.IncreaseBridgeFee(ctx, msg)
-	}
-}
-
-func (k msgServer) RequestBatch(ctx context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
-	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
-		return nil, err
-	} else {
-		return server.RequestBatch(ctx, msg)
-	}
-}
-
 func (k msgServer) ConfirmBatch(ctx context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
 	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err

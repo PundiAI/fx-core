@@ -133,12 +133,12 @@ func (c *Keeper) outgoingTransfer(
 	if !has {
 		return errors.New("invalid target")
 	}
-	txID, err := route.AddToOutgoingPool(ctx, from, to, amount, fee)
+	batchNonce, err := route.BuildOutgoingTxBatch(ctx, from, to, amount, fee)
 	if err != nil {
 		return err
 	}
 	if !originToken {
-		c.erc20Keeper.SetOutgoingTransferRelation(ctx, fxTarget.GetTarget(), txID)
+		c.erc20Keeper.SetOutgoingTransferRelation(ctx, fxTarget.GetTarget(), batchNonce)
 	}
 	return nil
 }

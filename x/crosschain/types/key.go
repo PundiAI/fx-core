@@ -204,7 +204,7 @@ func GetDenomToTokenKey(tokenContract string) []byte {
 	return append(DenomToTokenKey, []byte(tokenContract)...)
 }
 
-// Deprecated GetTokenToDenomKey returns the following key format
+// Deprecated: GetTokenToDenomKey returns the following key format
 func GetTokenToDenomKey(denom string) []byte {
 	return append(TokenToDenomKey, []byte(denom)...)
 }

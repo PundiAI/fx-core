@@ -62,10 +62,8 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdBatchConfirms(chainName),
 
 		// send to external
-		CmdBatchRequestByNonce(chainName),
-		CmdGetPendingSendToExternal(chainName),
+		CmdOutgoingTxBatch(chainName),
 		CmdOutgoingTxBatches(chainName),
-		CmdGetBatchFees(chainName),
 
 		CmdGetLastObservedBlockHeight(chainName),
 		CmdProjectedBatchTimeoutHeight(chainName),
@@ -510,9 +508,9 @@ func CmdBatchConfirms(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdBatchRequestByNonce(chainName string) *cobra.Command {
+func CmdOutgoingTxBatch(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "batch-request [token-contract] [nonce]",
+		Use:   "outgoing-tx-batch [token-contract] [nonce]",
 		Short: "Query outgoing tx batches",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -527,7 +525,7 @@ func CmdBatchRequestByNonce(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
+			res, err := queryClient.OutgoingTxBatch(cmd.Context(), &types.QueryOutgoingTxBatchRequest{
 				ChainName:     chainName,
 				TokenContract: tokenContract,
 				Nonce:         nonce,
@@ -536,32 +534,6 @@ func CmdBatchRequestByNonce(chainName string) *cobra.Command {
 				return err
 			}
 			return clientCtx.PrintProto(res.Batch)
-		},
-	}
-	return cmd
-}
-
-func CmdGetPendingSendToExternal(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pending-send-to-external [address]",
-		Short: "Query pending send to external txs",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			addr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-			res, err := queryClient.GetPendingSendToExternal(cmd.Context(), &types.QueryPendingSendToExternalRequest{
-				ChainName:     chainName,
-				SenderAddress: addr.String(),
-			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
 		},
 	}
 	return cmd
@@ -577,27 +549,6 @@ func CmdOutgoingTxBatches(chainName string) *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.OutgoingTxBatches(cmd.Context(), &types.QueryOutgoingTxBatchesRequest{
-				ChainName: chainName,
-			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-	return cmd
-}
-
-func CmdGetBatchFees(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "batch-fees",
-		Short: "Query a list of send to external transaction fees to be processed",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			res, err := queryClient.BatchFees(cmd.Context(), &types.QueryBatchFeeRequest{
 				ChainName: chainName,
 			})
 			if err != nil {

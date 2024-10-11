@@ -66,9 +66,6 @@ func (suite *IntegrationTest) CrossChainTest() {
 		suite.True(txId > 0)
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdkmath.NewInt(50)))
 
-		chain.CheckIncreaseBridgeFee(chain.AccAddress(), txId)
-
-		chain.SendBatchRequest(5)
 		chain.SendConfirmBatch()
 
 		chain.SendToExternalAndCancel(sdk.NewCoin(bridgeDenom, sdkmath.NewInt(40)))
@@ -210,11 +207,6 @@ func (suite *IntegrationTest) OriginalCrossChainTest() {
 	purseAliasSupply, err = suite.GRPCClient().BankQuery().SupplyOf(suite.ctx, &banktypes.QuerySupplyOfRequest{Denom: purseNewAlias})
 	suite.NoError(err)
 	suite.Equal(initAmount.Sub(sdkmath.NewInt(200)), purseAliasSupply.Amount.Amount)
-
-	// clear send to external tx
-	ethChain.CancelAllSendToExternal()
-	bscChain.CancelAllSendToExternal()
-	tronChain.CancelAllSendToExternal()
 }
 
 // BridgeCallToFxcoreTest run after erc20 register coin

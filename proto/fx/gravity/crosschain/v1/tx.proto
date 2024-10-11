@@ -23,34 +23,22 @@ service Msg {
   rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
   rpc UnbondedOracle(MsgUnbondedOracle) returns (MsgUnbondedOracleResponse);
 
-  // Deprecated: do not use
+  // Deprecated: Please use Confirm
   rpc OracleSetConfirm(MsgOracleSetConfirm)
       returns (MsgOracleSetConfirmResponse);
-
-  // Deprecated: Please use BridgeCall
-  rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
-  // Deprecated: do not use
-  rpc CancelSendToExternal(MsgCancelSendToExternal)
-      returns (MsgCancelSendToExternalResponse);
-
-  // Deprecated: do not use
-  rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
-  // Deprecated: do not use
+  // Deprecated: Please use Confirm
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
-
-  rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
-
-  // Deprecated: do not use
+  // Deprecated: Please use Confirm
   rpc BridgeCallConfirm(MsgBridgeCallConfirm)
       returns (MsgBridgeCallConfirmResponse);
+
+  // Deprecated: Please use precompile BridgeCall
+  rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
+  rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
 
   // UpdateParams defines a governance operation for updating the x/crosschain
   // module parameters. The authority is hard-coded to the x/gov module account.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-
-  // Deprecated: do not use
-  rpc IncreaseBridgeFee(MsgIncreaseBridgeFee)
-      returns (MsgIncreaseBridgeFeeResponse);
 
   rpc UpdateChainOracles(MsgUpdateChainOracles)
       returns (MsgUpdateChainOraclesResponse);

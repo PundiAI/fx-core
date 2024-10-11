@@ -10,10 +10,10 @@ import (
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
-func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
+func (suite *KeeperTestSuite) TestKeeper_OutgoingTxBatch() {
 	var (
-		request  *types.QueryBatchRequestByNonceRequest
-		response *types.QueryBatchRequestByNonceResponse
+		request  *types.QueryOutgoingTxBatchRequest
+		response *types.QueryOutgoingTxBatchResponse
 	)
 	testCases := []struct {
 		name     string
@@ -25,7 +25,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 			malleate: func() {
 				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				feeReceive := helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex())
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: bridgeToken[0].Token,
 					Nonce:         3,
@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 					FeeReceive:    feeReceive,
 				})
 				suite.Require().NoError(err)
-				response = &types.QueryBatchRequestByNonceResponse{
+				response = &types.QueryOutgoingTxBatchResponse{
 					Batch: &types.OutgoingTxBatch{
 						BatchNonce:   3,
 						BatchTimeout: 10000,
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		{
 			name: "request error nonce",
 			malleate: func() {
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					Nonce:         0,
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		{
 			name: "request error token",
 			malleate: func() {
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: helpers.GenHexAddress().Hex(),
 					Nonce:         8,
@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 			name: "request nonexistent nonce",
 			malleate: func() {
 				bridgeToken := suite.NewBridgeToken(helpers.GenHexAddress().Bytes())
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: bridgeToken[0].Token,
 					Nonce:         8,
@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		{
 			name: "request nonexistent token",
 			malleate: func() {
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     trontypes.ModuleName,
 					TokenContract: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					Nonce:         8,
@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			res, err := suite.queryServer.BatchRequestByNonce(suite.Ctx, request)
+			res, err := suite.queryServer.OutgoingTxBatch(suite.Ctx, request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response.Batch, res.Batch)
