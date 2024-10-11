@@ -521,80 +521,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 	}
 }
 
-func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
-	var (
-		request       *types.QueryBatchFeeRequest
-		response      *types.QueryBatchFeeResponse
-		expectedError error
-	)
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			name: "batch fee normal",
-			malleate: func() {
-				// add test token for test
-				baseDenom, bridgeDenom, tokenContract := suite.AddRandomBaseToken(false)
-				sender := helpers.GenAccAddress()
-
-				lessMinBatchFeeAmount := helpers.NewRandAmount()
-				minBatchFeeAmount := lessMinBatchFeeAmount.Add(helpers.NewRandAmount())
-
-				addToOutgoingFn := func(sender sdk.AccAddress, amount sdk.Coin) {
-					suite.MintBaseToken(sender, baseDenom, bridgeDenom, amount.Amount.Add(amount.Amount))
-					_, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, tmrand.Str(20), amount, amount)
-					suite.Require().NoError(err)
-				}
-				// test add 3 bridgeFee equal to minBatchFee
-				equalMinBatchFeeTx := uint64(3)
-				for i := 0; i < int(equalMinBatchFeeTx); i++ {
-					addToOutgoingFn(sender, sdk.NewCoin(baseDenom, minBatchFeeAmount))
-				}
-
-				// test add 2 bridgeFee less than minBatchFee
-				for i := 0; i < 2; i++ {
-					addToOutgoingFn(sender, sdk.NewCoin(baseDenom, lessMinBatchFeeAmount))
-				}
-
-				request = &types.QueryBatchFeeRequest{
-					ChainName: suite.chainName,
-					MinBatchFees: []types.MinBatchFee{
-						{
-							TokenContract: tokenContract,
-							BaseFee:       minBatchFeeAmount,
-						},
-					},
-				}
-				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
-					{
-						TokenContract: tokenContract,
-						TotalFees:     minBatchFeeAmount.Mul(sdkmath.NewIntFromUint64(equalMinBatchFeeTx)),
-						TotalTxs:      equalMinBatchFeeTx,
-						TotalAmount:   minBatchFeeAmount.Mul(sdkmath.NewIntFromUint64(equalMinBatchFeeTx)),
-					},
-				}}
-			},
-			expPass: true,
-		},
-	}
-
-	for _, testCase := range testCases {
-		suite.Run(testCase.name, func() {
-			testCase.malleate()
-			res, err := suite.queryClient.BatchFees(suite.Ctx, request)
-			if testCase.expPass {
-				suite.Require().NoError(err)
-				suite.Require().ElementsMatch(response.BatchFees, res.BatchFees)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, expectedError)
-			}
-		})
-	}
-}
-
 func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr() {
 	var (
 		request       *types.QueryLastPendingBatchRequestByAddrRequest
@@ -847,10 +773,10 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 	}
 }
 
-func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
+func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatch() {
 	var (
-		request       *types.QueryBatchRequestByNonceRequest
-		response      *types.QueryBatchRequestByNonceResponse
+		request       *types.QueryOutgoingTxBatchRequest
+		response      *types.QueryOutgoingTxBatchResponse
 		expectedError error
 	)
 
@@ -862,7 +788,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 		{
 			name: "query token contract error",
 			malleate: func() {
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     suite.chainName,
 					TokenContract: "0x1",
 					Nonce:         3,
@@ -875,7 +801,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 			name: "query token contract error",
 			malleate: func() {
 				key, _ := ethsecp256k1.GenerateKey()
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     suite.chainName,
 					TokenContract: crypto.CreateAddress(common.BytesToAddress(key.PubKey().Address().Bytes()), 0).String(),
 					Nonce:         0,
@@ -888,7 +814,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 			name: "query does not exist tx batch",
 			malleate: func() {
 				key, _ := ethsecp256k1.GenerateKey()
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     suite.chainName,
 					TokenContract: crypto.CreateAddress(common.BytesToAddress(key.PubKey().Address().Bytes()), 0).String(),
 					Nonce:         3,
@@ -918,12 +844,12 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 				}
 				err := suite.Keeper().StoreBatch(suite.Ctx, newBatch)
 				suite.Require().NoError(err)
-				request = &types.QueryBatchRequestByNonceRequest{
+				request = &types.QueryOutgoingTxBatchRequest{
 					ChainName:     suite.chainName,
 					TokenContract: token.String(),
 					Nonce:         3,
 				}
-				response = &types.QueryBatchRequestByNonceResponse{Batch: newBatch}
+				response = &types.QueryOutgoingTxBatchResponse{Batch: newBatch}
 			},
 			expPass: true,
 		},
@@ -931,7 +857,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
 			testCase.malleate()
-			res, err := suite.queryClient.BatchRequestByNonce(suite.Ctx, request)
+			res, err := suite.queryClient.OutgoingTxBatch(suite.Ctx, request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
@@ -1598,124 +1524,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 			if testCase.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(response, res)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, expectedError)
-			}
-		})
-	}
-}
-
-func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
-	var (
-		request       *types.QueryPendingSendToExternalRequest
-		response      *types.QueryPendingSendToExternalResponse
-		expectedError error
-	)
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"sender address error",
-			func() {
-				request = &types.QueryPendingSendToExternalRequest{
-					ChainName:     suite.chainName,
-					SenderAddress: "fx1",
-				}
-				expectedError = status.Error(codes.InvalidArgument, "sender address")
-			},
-			false,
-		},
-		{
-			"sender outgoing transfer tx not exist",
-			func() {
-				externalKey, _ := ethsecp256k1.GenerateKey()
-				request = &types.QueryPendingSendToExternalRequest{
-					ChainName:     suite.chainName,
-					SenderAddress: common.BytesToAddress(externalKey.PubKey().Address()).String(),
-				}
-			},
-			false,
-		},
-		{
-			name: "sender pending send to external in batches",
-			malleate: func() {
-				externalKey, _ := ethsecp256k1.GenerateKey()
-				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
-				externalToken := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), 0)
-				err := suite.Keeper().StoreBatch(suite.Ctx, &types.OutgoingTxBatch{
-					Transactions: []*types.OutgoingTransferTx{
-						{
-							Id:          0,
-							Sender:      sdk.AccAddress(externalKey.PubKey().Address()).String(),
-							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-						},
-					},
-				})
-				suite.Require().NoError(err)
-				request = &types.QueryPendingSendToExternalRequest{
-					ChainName:     suite.chainName,
-					SenderAddress: sdk.AccAddress(externalKey.PubKey().Address()).String(),
-				}
-				response = &types.QueryPendingSendToExternalResponse{
-					TransfersInBatches: []*types.OutgoingTransferTx{
-						{
-							Id:          0,
-							Sender:      sdk.AccAddress(externalKey.PubKey().Address()).String(),
-							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-						},
-					},
-					UnbatchedTransfers: []*types.OutgoingTransferTx{},
-				}
-			},
-			expPass: true,
-		},
-		{
-			name: "pending send to external in unbatched",
-			malleate: func() {
-				// add test token for test
-				baseDenom, bridgeDenom, tokenContract := suite.AddRandomBaseToken(false)
-				sender := helpers.GenAccAddress()
-				amount := sdk.NewCoin(baseDenom, helpers.NewRandAmount())
-				suite.MintBaseToken(sender, baseDenom, bridgeDenom, amount.Amount.Add(amount.Amount))
-				randomReceive := tmrand.Str(20)
-				txId, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, randomReceive, amount, amount)
-				suite.Require().NoError(err)
-				request = &types.QueryPendingSendToExternalRequest{
-					ChainName:     suite.chainName,
-					SenderAddress: sender.String(),
-				}
-				tokenAndFee := types.NewERC20Token(amount.Amount, tokenContract)
-				response = &types.QueryPendingSendToExternalResponse{
-					TransfersInBatches: []*types.OutgoingTransferTx{},
-					UnbatchedTransfers: []*types.OutgoingTransferTx{
-						{
-							Id:          txId,
-							Sender:      sender.String(),
-							DestAddress: randomReceive,
-							Token:       tokenAndFee,
-							Fee:         tokenAndFee,
-						},
-					},
-				}
-			},
-			expPass: true,
-		},
-	}
-	for _, testCase := range testCases {
-		suite.Run(testCase.name, func() {
-			testCase.malleate()
-			res, err := suite.queryClient.GetPendingSendToExternal(suite.Ctx, request)
-			if testCase.expPass {
-				suite.Require().NoError(err)
-				suite.Require().ElementsMatch(response.TransfersInBatches, res.TransfersInBatches)
-				suite.Require().ElementsMatch(response.UnbatchedTransfers, res.UnbatchedTransfers)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, expectedError)

@@ -40,8 +40,6 @@ func NewPrecompiledContract(
 			NewHasOracleMethod(keeper),
 			NewIsOracleOnlineMethod(keeper),
 
-			NewCancelSendToExternalMethod(keeper),
-			NewIncreaseBridgeFeeMethod(keeper),
 			NewCrossChainMethod(keeper),
 			NewBridgeCallMethod(keeper),
 			NewExecuteClaimMethod(keeper),

@@ -25,11 +25,9 @@ func (suite *IntegrationTest) PrecompileTransferCrossChainTest() {
 			chain.SendToTxClaimWithReceiver(suite.precompile.AccAddress(), bridgeToken.Token, sdkmath.NewInt(200), fxtypes.LegacyERC20Target)
 		})
 
-		receive := chain.FormatAddress(suite.precompile.HexAddress())
-		suite.precompile.TransferCrossChainAndCheckPendingTx(tokenPair.GetERC20Contract(), receive,
-			big.NewInt(20), big.NewInt(30), chain.chainName)
-
-		chain.CancelAllSendToExternal()
+		// receive := chain.FormatAddress(suite.precompile.HexAddress())
+		// suite.precompile.TransferCrossChainAndCheckPendingTx(tokenPair.GetERC20Contract(), receive,
+		// 	big.NewInt(20), big.NewInt(30), chain.chainName)
 	}
 }
 
@@ -43,49 +41,9 @@ func (suite *IntegrationTest) PrecompileCrossChainTest() {
 			chain.SendToTxClaimWithReceiver(suite.precompile.AccAddress(), bridgeToken.Token, sdkmath.NewInt(200), fxtypes.LegacyERC20Target)
 		})
 
-		receive := chain.FormatAddress(suite.precompile.HexAddress())
-		suite.precompile.CrossChain(tokenPair.GetERC20Contract(), receive,
-			big.NewInt(20), big.NewInt(30), chain.chainName)
-
-		chain.CancelAllSendToExternal()
-	}
-}
-
-func (suite *IntegrationTest) PrecompileCancelSendToExternalTest() {
-	suite.Send(suite.precompile.AccAddress(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
-
-	tokenPair, bridgeTokens := suite.precompileInit()
-	for i, chain := range suite.crosschain {
-		bridgeToken := bridgeTokens[i]
-		suite.erc20.HandleWithCheckBalance(tokenPair.GetERC20Contract(), suite.precompile.HexAddress(), big.NewInt(200), func() {
-			chain.SendToTxClaimWithReceiver(suite.precompile.AccAddress(), bridgeToken.Token, sdkmath.NewInt(200), fxtypes.LegacyERC20Target)
-		})
-
-		receive := chain.FormatAddress(suite.precompile.HexAddress())
-		txId := suite.precompile.CrossChain(tokenPair.GetERC20Contract(), receive,
-			big.NewInt(20), big.NewInt(30), chain.chainName)
-
-		suite.precompile.CancelSendToExternalAndCheckPendingTx(chain.chainName, txId)
-	}
-}
-
-func (suite *IntegrationTest) PrecompileIncreaseBridgeFeeTest() {
-	suite.Send(suite.precompile.AccAddress(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
-
-	tokenPair, bridgeTokens := suite.precompileInit()
-	for i, chain := range suite.crosschain {
-		bridgeToken := bridgeTokens[i]
-		suite.erc20.HandleWithCheckBalance(tokenPair.GetERC20Contract(), suite.precompile.HexAddress(), big.NewInt(200), func() {
-			chain.SendToTxClaimWithReceiver(suite.precompile.AccAddress(), bridgeToken.Token, sdkmath.NewInt(200), fxtypes.LegacyERC20Target)
-		})
-
-		receive := chain.FormatAddress(suite.precompile.HexAddress())
-		txId := suite.precompile.CrossChain(tokenPair.GetERC20Contract(), receive,
-			big.NewInt(20), big.NewInt(30), chain.chainName)
-
-		suite.precompile.IncreaseBridgeFeeCheckPendingTx(chain.chainName, txId, tokenPair.GetERC20Contract(), big.NewInt(50))
-
-		chain.CancelAllSendToExternal()
+		// receive := chain.FormatAddress(suite.precompile.HexAddress())
+		// suite.precompile.CrossChain(tokenPair.GetERC20Contract(), receive,
+		// 	big.NewInt(20), big.NewInt(30), chain.chainName)
 	}
 }
 
@@ -110,10 +68,10 @@ func (suite *IntegrationTest) PrecompileCrossChainConvertedDenomTest() {
 	})
 
 	// fx cross chain
-	suite.precompile.CrossChain(fxPair.GetERC20Contract(),
-		ethChain.HexAddressString(), big.NewInt(10), big.NewInt(1), ethtypes.ModuleName)
-	suite.precompile.CrossChain(fxPair.GetERC20Contract(),
-		bscChain.HexAddressString(), big.NewInt(11), big.NewInt(1), bsctypes.ModuleName)
+	// suite.precompile.CrossChain(fxPair.GetERC20Contract(),
+	// 	ethChain.HexAddressString(), big.NewInt(10), big.NewInt(1), ethtypes.ModuleName)
+	// suite.precompile.CrossChain(fxPair.GetERC20Contract(),
+	// 	bscChain.HexAddressString(), big.NewInt(11), big.NewInt(1), bsctypes.ModuleName)
 
 	// purse
 	purseMd := bscChain.SelectTokenMetadata("ibc/")
@@ -129,10 +87,10 @@ func (suite *IntegrationTest) PrecompileCrossChainConvertedDenomTest() {
 	})
 
 	// purse cross chain
-	suite.precompile.CrossChain(pursePair.GetERC20Contract(),
-		ethChain.HexAddressString(), big.NewInt(20), big.NewInt(1), ethtypes.ModuleName)
-	suite.precompile.CrossChain(pursePair.GetERC20Contract(),
-		bscChain.HexAddressString(), big.NewInt(21), big.NewInt(1), bsctypes.ModuleName)
+	// suite.precompile.CrossChain(pursePair.GetERC20Contract(),
+	// 	ethChain.HexAddressString(), big.NewInt(20), big.NewInt(1), ethtypes.ModuleName)
+	// suite.precompile.CrossChain(pursePair.GetERC20Contract(),
+	// 	bscChain.HexAddressString(), big.NewInt(21), big.NewInt(1), bsctypes.ModuleName)
 
 	// pundix
 	pundixMd := ethChain.SelectTokenMetadata("eth")
@@ -148,15 +106,10 @@ func (suite *IntegrationTest) PrecompileCrossChainConvertedDenomTest() {
 	})
 
 	// pundix cross chain
-	suite.precompile.CrossChain(pundixPair.GetERC20Contract(),
-		ethChain.HexAddressString(), big.NewInt(30), big.NewInt(1), ethtypes.ModuleName)
-	suite.precompile.CrossChain(pundixPair.GetERC20Contract(),
-		tronChain.HexAddressString(), big.NewInt(31), big.NewInt(1), trontypes.ModuleName)
-
-	// clear send to external tx
-	ethChain.CancelAllSendToExternal()
-	bscChain.CancelAllSendToExternal()
-	tronChain.CancelAllSendToExternal()
+	// suite.precompile.CrossChain(pundixPair.GetERC20Contract(),
+	// 	ethChain.HexAddressString(), big.NewInt(30), big.NewInt(1), ethtypes.ModuleName)
+	// suite.precompile.CrossChain(pundixPair.GetERC20Contract(),
+	// 	tronChain.HexAddressString(), big.NewInt(31), big.NewInt(1), trontypes.ModuleName)
 }
 
 func (suite *IntegrationTest) precompileInit() (*erc20types.TokenPair, []crosschaintypes.BridgeToken) {

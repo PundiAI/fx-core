@@ -415,17 +415,6 @@ func (o Oracles) Swap(i, j int) {
 	o[i], o[j] = o[j], o[i]
 }
 
-func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdkmath.Int {
-	kv := make(map[string]sdkmath.Int, len(ms))
-	for _, m := range ms {
-		if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
-			continue
-		}
-		kv[m.TokenContract] = m.BaseFee
-	}
-	return kv
-}
-
 type OutgoingTransferTxs []*OutgoingTransferTx
 
 func (txs OutgoingTransferTxs) TotalFee() sdkmath.Int {

@@ -47,9 +47,6 @@ type AccountKeeper interface {
 }
 
 type CrosschainKeeper interface {
-	RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
-	AddUnbatchedTxBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error
-
 	AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, baseCoins sdk.Coins, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error)
 	EvmToBaseCoin(ctx context.Context, tokenAddr string, amount *big.Int, holder common.Address) (sdk.Coin, error)
 	ExecuteClaim(ctx sdk.Context, eventNonce uint64) error
@@ -59,13 +56,9 @@ type CrosschainKeeper interface {
 	GetOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) (oracle crosschaintypes.Oracle, found bool)
 
 	BaseCoinToIBCCoin(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcTarget string) (sdk.Coin, error)
-	AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error)
+	BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error)
 }
 
 type GovKeeper interface {
 	CheckDisabledPrecompiles(ctx sdk.Context, contractAddress common.Address, methodId []byte) error
-}
-
-type CrossChainKeeper interface {
-	BaseCoinToIBCCoin(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcTarget string) (sdk.Coin, error)
 }

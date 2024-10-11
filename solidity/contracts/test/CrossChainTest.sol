@@ -60,32 +60,6 @@ contract CrossChainTest {
             );
     }
 
-    function cancelSendToExternal(
-        string memory _chain,
-        uint256 _txID
-    ) external returns (bool) {
-        return
-            ICrossChain(CROSS_CHAIN_ADDRESS).cancelSendToExternal(
-                _chain,
-                _txID
-            );
-    }
-
-    function increaseBridgeFee(
-        string memory _chain,
-        uint256 _txID,
-        address _token,
-        uint256 _fee
-    ) external payable returns (bool) {
-        return
-            ICrossChain(CROSS_CHAIN_ADDRESS).increaseBridgeFee(
-                _chain,
-                _txID,
-                _token,
-                _fee
-            );
-    }
-
     function bridgeCoinAmount(
         address _token,
         bytes32 _target

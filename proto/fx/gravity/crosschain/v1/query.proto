@@ -56,20 +56,17 @@ service Query {
     option (google.api.http).get =
         "/fx/crosschain/v1/oracle/event/block_height";
   }
-  rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/batch_fees";
-  }
   rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest)
       returns (QueryLastObservedBlockHeightResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/observed/block_height";
   }
   rpc OutgoingTxBatches(QueryOutgoingTxBatchesRequest)
       returns (QueryOutgoingTxBatchesResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/batch/outgoing_tx";
+    option (google.api.http).get = "/fx/crosschain/v1/batch/outgoing_txs";
   }
-  rpc BatchRequestByNonce(QueryBatchRequestByNonceRequest)
-      returns (QueryBatchRequestByNonceResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/batch/request";
+  rpc OutgoingTxBatch(QueryOutgoingTxBatchRequest)
+      returns (QueryOutgoingTxBatchResponse) {
+    option (google.api.http).get = "/fx/crosschain/v1/batch/outgoing_tx";
   }
   rpc BatchConfirm(QueryBatchConfirmRequest)
       returns (QueryBatchConfirmResponse) {
@@ -97,10 +94,6 @@ service Query {
   rpc GetOracleByBridgerAddr(QueryOracleByBridgerAddrRequest)
       returns (QueryOracleResponse) {
     option (google.api.http).get = "/fx/crosschain/v1/oracle_by_bridger_addr";
-  }
-  rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest)
-      returns (QueryPendingSendToExternalResponse) {
-    option (google.api.http).get = "/fx/crosschain/v1/pending_send_to_external";
   }
 
   rpc BridgeCalls(QueryBridgeCallsRequest) returns (QueryBridgeCallsResponse) {
@@ -211,12 +204,12 @@ message QueryLastPendingBatchRequestByAddrResponse {
 message QueryOutgoingTxBatchesRequest { string chain_name = 1; }
 message QueryOutgoingTxBatchesResponse { repeated OutgoingTxBatch batches = 1; }
 
-message QueryBatchRequestByNonceRequest {
+message QueryOutgoingTxBatchRequest {
   string chain_name = 1;
   string token_contract = 2;
   uint64 nonce = 3;
 }
-message QueryBatchRequestByNonceResponse { OutgoingTxBatch batch = 1; }
+message QueryOutgoingTxBatchResponse { OutgoingTxBatch batch = 1; }
 
 message QueryBatchConfirmRequest {
   string chain_name = 1;

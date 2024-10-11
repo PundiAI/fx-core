@@ -345,6 +345,7 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 	return &types.MsgUnbondedOracleResponse{}, nil
 }
 
+// Deprecated: SendToExternal Please use precompile BridgeCall
 func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
@@ -352,7 +353,7 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	txID, err := s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
+	batchNonce, err := s.BuildOutgoingTxBatch(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
 	if err != nil {
 		return nil, err
 	}
@@ -364,99 +365,25 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	))
 
 	return &types.MsgSendToExternalResponse{
-		OutgoingTxId: txID,
+		BatchNonce: batchNonce,
 	}, nil
 }
 
-func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return nil, types.ErrInvalid.Wrapf("sender address")
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-
-	if _, err = s.RemoveFromOutgoingPoolAndRefund(ctx, msg.TransactionId, sender); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	))
-
-	return &types.MsgCancelSendToExternalResponse{}, nil
-}
-
-func (s MsgServer) IncreaseBridgeFee(c context.Context, msg *types.MsgIncreaseBridgeFee) (*types.MsgIncreaseBridgeFeeResponse, error) {
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return nil, types.ErrInvalid.Wrapf("sender address")
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-
-	if err = s.AddUnbatchedTxBridgeFee(ctx, msg.TransactionId, sender, msg.AddBridgeFee); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	))
-
-	return &types.MsgIncreaseBridgeFeeResponse{}, nil
-}
-
-func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return nil, types.ErrInvalid.Wrapf("sender address")
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-
-	tokenContract, found := s.GetContractByBridgeDenom(ctx, msg.Denom)
-	if !found {
-		return nil, types.ErrInvalid.Wrapf("bridge token is not exist")
-	}
-
-	if !s.HasOracleAddrByBridgerAddr(ctx, sender) {
-		if !s.IsProposalOracle(ctx, msg.Sender) {
-			return nil, types.ErrInvalid.Wrapf("sender must be oracle or bridger")
-		}
-	}
-
-	batch, err := s.BuildOutgoingTxBatch(ctx, tokenContract, msg.FeeReceive, types.OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	))
-
-	return &types.MsgRequestBatchResponse{
-		BatchNonce: batch.BatchNonce,
-	}, nil
-}
-
+// Deprecated: ConfirmBatch Please use Confirm
 func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	err := s.ConfirmHandler(ctx, msg)
 	return &types.MsgConfirmBatchResponse{}, err
 }
 
+// Deprecated: ConfirmBatch Please use Confirm
 func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	err := s.ConfirmHandler(ctx, msg)
 	return &types.MsgOracleSetConfirmResponse{}, err
 }
 
+// Deprecated: ConfirmBatch Please use Confirm
 func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCallConfirm) (*types.MsgBridgeCallConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	err := s.ConfirmHandler(ctx, msg)

@@ -17,20 +17,6 @@ interface ICrossChain is IBridgeCall {
         string memory _memo
     ) external payable returns (bool _result);
 
-    // Deprecated: please use `IBridgeCall.bridgeCall`
-    function cancelSendToExternal(
-        string memory _chain,
-        uint256 _txID
-    ) external returns (bool _result);
-
-    // Deprecated: please use `IBridgeCall.bridgeCall`
-    function increaseBridgeFee(
-        string memory _chain,
-        uint256 _txID,
-        address _token,
-        uint256 _fee
-    ) external payable returns (bool _result);
-
     function bridgeCoinAmount(
         address _token,
         bytes32 _target
@@ -61,22 +47,6 @@ interface ICrossChain is IBridgeCall {
         uint256 fee,
         bytes32 target,
         string memo
-    );
-
-    // Deprecated
-    event CancelSendToExternal(
-        address indexed sender,
-        string chain,
-        uint256 txID
-    );
-
-    // Deprecated
-    event IncreaseBridgeFee(
-        address indexed sender,
-        address indexed token,
-        string chain,
-        uint256 txID,
-        uint256 fee
     );
 
     event BridgeCallEvent(

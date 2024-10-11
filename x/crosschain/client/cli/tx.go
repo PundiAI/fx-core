@@ -47,9 +47,6 @@ func getTxSubCmds(chainName string) []*cobra.Command {
 
 		// send to external chain
 		CmdSendToExternal(chainName),
-		CmdCancelSendToExternal(chainName),
-		CmdIncreaseBridgeFee(chainName),
-		CmdRequestBatch(chainName),
 		CmdBridgeCall(chainName),
 
 		// oracle consensus confirm
@@ -243,100 +240,6 @@ func CmdBridgeCall(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdCancelSendToExternal(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "cancel-send-to-external [tx-ID]",
-		Short: "Cancel transaction send to external",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			txId, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-			msg := &types.MsgCancelSendToExternal{
-				TransactionId: txId,
-				Sender:        cliCtx.GetFromAddress().String(),
-				ChainName:     chainName,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
-		},
-	}
-	return cmd
-}
-
-func CmdIncreaseBridgeFee(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "increase-bridge-fee [tx-ID] [add-bridge-fee]",
-		Short: "Increase bridge fee for send to external transaction",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			txId, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-			addBridgeFee, err := sdk.ParseCoinNormalized(args[1])
-			if err != nil {
-				return fmt.Errorf("amount: %w", err)
-			}
-
-			msg := &types.MsgIncreaseBridgeFee{
-				ChainName:     chainName,
-				TransactionId: txId,
-				Sender:        cliCtx.GetFromAddress().String(),
-				AddBridgeFee:  addBridgeFee,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
-		},
-	}
-	return cmd
-}
-
-func CmdRequestBatch(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "build-batch [token-denom] [minimum-fee] [external-fee-receive] [base-fee]",
-		Short: "Build a new batch on the fx side for pooled withdrawal transactions",
-		Args:  cobra.RangeArgs(3, 4),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			minimumFee, ok := sdkmath.NewIntFromString(args[1])
-			if !ok || minimumFee.IsNegative() {
-				return fmt.Errorf("miniumu fee is valid, %v", args[1])
-			}
-			baseFee := sdkmath.ZeroInt()
-			if len(args) == 4 {
-				baseFee, ok = sdkmath.NewIntFromString(args[3])
-				if !ok {
-					return fmt.Errorf("invalid base fee: %v", args[3])
-				}
-			}
-
-			msg := &types.MsgRequestBatch{
-				Sender:     clientCtx.GetFromAddress().String(),
-				Denom:      args[0],
-				MinimumFee: minimumFee,
-				FeeReceive: args[2],
-				ChainName:  chainName,
-				BaseFee:    baseFee,
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-	return cmd
-}
-
 func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "request-batch-confirm [contract-address] [nonce] [private-key]",
@@ -361,7 +264,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
-			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
+			OutgoingTxBatchResp, err := queryClient.OutgoingTxBatch(cmd.Context(), &types.QueryOutgoingTxBatchRequest{
 				Nonce:         nonce,
 				TokenContract: tokenContract,
 				ChainName:     chainName,
@@ -369,7 +272,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if batchRequestByNonceResp.Batch == nil {
+			if OutgoingTxBatchResp.Batch == nil {
 				return fmt.Errorf("not found batch request by nonce, tokenContract: %v, nonce: %v", tokenContract, nonce)
 			}
 			// Determine whether it has been confirmed
@@ -392,7 +295,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			checkpoint, err := batchRequestByNonceResp.GetBatch().GetCheckpoint(paramsResp.Params.GetGravityId())
+			checkpoint, err := OutgoingTxBatchResp.GetBatch().GetCheckpoint(paramsResp.Params.GetGravityId())
 			if err != nil {
 				return err
 			}

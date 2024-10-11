@@ -100,24 +100,6 @@ func (k QueryServer) LastPendingOracleSetRequestByAddr(c context.Context, req *t
 	return &types.QueryLastPendingOracleSetRequestByAddrResponse{OracleSets: pendingOracleSetReq}, nil
 }
 
-// BatchFees queries the batch fees from unbatched pool
-func (k QueryServer) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	if req.GetMinBatchFees() == nil {
-		req.MinBatchFees = make([]types.MinBatchFee, 0)
-	}
-	for _, fee := range req.MinBatchFees {
-		if fee.BaseFee.IsNil() || fee.BaseFee.IsNegative() {
-			return nil, status.Error(codes.InvalidArgument, "base fee")
-		}
-
-		if err := types.ValidateExternalAddr(req.ChainName, fee.TokenContract); err != nil {
-			return nil, status.Error(codes.InvalidArgument, "token contract")
-		}
-	}
-	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), types.MaxResults, req.MinBatchFees)
-	return &types.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
-}
-
 func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, err := k.BridgeAddrToOracle(ctx, req.GetBridgerAddress())
@@ -153,7 +135,7 @@ func (k QueryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoing
 	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
 }
 
-func (k QueryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
+func (k QueryServer) OutgoingTxBatch(c context.Context, req *types.QueryOutgoingTxBatchRequest) (*types.QueryOutgoingTxBatchResponse, error) {
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
@@ -164,7 +146,7 @@ func (k QueryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatc
 	if foundBatch == nil {
 		return nil, status.Error(codes.NotFound, "tx batch")
 	}
-	return &types.QueryBatchRequestByNonceResponse{Batch: foundBatch}, nil
+	return &types.QueryOutgoingTxBatchResponse{Batch: foundBatch}, nil
 }
 
 func (k QueryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
@@ -270,37 +252,6 @@ func (k QueryServer) GetOracleByExternalAddr(c context.Context, req *types.Query
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
 	return &types.QueryOracleResponse{Oracle: &oracle}, nil
-}
-
-func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
-	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "sender address")
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-	var batches []*types.OutgoingTxBatch
-	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		batches = append(batches, batch)
-		return false
-	})
-	res := &types.QueryPendingSendToExternalResponse{
-		TransfersInBatches: make([]*types.OutgoingTransferTx, 0),
-		UnbatchedTransfers: make([]*types.OutgoingTransferTx, 0),
-	}
-	for _, batch := range batches {
-		for _, tx := range batch.Transactions {
-			if tx.Sender == req.SenderAddress {
-				res.TransfersInBatches = append(res.TransfersInBatches, tx)
-			}
-		}
-	}
-	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
-		if tx.Sender == req.SenderAddress {
-			res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
-		}
-		return false
-	})
-	return res, nil
 }
 
 func (k QueryServer) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
