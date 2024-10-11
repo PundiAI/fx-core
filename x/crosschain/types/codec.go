@@ -31,8 +31,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgRequestBatch{},
 		&MsgConfirmBatch{},
 
-		&MsgBridgeCall{},
-
 		&MsgBridgeCallConfirm{},
 
 		&MsgUpdateParams{},
@@ -95,8 +93,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	cdc.RegisterConcrete(&MsgRequestBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRequestBatch"), nil)
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
-
-	cdc.RegisterConcrete(&MsgBridgeCall{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCall"), nil)
 
 	cdc.RegisterConcrete(&MsgBridgeCallClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallClaim"), nil)
 	cdc.RegisterConcrete(&MsgBridgeCallConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallConfirm"), nil)

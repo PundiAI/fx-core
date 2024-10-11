@@ -474,41 +474,6 @@ func (suite *CrosschainTestSuite) FormatAddress(address gethcommon.Address) stri
 	return crosschaintypes.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
-func (suite *CrosschainTestSuite) BridgeCall(amounts sdk.Coins) uint64 {
-	_, nonce := suite.SendBridgeCallAndResponse(amounts)
-	return nonce
-}
-
-func (suite *CrosschainTestSuite) SendBridgeCallAndResponse(amount sdk.Coins) (*sdk.TxResponse, uint64) {
-	msg := &crosschaintypes.MsgBridgeCall{
-		ChainName: suite.chainName,
-		Sender:    suite.AccAddress().String(),
-		Refund:    suite.AccAddress().String(),
-		Coins:     amount,
-		To:        crosschaintypes.ExternalAddrToStr(suite.chainName, suite.AccAddress()),
-		Data:      "",
-		Value:     sdkmath.ZeroInt(),
-		Memo:      "",
-	}
-	txResponse := suite.BroadcastTx(suite.privKey, msg)
-	for _, eventLog := range txResponse.Logs {
-		for _, event := range eventLog.Events {
-			if event.Type != crosschaintypes.EventTypeBridgeCall {
-				continue
-			}
-			for _, attribute := range event.Attributes {
-				if attribute.Key != crosschaintypes.AttributeKeyBridgeCallNonce {
-					continue
-				}
-				txId, err := strconv.ParseUint(attribute.Value, 10, 64)
-				suite.NoError(err)
-				return txResponse, txId
-			}
-		}
-	}
-	return txResponse, 0
-}
-
 func (suite *CrosschainTestSuite) BridgeCallConfirm(nonce uint64, isSuccess bool) {
 	bridgeCall := suite.QueryBridgeCallByNonce(nonce)
 	var checkpoint []byte

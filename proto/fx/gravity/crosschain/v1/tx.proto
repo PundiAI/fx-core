@@ -34,7 +34,6 @@ service Msg {
 
   // Deprecated: Please use precompile BridgeCall
   rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
-  rpc BridgeCall(MsgBridgeCall) returns (MsgBridgeCallResponse);
 
   // UpdateParams defines a governance operation for updating the x/crosschain
   // module parameters. The authority is hard-coded to the x/gov module account.
@@ -277,29 +276,6 @@ message MsgUpdateChainOracles {
 }
 
 message MsgUpdateChainOraclesResponse {}
-
-message MsgBridgeCall {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "crosschain/MsgBridgeCall";
-
-  string chain_name = 1;
-  string sender = 2;
-  string refund = 3;
-  repeated cosmos.base.v1beta1.Coin coins = 4 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-  string to = 5;
-  string data = 6;
-  string value = 7 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-  string memo = 8;
-}
-
-message MsgBridgeCallResponse {}
 
 message MsgClaim {
   option (cosmos.msg.v1.signer) = "bridger_address";

@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -47,7 +46,6 @@ func getTxSubCmds(chainName string) []*cobra.Command {
 
 		// send to external chain
 		CmdSendToExternal(chainName),
-		CmdBridgeCall(chainName),
 
 		// oracle consensus confirm
 		CmdOracleSetConfirm(chainName),
@@ -185,58 +183,6 @@ func CmdSendToExternal(chainName string) *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
-	return cmd
-}
-
-func CmdBridgeCall(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "bridge-call [to] [coins] [refund] --data [data]",
-		Short: "Adds a new entry to the bridge call pool",
-		Args:  cobra.RangeArgs(1, 3),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			var coins sdk.Coins
-			var refund string
-			if len(args) >= 2 {
-				coins, err = sdk.ParseCoinsNormalized(args[1])
-				if err != nil {
-					return fmt.Errorf("coins: %w", err)
-				}
-
-				if len(args) != 3 {
-					return fmt.Errorf("refund address is required")
-				}
-				refund = args[2]
-			}
-
-			data, err := cmd.Flags().GetString("data")
-			if err != nil {
-				return err
-			}
-			memo, err := cmd.Flags().GetString("memo")
-			if err != nil {
-				return err
-			}
-
-			msg := types.MsgBridgeCall{
-				Sender:    cliCtx.GetFromAddress().String(),
-				Refund:    refund,
-				To:        args[0],
-				Coins:     coins,
-				Data:      data,
-				Value:     sdkmath.NewInt(0),
-				ChainName: chainName,
-				Memo:      memo,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
-		},
-	}
-	cmd.Flags().String("data", "", "bridge call contract data")
-	cmd.Flags().String("memo", "", "bridge call memo")
 	return cmd
 }
 

@@ -38,7 +38,6 @@ var (
 	_ CrossChainMsg = &MsgRequestBatch{}
 	_ CrossChainMsg = &MsgConfirmBatch{}
 	_ CrossChainMsg = &MsgBridgeCallClaim{}
-	_ CrossChainMsg = &MsgBridgeCall{}
 	_ CrossChainMsg = &MsgBridgeCallConfirm{}
 	_ CrossChainMsg = &MsgBridgeCallResultClaim{}
 	_ CrossChainMsg = &MsgUpdateParams{}
@@ -63,7 +62,6 @@ var (
 	_ sdk.Msg = &MsgRequestBatch{}
 	_ sdk.Msg = &MsgConfirmBatch{}
 	_ sdk.Msg = &MsgBridgeCallClaim{}
-	_ sdk.Msg = &MsgBridgeCall{}
 	_ sdk.Msg = &MsgBridgeCallConfirm{}
 	_ sdk.Msg = &MsgBridgeCallResultClaim{}
 	_ sdk.Msg = &MsgUpdateParams{}
@@ -672,89 +670,4 @@ func (m *MsgUpdateChainOracles) ValidateBasic() error {
 		oraclesMap[addr] = true
 	}
 	return nil
-}
-
-func (m *MsgBridgeCall) ValidateBasic() (err error) {
-	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	}
-	return m.validateBasic()
-}
-
-func (m *MsgBridgeCall) validateBasic() (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
-	}
-	if err = ValidateExternalAddr(m.ChainName, m.To); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
-	}
-	if m.Value.Sign() != 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("value must be zero")
-	}
-	if err = m.Coins.Validate(); err != nil {
-		return sdkerrors.ErrInvalidCoins.Wrap(err.Error())
-	}
-	if len(m.Coins) > 0 || len(m.Refund) > 0 {
-		if _, err = sdk.AccAddressFromBech32(m.Refund); err != nil {
-			return sdkerrors.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
-		}
-	}
-	if len(m.Data) > 0 {
-		if _, err = hex.DecodeString(m.Data); err != nil {
-			return sdkerrors.ErrInvalidRequest.Wrap("invalid data")
-		}
-	}
-	if len(m.Memo) > 0 {
-		if _, err = hex.DecodeString(m.Memo); err != nil {
-			return sdkerrors.ErrInvalidRequest.Wrap("invalid memo")
-		}
-	}
-	if m.Coins.Len() == 0 && len(m.Data) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("coins and data cannot be empty at the same time")
-	}
-	return nil
-}
-
-func (m *MsgBridgeCall) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
-func (m *MsgBridgeCall) GetSenderAddr() common.Address {
-	return common.BytesToAddress(sdk.MustAccAddressFromBech32(m.Sender).Bytes())
-}
-
-func (m *MsgBridgeCall) GetRefundAddr() common.Address {
-	if len(m.Refund) == 0 {
-		return common.Address{}
-	}
-	return common.BytesToAddress(sdk.MustAccAddressFromBech32(m.Refund).Bytes())
-}
-
-func (m *MsgBridgeCall) GetToAddr() common.Address {
-	if m.To == "" {
-		return common.Address{}
-	}
-	return ExternalAddrToHexAddr(m.ChainName, m.To)
-}
-
-func (m *MsgBridgeCall) MustData() []byte {
-	if len(m.Data) == 0 {
-		return []byte{}
-	}
-	bz, err := hex.DecodeString(m.Data)
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-func (m *MsgBridgeCall) MustMemo() []byte {
-	if len(m.Memo) == 0 {
-		return []byte{}
-	}
-	bz, err := hex.DecodeString(m.Memo)
-	if err != nil {
-		panic(err)
-	}
-	return bz
 }
