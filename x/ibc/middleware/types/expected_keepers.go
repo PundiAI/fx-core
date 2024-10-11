@@ -15,6 +15,6 @@ type EvmKeeper interface {
 
 type CrossChainKeeper interface {
 	IBCCoinToEvm(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress) error
-	IBCCoinRefund(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcChannel string, ibcSequence uint64) error
+	IBCCoinRefund(ctx sdk.Context, coin sdk.Coin, holder sdk.AccAddress, ibcChannel string, ibcSequence uint64) error
 	AfterIBCAckSuccess(ctx sdk.Context, sourceChannel string, sequence uint64)
 }

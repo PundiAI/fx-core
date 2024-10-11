@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
@@ -54,15 +53,10 @@ type Erc20Keeper interface {
 	ConvertCoin(ctx context.Context, msg *erc20types.MsgConvertCoin) (*erc20types.MsgConvertCoinResponse, error)
 	ConvertERC20(goCtx context.Context, msg *erc20types.MsgConvertERC20) (*erc20types.MsgConvertERC20Response, error)
 
-	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _ bool) error
-	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error)
-	HookOutgoingRefund(ctx sdk.Context, moduleName string, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error
 	SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
 	HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool
 	DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
-	IsOriginOrConvertedDenom(ctx sdk.Context, denom string) bool
-	ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string
-	IbcRefund(ctx sdk.Context, channel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error
+
 	DeleteIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool
 }
 
@@ -87,7 +81,8 @@ type AccountKeeper interface {
 
 type BridgeTokenKeeper interface {
 	HasToken(ctx context.Context, denom string) (bool, error)
-	GetBridgeDenom(ctx context.Context, denom string) ([]string, error)
+	GetBridgeDenoms(ctx context.Context, denom string) ([]string, error)
+	GetBridgeDenom(ctx context.Context, denom, chainName string) (string, error)
 	GetBaseDenom(ctx context.Context, alias string) (string, error)
 	GetAllTokens(ctx context.Context) ([]string, error)
 	UpdateBridgeDenom(ctx context.Context, denom string, bridgeDenoms ...string) error

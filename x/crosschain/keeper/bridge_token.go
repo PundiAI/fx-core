@@ -102,7 +102,7 @@ func (k Keeper) HasToken(ctx context.Context, denom string) (bool, error) {
 	return ok, nil
 }
 
-func (k Keeper) GetBridgeDenom(ctx context.Context, denom string) ([]string, error) {
+func (k Keeper) GetBridgeDenoms(ctx context.Context, denom string) ([]string, error) {
 	metadata, ok := k.bankKeeper.GetDenomMetaData(ctx, denom)
 	if !ok {
 		return nil, fmt.Errorf("denom %s not found", denom)
@@ -115,6 +115,19 @@ func (k Keeper) GetBridgeDenom(ctx context.Context, denom string) ([]string, err
 		return nil, fmt.Errorf("denom %s aliases is empty", denom)
 	}
 	return aliases, nil
+}
+
+func (k Keeper) GetBridgeDenom(ctx context.Context, denom, chainName string) (string, error) {
+	bridgeDenoms, err := k.GetBridgeDenoms(ctx, denom)
+	if err != nil {
+		return "", err
+	}
+	for _, bridgeDenom := range bridgeDenoms {
+		if strings.HasPrefix(bridgeDenom, chainName) {
+			return bridgeDenom, nil
+		}
+	}
+	return "", fmt.Errorf("bridge denom not found %s", denom)
 }
 
 func (k Keeper) GetBaseDenom(ctx context.Context, alias string) (string, error) {

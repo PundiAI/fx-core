@@ -182,7 +182,9 @@ func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) {
 			return true
 		}
 		// 1. handler bridge call refund
-		k.HandleOutgoingBridgeCallRefund(ctx, data)
+		if err := k.RefundOutgoingBridgeCall(ctx, data); err != nil {
+			panic(fmt.Sprintf("failed cancel out bridge call %d while trying to execute failed: %s", data.Nonce, err))
+		}
 
 		// 2. delete bridge call
 		k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce)

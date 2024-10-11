@@ -48,7 +48,8 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallResultHandler() {
 				Timeout:     0,
 				BlockHeight: 0,
 			})
-			s.crosschainKeeper.BridgeCallResultHandler(s.ctx, msg)
+			err := s.crosschainKeeper.BridgeCallResultHandler(s.ctx, msg)
+			s.Require().NoError(err)
 			outgoingBridgeCall, found := s.crosschainKeeper.GetOutgoingBridgeCallByNonce(s.ctx, msg.Nonce)
 			s.False(found)
 			s.Nil(outgoingBridgeCall)

@@ -87,15 +87,17 @@ func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender common.Address, 
 	return outCall, nil
 }
 
-func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeCallResultClaim) {
+func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeCallResultClaim) error {
 	k.CreateBridgeAccount(ctx, claim.TxOrigin)
 
 	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, claim.Nonce)
 	if !found {
-		panic(fmt.Errorf("bridge call not found for nonce %d", claim.Nonce))
+		return fmt.Errorf("bridge call not found for nonce %d", claim.Nonce)
 	}
 	if !claim.Success {
-		k.HandleOutgoingBridgeCallRefund(ctx, outgoingBridgeCall)
+		if err := k.RefundOutgoingBridgeCall(ctx, outgoingBridgeCall); err != nil {
+			return err
+		}
 	}
 	k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce)
 
@@ -105,6 +107,40 @@ func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeC
 		sdk.NewAttribute(types.AttributeKeyStateSuccess, strconv.FormatBool(claim.Success)),
 		sdk.NewAttribute(types.AttributeKeyErrCause, claim.Cause),
 	))
+	return nil
+}
+
+func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBridgeCall) error {
+	refund := types.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
+	baseCoins := sdk.NewCoins()
+	for _, token := range data.Tokens {
+		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, token.Contract, token.Amount, refund.Bytes())
+		if err != nil {
+			return err
+		}
+		baseCoins = baseCoins.Add(baseCoin)
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeBridgeCallRefund,
+		sdk.NewAttribute(types.AttributeKeyRefund, refund.String()),
+	))
+
+	for _, coin := range baseCoins {
+		_, err := k.BaseCoinToEvm(ctx, coin, common.BytesToAddress(refund.Bytes()))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, bridgeCallNonce uint64) {
+	// 1. delete bridge call
+	k.DeleteOutgoingBridgeCall(ctx, bridgeCallNonce)
+
+	// 2. delete bridge call confirm
+	k.DeleteBridgeCallConfirm(ctx, bridgeCallNonce)
 }
 
 func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, outCall *types.OutgoingBridgeCall) {
