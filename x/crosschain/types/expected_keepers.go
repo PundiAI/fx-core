@@ -9,7 +9,7 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	tranfsertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 
@@ -73,9 +73,9 @@ type EVMKeeper interface {
 }
 
 type IBCTransferKeeper interface {
-	Transfer(ctx context.Context, msg *tranfsertypes.MsgTransfer) (*tranfsertypes.MsgTransferResponse, error)
-	SetDenomTrace(ctx sdk.Context, denomTrace tranfsertypes.DenomTrace)
-	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (tranfsertypes.DenomTrace, bool)
+	Transfer(ctx context.Context, msg *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error)
+	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
+	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (transfertypes.DenomTrace, bool)
 }
 
 type AccountKeeper interface {
