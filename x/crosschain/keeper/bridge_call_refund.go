@@ -18,9 +18,6 @@ func (k Keeper) HandleOutgoingBridgeCallRefund(ctx sdk.Context, data *types.Outg
 		sdk.NewAttribute(types.AttributeKeyRefund, refund.String()),
 	))
 
-	if k.HasBridgeCallFromMsg(ctx, data.Nonce) {
-		return coins
-	}
 	// precompile bridge call, refund to evm
 	if err = k.bridgeCallTransferTokens(ctx, refund, refund, coins); err != nil {
 		panic(err)
@@ -34,7 +31,4 @@ func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, bridgeCallNonce 
 
 	// 2. delete bridge call confirm
 	k.DeleteBridgeCallConfirm(ctx, bridgeCallNonce)
-
-	// 3. delete bridge call from msg
-	k.DeleteBridgeCallFromMsg(ctx, bridgeCallNonce)
 }

@@ -190,17 +190,3 @@ func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uin
 		}
 	}
 }
-
-func (k Keeper) SetBridgeCallFromMsg(ctx sdk.Context, txID uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetBridgeCallFromMsgKey(txID), []byte{})
-}
-
-func (k Keeper) DeleteBridgeCallFromMsg(ctx sdk.Context, txID uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetBridgeCallFromMsgKey(txID))
-}
-
-func (k Keeper) HasBridgeCallFromMsg(ctx sdk.Context, txID uint64) bool {
-	return ctx.KVStore(k.storeKey).Has(types.GetBridgeCallFromMsgKey(txID))
-}

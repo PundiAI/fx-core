@@ -1,19 +1,6 @@
 package keeper_test
 
-import (
-	"encoding/hex"
-	"math/big"
-
-	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-)
-
+/*
 func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.bondedOracle()
 	oracleAddr, found := suite.Keeper().GetOracleAddrByBridgerAddr(suite.Ctx, suite.bridgerAddrs[0])
@@ -89,3 +76,4 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallRefund() {
 	suite.Equal(sdkmath.NewInt(0), suite.App.BankKeeper.GetBalance(suite.Ctx, fxAddr1.Bytes(), pair.Denom).Amount)
 	suite.Equal(sdkmath.NewInt(randomAmount), suite.App.BankKeeper.GetBalance(suite.Ctx, bridgeCallRefundAddr, pair.Denom).Amount)
 }
+*/

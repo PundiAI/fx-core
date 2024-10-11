@@ -390,25 +390,6 @@ func (s MsgServer) BridgeCallConfirm(c context.Context, msg *types.MsgBridgeCall
 	return &types.MsgBridgeCallConfirmResponse{}, err
 }
 
-func (s MsgServer) BridgeCall(c context.Context, msg *types.MsgBridgeCall) (*types.MsgBridgeCallResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	outCallNonce, err := s.AddOutgoingBridgeCall(ctx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.Coins, msg.GetToAddr(), msg.MustData(), msg.MustMemo(), 0)
-	if err != nil {
-		return nil, err
-	}
-
-	// bridge call from msg
-	s.SetBridgeCallFromMsg(ctx, outCallNonce)
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	))
-
-	return &types.MsgBridgeCallResponse{}, nil
-}
-
 func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if s.authority != req.Authority {
 		return nil, govtypes.ErrInvalidSigner.Wrapf("invalid authority; expected %s, got %s", s.authority, req.Authority)
