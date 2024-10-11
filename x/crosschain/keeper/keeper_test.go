@@ -161,20 +161,3 @@ func (s *KeeperMockSuite) CrossChainParams() types.Params {
 		panic("module not support")
 	}
 }
-
-func (s *KeeperMockSuite) SetOracleSet(nonce, power, height uint64) string {
-	s.crosschainKeeper.SetLatestOracleSetNonce(s.ctx, nonce)
-	external := helpers.GenExternalAddr(s.moduleName)
-	bridgeValidator := types.BridgeValidator{Power: power, ExternalAddress: external}
-	s.crosschainKeeper.StoreOracleSet(s.ctx, types.NewOracleSet(nonce, height, types.BridgeValidators{bridgeValidator}))
-	return external
-}
-
-func (s *KeeperMockSuite) AddBridgeToken(contract string) (bridgeToken *types.BridgeToken) {
-	denom := types.NewBridgeDenom(s.moduleName, contract)
-	s.crosschainKeeper.AddBridgeToken(s.ctx, denom, denom)
-	return &types.BridgeToken{
-		Token: contract,
-		Denom: denom,
-	}
-}

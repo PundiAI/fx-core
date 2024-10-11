@@ -167,7 +167,7 @@ func (k Keeper) ManyToOne(ctx context.Context, denom string, targets ...string) 
 }
 
 func (k Keeper) BaseDenomToBridgeDenom(ctx context.Context, baseDenom, target string) (string, error) {
-	bridgeDenom, err := k.GetBridgeDenom(ctx, baseDenom)
+	bridgeDenom, err := k.GetBridgeDenoms(ctx, baseDenom)
 	if err != nil {
 		return "", err
 	}
@@ -286,12 +286,16 @@ func (k Keeper) IBCCoinToEvm(ctx context.Context, coin sdk.Coin, holder sdk.AccA
 	return err
 }
 
-func (k Keeper) IBCCoinRefund(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress, ibcChannel string, ibcSequence uint64) error {
+func (k Keeper) IBCCoinRefund(ctx sdk.Context, coin sdk.Coin, holder sdk.AccAddress, ibcChannel string, ibcSequence uint64) error {
 	baseCoin, err := k.IBCCoinToBaseCoin(ctx, coin, holder)
 	if err != nil {
 		return err
 	}
-	return k.erc20Keeper.IbcRefund(sdk.UnwrapSDKContext(ctx), ibcChannel, ibcSequence, holder, baseCoin)
+	if !k.erc20Keeper.DeleteIBCTransferRelation(ctx, ibcChannel, ibcSequence) {
+		return nil
+	}
+	_, err = k.BaseCoinToEvm(ctx, baseCoin, common.BytesToAddress(holder.Bytes()))
+	return err
 }
 
 func (k Keeper) AfterIBCAckSuccess(ctx sdk.Context, sourceChannel string, sequence uint64) {

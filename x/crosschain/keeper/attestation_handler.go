@@ -40,9 +40,8 @@ func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) error {
 	case *types.MsgBridgeCallClaim:
 		return k.BridgeCallHandler(ctx, claim)
 	case *types.MsgBridgeCallResultClaim:
-		k.BridgeCallResultHandler(ctx, claim)
+		return k.BridgeCallResultHandler(ctx, claim)
 	default:
 		return sdkerrors.ErrInvalidRequest.Wrapf("invalid claim type: %s", claim.GetType())
 	}
-	return nil
 }

@@ -22,8 +22,7 @@ import (
 	types3 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
 	types4 "github.com/evmos/ethermint/x/evm/types"
-	types5 "github.com/functionx/fx-core/v8/types"
-	types6 "github.com/functionx/fx-core/v8/x/erc20/types"
+	types5 "github.com/functionx/fx-core/v8/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -399,10 +398,10 @@ func (m *MockErc20Keeper) EXPECT() *MockErc20KeeperMockRecorder {
 }
 
 // ConvertCoin mocks base method.
-func (m *MockErc20Keeper) ConvertCoin(ctx context.Context, msg *types6.MsgConvertCoin) (*types6.MsgConvertCoinResponse, error) {
+func (m *MockErc20Keeper) ConvertCoin(ctx context.Context, msg *types5.MsgConvertCoin) (*types5.MsgConvertCoinResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertCoin", ctx, msg)
-	ret0, _ := ret[0].(*types6.MsgConvertCoinResponse)
+	ret0, _ := ret[0].(*types5.MsgConvertCoinResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -413,26 +412,11 @@ func (mr *MockErc20KeeperMockRecorder) ConvertCoin(ctx, msg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertCoin", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertCoin), ctx, msg)
 }
 
-// ConvertDenomToTarget mocks base method.
-func (m *MockErc20Keeper) ConvertDenomToTarget(ctx types.Context, from types.AccAddress, coin types.Coin, fxTarget types5.FxTarget) (types.Coin, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConvertDenomToTarget", ctx, from, coin, fxTarget)
-	ret0, _ := ret[0].(types.Coin)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ConvertDenomToTarget indicates an expected call of ConvertDenomToTarget.
-func (mr *MockErc20KeeperMockRecorder) ConvertDenomToTarget(ctx, from, coin, fxTarget any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertDenomToTarget", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertDenomToTarget), ctx, from, coin, fxTarget)
-}
-
 // ConvertERC20 mocks base method.
-func (m *MockErc20Keeper) ConvertERC20(goCtx context.Context, msg *types6.MsgConvertERC20) (*types6.MsgConvertERC20Response, error) {
+func (m *MockErc20Keeper) ConvertERC20(goCtx context.Context, msg *types5.MsgConvertERC20) (*types5.MsgConvertERC20Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertERC20", goCtx, msg)
-	ret0, _ := ret[0].(*types6.MsgConvertERC20Response)
+	ret0, _ := ret[0].(*types5.MsgConvertERC20Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -470,10 +454,10 @@ func (mr *MockErc20KeeperMockRecorder) DeleteOutgoingTransferRelation(ctx, modul
 }
 
 // GetTokenPair mocks base method.
-func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types6.TokenPair, bool) {
+func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types5.TokenPair, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenPair", ctx, tokenOrDenom)
-	ret0, _ := ret[0].(types6.TokenPair)
+	ret0, _ := ret[0].(types5.TokenPair)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -498,48 +482,6 @@ func (mr *MockErc20KeeperMockRecorder) HasOutgoingTransferRelation(ctx, moduleNa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).HasOutgoingTransferRelation), ctx, moduleName, txID)
 }
 
-// HookOutgoingRefund mocks base method.
-func (m *MockErc20Keeper) HookOutgoingRefund(ctx types.Context, moduleName string, txID uint64, sender types.AccAddress, totalCoin types.Coin) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HookOutgoingRefund", ctx, moduleName, txID, sender, totalCoin)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// HookOutgoingRefund indicates an expected call of HookOutgoingRefund.
-func (mr *MockErc20KeeperMockRecorder) HookOutgoingRefund(ctx, moduleName, txID, sender, totalCoin any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HookOutgoingRefund", reflect.TypeOf((*MockErc20Keeper)(nil).HookOutgoingRefund), ctx, moduleName, txID, sender, totalCoin)
-}
-
-// IbcRefund mocks base method.
-func (m *MockErc20Keeper) IbcRefund(ctx types.Context, channel string, sequence uint64, sender types.AccAddress, amount types.Coin) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IbcRefund", ctx, channel, sequence, sender, amount)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IbcRefund indicates an expected call of IbcRefund.
-func (mr *MockErc20KeeperMockRecorder) IbcRefund(ctx, channel, sequence, sender, amount any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IbcRefund", reflect.TypeOf((*MockErc20Keeper)(nil).IbcRefund), ctx, channel, sequence, sender, amount)
-}
-
-// IsOriginOrConvertedDenom mocks base method.
-func (m *MockErc20Keeper) IsOriginOrConvertedDenom(ctx types.Context, denom string) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsOriginOrConvertedDenom", ctx, denom)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// IsOriginOrConvertedDenom indicates an expected call of IsOriginOrConvertedDenom.
-func (mr *MockErc20KeeperMockRecorder) IsOriginOrConvertedDenom(ctx, denom any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOriginOrConvertedDenom", reflect.TypeOf((*MockErc20Keeper)(nil).IsOriginOrConvertedDenom), ctx, denom)
-}
-
 // SetOutgoingTransferRelation mocks base method.
 func (m *MockErc20Keeper) SetOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) {
 	m.ctrl.T.Helper()
@@ -550,34 +492,6 @@ func (m *MockErc20Keeper) SetOutgoingTransferRelation(ctx types.Context, moduleN
 func (mr *MockErc20KeeperMockRecorder) SetOutgoingTransferRelation(ctx, moduleName, txID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).SetOutgoingTransferRelation), ctx, moduleName, txID)
-}
-
-// ToTargetDenom mocks base method.
-func (m *MockErc20Keeper) ToTargetDenom(ctx types.Context, denom, base string, aliases []string, fxTarget types5.FxTarget) string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ToTargetDenom", ctx, denom, base, aliases, fxTarget)
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// ToTargetDenom indicates an expected call of ToTargetDenom.
-func (mr *MockErc20KeeperMockRecorder) ToTargetDenom(ctx, denom, base, aliases, fxTarget any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToTargetDenom", reflect.TypeOf((*MockErc20Keeper)(nil).ToTargetDenom), ctx, denom, base, aliases, fxTarget)
-}
-
-// TransferAfter mocks base method.
-func (m *MockErc20Keeper) TransferAfter(ctx types.Context, sender types.AccAddress, receive string, coin, fee types.Coin, arg5 bool) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransferAfter", ctx, sender, receive, coin, fee, arg5)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// TransferAfter indicates an expected call of TransferAfter.
-func (mr *MockErc20KeeperMockRecorder) TransferAfter(ctx, sender, receive, coin, fee, arg5 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferAfter", reflect.TypeOf((*MockErc20Keeper)(nil).TransferAfter), ctx, sender, receive, coin, fee, arg5)
 }
 
 // MockEVMKeeper is a mock of EVMKeeper interface.
@@ -828,18 +742,33 @@ func (mr *MockBridgeTokenKeeperMockRecorder) GetBaseDenom(ctx, alias any) *gomoc
 }
 
 // GetBridgeDenom mocks base method.
-func (m *MockBridgeTokenKeeper) GetBridgeDenom(ctx context.Context, denom string) ([]string, error) {
+func (m *MockBridgeTokenKeeper) GetBridgeDenom(ctx context.Context, denom, chainName string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBridgeDenom", ctx, denom)
-	ret0, _ := ret[0].([]string)
+	ret := m.ctrl.Call(m, "GetBridgeDenom", ctx, denom, chainName)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBridgeDenom indicates an expected call of GetBridgeDenom.
-func (mr *MockBridgeTokenKeeperMockRecorder) GetBridgeDenom(ctx, denom any) *gomock.Call {
+func (mr *MockBridgeTokenKeeperMockRecorder) GetBridgeDenom(ctx, denom, chainName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetBridgeDenom), ctx, denom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetBridgeDenom), ctx, denom, chainName)
+}
+
+// GetBridgeDenoms mocks base method.
+func (m *MockBridgeTokenKeeper) GetBridgeDenoms(ctx context.Context, denom string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBridgeDenoms", ctx, denom)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBridgeDenoms indicates an expected call of GetBridgeDenoms.
+func (mr *MockBridgeTokenKeeperMockRecorder) GetBridgeDenoms(ctx, denom any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeDenoms", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).GetBridgeDenoms), ctx, denom)
 }
 
 // HasToken mocks base method.
