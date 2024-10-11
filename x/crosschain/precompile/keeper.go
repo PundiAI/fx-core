@@ -109,7 +109,8 @@ func (c *Keeper) handlerCrossChain(
 	originToken bool,
 ) error {
 	if fxTarget.IsIBC() {
-		return c.ibcTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, memo, originToken)
+		_, err := c.ibcTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, memo, originToken)
+		return err
 	}
 
 	return c.outgoingTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, originToken)
@@ -151,17 +152,17 @@ func (c *Keeper) ibcTransfer(
 	fxTarget fxtypes.FxTarget,
 	memo string,
 	originToken bool,
-) error {
+) (uint64, error) {
 	if !fee.IsZero() {
-		return fmt.Errorf("ibc transfer fee must be zero: %s", fee.String())
+		return 0, fmt.Errorf("ibc transfer fee must be zero: %s", fee.String())
 	}
 	if strings.ToLower(fxTarget.Prefix) == contract.EthereumAddressPrefix {
 		if err := contract.ValidateEthereumAddress(to); err != nil {
-			return fmt.Errorf("invalid to address: %s", to)
+			return 0, fmt.Errorf("invalid to address: %s", to)
 		}
 	} else {
 		if _, err := sdk.GetFromBech32(to, fxTarget.Prefix); err != nil {
-			return fmt.Errorf("invalid to address: %s", to)
+			return 0, fmt.Errorf("invalid to address: %s", to)
 		}
 	}
 
@@ -169,11 +170,11 @@ func (c *Keeper) ibcTransfer(
 		var err error
 		crossChainKeeper, found := c.router.GetRoute(ethtypes.ModuleName)
 		if !found {
-			return sdkerrors.ErrInvalidRequest.Wrap("crosschain not found")
+			return 0, sdkerrors.ErrInvalidRequest.Wrap("crosschain not found")
 		}
 		amount, err = crossChainKeeper.BaseCoinToIBCCoin(ctx, amount, from, fxTarget.String())
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
@@ -191,11 +192,39 @@ func (c *Keeper) ibcTransfer(
 		),
 	)
 	if err != nil {
-		return fmt.Errorf("ibc transfer error: %s", err.Error())
+		return 0, fmt.Errorf("ibc transfer error: %s", err.Error())
 	}
 
 	if !originToken {
 		c.erc20Keeper.SetIBCTransferRelation(ctx, fxTarget.SourceChannel, transferResponse.Sequence)
 	}
-	return nil
+	return transferResponse.Sequence, nil
+}
+
+func (c *Keeper) handlerBridgeCall(
+	ctx sdk.Context,
+	from, refund, to common.Address,
+	coins sdk.Coins,
+	data, memo []byte,
+	fxTarget fxtypes.FxTarget,
+	originTokenAmount sdkmath.Int,
+) (nonce uint64, err error) {
+	if fxTarget.IsIBC() {
+		if !coins.IsValid() || len(coins) != 1 {
+			return 0, sdkerrors.ErrInvalidCoins.Wrapf("ibc transfer with coins: %s", coins.String())
+		}
+		amount := coins[0]
+		toAddr, err := fxTarget.ReceiveAddrToStr(to.Bytes())
+		if err != nil {
+			return 0, sdkerrors.ErrInvalidAddress.Wrapf("ibc transfer target %s to: %s", fxTarget.GetTarget(), to.String())
+		}
+		return c.ibcTransfer(ctx, from.Bytes(), toAddr, amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt()), fxTarget, string(memo), !originTokenAmount.IsZero())
+	}
+
+	route, has := c.router.GetRoute(fxTarget.GetTarget())
+	if !has {
+		return 0, errors.New("invalid dstChain")
+	}
+	// todo record origin amount
+	return route.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, 0)
 }

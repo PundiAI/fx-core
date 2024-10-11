@@ -4,12 +4,15 @@ import (
 	"errors"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
@@ -49,28 +52,26 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		return nil, err
 	}
 
-	route, has := m.router.GetRoute(args.DstChain)
-	if !has {
-		return nil, errors.New("invalid dstChain")
-	}
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	var result []byte
 	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		sender := contract.Caller()
 		baseCoins := make([]sdk.Coin, 0, len(args.Tokens)+1)
 		value := contract.Value()
+		originTokenAmount := sdkmath.ZeroInt()
 		if value.Cmp(big.NewInt(0)) == 1 {
 			coin, err := m.handlerOriginToken(ctx, evm, sender, value)
 			if err != nil {
 				return err
 			}
 			baseCoins = append(baseCoins, coin)
+			originTokenAmount = coin.Amount
+		}
+		crosschainKeeper, ok := m.router.GetRoute(ethtypes.ModuleName)
+		if !ok {
+			return errors.New("invalid router")
 		}
 		for i, token := range args.Tokens {
-			crosschainKeeper, ok := m.router.GetRoute(args.DstChain)
-			if !ok {
-				return errors.New("invalid dstChain")
-			}
 			coin, err := crosschainKeeper.EvmToBaseCoin(ctx, token.String(), args.Amounts[i], sender)
 			if err != nil {
 				return err
@@ -78,19 +79,19 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 			baseCoins = append(baseCoins, coin)
 		}
 
-		bridgeCallNonce, err := route.AddOutgoingBridgeCall(ctx, sender, args.Refund, baseCoins, args.To, args.Data, args.Memo, 0)
+		fxTarget := fxtypes.ParseFxTarget(args.DstChain)
+		nonce, err := m.handlerBridgeCall(ctx, sender, args.Refund, args.To, baseCoins, args.Data, args.Memo, fxTarget, originTokenAmount)
 		if err != nil {
 			return err
 		}
-
-		emitNonce := new(big.Int).SetUint64(bridgeCallNonce)
-		data, topic, err := m.NewBridgeCallEvent(args, sender, evm.Origin, emitNonce)
+		eventNonce := new(big.Int).SetUint64(nonce)
+		data, topic, err := m.NewBridgeCallEvent(args, sender, evm.Origin, eventNonce)
 		if err != nil {
 			return err
 		}
 		EmitEvent(evm, data, topic)
 
-		result, err = m.PackOutput(emitNonce)
+		result, err = m.PackOutput(eventNonce)
 		return err
 	})
 	return result, err
