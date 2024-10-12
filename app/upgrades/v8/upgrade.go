@@ -49,7 +49,8 @@ func migrationGovCustomParam(ctx sdk.Context, keeper *keeper.Keeper, storeKey *s
 
 func removeStoreKeys(ctx sdk.Context, storeKey *storetypes.KVStoreKey, keys [][]byte) {
 	store := ctx.KVStore(storeKey)
-	for _, key := range keys {
+
+	deleteFn := func(key []byte) {
 		iterator := storetypes.KVStorePrefixIterator(store, key)
 		defer iterator.Close()
 		for ; iterator.Valid(); iterator.Next() {
@@ -57,5 +58,9 @@ func removeStoreKeys(ctx sdk.Context, storeKey *storetypes.KVStoreKey, keys [][]
 			ctx.Logger().Info("remove store key", "kvStore", storeKey.Name(),
 				"prefix", hex.EncodeToString(key), "key", string(iterator.Key()))
 		}
+	}
+
+	for _, key := range keys {
+		deleteFn(key)
 	}
 }
