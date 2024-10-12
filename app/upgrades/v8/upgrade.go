@@ -11,6 +11,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/functionx/fx-core/v8/app/keepers"
+	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/gov/keeper"
 	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
@@ -32,10 +33,20 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 			return fromVM, err
 		}
 
+		if err = updateArbitrumParams(cacheCtx, app.ArbitrumKeeper); err != nil {
+			return fromVM, err
+		}
+
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
+}
+
+func updateArbitrumParams(ctx sdk.Context, keeper crosschainkeeper.Keeper) error {
+	params := keeper.GetParams(ctx)
+	params.AverageExternalBlockTime = 250
+	return keeper.SetParams(ctx, &params)
 }
 
 func migrationGovCustomParam(ctx sdk.Context, keeper *keeper.Keeper, storeKey *storetypes.KVStoreKey) error {
