@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	coreheader "cosmossdk.io/core/header"
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -60,6 +61,7 @@ func buildApp(t *testing.T) *app.App {
 	require.NoError(t, err)
 
 	myApp := helpers.NewApp(func(opts *helpers.AppOpts) {
+		opts.Logger = log.NewLogger(os.Stdout)
 		opts.DB = db
 		opts.Home = home
 	})
@@ -76,7 +78,7 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 	if deliveState {
 		ctx = myApp.NewContextLegacy(false, header)
 	} else {
-		ctx = myApp.NewUncachedContext(false, header)
+		ctx = myApp.GetContextForCheckTx(nil).WithBlockHeader(header)
 	}
 	ctx = ctx.WithHeaderInfo(coreheader.Info{
 		Height:  header.Height,
@@ -114,11 +116,14 @@ func checkStakingMigrationDelete(t *testing.T, ctx sdk.Context, myApp *app.App) 
 
 func checkKeysIsDelete(t *testing.T, kvStore storetypes.KVStore, keys [][]byte) {
 	require.Greater(t, len(keys), 0)
-	for _, removeKey := range keys {
-		iterator := storetypes.KVStorePrefixIterator(kvStore, removeKey)
+	checkFn := func(key []byte) {
+		iterator := storetypes.KVStorePrefixIterator(kvStore, key)
 		defer iterator.Close()
 		for ; iterator.Valid(); iterator.Next() {
-			require.Failf(t, "key is not deleted", "prefix:%x, key:%x", removeKey, iterator.Key())
+			require.Failf(t, "key is not deleted", "prefix:%x, key:%x", key, iterator.Key())
 		}
+	}
+	for _, removeKey := range keys {
+		checkFn(removeKey)
 	}
 }
