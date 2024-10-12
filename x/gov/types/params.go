@@ -24,13 +24,6 @@ var (
 )
 
 var (
-	// todo delete this store
-	// FxBaseParamsKeyPrefix is the key to query all base params
-	FxBaseParamsKeyPrefix = []byte("0x90")
-	// todo delete this store
-	// FxEGFParamsKey is the key to query all EGF params
-	FxEGFParamsKey = []byte("0x91")
-
 	FxSwitchParamsKey = []byte{0x92}
 	CustomParamsKey   = []byte{0x93}
 )

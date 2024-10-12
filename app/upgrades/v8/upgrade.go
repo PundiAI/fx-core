@@ -3,12 +3,16 @@ package v8
 import (
 	"context"
 
+	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/functionx/fx-core/v8/app/keepers"
+	"github.com/functionx/fx-core/v8/x/gov/keeper"
+	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
 )
 
@@ -24,8 +28,20 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 
 		fxstakingv8.DeleteMigrationValidatorStore(cacheCtx, app.GetKey(stakingtypes.StoreKey))
 
+		if err = migrationGovCustomParam(cacheCtx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
+			return fromVM, err
+		}
+
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
+}
+
+func migrationGovCustomParam(ctx sdk.Context, keeper *keeper.Keeper, storeKey *storetypes.KVStoreKey) error {
+	// 1. delete fxParams key
+	fxgovv8.DeleteOldParamsStore(ctx, storeKey)
+
+	// 2. init custom params
+	return keeper.InitCustomParams(ctx)
 }
