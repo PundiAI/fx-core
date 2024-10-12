@@ -4,13 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var (
-	AllowanceKey = []byte{0x90}
-	// todo: remove this key in migrate v8
-	ValidatorOperatorKey = []byte{0x91}
-	ConsensusPubKey      = []byte{0x92}
-	ConsensusProcessKey  = []byte{0x93}
-)
+var AllowanceKey = []byte{0x90}
 
 func GetAllowanceKey(valAddr sdk.ValAddress, owner, spender sdk.AccAddress) []byte {
 	// key is of the form AllowanceKey || valAddrLen (1 byte) || valAddr || ownerAddrLen (1 byte) || ownerAddr || spenderAddrLen (1 byte) || spenderAddr

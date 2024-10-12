@@ -15,8 +15,8 @@ type AppOpts struct {
 	DB     dbm.DB
 }
 
-func NewApp(opts ...func(AppOpts)) *app.App {
-	defOpts := AppOpts{
+func NewApp(opts ...func(*AppOpts)) *app.App {
+	defOpts := &AppOpts{
 		Logger: log.NewNopLogger(),
 		Home:   fxtypes.GetDefaultNodeHome(),
 		DB:     dbm.NewMemDB(),
