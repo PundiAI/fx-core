@@ -122,6 +122,24 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 	govv1.RegisterQueryServer(cfg.QueryServer(), queryServer)
 	types.RegisterQueryServer(cfg.QueryServer(), queryServer)
+
+	// register migration for x/gov
+	m := govkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
+	if err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/gov from version 1 to 2: %v", err))
+	}
+
+	if err := cfg.RegisterMigration(govtypes.ModuleName, 2, m.Migrate2to3); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/gov from version 2 to 3: %v", err))
+	}
+
+	if err := cfg.RegisterMigration(govtypes.ModuleName, 3, m.Migrate3to4); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/gov from version 3 to 4: %v", err))
+	}
+
+	if err := cfg.RegisterMigration(govtypes.ModuleName, 4, m.Migrate4to5); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/gov from version 4 to 5: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the gov module. It returns

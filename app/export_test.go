@@ -98,7 +98,7 @@ func Test_ExportGenesisAndRunNode(t *testing.T) {
 	ctx := context.Background()
 	group, ctx := errgroup.WithContext(ctx)
 	myAppConstructor := func(appConfig *fxcfg.Config, ctx *server.Context) servertypes.Application {
-		return helpers.NewApp(func(opts helpers.AppOpts) {
+		return helpers.NewApp(func(opts *helpers.AppOpts) {
 			opts.Home = ctx.Config.RootDir
 		})
 	}
@@ -110,7 +110,7 @@ func exportGenesisDoc(t *testing.T, home string) *types.GenesisDoc {
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
 	require.NoError(t, err)
 
-	myApp := helpers.NewApp(func(opts helpers.AppOpts) {
+	myApp := helpers.NewApp(func(opts *helpers.AppOpts) {
 		opts.Logger = log.NewTestLogger(t)
 		opts.Home = home
 		opts.DB = db
