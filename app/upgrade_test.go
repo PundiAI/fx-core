@@ -14,6 +14,8 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,6 +24,8 @@ import (
 	nextversion "github.com/functionx/fx-core/v8/app/upgrades/v8"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
+	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
+	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
 )
 
@@ -91,14 +95,26 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 
 func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkStakingMigrationDelete(t, ctx, myApp)
+
+	checkGovCustomParams(t, ctx, myApp)
+}
+
+func checkGovCustomParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	egfCustomParams, found := myApp.GovKeeper.GetCustomParams(ctx, sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{}))
+	require.True(t, found)
+	expectEGFParams := fxgovtypes.NewCustomParams(fxgovtypes.EGFCustomParamDepositRatio.String(), fxgovtypes.DefaultEGFCustomParamVotingPeriod, fxgovtypes.DefaultCustomParamQuorum40.String())
+	assert.Equal(t, expectEGFParams, egfCustomParams)
+
+	checkKeysIsDelete(t, ctx.KVStore(myApp.GetKey(govtypes.StoreKey)), fxgovv8.GetRemovedStoreKeys())
 }
 
 func checkStakingMigrationDelete(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	storeKey := myApp.GetKey(stakingtypes.StoreKey)
-	kvStore := ctx.KVStore(storeKey)
-	removeKeys := fxstakingv8.GetRemovedValidatorStoreKeys()
-	require.Greater(t, len(removeKeys), 0)
-	for _, removeKey := range removeKeys {
+	checkKeysIsDelete(t, ctx.KVStore(myApp.GetKey(stakingtypes.StoreKey)), fxstakingv8.GetRemovedStoreKeys())
+}
+
+func checkKeysIsDelete(t *testing.T, kvStore storetypes.KVStore, keys [][]byte) {
+	require.Greater(t, len(keys), 0)
+	for _, removeKey := range keys {
 		iterator := storetypes.KVStorePrefixIterator(kvStore, removeKey)
 		defer iterator.Close()
 		for ; iterator.Valid(); iterator.Next() {
