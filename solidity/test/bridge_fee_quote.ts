@@ -63,7 +63,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
     it("should block an oracle correctly", async function () {
       await bridgeFeeOracle.blackOracle(oracle.address);
       const oracleStatus = await bridgeFeeOracle.oracleStatus(oracle.address);
-      expect(oracleStatus.isBlackListed).to.be.true;
+      expect(oracleStatus.isBlacklisted).to.be.true;
     });
   });
 
@@ -99,7 +99,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
     });
 
     it("should revert when trying to get quotes for an inactive chain", async function () {
-      const chainName = ethers.encodeBytes32String("InactiveChain");
+      const chainName = "InactiveChain";
       await expect(
         bridgeFeeQuote.getQuoteList(chainName)
       ).to.be.revertedWithCustomError(bridgeFeeQuote, "ChainNameInvalid");
@@ -220,7 +220,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
       const [quote, expire] = await bridgeFeeQuote.getQuoteByToken(
         chainName,
         token1.address,
-        0
+        2
       );
       expect(expire).to.be.true;
       expect(quote.fee).to.be.equal(fee);
@@ -237,11 +237,12 @@ async function generateSignature(
   expiry: number,
   wallet: HDNodeWallet
 ): Promise<string> {
-  const hash = ethers.solidityPackedKeccak256(
+  const abiCoder = new ethers.AbiCoder();
+  const coderHash = abiCoder.encode(
     ["string", "address", "uint256", "uint256", "uint256"],
     [chainName, token, fee, gasLimit, expiry]
   );
-
+  const hash = ethers.keccak256(coderHash);
   const messageHash = ethers.solidityPackedKeccak256(
     ["string", "bytes32"],
     [messagePrefix, hash]
