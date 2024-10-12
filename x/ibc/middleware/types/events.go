@@ -2,8 +2,7 @@ package types
 
 // IBC transfer events
 const (
-	EventTypeReceive      = "ibc_receive"
-	AttributeKeyRecvError = "error"
+	EventTypeReceive = "ibc_receive"
 
 	EventTypeIBCCall            = "ibc_call"
 	AttributeKeyIBCCallType     = "ibc_call_type"

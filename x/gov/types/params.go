@@ -2,14 +2,11 @@ package types
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
@@ -50,8 +47,8 @@ func NewInitGenesisCustomParams(msgType string, params CustomParams) InitGenesis
 	}
 }
 
-func NewCustomParams(depositRatio string, votingPeriod time.Duration, quorum string) *CustomParams {
-	return &CustomParams{
+func NewCustomParams(depositRatio string, votingPeriod time.Duration, quorum string) CustomParams {
+	return CustomParams{
 		DepositRatio: depositRatio,
 		VotingPeriod: &votingPeriod,
 		Quorum:       quorum,
@@ -68,13 +65,12 @@ func DefaultInitGenesisCustomParams() []InitGenesisCustomParams {
 func newEGFCustomParams() InitGenesisCustomParams {
 	return NewInitGenesisCustomParams(
 		sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{}),
-		*NewCustomParams(EGFCustomParamDepositRatio.String(), DefaultEGFCustomParamVotingPeriod, DefaultCustomParamQuorum40.String()),
+		NewCustomParams(EGFCustomParamDepositRatio.String(), DefaultEGFCustomParamVotingPeriod, DefaultCustomParamQuorum40.String()),
 	)
 }
 
 func newOtherCustomParams() []InitGenesisCustomParams {
-	params := []InitGenesisCustomParams{}
-	defaultParams := *NewCustomParams(DefaultCustomParamDepositRatio.String(), DefaultCustomParamVotingPeriod, DefaultCustomParamQuorum25.String())
+	defaultParams := NewCustomParams(DefaultCustomParamDepositRatio.String(), DefaultCustomParamVotingPeriod, DefaultCustomParamQuorum25.String())
 	customMsgTypes := []string{
 		// erc20 proposal
 		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
@@ -85,24 +81,12 @@ func newOtherCustomParams() []InitGenesisCustomParams {
 		// evm proposal
 		sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),
 	}
+	params := make([]InitGenesisCustomParams, 0, len(customMsgTypes))
 	for _, msgType := range customMsgTypes {
 		params = append(params, NewInitGenesisCustomParams(msgType, defaultParams))
 	}
 
 	return params
-}
-
-func ExtractMsgTypeURL(msgs []*codectypes.Any) string {
-	if len(msgs) == 0 {
-		return ""
-	}
-	msg := msgs[0]
-	if strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&govv1.MsgExecLegacyContent{})) {
-		legacyContent := msg.GetCachedValue().(*govv1.MsgExecLegacyContent)
-		content := legacyContent.GetContent()
-		return content.TypeUrl
-	}
-	return msg.TypeUrl
 }
 
 func (p *SwitchParams) ValidateBasic() error {

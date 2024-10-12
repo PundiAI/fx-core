@@ -224,8 +224,8 @@ func (keeper Keeper) validateInitialDeposit(params v1.Params, initialDeposit sdk
 
 // validateDepositDenom validates if the deposit denom is accepted by the governance module.
 func (keeper Keeper) validateDepositDenom(params v1.Params, depositAmount sdk.Coins) error {
-	denoms := []string{}
 	acceptedDenoms := make(map[string]bool, len(params.MinDeposit))
+	denoms := make([]string, 0, len(params.MinDeposit))
 	for _, coin := range params.MinDeposit {
 		acceptedDenoms[coin.Denom] = true
 		denoms = append(denoms, coin.Denom)

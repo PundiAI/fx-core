@@ -18,30 +18,30 @@ type MemoPacket interface {
 
 var _ MemoPacket = &IbcCallEvmPacket{}
 
-func (icep IbcCallEvmPacket) GetType() IbcCallType {
+func (m *IbcCallEvmPacket) GetType() IbcCallType {
 	return IBC_CALL_TYPE_EVM
 }
 
-func (icep IbcCallEvmPacket) ValidateBasic() error {
-	if err := contract.ValidateEthereumAddress(icep.To); err != nil {
+func (m *IbcCallEvmPacket) ValidateBasic() error {
+	if err := contract.ValidateEthereumAddress(m.To); err != nil {
 		return sdkerrors.ErrInvalidRequest.Wrapf("to address: %s", err.Error())
 	}
-	if icep.Value.IsNegative() {
-		return sdkerrors.ErrInvalidRequest.Wrapf("value: %s", icep.Value.String())
+	if m.Value.IsNegative() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("value: %s", m.Value.String())
 	}
-	if _, err := hex.DecodeString(icep.Data); err != nil {
+	if _, err := hex.DecodeString(m.Data); err != nil {
 		return sdkerrors.ErrInvalidRequest.Wrapf("data: %s", err.Error())
 	}
 	return nil
 }
 
-func (icep IbcCallEvmPacket) GetToAddress() *common.Address {
-	to := common.HexToAddress(icep.To)
+func (m *IbcCallEvmPacket) GetToAddress() *common.Address {
+	to := common.HexToAddress(m.To)
 	return &to
 }
 
-func (icep IbcCallEvmPacket) MustGetData() []byte {
-	bz, err := hex.DecodeString(icep.Data)
+func (m *IbcCallEvmPacket) MustGetData() []byte {
+	bz, err := hex.DecodeString(m.Data)
 	if err != nil {
 		panic(err)
 	}
