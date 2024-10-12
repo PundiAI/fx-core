@@ -2,6 +2,7 @@ package v8
 
 import (
 	"context"
+	"encoding/hex"
 
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -26,7 +27,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 			return fromVM, err
 		}
 
-		fxstakingv8.DeleteMigrationValidatorStore(cacheCtx, app.GetKey(stakingtypes.StoreKey))
+		removeStoreKeys(cacheCtx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
 
 		if err = migrationGovCustomParam(cacheCtx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
 			return fromVM, err
@@ -40,8 +41,21 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 
 func migrationGovCustomParam(ctx sdk.Context, keeper *keeper.Keeper, storeKey *storetypes.KVStoreKey) error {
 	// 1. delete fxParams key
-	fxgovv8.DeleteOldParamsStore(ctx, storeKey)
+	removeStoreKeys(ctx, storeKey, fxgovv8.GetRemovedStoreKeys())
 
 	// 2. init custom params
 	return keeper.InitCustomParams(ctx)
+}
+
+func removeStoreKeys(ctx sdk.Context, storeKey *storetypes.KVStoreKey, keys [][]byte) {
+	store := ctx.KVStore(storeKey)
+	for _, key := range keys {
+		iterator := storetypes.KVStorePrefixIterator(store, key)
+		defer iterator.Close()
+		for ; iterator.Valid(); iterator.Next() {
+			store.Delete(iterator.Key())
+			ctx.Logger().Info("remove store key", "kvStore", storeKey.Name(),
+				"prefix", hex.EncodeToString(key), "key", string(iterator.Key()))
+		}
+	}
 }

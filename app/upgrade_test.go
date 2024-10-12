@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	coreheader "cosmossdk.io/core/header"
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -60,6 +61,7 @@ func buildApp(t *testing.T) *app.App {
 	require.NoError(t, err)
 
 	myApp := helpers.NewApp(func(opts *helpers.AppOpts) {
+		opts.Logger = log.NewLogger(os.Stdout)
 		opts.DB = db
 		opts.Home = home
 	})
@@ -76,7 +78,7 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 	if deliveState {
 		ctx = myApp.NewContextLegacy(false, header)
 	} else {
-		ctx = myApp.NewUncachedContext(false, header)
+		ctx = myApp.GetContextForCheckTx(nil).WithBlockHeader(header)
 	}
 	ctx = ctx.WithHeaderInfo(coreheader.Info{
 		Height:  header.Height,
