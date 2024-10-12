@@ -30,7 +30,7 @@ contract BridgeFeeQuote is
     using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
     using ECDSAUpgradeable for bytes32;
 
-    struct Assert {
+    struct Asset {
         bool isActive;
         address[] tokens;
     }
@@ -49,7 +49,7 @@ contract BridgeFeeQuote is
     string[] public chainNames;
 
     // chainName -> Assert
-    mapping(string => Assert) public assets;
+    mapping(string => Asset) public assets;
 
     // Only one quote is allowed per chainName + token + oracle
     mapping(bytes => Quote) internal quotes; // key: chainName + token + oracle
@@ -74,6 +74,11 @@ contract BridgeFeeQuote is
         uint256 expiry
     );
 
+    /**
+     * @notice Quote the bridge fee for a given chainName, token and oracle.
+     * @param _inputs QuoteInput[] The quote inputs.
+     * @return bool Whether the quote is successful.
+     */
     function quote(
         QuoteInput[] memory _inputs
     ) external nonReentrant returns (bool) {
@@ -111,7 +116,11 @@ contract BridgeFeeQuote is
         return true;
     }
 
-    // get quote list by chainName
+    /**
+     * @notice Get the quote list for a given chainName.
+     * @param _chainName The name of the chain.
+     * @return QuoteInfo[] The quote list.
+     */
     function getQuoteList(
         string memory _chainName
     ) external view returns (QuoteInfo[] memory) {
@@ -150,6 +159,11 @@ contract BridgeFeeQuote is
         return quotesList;
     }
 
+    /**
+     * @notice Get the quote by id.
+     * @param _id The id of the quote.
+     * @return q QuoteInfo The quote.
+     */
     function getQuoteById(
         uint256 _id
     ) external view returns (QuoteInfo memory q) {
@@ -171,10 +185,18 @@ contract BridgeFeeQuote is
         });
     }
 
+    /**
+     * @notice Get the quote by token.
+     * @param _chainName The name of the chain.
+     * @param _token The address of the token.
+     * @param _amount The bridge fee amount of the token.
+     * @return QuoteInfo The quote.
+     * @return bool Whether the quote is expired.
+     */
     function getQuoteByToken(
         string memory _chainName,
         address _token,
-        uint256
+        uint256 _amount
     ) external view returns (QuoteInfo memory, bool) {
         if (!assets[_chainName].isActive) {
             revert ChainNameInvalid();
@@ -192,7 +214,8 @@ contract BridgeFeeQuote is
                 gasLimit: quotes[asset].gasLimit,
                 expiry: quotes[asset].expiry
             }),
-            quotes[asset].expiry > block.timestamp
+            quotes[asset].expiry > block.timestamp &&
+                _amount >= quotes[asset].fee
         );
     }
 
@@ -261,9 +284,7 @@ contract BridgeFeeQuote is
         uint256 _expiry
     ) public pure returns (bytes32) {
         return
-            keccak256(
-                abi.encodePacked(_chainName, _token, _fee, _gasLimit, _expiry)
-            );
+            keccak256(abi.encode(_chainName, _token, _fee, _gasLimit, _expiry));
     }
 
     function packAsset(
@@ -291,7 +312,7 @@ contract BridgeFeeQuote is
         string memory _chainName,
         address _token
     ) public view returns (bool) {
-        Assert memory asset = assets[_chainName];
+        Asset memory asset = assets[_chainName];
         for (uint256 i = 0; i < asset.tokens.length; i++) {
             if (asset.tokens[i] == _token) {
                 return asset.isActive;
@@ -329,7 +350,7 @@ contract BridgeFeeQuote is
         if (assets[_chainName].isActive) {
             revert ChainNameAlreadyExists();
         }
-        assets[_chainName] = Assert({isActive: true, tokens: _tokens});
+        assets[_chainName] = Asset({isActive: true, tokens: _tokens});
         chainNames.push(_chainName);
         return true;
     }
