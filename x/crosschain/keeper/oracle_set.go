@@ -27,7 +27,7 @@ func (k Keeper) UpdateOracleSetExecuted(ctx sdk.Context, claim *types.MsgOracleS
 		observedOracleSet.Height = trustedOracleSet.Height
 
 		if _, err := trustedOracleSet.Equal(observedOracleSet); err != nil {
-			panic(fmt.Sprintf("Potential bridge highjacking: observed oracleSet (%+v) does not match stored oracleSet (%+v)! %s", observedOracleSet, trustedOracleSet, err.Error()))
+			return err
 		}
 	}
 	k.SetLastObservedOracleSet(ctx, observedOracleSet)

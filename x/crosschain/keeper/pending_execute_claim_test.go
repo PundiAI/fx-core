@@ -47,10 +47,11 @@ func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.crosschainKeeper.SavePendingExecuteClaim(s.ctx, tt.claim)
+			err := s.crosschainKeeper.SavePendingExecuteClaim(s.ctx, tt.claim)
+			s.Require().NoError(err)
 
-			claim, found := s.crosschainKeeper.GetPendingExecuteClaim(s.ctx, tt.claim.GetEventNonce())
-			s.Require().Equal(true, found)
+			claim, err := s.crosschainKeeper.GetPendingExecuteClaim(s.ctx, tt.claim.GetEventNonce())
+			s.Require().NoError(err)
 			s.Require().Equal(claim, tt.claim)
 		})
 	}
