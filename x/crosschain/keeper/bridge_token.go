@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -174,4 +177,31 @@ func (k Keeper) SetToken(ctx context.Context, name, symbol string, decimals uint
 	metadata := fxtypes.GetCrossChainMetadataManyToOne(name, symbol, decimals, bridgeDenoms...)
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	return nil
+}
+
+func (k Keeper) BridgeCoinSupply(ctx sdk.Context, tokenOrDenom, target string) (sdk.Coin, error) {
+	tokenPair, found := k.erc20Keeper.GetTokenPair(ctx, tokenOrDenom)
+	if !found {
+		return sdk.Coin{}, sdkerrors.ErrInvalidCoins.Wrapf("token pair not found: %s", tokenOrDenom)
+	}
+	if tokenPair.IsNativeERC20() {
+		supply, err := k.evmErc20Keeper.TotalSupply(ctx, tokenPair.GetERC20Contract())
+		if err != nil {
+			return sdk.Coin{}, err
+		}
+		return sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(supply)), nil
+	}
+	targetDenom, err := k.ManyToOne(ctx, tokenPair.GetDenom(), target)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	return k.bankKeeper.GetSupply(ctx, targetDenom), nil
+}
+
+func (k Keeper) GetBaseDenomByErc20(ctx sdk.Context, erc20Addr common.Address) (string, bool, error) {
+	tokenPair, found := k.erc20Keeper.GetTokenPair(ctx, erc20Addr.String())
+	if !found {
+		return "", false, sdkerrors.ErrInvalidAddress.Wrapf("base denom not found: %s", erc20Addr.String())
+	}
+	return tokenPair.GetDenom(), tokenPair.IsNativeCoin(), nil
 }

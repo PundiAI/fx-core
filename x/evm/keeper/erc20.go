@@ -46,6 +46,14 @@ func (k *Keeper) ERC20BalanceOf(ctx context.Context, contractAddr, addr common.A
 	return balanceRes.Value, nil
 }
 
+func (k *Keeper) TotalSupply(ctx context.Context, contractAddr common.Address) (*big.Int, error) {
+	var totalSupplyRes struct{ Value *big.Int }
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.module, contractAddr, contract.GetFIP20().ABI, "totalSupply", &totalSupplyRes); err != nil {
+		return nil, err
+	}
+	return totalSupplyRes.Value, nil
+}
+
 func (k *Keeper) ERC20Mint(ctx context.Context, contractAddr common.Address, from, receiver common.Address, amount *big.Int) error {
 	_, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, contract.GetFIP20().ABI, "mint", receiver, amount)
 	return err

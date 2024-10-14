@@ -49,6 +49,7 @@ type KeeperMockSuite struct {
 	erc20Keeper       *mock.MockErc20Keeper
 	accountKeeper     *mock.MockAccountKeeper
 	evmKeeper         *mock.MockEVMKeeper
+	evmErc20Keeper    *mock.MockEvmERC20Keeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -99,6 +100,7 @@ func (s *KeeperMockSuite) SetupTest() {
 	s.erc20Keeper = mock.NewMockErc20Keeper(ctrl)
 	s.accountKeeper = mock.NewMockAccountKeeper(ctrl)
 	s.evmKeeper = mock.NewMockEVMKeeper(ctrl)
+	s.evmErc20Keeper = mock.NewMockEvmERC20Keeper(ctrl)
 
 	s.accountKeeper.EXPECT().GetModuleAddress(s.moduleName).Return(authtypes.NewEmptyModuleAccount(s.moduleName).GetAddress()).Times(1)
 
@@ -114,6 +116,7 @@ func (s *KeeperMockSuite) SetupTest() {
 		s.erc20Keeper,
 		s.accountKeeper,
 		s.evmKeeper,
+		s.evmErc20Keeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

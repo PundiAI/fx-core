@@ -56,7 +56,7 @@ func (suite *PrecompileTestSuite) TestBridgeCoinAmount() {
 				return types.BridgeCoinAmountArgs{
 					Token:  token,
 					Target: fxtypes.MustStrToByte32(target),
-				}, fmt.Errorf("token not support: %s: evm transaction execution failed", token.String())
+				}, fmt.Errorf("token pair not found: %s: invalid coins: evm transaction execution failed", token.String())
 			},
 			success: false,
 		},

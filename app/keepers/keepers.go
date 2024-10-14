@@ -338,7 +338,7 @@ func NewAppKeeper(
 		[]evmkeeper.CustomContractFn{
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper,
-					appKeepers.IBCTransferKeeper, appKeepers.AccountKeeper, appKeepers.GovKeeper, precompileRouter)
+					appKeepers.GovKeeper, precompileRouter)
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper,
@@ -377,6 +377,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
@@ -390,6 +391,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)
@@ -405,6 +407,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
@@ -418,6 +421,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)
@@ -433,6 +437,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
@@ -446,6 +451,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)
@@ -461,6 +467,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.TronKeeper = crosschainkeeper.NewKeeper(
@@ -474,6 +481,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
+		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)

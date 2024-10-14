@@ -295,18 +295,10 @@ func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridge
 	if len(req.GetDenom()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	bridgeDenom, err := k.GetBridgeDenom(ctx, req.Denom, req.ChainName)
+	supply, err := k.BridgeCoinSupply(sdk.UnwrapSDKContext(c), req.GetDenom(), req.GetChainName())
 	if err != nil {
-		return nil, err
-	}
-	_, found := k.GetContractByBridgeDenom(ctx, bridgeDenom)
-	if !found {
 		return nil, status.Error(codes.NotFound, "denom")
 	}
-
-	supply := k.bankKeeper.GetSupply(ctx, bridgeDenom)
 	return &types.QueryBridgeCoinByDenomResponse{Coin: supply}, nil
 }
 

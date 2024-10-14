@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"math/big"
+	"time"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -52,11 +53,12 @@ type Erc20Keeper interface {
 	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (erc20types.TokenPair, bool)
 	ConvertCoin(ctx context.Context, msg *erc20types.MsgConvertCoin) (*erc20types.MsgConvertCoinResponse, error)
 	ConvertERC20(goCtx context.Context, msg *erc20types.MsgConvertERC20) (*erc20types.MsgConvertERC20Response, error)
+	GetIbcTimeout(ctx sdk.Context) time.Duration
 
 	SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
 	HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool
 	DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
-
+	SetIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64)
 	DeleteIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool
 }
 
@@ -68,7 +70,6 @@ type EVMKeeper interface {
 
 type IBCTransferKeeper interface {
 	Transfer(ctx context.Context, msg *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error)
-	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
 	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (transfertypes.DenomTrace, bool)
 }
 
@@ -87,4 +88,8 @@ type BridgeTokenKeeper interface {
 	GetAllTokens(ctx context.Context) ([]string, error)
 	UpdateBridgeDenom(ctx context.Context, denom string, bridgeDenoms ...string) error
 	SetToken(ctx context.Context, name, symbol string, decimals uint32, bridgeDenoms ...string) error
+}
+
+type EvmERC20Keeper interface {
+	TotalSupply(ctx context.Context, contractAddr common.Address) (*big.Int, error)
 }

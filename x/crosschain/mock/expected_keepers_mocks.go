@@ -13,6 +13,7 @@ import (
 	context "context"
 	big "math/big"
 	reflect "reflect"
+	time "time"
 
 	bytes "github.com/cometbft/cometbft/libs/bytes"
 	types "github.com/cosmos/cosmos-sdk/types"
@@ -453,6 +454,20 @@ func (mr *MockErc20KeeperMockRecorder) DeleteOutgoingTransferRelation(ctx, modul
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteOutgoingTransferRelation), ctx, moduleName, txID)
 }
 
+// GetIbcTimeout mocks base method.
+func (m *MockErc20Keeper) GetIbcTimeout(ctx types.Context) time.Duration {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIbcTimeout", ctx)
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+// GetIbcTimeout indicates an expected call of GetIbcTimeout.
+func (mr *MockErc20KeeperMockRecorder) GetIbcTimeout(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIbcTimeout", reflect.TypeOf((*MockErc20Keeper)(nil).GetIbcTimeout), ctx)
+}
+
 // GetTokenPair mocks base method.
 func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types5.TokenPair, bool) {
 	m.ctrl.T.Helper()
@@ -480,6 +495,18 @@ func (m *MockErc20Keeper) HasOutgoingTransferRelation(ctx types.Context, moduleN
 func (mr *MockErc20KeeperMockRecorder) HasOutgoingTransferRelation(ctx, moduleName, txID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).HasOutgoingTransferRelation), ctx, moduleName, txID)
+}
+
+// SetIBCTransferRelation mocks base method.
+func (m *MockErc20Keeper) SetIBCTransferRelation(ctx types.Context, channel string, sequence uint64) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetIBCTransferRelation", ctx, channel, sequence)
+}
+
+// SetIBCTransferRelation indicates an expected call of SetIBCTransferRelation.
+func (mr *MockErc20KeeperMockRecorder) SetIBCTransferRelation(ctx, channel, sequence any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIBCTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).SetIBCTransferRelation), ctx, channel, sequence)
 }
 
 // SetOutgoingTransferRelation mocks base method.
@@ -582,18 +609,6 @@ func (m *MockIBCTransferKeeper) GetDenomTrace(ctx types.Context, denomTraceHash 
 func (mr *MockIBCTransferKeeperMockRecorder) GetDenomTrace(ctx, denomTraceHash any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDenomTrace", reflect.TypeOf((*MockIBCTransferKeeper)(nil).GetDenomTrace), ctx, denomTraceHash)
-}
-
-// SetDenomTrace mocks base method.
-func (m *MockIBCTransferKeeper) SetDenomTrace(ctx types.Context, denomTrace types3.DenomTrace) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetDenomTrace", ctx, denomTrace)
-}
-
-// SetDenomTrace indicates an expected call of SetDenomTrace.
-func (mr *MockIBCTransferKeeperMockRecorder) SetDenomTrace(ctx, denomTrace any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDenomTrace", reflect.TypeOf((*MockIBCTransferKeeper)(nil).SetDenomTrace), ctx, denomTrace)
 }
 
 // Transfer mocks base method.
@@ -822,4 +837,42 @@ func (mr *MockBridgeTokenKeeperMockRecorder) UpdateBridgeDenom(ctx, denom any, b
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, denom}, bridgeDenoms...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBridgeDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).UpdateBridgeDenom), varargs...)
+}
+
+// MockEvmERC20Keeper is a mock of EvmERC20Keeper interface.
+type MockEvmERC20Keeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockEvmERC20KeeperMockRecorder
+}
+
+// MockEvmERC20KeeperMockRecorder is the mock recorder for MockEvmERC20Keeper.
+type MockEvmERC20KeeperMockRecorder struct {
+	mock *MockEvmERC20Keeper
+}
+
+// NewMockEvmERC20Keeper creates a new mock instance.
+func NewMockEvmERC20Keeper(ctrl *gomock.Controller) *MockEvmERC20Keeper {
+	mock := &MockEvmERC20Keeper{ctrl: ctrl}
+	mock.recorder = &MockEvmERC20KeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEvmERC20Keeper) EXPECT() *MockEvmERC20KeeperMockRecorder {
+	return m.recorder
+}
+
+// TotalSupply mocks base method.
+func (m *MockEvmERC20Keeper) TotalSupply(ctx context.Context, contractAddr common.Address) (*big.Int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TotalSupply", ctx, contractAddr)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TotalSupply indicates an expected call of TotalSupply.
+func (mr *MockEvmERC20KeeperMockRecorder) TotalSupply(ctx, contractAddr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalSupply", reflect.TypeOf((*MockEvmERC20Keeper)(nil).TotalSupply), ctx, contractAddr)
 }
