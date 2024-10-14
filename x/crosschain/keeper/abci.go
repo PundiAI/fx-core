@@ -38,10 +38,7 @@ func (k Keeper) isNeedOracleSetRequest(ctx sdk.Context) (*types.OracleSet, bool)
 	}
 	// 3. Power diff
 	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentOracleSet.Members).PowerDiff(latestOracleSet.Members))
-	powerDiffDec, err := sdkmath.LegacyNewDecFromStr(powerDiff)
-	if err != nil {
-		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %w", powerDiff, err))
-	}
+	powerDiffDec := sdkmath.LegacyMustNewDecFromStr(powerDiff)
 
 	oracleSetUpdatePowerChangePercent := k.GetOracleSetUpdatePowerChangePercent(ctx)
 	if oracleSetUpdatePowerChangePercent.GT(sdkmath.LegacyOneDec()) {
@@ -163,33 +160,35 @@ func (k Keeper) bridgeCallSlashing(ctx sdk.Context, oracles types.Oracles, signe
 //	here is the Ethereum block height at the time of the last SendToExternal or SendToFx to be observed. It's very important we do not
 //	project, if we do a slowdown on ethereum could cause a double spend. Instead timeouts will *only* occur after the timeout period
 //	AND any deposit or withdraw has occurred to update the Ethereum block height.
-func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) {
+func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) (err error) {
 	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.BatchTimeout < externalBlockHeight {
-			if err := k.RefundOutgoingTxBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
-				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
+			if err = k.RefundOutgoingTxBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
+				return true
 			}
 		}
 		return false
 	})
+	return err
 }
 
-func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) {
+func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) (err error) {
 	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
 	k.IterateOutgoingBridgeCalls(ctx, func(data *types.OutgoingBridgeCall) bool {
 		if data.Timeout > externalBlockHeight {
 			return true
 		}
 		// 1. handler bridge call refund
-		if err := k.RefundOutgoingBridgeCall(ctx, data); err != nil {
-			panic(fmt.Sprintf("failed cancel out bridge call %d while trying to execute failed: %s", data.Nonce, err))
+		if err = k.RefundOutgoingBridgeCall(ctx, data); err != nil {
+			return true
 		}
 
 		// 2. delete bridge call
 		k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce)
 		return false
 	})
+	return err
 }
 
 func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {

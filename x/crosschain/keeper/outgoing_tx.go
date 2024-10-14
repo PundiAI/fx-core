@@ -71,22 +71,25 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, rec
 	return batch.BatchNonce, nil
 }
 
-func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, batchNonce uint64) {
+func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, batchNonce uint64) (err error) {
 	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
 	if batch == nil {
-		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, batchNonce))
+		return fmt.Errorf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, batchNonce)
 	}
 
 	// Iterate through remaining batches
 	k.IterateOutgoingTxBatches(ctx, func(iterBatch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
 		if iterBatch.BatchNonce < batch.BatchNonce && iterBatch.TokenContract == tokenContract {
-			if err := k.RefundOutgoingTxBatch(ctx, tokenContract, iterBatch.BatchNonce); err != nil {
-				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
+			if err = k.RefundOutgoingTxBatch(ctx, tokenContract, iterBatch.BatchNonce); err != nil {
+				return true
 			}
 		}
 		return false
 	})
+	if err != nil {
+		return err
+	}
 
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)
@@ -97,6 +100,7 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 			k.erc20Keeper.DeleteOutgoingTransferRelation(ctx, k.moduleName, tx.Id)
 		}
 	}
+	return nil
 }
 
 // --- OUTGOING TX BATCH --- //

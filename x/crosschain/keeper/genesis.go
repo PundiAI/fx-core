@@ -92,10 +92,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	// reset attestations in state
 	for i := 0; i < len(state.Attestations); i++ {
 		att := state.Attestations[i]
-		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
-		if err != nil {
-			panic("couldn't cast to claim")
-		}
+		claim := types.MustUnpackAttestationClaim(k.cdc, &att)
 
 		// 0x17
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), &att)
@@ -106,10 +103,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	for i := 0; i < len(state.Attestations); i++ {
 
 		att := state.Attestations[i]
-		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
-		if err != nil {
-			panic("couldn't cast to claim")
-		}
+		claim := types.MustUnpackAttestationClaim(k.cdc, &att)
 		// reconstruct the latest event nonce for every validator
 		// if somehow this genesis state is saved when all attestations
 		// have been cleaned up GetLastEventNonceByOracle handles that case

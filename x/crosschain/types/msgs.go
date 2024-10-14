@@ -280,10 +280,12 @@ var (
 	_ ExternalClaim = &MsgBridgeCallResultClaim{}
 )
 
-func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (ExternalClaim, error) {
+func MustUnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) ExternalClaim {
 	var msg ExternalClaim
-	err := cdc.UnpackAny(att.Claim, &msg)
-	return msg, err
+	if err := cdc.UnpackAny(att.Claim, &msg); err != nil {
+		panic(err)
+	}
+	return msg
 }
 
 func (m *MsgClaim) ValidateBasic() (err error) {

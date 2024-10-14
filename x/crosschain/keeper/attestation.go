@@ -46,7 +46,9 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
 	if !att.Observed && claim.GetEventNonce() == k.GetLastObservedEventNonce(ctx)+1 {
-		k.TryAttestation(ctx, att, claim)
+		if err = k.TryAttestation(ctx, att, claim); err != nil {
+			return nil, err
+		}
 	}
 
 	ctx = ctx.WithGasMeter(gasMeter)
@@ -59,7 +61,7 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 // TryAttestation checks if an attestation has enough votes to be applied to the consensus state
 // and has not already been marked Observed, then calls processAttestation to actually apply it to the state,
 // and then marks it Observed and emits an event.
-func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) {
+func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) error {
 	// If the attestation has not yet been Observed, sum up the votes and see if it is ready to apply to the state.
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
@@ -71,9 +73,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		oracleAddr := sdk.MustAccAddressFromBech32(oracleStr)
 		oracle, found := k.GetOracle(ctx, oracleAddr)
 		if !found {
-			k.Logger(ctx).Error("TryAttestation", "not found oracle", oracleAddr.String(), "claimEventNonce",
-				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
-			continue
+			return types.ErrNoFoundOracle
 		}
 		oraclePower := oracle.GetPower()
 		// Add it to the attestation power's sum
@@ -104,12 +104,17 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		ctx.EventManager().EmitEvent(event)
 
 		// execute the timeout logic
-		k.cleanupTimedOutBatches(ctx)
-		k.cleanupTimeOutBridgeCall(ctx)
+		if err = k.cleanupTimedOutBatches(ctx); err != nil {
+			return err
+		}
+		if err = k.cleanupTimeOutBridgeCall(ctx); err != nil {
+			return err
+		}
 
 		k.pruneAttestations(ctx)
 		break
 	}
+	return nil
 }
 
 // processAttestation actually applies the attestation to the consensus state
@@ -168,10 +173,7 @@ func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attes
 	for ; iter.Valid(); iter.Next() {
 		att := new(types.Attestation)
 		k.cdc.MustUnmarshal(iter.Value(), att)
-		claim, err := types.UnpackAttestationClaim(k.cdc, att)
-		if err != nil {
-			panic("couldn't cast to claim")
-		}
+		claim := types.MustUnpackAttestationClaim(k.cdc, att)
 		// cb returns true to stop early
 		if cb(att, claim) {
 			return

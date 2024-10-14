@@ -11,10 +11,10 @@ import (
 func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.ExternalClaim) error {
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToFxClaim, *types.MsgBridgeCallClaim, *types.MsgBridgeCallResultClaim:
-		k.SavePendingExecuteClaim(ctx, externalClaim)
+		return k.SavePendingExecuteClaim(ctx, externalClaim)
 
 	case *types.MsgSendToExternalClaim:
-		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
+		return k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
 
 	case *types.MsgBridgeTokenClaim:
 		return k.AddBridgeTokenExecuted(ctx, claim)
@@ -25,13 +25,12 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 	default:
 		return types.ErrInvalid.Wrapf("event type: %s", claim.GetType())
 	}
-	return nil
 }
 
 func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) error {
-	externalClaim, found := k.GetPendingExecuteClaim(ctx, eventNonce)
-	if !found {
-		return sdkerrors.ErrInvalidRequest.Wrap("claim not found")
+	externalClaim, err := k.GetPendingExecuteClaim(ctx, eventNonce)
+	if err != nil {
+		return err
 	}
 	k.DeletePendingExecuteClaim(ctx, eventNonce)
 	switch claim := externalClaim.(type) {
