@@ -119,6 +119,7 @@ var (
 	OutgoingBridgeCallNonceKey           = []byte{0x48}
 	OutgoingBridgeCallAddressAndNonceKey = []byte{0x49}
 
+	// Deprecated: remove data in upgrade
 	BridgeCallFromMsgKey = []byte{0x51}
 
 	PendingExecuteClaimKey = []byte{0x54}
@@ -233,10 +234,6 @@ func ParseOutgoingBridgeCallNonce(key []byte, address string) (nonce uint64) {
 	addrNonce := bytes.TrimPrefix(key, OutgoingBridgeCallAddressAndNonceKey)
 	nonceBytes := bytes.TrimPrefix(addrNonce, []byte(address))
 	return sdk.BigEndianToUint64(nonceBytes)
-}
-
-func GetBridgeCallFromMsgKey(txID uint64) []byte {
-	return append(BridgeCallFromMsgKey, sdk.Uint64ToBigEndian(txID)...)
 }
 
 func GetPendingExecuteClaimKey(nonce uint64) []byte {

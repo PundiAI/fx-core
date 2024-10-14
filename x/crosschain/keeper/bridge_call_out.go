@@ -5,15 +5,22 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gogotypes "github.com/cosmos/gogoproto/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
+	"github.com/functionx/fx-core/v8/contract"
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -225,4 +232,105 @@ func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uin
 			break
 		}
 	}
+}
+
+func (k Keeper) BridgeCallBaseCoin(
+	ctx sdk.Context,
+	from, refund, to common.Address,
+	coins sdk.Coins,
+	data, memo []byte,
+	target string,
+	originTokenAmount sdkmath.Int,
+) (uint64, error) {
+	fxTarget := fxtypes.ParseFxTarget(target)
+	if fxTarget.IsIBC() {
+		if !coins.IsValid() || len(coins) != 1 {
+			return 0, sdkerrors.ErrInvalidCoins.Wrapf("ibc transfer with coins: %s", coins.String())
+		}
+		amount := coins[0]
+		toAddr, err := fxTarget.ReceiveAddrToStr(to.Bytes())
+		if err != nil {
+			return 0, sdkerrors.ErrInvalidAddress.Wrapf("ibc transfer target %s to: %s", fxTarget.GetTarget(), to.String())
+		}
+		return k.IBCTransfer(ctx, from.Bytes(), toAddr, amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt()), fxTarget, string(memo), originTokenAmount.IsZero())
+	}
+	// todo record origin amount
+	return k.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, 0)
+}
+
+func (k Keeper) CrossChainBaseCoin(
+	ctx sdk.Context,
+	from sdk.AccAddress,
+	receipt string,
+	amount, fee sdk.Coin,
+	target string,
+	memo string,
+	originToken bool,
+) error {
+	fxTarget := fxtypes.ParseFxTarget(target)
+	if fxTarget.IsIBC() {
+		_, err := k.IBCTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, memo, originToken)
+		return err
+	}
+	if err := types.ValidateExternalAddr(fxTarget.GetTarget(), receipt); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
+	}
+	batchNonce, err := k.BuildOutgoingTxBatch(ctx, from, receipt, amount, fee)
+	if err != nil {
+		return err
+	}
+	if !originToken {
+		k.erc20Keeper.SetOutgoingTransferRelation(ctx, fxTarget.GetTarget(), batchNonce)
+	}
+	return nil
+}
+
+func (k Keeper) IBCTransfer(
+	ctx sdk.Context,
+	from sdk.AccAddress,
+	to string,
+	amount, fee sdk.Coin,
+	fxTarget fxtypes.FxTarget,
+	memo string,
+	originToken bool,
+) (uint64, error) {
+	if !fee.IsZero() {
+		return 0, fmt.Errorf("ibc transfer fee must be zero: %s", fee.String())
+	}
+	if strings.ToLower(fxTarget.Prefix) == contract.EthereumAddressPrefix {
+		if err := contract.ValidateEthereumAddress(to); err != nil {
+			return 0, fmt.Errorf("invalid to address: %s", to)
+		}
+	} else {
+		if _, err := sdk.GetFromBech32(to, fxTarget.Prefix); err != nil {
+			return 0, fmt.Errorf("invalid to address: %s", to)
+		}
+	}
+	if !originToken {
+		var err error
+		amount, err = k.BaseCoinToIBCCoin(ctx, amount, from, fxTarget.String())
+		if err != nil {
+			return 0, err
+		}
+	}
+	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(k.erc20Keeper.GetIbcTimeout(ctx))
+	transferResponse, err := k.ibcTransferKeeper.Transfer(ctx,
+		transfertypes.NewMsgTransfer(
+			fxTarget.SourcePort,
+			fxTarget.SourceChannel,
+			amount,
+			from.String(),
+			to,
+			ibcclienttypes.ZeroHeight(),
+			ibcTimeoutTimestamp,
+			memo,
+		),
+	)
+	if err != nil {
+		return 0, fmt.Errorf("ibc transfer error: %s", err.Error())
+	}
+	if !originToken {
+		k.erc20Keeper.SetIBCTransferRelation(ctx, fxTarget.SourceChannel, transferResponse.Sequence)
+	}
+	return transferResponse.Sequence, nil
 }

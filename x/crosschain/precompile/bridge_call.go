@@ -12,7 +12,6 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
@@ -60,27 +59,27 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		value := contract.Value()
 		originTokenAmount := sdkmath.ZeroInt()
 		if value.Cmp(big.NewInt(0)) == 1 {
-			coin, err := m.handlerOriginToken(ctx, evm, sender, value)
-			if err != nil {
+			coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value))
+			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(coin)); err != nil {
 				return err
 			}
 			baseCoins = append(baseCoins, coin)
 			originTokenAmount = coin.Amount
 		}
-		crosschainKeeper, ok := m.router.GetRoute(ethtypes.ModuleName)
+		crosschainKeeper, ok := m.router.GetRouteWithIBC(args.DstChain)
 		if !ok {
 			return errors.New("invalid router")
 		}
+
 		for i, token := range args.Tokens {
-			coin, err := crosschainKeeper.EvmToBaseCoin(ctx, token.String(), args.Amounts[i], sender)
+			coin, err := m.EvmTokenToBase(ctx, evm, crosschainKeeper, sender, token, args.Amounts[i])
 			if err != nil {
 				return err
 			}
 			baseCoins = append(baseCoins, coin)
 		}
-
-		fxTarget := fxtypes.ParseFxTarget(args.DstChain)
-		nonce, err := m.handlerBridgeCall(ctx, sender, args.Refund, args.To, baseCoins, args.Data, args.Memo, fxTarget, originTokenAmount)
+		nonce, err := crosschainKeeper.BridgeCallBaseCoin(ctx, sender, args.Refund, args.To,
+			baseCoins, args.Data, args.Memo, args.DstChain, originTokenAmount)
 		if err != nil {
 			return err
 		}
