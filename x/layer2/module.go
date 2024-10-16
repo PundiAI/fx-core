@@ -15,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"github.com/functionx/fx-core/v8/x/crosschain"
 	crosschaincli "github.com/functionx/fx-core/v8/x/crosschain/client/cli"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -81,6 +82,7 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 
 // AppModule object for module implementation
 type AppModule struct {
+	crosschain.AutoCLIAppModule
 	AppModuleBasic
 	keeper crosschainkeeper.Keeper
 }
@@ -88,8 +90,9 @@ type AppModule struct {
 // NewAppModule creates a new AppModule Object
 func NewAppModule(keeper crosschainkeeper.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
-		keeper:         keeper,
+		AutoCLIAppModule: crosschain.AutoCLIAppModule{ModuleName: types.ModuleName},
+		AppModuleBasic:   AppModuleBasic{},
+		keeper:           keeper,
 	}
 }
 

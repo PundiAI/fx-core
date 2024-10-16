@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
@@ -39,14 +38,6 @@ func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {
 
 func getTxSubCmds(chainName string) []*cobra.Command {
 	cmds := []*cobra.Command{
-		CmdBoundedOracle(chainName),
-		CmdUnboundedOracle(chainName),
-		CmdReDelegate(chainName),
-		CmdAddDelegate(chainName),
-
-		// send to external chain
-		CmdSendToExternal(chainName),
-
 		// oracle consensus confirm
 		CmdOracleSetConfirm(chainName),
 		CmdRequestBatchConfirm(chainName),
@@ -55,135 +46,6 @@ func getTxSubCmds(chainName string) []*cobra.Command {
 		flags.AddTxFlagsToCmd(command)
 	}
 	return cmds
-}
-
-func CmdBoundedOracle(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "bounded-oracle [validator-address] [bridger-address] [external-address] [delegate-amount]",
-		Short: "Allows oracle to delegate their voting responsibilities to a given key.",
-		Args:  cobra.ExactArgs(4),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			amount, err := sdk.ParseCoinNormalized(args[3])
-			if err != nil {
-				return err
-			}
-			msg := types.MsgBondedOracle{
-				OracleAddress:    cliCtx.GetFromAddress().String(),
-				ValidatorAddress: args[0],
-				BridgerAddress:   args[1],
-				ExternalAddress:  args[2],
-				DelegateAmount:   amount,
-				ChainName:        chainName,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
-		},
-	}
-	return cmd
-}
-
-func CmdUnboundedOracle(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "unbounded-oracle",
-		Short: "Quit the oracle",
-		Args:  cobra.ExactArgs(4),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			msg := types.MsgUnbondedOracle{
-				OracleAddress: cliCtx.GetFromAddress().String(),
-				ChainName:     chainName,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
-		},
-	}
-	return cmd
-}
-
-func CmdAddDelegate(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "add-delegate [delegate-amount]",
-		Short: "Allows oracle add delegate.",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			amount, err := sdk.ParseCoinNormalized(args[0])
-			if err != nil {
-				return err
-			}
-			msg := types.MsgAddDelegate{
-				OracleAddress: cliCtx.GetFromAddress().String(),
-				Amount:        amount,
-				ChainName:     chainName,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
-		},
-	}
-	return cmd
-}
-
-func CmdReDelegate(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "re-delegate [validator-address]",
-		Short: "Allows oracle re delegate.",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg := types.MsgReDelegate{
-				OracleAddress:    cliCtx.GetFromAddress().String(),
-				ValidatorAddress: args[0],
-				ChainName:        chainName,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
-		},
-	}
-	return cmd
-}
-
-func CmdSendToExternal(chainName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "send-to-external [external-dest] [amount] [bridge-fee]",
-		Short: "Adds a new entry to the transaction pool to withdraw an amount from the bridge contract",
-		Args:  cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			amount, err := sdk.ParseCoinNormalized(args[1])
-			if err != nil {
-				return fmt.Errorf("amount: %w", err)
-			}
-			bridgeFee, err := sdk.ParseCoinNormalized(args[2])
-			if err != nil {
-				return fmt.Errorf("bridge fee: %w", err)
-			}
-
-			msg := types.MsgSendToExternal{
-				Sender:    cliCtx.GetFromAddress().String(),
-				Dest:      args[0],
-				Amount:    amount,
-				BridgeFee: bridgeFee,
-				ChainName: chainName,
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
-		},
-	}
-	return cmd
 }
 
 func CmdRequestBatchConfirm(chainName string) *cobra.Command {
