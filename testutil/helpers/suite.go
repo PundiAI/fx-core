@@ -3,7 +3,6 @@ package helpers
 import (
 	"fmt"
 	"math/big"
-	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -14,7 +13,6 @@ import (
 	tmtime "github.com/cometbft/cometbft/types/time"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -31,7 +29,6 @@ import (
 
 	"github.com/functionx/fx-core/v8/app"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 type BaseSuite struct {
@@ -205,18 +202,6 @@ func (s *BaseSuite) NewBridgeCoin(module string, amounts ...sdkmath.Int) (sdk.Co
 	tokenAddr := GenExternalAddr(module)
 	bridgeDenom := crosschaintypes.NewBridgeDenom(module, tokenAddr)
 	return sdk.NewCoin(bridgeDenom, amount), tokenAddr
-}
-
-func (s *BaseSuite) AddTokenPair(denom string, isNative bool) common.Address {
-	contractOwner := erc20types.OWNER_EXTERNAL
-	if isNative {
-		contractOwner = erc20types.OWNER_MODULE
-	}
-	erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
-	erc20Addr, err := s.App.Erc20Keeper.DeployUpgradableToken(sdk.UnwrapSDKContext(s.Ctx), erc20ModuleAddr, "Test Token", strings.ToUpper(denom), 18)
-	s.Require().NoError(err)
-	s.App.Erc20Keeper.AddTokenPair(s.Ctx, erc20types.TokenPair{Erc20Address: erc20Addr.String(), Denom: denom, Enabled: true, ContractOwner: contractOwner})
-	return erc20Addr
 }
 
 func (s *BaseSuite) GenIBCTransferChannel() (portID, channelID string) {

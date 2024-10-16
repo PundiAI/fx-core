@@ -51,35 +51,40 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		return nil, err
 	}
 
+	sender := contract.Caller()
+	value := contract.Value()
+
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	var result []byte
 	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		sender := contract.Caller()
 		baseCoins := make([]sdk.Coin, 0, len(args.Tokens)+1)
-		value := contract.Value()
 		originTokenAmount := sdkmath.ZeroInt()
 		if value.Cmp(big.NewInt(0)) == 1 {
-			coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value))
-			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(coin)); err != nil {
+			baseCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value))
+			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(baseCoin)); err != nil {
 				return err
 			}
-			baseCoins = append(baseCoins, coin)
-			originTokenAmount = coin.Amount
+			baseCoins = append(baseCoins, baseCoin)
+			originTokenAmount = baseCoin.Amount
 		}
-		crosschainKeeper, ok := m.router.GetRouteWithIBC(args.DstChain)
+		fxTarget, err := crosschaintypes.ParseFxTarget(args.DstChain)
+		if err != nil {
+			return err
+		}
+		crosschainKeeper, ok := m.router.GetRoute(fxTarget.GetModuleName())
 		if !ok {
 			return errors.New("invalid router")
 		}
 
 		for i, token := range args.Tokens {
-			coin, err := m.EvmTokenToBase(ctx, evm, crosschainKeeper, sender, token, args.Amounts[i])
+			baseCoin, err := m.EvmTokenToBase(ctx, evm, crosschainKeeper, sender, token, args.Amounts[i])
 			if err != nil {
 				return err
 			}
-			baseCoins = append(baseCoins, coin)
+			baseCoins = append(baseCoins, baseCoin)
 		}
 		nonce, err := crosschainKeeper.BridgeCallBaseCoin(ctx, sender, args.Refund, args.To,
-			baseCoins, args.Data, args.Memo, args.DstChain, originTokenAmount)
+			baseCoins, args.Data, args.Memo, fxTarget, originTokenAmount)
 		if err != nil {
 			return err
 		}

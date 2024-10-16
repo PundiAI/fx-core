@@ -171,15 +171,13 @@ func TestAminoEncode(t *testing.T) {
 		},
 		{
 			name:     "gov-v1-MsgSubmitProposal-erc20-MsgUpdateParams",
-			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":[],"messages":[{"type":"erc20/MsgUpdateParams","value":{"authority":"1","params":{"enable_erc20":true,"enable_evm_hook":true,"ibc_timeout":"1"}}}]}}`,
+			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":[],"messages":[{"type":"erc20/MsgUpdateParams","value":{"authority":"1","params":{"enable_erc20":true}}}]}}`,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
 					mustNewAnyWithValue(&erc20types.MsgUpdateParams{
 						Authority: "1",
 						Params: erc20types.Params{
-							EnableErc20:   true,
-							EnableEVMHook: true,
-							IbcTimeout:    1,
+							EnableErc20: true,
 						},
 					}),
 				},

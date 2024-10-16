@@ -20,14 +20,12 @@ type Contract struct {
 
 func NewPrecompiledContract(
 	bankKeeper BankKeeper,
-	erc20Keeper Erc20Keeper,
 	govKeeper GovKeeper,
 	router *Router,
 ) *Contract {
 	keeper := &Keeper{
-		bankKeeper:  bankKeeper,
-		erc20Keeper: erc20Keeper,
-		router:      router,
+		bankKeeper: bankKeeper,
+		router:     router,
 	}
 	return &Contract{
 		govKeeper: govKeeper,

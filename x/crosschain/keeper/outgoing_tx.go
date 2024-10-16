@@ -13,8 +13,11 @@ import (
 )
 
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	tokenContract, err := k.BaseCoinToBridgeToken(ctx, amount.Add(fee), sender)
+	bridgeToken, err := k.BaseCoinToBridgeToken(ctx, sender, amount.Add(fee))
 	if err != nil {
+		return 0, err
+	}
+	if err = k.WithdrawBridgeToken(ctx, sender, amount.Amount, bridgeToken); err != nil {
 		return 0, err
 	}
 
@@ -32,11 +35,11 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, rec
 				Id:          k.autoIncrementID(ctx, types.KeyLastTxPoolID),
 				Sender:      sender.String(),
 				DestAddress: receiver,
-				Token:       types.NewERC20Token(amount.Amount, tokenContract),
-				Fee:         types.NewERC20Token(fee.Amount, tokenContract),
+				Token:       types.NewERC20Token(amount.Amount, bridgeToken.Contract),
+				Fee:         types.NewERC20Token(fee.Amount, bridgeToken.Contract),
 			},
 		},
-		TokenContract: tokenContract,
+		TokenContract: bridgeToken.Contract,
 		FeeReceive:    feeReceive,
 		Block:         uint64(ctx.BlockHeight()), // set the current block height when storing the batch
 	}
@@ -96,8 +99,11 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 	k.DeleteBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract)
 	// Delete outgoing transfer relation
 	for _, tx := range batch.Transactions {
-		if k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, tx.Id) {
-			k.erc20Keeper.DeleteOutgoingTransferRelation(ctx, k.moduleName, tx.Id)
+		key := types.NewOriginTokenKey(k.moduleName, tx.Id)
+		if found, err := k.erc20Keeper.HasCache(ctx, key); err == nil && found {
+			if err = k.erc20Keeper.DeleteCache(ctx, key); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

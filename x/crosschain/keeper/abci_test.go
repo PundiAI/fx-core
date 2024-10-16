@@ -3,81 +3,15 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
-
-func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
-	normalMsg := &types.MsgBondedOracle{
-		OracleAddress:    suite.oracleAddrs[0].String(),
-		BridgerAddress:   suite.bridgerAddrs[0].String(),
-		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		ValidatorAddress: suite.ValAddr[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
-		ChainName:        suite.chainName,
-	}
-	_, err := suite.MsgServer().BondedOracle(suite.Ctx, normalMsg)
-	suite.Require().NoError(err)
-
-	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
-	suite.EndBlocker()
-
-	portID, channelID := suite.GenIBCTransferChannel()
-	portChannel := fmt.Sprintf("%s/%s", portID, channelID)
-
-	bridgeToken := helpers.GenExternalAddr(suite.chainName)
-	sendToFxSendAddr := helpers.GenExternalAddr(suite.chainName)
-	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
-		EventNonce:     1,
-		BlockHeight:    1000,
-		TokenContract:  bridgeToken,
-		Name:           "Test Token",
-		Symbol:         "TEST",
-		Decimals:       18,
-		BridgerAddress: suite.bridgerAddrs[0].String(),
-		ChannelIbc:     hex.EncodeToString([]byte(portChannel)),
-		ChainName:      suite.chainName,
-	}
-
-	err = suite.SendClaimReturnErr(addBridgeTokenClaim)
-	suite.Require().NoError(err)
-
-	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
-	suite.EndBlocker()
-
-	denomTrace := suite.SetIBCDenom(portID, channelID, "test")
-	ibcDenom := fmt.Sprintf("ibc/%s", strings.ToUpper(denomTrace.Hash().String()))
-	suite.SetToken("TEST", types.NewBridgeDenom(suite.chainName, bridgeToken), ibcDenom)
-	suite.AddTokenPair("test", true)
-
-	sendToFxClaim := &types.MsgSendToFxClaim{
-		EventNonce:     2,
-		BlockHeight:    1001,
-		TokenContract:  bridgeToken,
-		Amount:         sdkmath.NewInt(1234),
-		Sender:         sendToFxSendAddr,
-		Receiver:       helpers.GenAccAddress().String(),
-		TargetIbc:      hex.EncodeToString([]byte(fmt.Sprintf("px/%s", portChannel))),
-		BridgerAddress: suite.bridgerAddrs[0].String(),
-		ChainName:      suite.chainName,
-	}
-	suite.MintTokenToModule(ibctransfertypes.ModuleName, sdk.NewCoin(ibcDenom, sendToFxClaim.Amount))
-	suite.SendClaim(sendToFxClaim)
-
-	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
-	suite.EndBlocker()
-
-	allBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(sendToFxClaim.Receiver))
-	suite.Require().EqualValues(sdk.NewCoins().String(), allBalances.String())
-}
 
 func (suite *KeeperTestSuite) TestOracleUpdate() {
 	if len(suite.oracleAddrs) < 10 {

@@ -4130,100 +4130,6 @@ paths:
           type: string
       tags:
         - Query
-  /fx/erc20/v1/alias/denom:
-    get:
-      summary: Retrieves registered alias denom
-      operationId: AliasDenom
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              denom:
-                type: string
-            description: >-
-              QueryAliasDenomResponse is the response type for the
-              Query/AliasDenom RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: alias
-          in: query
-          required: false
-          type: string
-      tags:
-        - Query
-  /fx/erc20/v1/denom/aliases:
-    get:
-      summary: Retrieves registered denom aliases
-      operationId: DenomAliases
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              aliases:
-                type: array
-                items:
-                  type: string
-            description: >-
-              QueryDenomAliasesResponse is the response type for the
-              Query/DenomAliases RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: denom
-          in: query
-          required: false
-          type: string
-      tags:
-        - Query
   /fx/erc20/v1/params:
     get:
       summary: Params retrieves the erc20 module params
@@ -4239,22 +4145,6 @@ paths:
                 properties:
                   enable_erc20:
                     type: boolean
-                    description: >-
-                      parameter to enable the intrarelaying of Cosmos coins <-->
-                      ERC20 tokens.
-                  enable_evm_hook:
-                    type: boolean
-                    description: >-
-                      parameter to enable the EVM hook to convert an ERC20 token
-                      to a Cosmos
-
-                      Coin by transferring the Tokens through a MsgEthereumTx to
-                      the
-
-                      ModuleAddress Ethereum address.
-                  ibc_timeout:
-                    type: string
-                    title: parameter to set ibc timeout
                 title: Params defines the erc20 module params
             description: |-
               QueryParamsResponse is the response type for the Query/Params RPC
@@ -4285,7 +4175,7 @@ paths:
         - Query
   /fx/erc20/v1/token_pairs:
     get:
-      summary: Retrieves registered token pairs
+      summary: 'Deprecated: TokenPairs Retrieves registered token pairs'
       operationId: TokenPairs
       responses:
         '200':
@@ -4293,7 +4183,7 @@ paths:
           schema:
             type: object
             properties:
-              token_pairs:
+              erc20_tokens:
                 type: array
                 items:
                   type: object
@@ -4309,7 +4199,7 @@ paths:
                       title: shows token mapping enable status
                     contract_owner:
                       title: >-
-                        ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2
+                        ERC20 owner address ENUM (0 invalid, 1 module account, 2
                         external address)
                       type: string
                       enum:
@@ -4318,16 +4208,16 @@ paths:
                         - OWNER_EXTERNAL
                       default: OWNER_UNSPECIFIED
                       description: |-
-                        Owner enumerates the ownership of a ERC20 contract.
+                        ERC20Owner enumerates the ownership of a ERC20 contract.
 
                          - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
                          - OWNER_MODULE: OWNER_MODULE erc20 is owned by the erc20 module account.
-                         - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external account.
+                         - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external address.
                   description: >-
-                    TokenPair defines an instance that records pairing
-                    consisting of a Cosmos
+                    ERC20Token defines an instance that records pairing
+                    consisting of a
 
-                    native Coin and an ERC20 token address.
+                    Cosmos native Coin and an ERC20 token address.
               pagination:
                 description: pagination defines the pagination in the response.
                 type: object
@@ -4435,7 +4325,7 @@ paths:
         - Query
   /fx/erc20/v1/token_pairs/{token}:
     get:
-      summary: Retrieves a registered token pair
+      summary: 'Deprecated: TokenPair Retrieves a registered token pair'
       operationId: TokenPair
       responses:
         '200':
@@ -4443,7 +4333,7 @@ paths:
           schema:
             type: object
             properties:
-              token_pair:
+              erc20_token:
                 type: object
                 properties:
                   erc20_address:
@@ -4457,7 +4347,7 @@ paths:
                     title: shows token mapping enable status
                   contract_owner:
                     title: >-
-                      ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2
+                      ERC20 owner address ENUM (0 invalid, 1 module account, 2
                       external address)
                     type: string
                     enum:
@@ -4466,16 +4356,16 @@ paths:
                       - OWNER_EXTERNAL
                     default: OWNER_UNSPECIFIED
                     description: |-
-                      Owner enumerates the ownership of a ERC20 contract.
+                      ERC20Owner enumerates the ownership of a ERC20 contract.
 
                        - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
                        - OWNER_MODULE: OWNER_MODULE erc20 is owned by the erc20 module account.
-                       - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external account.
+                       - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external address.
                 description: >-
-                  TokenPair defines an instance that records pairing consisting
-                  of a Cosmos
+                  ERC20Token defines an instance that records pairing consisting
+                  of a
 
-                  native Coin and an ERC20 token address.
+                  Cosmos native Coin and an ERC20 token address.
             description: >-
               QueryTokenPairResponse is the response type for the
               Query/TokenPair RPC
@@ -41469,6 +41359,37 @@ definitions:
                repeated Bar results = 1;
                PageResponse page = 2;
        }
+  fx.erc20.v1.ERC20Token:
+    type: object
+    properties:
+      erc20_address:
+        type: string
+        title: address of ERC20 contract token
+      denom:
+        type: string
+        title: cosmos base denomination to be mapped to
+      enabled:
+        type: boolean
+        title: shows token mapping enable status
+      contract_owner:
+        title: >-
+          ERC20 owner address ENUM (0 invalid, 1 module account, 2 external
+          address)
+        type: string
+        enum:
+          - OWNER_UNSPECIFIED
+          - OWNER_MODULE
+          - OWNER_EXTERNAL
+        default: OWNER_UNSPECIFIED
+        description: |-
+          ERC20Owner enumerates the ownership of a ERC20 contract.
+
+           - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
+           - OWNER_MODULE: OWNER_MODULE erc20 is owned by the erc20 module account.
+           - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external address.
+    description: |-
+      ERC20Token defines an instance that records pairing consisting of a
+      Cosmos native Coin and an ERC20 token address.
   fx.erc20.v1.Owner:
     type: string
     enum:
@@ -41477,49 +41398,17 @@ definitions:
       - OWNER_EXTERNAL
     default: OWNER_UNSPECIFIED
     description: |-
-      Owner enumerates the ownership of a ERC20 contract.
+      ERC20Owner enumerates the ownership of a ERC20 contract.
 
        - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
        - OWNER_MODULE: OWNER_MODULE erc20 is owned by the erc20 module account.
-       - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external account.
+       - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external address.
   fx.erc20.v1.Params:
     type: object
     properties:
       enable_erc20:
         type: boolean
-        description: >-
-          parameter to enable the intrarelaying of Cosmos coins <--> ERC20
-          tokens.
-      enable_evm_hook:
-        type: boolean
-        description: |-
-          parameter to enable the EVM hook to convert an ERC20 token to a Cosmos
-          Coin by transferring the Tokens through a MsgEthereumTx to the
-          ModuleAddress Ethereum address.
-      ibc_timeout:
-        type: string
-        title: parameter to set ibc timeout
     title: Params defines the erc20 module params
-  fx.erc20.v1.QueryAliasDenomResponse:
-    type: object
-    properties:
-      denom:
-        type: string
-    description: |-
-      QueryAliasDenomResponse is the response type for the Query/AliasDenom RPC
-      method.
-  fx.erc20.v1.QueryDenomAliasesResponse:
-    type: object
-    properties:
-      aliases:
-        type: array
-        items:
-          type: string
-    description: >-
-      QueryDenomAliasesResponse is the response type for the Query/DenomAliases
-      RPC
-
-      method.
   fx.erc20.v1.QueryParamsResponse:
     type: object
     properties:
@@ -41528,21 +41417,6 @@ definitions:
         properties:
           enable_erc20:
             type: boolean
-            description: >-
-              parameter to enable the intrarelaying of Cosmos coins <--> ERC20
-              tokens.
-          enable_evm_hook:
-            type: boolean
-            description: >-
-              parameter to enable the EVM hook to convert an ERC20 token to a
-              Cosmos
-
-              Coin by transferring the Tokens through a MsgEthereumTx to the
-
-              ModuleAddress Ethereum address.
-          ibc_timeout:
-            type: string
-            title: parameter to set ibc timeout
         title: Params defines the erc20 module params
     description: |-
       QueryParamsResponse is the response type for the Query/Params RPC
@@ -41550,7 +41424,7 @@ definitions:
   fx.erc20.v1.QueryTokenPairResponse:
     type: object
     properties:
-      token_pair:
+      erc20_token:
         type: object
         properties:
           erc20_address:
@@ -41564,7 +41438,7 @@ definitions:
             title: shows token mapping enable status
           contract_owner:
             title: >-
-              ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external
+              ERC20 owner address ENUM (0 invalid, 1 module account, 2 external
               address)
             type: string
             enum:
@@ -41573,23 +41447,21 @@ definitions:
               - OWNER_EXTERNAL
             default: OWNER_UNSPECIFIED
             description: |-
-              Owner enumerates the ownership of a ERC20 contract.
+              ERC20Owner enumerates the ownership of a ERC20 contract.
 
                - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
                - OWNER_MODULE: OWNER_MODULE erc20 is owned by the erc20 module account.
-               - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external account.
-        description: >-
-          TokenPair defines an instance that records pairing consisting of a
-          Cosmos
-
-          native Coin and an ERC20 token address.
+               - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external address.
+        description: |-
+          ERC20Token defines an instance that records pairing consisting of a
+          Cosmos native Coin and an ERC20 token address.
     description: |-
       QueryTokenPairResponse is the response type for the Query/TokenPair RPC
       method.
   fx.erc20.v1.QueryTokenPairsResponse:
     type: object
     properties:
-      token_pairs:
+      erc20_tokens:
         type: array
         items:
           type: object
@@ -41605,8 +41477,8 @@ definitions:
               title: shows token mapping enable status
             contract_owner:
               title: >-
-                ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external
-                address)
+                ERC20 owner address ENUM (0 invalid, 1 module account, 2
+                external address)
               type: string
               enum:
                 - OWNER_UNSPECIFIED
@@ -41614,16 +41486,14 @@ definitions:
                 - OWNER_EXTERNAL
               default: OWNER_UNSPECIFIED
               description: |-
-                Owner enumerates the ownership of a ERC20 contract.
+                ERC20Owner enumerates the ownership of a ERC20 contract.
 
                  - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
                  - OWNER_MODULE: OWNER_MODULE erc20 is owned by the erc20 module account.
-                 - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external account.
-          description: >-
-            TokenPair defines an instance that records pairing consisting of a
-            Cosmos
-
-            native Coin and an ERC20 token address.
+                 - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external address.
+          description: |-
+            ERC20Token defines an instance that records pairing consisting of a
+            Cosmos native Coin and an ERC20 token address.
       pagination:
         description: pagination defines the pagination in the response.
         type: object
@@ -41646,37 +41516,6 @@ definitions:
     description: |-
       QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
       method.
-  fx.erc20.v1.TokenPair:
-    type: object
-    properties:
-      erc20_address:
-        type: string
-        title: address of ERC20 contract token
-      denom:
-        type: string
-        title: cosmos base denomination to be mapped to
-      enabled:
-        type: boolean
-        title: shows token mapping enable status
-      contract_owner:
-        title: >-
-          ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external
-          address)
-        type: string
-        enum:
-          - OWNER_UNSPECIFIED
-          - OWNER_MODULE
-          - OWNER_EXTERNAL
-        default: OWNER_UNSPECIFIED
-        description: |-
-          Owner enumerates the ownership of a ERC20 contract.
-
-           - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-           - OWNER_MODULE: OWNER_MODULE erc20 is owned by the erc20 module account.
-           - OWNER_EXTERNAL: EXTERNAL erc20 is owned by an external account.
-    description: |-
-      TokenPair defines an instance that records pairing consisting of a Cosmos
-      native Coin and an ERC20 token address.
   fx.migrate.v1.MigrateRecord:
     type: object
     properties:

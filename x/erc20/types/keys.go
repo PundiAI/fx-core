@@ -1,9 +1,7 @@
 package types
 
 import (
-	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/collections"
 )
 
 // constants
@@ -12,9 +10,6 @@ const (
 
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName
-
-	// RouterKey to be used for message routing
-	RouterKey = ModuleName
 )
 
 // KVStore key prefixes
@@ -26,15 +21,11 @@ var (
 	KeyPrefixAliasDenom       = []byte{0x05}
 	ParamsKey                 = []byte{0x06}
 	KeyPrefixOutgoingTransfer = []byte{0x07}
+
+	DenomIndexKey  = collections.NewPrefix(1)
+	ParamsKey2     = collections.NewPrefix(2)
+	ERC20TokenKey  = collections.NewPrefix(3)
+	BridgeTokenKey = collections.NewPrefix(4)
+	IBCTokenKey    = collections.NewPrefix(5)
+	CacheKey       = collections.NewPrefix(6)
 )
-
-// GetIBCTransferKey [sourceChannel/sequence]
-func GetIBCTransferKey(sourceChannel string, sequence uint64) []byte {
-	key := fmt.Sprintf("%s/%d", sourceChannel, sequence)
-	return append(KeyPrefixIBCTransfer, []byte(key)...)
-}
-
-// GetOutgoingTransferKey [txID]
-func GetOutgoingTransferKey(moduleName string, txID uint64) []byte {
-	return append(append(KeyPrefixOutgoingTransfer, []byte(moduleName)...), sdk.Uint64ToBigEndian(txID)...)
-}

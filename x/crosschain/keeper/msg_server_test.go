@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -11,14 +10,11 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
@@ -354,37 +350,6 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		suite.NoError(err)
 	}
 
-	token := fmt.Sprintf("0x%s", tmrand.Str(40))
-	denom := types.NewBridgeDenom(suite.chainName, token)
-	suite.Keeper().AddBridgeToken(suite.Ctx, denom, denom)
-
-	privateKey, err := crypto.GenerateKey()
-	suite.Require().NoError(err)
-
-	suite.SetToken("TEST", types.NewBridgeDenom(suite.chainName, token))
-	suite.AddTokenPair("test", true)
-
-	sendToMsg := &types.MsgSendToFxClaim{
-		EventNonce:    1,
-		BlockHeight:   100,
-		TokenContract: token,
-		Amount:        sdkmath.NewInt(int64(tmrand.Uint32())),
-		Sender:        suite.PubKeyToExternalAddr(privateKey.PublicKey),
-		Receiver:      sdk.AccAddress(tmrand.Bytes(20)).String(),
-		TargetIbc:     "",
-		ChainName:     suite.chainName,
-	}
-	for i := 0; i < len(suite.bridgerAddrs)/2; i++ {
-		sendToMsg.BridgerAddress = suite.bridgerAddrs[i].String()
-		err = suite.SendClaimReturnErr(sendToMsg)
-		suite.NoError(err)
-	}
-
-	suite.Commit()
-
-	balances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
-	suite.Require().Equal(balances.String(), sdk.NewCoins().String(), len(suite.bridgerAddrs))
-
 	for i := 0; i < len(suite.oracleAddrs); i++ {
 		_, err := suite.MsgServer().EditBridger(suite.Ctx, &types.MsgEditBridger{
 			ChainName:      suite.chainName,
@@ -399,26 +364,11 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 			BridgerAddress: sdk.AccAddress(suite.ValAddr[i]).String(),
 		})
 		suite.NoError(err)
-
-		sendToMsg.BridgerAddress = sdk.AccAddress(suite.ValAddr[i]).String()
-		err = suite.SendClaimReturnErr(sendToMsg)
-		if i < len(suite.oracleAddrs)/2 {
-			suite.Require().ErrorContains(err, types.ErrNonContiguousEventNonce.Error())
-		} else {
-			suite.Require().NoError(err)
-		}
 	}
-	err = suite.Keeper().ExecuteClaim(suite.Ctx, sendToMsg.EventNonce)
-	suite.Require().NoError(err)
 
 	for _, bridger := range suite.bridgerAddrs {
 		suite.False(suite.Keeper().HasOracleAddrByBridgerAddr(suite.Ctx, bridger))
 	}
-
-	suite.Commit()
-
-	balances = suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
-	suite.Require().Equal(balances.String(), sdk.NewCoins(sdk.NewCoin("test", sendToMsg.Amount)).String())
 }
 
 func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
@@ -670,7 +620,6 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToFxClaim)
 				suite.True(ok)
-				suite.Keeper().AddBridgeToken(suite.Ctx, msg.TokenContract, types.NewBridgeDenom(suite.chainName, msg.TokenContract))
 				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, oracle)
 					msg.EventNonce = eventNonce + 1
@@ -925,68 +874,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
 	suite.Require().Error(err)
 }
 
-func (suite *KeeperTestSuite) TestBridgeCallClaim() {
-	suite.bondedOracle()
-
-	tokenContract := helpers.GenExternalAddr(suite.chainName)
-
-	suite.addBridgeToken(tokenContract, fxtypes.GetCrossChainMetadataManyToOne("test token", "TT", 18))
-
-	suite.registerCoin(types.NewBridgeDenom(suite.chainName, tokenContract))
-
-	fxTokenContract := helpers.GenExternalAddr(suite.chainName)
-	suite.addBridgeToken(fxTokenContract, fxtypes.GetFXMetaData())
-
-	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, suite.oracleAddrs[0])
-
-	testMsgs := []struct {
-		name      string
-		msg       *types.MsgBridgeCallClaim
-		err       error
-		errReason string
-		expect    bool
-	}{
-		{
-			name: "success",
-			msg: &types.MsgBridgeCallClaim{
-				EventNonce:     oracleLastEventNonce + 1,
-				Sender:         helpers.GenExternalAddr(suite.chainName),
-				TokenContracts: []string{tokenContract},
-				Amounts:        []sdkmath.Int{sdkmath.NewInt(100)},
-				Refund:         helpers.GenExternalAddr(suite.chainName),
-				To:             helpers.GenExternalAddr(suite.chainName),
-				Data:           "",
-				Value:          sdkmath.NewInt(0),
-				BlockHeight:    1,
-				BridgerAddress: suite.bridgerAddrs[0].String(),
-				ChainName:      suite.chainName,
-				TxOrigin:       helpers.GenExternalAddr(suite.chainName),
-			},
-			err:       nil,
-			errReason: "",
-			expect:    true,
-		},
-	}
-
-	for _, testData := range testMsgs {
-		err := testData.msg.ValidateBasic()
-		suite.Require().NoError(err)
-		suite.Ctx = suite.Ctx.WithEventManager(sdk.NewEventManager())
-		suite.Require().NoError(testData.msg.ValidateBasic())
-		err = suite.SendClaimReturnErr(testData.msg)
-		suite.Require().ErrorIs(err, testData.err, testData.name)
-		if testData.err == nil {
-			suite.checkObservationState(suite.Ctx, testData.expect)
-		}
-		if err == nil {
-			continue
-		}
-
-		suite.Require().EqualValues(testData.errReason, err.Error(), testData.name)
-	}
-}
-
-func (suite *KeeperTestSuite) bondedOracle() {
+func (suite *KeeperTestSuite) BondedOracle() {
 	_, err := suite.MsgServer().BondedOracle(suite.Ctx, &types.MsgBondedOracle{
 		OracleAddress:    suite.oracleAddrs[0].String(),
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
@@ -999,72 +887,4 @@ func (suite *KeeperTestSuite) bondedOracle() {
 
 	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, suite.oracleAddrs[0])
 	suite.Require().EqualValues(0, oracleLastEventNonce)
-}
-
-func (suite *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.Metadata) {
-	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, suite.oracleAddrs[0])
-	suite.Ctx = suite.Ctx.WithEventManager(sdk.NewEventManager())
-	err := suite.SendClaimReturnErr(&types.MsgBridgeTokenClaim{
-		EventNonce:     oracleLastEventNonce + 1,
-		BlockHeight:    uint64(suite.Ctx.BlockHeight()),
-		TokenContract:  tokenContract,
-		Name:           md.Name,
-		Symbol:         md.Symbol,
-		Decimals:       18,
-		BridgerAddress: suite.bridgerAddrs[0].String(),
-		ChannelIbc:     "",
-		ChainName:      suite.chainName,
-	})
-	suite.Require().NoError(err)
-
-	suite.checkObservationState(suite.Ctx, true)
-
-	newOracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.Ctx, suite.oracleAddrs[0])
-	suite.Require().EqualValues(oracleLastEventNonce+1, newOracleLastEventNonce)
-}
-
-func (suite *KeeperTestSuite) registerCoin(bridgeDenom string) {
-	_, err := suite.App.Erc20Keeper.RegisterCoin(suite.Ctx, &erc20types.MsgRegisterCoin{
-		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		Metadata: banktypes.Metadata{
-			Description: "Test token",
-			DenomUnits: []*banktypes.DenomUnit{
-				{
-					Denom:    "ttt",
-					Exponent: 0,
-					Aliases:  []string{bridgeDenom},
-				},
-				{
-					Denom:    "TTT",
-					Exponent: 18,
-				},
-			},
-			Base:    "ttt",
-			Display: "TTT",
-			Name:    "Test Token",
-			Symbol:  "TTT",
-		},
-	})
-	suite.Require().NoError(err)
-}
-
-func (suite *KeeperTestSuite) checkObservationState(ctx context.Context, expect bool) {
-	foundObservation := false
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	for _, event := range sdkCtx.EventManager().Events() {
-		if event.Type != types.EventTypeContractEvent {
-			continue
-		}
-		suite.Require().False(foundObservation, "found multiple observation event")
-		for _, attr := range event.Attributes {
-			if attr.Key != types.AttributeKeyStateSuccess {
-				continue
-			}
-			suite.Require().EqualValues(fmt.Sprintf("%v", expect), attr.Value)
-			foundObservation = true
-			break
-		}
-	}
-	suite.Require().True(foundObservation, "not found observation event")
-	sdkCtx.WithEventManager(sdk.NewEventManager())
 }

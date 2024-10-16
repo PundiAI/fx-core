@@ -10,33 +10,31 @@ import (
 )
 
 // InitGenesis import module genesis
-func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
-	if err := k.SetParams(ctx, &data.Params); err != nil {
-		panic(err)
+func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) error {
+	if err := k.Params.Set(ctx, data.Params); err != nil {
+		return err
 	}
 
 	// ensure erc20 module account is set on genesis
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		// NOTE: shouldn't occur
-		panic("the erc20 module account has not been set")
+		return fmt.Errorf("the erc20 module account has not been set")
 	}
 
-	for _, pair := range data.TokenPairs {
-		k.AddTokenPair(ctx, pair)
+	_, err := k.RegisterNativeCoin(ctx, fxtypes.DefaultDenom, fxtypes.DefaultDenom, fxtypes.DenomUnit)
+	if err != nil {
+		return fmt.Errorf("register default denom error %s", err.Error())
 	}
-
-	if _, found := k.GetTokenPair(ctx, fxtypes.DefaultDenom); !found {
-		_, err := k.RegisterNativeCoin(ctx, fxtypes.GetFXMetaData())
-		if err != nil {
-			panic(fmt.Sprintf("register default denom error %s", err.Error()))
-		}
-	}
+	return nil
 }
 
 // ExportGenesis export module status
-func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	return &types.GenesisState{
-		Params:     k.GetParams(ctx),
-		TokenPairs: k.GetAllTokenPairs(ctx),
+func (k Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return nil, err
 	}
+	return &types.GenesisState{
+		Params: params,
+	}, nil
 }

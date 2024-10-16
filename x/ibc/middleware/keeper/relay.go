@@ -36,7 +36,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if !isEvmAddr {
 			return sdkerrors.ErrInvalidAddress.Wrap("only support hex address")
 		}
-		if err = k.crossChainKeeper.IBCCoinToEvm(ctx, receiveCoin, receiver); err != nil {
+		if err = k.crossChainKeeper.IBCCoinToEvm(ctx, receiver, receiveCoin); err != nil {
 			return err
 		}
 	}
@@ -82,5 +82,5 @@ func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packe
 	if err != nil {
 		return err
 	}
-	return k.crossChainKeeper.IBCCoinRefund(ctx, token, sender, packet.SourceChannel, packet.Sequence)
+	return k.crossChainKeeper.IBCCoinRefund(ctx, sender, token, packet.SourceChannel, packet.Sequence)
 }

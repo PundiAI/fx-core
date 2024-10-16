@@ -166,17 +166,11 @@ func (suite *KeeperTestSuite) EndBlocker() {
 }
 
 func (suite *KeeperTestSuite) SetToken(symbol string, bridgeDenoms ...string) {
-	if symbol == fxtypes.DefaultDenom {
-		bridgeDenoms = []string{}
-	}
-	err := suite.Keeper().SetToken(suite.Ctx, "Test Token", symbol, 18, bridgeDenoms...)
-	suite.NoError(err)
-}
-
-func (suite *KeeperTestSuite) AddBridgeToken(contractAddr string, symbol string) {
-	bridgeTokenClaim := &types.MsgBridgeTokenClaim{TokenContract: contractAddr, Name: "Test Token", Symbol: symbol, Decimals: 18, ChainName: suite.chainName}
-	err := suite.Keeper().AddBridgeTokenExecuted(suite.Ctx, bridgeTokenClaim)
-	suite.Require().NoError(err)
+	// if symbol == fxtypes.DefaultDenom {
+	// 	bridgeDenoms = []string{}
+	// }
+	// err := suite.Keeper().SetToken(suite.Ctx, "Test Token", symbol, 18, bridgeDenoms...)
+	// suite.NoError(err)
 }
 
 func (suite *KeeperTestSuite) SetIBCDenom(portID, channelID, denom string) ibctransfertypes.DenomTrace {

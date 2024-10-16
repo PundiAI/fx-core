@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"encoding/hex"
 	"math/big"
 	"testing"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -117,30 +115,4 @@ func (suite *KeeperTestSuite) NewOracleSet(externalKey cryptotypes.PrivKey) *cro
 	})
 	suite.App.TronKeeper.StoreOracleSet(suite.Ctx, newOracleSet)
 	return newOracleSet
-}
-
-func (suite *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []crosschaintypes.BridgeToken {
-	bridgeTokens := make([]crosschaintypes.BridgeToken, 0)
-	for i := 0; i < 3; i++ {
-		bridgeTokens = append(bridgeTokens, crosschaintypes.BridgeToken{Token: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex())})
-		channelIBC := ""
-		if i == 2 {
-			channelIBC = hex.EncodeToString([]byte("transfer/channel-0"))
-		}
-		err := suite.App.TronKeeper.AttestationHandler(suite.Ctx, &crosschaintypes.MsgBridgeTokenClaim{
-			TokenContract:  bridgeTokens[i].Token,
-			BridgerAddress: bridger.String(),
-			ChannelIbc:     channelIBC,
-		})
-		suite.Require().NoError(err)
-		bridgeDenom, found := suite.App.TronKeeper.GetBridgeDenomByContract(suite.Ctx, bridgeTokens[i].Token)
-		suite.Require().True(found)
-		bridgeTokens[i].Denom = bridgeDenom
-		bridgeDenomCoins := sdk.NewCoins(sdk.NewCoin(bridgeTokens[i].Denom, sdkmath.NewInt(1e6).MulRaw(1e18)))
-		err = suite.App.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, bridgeDenomCoins)
-		suite.NoError(err)
-		err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, suite.signer.AccAddress(), bridgeDenomCoins)
-		suite.NoError(err)
-	}
-	return bridgeTokens
 }

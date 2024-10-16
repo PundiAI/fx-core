@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
@@ -13,44 +12,47 @@ import (
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = queryServer{}
+
+type queryServer struct {
+	k Keeper
+}
+
+func NewQueryServer(k Keeper) types.QueryServer {
+	return &queryServer{k: k}
+}
 
 // TokenPairs return registered pairs
-func (k Keeper) TokenPairs(c context.Context, req *types.QueryTokenPairsRequest) (*types.QueryTokenPairsResponse, error) {
+func (s queryServer) TokenPairs(c context.Context, req *types.QueryTokenPairsRequest) (*types.QueryTokenPairsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
-	var pairs []types.TokenPair
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
-		var pair types.TokenPair
-		if err := k.cdc.Unmarshal(value, &pair); err != nil {
-			return err
-		}
-		pairs = append(pairs, pair)
-		return nil
-	})
+	erc20tokens, pageRes, err := query.CollectionPaginate(ctx, s.k.ERC20Token, req.Pagination,
+		func(_ string, value types.ERC20Token) (types.ERC20Token, error) {
+			return value, nil
+		},
+	)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, "paginate: %v", err)
 	}
+
 	return &types.QueryTokenPairsResponse{
-		TokenPairs: pairs,
-		Pagination: pageRes,
+		Erc20Tokens: erc20tokens,
+		Pagination:  pageRes,
 	}, nil
 }
 
 // TokenPair returns a given registered token pair
-func (k Keeper) TokenPair(c context.Context, req *types.QueryTokenPairRequest) (*types.QueryTokenPairResponse, error) {
+func (s queryServer) TokenPair(c context.Context, req *types.QueryTokenPairRequest) (*types.QueryTokenPairResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	// check if the token is a hex address, if not, check if it is a valid SDK denom
 	if err := contract.ValidateEthereumAddress(req.Token); err != nil {
-		if err := sdk.ValidateDenom(req.Token); err != nil {
+		if err = sdk.ValidateDenom(req.Token); err != nil {
 			return nil, status.Errorf(
 				codes.InvalidArgument,
 				"invalid format for token %s, should be either hex ('0x...') cosmos denom", req.Token,
@@ -59,65 +61,23 @@ func (k Keeper) TokenPair(c context.Context, req *types.QueryTokenPairRequest) (
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	pair, found := k.GetTokenPair(ctx, req.Token)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "token pair with token '%s'", req.Token)
+	baseDenom, err := s.k.DenomIndex.Get(ctx, req.Token)
+	if err != nil {
+		baseDenom = req.Token
 	}
-
-	return &types.QueryTokenPairResponse{TokenPair: pair}, nil
+	erc20Token, err := s.k.ERC20Token.Get(ctx, baseDenom)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryTokenPairResponse{Erc20Token: erc20Token}, nil
 }
 
-// Params return hub contract param
-func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+// Params return erc20 module param
+func (s queryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	params := k.GetParams(ctx)
+	params, err := s.k.Params.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &types.QueryParamsResponse{Params: params}, nil
-}
-
-// DenomAliases returns denom aliases
-func (k Keeper) DenomAliases(c context.Context, req *types.QueryDenomAliasesRequest) (*types.QueryDenomAliasesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	// check if it is a valid SDK denom
-	if err := sdk.ValidateDenom(req.Denom); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid format for denom %s", req.Denom)
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-	if !k.IsDenomRegistered(ctx, req.Denom) {
-		return nil, status.Errorf(codes.NotFound, "not registered with denom '%s'", req.Denom)
-	}
-
-	md, found := k.bankKeeper.GetDenomMetaData(ctx, req.Denom)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "metadata not found with denom '%s'", req.Denom)
-	}
-
-	if len(md.DenomUnits) == 0 {
-		return nil, status.Errorf(codes.NotFound, "not found alias with denom '%s'", req.Denom)
-	}
-
-	return &types.QueryDenomAliasesResponse{Aliases: md.DenomUnits[0].Aliases}, nil
-}
-
-// AliasDenom returns alias denom
-func (k Keeper) AliasDenom(c context.Context, req *types.QueryAliasDenomRequest) (*types.QueryAliasDenomResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	// check if it is a valid SDK denom
-	if err := sdk.ValidateDenom(req.Alias); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid format for alias %s", req.Alias)
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-	denom, found := k.GetAliasDenom(ctx, req.Alias)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "denom not found with alias '%s'", req.Alias)
-	}
-
-	return &types.QueryAliasDenomResponse{Denom: denom}, nil
 }

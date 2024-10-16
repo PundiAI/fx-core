@@ -58,10 +58,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	}
 	k.SetLatestOracleSetNonce(ctx, latestOracleSetNonce)
 
-	for _, bridgeToken := range state.BridgeTokens {
-		// 0x26 0x27
-		k.AddBridgeToken(ctx, bridgeToken.Token, bridgeToken.Denom)
-	}
 	for i := 0; i < len(state.BatchConfirms); i++ {
 		confirm := state.BatchConfirms[i]
 		for _, oracle := range state.Oracles {
@@ -161,10 +157,6 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 			return false
 		})
 	}
-	k.IteratorBridgeDenomWithContract(ctx, func(erc20ToDenom *types.BridgeToken) bool {
-		state.BridgeTokens = append(state.BridgeTokens, *erc20ToDenom)
-		return false
-	})
 	state.ProposalOracle, _ = k.GetProposalOracle(ctx)
 	if lastObserved := k.GetLastObservedOracleSet(ctx); lastObserved != nil {
 		state.LastObservedOracleSet = *lastObserved

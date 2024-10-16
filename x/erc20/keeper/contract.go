@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,27 +9,22 @@ import (
 
 	"github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-// QueryERC20 returns the data of a deployed ERC20 contract
-func (k Keeper) QueryERC20(ctx sdk.Context, contractAddr common.Address) (types.ERC20Data, error) {
-	name, err := k.evmErc20Keeper.ERC20Name(ctx, contractAddr)
+func (k Keeper) ERC20BaseInfo(ctx context.Context, contractAddr common.Address) (name, symbol string, decimals uint8, err error) {
+	name, err = k.evmErc20Keeper.ERC20Name(ctx, contractAddr)
 	if err != nil {
-		return types.ERC20Data{}, err
+		return name, symbol, decimals, err
 	}
-
-	symbol, err := k.evmErc20Keeper.ERC20Symbol(ctx, contractAddr)
+	symbol, err = k.evmErc20Keeper.ERC20Symbol(ctx, contractAddr)
 	if err != nil {
-		return types.ERC20Data{}, err
+		return name, symbol, decimals, err
 	}
-
-	decimals, err := k.evmErc20Keeper.ERC20Decimals(ctx, contractAddr)
+	decimals, err = k.evmErc20Keeper.ERC20Decimals(ctx, contractAddr)
 	if err != nil {
-		return types.ERC20Data{}, err
+		return name, symbol, decimals, err
 	}
-
-	return types.NewERC20Data(name, symbol, decimals), nil
+	return name, symbol, decimals, err
 }
 
 func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8) (common.Address, error) {
@@ -42,5 +38,5 @@ func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name
 	}
 	k.Logger(ctx).Info("deploy token contract", "name", name, "symbol", symbol, "decimals", decimals)
 
-	return k.evmKeeper.DeployUpgradableContract(ctx, from, tokenContract.Address, nil, &tokenContract.ABI, name, symbol, decimals, k.moduleAddress)
+	return k.evmKeeper.DeployUpgradableContract(ctx, from, tokenContract.Address, nil, &tokenContract.ABI, name, symbol, decimals, k.contractOwner)
 }

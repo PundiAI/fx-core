@@ -5,9 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 type Router struct {
@@ -52,11 +50,4 @@ func (rtr *Router) AddRoute(module string, hook crosschainkeeper.Keeper) *Router
 func (rtr *Router) GetRoute(module string) (CrosschainKeeper, bool) {
 	hook, found := rtr.routes[module]
 	return hook, found
-}
-
-func (rtr *Router) GetRouteWithIBC(target string) (CrosschainKeeper, bool) {
-	if fxtypes.ParseFxTarget(target).IsIBC() {
-		target = ethtypes.ModuleName
-	}
-	return rtr.GetRoute(target)
 }

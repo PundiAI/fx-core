@@ -192,26 +192,28 @@ func (k QueryServer) DenomToToken(c context.Context, req *types.QueryDenomToToke
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
 
-	tokenContract, found := k.GetContractByBridgeDenom(sdk.UnwrapSDKContext(c), req.Denom)
-	if !found {
-		return nil, status.Error(codes.NotFound, "bridge token")
+	ctx := sdk.UnwrapSDKContext(c)
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, req.Denom, req.ChainName)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	return &types.QueryDenomToTokenResponse{
-		Token: tokenContract,
-	}, nil
+	return &types.QueryDenomToTokenResponse{Token: bridgeToken.Contract}, nil
 }
 
 func (k QueryServer) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequest) (*types.QueryTokenToDenomResponse, error) {
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetToken()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
-	bridgeDenom, found := k.GetBridgeDenomByContract(sdk.UnwrapSDKContext(c), req.Token)
-	if !found {
-		return nil, status.Error(codes.NotFound, "bridge token")
+	ctx := sdk.UnwrapSDKContext(c)
+	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, req.Token)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	return &types.QueryTokenToDenomResponse{
-		Denom: bridgeDenom,
-	}, nil
+	_, err = k.erc20Keeper.GetBridgeToken(ctx, baseDenom, req.ChainName)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	return &types.QueryTokenToDenomResponse{Denom: baseDenom}, nil
 }
 
 func (k QueryServer) GetOracleByAddr(c context.Context, req *types.QueryOracleByAddrRequest) (*types.QueryOracleResponse, error) {
@@ -284,10 +286,7 @@ func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.Que
 
 func (k QueryServer) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
 	bridgeTokens := make([]*types.BridgeToken, 0)
-	k.IteratorBridgeDenomWithContract(sdk.UnwrapSDKContext(c), func(token *types.BridgeToken) bool {
-		bridgeTokens = append(bridgeTokens, token)
-		return false
-	})
+	// todo: need implement
 	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
 }
 
