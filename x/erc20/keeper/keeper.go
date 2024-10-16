@@ -56,7 +56,7 @@ func NewKeeper(
 	}
 
 	sb := collections.NewSchemaBuilder(storeService)
-	return Keeper{
+	k := Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
 		accountKeeper:  ak,
@@ -72,6 +72,12 @@ func NewKeeper(
 		DenomIndex:     collections.NewMap(sb, types.DenomIndexKey, "denom_index", collections.StringKey, collections.StringValue),
 		Cache:          collections.NewMap(sb, types.CacheKey, "cache", collections.StringKey, collections.NoValue{}),
 	}
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.Schema = schema
+	return k
 }
 
 // Logger returns a module-specific logger.
@@ -80,9 +86,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) MintingEnabled(ctx context.Context, receiver sdk.AccAddress, isBaseDenom bool, tokenName string) (erc20Token types.ERC20Token, err error) {
-	erc20, err := k.GetEnableErc20(ctx)
-	if err != nil || !erc20 {
-		return types.ERC20Token{}, types.ErrERC20Disabled.Wrap("module is currently disabled by governance")
+	if err = k.CheckEnableErc20(ctx); err != nil {
+		return types.ERC20Token{}, err
 	}
 
 	if isBaseDenom {
@@ -98,7 +103,7 @@ func (k Keeper) MintingEnabled(ctx context.Context, receiver sdk.AccAddress, isB
 	}
 
 	if !erc20Token.Enabled {
-		return erc20Token, types.ErrERC20TokenPairDisabled.Wrapf("minting token '%s' is not enabled by governance", tokenName)
+		return erc20Token, types.ErrDisabled.Wrapf("token %s is disabled", erc20Token.Denom)
 	}
 
 	if k.bankKeeper.BlockedAddr(receiver.Bytes()) {

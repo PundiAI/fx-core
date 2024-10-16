@@ -59,7 +59,7 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		baseCoins := make([]sdk.Coin, 0, len(args.Tokens)+1)
 		originTokenAmount := sdkmath.ZeroInt()
-		if value.Cmp(big.NewInt(0)) == 1 {
+		if value.Sign() > 0 {
 			baseCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value))
 			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(baseCoin)); err != nil {
 				return err
@@ -77,7 +77,7 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		}
 
 		for i, token := range args.Tokens {
-			baseCoin, err := m.EvmTokenToBase(ctx, evm, crosschainKeeper, sender, token, args.Amounts[i])
+			baseCoin, err := m.EvmTokenToBaseCoin(ctx, evm, crosschainKeeper, sender, token, args.Amounts[i])
 			if err != nil {
 				return err
 			}

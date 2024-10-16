@@ -372,21 +372,6 @@ func (mr *MockErc20KeeperMockRecorder) DeleteCache(ctx, key any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCache", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteCache), ctx, key)
 }
 
-// EvmToBaseCoin mocks base method.
-func (m *MockErc20Keeper) EvmToBaseCoin(ctx context.Context, holder common.Address, amount *big.Int, tokenAddr string) (types.Coin, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EvmToBaseCoin", ctx, holder, amount, tokenAddr)
-	ret0, _ := ret[0].(types.Coin)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EvmToBaseCoin indicates an expected call of EvmToBaseCoin.
-func (mr *MockErc20KeeperMockRecorder) EvmToBaseCoin(ctx, holder, amount, tokenAddr any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EvmToBaseCoin", reflect.TypeOf((*MockErc20Keeper)(nil).EvmToBaseCoin), ctx, holder, amount, tokenAddr)
-}
-
 // GetBaseDenom mocks base method.
 func (m *MockErc20Keeper) GetBaseDenom(ctx context.Context, token string) (string, error) {
 	m.ctrl.T.Helper()

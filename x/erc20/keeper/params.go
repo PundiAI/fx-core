@@ -2,12 +2,17 @@ package keeper
 
 import (
 	"context"
+
+	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-func (k Keeper) GetEnableErc20(ctx context.Context) (bool, error) {
+func (k Keeper) CheckEnableErc20(ctx context.Context) error {
 	params, err := k.Params.Get(ctx)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return params.EnableErc20, nil
+	if !params.EnableErc20 {
+		return types.ErrDisabled.Wrap("erc20 module is disabled")
+	}
+	return nil
 }

@@ -13,9 +13,8 @@ import (
 )
 
 func (k Keeper) RegisterNativeCoin(ctx context.Context, name, symbol string, decimals uint8) (types.ERC20Token, error) {
-	erc20, err := k.GetEnableErc20(ctx)
-	if err != nil || !erc20 {
-		return types.ERC20Token{}, types.ErrERC20Disabled.Wrap("module is currently disabled by governance")
+	if err := k.CheckEnableErc20(ctx); err != nil {
+		return types.ERC20Token{}, err
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -38,9 +37,8 @@ func (k Keeper) RegisterNativeCoin(ctx context.Context, name, symbol string, dec
 }
 
 func (k Keeper) RegisterNativeERC20(ctx sdk.Context, erc20Addr common.Address) (types.ERC20Token, error) {
-	erc20, err := k.GetEnableErc20(ctx)
-	if err != nil || !erc20 {
-		return types.ERC20Token{}, types.ErrERC20Disabled.Wrap("module is currently disabled by governance")
+	if err := k.CheckEnableErc20(ctx); err != nil {
+		return types.ERC20Token{}, err
 	}
 
 	name, symbol, decimals, err := k.ERC20BaseInfo(ctx, erc20Addr)
@@ -76,7 +74,7 @@ func (k Keeper) AddERC20Token(ctx context.Context, name, symbol string, decimals
 	if has, err := k.ERC20Token.Has(ctx, metadata.Base); err != nil {
 		return types.ERC20Token{}, err
 	} else if has {
-		return types.ERC20Token{}, sdkerrors.ErrInvalidRequest.Wrapf("denom %s is already registered", metadata.Base)
+		return types.ERC20Token{}, types.ErrExists.Wrapf("denom %s is already registered", metadata.Base)
 	}
 
 	erc20Token := types.ERC20Token{
@@ -105,7 +103,7 @@ func (k Keeper) ToggleTokenConvert(ctx context.Context, token string) (types.ERC
 	}
 	erc20Token, err := k.ERC20Token.Get(ctx, baseDenom)
 	if err != nil {
-		return types.ERC20Token{}, sdkerrors.ErrNotFound
+		return types.ERC20Token{}, sdkerrors.ErrNotFound.Wrapf("token %s not found", token)
 	}
 	erc20Token.Enabled = !erc20Token.Enabled
 

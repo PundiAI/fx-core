@@ -20,7 +20,7 @@ type Keeper struct {
 	bankKeeper BankKeeper
 }
 
-func (c *Keeper) EvmTokenToBase(ctx sdk.Context, evm *vm.EVM, crossChainKeeper CrosschainKeeper, holder, tokenAddr common.Address, amount *big.Int) (sdk.Coin, error) {
+func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, evm *vm.EVM, crossChainKeeper CrosschainKeeper, holder, tokenAddr common.Address, amount *big.Int) (sdk.Coin, error) {
 	erc20Token, err := crossChainKeeper.GetBaseDenomByErc20(ctx, tokenAddr)
 	if err != nil {
 		return sdk.Coin{}, err

@@ -192,8 +192,7 @@ func (k QueryServer) DenomToToken(c context.Context, req *types.QueryDenomToToke
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, req.Denom, req.ChainName)
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(c, req.Denom, req.ChainName)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -204,12 +203,11 @@ func (k QueryServer) TokenToDenom(c context.Context, req *types.QueryTokenToDeno
 	if err := types.ValidateExternalAddr(req.ChainName, req.GetToken()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
-	ctx := sdk.UnwrapSDKContext(c)
-	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, req.Token)
+	baseDenom, err := k.erc20Keeper.GetBaseDenom(c, req.Token)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	_, err = k.erc20Keeper.GetBridgeToken(ctx, baseDenom, req.ChainName)
+	_, err = k.erc20Keeper.GetBridgeToken(c, baseDenom, req.ChainName)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -294,9 +292,9 @@ func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridge
 	if len(req.GetDenom()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
-	supply, err := k.BridgeCoinSupply(sdk.UnwrapSDKContext(c), req.GetDenom(), req.GetChainName())
+	supply, err := k.BridgeCoinSupply(c, req.GetDenom(), req.GetChainName())
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "denom")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &types.QueryBridgeCoinByDenomResponse{Coin: supply}, nil
 }

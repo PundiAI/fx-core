@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/erc20/types"
@@ -18,12 +17,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) error {
 	// ensure erc20 module account is set on genesis
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		// NOTE: shouldn't occur
-		return fmt.Errorf("the erc20 module account has not been set")
+		return sdkerrors.ErrNotFound.Wrapf("module account %s", types.ModuleName)
 	}
 
 	_, err := k.RegisterNativeCoin(ctx, fxtypes.DefaultDenom, fxtypes.DefaultDenom, fxtypes.DenomUnit)
 	if err != nil {
-		return fmt.Errorf("register default denom error %s", err.Error())
+		return sdkerrors.ErrLogic.Wrapf("failed to register native coin: %s", err.Error())
 	}
 	return nil
 }

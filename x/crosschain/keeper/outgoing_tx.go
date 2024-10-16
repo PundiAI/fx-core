@@ -100,10 +100,8 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 	// Delete outgoing transfer relation
 	for _, tx := range batch.Transactions {
 		key := types.NewOriginTokenKey(k.moduleName, tx.Id)
-		if found, err := k.erc20Keeper.HasCache(ctx, key); err == nil && found {
-			if err = k.erc20Keeper.DeleteCache(ctx, key); err != nil {
-				return err
-			}
+		if err = k.erc20Keeper.DeleteCache(ctx, key); err != nil {
+			return err
 		}
 	}
 	return nil

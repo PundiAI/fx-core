@@ -43,7 +43,6 @@ type BankKeeper interface {
 }
 
 type Erc20Keeper interface {
-	EvmToBaseCoin(ctx context.Context, holder common.Address, amount *big.Int, tokenAddr string) (sdk.Coin, error)
 	BaseCoinToEvm(ctx context.Context, holder common.Address, coin sdk.Coin) (string, error)
 
 	HasCache(ctx context.Context, key string) (bool, error)

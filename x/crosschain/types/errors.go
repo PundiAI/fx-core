@@ -13,8 +13,4 @@ var (
 
 	ErrDelegateAmountBelowMinimum = errorsmod.Register(ModuleName, 9, "delegate amount must be greater than oracle stake threshold")
 	ErrDelegateAmountAboveMaximum = errorsmod.Register(ModuleName, 10, "delegate amount must be less than double oracle stake threshold")
-
-	// ErrDuplicate               = errorsmod.Register(ModuleName, 5, "duplicate")
-	// ErrUnknown                 = errorsmod.Register(ModuleName, 4, "unknown")
-	// ErrEmpty                   = errorsmod.Register(ModuleName, 3, "empty")
 )
