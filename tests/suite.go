@@ -3,17 +3,14 @@ package tests
 import (
 	"context"
 	"fmt"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +35,6 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	useLocalNetwork bool
 	network         *network.Network
 	ctx             context.Context
 	proposalId      uint64
@@ -48,32 +44,15 @@ type TestSuite struct {
 }
 
 func NewTestSuite() *TestSuite {
-	testSuite := &TestSuite{
-		Suite:           suite.Suite{},
-		useLocalNetwork: false,
-		proposalId:      0,
-		ctx:             context.Background(),
-		numValidator:    1,
+	return &TestSuite{
+		Suite:        suite.Suite{},
+		proposalId:   0,
+		ctx:          context.Background(),
+		numValidator: 1,
 	}
-	if os.Getenv("USE_LOCAL_NETWORK") == "true" {
-		testSuite.useLocalNetwork = true
-	}
-	return testSuite
 }
 
 func (suite *TestSuite) SetupSuite() {
-	if suite.IsUseLocalNetwork() {
-		fxtypes.SetConfig(true)
-		cfg := testutil.DefaultNetworkConfig()
-		cfg.TimeoutCommit = 5 * time.Second
-		suite.network = &network.Network{
-			Logger:     log.NewNopLogger(),
-			BaseDir:    fxtypes.GetDefaultNodeHome(),
-			Config:     cfg,
-			Validators: []*network.Validator{{}},
-		}
-		return
-	}
 	suite.T().Log("setting up integration test suite")
 
 	numValidators := suite.numValidator
@@ -117,9 +96,6 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) TearDownSuite() {
-	if suite.IsUseLocalNetwork() {
-		return
-	}
 	suite.T().Log("tearing down integration test suite")
 
 	// This is important and must be called to ensure other tests can create
@@ -133,10 +109,6 @@ func (suite *TestSuite) GetNetwork() *network.Network {
 
 func (suite *TestSuite) Context() context.Context {
 	return suite.ctx
-}
-
-func (suite *TestSuite) IsUseLocalNetwork() bool {
-	return suite.useLocalNetwork
 }
 
 func (suite *TestSuite) getNextProposalId() uint64 {
@@ -153,22 +125,12 @@ func (suite *TestSuite) GetAllValidators() []*network.Validator {
 }
 
 func (suite *TestSuite) GetFirstValPrivKey() cryptotypes.PrivKey {
-	if suite.IsUseLocalNetwork() {
-		k, err := keyring.New(suite.T().Name(), keyring.BackendTest, suite.network.BaseDir, os.Stdin, suite.network.Config.Codec)
-		suite.NoError(err)
-		privKey, err := k.(unsafeExporter).ExportPrivateKeyObject("fx1")
-		suite.NoError(err)
-		return privKey
-	}
 	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], hd.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	return privKey
 }
 
 func (suite *TestSuite) GetAllValPrivKeys() []cryptotypes.PrivKey {
-	if suite.IsUseLocalNetwork() {
-		return []cryptotypes.PrivKey{suite.GetFirstValPrivKey()}
-	}
 	privKeys := make([]cryptotypes.PrivKey, 0, len(suite.network.Config.Mnemonics))
 	for _, mnemonics := range suite.network.Config.Mnemonics {
 		privKey, err := helpers.PrivKeyFromMnemonic(mnemonics, hd.Secp256k1Type, 0, 0)
@@ -193,10 +155,7 @@ func (suite *TestSuite) GRPCClient() *grpc.Client {
 	if suite.GetFirstValidator().ClientCtx.GRPCClient != nil {
 		return grpc.NewClient(suite.GetFirstValidator().ClientCtx)
 	}
-	grpcUrl := "http://localhost:9090"
-	if !suite.IsUseLocalNetwork() {
-		grpcUrl = fmt.Sprintf("http://%s", suite.GetFirstValidator().AppConfig.GRPC.Address)
-	}
+	grpcUrl := fmt.Sprintf("http://%s", suite.GetFirstValidator().AppConfig.GRPC.Address)
 	client, err := grpc.DailClient(grpcUrl, suite.ctx)
 	suite.NoError(err)
 	return client
@@ -204,9 +163,6 @@ func (suite *TestSuite) GRPCClient() *grpc.Client {
 
 func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
 	nodeUrl := suite.GetFirstValidator().Ctx.Config.RPC.ListenAddress
-	if suite.IsUseLocalNetwork() {
-		nodeUrl = "http://localhost:26657"
-	}
 	return jsonrpc.NewNodeRPC(jsonrpc.NewClient(nodeUrl), suite.ctx)
 }
 
@@ -567,36 +523,4 @@ func (suite *TestSuite) QueryModuleAccountByName(moduleName string) sdk.AccAddre
 	err = suite.network.Config.Codec.UnpackAny(moduleAddress.Account, &account)
 	suite.Require().NoError(err)
 	return account.GetAddress()
-}
-
-// unsafeExporter is implemented by key stores that support unsafe export
-// of private keys' material.
-type unsafeExporter interface {
-	// ExportPrivateKeyObject returns a private key in unarmored format.
-	ExportPrivateKeyObject(uid string) (cryptotypes.PrivKey, error)
-}
-
-type TestSuiteMultiNode struct {
-	*TestSuite
-}
-
-func NewTestSuiteMultiNode() *TestSuiteMultiNode {
-	testSuite := &TestSuite{
-		Suite:           suite.Suite{},
-		useLocalNetwork: false,
-		proposalId:      0,
-		ctx:             context.Background(),
-		numValidator:    7,
-		// enableTMLogging: true,
-	}
-	if os.Getenv("USE_LOCAL_NETWORK") == "true" {
-		testSuite.useLocalNetwork = true
-	}
-	return &TestSuiteMultiNode{TestSuite: testSuite}
-}
-
-func (suite *TestSuiteMultiNode) PrintBlock() {
-	height, err := suite.network.LatestHeight()
-	suite.NoError(err)
-	suite.T().Log("current block height:", height)
 }

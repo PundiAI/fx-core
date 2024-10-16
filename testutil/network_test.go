@@ -15,17 +15,17 @@ import (
 	"github.com/functionx/fx-core/v8/testutil/network"
 )
 
-type IntegrationTestSuite struct {
+type NetworkTestSuite struct {
 	suite.Suite
 
 	network *network.Network
 }
 
-func TestIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+func TestNetworkTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkTestSuite))
 }
 
-func (suite *IntegrationTestSuite) SetupSuite() {
+func (suite *NetworkTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	cfg := testutil.DefaultNetworkConfig(func(config *network.Config) {
@@ -38,14 +38,14 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 }
 
-func (suite *IntegrationTestSuite) TearDownSuite() {
+func (suite *NetworkTestSuite) TearDownSuite() {
 	suite.T().Log("tearing down integration test suite")
 
 	// This is important and must be called to ensure other tests can create a network!
 	suite.network.Cleanup()
 }
 
-func (suite *IntegrationTestSuite) TestNetworkLiveness() {
+func (suite *NetworkTestSuite) TestNetworkLiveness() {
 	height := int64(3)
 	latestHeight, err := suite.network.LatestHeight()
 	suite.NoError(err, "latest height failed")
@@ -59,7 +59,7 @@ func (suite *IntegrationTestSuite) TestNetworkLiveness() {
 	suite.GreaterOrEqual(latestHeight, gotHeight)
 }
 
-func (suite *IntegrationTestSuite) TestValidatorInfo() {
+func (suite *NetworkTestSuite) TestValidatorInfo() {
 	suite.Equal(sdk.GetConfig().GetCoinType(), uint32(sdk.CoinType))
 
 	suite.Equal(len(suite.network.Config.Mnemonics), suite.network.Config.NumValidators)
@@ -83,7 +83,7 @@ func (suite *IntegrationTestSuite) TestValidatorInfo() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestValidatorsPower() {
+func (suite *NetworkTestSuite) TestValidatorsPower() {
 	for _, val := range suite.network.Validators {
 		result, err := val.RPCClient.Validators(context.Background(), nil, nil, nil)
 		suite.NoError(err)
