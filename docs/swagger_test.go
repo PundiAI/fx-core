@@ -25,7 +25,7 @@ func TestSwaggerConfig(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(data, &c))
 	assert.Equal(t, "2.0", c.Swagger)
 	assert.Equal(t, "0.4.0", c.Info.Version)
-	assert.Equal(t, 24, len(c.Apis))
+	assert.Equal(t, 23, len(c.Apis))
 	app := helpers.NewApp()
 	clientCtx := client.Context{
 		InterfaceRegistry: app.InterfaceRegistry(),
@@ -74,13 +74,13 @@ func TestSwaggerConfig(t *testing.T) {
 	// 1. other/v1/gas_price
 	// 2. fx/other/gas_price
 	// 3. fx/base/v1
-	// 4. fx/ibc/applications
+	// 4. ibc/applications/transfer/v1
 	// 5. ibc/core/channel/v1
 	// 6. ibc/core/client/v1
 	// 7. ibc/core/connection/v1
 	// 8. cosmos/gov/v1beta1
 	assert.Equal(t, ignoreLen, len(route))
-	assert.Equal(t, 7, len(route))
+	assert.Equal(t, 8, len(route))
 }
 
 type config struct {

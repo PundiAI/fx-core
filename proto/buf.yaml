@@ -4,7 +4,6 @@ deps:
   - buf.build/cosmos/cosmos-sdk:v0.50.0
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
-  - buf.build/cosmos/ibc:26e19db15b1d96d599882b2ba634ccef07488b85
   - buf.build/googleapis/googleapis
 lint:
   use:
@@ -20,6 +19,7 @@ lint:
     - RPC_RESPONSE_STANDARD_NAME
     - RPC_REQUEST_RESPONSE_UNIQUE
     - COMMENT_MESSAGE
+    - PACKAGE_SAME_GO_PACKAGE
   ignore:
     - ethermint/evm/v1/testnet_proposal.proto
     - fx/gov/v1/legacy.proto

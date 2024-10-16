@@ -56,7 +56,7 @@ message MsgUpdateCustomParams {
   string msg_url = 2;
 
   // NOTE: All parameters must be supplied.
-  CustomParams customParams = 3 [ (gogoproto.nullable) = false ];
+  CustomParams custom_params = 3 [ (gogoproto.nullable) = false ];
 }
 
 message MsgUpdateCustomParamsResponse {}

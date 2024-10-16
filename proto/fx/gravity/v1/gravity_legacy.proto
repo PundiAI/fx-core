@@ -30,7 +30,7 @@ message MsgRequestBatch {
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
-  string feeReceive = 4;
+  string fee_receive = 4;
   string base_fee = 5 [
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

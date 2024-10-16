@@ -13,8 +13,8 @@ message InitEvmParamsProposal {
 
   string title = 1;
   string description = 2;
-  EVMParams evmParams = 3;
-  FeemarketParams feemarketParams = 4;
+  EVMParams evm_params = 3;
+  FeemarketParams feemarket_params = 4;
 }
 
 // Deprecated: Do not use.
