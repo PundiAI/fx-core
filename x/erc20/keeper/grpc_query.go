@@ -28,14 +28,13 @@ func (s queryServer) TokenPairs(c context.Context, req *types.QueryTokenPairsReq
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	erc20tokens, pageRes, err := query.CollectionPaginate(ctx, s.k.ERC20Token, req.Pagination,
+	erc20tokens, pageRes, err := query.CollectionPaginate(c, s.k.ERC20Token, req.Pagination,
 		func(_ string, value types.ERC20Token) (types.ERC20Token, error) {
 			return value, nil
 		},
 	)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "paginate: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryTokenPairsResponse{
@@ -60,24 +59,22 @@ func (s queryServer) TokenPair(c context.Context, req *types.QueryTokenPairReque
 		}
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	baseDenom, err := s.k.DenomIndex.Get(ctx, req.Token)
+	baseDenom, err := s.k.DenomIndex.Get(c, req.Token)
 	if err != nil {
 		baseDenom = req.Token
 	}
-	erc20Token, err := s.k.ERC20Token.Get(ctx, baseDenom)
+	erc20Token, err := s.k.ERC20Token.Get(c, baseDenom)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 	return &types.QueryTokenPairResponse{Erc20Token: erc20Token}, nil
 }
 
 // Params return erc20 module param
 func (s queryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	params, err := s.k.Params.Get(ctx)
+	params, err := s.k.Params.Get(c)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &types.QueryParamsResponse{Params: params}, nil
 }

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	"cosmossdk.io/collections"
 
@@ -20,7 +19,7 @@ func (k Keeper) AddIBCToken(ctx context.Context, baseDenom, channel, ibcDenom st
 		return err
 	}
 	if has {
-		return fmt.Errorf("ibc token already exists: %s, %s", baseDenom, channel)
+		return types.ErrExists.Wrapf("channel: %s base denom: %s", channel, baseDenom)
 	}
 	ibcToken := types.IBCToken{
 		Channel:  channel,

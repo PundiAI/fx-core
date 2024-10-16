@@ -23,8 +23,8 @@ func NewMsgServerImpl(k Keeper) types.MsgServer {
 	}
 }
 
-func (s msgServer) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*types.MsgConvertCoinResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+func (s msgServer) ConvertCoin(c context.Context, msg *types.MsgConvertCoin) (*types.MsgConvertCoinResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
 	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 	receiver := common.HexToAddress(msg.Receiver)
 	_, err := s.k.ConvertCoin(ctx, sender, receiver, msg.Coin)
@@ -46,8 +46,7 @@ func (s msgServer) ToggleTokenConversion(c context.Context, req *types.MsgToggle
 	if s.k.authority != req.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.k.authority, req.Authority)
 	}
-	ctx := sdk.UnwrapSDKContext(c)
-	erc20Token, err := s.k.ToggleTokenConvert(ctx, req.Token)
+	erc20Token, err := s.k.ToggleTokenConvert(c, req.Token)
 	if err != nil {
 		return nil, err
 	}

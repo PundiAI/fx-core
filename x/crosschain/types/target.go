@@ -105,12 +105,13 @@ func (i FxTarget) ReceiveAddrToStr(receive sdk.AccAddress) (receiveAddrStr strin
 	return receiveAddrStr, nil
 }
 
-func (i FxTarget) ValidateExternalAddr(receive string) error {
+func (i FxTarget) ValidateExternalAddr(receive string) (err error) {
 	if i.isIBC {
-		_, err := sdk.GetFromBech32(receive, i.Bech32Prefix)
-		return err
+		_, err = sdk.GetFromBech32(receive, i.Bech32Prefix)
+	} else {
+		err = ValidateExternalAddr(i.GetModuleName(), receive)
 	}
-	if err := ValidateExternalAddr(i.GetModuleName(), receive); err != nil {
+	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
 	}
 	return nil

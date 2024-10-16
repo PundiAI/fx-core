@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -36,7 +38,7 @@ func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTo
 	return nil
 }
 
-func (k Keeper) BridgeCoinSupply(ctx sdk.Context, token, target string) (sdk.Coin, error) {
+func (k Keeper) BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error) {
 	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, token)
 	if err != nil {
 		return sdk.Coin{}, err

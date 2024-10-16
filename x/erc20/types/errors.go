@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrERC20Disabled          = errorsmod.Register(ModuleName, 2, "erc20 module is disabled")
-	ErrUndefinedOwner         = errorsmod.Register(ModuleName, 6, "undefined owner of erc20 contract")
-	ErrERC20TokenPairDisabled = errorsmod.Register(ModuleName, 11, "erc20 token is disabled")
+	ErrDisabled       = errorsmod.Register(ModuleName, 2, "erc20 module is disabled")
+	ErrExists         = errorsmod.Register(ModuleName, 3, "token already exists")
+	ErrUndefinedOwner = errorsmod.Register(ModuleName, 4, "undefined owner of erc20 contract")
 )

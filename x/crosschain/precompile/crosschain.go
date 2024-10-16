@@ -70,7 +70,7 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		baseCoin := sdk.Coin{}
 		totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
 
-		isOriginToken := value.Cmp(big.NewInt(0)) == 1
+		isOriginToken := value.Sign() > 0
 		if isOriginToken {
 			if totalAmount.Cmp(value) != 0 {
 				return errors.New("amount + fee not equal msg.value")
@@ -84,7 +84,7 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 				return err
 			}
 		} else {
-			baseCoin, err = m.EvmTokenToBase(ctx, evm, crosschainKeeper, sender, args.Token, totalAmount)
+			baseCoin, err = m.EvmTokenToBaseCoin(ctx, evm, crosschainKeeper, sender, args.Token, totalAmount)
 			if err != nil {
 				return err
 			}

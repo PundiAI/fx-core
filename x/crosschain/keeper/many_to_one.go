@@ -15,7 +15,7 @@ import (
 
 func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, bridgeToken erc20types.BridgeToken) (sdk.Coin, error) {
 	baseCoin := sdk.NewCoin(bridgeToken.Denom, amount)
-	if bridgeToken.IsNative {
+	if bridgeToken.IsOrigin() {
 		return baseCoin, nil
 	}
 	bridgeCoins := sdk.NewCoins(sdk.NewCoin(bridgeToken.BridgeDenom(), amount))
@@ -78,10 +78,7 @@ func (k Keeper) WithdrawBridgeToken(ctx context.Context, holder sdk.AccAddress, 
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, k.moduleName, bridgeCoins); err != nil {
 		return err
 	}
-	if bridgeToken.IsOrigin() {
-		return nil
-	}
-	if bridgeToken.IsNative {
+	if bridgeToken.IsOrigin() || bridgeToken.IsNative {
 		return nil
 	}
 	return k.bankKeeper.BurnCoins(ctx, k.moduleName, bridgeCoins)

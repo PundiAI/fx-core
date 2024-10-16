@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	"cosmossdk.io/collections"
 
@@ -28,7 +27,7 @@ func (k Keeper) AddBridgeToken(ctx context.Context, baseDenom string, chainName 
 		return err
 	}
 	if has {
-		return fmt.Errorf("bridge token already exists: %s, %s", baseDenom, chainName)
+		return types.ErrExists.Wrapf("%s base denom: %s", chainName, baseDenom)
 	}
 	bridgeToken := types.BridgeToken{
 		IsNative:  isNative,
