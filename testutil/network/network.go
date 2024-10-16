@@ -91,10 +91,11 @@ type Config struct {
 // to create networks. In addition, only the first validator will have a valid
 // RPC and API server/client.
 type Network struct {
-	Logger     log.Logger
+	logger     log.Logger
 	BaseDir    string
 	Config     Config
 	Validators []*Validator
+	cancel     context.CancelFunc
 }
 
 // Validator defines an in-process Tendermint validator node. Through this object,
@@ -128,20 +129,21 @@ func New(t *testing.T, cfg Config) *Network {
 
 	logger := log.NewNopLogger()
 	if cfg.EnableTMLogging {
-		logger = log.NewTestLoggerInfo(t)
+		filterFunc, _ := log.ParseLogLevel("info")
+		logger = log.NewLogger(os.Stdout, log.FilterOption(filterFunc))
 	}
 	validators, err := GenerateGenesisAndValidators(baseDir, &cfg, logger)
 	require.NoError(t, err)
 
 	network := &Network{
-		Logger:     logger,
+		logger:     logger,
 		BaseDir:    baseDir,
 		Config:     cfg,
 		Validators: validators,
 	}
 
 	ctx := context.Background()
-	ctx, cancelFn := context.WithCancel(ctx)
+	ctx, network.cancel = context.WithCancel(ctx)
 	errGroup, ctx := errgroup.WithContext(ctx)
 
 	t.Log("starting test network...")
@@ -153,7 +155,7 @@ func New(t *testing.T, cfg Config) *Network {
 
 	// Ensure we cleanup incase any test was abruptly halted (e.g. SIGINT) as any
 	// defer in a test would not be called.
-	network.TrapSignal(cancelFn, errGroup)
+	network.TrapSignal(errGroup)
 
 	t.Logf("started test network %fs", time.Since(startTime).Seconds())
 	return network
@@ -488,10 +490,11 @@ func (n *Network) WaitForNextBlock() error {
 // test networks. This method must be called when a test is finished, typically
 // in a defer.
 func (n *Network) Cleanup() {
-	n.Logger.Info("cleaning up test network...")
+	n.logger.Info("cleaning up test network...")
 	startTime := time.Now()
-	shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFn()
+	n.cancel()
 	for _, v := range n.Validators {
 		if v.tmNode != nil && v.tmNode.IsRunning() {
 			_ = v.tmNode.Stop()
@@ -507,27 +510,26 @@ func (n *Network) Cleanup() {
 
 		if v.jsonrpc != nil {
 			if err := v.jsonrpc.Shutdown(shutdownCtx); err != nil {
-				n.Logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
+				n.logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
 			}
 		}
 	}
 
 	if n.Config.CleanupDir {
 		if err := os.RemoveAll(n.BaseDir); err != nil {
-			n.Logger.Error("remove base dir", "error", err.Error())
+			n.logger.Error("remove base dir", "error", err.Error())
 		}
 	}
 
-	n.Logger.Info("finished cleaning up test network", "time", time.Since(startTime).Seconds())
+	n.logger.Info("finished cleaning up test network", "time", time.Since(startTime).Seconds())
 }
 
-func (n *Network) TrapSignal(cancelFn context.CancelFunc, group *errgroup.Group) {
+func (n *Network) TrapSignal(group *errgroup.Group) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	group.Go(func() error {
 		<-sigs
-		cancelFn()
 		n.Cleanup()
 		return nil
 	})
