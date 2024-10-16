@@ -3,8 +3,6 @@ package fx.ibc.applications.transfer.v1;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
-import "ibc/applications/transfer/v1/tx.proto";
-import "ibc/core/client/v1/client.proto";
 
 option go_package = "github.com/functionx/fx-core/types/legacy";
 
@@ -28,7 +26,7 @@ message MsgTransfer {
   string receiver = 5;
   // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
-  .ibc.core.client.v1.Height timeout_height = 6 [
+  Height timeout_height = 6 [
     (gogoproto.moretags) = "yaml:\"timeout_height\"",
     (gogoproto.nullable) = false
   ];
@@ -42,4 +40,24 @@ message MsgTransfer {
   cosmos.base.v1beta1.Coin fee = 9 [ (gogoproto.nullable) = false ];
   // optional memo
   string memo = 10;
+}
+
+// Height is a monotonically increasing data type
+// that can be compared against another Height for the purposes of updating and
+// freezing clients
+//
+// Normally the RevisionHeight is incremented at each height while keeping
+// RevisionNumber the same. However some consensus algorithms may choose to
+// reset the height in certain conditions e.g. hard forks, state-machine
+// breaking changes In these cases, the RevisionNumber is incremented so that
+// height continues to be monitonically increasing even as the RevisionHeight
+// gets reset
+message Height {
+  option (gogoproto.goproto_getters) = true;
+  option (gogoproto.goproto_stringer) = true;
+
+  // the revision that the client is currently on
+  uint64 revision_number = 1;
+  // the height within the given revision
+  uint64 revision_height = 2;
 }

@@ -27,7 +27,7 @@ message QueryMigrateRecordResponse {
   // has migrate true-> migrated, false-> not migrated.
   bool found = 1;
   // migrateRecord defines the the migrate record.
-  MigrateRecord migrateRecord = 2 [ (gogoproto.nullable) = false ];
+  MigrateRecord migrate_record = 2 [ (gogoproto.nullable) = false ];
 }
 
 message QueryMigrateCheckAccountRequest {

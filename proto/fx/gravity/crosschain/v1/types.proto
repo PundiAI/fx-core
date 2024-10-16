@@ -102,7 +102,7 @@ message OutgoingTxBatch {
   repeated OutgoingTransferTx transactions = 3;
   string token_contract = 4;
   uint64 block = 5;
-  string feeReceive = 6;
+  string fee_receive = 6;
 }
 
 // OutgoingTransferTx represents an individual send from gravity to ETH
@@ -141,7 +141,7 @@ message BatchFees {
 
 message MinBatchFee {
   string token_contract = 1;
-  string baseFee = 2 [
+  string base_fee = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

@@ -5,7 +5,7 @@ set -eo pipefail
 mkdir -p ./tmp-swagger-gen ./third_party ./build
 trap 'rm -rf ./tmp-swagger-gen ./third_party' EXIT
 
-commit_hash=$(go list -m -f '{{.Replace.Version}}' github.com/evmos/ethermint | awk -F '-' '{print $NF}')
+commit_hash=$(grep 'github.com/evmos/ethermint =>' go.mod | awk -F '-' '{print $NF}')
 if [[ ! -f "./build/$commit_hash.zip" ]]; then
   wget -c "https://github.com/functionx/ethermint/archive/$commit_hash.zip" -O "./build/$commit_hash.zip"
 fi
@@ -14,11 +14,7 @@ unzip -q -o "./build/$commit_hash.zip" -d "./build"
 cp -r "./build/$(ls ./build | grep ethermint | grep -v grep | grep -v zip)/proto" ./third_party/
 rm -rf ./build/ethermint-*
 
-mkdir -p "./third_party/cosmos/ics23/v1"
-wget https://raw.githubusercontent.com/cosmos/ics23/master/proto/cosmos/ics23/v1/proofs.proto -O "./third_party/cosmos/ics23/v1/proofs.proto"
-
 buf generate --template ./proto/buf.gen.swagger.yaml "$(grep cosmos/cosmos-sdk proto/buf.yaml | awk '{print $2}')"
-buf generate --template ./proto/buf.gen.swagger.yaml "$(grep cosmos/ibc proto/buf.yaml | awk '{print $2}')"
 
 # create swagger files on an individual basis  w/ `buf build` and `buf generate` (needed for `swagger-combine`)
 proto_dirs=$(find ./proto ./third_party -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)

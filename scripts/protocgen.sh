@@ -18,3 +18,5 @@ done
 # move proto files to the right places
 cp -r github.com/functionx/fx-core/* ./
 rm -rf github.com
+
+sh ./scripts/protocgen-pulsar.sh
