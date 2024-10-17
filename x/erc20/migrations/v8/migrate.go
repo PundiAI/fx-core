@@ -68,7 +68,7 @@ func (m Migrator) addBridgeToken(
 	if getExcludeBridgeToken(ctx, alias) {
 		return nil
 	}
-	for _, ck := range m.crossChainKeepers {
+	for _, ck := range m.crosschainKeepers {
 		canAddFxBridgeToken := base == fxtypes.DefaultDenom && ck.ModuleName() == ethtypes.ModuleName
 		canAddBridgeToken := strings.HasPrefix(alias, ck.ModuleName())
 		excludeModule := ck.ModuleName() != arbitrumtypes.ModuleName && ck.ModuleName() != optimismtypes.ModuleName
