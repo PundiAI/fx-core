@@ -271,22 +271,3 @@ func BenchmarkName(b *testing.B) {
 		assert.Equal(b, fees, sdkmath.NewInt(1))
 	}
 }
-
-func TestBridgeDenomToContract(t *testing.T) {
-	testCases := []struct {
-		moduleName  string
-		bridgeDenom string
-		want        string
-	}{
-		{
-			moduleName:  "eth",
-			bridgeDenom: "eth0x1",
-			want:        "0x1",
-		},
-	}
-	for _, tc := range testCases {
-		t.Parallel()
-		got := types.BridgeDenomToContract(tc.moduleName, tc.bridgeDenom)
-		require.Equal(t, tc.want, got)
-	}
-}

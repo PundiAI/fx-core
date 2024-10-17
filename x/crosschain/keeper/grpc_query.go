@@ -192,7 +192,7 @@ func (k QueryServer) DenomToToken(c context.Context, req *types.QueryDenomToToke
 		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
 
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(c, req.Denom, req.ChainName)
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(c, req.ChainName, req.Denom)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -207,7 +207,7 @@ func (k QueryServer) TokenToDenom(c context.Context, req *types.QueryTokenToDeno
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	_, err = k.erc20Keeper.GetBridgeToken(c, baseDenom, req.ChainName)
+	_, err = k.erc20Keeper.GetBridgeToken(c, req.ChainName, baseDenom)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -282,9 +282,18 @@ func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.Que
 	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: timeout}, nil
 }
 
-func (k QueryServer) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
-	bridgeTokens := make([]*types.BridgeToken, 0)
-	// todo: need implement
+func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
+	tokens, err := k.erc20Keeper.GetBridgeTokens(c, req.ChainName)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	bridgeTokens := make([]*types.BridgeToken, 0, len(tokens))
+	for _, token := range tokens {
+		bridgeTokens = append(bridgeTokens, &types.BridgeToken{
+			Token: token.Contract,
+			Denom: token.BridgeDenom(),
+		})
+	}
 	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
 }
 

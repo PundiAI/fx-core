@@ -33,7 +33,7 @@ func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress
 }
 
 func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, holder sdk.AccAddress, baseCoin sdk.Coin) (bridgeToken erc20types.BridgeToken, err error) {
-	bridgeToken, err = k.erc20Keeper.GetBridgeToken(ctx, baseCoin.Denom, k.moduleName)
+	bridgeToken, err = k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, baseCoin.Denom)
 	if err != nil {
 		return bridgeToken, err
 	}
@@ -106,7 +106,7 @@ func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ib
 }
 
 func (k Keeper) BaseCoinToIBCCoin(ctx context.Context, holder sdk.AccAddress, baseCoin sdk.Coin, channel string) (sdk.Coin, error) {
-	ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, baseCoin.Denom, channel)
+	ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, channel, baseCoin.Denom)
 	if err != nil {
 		// NOTE: if not found in IBCToken
 		return baseCoin, nil
@@ -168,5 +168,5 @@ func (k Keeper) GetBridgeToken(ctx context.Context, tokenAddr string) (erc20type
 	if err != nil {
 		return erc20types.BridgeToken{}, err
 	}
-	return k.erc20Keeper.GetBridgeToken(ctx, baseDenom, k.moduleName)
+	return k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, baseDenom)
 }

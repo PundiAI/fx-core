@@ -54,9 +54,10 @@ type Erc20Keeper interface {
 
 	GetERC20Token(ctx context.Context, baseDenom string) (erc20types.ERC20Token, error)
 
-	GetBridgeToken(ctx context.Context, baseDenom, chainName string) (erc20types.BridgeToken, error)
+	GetBridgeToken(ctx context.Context, chainName, baseDenom string) (erc20types.BridgeToken, error)
+	GetBridgeTokens(ctx context.Context, chainName string) ([]erc20types.BridgeToken, error)
 
-	GetIBCToken(ctx context.Context, baseDenom, channel string) (erc20types.IBCToken, error)
+	GetIBCToken(ctx context.Context, channel, baseDenom string) (erc20types.IBCToken, error)
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on crosschain

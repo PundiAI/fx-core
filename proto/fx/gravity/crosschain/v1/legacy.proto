@@ -124,3 +124,48 @@ message MsgOracleSetConfirmResponse { option deprecated = true; }
 message MsgConfirmBatchResponse { option deprecated = true; }
 
 message MsgBridgeCallConfirmResponse { option deprecated = true; }
+
+message BridgeToken {
+  option deprecated = true;
+  string token = 1;
+  string denom = 2;
+  // Deprecated: after upgrade v3
+  string channel_ibc = 3;
+}
+
+message BatchFees {
+  option deprecated = true;
+  string token_contract = 1;
+  string total_fees = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  uint64 total_txs = 3;
+  string total_amount = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MinBatchFee {
+  option deprecated = true;
+  string token_contract = 1;
+  string base_fee = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message QueryBatchFeeRequest {
+  option deprecated = true;
+  string chain_name = 1;
+  repeated MinBatchFee min_batch_fees = 2 [ (gogoproto.nullable) = false ];
+}
+
+message QueryBatchFeeResponse {
+  option deprecated = true;
+  repeated BatchFees batch_fees = 1;
+}
