@@ -3,15 +3,18 @@ package v8
 import (
 	"context"
 	"encoding/hex"
+	"strings"
 
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/functionx/fx-core/v8/app/keepers"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/gov/keeper"
 	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
@@ -37,6 +40,8 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		if err = updateArbitrumParams(cacheCtx, app.ArbitrumKeeper); err != nil {
 			return fromVM, err
 		}
+
+		updateMetadata(cacheCtx, app.BankKeeper)
 
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
@@ -73,5 +78,25 @@ func removeStoreKeys(ctx sdk.Context, storeKey *storetypes.KVStoreKey, keys [][]
 
 	for _, key := range keys {
 		deleteFn(key)
+	}
+}
+
+func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
+	mds := bankKeeper.GetAllDenomMetaData(ctx)
+	for _, md := range mds {
+		if md.Base == fxtypes.DefaultDenom || len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0 {
+			continue
+		}
+		// remove alias
+		md.DenomUnits[0].Aliases = []string{}
+
+		// update pundix/purse base denom
+		newBase := strings.ToLower(md.Symbol)
+		if md.Base != newBase {
+			md.Base = newBase
+			md.DenomUnits[0].Denom = newBase
+		}
+
+		bankKeeper.SetDenomMetaData(ctx, md)
 	}
 }

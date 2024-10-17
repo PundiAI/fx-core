@@ -6,15 +6,19 @@ import (
 	"fmt"
 
 	"cosmossdk.io/core/appmodule"
+	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
+	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/erc20/keeper"
+	v8 "github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
@@ -73,14 +77,22 @@ func (AppModuleBasic) RegisterInterfaces(interfaceRegistry codectypes.InterfaceR
 // AppModule implements the AppModule interface for the capability module.
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	storeKey          storetypes.StoreKey
+	cdc               codec.BinaryCodec
+	keeper            keeper.Keeper
+	bankKeeper        bankkeeper.Keeper
+	crossChainKeepers []crosschainkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, keeper keeper.Keeper, bk bankkeeper.Keeper, cks []crosschainkeeper.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
-		keeper:         keeper,
+		AppModuleBasic:    AppModuleBasic{},
+		storeKey:          storeKey,
+		cdc:               cdc,
+		keeper:            keeper,
+		bankKeeper:        bk,
+		crossChainKeepers: cks,
 	}
 }
 
@@ -98,6 +110,11 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServer(am.keeper))
+
+	m := v8.NewMigrator(am.storeKey, am.cdc, am.keeper, am.bankKeeper, am.crossChainKeepers)
+	if err := cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/erc20 from version 3 to 4: %v", err))
+	}
 }
 
 // InitGenesis performs the capability module's genesis initialization It returns
