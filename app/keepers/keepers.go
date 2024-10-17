@@ -99,7 +99,7 @@ type CrosschainKeepers struct {
 	Layer2Keeper    crosschainkeeper.Keeper
 }
 
-func (c CrossChainKeepers) ToSlice() []crosschainkeeper.Keeper {
+func (c CrosschainKeepers) ToSlice() []crosschainkeeper.Keeper {
 	return []crosschainkeeper.Keeper{
 		c.BscKeeper, c.PolygonKeeper, c.AvalancheKeeper, c.EthKeeper,
 		c.TronKeeper, c.ArbitrumKeeper, c.OptimismKeeper, c.Layer2Keeper,
