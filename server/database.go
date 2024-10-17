@@ -138,7 +138,7 @@ func (d *Database) GetConsensusValidators() ([]*cmtservice.Validator, error) {
 	if len(state.Validators.Validators) == 0 {
 		return nil, nil
 	}
-	validators := make([]*cmtservice.Validator, len(state.Validators.Validators))
+	validators := make([]*cmtservice.Validator, 0, len(state.Validators.Validators))
 	for _, val := range state.Validators.Validators {
 		validator, err := toValidator(val)
 		if err != nil {
