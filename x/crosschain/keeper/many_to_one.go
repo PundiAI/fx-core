@@ -158,9 +158,9 @@ func (k Keeper) IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sd
 	return k.erc20Keeper.DeleteCache(ctx, ibcTransferKey)
 }
 
-func (k Keeper) AfterIBCAckSuccess(ctx sdk.Context, ibcChannel string, ibcSequence uint64) {
+func (k Keeper) AfterIBCAckSuccess(ctx sdk.Context, ibcChannel string, ibcSequence uint64) error {
 	ibcTransferKey := types.NewIBCTransferKey(ibcChannel, ibcSequence)
-	_ = k.erc20Keeper.DeleteCache(ctx, ibcTransferKey) // todo: need to handle error
+	return k.erc20Keeper.DeleteCache(ctx, ibcTransferKey)
 }
 
 func (k Keeper) GetBridgeToken(ctx context.Context, tokenAddr string) (erc20types.BridgeToken, error) {
