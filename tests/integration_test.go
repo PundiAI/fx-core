@@ -66,18 +66,6 @@ func TestIntegrationTest(t *testing.T) {
 
 func (suite *IntegrationTest) TestRun() {
 	suite.CrossChainTest()
-	suite.OriginalCrossChainTest()
-
-	suite.PrecompileTransferCrossChainTest()
-	suite.PrecompileCrossChainTest()
-	suite.PrecompileCrossChainConvertedDenomTest()
-
-	suite.ERC20TokenOriginTest()
-	suite.ERC20IBCChainTokenOriginTest()
-	suite.ERC20TokenERC20Test()
-	suite.ERC20IBCChainTokenERC20Test()
-
-	suite.BridgeCallToFxcoreTest()
 
 	suite.StakingTest()
 	suite.StakingContractTest()

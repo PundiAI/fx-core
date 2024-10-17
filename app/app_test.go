@@ -9,6 +9,7 @@ import (
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/types/legacy"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
 func Test_MsgServiceRouter(t *testing.T) {
@@ -24,6 +25,11 @@ func Test_MsgServiceRouter(t *testing.T) {
 		sdk.MsgTypeURL(&crosschaintypes.MsgCancelSendToExternal{}):   {},
 		sdk.MsgTypeURL(&crosschaintypes.MsgIncreaseBridgeFee{}):      {},
 		sdk.MsgTypeURL(&crosschaintypes.MsgRequestBatch{}):           {},
+		sdk.MsgTypeURL(&erc20types.MsgConvertDenom{}):                {},
+		sdk.MsgTypeURL(&erc20types.MsgConvertERC20{}):                {},
+		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}):            {},
+		sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}):               {},
+		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}):                {},
 	}
 	for _, msg := range myApp.InterfaceRegistry().ListImplementations(sdk.MsgInterfaceProtoName) {
 		if _, ok := deprecated[msg]; ok {

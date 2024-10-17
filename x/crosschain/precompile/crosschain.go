@@ -53,41 +53,47 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	value := contract.Value()
 	sender := contract.Caller()
 
-	originToken := false
-	totalCoin := sdk.Coin{}
-
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		target := fxtypes.Byte32ToString(args.Target)
-		crosschainKeeper, ok := m.router.GetRouteWithIBC(target)
+		fxTarget, err := crosschaintypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
+		if err != nil {
+			return err
+		}
+		crosschainKeeper, ok := m.router.GetRoute(fxTarget.GetModuleName())
 		if !ok {
 			return errors.New("invalid router")
 		}
+		if err = fxTarget.ValidateExternalAddr(args.Receipt); err != nil {
+			return err
+		}
 
-		// cross-chain origin token
-		if value.Cmp(big.NewInt(0)) == 1 && fxcontract.IsZeroEthAddress(args.Token) {
-			totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
+		baseCoin := sdk.Coin{}
+		totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
+
+		isOriginToken := value.Sign() > 0
+		if isOriginToken {
 			if totalAmount.Cmp(value) != 0 {
 				return errors.New("amount + fee not equal msg.value")
 			}
+			if !fxcontract.IsZeroEthAddress(args.Token) {
+				return errors.New("token is not zero address")
+			}
 
-			totalCoin = sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(totalAmount))
-			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(totalCoin)); err != nil {
+			baseCoin = sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(totalAmount))
+			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(baseCoin)); err != nil {
 				return err
 			}
-			// origin token flag is true when cross chain evm denom
-			originToken = true
 		} else {
-			totalCoin, err = m.EvmTokenToBase(ctx, evm, crosschainKeeper, sender, args.Token, big.NewInt(0).Add(args.Amount, args.Fee))
+			baseCoin, err = m.EvmTokenToBaseCoin(ctx, evm, crosschainKeeper, sender, args.Token, totalAmount)
 			if err != nil {
 				return err
 			}
 		}
 
-		amountCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Amount))
-		feeCoin := sdk.NewCoin(totalCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
+		amountCoin := sdk.NewCoin(baseCoin.Denom, sdkmath.NewIntFromBigInt(args.Amount))
+		feeCoin := sdk.NewCoin(baseCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
 		if err = crosschainKeeper.CrossChainBaseCoin(ctx, sender.Bytes(), args.Receipt,
-			amountCoin, feeCoin, target, args.Memo, originToken); err != nil {
+			amountCoin, feeCoin, fxTarget, args.Memo, isOriginToken); err != nil {
 			return err
 		}
 

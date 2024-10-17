@@ -8,7 +8,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	_ "google.golang.org/protobuf/types/known/durationpb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -17,7 +17,7 @@ import (
 var _ protoreflect.List = (*_GenesisState_2_list)(nil)
 
 type _GenesisState_2_list struct {
-	list *[]*TokenPair
+	list *[]*ERC20Token
 }
 
 func (x *_GenesisState_2_list) Len() int {
@@ -33,18 +33,18 @@ func (x *_GenesisState_2_list) Get(i int) protoreflect.Value {
 
 func (x *_GenesisState_2_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*TokenPair)
+	concreteValue := valueUnwrapped.Interface().(*ERC20Token)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GenesisState_2_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*TokenPair)
+	concreteValue := valueUnwrapped.Interface().(*ERC20Token)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GenesisState_2_list) AppendMutable() protoreflect.Value {
-	v := new(TokenPair)
+	v := new(ERC20Token)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -57,7 +57,7 @@ func (x *_GenesisState_2_list) Truncate(n int) {
 }
 
 func (x *_GenesisState_2_list) NewElement() protoreflect.Value {
-	v := new(TokenPair)
+	v := new(ERC20Token)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -272,7 +272,7 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		return protoreflect.ValueOfMessage(x.Params.ProtoReflect())
 	case "fx.erc20.v1.GenesisState.token_pairs":
 		if x.TokenPairs == nil {
-			x.TokenPairs = []*TokenPair{}
+			x.TokenPairs = []*ERC20Token{}
 		}
 		value := &_GenesisState_2_list{list: &x.TokenPairs}
 		return protoreflect.ValueOfList(value)
@@ -293,7 +293,7 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 		m := new(Params)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "fx.erc20.v1.GenesisState.token_pairs":
-		list := []*TokenPair{}
+		list := []*ERC20Token{}
 		return protoreflect.ValueOfList(&_GenesisState_2_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -547,7 +547,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.TokenPairs = append(x.TokenPairs, &TokenPair{})
+				x.TokenPairs = append(x.TokenPairs, &ERC20Token{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TokenPairs[len(x.TokenPairs)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -588,18 +588,14 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 }
 
 var (
-	md_Params                 protoreflect.MessageDescriptor
-	fd_Params_enable_erc20    protoreflect.FieldDescriptor
-	fd_Params_enable_evm_hook protoreflect.FieldDescriptor
-	fd_Params_ibc_timeout     protoreflect.FieldDescriptor
+	md_Params              protoreflect.MessageDescriptor
+	fd_Params_enable_erc20 protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fx_erc20_v1_genesis_proto_init()
 	md_Params = File_fx_erc20_v1_genesis_proto.Messages().ByName("Params")
 	fd_Params_enable_erc20 = md_Params.Fields().ByName("enable_erc20")
-	fd_Params_enable_evm_hook = md_Params.Fields().ByName("enable_evm_hook")
-	fd_Params_ibc_timeout = md_Params.Fields().ByName("ibc_timeout")
 }
 
 var _ protoreflect.Message = (*fastReflection_Params)(nil)
@@ -673,18 +669,6 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 			return
 		}
 	}
-	if x.EnableEvmHook != false {
-		value := protoreflect.ValueOfBool(x.EnableEvmHook)
-		if !f(fd_Params_enable_evm_hook, value) {
-			return
-		}
-	}
-	if x.IbcTimeout != nil {
-		value := protoreflect.ValueOfMessage(x.IbcTimeout.ProtoReflect())
-		if !f(fd_Params_ibc_timeout, value) {
-			return
-		}
-	}
 }
 
 // Has reports whether a field is populated.
@@ -702,10 +686,6 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "fx.erc20.v1.Params.enable_erc20":
 		return x.EnableErc20 != false
-	case "fx.erc20.v1.Params.enable_evm_hook":
-		return x.EnableEvmHook != false
-	case "fx.erc20.v1.Params.ibc_timeout":
-		return x.IbcTimeout != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.Params"))
@@ -724,10 +704,6 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "fx.erc20.v1.Params.enable_erc20":
 		x.EnableErc20 = false
-	case "fx.erc20.v1.Params.enable_evm_hook":
-		x.EnableEvmHook = false
-	case "fx.erc20.v1.Params.ibc_timeout":
-		x.IbcTimeout = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.Params"))
@@ -747,12 +723,6 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 	case "fx.erc20.v1.Params.enable_erc20":
 		value := x.EnableErc20
 		return protoreflect.ValueOfBool(value)
-	case "fx.erc20.v1.Params.enable_evm_hook":
-		value := x.EnableEvmHook
-		return protoreflect.ValueOfBool(value)
-	case "fx.erc20.v1.Params.ibc_timeout":
-		value := x.IbcTimeout
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.Params"))
@@ -775,10 +745,6 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 	switch fd.FullName() {
 	case "fx.erc20.v1.Params.enable_erc20":
 		x.EnableErc20 = value.Bool()
-	case "fx.erc20.v1.Params.enable_evm_hook":
-		x.EnableEvmHook = value.Bool()
-	case "fx.erc20.v1.Params.ibc_timeout":
-		x.IbcTimeout = value.Message().Interface().(*durationpb.Duration)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.Params"))
@@ -799,15 +765,8 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.Params.ibc_timeout":
-		if x.IbcTimeout == nil {
-			x.IbcTimeout = new(durationpb.Duration)
-		}
-		return protoreflect.ValueOfMessage(x.IbcTimeout.ProtoReflect())
 	case "fx.erc20.v1.Params.enable_erc20":
 		panic(fmt.Errorf("field enable_erc20 of message fx.erc20.v1.Params is not mutable"))
-	case "fx.erc20.v1.Params.enable_evm_hook":
-		panic(fmt.Errorf("field enable_evm_hook of message fx.erc20.v1.Params is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.Params"))
@@ -823,11 +782,6 @@ func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protor
 	switch fd.FullName() {
 	case "fx.erc20.v1.Params.enable_erc20":
 		return protoreflect.ValueOfBool(false)
-	case "fx.erc20.v1.Params.enable_evm_hook":
-		return protoreflect.ValueOfBool(false)
-	case "fx.erc20.v1.Params.ibc_timeout":
-		m := new(durationpb.Duration)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.Params"))
@@ -900,13 +854,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.EnableErc20 {
 			n += 2
 		}
-		if x.EnableEvmHook {
-			n += 2
-		}
-		if x.IbcTimeout != nil {
-			l = options.Size(x.IbcTimeout)
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -935,30 +882,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.IbcTimeout != nil {
-			encoded, err := options.Marshal(x.IbcTimeout)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-			i--
-			dAtA[i] = 0x1a
-		}
-		if x.EnableEvmHook {
-			i--
-			if x.EnableEvmHook {
-				dAtA[i] = 1
-			} else {
-				dAtA[i] = 0
-			}
-			i--
-			dAtA[i] = 0x10
 		}
 		if x.EnableErc20 {
 			i--
@@ -1039,62 +962,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 					}
 				}
 				x.EnableErc20 = bool(v != 0)
-			case 2:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EnableEvmHook", wireType)
-				}
-				var v int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				x.EnableEvmHook = bool(v != 0)
-			case 3:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field IbcTimeout", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if x.IbcTimeout == nil {
-					x.IbcTimeout = &durationpb.Duration{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.IbcTimeout); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1149,10 +1016,8 @@ type GenesisState struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// module parameters
-	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
-	// registered token pairs
-	TokenPairs []*TokenPair `protobuf:"bytes,2,rep,name=token_pairs,json=tokenPairs,proto3" json:"token_pairs,omitempty"`
+	Params     *Params       `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	TokenPairs []*ERC20Token `protobuf:"bytes,2,rep,name=token_pairs,json=tokenPairs,proto3" json:"token_pairs,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -1182,7 +1047,7 @@ func (x *GenesisState) GetParams() *Params {
 	return nil
 }
 
-func (x *GenesisState) GetTokenPairs() []*TokenPair {
+func (x *GenesisState) GetTokenPairs() []*ERC20Token {
 	if x != nil {
 		return x.TokenPairs
 	}
@@ -1195,14 +1060,7 @@ type Params struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// parameter to enable the intrarelaying of Cosmos coins <--> ERC20 tokens.
 	EnableErc20 bool `protobuf:"varint,1,opt,name=enable_erc20,json=enableErc20,proto3" json:"enable_erc20,omitempty"`
-	// parameter to enable the EVM hook to convert an ERC20 token to a Cosmos
-	// Coin by transferring the Tokens through a MsgEthereumTx to the
-	// ModuleAddress Ethereum address.
-	EnableEvmHook bool `protobuf:"varint,2,opt,name=enable_evm_hook,json=enableEvmHook,proto3" json:"enable_evm_hook,omitempty"`
-	// parameter to set ibc timeout
-	IbcTimeout *durationpb.Duration `protobuf:"bytes,3,opt,name=ibc_timeout,json=ibcTimeout,proto3" json:"ibc_timeout,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -1232,64 +1090,39 @@ func (x *Params) GetEnableErc20() bool {
 	return false
 }
 
-func (x *Params) GetEnableEvmHook() bool {
-	if x != nil {
-		return x.EnableEvmHook
-	}
-	return false
-}
-
-func (x *Params) GetIbcTimeout() *durationpb.Duration {
-	if x != nil {
-		return x.IbcTimeout
-	}
-	return nil
-}
-
 var File_fx_erc20_v1_genesis_proto protoreflect.FileDescriptor
 
 var file_fx_erc20_v1_genesis_proto_rawDesc = []byte{
 	0x0a, 0x19, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x67, 0x65,
 	0x6e, 0x65, 0x73, 0x69, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0b, 0x66, 0x78, 0x2e,
 	0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x1a, 0x17, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63,
-	0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67,
 	0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f,
-	0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x80, 0x01, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65,
+	0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x81, 0x01, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65,
 	0x73, 0x69, 0x73, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x31, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61,
 	0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72,
 	0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x04, 0xc8,
-	0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x3d, 0x0a, 0x0b, 0x74,
+	0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x3e, 0x0a, 0x0b, 0x74,
 	0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x16, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x54,
-	0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0a,
-	0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x22, 0xf5, 0x01, 0x0a, 0x06, 0x50,
+	0x32, 0x17, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x45,
+	0x52, 0x43, 0x32, 0x30, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52,
+	0x0a, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x22, 0x44, 0x0a, 0x06, 0x50,
 	0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x3a, 0x0a, 0x0c, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f,
 	0x65, 0x72, 0x63, 0x32, 0x30, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x42, 0x17, 0xf2, 0xde, 0x1f,
 	0x13, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x72,
 	0x63, 0x32, 0x30, 0x22, 0x52, 0x0b, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45, 0x72, 0x63, 0x32,
-	0x30, 0x12, 0x53, 0x0a, 0x0f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x76, 0x6d, 0x5f,
-	0x68, 0x6f, 0x6f, 0x6b, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x42, 0x2b, 0xe2, 0xde, 0x1f, 0x0d,
-	0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45, 0x56, 0x4d, 0x48, 0x6f, 0x6f, 0x6b, 0xf2, 0xde, 0x1f,
-	0x16, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x76,
-	0x6d, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x22, 0x52, 0x0d, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45,
-	0x76, 0x6d, 0x48, 0x6f, 0x6f, 0x6b, 0x12, 0x5a, 0x0a, 0x0b, 0x69, 0x62, 0x63, 0x5f, 0x74, 0x69,
-	0x6d, 0x65, 0x6f, 0x75, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f,
-	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75,
-	0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x1e, 0xc8, 0xde, 0x1f, 0x00, 0xf2, 0xde, 0x1f, 0x12,
-	0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x69, 0x62, 0x63, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75,
-	0x74, 0x22, 0x98, 0xdf, 0x1f, 0x01, 0x52, 0x0a, 0x69, 0x62, 0x63, 0x54, 0x69, 0x6d, 0x65, 0x6f,
-	0x75, 0x74, 0x42, 0x93, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72,
-	0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50,
-	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x24, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64,
-	0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32,
-	0x30, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x46,
-	0x45, 0x58, 0xaa, 0x02, 0x0b, 0x46, 0x78, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31,
-	0xca, 0x02, 0x0b, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2, 0x02,
-	0x17, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42,
-	0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x46, 0x78, 0x3a, 0x3a, 0x45,
-	0x72, 0x63, 0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x30, 0x42, 0x93, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63,
+	0x32, 0x30, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72,
+	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x24, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b,
+	0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30,
+	0x2f, 0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x46, 0x45,
+	0x58, 0xaa, 0x02, 0x0b, 0x46, 0x78, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31, 0xca,
+	0x02, 0x0b, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17,
+	0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
+	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x46, 0x78, 0x3a, 0x3a, 0x45, 0x72,
+	0x63, 0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1306,20 +1139,18 @@ func file_fx_erc20_v1_genesis_proto_rawDescGZIP() []byte {
 
 var file_fx_erc20_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_fx_erc20_v1_genesis_proto_goTypes = []interface{}{
-	(*GenesisState)(nil),        // 0: fx.erc20.v1.GenesisState
-	(*Params)(nil),              // 1: fx.erc20.v1.Params
-	(*TokenPair)(nil),           // 2: fx.erc20.v1.TokenPair
-	(*durationpb.Duration)(nil), // 3: google.protobuf.Duration
+	(*GenesisState)(nil), // 0: fx.erc20.v1.GenesisState
+	(*Params)(nil),       // 1: fx.erc20.v1.Params
+	(*ERC20Token)(nil),   // 2: fx.erc20.v1.ERC20Token
 }
 var file_fx_erc20_v1_genesis_proto_depIdxs = []int32{
 	1, // 0: fx.erc20.v1.GenesisState.params:type_name -> fx.erc20.v1.Params
-	2, // 1: fx.erc20.v1.GenesisState.token_pairs:type_name -> fx.erc20.v1.TokenPair
-	3, // 2: fx.erc20.v1.Params.ibc_timeout:type_name -> google.protobuf.Duration
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // 1: fx.erc20.v1.GenesisState.token_pairs:type_name -> fx.erc20.v1.ERC20Token
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_fx_erc20_v1_genesis_proto_init() }
@@ -1327,7 +1158,7 @@ func file_fx_erc20_v1_genesis_proto_init() {
 	if File_fx_erc20_v1_genesis_proto != nil {
 		return
 	}
-	file_fx_erc20_v1_erc20_proto_init()
+	file_fx_erc20_v1_types_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_fx_erc20_v1_genesis_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenesisState); i {

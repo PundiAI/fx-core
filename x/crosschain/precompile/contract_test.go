@@ -14,11 +14,7 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -27,12 +23,10 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 
@@ -42,8 +36,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	"github.com/functionx/fx-core/v8/x/erc20/types"
-	crossethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 type PrecompileTestSuite struct {
@@ -63,7 +55,6 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.Ctx = suite.Ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e18))
 
 	suite.signer = suite.AddTestSigner(10_000)
-	suite.AddFXBridgeToken(helpers.GenExternalAddr(crossethtypes.ModuleName))
 
 	crosschainContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrossChainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
 	suite.Require().NoError(err)
@@ -122,48 +113,6 @@ func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
 	return signer
 }
 
-func (suite *PrecompileTestSuite) Error(res *evmtypes.MsgEthereumTxResponse, errResult error) {
-	suite.Require().True(res.Failed())
-	if res.VmError != vm.ErrExecutionReverted.Error() {
-		suite.Require().Equal(errResult.Error(), res.VmError)
-		return
-	}
-
-	if len(res.Ret) > 0 {
-		reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret))
-		suite.Require().NoError(err)
-
-		suite.Require().Equal(errResult.Error(), reason)
-		return
-	}
-
-	suite.Require().Equal(errResult.Error(), vm.ErrExecutionReverted.Error())
-}
-
-func (suite *PrecompileTestSuite) MintFeeCollector(coins sdk.Coins) {
-	err := suite.App.BankKeeper.MintCoins(suite.Ctx, types.ModuleName, coins)
-	suite.Require().NoError(err)
-	err = suite.App.BankKeeper.SendCoinsFromModuleToModule(suite.Ctx, types.ModuleName, authtypes.FeeCollectorName, coins)
-	suite.Require().NoError(err)
-}
-
-func (suite *PrecompileTestSuite) DeployContract(from common.Address) (common.Address, error) {
-	contractAddr, err := suite.App.Erc20Keeper.DeployUpgradableToken(suite.Ctx, suite.App.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
-	suite.Require().NoError(err)
-
-	_, err = suite.App.EvmKeeper.ApplyContract(suite.Ctx, suite.App.Erc20Keeper.ModuleAddress(), contractAddr, nil, contract.GetFIP20().ABI, "transferOwnership", from)
-	suite.Require().NoError(err)
-	return contractAddr, nil
-}
-
-func (suite *PrecompileTestSuite) DeployFXRelayToken() (types.TokenPair, banktypes.Metadata) {
-	fxToken := fxtypes.GetFXMetaData()
-
-	pair, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, fxToken)
-	suite.Require().NoError(err)
-	return *pair, fxToken
-}
-
 func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeeper.Keeper {
 	value := reflect.ValueOf(suite.App.CrossChainKeepers)
 	keepers := make(map[string]crosschainkeeper.Keeper)
@@ -178,33 +127,6 @@ func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeepe
 		}
 	}
 	return keepers
-}
-
-func (suite *PrecompileTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Metadata {
-	keepers := suite.CrossChainKeepers()
-	modules := make([]string, 0, len(keepers))
-	for m := range keepers {
-		modules = append(modules, m)
-	}
-	count := tmrand.Intn(len(modules)-1) + 1
-
-	denoms := make([]string, len(modules))
-	denomModules := make([]string, len(modules))
-	for index, m := range modules {
-		address := helpers.GenExternalAddr(m)
-
-		denom := crosschaintypes.NewBridgeDenom(m, address)
-		denoms[index] = denom
-		denomModules[index] = m
-
-		k := keepers[m]
-		k.AddBridgeToken(suite.Ctx, denom, denom)
-	}
-	if count >= len(modules) {
-		count = len(modules) - 1
-	}
-	metadata := fxtypes.GetCrossChainMetadataManyToOne("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
-	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 
 func (suite *PrecompileTestSuite) GenerateModuleName() string {
@@ -249,105 +171,6 @@ func (suite *PrecompileTestSuite) GenerateRandOracle(moduleName string, online b
 	return oracles[0]
 }
 
-func (suite *PrecompileTestSuite) InitObservedBlockHeight() {
-	keepers := suite.CrossChainKeepers()
-	for _, k := range keepers {
-		k.SetLastObservedBlockHeight(suite.Ctx, 10, uint64(suite.Ctx.BlockHeight()))
-	}
-}
-
-func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata, amt sdkmath.Int) sdk.Coin {
-	generateAddress := helpers.GenHexAddress()
-
-	count := 1
-	if len(md.DenomUnits) > 0 && len(md.DenomUnits[0].Aliases) > 0 {
-		// add alias to erc20 module
-		for _, alias := range md.DenomUnits[0].Aliases {
-			// add alias for erc20 module
-			coins := sdk.NewCoins(sdk.NewCoin(alias, amt))
-			suite.MintToken(generateAddress.Bytes(), coins...)
-			err := suite.App.BankKeeper.SendCoinsFromAccountToModule(suite.Ctx, generateAddress.Bytes(), types.ModuleName, coins)
-			suite.Require().NoError(err)
-		}
-		count = len(md.DenomUnits[0].Aliases)
-	}
-
-	// add denom to erc20 module
-	coin := sdk.NewCoin(md.Base, amt.Mul(sdkmath.NewInt(int64(count))))
-	suite.MintToken(generateAddress.Bytes(), coin)
-	err := suite.App.BankKeeper.SendCoinsFromAccountToModule(suite.Ctx, generateAddress.Bytes(), types.ModuleName, sdk.NewCoins(coin))
-	suite.Require().NoError(err)
-
-	return coin
-}
-
-func (suite *PrecompileTestSuite) BalanceOf(contractAddr, account common.Address) *big.Int {
-	var balanceRes struct{ Value *big.Int }
-	err := suite.App.EvmKeeper.QueryContract(suite.Ctx, account, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, account)
-	suite.Require().NoError(err)
-	return balanceRes.Value
-}
-
-func (suite *PrecompileTestSuite) MintERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := contract.GetFIP20()
-	transferData, err := erc20.ABI.Pack("mint", to, amount)
-	suite.Require().NoError(err)
-	return suite.sendEvmTx(signer, contractAddr, transferData)
-}
-
-func (suite *PrecompileTestSuite) ModuleMintERC20Token(contractAddr, to common.Address, amount *big.Int) {
-	erc20 := contract.GetFIP20()
-	rsp, err := suite.App.EvmKeeper.ApplyContract(suite.Ctx, suite.App.Erc20Keeper.ModuleAddress(), contractAddr, nil, erc20.ABI, "mint", to, amount)
-	suite.Require().NoError(err)
-	suite.Require().Empty(rsp.VmError)
-}
-
-func (suite *PrecompileTestSuite) TransferERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := contract.GetFIP20()
-	transferData, err := erc20.ABI.Pack("transfer", to, amount)
-	suite.Require().NoError(err)
-	return suite.sendEvmTx(signer, contractAddr, transferData)
-}
-
-func (suite *PrecompileTestSuite) ERC20Approve(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := contract.GetFIP20()
-	transferData, err := erc20.ABI.Pack("approve", to, amount)
-	suite.Require().NoError(err)
-	return suite.sendEvmTx(signer, contractAddr, transferData)
-}
-
-func (suite *PrecompileTestSuite) ERC20Allowance(contractAddr, owner, spender common.Address) *big.Int {
-	var allowanceRes struct{ Value *big.Int }
-	err := suite.App.EvmKeeper.QueryContract(suite.Ctx, owner, contractAddr, contract.GetFIP20().ABI, "allowance", &allowanceRes, owner, spender)
-	suite.Require().NoError(err)
-	return allowanceRes.Value
-}
-
-func (suite *PrecompileTestSuite) TransferERC20TokenToModule(signer *helpers.Signer, contractAddr common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	erc20 := contract.GetFIP20()
-	moduleAddress := suite.App.AccountKeeper.GetModuleAddress(types.ModuleName)
-	transferData, err := erc20.ABI.Pack("transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
-	suite.Require().NoError(err)
-	return suite.sendEvmTx(signer, contractAddr, transferData)
-}
-
-func (suite *PrecompileTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr, from common.Address, amount *big.Int) {
-	erc20 := contract.GetFIP20()
-	moduleAddress := suite.App.AccountKeeper.GetModuleAddress(types.ModuleName)
-	_, err := suite.App.EvmKeeper.ApplyContract(suite.Ctx, from, contractAddr, nil, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
-	suite.Require().NoError(err)
-}
-
-func (suite *PrecompileTestSuite) RandPrefixAndAddress() (string, string) {
-	if tmrand.Intn(10)%2 == 0 {
-		return "0x", helpers.GenHexAddress().Hex()
-	}
-	prefix := strings.ToLower(tmrand.Str(5))
-	accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
-	suite.Require().NoError(err)
-	return prefix, accAddress
-}
-
 func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID string) {
 	portID = "transfer"
 
@@ -386,40 +209,7 @@ func (suite *PrecompileTestSuite) RandTransferChannel() (portID, channelID strin
 	return portID, channelID
 }
 
-func (suite *PrecompileTestSuite) AddIBCToken(portID, channelID string) string {
-	denomTrace := ibctransfertypes.DenomTrace{
-		Path:      fmt.Sprintf("%s/%s", portID, channelID),
-		BaseDenom: "test",
-	}
-	suite.App.IBCTransferKeeper.SetDenomTrace(suite.Ctx, denomTrace)
-	return denomTrace.IBCDenom()
-}
-
-func (suite *PrecompileTestSuite) AddTokenToModule(module string, amt sdk.Coins) {
-	tmpAddr := helpers.GenHexAddress()
-	suite.MintToken(tmpAddr.Bytes(), amt...)
-	err := suite.App.BankKeeper.SendCoinsFromAccountToModule(suite.Ctx, tmpAddr.Bytes(), module, amt)
-	suite.Require().NoError(err)
-}
-
-func (suite *PrecompileTestSuite) ConvertOneToManyToken(md banktypes.Metadata) bool {
-	emptyAlias := len(md.DenomUnits[0].Aliases) == 0
-	if md.Base == fxtypes.DefaultDenom && !emptyAlias {
-		return true
-	}
-	if strings.HasPrefix(md.Base, "ibc/") && !emptyAlias {
-		return true
-	}
-	keepers := suite.CrossChainKeepers()
-	for _, k := range keepers {
-		if strings.HasPrefix(md.Base, k.ModuleName()) && !emptyAlias {
-			return true
-		}
-	}
-	return false
-}
-
-func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr common.Address, data []byte) *evmtypes.MsgEthereumTxResponse {
+func (suite *PrecompileTestSuite) SendEvmTx(signer *helpers.Signer, contractAddr common.Address, data []byte) *evmtypes.MsgEthereumTxResponse {
 	from := signer.Address()
 
 	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &contractAddr, From: &from, Data: (*hexutil.Bytes)(&data)})
@@ -457,46 +247,6 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 	suite.Require().NoError(err)
 	suite.Require().False(rsp.Failed(), rsp.VmError)
 	return rsp
-}
-
-type Metadata struct {
-	metadata   banktypes.Metadata
-	modules    []string
-	notModules []string
-}
-
-func (m Metadata) RandModule() string {
-	return m.modules[tmrand.Intn(len(m.modules))]
-}
-
-func (m Metadata) GetModules() []string {
-	return m.modules
-}
-
-func (m Metadata) GetDenom(moduleName string) string {
-	for _, denom := range m.metadata.DenomUnits[0].Aliases {
-		if strings.HasPrefix(denom, moduleName) {
-			return denom
-		}
-	}
-	return ""
-}
-
-func (m Metadata) GetMetadata() banktypes.Metadata {
-	return m.metadata
-}
-
-func (suite *PrecompileTestSuite) AddBridgeToken(moduleName, tokenContract string) string {
-	bridgeDenom := crosschaintypes.NewBridgeDenom(moduleName, tokenContract)
-	suite.CrossChainKeepers()[moduleName].AddBridgeToken(suite.Ctx, bridgeDenom, bridgeDenom)
-	return bridgeDenom
-}
-
-func (suite *PrecompileTestSuite) AddFXBridgeToken(tokenContract string) {
-	bridgeDenom := crosschaintypes.NewBridgeDenom(crossethtypes.ModuleName, tokenContract)
-	ethKeeper := suite.CrossChainKeepers()[crossethtypes.ModuleName]
-	ethKeeper.AddBridgeToken(suite.Ctx, bridgeDenom, fxtypes.DefaultDenom)
-	ethKeeper.AddBridgeToken(suite.Ctx, fxtypes.DefaultDenom, bridgeDenom)
 }
 
 type Oracle struct {

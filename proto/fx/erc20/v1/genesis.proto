@@ -1,7 +1,7 @@
 syntax = "proto3";
 package fx.erc20.v1;
 
-import "fx/erc20/v1/erc20.proto";
+import "fx/erc20/v1/types.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
@@ -9,27 +9,11 @@ option go_package = "github.com/functionx/fx-core/x/erc20/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {
-  // module parameters
   Params params = 1 [ (gogoproto.nullable) = false ];
-  // registered token pairs
-  repeated TokenPair token_pairs = 2 [ (gogoproto.nullable) = false ];
+  repeated ERC20Token token_pairs = 2 [ (gogoproto.nullable) = false ];
 }
 
 // Params defines the erc20 module params
 message Params {
-  // parameter to enable the intrarelaying of Cosmos coins <--> ERC20 tokens.
   bool enable_erc20 = 1 [ (gogoproto.moretags) = "yaml:\"enable_erc20\"" ];
-  // parameter to enable the EVM hook to convert an ERC20 token to a Cosmos
-  // Coin by transferring the Tokens through a MsgEthereumTx to the
-  // ModuleAddress Ethereum address.
-  bool enable_evm_hook = 2 [
-    (gogoproto.customname) = "EnableEVMHook",
-    (gogoproto.moretags) = "yaml:\"enable_evm_hook\""
-  ];
-  // parameter to set ibc timeout
-  google.protobuf.Duration ibc_timeout = 3 [
-    (gogoproto.stdduration) = true,
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"ibc_timeout\""
-  ];
 }

@@ -16,7 +16,6 @@ import (
 
 	"github.com/functionx/fx-core/v8/testutil"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
@@ -132,10 +131,6 @@ func (s *KeeperMockSuite) SetupTest() {
 	params := s.CrossChainParams()
 	params.EnableSendToExternalPending = true
 	s.NoError(s.crosschainKeeper.SetParams(s.ctx, &params))
-
-	bridgeDenom := types.NewBridgeDenom(s.moduleName, s.wfxTokenAddr)
-	s.crosschainKeeper.AddBridgeToken(s.ctx, bridgeDenom, fxtypes.DefaultDenom)
-	s.crosschainKeeper.AddBridgeToken(s.ctx, fxtypes.DefaultDenom, bridgeDenom)
 }
 
 func (s *KeeperMockSuite) SetupSubTest() {

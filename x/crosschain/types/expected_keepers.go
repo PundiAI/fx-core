@@ -3,11 +3,9 @@ package types
 import (
 	"context"
 	"math/big"
-	"time"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -42,24 +40,23 @@ type BankKeeper interface {
 	BurnCoins(ctx context.Context, name string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	GetSupply(ctx context.Context, denom string) sdk.Coin
-
-	GetDenomMetaData(ctx context.Context, denom string) (bank.Metadata, bool)
-	HasDenomMetaData(ctx context.Context, denom string) bool
-	SetDenomMetaData(ctx context.Context, denomMetaData bank.Metadata)
-	IterateAllDenomMetaData(ctx context.Context, cb func(bank.Metadata) bool)
 }
 
 type Erc20Keeper interface {
-	GetTokenPair(ctx sdk.Context, tokenOrDenom string) (erc20types.TokenPair, bool)
-	ConvertCoin(ctx context.Context, msg *erc20types.MsgConvertCoin) (*erc20types.MsgConvertCoinResponse, error)
-	ConvertERC20(goCtx context.Context, msg *erc20types.MsgConvertERC20) (*erc20types.MsgConvertERC20Response, error)
-	GetIbcTimeout(ctx sdk.Context) time.Duration
+	BaseCoinToEvm(ctx context.Context, holder common.Address, coin sdk.Coin) (string, error)
 
-	SetOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
-	HasOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64) bool
-	DeleteOutgoingTransferRelation(ctx sdk.Context, moduleName string, txID uint64)
-	SetIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64)
-	DeleteIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool
+	HasCache(ctx context.Context, key string) (bool, error)
+	SetCache(ctx context.Context, key string) error
+	DeleteCache(ctx context.Context, key string) error
+
+	HasToken(ctx context.Context, token string) (bool, error)
+	GetBaseDenom(ctx context.Context, token string) (string, error)
+
+	GetERC20Token(ctx context.Context, baseDenom string) (erc20types.ERC20Token, error)
+
+	GetBridgeToken(ctx context.Context, baseDenom, chainName string) (erc20types.BridgeToken, error)
+
+	GetIBCToken(ctx context.Context, baseDenom, channel string) (erc20types.IBCToken, error)
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on crosschain
@@ -68,8 +65,13 @@ type EVMKeeper interface {
 	IsContract(ctx sdk.Context, account common.Address) bool
 }
 
+type EvmERC20Keeper interface {
+	TotalSupply(context.Context, common.Address) (*big.Int, error)
+}
+
 type IBCTransferKeeper interface {
 	Transfer(ctx context.Context, msg *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error)
+	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
 	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (transfertypes.DenomTrace, bool)
 }
 
@@ -88,8 +90,4 @@ type BridgeTokenKeeper interface {
 	GetAllTokens(ctx context.Context) ([]string, error)
 	UpdateBridgeDenom(ctx context.Context, denom string, bridgeDenoms ...string) error
 	SetToken(ctx context.Context, name, symbol string, decimals uint32, bridgeDenoms ...string) error
-}
-
-type EvmERC20Keeper interface {
-	TotalSupply(ctx context.Context, contractAddr common.Address) (*big.Int, error)
 }

@@ -13,17 +13,15 @@ import (
 	context "context"
 	big "math/big"
 	reflect "reflect"
-	time "time"
 
 	bytes "github.com/cometbft/cometbft/libs/bytes"
 	types "github.com/cosmos/cosmos-sdk/types"
-	types0 "github.com/cosmos/cosmos-sdk/x/bank/types"
-	types1 "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	types3 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	types0 "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	types1 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	types2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
-	types4 "github.com/evmos/ethermint/x/evm/types"
-	types5 "github.com/functionx/fx-core/v8/x/erc20/types"
+	types3 "github.com/evmos/ethermint/x/evm/types"
+	types4 "github.com/functionx/fx-core/v8/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -51,10 +49,10 @@ func (m *MockStakingKeeper) EXPECT() *MockStakingKeeperMockRecorder {
 }
 
 // GetDelegation mocks base method.
-func (m *MockStakingKeeper) GetDelegation(ctx context.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types2.Delegation, error) {
+func (m *MockStakingKeeper) GetDelegation(ctx context.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types1.Delegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDelegation", ctx, delAddr, valAddr)
-	ret0, _ := ret[0].(types2.Delegation)
+	ret0, _ := ret[0].(types1.Delegation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,10 +64,10 @@ func (mr *MockStakingKeeperMockRecorder) GetDelegation(ctx, delAddr, valAddr any
 }
 
 // GetUnbondingDelegation mocks base method.
-func (m *MockStakingKeeper) GetUnbondingDelegation(ctx context.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types2.UnbondingDelegation, error) {
+func (m *MockStakingKeeper) GetUnbondingDelegation(ctx context.Context, delAddr types.AccAddress, valAddr types.ValAddress) (types1.UnbondingDelegation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUnbondingDelegation", ctx, delAddr, valAddr)
-	ret0, _ := ret[0].(types2.UnbondingDelegation)
+	ret0, _ := ret[0].(types1.UnbondingDelegation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,10 +79,10 @@ func (mr *MockStakingKeeperMockRecorder) GetUnbondingDelegation(ctx, delAddr, va
 }
 
 // GetValidator mocks base method.
-func (m *MockStakingKeeper) GetValidator(ctx context.Context, addr types.ValAddress) (types2.Validator, error) {
+func (m *MockStakingKeeper) GetValidator(ctx context.Context, addr types.ValAddress) (types1.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidator", ctx, addr)
-	ret0, _ := ret[0].(types2.Validator)
+	ret0, _ := ret[0].(types1.Validator)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -119,10 +117,10 @@ func (m *MockStakingMsgServer) EXPECT() *MockStakingMsgServerMockRecorder {
 }
 
 // BeginRedelegate mocks base method.
-func (m *MockStakingMsgServer) BeginRedelegate(goCtx context.Context, msg *types2.MsgBeginRedelegate) (*types2.MsgBeginRedelegateResponse, error) {
+func (m *MockStakingMsgServer) BeginRedelegate(goCtx context.Context, msg *types1.MsgBeginRedelegate) (*types1.MsgBeginRedelegateResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BeginRedelegate", goCtx, msg)
-	ret0, _ := ret[0].(*types2.MsgBeginRedelegateResponse)
+	ret0, _ := ret[0].(*types1.MsgBeginRedelegateResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -134,10 +132,10 @@ func (mr *MockStakingMsgServerMockRecorder) BeginRedelegate(goCtx, msg any) *gom
 }
 
 // Delegate mocks base method.
-func (m *MockStakingMsgServer) Delegate(goCtx context.Context, msg *types2.MsgDelegate) (*types2.MsgDelegateResponse, error) {
+func (m *MockStakingMsgServer) Delegate(goCtx context.Context, msg *types1.MsgDelegate) (*types1.MsgDelegateResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delegate", goCtx, msg)
-	ret0, _ := ret[0].(*types2.MsgDelegateResponse)
+	ret0, _ := ret[0].(*types1.MsgDelegateResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -149,10 +147,10 @@ func (mr *MockStakingMsgServerMockRecorder) Delegate(goCtx, msg any) *gomock.Cal
 }
 
 // Undelegate mocks base method.
-func (m *MockStakingMsgServer) Undelegate(goCtx context.Context, msg *types2.MsgUndelegate) (*types2.MsgUndelegateResponse, error) {
+func (m *MockStakingMsgServer) Undelegate(goCtx context.Context, msg *types1.MsgUndelegate) (*types1.MsgUndelegateResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Undelegate", goCtx, msg)
-	ret0, _ := ret[0].(*types2.MsgUndelegateResponse)
+	ret0, _ := ret[0].(*types1.MsgUndelegateResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -187,10 +185,10 @@ func (m *MockDistributionMsgServer) EXPECT() *MockDistributionMsgServerMockRecor
 }
 
 // WithdrawDelegatorReward mocks base method.
-func (m *MockDistributionMsgServer) WithdrawDelegatorReward(goCtx context.Context, msg *types1.MsgWithdrawDelegatorReward) (*types1.MsgWithdrawDelegatorRewardResponse, error) {
+func (m *MockDistributionMsgServer) WithdrawDelegatorReward(goCtx context.Context, msg *types0.MsgWithdrawDelegatorReward) (*types0.MsgWithdrawDelegatorRewardResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithdrawDelegatorReward", goCtx, msg)
-	ret0, _ := ret[0].(*types1.MsgWithdrawDelegatorRewardResponse)
+	ret0, _ := ret[0].(*types0.MsgWithdrawDelegatorRewardResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -252,21 +250,6 @@ func (mr *MockBankKeeperMockRecorder) GetAllBalances(ctx, addr any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllBalances", reflect.TypeOf((*MockBankKeeper)(nil).GetAllBalances), ctx, addr)
 }
 
-// GetDenomMetaData mocks base method.
-func (m *MockBankKeeper) GetDenomMetaData(ctx context.Context, denom string) (types0.Metadata, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDenomMetaData", ctx, denom)
-	ret0, _ := ret[0].(types0.Metadata)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetDenomMetaData indicates an expected call of GetDenomMetaData.
-func (mr *MockBankKeeperMockRecorder) GetDenomMetaData(ctx, denom any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDenomMetaData", reflect.TypeOf((*MockBankKeeper)(nil).GetDenomMetaData), ctx, denom)
-}
-
 // GetSupply mocks base method.
 func (m *MockBankKeeper) GetSupply(ctx context.Context, denom string) types.Coin {
 	m.ctrl.T.Helper()
@@ -279,32 +262,6 @@ func (m *MockBankKeeper) GetSupply(ctx context.Context, denom string) types.Coin
 func (mr *MockBankKeeperMockRecorder) GetSupply(ctx, denom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupply", reflect.TypeOf((*MockBankKeeper)(nil).GetSupply), ctx, denom)
-}
-
-// HasDenomMetaData mocks base method.
-func (m *MockBankKeeper) HasDenomMetaData(ctx context.Context, denom string) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasDenomMetaData", ctx, denom)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// HasDenomMetaData indicates an expected call of HasDenomMetaData.
-func (mr *MockBankKeeperMockRecorder) HasDenomMetaData(ctx, denom any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasDenomMetaData", reflect.TypeOf((*MockBankKeeper)(nil).HasDenomMetaData), ctx, denom)
-}
-
-// IterateAllDenomMetaData mocks base method.
-func (m *MockBankKeeper) IterateAllDenomMetaData(ctx context.Context, cb func(types0.Metadata) bool) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "IterateAllDenomMetaData", ctx, cb)
-}
-
-// IterateAllDenomMetaData indicates an expected call of IterateAllDenomMetaData.
-func (mr *MockBankKeeperMockRecorder) IterateAllDenomMetaData(ctx, cb any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IterateAllDenomMetaData", reflect.TypeOf((*MockBankKeeper)(nil).IterateAllDenomMetaData), ctx, cb)
 }
 
 // MintCoins mocks base method.
@@ -363,18 +320,6 @@ func (mr *MockBankKeeperMockRecorder) SendCoinsFromModuleToAccount(ctx, senderMo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCoinsFromModuleToAccount", reflect.TypeOf((*MockBankKeeper)(nil).SendCoinsFromModuleToAccount), ctx, senderModule, recipientAddr, amt)
 }
 
-// SetDenomMetaData mocks base method.
-func (m *MockBankKeeper) SetDenomMetaData(ctx context.Context, denomMetaData types0.Metadata) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetDenomMetaData", ctx, denomMetaData)
-}
-
-// SetDenomMetaData indicates an expected call of SetDenomMetaData.
-func (mr *MockBankKeeperMockRecorder) SetDenomMetaData(ctx, denomMetaData any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDenomMetaData", reflect.TypeOf((*MockBankKeeper)(nil).SetDenomMetaData), ctx, denomMetaData)
-}
-
 // MockErc20Keeper is a mock of Erc20Keeper interface.
 type MockErc20Keeper struct {
 	ctrl     *gomock.Controller
@@ -398,127 +343,137 @@ func (m *MockErc20Keeper) EXPECT() *MockErc20KeeperMockRecorder {
 	return m.recorder
 }
 
-// ConvertCoin mocks base method.
-func (m *MockErc20Keeper) ConvertCoin(ctx context.Context, msg *types5.MsgConvertCoin) (*types5.MsgConvertCoinResponse, error) {
+// BaseCoinToEvm mocks base method.
+func (m *MockErc20Keeper) BaseCoinToEvm(ctx context.Context, holder common.Address, coin types.Coin) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConvertCoin", ctx, msg)
-	ret0, _ := ret[0].(*types5.MsgConvertCoinResponse)
+	ret := m.ctrl.Call(m, "BaseCoinToEvm", ctx, holder, coin)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ConvertCoin indicates an expected call of ConvertCoin.
-func (mr *MockErc20KeeperMockRecorder) ConvertCoin(ctx, msg any) *gomock.Call {
+// BaseCoinToEvm indicates an expected call of BaseCoinToEvm.
+func (mr *MockErc20KeeperMockRecorder) BaseCoinToEvm(ctx, holder, coin any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertCoin", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertCoin), ctx, msg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BaseCoinToEvm", reflect.TypeOf((*MockErc20Keeper)(nil).BaseCoinToEvm), ctx, holder, coin)
 }
 
-// ConvertERC20 mocks base method.
-func (m *MockErc20Keeper) ConvertERC20(goCtx context.Context, msg *types5.MsgConvertERC20) (*types5.MsgConvertERC20Response, error) {
+// DeleteCache mocks base method.
+func (m *MockErc20Keeper) DeleteCache(ctx context.Context, key string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConvertERC20", goCtx, msg)
-	ret0, _ := ret[0].(*types5.MsgConvertERC20Response)
+	ret := m.ctrl.Call(m, "DeleteCache", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCache indicates an expected call of DeleteCache.
+func (mr *MockErc20KeeperMockRecorder) DeleteCache(ctx, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCache", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteCache), ctx, key)
+}
+
+// GetBaseDenom mocks base method.
+func (m *MockErc20Keeper) GetBaseDenom(ctx context.Context, token string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBaseDenom", ctx, token)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ConvertERC20 indicates an expected call of ConvertERC20.
-func (mr *MockErc20KeeperMockRecorder) ConvertERC20(goCtx, msg any) *gomock.Call {
+// GetBaseDenom indicates an expected call of GetBaseDenom.
+func (mr *MockErc20KeeperMockRecorder) GetBaseDenom(ctx, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertERC20", reflect.TypeOf((*MockErc20Keeper)(nil).ConvertERC20), goCtx, msg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBaseDenom", reflect.TypeOf((*MockErc20Keeper)(nil).GetBaseDenom), ctx, token)
 }
 
-// DeleteIBCTransferRelation mocks base method.
-func (m *MockErc20Keeper) DeleteIBCTransferRelation(ctx types.Context, channel string, sequence uint64) bool {
+// GetBridgeToken mocks base method.
+func (m *MockErc20Keeper) GetBridgeToken(ctx context.Context, baseDenom, chainName string) (types4.BridgeToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteIBCTransferRelation", ctx, channel, sequence)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// DeleteIBCTransferRelation indicates an expected call of DeleteIBCTransferRelation.
-func (mr *MockErc20KeeperMockRecorder) DeleteIBCTransferRelation(ctx, channel, sequence any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteIBCTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteIBCTransferRelation), ctx, channel, sequence)
-}
-
-// DeleteOutgoingTransferRelation mocks base method.
-func (m *MockErc20Keeper) DeleteOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "DeleteOutgoingTransferRelation", ctx, moduleName, txID)
-}
-
-// DeleteOutgoingTransferRelation indicates an expected call of DeleteOutgoingTransferRelation.
-func (mr *MockErc20KeeperMockRecorder) DeleteOutgoingTransferRelation(ctx, moduleName, txID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).DeleteOutgoingTransferRelation), ctx, moduleName, txID)
-}
-
-// GetIbcTimeout mocks base method.
-func (m *MockErc20Keeper) GetIbcTimeout(ctx types.Context) time.Duration {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIbcTimeout", ctx)
-	ret0, _ := ret[0].(time.Duration)
-	return ret0
-}
-
-// GetIbcTimeout indicates an expected call of GetIbcTimeout.
-func (mr *MockErc20KeeperMockRecorder) GetIbcTimeout(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIbcTimeout", reflect.TypeOf((*MockErc20Keeper)(nil).GetIbcTimeout), ctx)
-}
-
-// GetTokenPair mocks base method.
-func (m *MockErc20Keeper) GetTokenPair(ctx types.Context, tokenOrDenom string) (types5.TokenPair, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokenPair", ctx, tokenOrDenom)
-	ret0, _ := ret[0].(types5.TokenPair)
-	ret1, _ := ret[1].(bool)
+	ret := m.ctrl.Call(m, "GetBridgeToken", ctx, baseDenom, chainName)
+	ret0, _ := ret[0].(types4.BridgeToken)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTokenPair indicates an expected call of GetTokenPair.
-func (mr *MockErc20KeeperMockRecorder) GetTokenPair(ctx, tokenOrDenom any) *gomock.Call {
+// GetBridgeToken indicates an expected call of GetBridgeToken.
+func (mr *MockErc20KeeperMockRecorder) GetBridgeToken(ctx, baseDenom, chainName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenPair", reflect.TypeOf((*MockErc20Keeper)(nil).GetTokenPair), ctx, tokenOrDenom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeToken", reflect.TypeOf((*MockErc20Keeper)(nil).GetBridgeToken), ctx, baseDenom, chainName)
 }
 
-// HasOutgoingTransferRelation mocks base method.
-func (m *MockErc20Keeper) HasOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) bool {
+// GetERC20Token mocks base method.
+func (m *MockErc20Keeper) GetERC20Token(ctx context.Context, baseDenom string) (types4.ERC20Token, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasOutgoingTransferRelation", ctx, moduleName, txID)
+	ret := m.ctrl.Call(m, "GetERC20Token", ctx, baseDenom)
+	ret0, _ := ret[0].(types4.ERC20Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetERC20Token indicates an expected call of GetERC20Token.
+func (mr *MockErc20KeeperMockRecorder) GetERC20Token(ctx, baseDenom any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetERC20Token", reflect.TypeOf((*MockErc20Keeper)(nil).GetERC20Token), ctx, baseDenom)
+}
+
+// GetIBCToken mocks base method.
+func (m *MockErc20Keeper) GetIBCToken(ctx context.Context, baseDenom, channel string) (types4.IBCToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIBCToken", ctx, baseDenom, channel)
+	ret0, _ := ret[0].(types4.IBCToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIBCToken indicates an expected call of GetIBCToken.
+func (mr *MockErc20KeeperMockRecorder) GetIBCToken(ctx, baseDenom, channel any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIBCToken", reflect.TypeOf((*MockErc20Keeper)(nil).GetIBCToken), ctx, baseDenom, channel)
+}
+
+// HasCache mocks base method.
+func (m *MockErc20Keeper) HasCache(ctx context.Context, key string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasCache", ctx, key)
 	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasCache indicates an expected call of HasCache.
+func (mr *MockErc20KeeperMockRecorder) HasCache(ctx, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasCache", reflect.TypeOf((*MockErc20Keeper)(nil).HasCache), ctx, key)
+}
+
+// HasToken mocks base method.
+func (m *MockErc20Keeper) HasToken(ctx context.Context, token string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasToken", ctx, token)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasToken indicates an expected call of HasToken.
+func (mr *MockErc20KeeperMockRecorder) HasToken(ctx, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasToken", reflect.TypeOf((*MockErc20Keeper)(nil).HasToken), ctx, token)
+}
+
+// SetCache mocks base method.
+func (m *MockErc20Keeper) SetCache(ctx context.Context, key string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetCache", ctx, key)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// HasOutgoingTransferRelation indicates an expected call of HasOutgoingTransferRelation.
-func (mr *MockErc20KeeperMockRecorder) HasOutgoingTransferRelation(ctx, moduleName, txID any) *gomock.Call {
+// SetCache indicates an expected call of SetCache.
+func (mr *MockErc20KeeperMockRecorder) SetCache(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).HasOutgoingTransferRelation), ctx, moduleName, txID)
-}
-
-// SetIBCTransferRelation mocks base method.
-func (m *MockErc20Keeper) SetIBCTransferRelation(ctx types.Context, channel string, sequence uint64) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetIBCTransferRelation", ctx, channel, sequence)
-}
-
-// SetIBCTransferRelation indicates an expected call of SetIBCTransferRelation.
-func (mr *MockErc20KeeperMockRecorder) SetIBCTransferRelation(ctx, channel, sequence any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIBCTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).SetIBCTransferRelation), ctx, channel, sequence)
-}
-
-// SetOutgoingTransferRelation mocks base method.
-func (m *MockErc20Keeper) SetOutgoingTransferRelation(ctx types.Context, moduleName string, txID uint64) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetOutgoingTransferRelation", ctx, moduleName, txID)
-}
-
-// SetOutgoingTransferRelation indicates an expected call of SetOutgoingTransferRelation.
-func (mr *MockErc20KeeperMockRecorder) SetOutgoingTransferRelation(ctx, moduleName, txID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetOutgoingTransferRelation", reflect.TypeOf((*MockErc20Keeper)(nil).SetOutgoingTransferRelation), ctx, moduleName, txID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCache", reflect.TypeOf((*MockErc20Keeper)(nil).SetCache), ctx, key)
 }
 
 // MockEVMKeeper is a mock of EVMKeeper interface.
@@ -545,10 +500,10 @@ func (m *MockEVMKeeper) EXPECT() *MockEVMKeeperMockRecorder {
 }
 
 // CallEVM mocks base method.
-func (m *MockEVMKeeper) CallEVM(ctx types.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types4.MsgEthereumTxResponse, error) {
+func (m *MockEVMKeeper) CallEVM(ctx types.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types3.MsgEthereumTxResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CallEVM", ctx, from, contract, value, gasLimit, data, commit)
-	ret0, _ := ret[0].(*types4.MsgEthereumTxResponse)
+	ret0, _ := ret[0].(*types3.MsgEthereumTxResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -571,6 +526,44 @@ func (m *MockEVMKeeper) IsContract(ctx types.Context, account common.Address) bo
 func (mr *MockEVMKeeperMockRecorder) IsContract(ctx, account any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsContract", reflect.TypeOf((*MockEVMKeeper)(nil).IsContract), ctx, account)
+}
+
+// MockEvmERC20Keeper is a mock of EvmERC20Keeper interface.
+type MockEvmERC20Keeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockEvmERC20KeeperMockRecorder
+}
+
+// MockEvmERC20KeeperMockRecorder is the mock recorder for MockEvmERC20Keeper.
+type MockEvmERC20KeeperMockRecorder struct {
+	mock *MockEvmERC20Keeper
+}
+
+// NewMockEvmERC20Keeper creates a new mock instance.
+func NewMockEvmERC20Keeper(ctrl *gomock.Controller) *MockEvmERC20Keeper {
+	mock := &MockEvmERC20Keeper{ctrl: ctrl}
+	mock.recorder = &MockEvmERC20KeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEvmERC20Keeper) EXPECT() *MockEvmERC20KeeperMockRecorder {
+	return m.recorder
+}
+
+// TotalSupply mocks base method.
+func (m *MockEvmERC20Keeper) TotalSupply(arg0 context.Context, arg1 common.Address) (*big.Int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TotalSupply", arg0, arg1)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TotalSupply indicates an expected call of TotalSupply.
+func (mr *MockEvmERC20KeeperMockRecorder) TotalSupply(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalSupply", reflect.TypeOf((*MockEvmERC20Keeper)(nil).TotalSupply), arg0, arg1)
 }
 
 // MockIBCTransferKeeper is a mock of IBCTransferKeeper interface.
@@ -597,10 +590,10 @@ func (m *MockIBCTransferKeeper) EXPECT() *MockIBCTransferKeeperMockRecorder {
 }
 
 // GetDenomTrace mocks base method.
-func (m *MockIBCTransferKeeper) GetDenomTrace(ctx types.Context, denomTraceHash bytes.HexBytes) (types3.DenomTrace, bool) {
+func (m *MockIBCTransferKeeper) GetDenomTrace(ctx types.Context, denomTraceHash bytes.HexBytes) (types2.DenomTrace, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDenomTrace", ctx, denomTraceHash)
-	ret0, _ := ret[0].(types3.DenomTrace)
+	ret0, _ := ret[0].(types2.DenomTrace)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -611,11 +604,23 @@ func (mr *MockIBCTransferKeeperMockRecorder) GetDenomTrace(ctx, denomTraceHash a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDenomTrace", reflect.TypeOf((*MockIBCTransferKeeper)(nil).GetDenomTrace), ctx, denomTraceHash)
 }
 
+// SetDenomTrace mocks base method.
+func (m *MockIBCTransferKeeper) SetDenomTrace(ctx types.Context, denomTrace types2.DenomTrace) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetDenomTrace", ctx, denomTrace)
+}
+
+// SetDenomTrace indicates an expected call of SetDenomTrace.
+func (mr *MockIBCTransferKeeperMockRecorder) SetDenomTrace(ctx, denomTrace any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDenomTrace", reflect.TypeOf((*MockIBCTransferKeeper)(nil).SetDenomTrace), ctx, denomTrace)
+}
+
 // Transfer mocks base method.
-func (m *MockIBCTransferKeeper) Transfer(ctx context.Context, msg *types3.MsgTransfer) (*types3.MsgTransferResponse, error) {
+func (m *MockIBCTransferKeeper) Transfer(ctx context.Context, msg *types2.MsgTransfer) (*types2.MsgTransferResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Transfer", ctx, msg)
-	ret0, _ := ret[0].(*types3.MsgTransferResponse)
+	ret0, _ := ret[0].(*types2.MsgTransferResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -837,42 +842,4 @@ func (mr *MockBridgeTokenKeeperMockRecorder) UpdateBridgeDenom(ctx, denom any, b
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, denom}, bridgeDenoms...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBridgeDenom", reflect.TypeOf((*MockBridgeTokenKeeper)(nil).UpdateBridgeDenom), varargs...)
-}
-
-// MockEvmERC20Keeper is a mock of EvmERC20Keeper interface.
-type MockEvmERC20Keeper struct {
-	ctrl     *gomock.Controller
-	recorder *MockEvmERC20KeeperMockRecorder
-}
-
-// MockEvmERC20KeeperMockRecorder is the mock recorder for MockEvmERC20Keeper.
-type MockEvmERC20KeeperMockRecorder struct {
-	mock *MockEvmERC20Keeper
-}
-
-// NewMockEvmERC20Keeper creates a new mock instance.
-func NewMockEvmERC20Keeper(ctrl *gomock.Controller) *MockEvmERC20Keeper {
-	mock := &MockEvmERC20Keeper{ctrl: ctrl}
-	mock.recorder = &MockEvmERC20KeeperMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockEvmERC20Keeper) EXPECT() *MockEvmERC20KeeperMockRecorder {
-	return m.recorder
-}
-
-// TotalSupply mocks base method.
-func (m *MockEvmERC20Keeper) TotalSupply(ctx context.Context, contractAddr common.Address) (*big.Int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TotalSupply", ctx, contractAddr)
-	ret0, _ := ret[0].(*big.Int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// TotalSupply indicates an expected call of TotalSupply.
-func (mr *MockEvmERC20KeeperMockRecorder) TotalSupply(ctx, contractAddr any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalSupply", reflect.TypeOf((*MockEvmERC20Keeper)(nil).TotalSupply), ctx, contractAddr)
 }

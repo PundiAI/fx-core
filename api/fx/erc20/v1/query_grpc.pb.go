@@ -19,27 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_TokenPairs_FullMethodName   = "/fx.erc20.v1.Query/TokenPairs"
-	Query_TokenPair_FullMethodName    = "/fx.erc20.v1.Query/TokenPair"
-	Query_Params_FullMethodName       = "/fx.erc20.v1.Query/Params"
-	Query_DenomAliases_FullMethodName = "/fx.erc20.v1.Query/DenomAliases"
-	Query_AliasDenom_FullMethodName   = "/fx.erc20.v1.Query/AliasDenom"
+	Query_TokenPairs_FullMethodName = "/fx.erc20.v1.Query/TokenPairs"
+	Query_TokenPair_FullMethodName  = "/fx.erc20.v1.Query/TokenPair"
+	Query_Params_FullMethodName     = "/fx.erc20.v1.Query/Params"
 )
 
 // QueryClient is the client API for Query service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QueryClient interface {
-	// Retrieves registered token pairs
+	// Deprecated: TokenPairs Retrieves registered token pairs
 	TokenPairs(ctx context.Context, in *QueryTokenPairsRequest, opts ...grpc.CallOption) (*QueryTokenPairsResponse, error)
-	// Retrieves a registered token pair
+	// Deprecated: TokenPair Retrieves a registered token pair
 	TokenPair(ctx context.Context, in *QueryTokenPairRequest, opts ...grpc.CallOption) (*QueryTokenPairResponse, error)
 	// Params retrieves the erc20 module params
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// Retrieves registered denom aliases
-	DenomAliases(ctx context.Context, in *QueryDenomAliasesRequest, opts ...grpc.CallOption) (*QueryDenomAliasesResponse, error)
-	// Retrieves registered alias denom
-	AliasDenom(ctx context.Context, in *QueryAliasDenomRequest, opts ...grpc.CallOption) (*QueryAliasDenomResponse, error)
 }
 
 type queryClient struct {
@@ -77,38 +71,16 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) DenomAliases(ctx context.Context, in *QueryDenomAliasesRequest, opts ...grpc.CallOption) (*QueryDenomAliasesResponse, error) {
-	out := new(QueryDenomAliasesResponse)
-	err := c.cc.Invoke(ctx, Query_DenomAliases_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) AliasDenom(ctx context.Context, in *QueryAliasDenomRequest, opts ...grpc.CallOption) (*QueryAliasDenomResponse, error) {
-	out := new(QueryAliasDenomResponse)
-	err := c.cc.Invoke(ctx, Query_AliasDenom_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
 type QueryServer interface {
-	// Retrieves registered token pairs
+	// Deprecated: TokenPairs Retrieves registered token pairs
 	TokenPairs(context.Context, *QueryTokenPairsRequest) (*QueryTokenPairsResponse, error)
-	// Retrieves a registered token pair
+	// Deprecated: TokenPair Retrieves a registered token pair
 	TokenPair(context.Context, *QueryTokenPairRequest) (*QueryTokenPairResponse, error)
 	// Params retrieves the erc20 module params
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	// Retrieves registered denom aliases
-	DenomAliases(context.Context, *QueryDenomAliasesRequest) (*QueryDenomAliasesResponse, error)
-	// Retrieves registered alias denom
-	AliasDenom(context.Context, *QueryAliasDenomRequest) (*QueryAliasDenomResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -124,12 +96,6 @@ func (UnimplementedQueryServer) TokenPair(context.Context, *QueryTokenPairReques
 }
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
-}
-func (UnimplementedQueryServer) DenomAliases(context.Context, *QueryDenomAliasesRequest) (*QueryDenomAliasesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DenomAliases not implemented")
-}
-func (UnimplementedQueryServer) AliasDenom(context.Context, *QueryAliasDenomRequest) (*QueryAliasDenomResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AliasDenom not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -198,42 +164,6 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_DenomAliases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryDenomAliasesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).DenomAliases(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_DenomAliases_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).DenomAliases(ctx, req.(*QueryDenomAliasesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_AliasDenom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAliasDenomRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).AliasDenom(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_AliasDenom_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).AliasDenom(ctx, req.(*QueryAliasDenomRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -252,14 +182,6 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
-		},
-		{
-			MethodName: "DenomAliases",
-			Handler:    _Query_DenomAliases_Handler,
-		},
-		{
-			MethodName: "AliasDenom",
-			Handler:    _Query_AliasDenom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

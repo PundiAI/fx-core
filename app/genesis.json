@@ -222,9 +222,7 @@
   },
   "erc20": {
     "params": {
-      "enable_erc20": true,
-      "enable_evm_hook": true,
-      "ibc_timeout": "43200s"
+      "enable_erc20": true
     },
     "token_pairs": []
   },

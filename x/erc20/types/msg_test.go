@@ -5,51 +5,21 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-type MsgsTestSuite struct {
+type MsgTestSuite struct {
 	suite.Suite
 }
 
-func TestMsgsTestSuite(t *testing.T) {
-	suite.Run(t, new(MsgsTestSuite))
+func TestMsgTestSuite(t *testing.T) {
+	suite.Run(t, new(MsgTestSuite))
 }
 
-func (suite *MsgsTestSuite) TestMsgConvertCoinNew() {
-	testCases := []struct {
-		msg        string
-		coin       sdk.Coin
-		receiver   common.Address
-		sender     sdk.AccAddress
-		expectPass bool
-	}{
-		{
-			"msg convert coin - pass",
-			sdk.NewCoin("test", sdkmath.NewInt(100)),
-			helpers.GenHexAddress(),
-			helpers.GenAccAddress(),
-			true,
-		},
-	}
-
-	for i, tc := range testCases {
-		tx := types.NewMsgConvertCoin(tc.coin, tc.receiver, tc.sender)
-		err := tx.ValidateBasic()
-
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
-	}
-}
-
-func (suite *MsgsTestSuite) TestMsgConvertCoin() {
+func (suite *MsgTestSuite) TestMsgConvertCoin() {
 	testCases := []struct {
 		msg        string
 		coin       sdk.Coin
@@ -116,100 +86,6 @@ func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 
 	for i, tc := range testCases {
 		tx := types.MsgConvertCoin{Coin: tc.coin, Receiver: tc.receiver, Sender: tc.sender}
-		err := tx.ValidateBasic()
-
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
-	}
-}
-
-func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
-	testCases := []struct {
-		msg        string
-		amount     sdkmath.Int
-		receiver   sdk.AccAddress
-		contract   common.Address
-		sender     common.Address
-		expectPass bool
-	}{
-		{
-			"msg convert erc20 - pass",
-			sdkmath.NewInt(100),
-			helpers.GenAccAddress(),
-			helpers.GenHexAddress(),
-			helpers.GenHexAddress(),
-			true,
-		},
-	}
-
-	for i, tc := range testCases {
-		tx := types.NewMsgConvertERC20(tc.amount, tc.receiver, tc.contract, tc.sender)
-		err := tx.ValidateBasic()
-
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
-	}
-}
-
-func (suite *MsgsTestSuite) TestMsgConvertERC20() {
-	testCases := []struct {
-		msg        string
-		amount     sdkmath.Int
-		receiver   string
-		contract   string
-		sender     string
-		expectPass bool
-	}{
-		{
-			"invalid contract hex address",
-			sdkmath.NewInt(100),
-			helpers.GenAccAddress().String(),
-			sdk.AccAddress{}.String(),
-			helpers.GenHexAddress().String(),
-			false,
-		},
-		{
-			"negative coin amount",
-			sdkmath.NewInt(-100),
-			helpers.GenAccAddress().String(),
-			helpers.GenHexAddress().String(),
-			helpers.GenHexAddress().String(),
-			false,
-		},
-		{
-			"invalid receiver address",
-			sdkmath.NewInt(100),
-			sdk.AccAddress{}.String(),
-			helpers.GenHexAddress().String(),
-			helpers.GenHexAddress().String(),
-			false,
-		},
-		{
-			"invalid sender address",
-			sdkmath.NewInt(100),
-			helpers.GenAccAddress().String(),
-			helpers.GenHexAddress().String(),
-			sdk.AccAddress{}.String(),
-			false,
-		},
-		{
-			"msg convert erc20 - pass",
-			sdkmath.NewInt(100),
-			helpers.GenAccAddress().String(),
-			helpers.GenHexAddress().String(),
-			helpers.GenHexAddress().String(),
-			true,
-		},
-	}
-
-	for i, tc := range testCases {
-		tx := types.MsgConvertERC20{ContractAddress: tc.contract, Amount: tc.amount, Receiver: tc.receiver, Sender: tc.sender}
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {

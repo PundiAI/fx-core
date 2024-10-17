@@ -337,12 +337,13 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(evmtypes.ModuleName),
 		[]evmkeeper.CustomContractFn{
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
-				return crosschainprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.Erc20Keeper,
-					appKeepers.GovKeeper, precompileRouter)
+				return crosschainprecompile.NewPrecompiledContract(
+					appKeepers.BankKeeper, appKeepers.GovKeeper, precompileRouter)
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
-				return stakingprecompile.NewPrecompiledContract(appKeepers.BankKeeper, appKeepers.StakingKeeper,
-					appKeepers.DistrKeeper, fxtypes.DefaultDenom, appKeepers.GovKeeper, appKeepers.SlashingKeeper)
+				return stakingprecompile.NewPrecompiledContract(
+					appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper,
+					fxtypes.DefaultDenom, appKeepers.GovKeeper, appKeepers.SlashingKeeper)
 			},
 		},
 	)
@@ -354,13 +355,12 @@ func NewAppKeeper(
 	)
 
 	appKeepers.Erc20Keeper = erc20keeper.NewKeeper(
-		appKeepers.keys[erc20types.StoreKey],
 		appCodec,
+		runtime.NewKVStoreService(appKeepers.keys[erc20types.StoreKey]),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
-		appKeepers.IBCTransferKeeper,
 		authAddr,
 	)
 

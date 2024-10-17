@@ -504,3 +504,11 @@ func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {
 	}
 	return erc20Tokens
 }
+
+func NewOriginTokenKey(moduleName string, id uint64) string {
+	return fmt.Sprintf("%s/%d", moduleName, id)
+}
+
+func NewIBCTransferKey(ibcChannel string, ibcSequence uint64) string {
+	return fmt.Sprintf("%s/%d", ibcChannel, ibcSequence)
+}

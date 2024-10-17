@@ -20,13 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Msg_ConvertCoin_FullMethodName           = "/fx.erc20.v1.Msg/ConvertCoin"
-	Msg_ConvertERC20_FullMethodName          = "/fx.erc20.v1.Msg/ConvertERC20"
-	Msg_ConvertDenom_FullMethodName          = "/fx.erc20.v1.Msg/ConvertDenom"
 	Msg_UpdateParams_FullMethodName          = "/fx.erc20.v1.Msg/UpdateParams"
-	Msg_RegisterCoin_FullMethodName          = "/fx.erc20.v1.Msg/RegisterCoin"
-	Msg_RegisterERC20_FullMethodName         = "/fx.erc20.v1.Msg/RegisterERC20"
 	Msg_ToggleTokenConversion_FullMethodName = "/fx.erc20.v1.Msg/ToggleTokenConversion"
-	Msg_UpdateDenomAlias_FullMethodName      = "/fx.erc20.v1.Msg/UpdateDenomAlias"
 )
 
 // MsgClient is the client API for Msg service.
@@ -36,18 +31,10 @@ type MsgClient interface {
 	// ConvertCoin mints a ERC20 representation of the SDK Coin denom that is
 	// registered on the token mapping.
 	ConvertCoin(ctx context.Context, in *MsgConvertCoin, opts ...grpc.CallOption) (*MsgConvertCoinResponse, error)
-	// ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract
-	// that is registered on the token mapping.
-	ConvertERC20(ctx context.Context, in *MsgConvertERC20, opts ...grpc.CallOption) (*MsgConvertERC20Response, error)
-	// ConvertDenom convert denom to other denom
-	ConvertDenom(ctx context.Context, in *MsgConvertDenom, opts ...grpc.CallOption) (*MsgConvertDenomResponse, error)
 	// UpdateParams defines a governance operation for updating the x/erc20 module
 	// parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
-	RegisterCoin(ctx context.Context, in *MsgRegisterCoin, opts ...grpc.CallOption) (*MsgRegisterCoinResponse, error)
-	RegisterERC20(ctx context.Context, in *MsgRegisterERC20, opts ...grpc.CallOption) (*MsgRegisterERC20Response, error)
 	ToggleTokenConversion(ctx context.Context, in *MsgToggleTokenConversion, opts ...grpc.CallOption) (*MsgToggleTokenConversionResponse, error)
-	UpdateDenomAlias(ctx context.Context, in *MsgUpdateDenomAlias, opts ...grpc.CallOption) (*MsgUpdateDenomAliasResponse, error)
 }
 
 type msgClient struct {
@@ -67,45 +54,9 @@ func (c *msgClient) ConvertCoin(ctx context.Context, in *MsgConvertCoin, opts ..
 	return out, nil
 }
 
-func (c *msgClient) ConvertERC20(ctx context.Context, in *MsgConvertERC20, opts ...grpc.CallOption) (*MsgConvertERC20Response, error) {
-	out := new(MsgConvertERC20Response)
-	err := c.cc.Invoke(ctx, Msg_ConvertERC20_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) ConvertDenom(ctx context.Context, in *MsgConvertDenom, opts ...grpc.CallOption) (*MsgConvertDenomResponse, error) {
-	out := new(MsgConvertDenomResponse)
-	err := c.cc.Invoke(ctx, Msg_ConvertDenom_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, Msg_UpdateParams_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) RegisterCoin(ctx context.Context, in *MsgRegisterCoin, opts ...grpc.CallOption) (*MsgRegisterCoinResponse, error) {
-	out := new(MsgRegisterCoinResponse)
-	err := c.cc.Invoke(ctx, Msg_RegisterCoin_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) RegisterERC20(ctx context.Context, in *MsgRegisterERC20, opts ...grpc.CallOption) (*MsgRegisterERC20Response, error) {
-	out := new(MsgRegisterERC20Response)
-	err := c.cc.Invoke(ctx, Msg_RegisterERC20_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -121,15 +72,6 @@ func (c *msgClient) ToggleTokenConversion(ctx context.Context, in *MsgToggleToke
 	return out, nil
 }
 
-func (c *msgClient) UpdateDenomAlias(ctx context.Context, in *MsgUpdateDenomAlias, opts ...grpc.CallOption) (*MsgUpdateDenomAliasResponse, error) {
-	out := new(MsgUpdateDenomAliasResponse)
-	err := c.cc.Invoke(ctx, Msg_UpdateDenomAlias_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -137,18 +79,10 @@ type MsgServer interface {
 	// ConvertCoin mints a ERC20 representation of the SDK Coin denom that is
 	// registered on the token mapping.
 	ConvertCoin(context.Context, *MsgConvertCoin) (*MsgConvertCoinResponse, error)
-	// ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract
-	// that is registered on the token mapping.
-	ConvertERC20(context.Context, *MsgConvertERC20) (*MsgConvertERC20Response, error)
-	// ConvertDenom convert denom to other denom
-	ConvertDenom(context.Context, *MsgConvertDenom) (*MsgConvertDenomResponse, error)
 	// UpdateParams defines a governance operation for updating the x/erc20 module
 	// parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
-	RegisterCoin(context.Context, *MsgRegisterCoin) (*MsgRegisterCoinResponse, error)
-	RegisterERC20(context.Context, *MsgRegisterERC20) (*MsgRegisterERC20Response, error)
 	ToggleTokenConversion(context.Context, *MsgToggleTokenConversion) (*MsgToggleTokenConversionResponse, error)
-	UpdateDenomAlias(context.Context, *MsgUpdateDenomAlias) (*MsgUpdateDenomAliasResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -159,26 +93,11 @@ type UnimplementedMsgServer struct {
 func (UnimplementedMsgServer) ConvertCoin(context.Context, *MsgConvertCoin) (*MsgConvertCoinResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConvertCoin not implemented")
 }
-func (UnimplementedMsgServer) ConvertERC20(context.Context, *MsgConvertERC20) (*MsgConvertERC20Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConvertERC20 not implemented")
-}
-func (UnimplementedMsgServer) ConvertDenom(context.Context, *MsgConvertDenom) (*MsgConvertDenomResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConvertDenom not implemented")
-}
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
 }
-func (UnimplementedMsgServer) RegisterCoin(context.Context, *MsgRegisterCoin) (*MsgRegisterCoinResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterCoin not implemented")
-}
-func (UnimplementedMsgServer) RegisterERC20(context.Context, *MsgRegisterERC20) (*MsgRegisterERC20Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterERC20 not implemented")
-}
 func (UnimplementedMsgServer) ToggleTokenConversion(context.Context, *MsgToggleTokenConversion) (*MsgToggleTokenConversionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ToggleTokenConversion not implemented")
-}
-func (UnimplementedMsgServer) UpdateDenomAlias(context.Context, *MsgUpdateDenomAlias) (*MsgUpdateDenomAliasResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateDenomAlias not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -211,42 +130,6 @@ func _Msg_ConvertCoin_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_ConvertERC20_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgConvertERC20)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).ConvertERC20(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Msg_ConvertERC20_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ConvertERC20(ctx, req.(*MsgConvertERC20))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_ConvertDenom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgConvertDenom)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).ConvertDenom(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Msg_ConvertDenom_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ConvertDenom(ctx, req.(*MsgConvertDenom))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -261,42 +144,6 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).UpdateParams(ctx, req.(*MsgUpdateParams))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_RegisterCoin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRegisterCoin)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).RegisterCoin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Msg_RegisterCoin_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RegisterCoin(ctx, req.(*MsgRegisterCoin))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_RegisterERC20_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRegisterERC20)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).RegisterERC20(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Msg_RegisterERC20_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RegisterERC20(ctx, req.(*MsgRegisterERC20))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -319,24 +166,6 @@ func _Msg_ToggleTokenConversion_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_UpdateDenomAlias_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateDenomAlias)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).UpdateDenomAlias(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Msg_UpdateDenomAlias_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).UpdateDenomAlias(ctx, req.(*MsgUpdateDenomAlias))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -349,32 +178,12 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_ConvertCoin_Handler,
 		},
 		{
-			MethodName: "ConvertERC20",
-			Handler:    _Msg_ConvertERC20_Handler,
-		},
-		{
-			MethodName: "ConvertDenom",
-			Handler:    _Msg_ConvertDenom_Handler,
-		},
-		{
 			MethodName: "UpdateParams",
 			Handler:    _Msg_UpdateParams_Handler,
 		},
 		{
-			MethodName: "RegisterCoin",
-			Handler:    _Msg_RegisterCoin_Handler,
-		},
-		{
-			MethodName: "RegisterERC20",
-			Handler:    _Msg_RegisterERC20_Handler,
-		},
-		{
 			MethodName: "ToggleTokenConversion",
 			Handler:    _Msg_ToggleTokenConversion_Handler,
-		},
-		{
-			MethodName: "UpdateDenomAlias",
-			Handler:    _Msg_UpdateDenomAlias_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

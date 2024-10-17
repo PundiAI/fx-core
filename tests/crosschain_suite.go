@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"math/big"
 	"strconv"
-	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -146,14 +145,7 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 		Token:     token,
 	})
 	suite.NoError(err)
-	if len(channelIBCHex) > 0 {
-		bridgeDenom := crosschaintypes.NewBridgeDenom(suite.chainName, token)
-		trace, err := fxtypes.GetIbcDenomTrace(bridgeDenom, channelIBCHex)
-		suite.NoError(err)
-
-		bridgeDenom = trace.IBCDenom()
-		suite.Equal(bridgeDenom, response.Denom)
-	} else if response.Denom != fxtypes.DefaultDenom {
+	if response.Denom != fxtypes.DefaultDenom {
 		suite.Equal(crosschaintypes.NewBridgeDenom(suite.chainName, token), response.Denom)
 	}
 
@@ -446,18 +438,6 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 func (suite *CrosschainTestSuite) SendToExternalAndConfirm(coin sdk.Coin) {
 	suite.SendToExternal(1, coin)
 	suite.SendConfirmBatch()
-}
-
-func (suite *CrosschainTestSuite) SelectTokenMetadata(basePrefix string) banktypes.Metadata {
-	resp, err := suite.GRPCClient().BankQuery().DenomsMetadata(suite.ctx, &banktypes.QueryDenomsMetadataRequest{})
-	suite.NoError(err)
-
-	for _, md := range resp.Metadatas {
-		if strings.HasPrefix(md.Base, basePrefix) {
-			return md
-		}
-	}
-	panic("no match token")
 }
 
 func (suite *CrosschainTestSuite) AddBridgeToken(md banktypes.Metadata) (string, crosschaintypes.BridgeToken) {

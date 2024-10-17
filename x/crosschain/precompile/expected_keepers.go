@@ -8,11 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
-
-type Erc20Keeper interface {
-	ModuleAddress() common.Address
-}
 
 type BankKeeper interface {
 	MintCoins(ctx context.Context, moduleName string, amounts sdk.Coins) error
@@ -23,10 +20,10 @@ type BankKeeper interface {
 
 type CrosschainKeeper interface {
 	ExecuteClaim(ctx sdk.Context, eventNonce uint64) error
-	BridgeCoinSupply(ctx sdk.Context, tokenOrDenom, target string) (sdk.Coin, error)
-	CrossChainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, target string, memo string, originToken bool) error
-	BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, target string, originTokenAmount sdkmath.Int) (uint64, error)
-	GetBaseDenomByErc20(ctx sdk.Context, erc20Addr common.Address) (string, bool, error)
+	BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error)
+	CrossChainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *crosschaintypes.FxTarget, memo string, originToken bool) error
+	BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, fxTarget *crosschaintypes.FxTarget, originTokenAmount sdkmath.Int) (uint64, error)
+	GetBaseDenomByErc20(ctx sdk.Context, erc20Addr common.Address) (erc20types.ERC20Token, error)
 
 	HasOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) bool
 	GetOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) (sdk.AccAddress, bool)

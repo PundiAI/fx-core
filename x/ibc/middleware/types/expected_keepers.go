@@ -1,7 +1,6 @@
 package types
 
 import (
-	"context"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +13,7 @@ type EvmKeeper interface {
 }
 
 type CrossChainKeeper interface {
-	IBCCoinToEvm(ctx context.Context, coin sdk.Coin, holder sdk.AccAddress) error
-	IBCCoinRefund(ctx sdk.Context, coin sdk.Coin, holder sdk.AccAddress, ibcChannel string, ibcSequence uint64) error
+	IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) error
+	IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin, ibcChannel string, ibcSequence uint64) error
 	AfterIBCAckSuccess(ctx sdk.Context, sourceChannel string, sequence uint64)
 }

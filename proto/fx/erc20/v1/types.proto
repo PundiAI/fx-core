@@ -1,0 +1,46 @@
+syntax = "proto3";
+package fx.erc20.v1;
+
+import "cosmos/bank/v1beta1/bank.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/functionx/fx-core/x/erc20/types";
+
+// ERC20Owner enumerates the ownership of a ERC20 contract.
+enum Owner {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // OWNER_UNSPECIFIED defines an invalid/undefined owner.
+  OWNER_UNSPECIFIED = 0;
+  // OWNER_MODULE erc20 is owned by the erc20 module account.
+  OWNER_MODULE = 1;
+  // EXTERNAL erc20 is owned by an external address.
+  OWNER_EXTERNAL = 2;
+}
+
+// ERC20Token defines an instance that records pairing consisting of a
+// Cosmos native Coin and an ERC20 token address.
+message ERC20Token {
+  option (gogoproto.equal) = true;
+  // address of ERC20 contract token
+  string erc20_address = 1;
+  // cosmos base denomination to be mapped to
+  string denom = 2;
+  // shows token mapping enable status
+  bool enabled = 3;
+  // ERC20 owner address ENUM (0 invalid, 1 module account, 2 external address)
+  Owner contract_owner = 4;
+}
+
+message BridgeToken {
+  option (gogoproto.equal) = true;
+  string chain_name = 1;
+  string contract = 2;
+  string denom = 3;
+  bool is_native = 4;
+}
+
+message IBCToken {
+  option (gogoproto.equal) = true;
+  string channel = 1;
+  string ibc_denom = 2;
+}

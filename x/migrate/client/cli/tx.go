@@ -81,9 +81,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 	return cmd
 }
 
-//nolint:gocyclo
 func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.AccAddress) ([]sdk.Msg, error) {
-	// query balances
 	bankClient := banktypes.NewQueryClient(cliCtx)
 	respBalances, err := bankClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{Address: from.String()})
 	if err != nil {
@@ -92,25 +90,15 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 	if len(respBalances.Balances) == 0 {
 		return nil, nil
 	}
-	// query pairs
+
 	erc20Client := erc20types.NewQueryClient(cliCtx)
 	respPairs, err := erc20Client.TokenPairs(ctx, &erc20types.QueryTokenPairsRequest{})
 	if err != nil {
 		return nil, err
 	}
-	supportDenom := make(map[string]bool, len(respPairs.TokenPairs))
-	for _, p := range respPairs.TokenPairs {
+	supportDenom := make(map[string]bool, len(respPairs.Erc20Tokens))
+	for _, p := range respPairs.Erc20Tokens {
 		supportDenom[p.Denom] = true
-	}
-
-	response, err := bankClient.DenomsMetadata(ctx, &banktypes.QueryDenomsMetadataRequest{})
-	if err != nil {
-		return nil, err
-	}
-	for _, md := range response.Metadatas {
-		for _, alias := range md.DenomUnits[0].Aliases {
-			supportDenom[alias] = true
-		}
 	}
 
 	msgs := make([]sdk.Msg, 0, len(respBalances.Balances))
@@ -118,27 +106,8 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 		if b.Denom == fxtypes.DefaultDenom || !supportDenom[b.Denom] {
 			continue
 		}
-
-		var manyToOneDenom string
-		for _, md := range response.Metadatas {
-			if md.Base == b.Denom {
-				break
-			}
-			for _, alias := range md.DenomUnits[0].Aliases {
-				if alias == b.Denom {
-					manyToOneDenom = md.Base
-					break
-				}
-			}
-		}
-		if len(manyToOneDenom) > 0 {
-			convertDenomMsg := erc20types.NewMsgConvertDenom(from, from, b, "")
-			convertCoinMsg := erc20types.NewMsgConvertCoin(sdk.NewCoin(manyToOneDenom, b.Amount), common.BytesToAddress(to.Bytes()), from)
-			msgs = append(msgs, convertDenomMsg, convertCoinMsg)
-		} else {
-			msg := erc20types.NewMsgConvertCoin(b, common.BytesToAddress(to.Bytes()), from)
-			msgs = append(msgs, msg)
-		}
+		msg := erc20types.NewMsgConvertCoin(b, common.BytesToAddress(to.Bytes()), from)
+		msgs = append(msgs, msg)
 	}
 	return msgs, nil
 }

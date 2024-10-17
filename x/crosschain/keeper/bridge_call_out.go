@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
@@ -18,20 +18,21 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
-	"github.com/functionx/fx-core/v8/contract"
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, baseCoins sdk.Coins, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error) {
 	tokens := make([]types.ERC20Token, 0, len(baseCoins))
-	for _, coin := range baseCoins {
-		tokenContract, err := k.BaseCoinToBridgeToken(ctx, coin, sender.Bytes())
+	for _, baseCoin := range baseCoins {
+		bridgeToken, err := k.BaseCoinToBridgeToken(ctx, sender.Bytes(), baseCoin)
 		if err != nil {
 			return 0, err
 		}
-		tokens = append(tokens, types.NewERC20Token(coin.Amount, tokenContract))
+		if err = k.WithdrawBridgeToken(ctx, sender.Bytes(), baseCoin.Amount, bridgeToken); err != nil {
+			return 0, err
+		}
+		tokens = append(tokens, types.NewERC20Token(baseCoin.Amount, bridgeToken.Contract))
 	}
 	outCall, err := k.BuildOutgoingBridgeCall(ctx, sender, refundAddr, tokens, to, data, memo, eventNonce)
 	if err != nil {
@@ -121,7 +122,11 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBr
 	refund := types.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
 	baseCoins := sdk.NewCoins()
 	for _, token := range data.Tokens {
-		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, token.Contract, token.Amount, refund.Bytes())
+		bridgeToken, err := k.DepositBridgeToken(ctx, refund.Bytes(), token.Amount, token.Contract)
+		if err != nil {
+			return err
+		}
+		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, refund.Bytes(), token.Amount, bridgeToken)
 		if err != nil {
 			return err
 		}
@@ -134,7 +139,7 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBr
 	))
 
 	for _, coin := range baseCoins {
-		_, err := k.BaseCoinToEvm(ctx, coin, common.BytesToAddress(refund.Bytes()))
+		_, err := k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(refund.Bytes()), coin)
 		if err != nil {
 			return err
 		}
@@ -239,20 +244,33 @@ func (k Keeper) BridgeCallBaseCoin(
 	from, refund, to common.Address,
 	coins sdk.Coins,
 	data, memo []byte,
-	target string,
+	fxTarget *types.FxTarget,
 	originTokenAmount sdkmath.Int,
 ) (uint64, error) {
-	fxTarget := fxtypes.ParseFxTarget(target)
 	if fxTarget.IsIBC() {
 		if !coins.IsValid() || len(coins) != 1 {
 			return 0, sdkerrors.ErrInvalidCoins.Wrapf("ibc transfer with coins: %s", coins.String())
 		}
-		amount := coins[0]
+		baseCoin := coins[0]
 		toAddr, err := fxTarget.ReceiveAddrToStr(to.Bytes())
 		if err != nil {
-			return 0, sdkerrors.ErrInvalidAddress.Wrapf("ibc transfer target %s to: %s", fxTarget.GetTarget(), to.String())
+			return 0, err
 		}
-		return k.IBCTransfer(ctx, from.Bytes(), toAddr, amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt()), fxTarget, string(memo), originTokenAmount.IsZero())
+		ibcCoin, err := k.BaseCoinToIBCCoin(ctx, from.Bytes(), baseCoin, fxTarget.IBCChannel)
+		if err != nil {
+			return 0, err
+		}
+		sequence, err := k.IBCTransfer(ctx, from.Bytes(), toAddr, ibcCoin, fxTarget.IBCChannel, string(memo))
+		if err != nil {
+			return 0, err
+		}
+		if originTokenAmount.IsPositive() {
+			ibcTransferKey := types.NewIBCTransferKey(fxTarget.IBCChannel, sequence)
+			if err = k.erc20Keeper.SetCache(ctx, ibcTransferKey); err != nil {
+				return 0, err
+			}
+		}
+		return sequence, nil
 	}
 	// todo record origin amount
 	return k.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, 0)
@@ -263,24 +281,27 @@ func (k Keeper) CrossChainBaseCoin(
 	from sdk.AccAddress,
 	receipt string,
 	amount, fee sdk.Coin,
-	target string,
+	fxTarget *types.FxTarget,
 	memo string,
 	originToken bool,
 ) error {
-	fxTarget := fxtypes.ParseFxTarget(target)
+	var cacheKey string
 	if fxTarget.IsIBC() {
-		_, err := k.IBCTransfer(ctx, from.Bytes(), receipt, amount, fee, fxTarget, memo, originToken)
-		return err
+		sequence, err := k.IBCTransfer(ctx, from.Bytes(), receipt, amount, fxTarget.IBCChannel, memo)
+		if err != nil {
+			return err
+		}
+		cacheKey = types.NewIBCTransferKey(fxTarget.IBCChannel, sequence)
+	} else {
+		batchNonce, err := k.BuildOutgoingTxBatch(ctx, from, receipt, amount, fee)
+		if err != nil {
+			return err
+		}
+		cacheKey = types.NewOriginTokenKey(fxTarget.GetModuleName(), batchNonce)
 	}
-	if err := types.ValidateExternalAddr(fxTarget.GetTarget(), receipt); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
-	}
-	batchNonce, err := k.BuildOutgoingTxBatch(ctx, from, receipt, amount, fee)
-	if err != nil {
-		return err
-	}
-	if !originToken {
-		k.erc20Keeper.SetOutgoingTransferRelation(ctx, fxTarget.GetTarget(), batchNonce)
+
+	if originToken {
+		return k.erc20Keeper.SetCache(ctx, cacheKey)
 	}
 	return nil
 }
@@ -289,48 +310,25 @@ func (k Keeper) IBCTransfer(
 	ctx sdk.Context,
 	from sdk.AccAddress,
 	to string,
-	amount, fee sdk.Coin,
-	fxTarget fxtypes.FxTarget,
+	amount sdk.Coin,
+	channel string,
 	memo string,
-	originToken bool,
 ) (uint64, error) {
-	if !fee.IsZero() {
-		return 0, fmt.Errorf("ibc transfer fee must be zero: %s", fee.String())
-	}
-	if strings.ToLower(fxTarget.Prefix) == contract.EthereumAddressPrefix {
-		if err := contract.ValidateEthereumAddress(to); err != nil {
-			return 0, fmt.Errorf("invalid to address: %s", to)
-		}
-	} else {
-		if _, err := sdk.GetFromBech32(to, fxTarget.Prefix); err != nil {
-			return 0, fmt.Errorf("invalid to address: %s", to)
-		}
-	}
-	if !originToken {
-		var err error
-		amount, err = k.BaseCoinToIBCCoin(ctx, amount, from, fxTarget.String())
-		if err != nil {
-			return 0, err
-		}
-	}
-	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(k.erc20Keeper.GetIbcTimeout(ctx))
+	timeout := 12 * time.Hour
 	transferResponse, err := k.ibcTransferKeeper.Transfer(ctx,
 		transfertypes.NewMsgTransfer(
-			fxTarget.SourcePort,
-			fxTarget.SourceChannel,
+			transfertypes.ModuleName,
+			channel,
 			amount,
 			from.String(),
 			to,
 			ibcclienttypes.ZeroHeight(),
-			ibcTimeoutTimestamp,
+			uint64(ctx.BlockTime().Add(timeout).UnixNano()),
 			memo,
 		),
 	)
 	if err != nil {
 		return 0, fmt.Errorf("ibc transfer error: %s", err.Error())
-	}
-	if !originToken {
-		k.erc20Keeper.SetIBCTransferRelation(ctx, fxTarget.SourceChannel, transferResponse.Sequence)
 	}
 	return transferResponse.Sequence, nil
 }

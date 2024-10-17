@@ -453,7 +453,7 @@ func (x *fastReflection_QueryTokenPairsRequest) ProtoMethods() *protoiface.Metho
 var _ protoreflect.List = (*_QueryTokenPairsResponse_1_list)(nil)
 
 type _QueryTokenPairsResponse_1_list struct {
-	list *[]*TokenPair
+	list *[]*ERC20Token
 }
 
 func (x *_QueryTokenPairsResponse_1_list) Len() int {
@@ -469,18 +469,18 @@ func (x *_QueryTokenPairsResponse_1_list) Get(i int) protoreflect.Value {
 
 func (x *_QueryTokenPairsResponse_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*TokenPair)
+	concreteValue := valueUnwrapped.Interface().(*ERC20Token)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_QueryTokenPairsResponse_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*TokenPair)
+	concreteValue := valueUnwrapped.Interface().(*ERC20Token)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_QueryTokenPairsResponse_1_list) AppendMutable() protoreflect.Value {
-	v := new(TokenPair)
+	v := new(ERC20Token)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -493,7 +493,7 @@ func (x *_QueryTokenPairsResponse_1_list) Truncate(n int) {
 }
 
 func (x *_QueryTokenPairsResponse_1_list) NewElement() protoreflect.Value {
-	v := new(TokenPair)
+	v := new(ERC20Token)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -502,15 +502,15 @@ func (x *_QueryTokenPairsResponse_1_list) IsValid() bool {
 }
 
 var (
-	md_QueryTokenPairsResponse             protoreflect.MessageDescriptor
-	fd_QueryTokenPairsResponse_token_pairs protoreflect.FieldDescriptor
-	fd_QueryTokenPairsResponse_pagination  protoreflect.FieldDescriptor
+	md_QueryTokenPairsResponse              protoreflect.MessageDescriptor
+	fd_QueryTokenPairsResponse_erc20_tokens protoreflect.FieldDescriptor
+	fd_QueryTokenPairsResponse_pagination   protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fx_erc20_v1_query_proto_init()
 	md_QueryTokenPairsResponse = File_fx_erc20_v1_query_proto.Messages().ByName("QueryTokenPairsResponse")
-	fd_QueryTokenPairsResponse_token_pairs = md_QueryTokenPairsResponse.Fields().ByName("token_pairs")
+	fd_QueryTokenPairsResponse_erc20_tokens = md_QueryTokenPairsResponse.Fields().ByName("erc20_tokens")
 	fd_QueryTokenPairsResponse_pagination = md_QueryTokenPairsResponse.Fields().ByName("pagination")
 }
 
@@ -579,9 +579,9 @@ func (x *fastReflection_QueryTokenPairsResponse) Interface() protoreflect.ProtoM
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_QueryTokenPairsResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if len(x.TokenPairs) != 0 {
-		value := protoreflect.ValueOfList(&_QueryTokenPairsResponse_1_list{list: &x.TokenPairs})
-		if !f(fd_QueryTokenPairsResponse_token_pairs, value) {
+	if len(x.Erc20Tokens) != 0 {
+		value := protoreflect.ValueOfList(&_QueryTokenPairsResponse_1_list{list: &x.Erc20Tokens})
+		if !f(fd_QueryTokenPairsResponse_erc20_tokens, value) {
 			return
 		}
 	}
@@ -606,8 +606,8 @@ func (x *fastReflection_QueryTokenPairsResponse) Range(f func(protoreflect.Field
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_QueryTokenPairsResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairsResponse.token_pairs":
-		return len(x.TokenPairs) != 0
+	case "fx.erc20.v1.QueryTokenPairsResponse.erc20_tokens":
+		return len(x.Erc20Tokens) != 0
 	case "fx.erc20.v1.QueryTokenPairsResponse.pagination":
 		return x.Pagination != nil
 	default:
@@ -626,8 +626,8 @@ func (x *fastReflection_QueryTokenPairsResponse) Has(fd protoreflect.FieldDescri
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryTokenPairsResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairsResponse.token_pairs":
-		x.TokenPairs = nil
+	case "fx.erc20.v1.QueryTokenPairsResponse.erc20_tokens":
+		x.Erc20Tokens = nil
 	case "fx.erc20.v1.QueryTokenPairsResponse.pagination":
 		x.Pagination = nil
 	default:
@@ -646,11 +646,11 @@ func (x *fastReflection_QueryTokenPairsResponse) Clear(fd protoreflect.FieldDesc
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_QueryTokenPairsResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fx.erc20.v1.QueryTokenPairsResponse.token_pairs":
-		if len(x.TokenPairs) == 0 {
+	case "fx.erc20.v1.QueryTokenPairsResponse.erc20_tokens":
+		if len(x.Erc20Tokens) == 0 {
 			return protoreflect.ValueOfList(&_QueryTokenPairsResponse_1_list{})
 		}
-		listValue := &_QueryTokenPairsResponse_1_list{list: &x.TokenPairs}
+		listValue := &_QueryTokenPairsResponse_1_list{list: &x.Erc20Tokens}
 		return protoreflect.ValueOfList(listValue)
 	case "fx.erc20.v1.QueryTokenPairsResponse.pagination":
 		value := x.Pagination
@@ -675,10 +675,10 @@ func (x *fastReflection_QueryTokenPairsResponse) Get(descriptor protoreflect.Fie
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryTokenPairsResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairsResponse.token_pairs":
+	case "fx.erc20.v1.QueryTokenPairsResponse.erc20_tokens":
 		lv := value.List()
 		clv := lv.(*_QueryTokenPairsResponse_1_list)
-		x.TokenPairs = *clv.list
+		x.Erc20Tokens = *clv.list
 	case "fx.erc20.v1.QueryTokenPairsResponse.pagination":
 		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	default:
@@ -701,11 +701,11 @@ func (x *fastReflection_QueryTokenPairsResponse) Set(fd protoreflect.FieldDescri
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryTokenPairsResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairsResponse.token_pairs":
-		if x.TokenPairs == nil {
-			x.TokenPairs = []*TokenPair{}
+	case "fx.erc20.v1.QueryTokenPairsResponse.erc20_tokens":
+		if x.Erc20Tokens == nil {
+			x.Erc20Tokens = []*ERC20Token{}
 		}
-		value := &_QueryTokenPairsResponse_1_list{list: &x.TokenPairs}
+		value := &_QueryTokenPairsResponse_1_list{list: &x.Erc20Tokens}
 		return protoreflect.ValueOfList(value)
 	case "fx.erc20.v1.QueryTokenPairsResponse.pagination":
 		if x.Pagination == nil {
@@ -725,8 +725,8 @@ func (x *fastReflection_QueryTokenPairsResponse) Mutable(fd protoreflect.FieldDe
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_QueryTokenPairsResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairsResponse.token_pairs":
-		list := []*TokenPair{}
+	case "fx.erc20.v1.QueryTokenPairsResponse.erc20_tokens":
+		list := []*ERC20Token{}
 		return protoreflect.ValueOfList(&_QueryTokenPairsResponse_1_list{list: &list})
 	case "fx.erc20.v1.QueryTokenPairsResponse.pagination":
 		m := new(v1beta1.PageResponse)
@@ -800,8 +800,8 @@ func (x *fastReflection_QueryTokenPairsResponse) ProtoMethods() *protoiface.Meth
 		var n int
 		var l int
 		_ = l
-		if len(x.TokenPairs) > 0 {
-			for _, e := range x.TokenPairs {
+		if len(x.Erc20Tokens) > 0 {
+			for _, e := range x.Erc20Tokens {
 				l = options.Size(e)
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
@@ -853,9 +853,9 @@ func (x *fastReflection_QueryTokenPairsResponse) ProtoMethods() *protoiface.Meth
 			i--
 			dAtA[i] = 0x12
 		}
-		if len(x.TokenPairs) > 0 {
-			for iNdEx := len(x.TokenPairs) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.TokenPairs[iNdEx])
+		if len(x.Erc20Tokens) > 0 {
+			for iNdEx := len(x.Erc20Tokens) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Erc20Tokens[iNdEx])
 				if err != nil {
 					return protoiface.MarshalOutput{
 						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -920,7 +920,7 @@ func (x *fastReflection_QueryTokenPairsResponse) ProtoMethods() *protoiface.Meth
 			switch fieldNum {
 			case 1:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field TokenPairs", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Erc20Tokens", wireType)
 				}
 				var msglen int
 				for shift := uint(0); ; shift += 7 {
@@ -947,8 +947,8 @@ func (x *fastReflection_QueryTokenPairsResponse) ProtoMethods() *protoiface.Meth
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.TokenPairs = append(x.TokenPairs, &TokenPair{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TokenPairs[len(x.TokenPairs)-1]); err != nil {
+				x.Erc20Tokens = append(x.Erc20Tokens, &ERC20Token{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Erc20Tokens[len(x.Erc20Tokens)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
@@ -1444,14 +1444,14 @@ func (x *fastReflection_QueryTokenPairRequest) ProtoMethods() *protoiface.Method
 }
 
 var (
-	md_QueryTokenPairResponse            protoreflect.MessageDescriptor
-	fd_QueryTokenPairResponse_token_pair protoreflect.FieldDescriptor
+	md_QueryTokenPairResponse             protoreflect.MessageDescriptor
+	fd_QueryTokenPairResponse_erc20_token protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fx_erc20_v1_query_proto_init()
 	md_QueryTokenPairResponse = File_fx_erc20_v1_query_proto.Messages().ByName("QueryTokenPairResponse")
-	fd_QueryTokenPairResponse_token_pair = md_QueryTokenPairResponse.Fields().ByName("token_pair")
+	fd_QueryTokenPairResponse_erc20_token = md_QueryTokenPairResponse.Fields().ByName("erc20_token")
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryTokenPairResponse)(nil)
@@ -1519,9 +1519,9 @@ func (x *fastReflection_QueryTokenPairResponse) Interface() protoreflect.ProtoMe
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_QueryTokenPairResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.TokenPair != nil {
-		value := protoreflect.ValueOfMessage(x.TokenPair.ProtoReflect())
-		if !f(fd_QueryTokenPairResponse_token_pair, value) {
+	if x.Erc20Token != nil {
+		value := protoreflect.ValueOfMessage(x.Erc20Token.ProtoReflect())
+		if !f(fd_QueryTokenPairResponse_erc20_token, value) {
 			return
 		}
 	}
@@ -1540,8 +1540,8 @@ func (x *fastReflection_QueryTokenPairResponse) Range(f func(protoreflect.FieldD
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_QueryTokenPairResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairResponse.token_pair":
-		return x.TokenPair != nil
+	case "fx.erc20.v1.QueryTokenPairResponse.erc20_token":
+		return x.Erc20Token != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryTokenPairResponse"))
@@ -1558,8 +1558,8 @@ func (x *fastReflection_QueryTokenPairResponse) Has(fd protoreflect.FieldDescrip
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryTokenPairResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairResponse.token_pair":
-		x.TokenPair = nil
+	case "fx.erc20.v1.QueryTokenPairResponse.erc20_token":
+		x.Erc20Token = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryTokenPairResponse"))
@@ -1576,8 +1576,8 @@ func (x *fastReflection_QueryTokenPairResponse) Clear(fd protoreflect.FieldDescr
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_QueryTokenPairResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fx.erc20.v1.QueryTokenPairResponse.token_pair":
-		value := x.TokenPair
+	case "fx.erc20.v1.QueryTokenPairResponse.erc20_token":
+		value := x.Erc20Token
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
@@ -1599,8 +1599,8 @@ func (x *fastReflection_QueryTokenPairResponse) Get(descriptor protoreflect.Fiel
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryTokenPairResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairResponse.token_pair":
-		x.TokenPair = value.Message().Interface().(*TokenPair)
+	case "fx.erc20.v1.QueryTokenPairResponse.erc20_token":
+		x.Erc20Token = value.Message().Interface().(*ERC20Token)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryTokenPairResponse"))
@@ -1621,11 +1621,11 @@ func (x *fastReflection_QueryTokenPairResponse) Set(fd protoreflect.FieldDescrip
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryTokenPairResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairResponse.token_pair":
-		if x.TokenPair == nil {
-			x.TokenPair = new(TokenPair)
+	case "fx.erc20.v1.QueryTokenPairResponse.erc20_token":
+		if x.Erc20Token == nil {
+			x.Erc20Token = new(ERC20Token)
 		}
-		return protoreflect.ValueOfMessage(x.TokenPair.ProtoReflect())
+		return protoreflect.ValueOfMessage(x.Erc20Token.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryTokenPairResponse"))
@@ -1639,8 +1639,8 @@ func (x *fastReflection_QueryTokenPairResponse) Mutable(fd protoreflect.FieldDes
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_QueryTokenPairResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.QueryTokenPairResponse.token_pair":
-		m := new(TokenPair)
+	case "fx.erc20.v1.QueryTokenPairResponse.erc20_token":
+		m := new(ERC20Token)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -1711,8 +1711,8 @@ func (x *fastReflection_QueryTokenPairResponse) ProtoMethods() *protoiface.Metho
 		var n int
 		var l int
 		_ = l
-		if x.TokenPair != nil {
-			l = options.Size(x.TokenPair)
+		if x.Erc20Token != nil {
+			l = options.Size(x.Erc20Token)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
@@ -1744,8 +1744,8 @@ func (x *fastReflection_QueryTokenPairResponse) ProtoMethods() *protoiface.Metho
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if x.TokenPair != nil {
-			encoded, err := options.Marshal(x.TokenPair)
+		if x.Erc20Token != nil {
+			encoded, err := options.Marshal(x.Erc20Token)
 			if err != nil {
 				return protoiface.MarshalOutput{
 					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -1809,7 +1809,7 @@ func (x *fastReflection_QueryTokenPairResponse) ProtoMethods() *protoiface.Metho
 			switch fieldNum {
 			case 1:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field TokenPair", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Erc20Token", wireType)
 				}
 				var msglen int
 				for shift := uint(0); ; shift += 7 {
@@ -1836,10 +1836,10 @@ func (x *fastReflection_QueryTokenPairResponse) ProtoMethods() *protoiface.Metho
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				if x.TokenPair == nil {
-					x.TokenPair = &TokenPair{}
+				if x.Erc20Token == nil {
+					x.Erc20Token = &ERC20Token{}
 				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TokenPair); err != nil {
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Erc20Token); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
@@ -2669,1746 +2669,6 @@ func (x *fastReflection_QueryParamsResponse) ProtoMethods() *protoiface.Methods 
 	}
 }
 
-var (
-	md_QueryDenomAliasesRequest       protoreflect.MessageDescriptor
-	fd_QueryDenomAliasesRequest_denom protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_fx_erc20_v1_query_proto_init()
-	md_QueryDenomAliasesRequest = File_fx_erc20_v1_query_proto.Messages().ByName("QueryDenomAliasesRequest")
-	fd_QueryDenomAliasesRequest_denom = md_QueryDenomAliasesRequest.Fields().ByName("denom")
-}
-
-var _ protoreflect.Message = (*fastReflection_QueryDenomAliasesRequest)(nil)
-
-type fastReflection_QueryDenomAliasesRequest QueryDenomAliasesRequest
-
-func (x *QueryDenomAliasesRequest) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryDenomAliasesRequest)(x)
-}
-
-func (x *QueryDenomAliasesRequest) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_query_proto_msgTypes[6]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_QueryDenomAliasesRequest_messageType fastReflection_QueryDenomAliasesRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryDenomAliasesRequest_messageType{}
-
-type fastReflection_QueryDenomAliasesRequest_messageType struct{}
-
-func (x fastReflection_QueryDenomAliasesRequest_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryDenomAliasesRequest)(nil)
-}
-func (x fastReflection_QueryDenomAliasesRequest_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryDenomAliasesRequest)
-}
-func (x fastReflection_QueryDenomAliasesRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryDenomAliasesRequest
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_QueryDenomAliasesRequest) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryDenomAliasesRequest
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_QueryDenomAliasesRequest) Type() protoreflect.MessageType {
-	return _fastReflection_QueryDenomAliasesRequest_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryDenomAliasesRequest) New() protoreflect.Message {
-	return new(fastReflection_QueryDenomAliasesRequest)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_QueryDenomAliasesRequest) Interface() protoreflect.ProtoMessage {
-	return (*QueryDenomAliasesRequest)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_QueryDenomAliasesRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Denom != "" {
-		value := protoreflect.ValueOfString(x.Denom)
-		if !f(fd_QueryDenomAliasesRequest_denom, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_QueryDenomAliasesRequest) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesRequest.denom":
-		return x.Denom != ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesRequest) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesRequest.denom":
-		x.Denom = ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_QueryDenomAliasesRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesRequest.denom":
-		value := x.Denom
-		return protoreflect.ValueOfString(value)
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesRequest does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesRequest.denom":
-		x.Denom = value.Interface().(string)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesRequest.denom":
-		panic(fmt.Errorf("field denom of message fx.erc20.v1.QueryDenomAliasesRequest is not mutable"))
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_QueryDenomAliasesRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesRequest.denom":
-		return protoreflect.ValueOfString("")
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_QueryDenomAliasesRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.QueryDenomAliasesRequest", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_QueryDenomAliasesRequest) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesRequest) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_QueryDenomAliasesRequest) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_QueryDenomAliasesRequest) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryDenomAliasesRequest)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		l = len(x.Denom)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*QueryDenomAliasesRequest)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if len(x.Denom) > 0 {
-			i -= len(x.Denom)
-			copy(dAtA[i:], x.Denom)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Denom)))
-			i--
-			dAtA[i] = 0xa
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*QueryDenomAliasesRequest)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDenomAliasesRequest: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDenomAliasesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Denom = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
-var _ protoreflect.List = (*_QueryDenomAliasesResponse_1_list)(nil)
-
-type _QueryDenomAliasesResponse_1_list struct {
-	list *[]string
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfString((*x.list)[i])
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message QueryDenomAliasesResponse at list field Aliases as it is not of Message kind"))
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) Truncate(n int) {
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) NewElement() protoreflect.Value {
-	v := ""
-	return protoreflect.ValueOfString(v)
-}
-
-func (x *_QueryDenomAliasesResponse_1_list) IsValid() bool {
-	return x.list != nil
-}
-
-var (
-	md_QueryDenomAliasesResponse         protoreflect.MessageDescriptor
-	fd_QueryDenomAliasesResponse_aliases protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_fx_erc20_v1_query_proto_init()
-	md_QueryDenomAliasesResponse = File_fx_erc20_v1_query_proto.Messages().ByName("QueryDenomAliasesResponse")
-	fd_QueryDenomAliasesResponse_aliases = md_QueryDenomAliasesResponse.Fields().ByName("aliases")
-}
-
-var _ protoreflect.Message = (*fastReflection_QueryDenomAliasesResponse)(nil)
-
-type fastReflection_QueryDenomAliasesResponse QueryDenomAliasesResponse
-
-func (x *QueryDenomAliasesResponse) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryDenomAliasesResponse)(x)
-}
-
-func (x *QueryDenomAliasesResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_query_proto_msgTypes[7]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_QueryDenomAliasesResponse_messageType fastReflection_QueryDenomAliasesResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryDenomAliasesResponse_messageType{}
-
-type fastReflection_QueryDenomAliasesResponse_messageType struct{}
-
-func (x fastReflection_QueryDenomAliasesResponse_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryDenomAliasesResponse)(nil)
-}
-func (x fastReflection_QueryDenomAliasesResponse_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryDenomAliasesResponse)
-}
-func (x fastReflection_QueryDenomAliasesResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryDenomAliasesResponse
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_QueryDenomAliasesResponse) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryDenomAliasesResponse
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_QueryDenomAliasesResponse) Type() protoreflect.MessageType {
-	return _fastReflection_QueryDenomAliasesResponse_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryDenomAliasesResponse) New() protoreflect.Message {
-	return new(fastReflection_QueryDenomAliasesResponse)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_QueryDenomAliasesResponse) Interface() protoreflect.ProtoMessage {
-	return (*QueryDenomAliasesResponse)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_QueryDenomAliasesResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if len(x.Aliases) != 0 {
-		value := protoreflect.ValueOfList(&_QueryDenomAliasesResponse_1_list{list: &x.Aliases})
-		if !f(fd_QueryDenomAliasesResponse_aliases, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_QueryDenomAliasesResponse) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesResponse.aliases":
-		return len(x.Aliases) != 0
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesResponse) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesResponse.aliases":
-		x.Aliases = nil
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_QueryDenomAliasesResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesResponse.aliases":
-		if len(x.Aliases) == 0 {
-			return protoreflect.ValueOfList(&_QueryDenomAliasesResponse_1_list{})
-		}
-		listValue := &_QueryDenomAliasesResponse_1_list{list: &x.Aliases}
-		return protoreflect.ValueOfList(listValue)
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesResponse does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesResponse.aliases":
-		lv := value.List()
-		clv := lv.(*_QueryDenomAliasesResponse_1_list)
-		x.Aliases = *clv.list
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesResponse.aliases":
-		if x.Aliases == nil {
-			x.Aliases = []string{}
-		}
-		value := &_QueryDenomAliasesResponse_1_list{list: &x.Aliases}
-		return protoreflect.ValueOfList(value)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_QueryDenomAliasesResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryDenomAliasesResponse.aliases":
-		list := []string{}
-		return protoreflect.ValueOfList(&_QueryDenomAliasesResponse_1_list{list: &list})
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryDenomAliasesResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryDenomAliasesResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_QueryDenomAliasesResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.QueryDenomAliasesResponse", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_QueryDenomAliasesResponse) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryDenomAliasesResponse) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_QueryDenomAliasesResponse) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_QueryDenomAliasesResponse) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryDenomAliasesResponse)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		if len(x.Aliases) > 0 {
-			for _, s := range x.Aliases {
-				l = len(s)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*QueryDenomAliasesResponse)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if len(x.Aliases) > 0 {
-			for iNdEx := len(x.Aliases) - 1; iNdEx >= 0; iNdEx-- {
-				i -= len(x.Aliases[iNdEx])
-				copy(dAtA[i:], x.Aliases[iNdEx])
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Aliases[iNdEx])))
-				i--
-				dAtA[i] = 0xa
-			}
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*QueryDenomAliasesResponse)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDenomAliasesResponse: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDenomAliasesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Aliases", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Aliases = append(x.Aliases, string(dAtA[iNdEx:postIndex]))
-				iNdEx = postIndex
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
-var (
-	md_QueryAliasDenomRequest       protoreflect.MessageDescriptor
-	fd_QueryAliasDenomRequest_alias protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_fx_erc20_v1_query_proto_init()
-	md_QueryAliasDenomRequest = File_fx_erc20_v1_query_proto.Messages().ByName("QueryAliasDenomRequest")
-	fd_QueryAliasDenomRequest_alias = md_QueryAliasDenomRequest.Fields().ByName("alias")
-}
-
-var _ protoreflect.Message = (*fastReflection_QueryAliasDenomRequest)(nil)
-
-type fastReflection_QueryAliasDenomRequest QueryAliasDenomRequest
-
-func (x *QueryAliasDenomRequest) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryAliasDenomRequest)(x)
-}
-
-func (x *QueryAliasDenomRequest) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_query_proto_msgTypes[8]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_QueryAliasDenomRequest_messageType fastReflection_QueryAliasDenomRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAliasDenomRequest_messageType{}
-
-type fastReflection_QueryAliasDenomRequest_messageType struct{}
-
-func (x fastReflection_QueryAliasDenomRequest_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryAliasDenomRequest)(nil)
-}
-func (x fastReflection_QueryAliasDenomRequest_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryAliasDenomRequest)
-}
-func (x fastReflection_QueryAliasDenomRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryAliasDenomRequest
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_QueryAliasDenomRequest) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryAliasDenomRequest
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_QueryAliasDenomRequest) Type() protoreflect.MessageType {
-	return _fastReflection_QueryAliasDenomRequest_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryAliasDenomRequest) New() protoreflect.Message {
-	return new(fastReflection_QueryAliasDenomRequest)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_QueryAliasDenomRequest) Interface() protoreflect.ProtoMessage {
-	return (*QueryAliasDenomRequest)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_QueryAliasDenomRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Alias != "" {
-		value := protoreflect.ValueOfString(x.Alias)
-		if !f(fd_QueryAliasDenomRequest_alias, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_QueryAliasDenomRequest) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomRequest.alias":
-		return x.Alias != ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomRequest) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomRequest.alias":
-		x.Alias = ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_QueryAliasDenomRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomRequest.alias":
-		value := x.Alias
-		return protoreflect.ValueOfString(value)
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomRequest does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomRequest.alias":
-		x.Alias = value.Interface().(string)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomRequest.alias":
-		panic(fmt.Errorf("field alias of message fx.erc20.v1.QueryAliasDenomRequest is not mutable"))
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_QueryAliasDenomRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomRequest.alias":
-		return protoreflect.ValueOfString("")
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomRequest"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomRequest does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_QueryAliasDenomRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.QueryAliasDenomRequest", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_QueryAliasDenomRequest) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomRequest) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_QueryAliasDenomRequest) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_QueryAliasDenomRequest) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryAliasDenomRequest)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		l = len(x.Alias)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*QueryAliasDenomRequest)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if len(x.Alias) > 0 {
-			i -= len(x.Alias)
-			copy(dAtA[i:], x.Alias)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Alias)))
-			i--
-			dAtA[i] = 0xa
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*QueryAliasDenomRequest)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAliasDenomRequest: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAliasDenomRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Alias", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Alias = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
-var (
-	md_QueryAliasDenomResponse       protoreflect.MessageDescriptor
-	fd_QueryAliasDenomResponse_denom protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_fx_erc20_v1_query_proto_init()
-	md_QueryAliasDenomResponse = File_fx_erc20_v1_query_proto.Messages().ByName("QueryAliasDenomResponse")
-	fd_QueryAliasDenomResponse_denom = md_QueryAliasDenomResponse.Fields().ByName("denom")
-}
-
-var _ protoreflect.Message = (*fastReflection_QueryAliasDenomResponse)(nil)
-
-type fastReflection_QueryAliasDenomResponse QueryAliasDenomResponse
-
-func (x *QueryAliasDenomResponse) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryAliasDenomResponse)(x)
-}
-
-func (x *QueryAliasDenomResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_query_proto_msgTypes[9]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_QueryAliasDenomResponse_messageType fastReflection_QueryAliasDenomResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAliasDenomResponse_messageType{}
-
-type fastReflection_QueryAliasDenomResponse_messageType struct{}
-
-func (x fastReflection_QueryAliasDenomResponse_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryAliasDenomResponse)(nil)
-}
-func (x fastReflection_QueryAliasDenomResponse_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryAliasDenomResponse)
-}
-func (x fastReflection_QueryAliasDenomResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryAliasDenomResponse
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_QueryAliasDenomResponse) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryAliasDenomResponse
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_QueryAliasDenomResponse) Type() protoreflect.MessageType {
-	return _fastReflection_QueryAliasDenomResponse_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryAliasDenomResponse) New() protoreflect.Message {
-	return new(fastReflection_QueryAliasDenomResponse)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_QueryAliasDenomResponse) Interface() protoreflect.ProtoMessage {
-	return (*QueryAliasDenomResponse)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_QueryAliasDenomResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Denom != "" {
-		value := protoreflect.ValueOfString(x.Denom)
-		if !f(fd_QueryAliasDenomResponse_denom, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_QueryAliasDenomResponse) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomResponse.denom":
-		return x.Denom != ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomResponse) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomResponse.denom":
-		x.Denom = ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_QueryAliasDenomResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomResponse.denom":
-		value := x.Denom
-		return protoreflect.ValueOfString(value)
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomResponse does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomResponse.denom":
-		x.Denom = value.Interface().(string)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomResponse.denom":
-		panic(fmt.Errorf("field denom of message fx.erc20.v1.QueryAliasDenomResponse is not mutable"))
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_QueryAliasDenomResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.QueryAliasDenomResponse.denom":
-		return protoreflect.ValueOfString("")
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.QueryAliasDenomResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.QueryAliasDenomResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_QueryAliasDenomResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.QueryAliasDenomResponse", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_QueryAliasDenomResponse) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryAliasDenomResponse) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_QueryAliasDenomResponse) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_QueryAliasDenomResponse) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryAliasDenomResponse)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		l = len(x.Denom)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*QueryAliasDenomResponse)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if len(x.Denom) > 0 {
-			i -= len(x.Denom)
-			copy(dAtA[i:], x.Denom)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Denom)))
-			i--
-			dAtA[i] = 0xa
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*QueryAliasDenomResponse)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAliasDenomResponse: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAliasDenomResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Denom = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 // 	protoc-gen-go v1.27.0
@@ -4424,6 +2684,8 @@ const (
 
 // QueryTokenPairsRequest is the request type for the Query/TokenPairs RPC
 // method.
+//
+// Deprecated: Do not use.
 type QueryTokenPairsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -4462,12 +2724,14 @@ func (x *QueryTokenPairsRequest) GetPagination() *v1beta1.PageRequest {
 
 // QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
 // method.
+//
+// Deprecated: Do not use.
 type QueryTokenPairsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TokenPairs []*TokenPair `protobuf:"bytes,1,rep,name=token_pairs,json=tokenPairs,proto3" json:"token_pairs,omitempty"`
+	Erc20Tokens []*ERC20Token `protobuf:"bytes,1,rep,name=erc20_tokens,json=erc20Tokens,proto3" json:"erc20_tokens,omitempty"`
 	// pagination defines the pagination in the response.
 	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
@@ -4492,9 +2756,9 @@ func (*QueryTokenPairsResponse) Descriptor() ([]byte, []int) {
 	return file_fx_erc20_v1_query_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *QueryTokenPairsResponse) GetTokenPairs() []*TokenPair {
+func (x *QueryTokenPairsResponse) GetErc20Tokens() []*ERC20Token {
 	if x != nil {
-		return x.TokenPairs
+		return x.Erc20Tokens
 	}
 	return nil
 }
@@ -4507,6 +2771,8 @@ func (x *QueryTokenPairsResponse) GetPagination() *v1beta1.PageResponse {
 }
 
 // QueryTokenPairRequest is the request type for the Query/TokenPair RPC method.
+//
+// Deprecated: Do not use.
 type QueryTokenPairRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -4546,12 +2812,14 @@ func (x *QueryTokenPairRequest) GetToken() string {
 
 // QueryTokenPairResponse is the response type for the Query/TokenPair RPC
 // method.
+//
+// Deprecated: Do not use.
 type QueryTokenPairResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TokenPair *TokenPair `protobuf:"bytes,1,opt,name=token_pair,json=tokenPair,proto3" json:"token_pair,omitempty"`
+	Erc20Token *ERC20Token `protobuf:"bytes,1,opt,name=erc20_token,json=erc20Token,proto3" json:"erc20_token,omitempty"`
 }
 
 func (x *QueryTokenPairResponse) Reset() {
@@ -4574,9 +2842,9 @@ func (*QueryTokenPairResponse) Descriptor() ([]byte, []int) {
 	return file_fx_erc20_v1_query_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *QueryTokenPairResponse) GetTokenPair() *TokenPair {
+func (x *QueryTokenPairResponse) GetErc20Token() *ERC20Token {
 	if x != nil {
-		return x.TokenPair
+		return x.Erc20Token
 	}
 	return nil
 }
@@ -4645,154 +2913,6 @@ func (x *QueryParamsResponse) GetParams() *Params {
 	return nil
 }
 
-// QueryDenomAliasesRequest is the request type for the Query/DenomAliases RPC
-// method.
-type QueryDenomAliasesRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-}
-
-func (x *QueryDenomAliasesRequest) Reset() {
-	*x = QueryDenomAliasesRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_query_proto_msgTypes[6]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *QueryDenomAliasesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*QueryDenomAliasesRequest) ProtoMessage() {}
-
-// Deprecated: Use QueryDenomAliasesRequest.ProtoReflect.Descriptor instead.
-func (*QueryDenomAliasesRequest) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_query_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *QueryDenomAliasesRequest) GetDenom() string {
-	if x != nil {
-		return x.Denom
-	}
-	return ""
-}
-
-// QueryDenomAliasesResponse is the response type for the Query/DenomAliases RPC
-// method.
-type QueryDenomAliasesResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Aliases []string `protobuf:"bytes,1,rep,name=aliases,proto3" json:"aliases,omitempty"`
-}
-
-func (x *QueryDenomAliasesResponse) Reset() {
-	*x = QueryDenomAliasesResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_query_proto_msgTypes[7]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *QueryDenomAliasesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*QueryDenomAliasesResponse) ProtoMessage() {}
-
-// Deprecated: Use QueryDenomAliasesResponse.ProtoReflect.Descriptor instead.
-func (*QueryDenomAliasesResponse) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_query_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *QueryDenomAliasesResponse) GetAliases() []string {
-	if x != nil {
-		return x.Aliases
-	}
-	return nil
-}
-
-// QueryAliasDenomRequest is the request type for the Query/AliasDenom RPC
-// method.
-type QueryAliasDenomRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Alias string `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
-}
-
-func (x *QueryAliasDenomRequest) Reset() {
-	*x = QueryAliasDenomRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_query_proto_msgTypes[8]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *QueryAliasDenomRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*QueryAliasDenomRequest) ProtoMessage() {}
-
-// Deprecated: Use QueryAliasDenomRequest.ProtoReflect.Descriptor instead.
-func (*QueryAliasDenomRequest) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_query_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *QueryAliasDenomRequest) GetAlias() string {
-	if x != nil {
-		return x.Alias
-	}
-	return ""
-}
-
-// QueryAliasDenomResponse is the response type for the Query/AliasDenom RPC
-// method.
-type QueryAliasDenomResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-}
-
-func (x *QueryAliasDenomResponse) Reset() {
-	*x = QueryAliasDenomResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_query_proto_msgTypes[9]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *QueryAliasDenomResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*QueryAliasDenomResponse) ProtoMessage() {}
-
-// Deprecated: Use QueryAliasDenomResponse.ProtoReflect.Descriptor instead.
-func (*QueryAliasDenomResponse) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_query_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *QueryAliasDenomResponse) GetDenom() string {
-	if x != nil {
-		return x.Denom
-	}
-	return ""
-}
-
 var File_fx_erc20_v1_query_proto protoreflect.FileDescriptor
 
 var file_fx_erc20_v1_query_proto_rawDesc = []byte{
@@ -4802,104 +2922,77 @@ var file_fx_erc20_v1_query_proto_rawDesc = []byte{
 	0x61, 0x73, 0x65, 0x2f, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
 	0x31, 0x2f, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x1a, 0x17, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f,
-	0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x19, 0x66, 0x78, 0x2f,
+	0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x19, 0x66, 0x78, 0x2f,
 	0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1c, 0x67, 0x6f,
 	0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x60, 0x0a, 0x16, 0x51, 0x75,
+	0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x64, 0x0a, 0x16, 0x51, 0x75,
 	0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69,
 	0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
 	0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62,
 	0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0xa1, 0x01, 0x0a,
-	0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3d, 0x0a, 0x0b, 0x74, 0x6f, 0x6b, 0x65,
-	0x6e, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e,
-	0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x54, 0x6f, 0x6b, 0x65,
-	0x6e, 0x50, 0x61, 0x69, 0x72, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0a, 0x74, 0x6f, 0x6b,
-	0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x12, 0x47, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e,
-	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x63, 0x6f,
-	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x22, 0x2d, 0x0a, 0x15, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61,
-	0x69, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b,
-	0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22,
-	0x55, 0x0a, 0x16, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69,
-	0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3b, 0x0a, 0x0a, 0x74, 0x6f, 0x6b,
-	0x65, 0x6e, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e,
-	0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x54, 0x6f, 0x6b, 0x65,
-	0x6e, 0x50, 0x61, 0x69, 0x72, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x09, 0x74, 0x6f, 0x6b,
-	0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x22, 0x14, 0x0a, 0x12, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50,
-	0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x48, 0x0a, 0x13,
-	0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x31, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76,
-	0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06,
-	0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x30, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x72, 0x79, 0x44,
-	0x65, 0x6e, 0x6f, 0x6d, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0x35, 0x0a, 0x19, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73, 0x22,
-	0x2e, 0x0a, 0x16, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x44, 0x65, 0x6e,
-	0x6f, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x6c, 0x69,
-	0x61, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x22,
-	0x2f, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x44, 0x65, 0x6e,
-	0x6f, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65,
-	0x6e, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d,
-	0x32, 0xeb, 0x04, 0x0a, 0x05, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x79, 0x0a, 0x0a, 0x54, 0x6f,
-	0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x12, 0x23, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72,
-	0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65,
-	0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e,
-	0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x20, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1a, 0x12, 0x18, 0x2f, 0x66, 0x78,
-	0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f,
-	0x70, 0x61, 0x69, 0x72, 0x73, 0x12, 0x7e, 0x0a, 0x09, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61,
-	0x69, 0x72, 0x12, 0x22, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31,
+	0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x3a, 0x02, 0x18, 0x01,
+	0x22, 0xa8, 0x01, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50,
+	0x61, 0x69, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a, 0x0c,
+	0x65, 0x72, 0x63, 0x32, 0x30, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x17, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31,
+	0x2e, 0x45, 0x52, 0x43, 0x32, 0x30, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f,
+	0x00, 0x52, 0x0b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x12, 0x47,
+	0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x27, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65,
+	0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50,
+	0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67,
+	0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x3a, 0x02, 0x18, 0x01, 0x22, 0x31, 0x0a, 0x15, 0x51,
+	0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x3a, 0x02, 0x18, 0x01, 0x22, 0x5c,
+	0x0a, 0x16, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3e, 0x0a, 0x0b, 0x65, 0x72, 0x63, 0x32,
+	0x30, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e,
+	0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x52, 0x43, 0x32,
+	0x30, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0a, 0x65, 0x72,
+	0x63, 0x32, 0x30, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x3a, 0x02, 0x18, 0x01, 0x22, 0x14, 0x0a, 0x12,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x22, 0x48, 0x0a, 0x13, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x31, 0x0a, 0x06, 0x70, 0x61, 0x72,
+	0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x66, 0x78, 0x2e, 0x65,
+	0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x04,
+	0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x32, 0xec, 0x02, 0x0a,
+	0x05, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x79, 0x0a, 0x0a, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50,
+	0x61, 0x69, 0x72, 0x73, 0x12, 0x23, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e,
+	0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69,
+	0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x66, 0x78, 0x2e, 0x65,
+	0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b,
+	0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x20, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1a, 0x12, 0x18, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63,
+	0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x70, 0x61, 0x69, 0x72,
+	0x73, 0x12, 0x7e, 0x0a, 0x09, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x12, 0x22,
+	0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x23, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31,
 	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50, 0x61, 0x69, 0x72, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32,
-	0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x50,
-	0x61, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x28, 0x82, 0xd3, 0xe4,
-	0x93, 0x02, 0x22, 0x12, 0x20, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76,
-	0x31, 0x2f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x73, 0x2f, 0x7b, 0x74,
-	0x6f, 0x6b, 0x65, 0x6e, 0x7d, 0x12, 0x68, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12,
-	0x1f, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
-	0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x20, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x1b, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x15, 0x12, 0x13, 0x2f, 0x66, 0x78, 0x2f,
-	0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12,
-	0x81, 0x01, 0x0a, 0x0c, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73,
-	0x12, 0x25, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63,
-	0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x44, 0x65, 0x6e, 0x6f, 0x6d,
-	0x41, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x22, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1c, 0x12, 0x1a, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63,
-	0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x2f, 0x61, 0x6c, 0x69, 0x61,
-	0x73, 0x65, 0x73, 0x12, 0x79, 0x0a, 0x0a, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x44, 0x65, 0x6e, 0x6f,
-	0x6d, 0x12, 0x23, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e,
-	0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32,
-	0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x44,
-	0x65, 0x6e, 0x6f, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x20, 0x82, 0xd3,
-	0xe4, 0x93, 0x02, 0x1a, 0x12, 0x18, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f,
-	0x76, 0x31, 0x2f, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x2f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x42, 0x91,
-	0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e,
-	0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01,
-	0x5a, 0x24, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61,
-	0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x3b, 0x65,
-	0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x46, 0x45, 0x58, 0xaa, 0x02, 0x0b, 0x46,
-	0x78, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0b, 0x46, 0x78, 0x5c,
-	0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17, 0x46, 0x78, 0x5c, 0x45, 0x72,
-	0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61,
-	0x74, 0x61, 0xea, 0x02, 0x0d, 0x46, 0x78, 0x3a, 0x3a, 0x45, 0x72, 0x63, 0x32, 0x30, 0x3a, 0x3a,
-	0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x28, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x22, 0x12,
+	0x20, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x6f,
+	0x6b, 0x65, 0x6e, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x73, 0x2f, 0x7b, 0x74, 0x6f, 0x6b, 0x65, 0x6e,
+	0x7d, 0x12, 0x68, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x1f, 0x2e, 0x66, 0x78,
+	0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50,
+	0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x66,
+	0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1b,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x15, 0x12, 0x13, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32,
+	0x30, 0x2f, 0x76, 0x31, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x91, 0x01, 0x0a, 0x0f,
+	0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x42,
+	0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x24, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32,
+	0x30, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x46, 0x45, 0x58, 0xaa, 0x02, 0x0b, 0x46, 0x78, 0x2e, 0x45,
+	0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0b, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63,
+	0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30,
+	0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
+	0x02, 0x0d, 0x46, 0x78, 0x3a, 0x3a, 0x45, 0x72, 0x63, 0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -4914,44 +3007,36 @@ func file_fx_erc20_v1_query_proto_rawDescGZIP() []byte {
 	return file_fx_erc20_v1_query_proto_rawDescData
 }
 
-var file_fx_erc20_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_fx_erc20_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_fx_erc20_v1_query_proto_goTypes = []interface{}{
-	(*QueryTokenPairsRequest)(nil),    // 0: fx.erc20.v1.QueryTokenPairsRequest
-	(*QueryTokenPairsResponse)(nil),   // 1: fx.erc20.v1.QueryTokenPairsResponse
-	(*QueryTokenPairRequest)(nil),     // 2: fx.erc20.v1.QueryTokenPairRequest
-	(*QueryTokenPairResponse)(nil),    // 3: fx.erc20.v1.QueryTokenPairResponse
-	(*QueryParamsRequest)(nil),        // 4: fx.erc20.v1.QueryParamsRequest
-	(*QueryParamsResponse)(nil),       // 5: fx.erc20.v1.QueryParamsResponse
-	(*QueryDenomAliasesRequest)(nil),  // 6: fx.erc20.v1.QueryDenomAliasesRequest
-	(*QueryDenomAliasesResponse)(nil), // 7: fx.erc20.v1.QueryDenomAliasesResponse
-	(*QueryAliasDenomRequest)(nil),    // 8: fx.erc20.v1.QueryAliasDenomRequest
-	(*QueryAliasDenomResponse)(nil),   // 9: fx.erc20.v1.QueryAliasDenomResponse
-	(*v1beta1.PageRequest)(nil),       // 10: cosmos.base.query.v1beta1.PageRequest
-	(*TokenPair)(nil),                 // 11: fx.erc20.v1.TokenPair
-	(*v1beta1.PageResponse)(nil),      // 12: cosmos.base.query.v1beta1.PageResponse
-	(*Params)(nil),                    // 13: fx.erc20.v1.Params
+	(*QueryTokenPairsRequest)(nil),  // 0: fx.erc20.v1.QueryTokenPairsRequest
+	(*QueryTokenPairsResponse)(nil), // 1: fx.erc20.v1.QueryTokenPairsResponse
+	(*QueryTokenPairRequest)(nil),   // 2: fx.erc20.v1.QueryTokenPairRequest
+	(*QueryTokenPairResponse)(nil),  // 3: fx.erc20.v1.QueryTokenPairResponse
+	(*QueryParamsRequest)(nil),      // 4: fx.erc20.v1.QueryParamsRequest
+	(*QueryParamsResponse)(nil),     // 5: fx.erc20.v1.QueryParamsResponse
+	(*v1beta1.PageRequest)(nil),     // 6: cosmos.base.query.v1beta1.PageRequest
+	(*ERC20Token)(nil),              // 7: fx.erc20.v1.ERC20Token
+	(*v1beta1.PageResponse)(nil),    // 8: cosmos.base.query.v1beta1.PageResponse
+	(*Params)(nil),                  // 9: fx.erc20.v1.Params
 }
 var file_fx_erc20_v1_query_proto_depIdxs = []int32{
-	10, // 0: fx.erc20.v1.QueryTokenPairsRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
-	11, // 1: fx.erc20.v1.QueryTokenPairsResponse.token_pairs:type_name -> fx.erc20.v1.TokenPair
-	12, // 2: fx.erc20.v1.QueryTokenPairsResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
-	11, // 3: fx.erc20.v1.QueryTokenPairResponse.token_pair:type_name -> fx.erc20.v1.TokenPair
-	13, // 4: fx.erc20.v1.QueryParamsResponse.params:type_name -> fx.erc20.v1.Params
-	0,  // 5: fx.erc20.v1.Query.TokenPairs:input_type -> fx.erc20.v1.QueryTokenPairsRequest
-	2,  // 6: fx.erc20.v1.Query.TokenPair:input_type -> fx.erc20.v1.QueryTokenPairRequest
-	4,  // 7: fx.erc20.v1.Query.Params:input_type -> fx.erc20.v1.QueryParamsRequest
-	6,  // 8: fx.erc20.v1.Query.DenomAliases:input_type -> fx.erc20.v1.QueryDenomAliasesRequest
-	8,  // 9: fx.erc20.v1.Query.AliasDenom:input_type -> fx.erc20.v1.QueryAliasDenomRequest
-	1,  // 10: fx.erc20.v1.Query.TokenPairs:output_type -> fx.erc20.v1.QueryTokenPairsResponse
-	3,  // 11: fx.erc20.v1.Query.TokenPair:output_type -> fx.erc20.v1.QueryTokenPairResponse
-	5,  // 12: fx.erc20.v1.Query.Params:output_type -> fx.erc20.v1.QueryParamsResponse
-	7,  // 13: fx.erc20.v1.Query.DenomAliases:output_type -> fx.erc20.v1.QueryDenomAliasesResponse
-	9,  // 14: fx.erc20.v1.Query.AliasDenom:output_type -> fx.erc20.v1.QueryAliasDenomResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	6, // 0: fx.erc20.v1.QueryTokenPairsRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	7, // 1: fx.erc20.v1.QueryTokenPairsResponse.erc20_tokens:type_name -> fx.erc20.v1.ERC20Token
+	8, // 2: fx.erc20.v1.QueryTokenPairsResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	7, // 3: fx.erc20.v1.QueryTokenPairResponse.erc20_token:type_name -> fx.erc20.v1.ERC20Token
+	9, // 4: fx.erc20.v1.QueryParamsResponse.params:type_name -> fx.erc20.v1.Params
+	0, // 5: fx.erc20.v1.Query.TokenPairs:input_type -> fx.erc20.v1.QueryTokenPairsRequest
+	2, // 6: fx.erc20.v1.Query.TokenPair:input_type -> fx.erc20.v1.QueryTokenPairRequest
+	4, // 7: fx.erc20.v1.Query.Params:input_type -> fx.erc20.v1.QueryParamsRequest
+	1, // 8: fx.erc20.v1.Query.TokenPairs:output_type -> fx.erc20.v1.QueryTokenPairsResponse
+	3, // 9: fx.erc20.v1.Query.TokenPair:output_type -> fx.erc20.v1.QueryTokenPairResponse
+	5, // 10: fx.erc20.v1.Query.Params:output_type -> fx.erc20.v1.QueryParamsResponse
+	8, // [8:11] is the sub-list for method output_type
+	5, // [5:8] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_fx_erc20_v1_query_proto_init() }
@@ -4959,7 +3044,7 @@ func file_fx_erc20_v1_query_proto_init() {
 	if File_fx_erc20_v1_query_proto != nil {
 		return
 	}
-	file_fx_erc20_v1_erc20_proto_init()
+	file_fx_erc20_v1_types_proto_init()
 	file_fx_erc20_v1_genesis_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_fx_erc20_v1_query_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
@@ -5034,54 +3119,6 @@ func file_fx_erc20_v1_query_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_query_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryDenomAliasesRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_fx_erc20_v1_query_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryDenomAliasesResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_fx_erc20_v1_query_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryAliasDenomRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_fx_erc20_v1_query_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryAliasDenomResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -5089,7 +3126,7 @@ func file_fx_erc20_v1_query_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_fx_erc20_v1_query_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
