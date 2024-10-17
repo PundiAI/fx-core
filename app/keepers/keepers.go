@@ -99,6 +99,13 @@ type CrossChainKeepers struct {
 	Layer2Keeper    crosschainkeeper.Keeper
 }
 
+func (c CrossChainKeepers) ToSlice() []crosschainkeeper.Keeper {
+	return []crosschainkeeper.Keeper{
+		c.BscKeeper, c.PolygonKeeper, c.AvalancheKeeper, c.EthKeeper,
+		c.TronKeeper, c.ArbitrumKeeper, c.OptimismKeeper, c.Layer2Keeper,
+	}
+}
+
 type AppKeepers struct {
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey

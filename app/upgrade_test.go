@@ -80,6 +80,7 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 	} else {
 		ctx = myApp.GetContextForCheckTx(nil).WithBlockHeader(header)
 	}
+	ctx = ctx.WithChainID(chainId)
 	ctx = ctx.WithHeaderInfo(coreheader.Info{
 		Height:  header.Height,
 		Time:    header.Time,
