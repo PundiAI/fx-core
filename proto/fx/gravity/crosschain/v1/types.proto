@@ -51,14 +51,6 @@ message LastObservedBlockHeight {
   uint64 block_height = 2;
 }
 
-// BridgeToken
-message BridgeToken {
-  string token = 1;
-  string denom = 2;
-  // Deprecated: after upgrade v3
-  string channel_ibc = 3;
-}
-
 // ClaimType is the cosmos type of an event from the counterpart chain that can
 // be handled
 enum ClaimType {
@@ -118,30 +110,6 @@ message OutgoingTransferTx {
 message ERC20Token {
   string contract = 1;
   string amount = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-}
-
-message BatchFees {
-  string token_contract = 1;
-  string total_fees = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-  uint64 total_txs = 3;
-  string total_amount = 4 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-}
-
-message MinBatchFee {
-  string token_contract = 1;
-  string base_fee = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

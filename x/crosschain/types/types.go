@@ -7,7 +7,6 @@ import (
 	"math"
 	"math/big"
 	"sort"
-	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -488,10 +487,6 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 
 func NewBridgeDenom(moduleName string, token string) string {
 	return fmt.Sprintf("%s%s", moduleName, token)
-}
-
-func BridgeDenomToContract(moduleName string, bridgeDenom string) string {
-	return strings.TrimPrefix(bridgeDenom, moduleName)
 }
 
 func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {

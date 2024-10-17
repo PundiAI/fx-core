@@ -118,7 +118,7 @@ func (x *_GenesisState_5_list) IsValid() bool {
 var _ protoreflect.List = (*_GenesisState_6_list)(nil)
 
 type _GenesisState_6_list struct {
-	list *[]*BridgeToken
+	list *[]*OutgoingTransferTx
 }
 
 func (x *_GenesisState_6_list) Len() int {
@@ -134,18 +134,18 @@ func (x *_GenesisState_6_list) Get(i int) protoreflect.Value {
 
 func (x *_GenesisState_6_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*BridgeToken)
+	concreteValue := valueUnwrapped.Interface().(*OutgoingTransferTx)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GenesisState_6_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*BridgeToken)
+	concreteValue := valueUnwrapped.Interface().(*OutgoingTransferTx)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GenesisState_6_list) AppendMutable() protoreflect.Value {
-	v := new(BridgeToken)
+	v := new(OutgoingTransferTx)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -158,7 +158,7 @@ func (x *_GenesisState_6_list) Truncate(n int) {
 }
 
 func (x *_GenesisState_6_list) NewElement() protoreflect.Value {
-	v := new(BridgeToken)
+	v := new(OutgoingTransferTx)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -169,7 +169,7 @@ func (x *_GenesisState_6_list) IsValid() bool {
 var _ protoreflect.List = (*_GenesisState_7_list)(nil)
 
 type _GenesisState_7_list struct {
-	list *[]*OutgoingTransferTx
+	list *[]*OutgoingTxBatch
 }
 
 func (x *_GenesisState_7_list) Len() int {
@@ -185,18 +185,18 @@ func (x *_GenesisState_7_list) Get(i int) protoreflect.Value {
 
 func (x *_GenesisState_7_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*OutgoingTransferTx)
+	concreteValue := valueUnwrapped.Interface().(*OutgoingTxBatch)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GenesisState_7_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*OutgoingTransferTx)
+	concreteValue := valueUnwrapped.Interface().(*OutgoingTxBatch)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GenesisState_7_list) AppendMutable() protoreflect.Value {
-	v := new(OutgoingTransferTx)
+	v := new(OutgoingTxBatch)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -209,7 +209,7 @@ func (x *_GenesisState_7_list) Truncate(n int) {
 }
 
 func (x *_GenesisState_7_list) NewElement() protoreflect.Value {
-	v := new(OutgoingTransferTx)
+	v := new(OutgoingTxBatch)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -220,7 +220,7 @@ func (x *_GenesisState_7_list) IsValid() bool {
 var _ protoreflect.List = (*_GenesisState_8_list)(nil)
 
 type _GenesisState_8_list struct {
-	list *[]*OutgoingTxBatch
+	list *[]*MsgOracleSetConfirm
 }
 
 func (x *_GenesisState_8_list) Len() int {
@@ -236,18 +236,18 @@ func (x *_GenesisState_8_list) Get(i int) protoreflect.Value {
 
 func (x *_GenesisState_8_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*OutgoingTxBatch)
+	concreteValue := valueUnwrapped.Interface().(*MsgOracleSetConfirm)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GenesisState_8_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*OutgoingTxBatch)
+	concreteValue := valueUnwrapped.Interface().(*MsgOracleSetConfirm)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GenesisState_8_list) AppendMutable() protoreflect.Value {
-	v := new(OutgoingTxBatch)
+	v := new(MsgOracleSetConfirm)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -260,7 +260,7 @@ func (x *_GenesisState_8_list) Truncate(n int) {
 }
 
 func (x *_GenesisState_8_list) NewElement() protoreflect.Value {
-	v := new(OutgoingTxBatch)
+	v := new(MsgOracleSetConfirm)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -271,7 +271,7 @@ func (x *_GenesisState_8_list) IsValid() bool {
 var _ protoreflect.List = (*_GenesisState_9_list)(nil)
 
 type _GenesisState_9_list struct {
-	list *[]*MsgOracleSetConfirm
+	list *[]*MsgConfirmBatch
 }
 
 func (x *_GenesisState_9_list) Len() int {
@@ -287,18 +287,18 @@ func (x *_GenesisState_9_list) Get(i int) protoreflect.Value {
 
 func (x *_GenesisState_9_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*MsgOracleSetConfirm)
+	concreteValue := valueUnwrapped.Interface().(*MsgConfirmBatch)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GenesisState_9_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*MsgOracleSetConfirm)
+	concreteValue := valueUnwrapped.Interface().(*MsgConfirmBatch)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GenesisState_9_list) AppendMutable() protoreflect.Value {
-	v := new(MsgOracleSetConfirm)
+	v := new(MsgConfirmBatch)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -311,7 +311,7 @@ func (x *_GenesisState_9_list) Truncate(n int) {
 }
 
 func (x *_GenesisState_9_list) NewElement() protoreflect.Value {
-	v := new(MsgOracleSetConfirm)
+	v := new(MsgConfirmBatch)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -322,7 +322,7 @@ func (x *_GenesisState_9_list) IsValid() bool {
 var _ protoreflect.List = (*_GenesisState_10_list)(nil)
 
 type _GenesisState_10_list struct {
-	list *[]*MsgConfirmBatch
+	list *[]*Attestation
 }
 
 func (x *_GenesisState_10_list) Len() int {
@@ -338,18 +338,18 @@ func (x *_GenesisState_10_list) Get(i int) protoreflect.Value {
 
 func (x *_GenesisState_10_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*MsgConfirmBatch)
+	concreteValue := valueUnwrapped.Interface().(*Attestation)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GenesisState_10_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*MsgConfirmBatch)
+	concreteValue := valueUnwrapped.Interface().(*Attestation)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GenesisState_10_list) AppendMutable() protoreflect.Value {
-	v := new(MsgConfirmBatch)
+	v := new(Attestation)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -362,62 +362,11 @@ func (x *_GenesisState_10_list) Truncate(n int) {
 }
 
 func (x *_GenesisState_10_list) NewElement() protoreflect.Value {
-	v := new(MsgConfirmBatch)
+	v := new(Attestation)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
 func (x *_GenesisState_10_list) IsValid() bool {
-	return x.list != nil
-}
-
-var _ protoreflect.List = (*_GenesisState_11_list)(nil)
-
-type _GenesisState_11_list struct {
-	list *[]*Attestation
-}
-
-func (x *_GenesisState_11_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_GenesisState_11_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_GenesisState_11_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*Attestation)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_GenesisState_11_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*Attestation)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_GenesisState_11_list) AppendMutable() protoreflect.Value {
-	v := new(Attestation)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_GenesisState_11_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_GenesisState_11_list) NewElement() protoreflect.Value {
-	v := new(Attestation)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_GenesisState_11_list) IsValid() bool {
 	return x.list != nil
 }
 
@@ -428,7 +377,6 @@ var (
 	fd_GenesisState_last_observed_block_height    protoreflect.FieldDescriptor
 	fd_GenesisState_oracles                       protoreflect.FieldDescriptor
 	fd_GenesisState_oracle_sets                   protoreflect.FieldDescriptor
-	fd_GenesisState_bridge_tokens                 protoreflect.FieldDescriptor
 	fd_GenesisState_unbatched_transfers           protoreflect.FieldDescriptor
 	fd_GenesisState_batches                       protoreflect.FieldDescriptor
 	fd_GenesisState_oracle_set_confirms           protoreflect.FieldDescriptor
@@ -448,7 +396,6 @@ func init() {
 	fd_GenesisState_last_observed_block_height = md_GenesisState.Fields().ByName("last_observed_block_height")
 	fd_GenesisState_oracles = md_GenesisState.Fields().ByName("oracles")
 	fd_GenesisState_oracle_sets = md_GenesisState.Fields().ByName("oracle_sets")
-	fd_GenesisState_bridge_tokens = md_GenesisState.Fields().ByName("bridge_tokens")
 	fd_GenesisState_unbatched_transfers = md_GenesisState.Fields().ByName("unbatched_transfers")
 	fd_GenesisState_batches = md_GenesisState.Fields().ByName("batches")
 	fd_GenesisState_oracle_set_confirms = md_GenesisState.Fields().ByName("oracle_set_confirms")
@@ -555,38 +502,32 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
-	if len(x.BridgeTokens) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_6_list{list: &x.BridgeTokens})
-		if !f(fd_GenesisState_bridge_tokens, value) {
-			return
-		}
-	}
 	if len(x.UnbatchedTransfers) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_7_list{list: &x.UnbatchedTransfers})
+		value := protoreflect.ValueOfList(&_GenesisState_6_list{list: &x.UnbatchedTransfers})
 		if !f(fd_GenesisState_unbatched_transfers, value) {
 			return
 		}
 	}
 	if len(x.Batches) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_8_list{list: &x.Batches})
+		value := protoreflect.ValueOfList(&_GenesisState_7_list{list: &x.Batches})
 		if !f(fd_GenesisState_batches, value) {
 			return
 		}
 	}
 	if len(x.OracleSetConfirms) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_9_list{list: &x.OracleSetConfirms})
+		value := protoreflect.ValueOfList(&_GenesisState_8_list{list: &x.OracleSetConfirms})
 		if !f(fd_GenesisState_oracle_set_confirms, value) {
 			return
 		}
 	}
 	if len(x.BatchConfirms) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_10_list{list: &x.BatchConfirms})
+		value := protoreflect.ValueOfList(&_GenesisState_9_list{list: &x.BatchConfirms})
 		if !f(fd_GenesisState_batch_confirms, value) {
 			return
 		}
 	}
 	if len(x.Attestations) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_11_list{list: &x.Attestations})
+		value := protoreflect.ValueOfList(&_GenesisState_10_list{list: &x.Attestations})
 		if !f(fd_GenesisState_attestations, value) {
 			return
 		}
@@ -640,8 +581,6 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 		return len(x.Oracles) != 0
 	case "fx.gravity.crosschain.v1.GenesisState.oracle_sets":
 		return len(x.OracleSets) != 0
-	case "fx.gravity.crosschain.v1.GenesisState.bridge_tokens":
-		return len(x.BridgeTokens) != 0
 	case "fx.gravity.crosschain.v1.GenesisState.unbatched_transfers":
 		return len(x.UnbatchedTransfers) != 0
 	case "fx.gravity.crosschain.v1.GenesisState.batches":
@@ -686,8 +625,6 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 		x.Oracles = nil
 	case "fx.gravity.crosschain.v1.GenesisState.oracle_sets":
 		x.OracleSets = nil
-	case "fx.gravity.crosschain.v1.GenesisState.bridge_tokens":
-		x.BridgeTokens = nil
 	case "fx.gravity.crosschain.v1.GenesisState.unbatched_transfers":
 		x.UnbatchedTransfers = nil
 	case "fx.gravity.crosschain.v1.GenesisState.batches":
@@ -743,41 +680,35 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 		}
 		listValue := &_GenesisState_5_list{list: &x.OracleSets}
 		return protoreflect.ValueOfList(listValue)
-	case "fx.gravity.crosschain.v1.GenesisState.bridge_tokens":
-		if len(x.BridgeTokens) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_6_list{})
-		}
-		listValue := &_GenesisState_6_list{list: &x.BridgeTokens}
-		return protoreflect.ValueOfList(listValue)
 	case "fx.gravity.crosschain.v1.GenesisState.unbatched_transfers":
 		if len(x.UnbatchedTransfers) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_7_list{})
+			return protoreflect.ValueOfList(&_GenesisState_6_list{})
 		}
-		listValue := &_GenesisState_7_list{list: &x.UnbatchedTransfers}
+		listValue := &_GenesisState_6_list{list: &x.UnbatchedTransfers}
 		return protoreflect.ValueOfList(listValue)
 	case "fx.gravity.crosschain.v1.GenesisState.batches":
 		if len(x.Batches) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_8_list{})
+			return protoreflect.ValueOfList(&_GenesisState_7_list{})
 		}
-		listValue := &_GenesisState_8_list{list: &x.Batches}
+		listValue := &_GenesisState_7_list{list: &x.Batches}
 		return protoreflect.ValueOfList(listValue)
 	case "fx.gravity.crosschain.v1.GenesisState.oracle_set_confirms":
 		if len(x.OracleSetConfirms) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_9_list{})
+			return protoreflect.ValueOfList(&_GenesisState_8_list{})
 		}
-		listValue := &_GenesisState_9_list{list: &x.OracleSetConfirms}
+		listValue := &_GenesisState_8_list{list: &x.OracleSetConfirms}
 		return protoreflect.ValueOfList(listValue)
 	case "fx.gravity.crosschain.v1.GenesisState.batch_confirms":
 		if len(x.BatchConfirms) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_10_list{})
+			return protoreflect.ValueOfList(&_GenesisState_9_list{})
 		}
-		listValue := &_GenesisState_10_list{list: &x.BatchConfirms}
+		listValue := &_GenesisState_9_list{list: &x.BatchConfirms}
 		return protoreflect.ValueOfList(listValue)
 	case "fx.gravity.crosschain.v1.GenesisState.attestations":
 		if len(x.Attestations) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_11_list{})
+			return protoreflect.ValueOfList(&_GenesisState_10_list{})
 		}
-		listValue := &_GenesisState_11_list{list: &x.Attestations}
+		listValue := &_GenesisState_10_list{list: &x.Attestations}
 		return protoreflect.ValueOfList(listValue)
 	case "fx.gravity.crosschain.v1.GenesisState.proposal_oracle":
 		value := x.ProposalOracle
@@ -825,29 +756,25 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 		lv := value.List()
 		clv := lv.(*_GenesisState_5_list)
 		x.OracleSets = *clv.list
-	case "fx.gravity.crosschain.v1.GenesisState.bridge_tokens":
-		lv := value.List()
-		clv := lv.(*_GenesisState_6_list)
-		x.BridgeTokens = *clv.list
 	case "fx.gravity.crosschain.v1.GenesisState.unbatched_transfers":
 		lv := value.List()
-		clv := lv.(*_GenesisState_7_list)
+		clv := lv.(*_GenesisState_6_list)
 		x.UnbatchedTransfers = *clv.list
 	case "fx.gravity.crosschain.v1.GenesisState.batches":
 		lv := value.List()
-		clv := lv.(*_GenesisState_8_list)
+		clv := lv.(*_GenesisState_7_list)
 		x.Batches = *clv.list
 	case "fx.gravity.crosschain.v1.GenesisState.oracle_set_confirms":
 		lv := value.List()
-		clv := lv.(*_GenesisState_9_list)
+		clv := lv.(*_GenesisState_8_list)
 		x.OracleSetConfirms = *clv.list
 	case "fx.gravity.crosschain.v1.GenesisState.batch_confirms":
 		lv := value.List()
-		clv := lv.(*_GenesisState_10_list)
+		clv := lv.(*_GenesisState_9_list)
 		x.BatchConfirms = *clv.list
 	case "fx.gravity.crosschain.v1.GenesisState.attestations":
 		lv := value.List()
-		clv := lv.(*_GenesisState_11_list)
+		clv := lv.(*_GenesisState_10_list)
 		x.Attestations = *clv.list
 	case "fx.gravity.crosschain.v1.GenesisState.proposal_oracle":
 		x.ProposalOracle = value.Message().Interface().(*ProposalOracle)
@@ -899,41 +826,35 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		}
 		value := &_GenesisState_5_list{list: &x.OracleSets}
 		return protoreflect.ValueOfList(value)
-	case "fx.gravity.crosschain.v1.GenesisState.bridge_tokens":
-		if x.BridgeTokens == nil {
-			x.BridgeTokens = []*BridgeToken{}
-		}
-		value := &_GenesisState_6_list{list: &x.BridgeTokens}
-		return protoreflect.ValueOfList(value)
 	case "fx.gravity.crosschain.v1.GenesisState.unbatched_transfers":
 		if x.UnbatchedTransfers == nil {
 			x.UnbatchedTransfers = []*OutgoingTransferTx{}
 		}
-		value := &_GenesisState_7_list{list: &x.UnbatchedTransfers}
+		value := &_GenesisState_6_list{list: &x.UnbatchedTransfers}
 		return protoreflect.ValueOfList(value)
 	case "fx.gravity.crosschain.v1.GenesisState.batches":
 		if x.Batches == nil {
 			x.Batches = []*OutgoingTxBatch{}
 		}
-		value := &_GenesisState_8_list{list: &x.Batches}
+		value := &_GenesisState_7_list{list: &x.Batches}
 		return protoreflect.ValueOfList(value)
 	case "fx.gravity.crosschain.v1.GenesisState.oracle_set_confirms":
 		if x.OracleSetConfirms == nil {
 			x.OracleSetConfirms = []*MsgOracleSetConfirm{}
 		}
-		value := &_GenesisState_9_list{list: &x.OracleSetConfirms}
+		value := &_GenesisState_8_list{list: &x.OracleSetConfirms}
 		return protoreflect.ValueOfList(value)
 	case "fx.gravity.crosschain.v1.GenesisState.batch_confirms":
 		if x.BatchConfirms == nil {
 			x.BatchConfirms = []*MsgConfirmBatch{}
 		}
-		value := &_GenesisState_10_list{list: &x.BatchConfirms}
+		value := &_GenesisState_9_list{list: &x.BatchConfirms}
 		return protoreflect.ValueOfList(value)
 	case "fx.gravity.crosschain.v1.GenesisState.attestations":
 		if x.Attestations == nil {
 			x.Attestations = []*Attestation{}
 		}
-		value := &_GenesisState_11_list{list: &x.Attestations}
+		value := &_GenesisState_10_list{list: &x.Attestations}
 		return protoreflect.ValueOfList(value)
 	case "fx.gravity.crosschain.v1.GenesisState.proposal_oracle":
 		if x.ProposalOracle == nil {
@@ -978,24 +899,21 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	case "fx.gravity.crosschain.v1.GenesisState.oracle_sets":
 		list := []*OracleSet{}
 		return protoreflect.ValueOfList(&_GenesisState_5_list{list: &list})
-	case "fx.gravity.crosschain.v1.GenesisState.bridge_tokens":
-		list := []*BridgeToken{}
-		return protoreflect.ValueOfList(&_GenesisState_6_list{list: &list})
 	case "fx.gravity.crosschain.v1.GenesisState.unbatched_transfers":
 		list := []*OutgoingTransferTx{}
-		return protoreflect.ValueOfList(&_GenesisState_7_list{list: &list})
+		return protoreflect.ValueOfList(&_GenesisState_6_list{list: &list})
 	case "fx.gravity.crosschain.v1.GenesisState.batches":
 		list := []*OutgoingTxBatch{}
-		return protoreflect.ValueOfList(&_GenesisState_8_list{list: &list})
+		return protoreflect.ValueOfList(&_GenesisState_7_list{list: &list})
 	case "fx.gravity.crosschain.v1.GenesisState.oracle_set_confirms":
 		list := []*MsgOracleSetConfirm{}
-		return protoreflect.ValueOfList(&_GenesisState_9_list{list: &list})
+		return protoreflect.ValueOfList(&_GenesisState_8_list{list: &list})
 	case "fx.gravity.crosschain.v1.GenesisState.batch_confirms":
 		list := []*MsgConfirmBatch{}
-		return protoreflect.ValueOfList(&_GenesisState_10_list{list: &list})
+		return protoreflect.ValueOfList(&_GenesisState_9_list{list: &list})
 	case "fx.gravity.crosschain.v1.GenesisState.attestations":
 		list := []*Attestation{}
-		return protoreflect.ValueOfList(&_GenesisState_11_list{list: &list})
+		return protoreflect.ValueOfList(&_GenesisState_10_list{list: &list})
 	case "fx.gravity.crosschain.v1.GenesisState.proposal_oracle":
 		m := new(ProposalOracle)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
@@ -1098,12 +1016,6 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
-		if len(x.BridgeTokens) > 0 {
-			for _, e := range x.BridgeTokens {
-				l = options.Size(e)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
-		}
 		if len(x.UnbatchedTransfers) > 0 {
 			for _, e := range x.UnbatchedTransfers {
 				l = options.Size(e)
@@ -1180,12 +1092,12 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if x.LastSlashedOracleSetNonce != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.LastSlashedOracleSetNonce))
 			i--
-			dAtA[i] = 0x78
+			dAtA[i] = 0x70
 		}
 		if x.LastSlashedBatchBlock != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.LastSlashedBatchBlock))
 			i--
-			dAtA[i] = 0x70
+			dAtA[i] = 0x68
 		}
 		if x.LastObservedOracleSet != nil {
 			encoded, err := options.Marshal(x.LastObservedOracleSet)
@@ -1199,7 +1111,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x6a
+			dAtA[i] = 0x62
 		}
 		if x.ProposalOracle != nil {
 			encoded, err := options.Marshal(x.ProposalOracle)
@@ -1213,7 +1125,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x62
+			dAtA[i] = 0x5a
 		}
 		if len(x.Attestations) > 0 {
 			for iNdEx := len(x.Attestations) - 1; iNdEx >= 0; iNdEx-- {
@@ -1228,7 +1140,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				copy(dAtA[i:], encoded)
 				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 				i--
-				dAtA[i] = 0x5a
+				dAtA[i] = 0x52
 			}
 		}
 		if len(x.BatchConfirms) > 0 {
@@ -1244,7 +1156,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				copy(dAtA[i:], encoded)
 				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 				i--
-				dAtA[i] = 0x52
+				dAtA[i] = 0x4a
 			}
 		}
 		if len(x.OracleSetConfirms) > 0 {
@@ -1260,7 +1172,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				copy(dAtA[i:], encoded)
 				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 				i--
-				dAtA[i] = 0x4a
+				dAtA[i] = 0x42
 			}
 		}
 		if len(x.Batches) > 0 {
@@ -1276,28 +1188,12 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				copy(dAtA[i:], encoded)
 				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 				i--
-				dAtA[i] = 0x42
+				dAtA[i] = 0x3a
 			}
 		}
 		if len(x.UnbatchedTransfers) > 0 {
 			for iNdEx := len(x.UnbatchedTransfers) - 1; iNdEx >= 0; iNdEx-- {
 				encoded, err := options.Marshal(x.UnbatchedTransfers[iNdEx])
-				if err != nil {
-					return protoiface.MarshalOutput{
-						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-						Buf:               input.Buf,
-					}, err
-				}
-				i -= len(encoded)
-				copy(dAtA[i:], encoded)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-				i--
-				dAtA[i] = 0x3a
-			}
-		}
-		if len(x.BridgeTokens) > 0 {
-			for iNdEx := len(x.BridgeTokens) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.BridgeTokens[iNdEx])
 				if err != nil {
 					return protoiface.MarshalOutput{
 						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -1586,40 +1482,6 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 6:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BridgeTokens", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.BridgeTokens = append(x.BridgeTokens, &BridgeToken{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.BridgeTokens[len(x.BridgeTokens)-1]); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
-			case 7:
-				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field UnbatchedTransfers", wireType)
 				}
 				var msglen int
@@ -1652,7 +1514,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 8:
+			case 7:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Batches", wireType)
 				}
@@ -1686,7 +1548,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 9:
+			case 8:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field OracleSetConfirms", wireType)
 				}
@@ -1720,7 +1582,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 10:
+			case 9:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BatchConfirms", wireType)
 				}
@@ -1754,7 +1616,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 11:
+			case 10:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Attestations", wireType)
 				}
@@ -1788,7 +1650,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 12:
+			case 11:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ProposalOracle", wireType)
 				}
@@ -1824,7 +1686,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 13:
+			case 12:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field LastObservedOracleSet", wireType)
 				}
@@ -1860,7 +1722,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 14:
+			case 13:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field LastSlashedBatchBlock", wireType)
 				}
@@ -1879,7 +1741,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 15:
+			case 14:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field LastSlashedOracleSetNonce", wireType)
 				}
@@ -1957,16 +1819,15 @@ type GenesisState struct {
 	LastObservedBlockHeight   *LastObservedBlockHeight `protobuf:"bytes,3,opt,name=last_observed_block_height,json=lastObservedBlockHeight,proto3" json:"last_observed_block_height,omitempty"`
 	Oracles                   []*Oracle                `protobuf:"bytes,4,rep,name=oracles,proto3" json:"oracles,omitempty"`
 	OracleSets                []*OracleSet             `protobuf:"bytes,5,rep,name=oracle_sets,json=oracleSets,proto3" json:"oracle_sets,omitempty"`
-	BridgeTokens              []*BridgeToken           `protobuf:"bytes,6,rep,name=bridge_tokens,json=bridgeTokens,proto3" json:"bridge_tokens,omitempty"`
-	UnbatchedTransfers        []*OutgoingTransferTx    `protobuf:"bytes,7,rep,name=unbatched_transfers,json=unbatchedTransfers,proto3" json:"unbatched_transfers,omitempty"`
-	Batches                   []*OutgoingTxBatch       `protobuf:"bytes,8,rep,name=batches,proto3" json:"batches,omitempty"`
-	OracleSetConfirms         []*MsgOracleSetConfirm   `protobuf:"bytes,9,rep,name=oracle_set_confirms,json=oracleSetConfirms,proto3" json:"oracle_set_confirms,omitempty"`
-	BatchConfirms             []*MsgConfirmBatch       `protobuf:"bytes,10,rep,name=batch_confirms,json=batchConfirms,proto3" json:"batch_confirms,omitempty"`
-	Attestations              []*Attestation           `protobuf:"bytes,11,rep,name=attestations,proto3" json:"attestations,omitempty"`
-	ProposalOracle            *ProposalOracle          `protobuf:"bytes,12,opt,name=proposal_oracle,json=proposalOracle,proto3" json:"proposal_oracle,omitempty"`
-	LastObservedOracleSet     *OracleSet               `protobuf:"bytes,13,opt,name=last_observed_oracle_set,json=lastObservedOracleSet,proto3" json:"last_observed_oracle_set,omitempty"`
-	LastSlashedBatchBlock     uint64                   `protobuf:"varint,14,opt,name=last_slashed_batch_block,json=lastSlashedBatchBlock,proto3" json:"last_slashed_batch_block,omitempty"`
-	LastSlashedOracleSetNonce uint64                   `protobuf:"varint,15,opt,name=last_slashed_oracle_set_nonce,json=lastSlashedOracleSetNonce,proto3" json:"last_slashed_oracle_set_nonce,omitempty"`
+	UnbatchedTransfers        []*OutgoingTransferTx    `protobuf:"bytes,6,rep,name=unbatched_transfers,json=unbatchedTransfers,proto3" json:"unbatched_transfers,omitempty"`
+	Batches                   []*OutgoingTxBatch       `protobuf:"bytes,7,rep,name=batches,proto3" json:"batches,omitempty"`
+	OracleSetConfirms         []*MsgOracleSetConfirm   `protobuf:"bytes,8,rep,name=oracle_set_confirms,json=oracleSetConfirms,proto3" json:"oracle_set_confirms,omitempty"`
+	BatchConfirms             []*MsgConfirmBatch       `protobuf:"bytes,9,rep,name=batch_confirms,json=batchConfirms,proto3" json:"batch_confirms,omitempty"`
+	Attestations              []*Attestation           `protobuf:"bytes,10,rep,name=attestations,proto3" json:"attestations,omitempty"`
+	ProposalOracle            *ProposalOracle          `protobuf:"bytes,11,opt,name=proposal_oracle,json=proposalOracle,proto3" json:"proposal_oracle,omitempty"`
+	LastObservedOracleSet     *OracleSet               `protobuf:"bytes,12,opt,name=last_observed_oracle_set,json=lastObservedOracleSet,proto3" json:"last_observed_oracle_set,omitempty"`
+	LastSlashedBatchBlock     uint64                   `protobuf:"varint,13,opt,name=last_slashed_batch_block,json=lastSlashedBatchBlock,proto3" json:"last_slashed_batch_block,omitempty"`
+	LastSlashedOracleSetNonce uint64                   `protobuf:"varint,14,opt,name=last_slashed_oracle_set_nonce,json=lastSlashedOracleSetNonce,proto3" json:"last_slashed_oracle_set_nonce,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -2020,13 +1881,6 @@ func (x *GenesisState) GetOracles() []*Oracle {
 func (x *GenesisState) GetOracleSets() []*OracleSet {
 	if x != nil {
 		return x.OracleSets
-	}
-	return nil
-}
-
-func (x *GenesisState) GetBridgeTokens() []*BridgeToken {
-	if x != nil {
-		return x.BridgeTokens
 	}
 	return nil
 }
@@ -2107,7 +1961,7 @@ var file_fx_gravity_crosschain_v1_genesis_proto_rawDesc = []byte{
 	0x79, 0x2f, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2f, 0x76, 0x31, 0x2f,
 	0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67,
 	0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x22, 0xd5, 0x09, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74, 0x61,
+	0x6f, 0x22, 0x83, 0x09, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74, 0x61,
 	0x74, 0x65, 0x12, 0x3e, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x20, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e,
 	0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61,
@@ -2132,74 +1986,69 @@ var file_fx_gravity_crosschain_v1_genesis_proto_rawDesc = []byte{
 	0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61,
 	0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x42,
 	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0a, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74,
-	0x73, 0x12, 0x50, 0x0a, 0x0d, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x5f, 0x74, 0x6f, 0x6b, 0x65,
-	0x6e, 0x73, 0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x25, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72,
+	0x73, 0x12, 0x63, 0x0a, 0x13, 0x75, 0x6e, 0x62, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x5f, 0x74,
+	0x72, 0x61, 0x6e, 0x73, 0x66, 0x65, 0x72, 0x73, 0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2c,
+	0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73,
+	0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x75, 0x74, 0x67, 0x6f, 0x69,
+	0x6e, 0x67, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x65, 0x72, 0x54, 0x78, 0x42, 0x04, 0xc8, 0xde,
+	0x1f, 0x00, 0x52, 0x12, 0x75, 0x6e, 0x62, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x54, 0x72, 0x61,
+	0x6e, 0x73, 0x66, 0x65, 0x72, 0x73, 0x12, 0x49, 0x0a, 0x07, 0x62, 0x61, 0x74, 0x63, 0x68, 0x65,
+	0x73, 0x18, 0x07, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61,
+	0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e,
+	0x76, 0x31, 0x2e, 0x4f, 0x75, 0x74, 0x67, 0x6f, 0x69, 0x6e, 0x67, 0x54, 0x78, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x07, 0x62, 0x61, 0x74, 0x63, 0x68, 0x65,
+	0x73, 0x12, 0x63, 0x0a, 0x13, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x74, 0x5f,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73, 0x18, 0x08, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2d,
+	0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73,
+	0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x4f, 0x72, 0x61,
+	0x63, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x42, 0x04, 0xc8,
+	0xde, 0x1f, 0x00, 0x52, 0x11, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73, 0x12, 0x56, 0x0a, 0x0e, 0x62, 0x61, 0x74, 0x63, 0x68, 0x5f,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73, 0x18, 0x09, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x29,
+	0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73,
+	0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x72, 0x6d, 0x42, 0x61, 0x74, 0x63, 0x68, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52,
+	0x0d, 0x62, 0x61, 0x74, 0x63, 0x68, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73, 0x12, 0x4f,
+	0x0a, 0x0c, 0x61, 0x74, 0x74, 0x65, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x0a,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x25, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74,
+	0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e,
+	0x41, 0x74, 0x74, 0x65, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f,
+	0x00, 0x52, 0x0c, 0x61, 0x74, 0x74, 0x65, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12,
+	0x57, 0x0a, 0x0f, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x5f, 0x6f, 0x72, 0x61, 0x63,
+	0x6c, 0x65, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72,
 	0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e,
-	0x2e, 0x76, 0x31, 0x2e, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x42,
-	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0c, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b,
-	0x65, 0x6e, 0x73, 0x12, 0x63, 0x0a, 0x13, 0x75, 0x6e, 0x62, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64,
-	0x5f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x65, 0x72, 0x73, 0x18, 0x07, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x2c, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72,
-	0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x75, 0x74, 0x67,
-	0x6f, 0x69, 0x6e, 0x67, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x65, 0x72, 0x54, 0x78, 0x42, 0x04,
-	0xc8, 0xde, 0x1f, 0x00, 0x52, 0x12, 0x75, 0x6e, 0x62, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x54,
-	0x72, 0x61, 0x6e, 0x73, 0x66, 0x65, 0x72, 0x73, 0x12, 0x49, 0x0a, 0x07, 0x62, 0x61, 0x74, 0x63,
-	0x68, 0x65, 0x73, 0x18, 0x08, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x66, 0x78, 0x2e, 0x67,
-	0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69,
-	0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x75, 0x74, 0x67, 0x6f, 0x69, 0x6e, 0x67, 0x54, 0x78, 0x42,
-	0x61, 0x74, 0x63, 0x68, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x07, 0x62, 0x61, 0x74, 0x63,
-	0x68, 0x65, 0x73, 0x12, 0x63, 0x0a, 0x13, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x5f, 0x73, 0x65,
-	0x74, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73, 0x18, 0x09, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x2d, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72,
-	0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x4f,
-	0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x42,
-	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x11, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73, 0x12, 0x56, 0x0a, 0x0e, 0x62, 0x61, 0x74, 0x63,
-	0x68, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73, 0x18, 0x0a, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x29, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72,
-	0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x42, 0x61, 0x74, 0x63, 0x68, 0x42, 0x04, 0xc8, 0xde, 0x1f,
-	0x00, 0x52, 0x0d, 0x62, 0x61, 0x74, 0x63, 0x68, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x73,
-	0x12, 0x4f, 0x0a, 0x0c, 0x61, 0x74, 0x74, 0x65, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73,
-	0x18, 0x0b, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x25, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76,
-	0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76,
-	0x31, 0x2e, 0x41, 0x74, 0x74, 0x65, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x04, 0xc8,
-	0xde, 0x1f, 0x00, 0x52, 0x0c, 0x61, 0x74, 0x74, 0x65, 0x73, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x73, 0x12, 0x57, 0x0a, 0x0f, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x5f, 0x6f, 0x72,
-	0x61, 0x63, 0x6c, 0x65, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x66, 0x78, 0x2e,
+	0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x4f, 0x72, 0x61, 0x63,
+	0x6c, 0x65, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0e, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73,
+	0x61, 0x6c, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x12, 0x62, 0x0a, 0x18, 0x6c, 0x61, 0x73, 0x74,
+	0x5f, 0x6f, 0x62, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65,
+	0x5f, 0x73, 0x65, 0x74, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x66, 0x78, 0x2e,
 	0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61,
-	0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x4f, 0x72,
-	0x61, 0x63, 0x6c, 0x65, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0e, 0x70, 0x72, 0x6f, 0x70,
-	0x6f, 0x73, 0x61, 0x6c, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x12, 0x62, 0x0a, 0x18, 0x6c, 0x61,
-	0x73, 0x74, 0x5f, 0x6f, 0x62, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x6f, 0x72, 0x61, 0x63,
-	0x6c, 0x65, 0x5f, 0x73, 0x65, 0x74, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x66,
-	0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63,
-	0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65,
-	0x74, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x15, 0x6c, 0x61, 0x73, 0x74, 0x4f, 0x62, 0x73,
-	0x65, 0x72, 0x76, 0x65, 0x64, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x12, 0x37,
-	0x0a, 0x18, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x5f, 0x62,
-	0x61, 0x74, 0x63, 0x68, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x04,
-	0x52, 0x15, 0x6c, 0x61, 0x73, 0x74, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x42, 0x61, 0x74,
-	0x63, 0x68, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x40, 0x0a, 0x1d, 0x6c, 0x61, 0x73, 0x74, 0x5f,
-	0x73, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x5f, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x5f, 0x73,
-	0x65, 0x74, 0x5f, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x18, 0x0f, 0x20, 0x01, 0x28, 0x04, 0x52, 0x19,
-	0x6c, 0x61, 0x73, 0x74, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x4f, 0x72, 0x61, 0x63, 0x6c,
-	0x65, 0x53, 0x65, 0x74, 0x4e, 0x6f, 0x6e, 0x63, 0x65, 0x42, 0xe7, 0x01, 0x0a, 0x1c, 0x63, 0x6f,
-	0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f,
-	0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65,
-	0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x36, 0x63, 0x6f, 0x73, 0x6d,
-	0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f,
-	0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2f, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61,
-	0x69, 0x6e, 0x2f, 0x76, 0x31, 0x3b, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e,
-	0x76, 0x31, 0xa2, 0x02, 0x03, 0x46, 0x47, 0x43, 0xaa, 0x02, 0x18, 0x46, 0x78, 0x2e, 0x47, 0x72,
-	0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e,
-	0x2e, 0x56, 0x31, 0xca, 0x02, 0x18, 0x46, 0x78, 0x5c, 0x47, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79,
-	0x5c, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x5c, 0x56, 0x31, 0xe2, 0x02,
-	0x24, 0x46, 0x78, 0x5c, 0x47, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x5c, 0x43, 0x72, 0x6f, 0x73,
-	0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
-	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x1b, 0x46, 0x78, 0x3a, 0x3a, 0x47, 0x72, 0x61, 0x76,
-	0x69, 0x74, 0x79, 0x3a, 0x3a, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x3a,
-	0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x42,
+	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x15, 0x6c, 0x61, 0x73, 0x74, 0x4f, 0x62, 0x73, 0x65, 0x72,
+	0x76, 0x65, 0x64, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53, 0x65, 0x74, 0x12, 0x37, 0x0a, 0x18,
+	0x6c, 0x61, 0x73, 0x74, 0x5f, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x5f, 0x62, 0x61, 0x74,
+	0x63, 0x68, 0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x04, 0x52, 0x15,
+	0x6c, 0x61, 0x73, 0x74, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x42, 0x61, 0x74, 0x63, 0x68,
+	0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x40, 0x0a, 0x1d, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x73, 0x6c,
+	0x61, 0x73, 0x68, 0x65, 0x64, 0x5f, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x74,
+	0x5f, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x04, 0x52, 0x19, 0x6c, 0x61,
+	0x73, 0x74, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x4f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x53,
+	0x65, 0x74, 0x4e, 0x6f, 0x6e, 0x63, 0x65, 0x42, 0xe7, 0x01, 0x0a, 0x1c, 0x63, 0x6f, 0x6d, 0x2e,
+	0x66, 0x78, 0x2e, 0x67, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x2e, 0x63, 0x72, 0x6f, 0x73, 0x73,
+	0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69,
+	0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x36, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
+	0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x67, 0x72,
+	0x61, 0x76, 0x69, 0x74, 0x79, 0x2f, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e,
+	0x2f, 0x76, 0x31, 0x3b, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x76, 0x31,
+	0xa2, 0x02, 0x03, 0x46, 0x47, 0x43, 0xaa, 0x02, 0x18, 0x46, 0x78, 0x2e, 0x47, 0x72, 0x61, 0x76,
+	0x69, 0x74, 0x79, 0x2e, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x56,
+	0x31, 0xca, 0x02, 0x18, 0x46, 0x78, 0x5c, 0x47, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x5c, 0x43,
+	0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x24, 0x46,
+	0x78, 0x5c, 0x47, 0x72, 0x61, 0x76, 0x69, 0x74, 0x79, 0x5c, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x63,
+	0x68, 0x61, 0x69, 0x6e, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
+	0x61, 0x74, 0x61, 0xea, 0x02, 0x1b, 0x46, 0x78, 0x3a, 0x3a, 0x47, 0x72, 0x61, 0x76, 0x69, 0x74,
+	0x79, 0x3a, 0x3a, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x3a, 0x3a, 0x56,
+	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2221,32 +2070,30 @@ var file_fx_gravity_crosschain_v1_genesis_proto_goTypes = []interface{}{
 	(*LastObservedBlockHeight)(nil), // 2: fx.gravity.crosschain.v1.LastObservedBlockHeight
 	(*Oracle)(nil),                  // 3: fx.gravity.crosschain.v1.Oracle
 	(*OracleSet)(nil),               // 4: fx.gravity.crosschain.v1.OracleSet
-	(*BridgeToken)(nil),             // 5: fx.gravity.crosschain.v1.BridgeToken
-	(*OutgoingTransferTx)(nil),      // 6: fx.gravity.crosschain.v1.OutgoingTransferTx
-	(*OutgoingTxBatch)(nil),         // 7: fx.gravity.crosschain.v1.OutgoingTxBatch
-	(*MsgOracleSetConfirm)(nil),     // 8: fx.gravity.crosschain.v1.MsgOracleSetConfirm
-	(*MsgConfirmBatch)(nil),         // 9: fx.gravity.crosschain.v1.MsgConfirmBatch
-	(*Attestation)(nil),             // 10: fx.gravity.crosschain.v1.Attestation
-	(*ProposalOracle)(nil),          // 11: fx.gravity.crosschain.v1.ProposalOracle
+	(*OutgoingTransferTx)(nil),      // 5: fx.gravity.crosschain.v1.OutgoingTransferTx
+	(*OutgoingTxBatch)(nil),         // 6: fx.gravity.crosschain.v1.OutgoingTxBatch
+	(*MsgOracleSetConfirm)(nil),     // 7: fx.gravity.crosschain.v1.MsgOracleSetConfirm
+	(*MsgConfirmBatch)(nil),         // 8: fx.gravity.crosschain.v1.MsgConfirmBatch
+	(*Attestation)(nil),             // 9: fx.gravity.crosschain.v1.Attestation
+	(*ProposalOracle)(nil),          // 10: fx.gravity.crosschain.v1.ProposalOracle
 }
 var file_fx_gravity_crosschain_v1_genesis_proto_depIdxs = []int32{
 	1,  // 0: fx.gravity.crosschain.v1.GenesisState.params:type_name -> fx.gravity.crosschain.v1.Params
 	2,  // 1: fx.gravity.crosschain.v1.GenesisState.last_observed_block_height:type_name -> fx.gravity.crosschain.v1.LastObservedBlockHeight
 	3,  // 2: fx.gravity.crosschain.v1.GenesisState.oracles:type_name -> fx.gravity.crosschain.v1.Oracle
 	4,  // 3: fx.gravity.crosschain.v1.GenesisState.oracle_sets:type_name -> fx.gravity.crosschain.v1.OracleSet
-	5,  // 4: fx.gravity.crosschain.v1.GenesisState.bridge_tokens:type_name -> fx.gravity.crosschain.v1.BridgeToken
-	6,  // 5: fx.gravity.crosschain.v1.GenesisState.unbatched_transfers:type_name -> fx.gravity.crosschain.v1.OutgoingTransferTx
-	7,  // 6: fx.gravity.crosschain.v1.GenesisState.batches:type_name -> fx.gravity.crosschain.v1.OutgoingTxBatch
-	8,  // 7: fx.gravity.crosschain.v1.GenesisState.oracle_set_confirms:type_name -> fx.gravity.crosschain.v1.MsgOracleSetConfirm
-	9,  // 8: fx.gravity.crosschain.v1.GenesisState.batch_confirms:type_name -> fx.gravity.crosschain.v1.MsgConfirmBatch
-	10, // 9: fx.gravity.crosschain.v1.GenesisState.attestations:type_name -> fx.gravity.crosschain.v1.Attestation
-	11, // 10: fx.gravity.crosschain.v1.GenesisState.proposal_oracle:type_name -> fx.gravity.crosschain.v1.ProposalOracle
-	4,  // 11: fx.gravity.crosschain.v1.GenesisState.last_observed_oracle_set:type_name -> fx.gravity.crosschain.v1.OracleSet
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	5,  // 4: fx.gravity.crosschain.v1.GenesisState.unbatched_transfers:type_name -> fx.gravity.crosschain.v1.OutgoingTransferTx
+	6,  // 5: fx.gravity.crosschain.v1.GenesisState.batches:type_name -> fx.gravity.crosschain.v1.OutgoingTxBatch
+	7,  // 6: fx.gravity.crosschain.v1.GenesisState.oracle_set_confirms:type_name -> fx.gravity.crosschain.v1.MsgOracleSetConfirm
+	8,  // 7: fx.gravity.crosschain.v1.GenesisState.batch_confirms:type_name -> fx.gravity.crosschain.v1.MsgConfirmBatch
+	9,  // 8: fx.gravity.crosschain.v1.GenesisState.attestations:type_name -> fx.gravity.crosschain.v1.Attestation
+	10, // 9: fx.gravity.crosschain.v1.GenesisState.proposal_oracle:type_name -> fx.gravity.crosschain.v1.ProposalOracle
+	4,  // 10: fx.gravity.crosschain.v1.GenesisState.last_observed_oracle_set:type_name -> fx.gravity.crosschain.v1.OracleSet
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_fx_gravity_crosschain_v1_genesis_proto_init() }

@@ -28,7 +28,7 @@ func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTo
 		return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d",
 			fxtypes.DefaultDenom, claim.Decimals, fxtypes.DenomUnit)
 	}
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, claim.Symbol, k.moduleName)
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, claim.Symbol)
 	if err != nil {
 		return err
 	}
@@ -49,13 +49,13 @@ func (k Keeper) BridgeCoinSupply(ctx context.Context, token, target string) (sdk
 	}
 	var targetDenom string
 	if fxTarget.IsIBC() {
-		ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, baseDenom, fxTarget.IBCChannel)
+		ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, fxTarget.IBCChannel, baseDenom)
 		if err != nil {
 			return sdk.Coin{}, err
 		}
 		targetDenom = ibcToken.IbcDenom
 	} else {
-		bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, baseDenom, fxTarget.GetModuleName())
+		bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, fxTarget.GetModuleName(), baseDenom)
 		if err != nil {
 			return sdk.Coin{}, err
 		}

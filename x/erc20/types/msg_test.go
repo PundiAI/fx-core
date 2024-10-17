@@ -5,21 +5,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-type MsgTestSuite struct {
-	suite.Suite
-}
-
-func TestMsgTestSuite(t *testing.T) {
-	suite.Run(t, new(MsgTestSuite))
-}
-
-func (suite *MsgTestSuite) TestMsgConvertCoin() {
+func TestMsgConvertCoin(t *testing.T) {
 	testCases := []struct {
 		msg        string
 		coin       sdk.Coin
@@ -89,9 +81,9 @@ func (suite *MsgTestSuite) TestMsgConvertCoin() {
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
+			require.NoError(t, err, "valid test %d failed: %s, %v", i, tc.msg)
 		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
+			require.Error(t, err, "invalid test %d passed: %s, %v", i, tc.msg)
 		}
 	}
 }

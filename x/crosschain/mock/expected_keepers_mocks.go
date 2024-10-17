@@ -388,18 +388,33 @@ func (mr *MockErc20KeeperMockRecorder) GetBaseDenom(ctx, token any) *gomock.Call
 }
 
 // GetBridgeToken mocks base method.
-func (m *MockErc20Keeper) GetBridgeToken(ctx context.Context, baseDenom, chainName string) (types4.BridgeToken, error) {
+func (m *MockErc20Keeper) GetBridgeToken(ctx context.Context, chainName, baseDenom string) (types4.BridgeToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBridgeToken", ctx, baseDenom, chainName)
+	ret := m.ctrl.Call(m, "GetBridgeToken", ctx, chainName, baseDenom)
 	ret0, _ := ret[0].(types4.BridgeToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBridgeToken indicates an expected call of GetBridgeToken.
-func (mr *MockErc20KeeperMockRecorder) GetBridgeToken(ctx, baseDenom, chainName any) *gomock.Call {
+func (mr *MockErc20KeeperMockRecorder) GetBridgeToken(ctx, chainName, baseDenom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeToken", reflect.TypeOf((*MockErc20Keeper)(nil).GetBridgeToken), ctx, baseDenom, chainName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeToken", reflect.TypeOf((*MockErc20Keeper)(nil).GetBridgeToken), ctx, chainName, baseDenom)
+}
+
+// GetBridgeTokens mocks base method.
+func (m *MockErc20Keeper) GetBridgeTokens(ctx context.Context, chainName string) ([]types4.BridgeToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBridgeTokens", ctx, chainName)
+	ret0, _ := ret[0].([]types4.BridgeToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBridgeTokens indicates an expected call of GetBridgeTokens.
+func (mr *MockErc20KeeperMockRecorder) GetBridgeTokens(ctx, chainName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeTokens", reflect.TypeOf((*MockErc20Keeper)(nil).GetBridgeTokens), ctx, chainName)
 }
 
 // GetERC20Token mocks base method.
@@ -418,18 +433,18 @@ func (mr *MockErc20KeeperMockRecorder) GetERC20Token(ctx, baseDenom any) *gomock
 }
 
 // GetIBCToken mocks base method.
-func (m *MockErc20Keeper) GetIBCToken(ctx context.Context, baseDenom, channel string) (types4.IBCToken, error) {
+func (m *MockErc20Keeper) GetIBCToken(ctx context.Context, channel, baseDenom string) (types4.IBCToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIBCToken", ctx, baseDenom, channel)
+	ret := m.ctrl.Call(m, "GetIBCToken", ctx, channel, baseDenom)
 	ret0, _ := ret[0].(types4.IBCToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetIBCToken indicates an expected call of GetIBCToken.
-func (mr *MockErc20KeeperMockRecorder) GetIBCToken(ctx, baseDenom, channel any) *gomock.Call {
+func (mr *MockErc20KeeperMockRecorder) GetIBCToken(ctx, channel, baseDenom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIBCToken", reflect.TypeOf((*MockErc20Keeper)(nil).GetIBCToken), ctx, baseDenom, channel)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIBCToken", reflect.TypeOf((*MockErc20Keeper)(nil).GetIBCToken), ctx, channel, baseDenom)
 }
 
 // HasCache mocks base method.
