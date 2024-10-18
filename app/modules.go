@@ -129,7 +129,7 @@ func appModules(
 		layer2.NewAppModule(app.Layer2Keeper),
 		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
-		erc20.NewAppModule(app.GetKey(erc20types.StoreKey), appCodec, app.Erc20Keeper, app.BankKeeper, app.CrossChainKeepers.ToSlice()),
+		erc20.NewAppModule(app.GetKey(erc20types.StoreKey), appCodec, app.Erc20Keeper, app.BankKeeper, app.CrosschainKeepers.ToSlice()),
 		migrate.NewAppModule(app.MigrateKeeper),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
