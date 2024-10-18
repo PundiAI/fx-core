@@ -141,14 +141,10 @@ lint-install:
 		go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version); \
 	fi
 
-check-no-lint:
-	@if [ $$(find . -name '*.go' -type f | xargs grep 'nolint\|#nosec' | wc -l) -ne 26 ]; then \
-		echo "\033[91m--> increase or decrease nolint, please recheck them\033[0m"; \
-		echo "\033[91m--> list nolint: \`find . -name '*.go' -type f | xargs grep 'nolint\|#nosec'\`\033[0m"; \
-		exit 1;\
-	fi
+custom-lint:
+	@./scripts/linter.sh
 
-lint: check-no-lint lint-install
+lint: custom-lint lint-install
 	@echo "--> Running linter"
 	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
 
