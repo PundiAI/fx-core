@@ -14,6 +14,7 @@ import (
 	big "math/big"
 	reflect "reflect"
 
+	math "cosmossdk.io/math"
 	bytes "github.com/cometbft/cometbft/libs/bytes"
 	types "github.com/cosmos/cosmos-sdk/types"
 	types0 "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -478,17 +479,17 @@ func (mr *MockErc20KeeperMockRecorder) HasToken(ctx, token any) *gomock.Call {
 }
 
 // SetCache mocks base method.
-func (m *MockErc20Keeper) SetCache(ctx context.Context, key string) error {
+func (m *MockErc20Keeper) SetCache(ctx context.Context, key string, amount math.Int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetCache", ctx, key)
+	ret := m.ctrl.Call(m, "SetCache", ctx, key, amount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetCache indicates an expected call of SetCache.
-func (mr *MockErc20KeeperMockRecorder) SetCache(ctx, key any) *gomock.Call {
+func (mr *MockErc20KeeperMockRecorder) SetCache(ctx, key, amount any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCache", reflect.TypeOf((*MockErc20Keeper)(nil).SetCache), ctx, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCache", reflect.TypeOf((*MockErc20Keeper)(nil).SetCache), ctx, key, amount)
 }
 
 // MockEVMKeeper is a mock of EVMKeeper interface.

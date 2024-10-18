@@ -3,15 +3,15 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/collections"
+	sdkmath "cosmossdk.io/math"
 )
 
 func (k Keeper) HasCache(ctx context.Context, key string) (bool, error) {
 	return k.Cache.Has(ctx, key)
 }
 
-func (k Keeper) SetCache(ctx context.Context, key string) error {
-	return k.Cache.Set(ctx, key, collections.NoValue{})
+func (k Keeper) SetCache(ctx context.Context, key string, amount sdkmath.Int) error {
+	return k.Cache.Set(ctx, key, amount)
 }
 
 func (k Keeper) DeleteCache(ctx context.Context, key string) error {
