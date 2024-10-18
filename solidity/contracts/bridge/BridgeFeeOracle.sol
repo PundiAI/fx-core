@@ -7,7 +7,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {EnumerableSetUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import {IBridgeFeeOracle} from "./IBridgeFee.sol";
-import {ICrossChain} from "./ICrossChain.sol";
+import {ICrosschain} from "./ICrosschain.sol";
 
 contract BridgeFeeOracle is
     IBridgeFeeOracle,
@@ -20,7 +20,7 @@ contract BridgeFeeOracle is
 
     bytes32 public constant QUOTE_ROLE = keccak256("QUOTE_ROLE");
 
-    address public crossChainContract;
+    address public crosschainContract;
     address public defaultOracle;
 
     struct State {
@@ -36,7 +36,7 @@ contract BridgeFeeOracle is
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
 
-        crossChainContract = _crossChain;
+        crosschainContract = _crossChain;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -53,11 +53,11 @@ contract BridgeFeeOracle is
     ) external onlyRole(QUOTE_ROLE) nonReentrant returns (bool) {
         if (oracleStatus[_oracle].isActive) return true;
         if (oracleStatus[_oracle].isBlacklisted) return false;
-        if (!ICrossChain(crossChainContract).hasOracle(_chainName, _oracle)) {
+        if (!ICrosschain(crosschainContract).hasOracle(_chainName, _oracle)) {
             return false;
         }
         if (
-            !ICrossChain(crossChainContract).isOracleOnline(_chainName, _oracle)
+            !ICrosschain(crosschainContract).isOracleOnline(_chainName, _oracle)
         ) {
             return false;
         }

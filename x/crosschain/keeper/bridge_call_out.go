@@ -276,7 +276,7 @@ func (k Keeper) BridgeCallBaseCoin(
 	return k.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, 0)
 }
 
-func (k Keeper) CrossChainBaseCoin(
+func (k Keeper) CrosschainBaseCoin(
 	ctx sdk.Context,
 	from sdk.AccAddress,
 	receipt string,

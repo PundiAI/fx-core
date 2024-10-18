@@ -34,7 +34,7 @@ func NewPrecompiledContract(
 			NewHasOracleMethod(keeper),
 			NewIsOracleOnlineMethod(keeper),
 
-			NewCrossChainMethod(keeper),
+			NewCrosschainMethod(keeper),
 			NewBridgeCallMethod(keeper),
 			NewExecuteClaimMethod(keeper),
 		},

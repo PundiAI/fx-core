@@ -15,7 +15,7 @@ type Migrator struct {
 	cdc               codec.BinaryCodec
 	keeper            keeper.Keeper
 	bankKeeper        bankkeeper.Keeper
-	crossChainKeepers []crosschainkeeper.Keeper
+	crosschainKeepers []crosschainkeeper.Keeper
 }
 
 func NewMigrator(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, keeper keeper.Keeper, bk bankkeeper.Keeper, cks []crosschainkeeper.Keeper) Migrator {
@@ -24,7 +24,7 @@ func NewMigrator(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, keeper kee
 		cdc:               cdc,
 		keeper:            keeper,
 		bankKeeper:        bk,
-		crossChainKeepers: cks,
+		crosschainKeepers: cks,
 	}
 }
 

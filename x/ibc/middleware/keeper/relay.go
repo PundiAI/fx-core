@@ -36,7 +36,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if !isEvmAddr {
 			return sdkerrors.ErrInvalidAddress.Wrap("only support hex address")
 		}
-		if err = k.crossChainKeeper.IBCCoinToEvm(ctx, receiver, receiveCoin); err != nil {
+		if err = k.crosschainKeeper.IBCCoinToEvm(ctx, receiver, receiveCoin); err != nil {
 			return err
 		}
 	}
@@ -55,10 +55,9 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	case *channeltypes.Acknowledgement_Error:
 		return k.refundPacketTokenHook(ctx, packet, data)
 	default:
-		k.crossChainKeeper.AfterIBCAckSuccess(ctx, packet.SourceChannel, packet.Sequence)
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
-		return nil
+		return k.crosschainKeeper.AfterIBCAckSuccess(ctx, packet.SourceChannel, packet.Sequence)
 	}
 }
 
@@ -82,5 +81,5 @@ func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packe
 	if err != nil {
 		return err
 	}
-	return k.crossChainKeeper.IBCCoinRefund(ctx, sender, token, packet.SourceChannel, packet.Sequence)
+	return k.crosschainKeeper.IBCCoinRefund(ctx, sender, token, packet.SourceChannel, packet.Sequence)
 }

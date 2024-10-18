@@ -257,7 +257,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			expectedErr: "authority",
 		},
 		{
-			testName:    "set CrossChainParam",
+			testName:    "set CrosschainParam",
 			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
 			msg:         []sdk.Msg{&crosschaintypes.MsgUpdateParams{ChainName: "eth", Authority: suite.govAcct, Params: crosschaintypes.DefaultParams()}},
 			result:      true,

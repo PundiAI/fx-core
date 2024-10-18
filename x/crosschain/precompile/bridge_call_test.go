@@ -107,7 +107,7 @@ func TestContract_BridgeCall_Event(t *testing.T) {
 	}
 	inputs := bridgeCall.Event.Inputs
 
-	args := contract.ICrossChainBridgeCallEvent{
+	args := contract.ICrosschainBridgeCallEvent{
 		TxOrigin:   helpers.GenHexAddress(),
 		Value:      big.NewInt(1),
 		EventNonce: big.NewInt(1),
@@ -138,7 +138,7 @@ func TestContract_BridgeCall_Event(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, inputValue)
 
-	var args2 contract.ICrossChainBridgeCallEvent
+	var args2 contract.ICrosschainBridgeCallEvent
 	err = inputs.Copy(&args2, inputValue)
 	assert.NoError(t, err)
 	assert.EqualValues(t, args, args2)

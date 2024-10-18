@@ -6,7 +6,7 @@ import {IBridgeCall} from "./IBridgeCall.sol";
 
 // NOTE: if using an interface to invoke the precompiled contract
 // need to use solidity version 0.8.10 and later.
-interface ICrossChain is IBridgeCall {
+interface ICrosschain is IBridgeCall {
     // Deprecated: please use `IBridgeCall.bridgeCall`
     function crossChain(
         address _token,

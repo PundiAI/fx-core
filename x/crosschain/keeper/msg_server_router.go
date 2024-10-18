@@ -119,7 +119,7 @@ func (k msgServer) UpdateChainOracles(ctx context.Context, msg *types.MsgUpdateC
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {
-		return nil, sdkerrors.ErrInvalidRequest.Wrapf("Unrecognized cross chain type:%s", chainName)
+		return nil, sdkerrors.ErrInvalidRequest.Wrapf("Unrecognized crosschain type:%s", chainName)
 	}
 	return msgServerRouter.GetRoute(chainName).MsgServer, nil
 }
