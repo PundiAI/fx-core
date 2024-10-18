@@ -66,7 +66,7 @@ func NewKeeper(
 		evmErc20Keeper: evmErc20Keeper,
 		contractOwner:  common.BytesToAddress(moduleAddress),
 		authority:      authority,
-		Params:         collections.NewItem(sb, types.ParamsKey2, "params", codec.CollValue[types.Params](cdc)),
+		Params:         collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		ERC20Token:     collections.NewMap(sb, types.ERC20TokenKey, "erc20_token", collections.StringKey, codec.CollValue[types.ERC20Token](cdc)),
 		BridgeToken:    collections.NewMap(sb, types.BridgeTokenKey, "bridge_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.BridgeToken](cdc)),
 		IBCToken:       collections.NewMap(sb, types.IBCTokenKey, "ibc_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.IBCToken](cdc)),
