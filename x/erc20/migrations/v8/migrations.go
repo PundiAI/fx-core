@@ -30,5 +30,8 @@ func NewMigrator(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, keeper kee
 
 // Migrate3to4 migrates from version 3 to 4.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
+	if err := m.migrateKeys(ctx); err != nil {
+		return err
+	}
 	return m.MigrateToken(ctx)
 }

@@ -16,6 +16,8 @@ import (
 	"github.com/functionx/fx-core/v8/app/keepers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
+	erc20v8 "github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	"github.com/functionx/fx-core/v8/x/gov/keeper"
 	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
@@ -42,6 +44,8 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		}
 
 		updateMetadata(cacheCtx, app.BankKeeper)
+
+		removeStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
 
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")

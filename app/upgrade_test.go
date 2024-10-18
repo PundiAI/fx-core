@@ -100,6 +100,15 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkStakingMigrationDelete(t, ctx, myApp)
 
 	checkGovCustomParams(t, ctx, myApp)
+
+	checkErc20Keys(t, ctx, myApp)
+}
+
+func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	params, err := myApp.Erc20Keeper.Params.Get(ctx)
+	require.NoError(t, err)
+
+	require.True(t, params.EnableErc20)
 }
 
 func checkGovCustomParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
