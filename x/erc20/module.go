@@ -81,7 +81,7 @@ type AppModule struct {
 	cdc               codec.BinaryCodec
 	keeper            keeper.Keeper
 	bankKeeper        bankkeeper.Keeper
-	crossChainKeepers []crosschainkeeper.Keeper
+	crosschainKeepers []crosschainkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
@@ -92,7 +92,7 @@ func NewAppModule(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, keeper ke
 		cdc:               cdc,
 		keeper:            keeper,
 		bankKeeper:        bk,
-		crossChainKeepers: cks,
+		crosschainKeepers: cks,
 	}
 }
 
@@ -111,7 +111,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServer(am.keeper))
 
-	m := v8.NewMigrator(am.storeKey, am.cdc, am.keeper, am.bankKeeper, am.crossChainKeepers)
+	m := v8.NewMigrator(am.storeKey, am.cdc, am.keeper, am.bankKeeper, am.crosschainKeepers)
 	if err := cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3to4); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/erc20 from version 3 to 4: %v", err))
 	}
