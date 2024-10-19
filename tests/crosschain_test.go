@@ -4,7 +4,7 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
-func (suite *IntegrationTest) CrossChainTest() {
+func (suite *IntegrationTest) CrosschainTest() {
 }
 
 func (suite *IntegrationTest) UpdateParamsTest() {
