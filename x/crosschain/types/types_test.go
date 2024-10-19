@@ -145,7 +145,7 @@ func TestBridgeValidators_PowerDiff(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			assert.Equal(t, spec.exp, spec.start.PowerDiff(spec.diff))
+			assert.InDelta(t, spec.exp, spec.start.PowerDiff(spec.diff), 0)
 		})
 	}
 }
@@ -212,13 +212,13 @@ func TestBridgeValidators_Sort(t *testing.T) {
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			sort.Sort(spec.src)
-			assert.Equal(t, spec.src, spec.exp)
+			assert.Equal(t, spec.exp, spec.src)
 
 			rand.Shuffle(len(spec.src), func(i, j int) {
 				spec.src[i], spec.src[j] = spec.src[j], spec.src[i]
 			})
 			sort.Sort(spec.src)
-			assert.Equal(t, spec.src, spec.exp)
+			assert.Equal(t, spec.exp, spec.src)
 		})
 	}
 }

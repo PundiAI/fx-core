@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
@@ -100,8 +99,8 @@ func (suite *KeeperTestSuite) NewOracleByBridger() (sdk.AccAddress, sdk.AccAddre
 	suite.App.TronKeeper.SetOracle(suite.Ctx, newOracle)
 	suite.App.TronKeeper.SetOracleAddrByBridgerAddr(suite.Ctx, bridger, oracle)
 	oracleAddress, found := suite.App.TronKeeper.GetOracleAddrByBridgerAddr(suite.Ctx, bridger)
-	require.True(suite.T(), found)
-	require.EqualValues(suite.T(), oracle, oracleAddress)
+	suite.True(found)
+	suite.EqualValues(oracle, oracleAddress)
 	suite.App.TronKeeper.SetOracleAddrByExternalAddr(suite.Ctx, externalAddress, oracle)
 	return oracle, bridger, externalKey
 }

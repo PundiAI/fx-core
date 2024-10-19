@@ -182,7 +182,7 @@ func (m *TransferShare) decrementAllowance(ctx sdk.Context, valAddr sdk.ValAddre
 	return nil
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // need to refactor
 func (m *TransferShare) handlerTransferShares(
 	ctx sdk.Context,
 	evm *vm.EVM,

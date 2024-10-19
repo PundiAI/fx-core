@@ -9,6 +9,7 @@ import (
 	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/server/config"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
@@ -35,7 +36,7 @@ func Test_Output(t *testing.T) {
 				Output:       new(bytes.Buffer),
 				OutputFormat: "json",
 			}
-			assert.NoError(t, config.Output(clientCtx, tt.content))
+			require.NoError(t, config.Output(clientCtx, tt.content))
 			assert.Equal(t, clientCtx.Output.(*bytes.Buffer).String(), fmt.Sprintf("%v\n", tt.content))
 		})
 	}
@@ -50,10 +51,10 @@ func Test_ConfigTomlConfig_Output(t *testing.T) {
 		Output:       buf,
 		OutputFormat: "json",
 	}
-	assert.NoError(t, c.Output(clientCtx))
+	require.NoError(t, c.Output(clientCtx))
 
 	var data map[string]interface{}
-	assert.NoError(t, json.Unmarshal(buf.Bytes(), &data))
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &data))
 	helpers.AssertJsonFile(t, "./data/config.json", data)
 }
 
@@ -66,9 +67,9 @@ func Test_AppTomlConfig_Output(t *testing.T) {
 		Output:       buf,
 		OutputFormat: "json",
 	}
-	assert.NoError(t, c.Output(clientCtx))
+	require.NoError(t, c.Output(clientCtx))
 
 	var data map[string]interface{}
-	assert.NoError(t, json.Unmarshal(buf.Bytes(), &data))
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &data))
 	helpers.AssertJsonFile(t, "./data/app.json", data)
 }

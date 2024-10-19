@@ -380,7 +380,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 	suite.Require().True(found)
 	suite.Require().Equal(oracleAddr, oracle)
 
-	oracleData, found = suite.Keeper().GetOracle(suite.Ctx, oracle)
+	_, found = suite.Keeper().GetOracle(suite.Ctx, oracle)
 	suite.Require().True(found)
 }
 

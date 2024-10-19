@@ -55,7 +55,7 @@ import (
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // CometBFT.
 //
-//nolint:gocyclo
+
 func StartCmd(appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	opts := ethermintserver.NewDefaultStartOptions(appCreator, defaultNodeHome)
 	startCmd := ethermintserver.StartCmd(opts)
@@ -96,10 +96,7 @@ func StartCmd(appCreator types.AppCreator, defaultNodeHome string) *cobra.Comman
 			return err
 		}
 		serverCtx.Viper.Set(flags.FlagChainID, clientCtx.ChainID)
-		if err = server.SetCmdServerContext(cmd, serverCtx); err != nil {
-			return err
-		}
-		return nil
+		return server.SetCmdServerContext(cmd, serverCtx)
 	}
 	startCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		serverCtx := server.GetServerContextFromCmd(cmd)
@@ -260,7 +257,7 @@ func startStandAlone(svrCtx *server.Context, opts ethermintserver.StartOptions) 
 	return g.Wait()
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // need to refactor
 func startInProcess(svrCtx *server.Context, clientCtx client.Context, opts ethermintserver.StartOptions) (err error) {
 	cfg := svrCtx.Config
 	home := cfg.RootDir

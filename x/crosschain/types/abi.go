@@ -14,7 +14,7 @@ func IsMemoSendCallTo(memo []byte) bool {
 	return len(memo) == 32 && common.BytesToHash(memo) == MemoSendCallTo
 }
 
-func PackBridgeCallback(sender common.Address, receiver common.Address, tokens []common.Address, amounts []*big.Int, data, memo []byte) ([]byte, error) {
+func PackBridgeCallback(sender, receiver common.Address, tokens []common.Address, amounts []*big.Int, data, memo []byte) ([]byte, error) {
 	args, err := contract.GetBridgeCallBridgeCallback().Pack("bridgeCallback",
 		sender,
 		receiver,

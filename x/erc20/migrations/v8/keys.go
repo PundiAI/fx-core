@@ -15,10 +15,7 @@ func (m Migrator) migrateKeys(ctx sdk.Context) error {
 		return err
 	}
 
-	if err := m.migrateRelationToCache(ctx, store); err != nil {
-		return err
-	}
-	return nil
+	return m.migrateRelationToCache(ctx, store)
 }
 
 func (m Migrator) migrateRelationToCache(ctx sdk.Context, store storetypes.KVStore) error {

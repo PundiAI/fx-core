@@ -36,7 +36,7 @@ import (
 
 // StartInProcess creates and starts an in-process local test network.
 //
-//nolint:gocyclo
+//nolint:gocyclo // for testing
 func StartInProcess(ctx context.Context, errGroup *errgroup.Group, appConstructor AppConstructor, val *Validator) error {
 	logger := val.Ctx.Logger
 	tmCfg := val.Ctx.Config
@@ -205,7 +205,7 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 	return nil
 }
 
-func writeFile(name string, dir string, contents []byte) error {
+func writeFile(name, dir string, contents []byte) error {
 	if err := tmos.EnsureDir(dir, 0o755); err != nil {
 		return err
 	}

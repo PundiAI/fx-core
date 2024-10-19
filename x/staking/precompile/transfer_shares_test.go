@@ -25,10 +25,10 @@ import (
 func TestStakingTransferSharesABI(t *testing.T) {
 	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
 
-	require.Equal(t, 3, len(transferSharesMethod.Method.Inputs))
-	require.Equal(t, 2, len(transferSharesMethod.Method.Outputs))
+	require.Len(t, transferSharesMethod.Method.Inputs, 3)
+	require.Len(t, transferSharesMethod.Method.Outputs, 2)
 
-	require.Equal(t, 5, len(transferSharesMethod.Event.Inputs))
+	require.Len(t, transferSharesMethod.Event.Inputs, 5)
 }
 
 func (suite *PrecompileTestSuite) TestTransferShares() {
@@ -323,7 +323,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 				DelegatorAddress: sdk.AccAddress(delAddr.Bytes()).String(),
 				ValidatorAddress: sdk.ValAddress(operator).String(),
 			})
-			suite.NoError(err)
+			suite.Require().NoError(err)
 
 			pack, shares, _ := tc.malleate(operator, contract, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
 			res := suite.EthereumTx(fromSigner, contract, big.NewInt(0), pack)
@@ -356,7 +356,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 				existLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == transferSharesMethod.Event.ID.String() {
-						suite.Require().Equal(3, len(log.Topics))
+						suite.Require().Len(log.Topics, 3)
 						event, err := transferSharesMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)
@@ -377,8 +377,8 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 func TestStakingTransferFromSharesABI(t *testing.T) {
 	transferFromSharesMethod := precompile.NewTransferFromSharesMethod(nil)
 
-	require.Equal(t, 4, len(transferFromSharesMethod.Method.Inputs))
-	require.Equal(t, 2, len(transferFromSharesMethod.Method.Outputs))
+	require.Len(t, transferFromSharesMethod.Method.Inputs, 4)
+	require.Len(t, transferFromSharesMethod.Method.Outputs, 2)
 }
 
 func (suite *PrecompileTestSuite) TestTransferFromShares() {
@@ -677,7 +677,7 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 				DelegatorAddress: sdk.AccAddress(delAddr.Bytes()).String(),
 				ValidatorAddress: sdk.ValAddress(operator).String(),
 			})
-			suite.NoError(err)
+			suite.Require().NoError(err)
 
 			toBeforeRewards, err := distributionkeeper.NewQuerier(suite.App.DistrKeeper).DelegationRewards(suite.Ctx, &distributiontypes.QueryDelegationRewardsRequest{
 				DelegatorAddress: sdk.AccAddress(toSigner.Address().Bytes()).String(),
@@ -727,7 +727,7 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 				existLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == transferFromSharesMethod.Event.ID.String() {
-						suite.Require().Equal(3, len(log.Topics))
+						suite.Require().Len(log.Topics, 3)
 						event, err := transferFromSharesMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)

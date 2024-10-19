@@ -54,17 +54,17 @@ func (k *Keeper) TotalSupply(ctx context.Context, contractAddr common.Address) (
 	return totalSupplyRes.Value, nil
 }
 
-func (k *Keeper) ERC20Mint(ctx context.Context, contractAddr common.Address, from, receiver common.Address, amount *big.Int) error {
+func (k *Keeper) ERC20Mint(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error {
 	_, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, contract.GetFIP20().ABI, "mint", receiver, amount)
 	return err
 }
 
-func (k *Keeper) ERC20Burn(ctx context.Context, contractAddr common.Address, from, account common.Address, amount *big.Int) error {
+func (k *Keeper) ERC20Burn(ctx context.Context, contractAddr, from, account common.Address, amount *big.Int) error {
 	_, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, contract.GetFIP20().ABI, "burn", account, amount)
 	return err
 }
 
-func (k *Keeper) ERC20Transfer(ctx context.Context, contractAddr common.Address, from, receiver common.Address, amount *big.Int) error {
+func (k *Keeper) ERC20Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error {
 	erc20ABI := contract.GetFIP20().ABI
 	res, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, erc20ABI, "transfer", receiver, amount)
 	if err != nil {

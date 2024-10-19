@@ -14,18 +14,19 @@ import (
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
 
 func TestSwaggerConfig(t *testing.T) {
 	data, err := os.ReadFile("config.json")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	var c config
-	assert.NoError(t, json.Unmarshal(data, &c))
+	require.NoError(t, json.Unmarshal(data, &c))
 	assert.Equal(t, "2.0", c.Swagger)
 	assert.Equal(t, "0.4.0", c.Info.Version)
-	assert.Equal(t, 23, len(c.Apis))
+	assert.Len(t, c.Apis, 23)
 	app := helpers.NewApp()
 	clientCtx := client.Context{
 		InterfaceRegistry: app.InterfaceRegistry(),
@@ -40,7 +41,7 @@ func TestSwaggerConfig(t *testing.T) {
 			field := handler.Value().Index(i).Field(0)
 			pat := reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface().(runtime.Pattern)
 			split := strings.Split(pat.String(), "/")
-			assert.True(t, len(split) > 3)
+			assert.Greater(t, len(split), 3)
 			if len(split) > 4 && split[3] != "v1" && split[3] != "v1beta1" && (split[4] == "v1" || split[4] == "v1beta1") {
 				split[3] = fmt.Sprintf("%s/%s", split[3], split[4])
 			}
@@ -60,7 +61,7 @@ func TestSwaggerConfig(t *testing.T) {
 			assert.Equal(t, 194, handler.Value().Len())
 		}
 	}
-	assert.Equal(t, 31, len(route))
+	assert.Len(t, route, 31)
 	ignoreLen := len(route) - len(c.Apis)
 	for _, v := range c.Apis {
 		for key := range route {
@@ -79,8 +80,8 @@ func TestSwaggerConfig(t *testing.T) {
 	// 6. ibc/core/client/v1
 	// 7. ibc/core/connection/v1
 	// 8. cosmos/gov/v1beta1
-	assert.Equal(t, ignoreLen, len(route))
-	assert.Equal(t, 8, len(route))
+	assert.Len(t, route, ignoreLen)
+	assert.Len(t, route, 8)
 }
 
 type config struct {

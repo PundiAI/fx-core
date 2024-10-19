@@ -15,52 +15,53 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
 )
 
 func Test_updateCfgCmd(t *testing.T) {
 	tempDir := t.TempDir()
-	defer assert.NoError(t, os.RemoveAll(tempDir))
-	assert.NoError(t, os.MkdirAll(filepath.Join(tempDir, "config"), 0o700))
+	defer require.NoError(t, os.RemoveAll(tempDir))
+	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "config"), 0o700))
 
 	rootCmd := NewRootCmd()
 	rootCmd.SetArgs([]string{"version"})
-	assert.NoError(t, svrcmd.Execute(rootCmd, "", tempDir))
+	require.NoError(t, svrcmd.Execute(rootCmd, "", tempDir))
 
 	publicDir, err := os.ReadDir("../public")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	for _, entry := range publicDir {
 		dir := filepath.Join("../public", entry.Name())
 		appConfig, err := os.ReadFile(filepath.Join(dir, "app.toml"))
-		assert.NoError(t, err)
-		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/app.toml"), appConfig, 0o600))
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/app.toml"), appConfig, 0o600))
 
 		tmConfig, err := os.ReadFile(filepath.Join(dir, "config.toml"))
-		assert.NoError(t, err)
-		assert.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/config.toml"), tmConfig, 0o600))
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(filepath.Join(tempDir, "config/config.toml"), tmConfig, 0o600))
 
 		rootCmd.SetArgs([]string{"config", "update"})
-		assert.NoError(t, rootCmd.Execute())
+		require.NoError(t, rootCmd.Execute())
 
 		appConfigAfter, err := os.ReadFile(filepath.Join(tempDir, "config/app.toml"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		if !assert.Equal(t, string(appConfig), string(appConfigAfter)) {
-			assert.NoError(t, os.WriteFile(filepath.Join(dir, "app.toml"), appConfigAfter, 0o600))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "app.toml"), appConfigAfter, 0o600))
 		}
 
 		tmConfigAfter, err := os.ReadFile(filepath.Join(tempDir, "config/config.toml"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		if !assert.Equal(t, string(tmConfig), string(tmConfigAfter)) {
-			assert.NoError(t, os.WriteFile(filepath.Join(dir, "config.toml"), tmConfigAfter, 0o600))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "config.toml"), tmConfigAfter, 0o600))
 		}
 	}
 }
 
 func TestPublicTmConfig(t *testing.T) {
 	tempDir := t.TempDir()
-	defer assert.NoError(t, os.RemoveAll(tempDir))
-	assert.NoError(t, os.MkdirAll(tempDir, 0o700))
+	defer require.NoError(t, os.RemoveAll(tempDir))
+	require.NoError(t, os.MkdirAll(tempDir, 0o700))
 
 	serverCtx := server.NewContext(viper.New(), fxcfg.DefaultTendermintConfig(), log.NewNopLogger())
 	fileName := fmt.Sprintf("%s/config.toml", t.TempDir())
@@ -73,24 +74,24 @@ func TestPublicTmConfig(t *testing.T) {
 
 	tmcfg.WriteConfigFile(fileName, serverCtx.Config)
 	defConfig, err := os.ReadFile(fileName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	mainnetConfig, err := os.ReadFile("../public/mainnet/config.toml")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, string(defConfig), string(mainnetConfig))
 
 	serverCtx.Config.P2P.Seeds = "e922b34e660976a64d6024bde495666752141992@dhobyghaut-seed-node-1.functionx.io:26656,a817685c010402703820be2b5a90d9e07bc5c2d3@dhobyghaut-node-1.functionx.io:26656"
 	tmcfg.WriteConfigFile(fileName, serverCtx.Config)
 	defConfig, err = os.ReadFile(fileName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	testnetConfig, err := os.ReadFile("../public/testnet/config.toml")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, string(defConfig), string(testnetConfig))
 }
 
 func TestPublicAppConfig(t *testing.T) {
 	tempDir := t.TempDir()
-	defer assert.NoError(t, os.RemoveAll(tempDir))
-	assert.NoError(t, os.MkdirAll(tempDir, 0o700))
+	defer require.NoError(t, os.RemoveAll(tempDir))
+	require.NoError(t, os.MkdirAll(tempDir, 0o700))
 
 	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 	appConfig := fxcfg.DefaultConfig()
@@ -110,13 +111,13 @@ func TestPublicAppConfig(t *testing.T) {
 	fileName := fmt.Sprintf("%s/app.toml", t.TempDir())
 	config.WriteConfigFile(fileName, appConfig)
 	defAppConfig, err := os.ReadFile(fileName)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mainnetConfig, err := os.ReadFile("../public/mainnet/app.toml")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, string(defAppConfig), string(mainnetConfig))
 
 	testnetConfig, err := os.ReadFile("../public/testnet/app.toml")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, string(defAppConfig), string(testnetConfig))
 }

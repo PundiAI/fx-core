@@ -3,7 +3,7 @@
 set -eo pipefail
 
 patternLimits=(
-  "nolint:21"
+  "nolint:20"
   "#nosec:5"
   "CrossChain:4"
   "cross chain:0"

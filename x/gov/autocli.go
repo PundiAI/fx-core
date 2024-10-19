@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
-// copy from cosmos-sdk/x/gov/autocli.go
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
+// copy from cosmos-sdk/x/gov/autocli.go
 func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
 		Query: &autocliv1.ServiceCommandDescriptor{

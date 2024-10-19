@@ -25,7 +25,7 @@ func (s *StakingSuite) Init(ass *require.Assertions, ctx sdk.Context, stakingKee
 func (s *StakingSuite) GetFirstValidator() stakingtypes.Validator {
 	validators, err := s.stakingKeeper.GetValidators(s.ctx, 1)
 	s.NoError(err)
-	s.True(len(validators) > 0)
+	s.NotEmpty(validators)
 	return validators[0]
 }
 

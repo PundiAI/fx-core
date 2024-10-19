@@ -20,7 +20,7 @@ func NewTronSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error)
 	return crypto.Sign(protectedHash.Bytes(), privateKey)
 }
 
-func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
+func TronAddressFromSignature(hash, signature []byte) (string, error) {
 	if len(signature) < 65 {
 		return "", types.ErrInvalid.Wrapf("signature too short")
 	}
@@ -54,7 +54,7 @@ func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
 
 // ValidateTronSignature takes a message, an associated signature and public key and
 // returns an error if the signature isn't valid
-func ValidateTronSignature(hash []byte, signature []byte, ethAddress string) error {
+func ValidateTronSignature(hash, signature []byte, ethAddress string) error {
 	addr, err := TronAddressFromSignature(hash, signature)
 	if err != nil {
 		return err

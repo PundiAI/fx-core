@@ -17,7 +17,7 @@ func NewEthereumSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, er
 	return crypto.Sign(protectedHash.Bytes(), privateKey)
 }
 
-func EthAddressFromSignature(hash []byte, signature []byte) (string, error) {
+func EthAddressFromSignature(hash, signature []byte) (string, error) {
 	if len(signature) < 65 {
 		return "", ErrInvalid.Wrapf("signature too short")
 	}
@@ -51,7 +51,7 @@ func EthAddressFromSignature(hash []byte, signature []byte) (string, error) {
 
 // ValidateEthereumSignature takes a message, an associated signature and public key and
 // returns an error if the signature isn't valid
-func ValidateEthereumSignature(hash []byte, signature []byte, ethAddress string) error {
+func ValidateEthereumSignature(hash, signature []byte, ethAddress string) error {
 	addr, err := EthAddressFromSignature(hash, signature)
 	if err != nil {
 		return err

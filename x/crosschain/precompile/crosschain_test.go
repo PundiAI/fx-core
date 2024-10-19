@@ -11,8 +11,8 @@ import (
 func TestCrosschainABI(t *testing.T) {
 	crosschain := precompile.NewCrosschainMethod(nil)
 
-	require.Equal(t, 6, len(crosschain.Method.Inputs))
-	require.Equal(t, 1, len(crosschain.Method.Outputs))
+	require.Len(t, crosschain.Method.Inputs, 6)
+	require.Len(t, crosschain.Method.Outputs, 1)
 
-	require.Equal(t, 8, len(crosschain.Event.Inputs))
+	require.Len(t, crosschain.Event.Inputs, 8)
 }

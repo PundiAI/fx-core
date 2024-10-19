@@ -163,7 +163,7 @@ func New(t *testing.T, cfg Config) *Network {
 
 // GenerateGenesisAndValidators
 //
-//nolint:gocyclo
+//nolint:gocyclo // for testing
 func GenerateGenesisAndValidators(baseDir string, cfg *Config, logger log.Logger) ([]*Validator, error) {
 	srvconfig.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 

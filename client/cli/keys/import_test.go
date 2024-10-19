@@ -119,6 +119,7 @@ HbP+c6JmeJy9JXe2rbbF1QtCX1gLqGcDQPBXiCtFvP7/8wTZtVOPj8vREzhZ9ElO
 }
 
 func cleanupKeys(t *testing.T, kb keyring.Keyring, keys ...string) func() {
+	t.Helper()
 	return func() {
 		for _, k := range keys {
 			if err := kb.Delete(k); err != nil {

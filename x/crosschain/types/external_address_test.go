@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	_ "github.com/functionx/fx-core/v8/app"
 	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
@@ -26,6 +26,6 @@ func TestValidateModuleName(t *testing.T) {
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
 	} {
-		assert.NoError(t, types.ValidateModuleName(name))
+		require.NoError(t, types.ValidateModuleName(name))
 	}
 }

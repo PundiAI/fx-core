@@ -40,7 +40,7 @@ func (k Keeper) GetBridgeTokens(ctx context.Context, chainName string) ([]types.
 	return tokens, nil
 }
 
-func (k Keeper) AddBridgeToken(ctx context.Context, baseDenom string, chainName string, contract string, isNative bool) error {
+func (k Keeper) AddBridgeToken(ctx context.Context, baseDenom, chainName, contract string, isNative bool) error {
 	key := collections.Join(baseDenom, chainName)
 	has, err := k.BridgeToken.Has(ctx, key)
 	if err != nil {

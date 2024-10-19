@@ -26,7 +26,7 @@ func (suite *IntegrationTest) migrateAccount(fromPrivateKey, toPrivateKey crypto
 	toAddress := common.BytesToAddress(toPrivateKey.PubKey().Address())
 
 	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(fromAddr, toAddress.Bytes()))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	msg := migratetypes.NewMsgMigrateAccount(fromAddr, toAddress, hex.EncodeToString(migrateSign))
 	suite.BroadcastTx(fromPrivateKey, msg)
@@ -34,7 +34,7 @@ func (suite *IntegrationTest) migrateAccount(fromPrivateKey, toPrivateKey crypto
 
 func (suite *IntegrationTest) MigrateTestDelegate() {
 	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.Secp256k1Type, 0, 0)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
 	amount := sdkmath.NewInt(20).MulRaw(1e18)
 	suite.Send(fromAccAddress, suite.NewCoin(amount))
@@ -56,7 +56,7 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 	// ===> migration
 
 	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.EthSecp256k1Type, 0, 0)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
 	suite.CheckBalance(toAccAddress, suite.NewCoin(sdkmath.ZeroInt()))
 
@@ -86,7 +86,7 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 
 func (suite *IntegrationTest) MigrateTestUnDelegate() {
 	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.Secp256k1Type, 0, 0)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
 	amount := sdkmath.NewInt(20).MulRaw(1e18)
 	suite.Send(fromAccAddress, suite.NewCoin(amount))
@@ -112,7 +112,7 @@ func (suite *IntegrationTest) MigrateTestUnDelegate() {
 	// ===> migration
 
 	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.EthSecp256k1Type, 0, 0)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
 
 	suite.migrateAccount(fromPrivKey, toPrivKey)

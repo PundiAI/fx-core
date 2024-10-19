@@ -80,7 +80,7 @@ func TestOracleSetConfirmSig(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		})
 	}
 }

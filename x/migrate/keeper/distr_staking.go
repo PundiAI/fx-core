@@ -65,7 +65,7 @@ func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, fro
 	return nil
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // copy from cosmos-sdk
 func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	stakingStore := ctx.KVStore(m.stakingKey)
 	distrStore := ctx.KVStore(m.distrKey)
@@ -122,19 +122,19 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, fr
 		// migrate unbonding queue
 		for _, entry := range ubd.Entries {
 			var ubdFlag bool
-			UBDQueue, err := m.stakingKeeper.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
+			dvPairs, err := m.stakingKeeper.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
 			if err != nil {
 				panic(err)
 			}
-			for i := range UBDQueue {
-				if UBDQueue[i].DelegatorAddress == from.String() {
-					UBDQueue[i].DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
+			for i := range dvPairs {
+				if dvPairs[i].DelegatorAddress == from.String() {
+					dvPairs[i].DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
 					ubdFlag = true
 				}
 			}
 			if ubdFlag {
 				key := stakingtypes.GetUnbondingDelegationTimeKey(entry.CompletionTime)
-				value := cdc.MustMarshal(&stakingtypes.DVPairs{Pairs: UBDQueue})
+				value := cdc.MustMarshal(&stakingtypes.DVPairs{Pairs: dvPairs})
 				stakingStore.Set(key, value)
 			}
 		}

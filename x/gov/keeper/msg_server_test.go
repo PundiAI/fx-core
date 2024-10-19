@@ -20,19 +20,19 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 	/*errInitCoin := helpers.NewStakingCoin(100, 18)
 	TestProposal := govv1beta1.NewTextProposal("Test", "description")
 	legacyContent, err := govv1.NewLegacyContent(TestProposal, suite.govAcct)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	initialDeposit := suite.App.GovKeeper.GetMinInitialDeposit(suite.Ctx, legacyContent.Content.TypeUrl)
 	suite.True(initialDeposit.IsGTE(errInitCoin))
 	errProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, sdk.NewCoins(errInitCoin), suite.newAddress().String(),
 		"", TestProposal.GetTitle(), TestProposal.GetDescription(), false)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	_, err = suite.msgServer.SubmitProposal(suite.Ctx, errProposalMsg)
 	suite.Error(err)
 	suite.EqualValues(fmt.Sprintf("initial deposit must be at least %s: invalid request", initialDeposit), err.Error())
 
 	differentMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent, &erc20types.MsgUpdateParams{Authority: suite.govAcct, Params: erc20types.DefaultParams()}}, sdk.NewCoins(errInitCoin), suite.newAddress().String(),
 		"", TestProposal.GetTitle(), TestProposal.GetDescription(), false)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	_, err = suite.msgServer.SubmitProposal(suite.Ctx, differentMsg)
 	suite.Error(err)
 	suite.EqualValues("proposal MsgTypeURL is different: invalid proposal type", err.Error())
@@ -41,9 +41,9 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 	suite.True(initialDeposit.IsLTE(successInitCoin))
 	successProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, sdk.NewCoins(successInitCoin), suite.newAddress().String(),
 		"", TestProposal.GetTitle(), TestProposal.GetDescription(), false)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	_, err = suite.msgServer.SubmitProposal(suite.Ctx, successProposalMsg)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	testCases := []struct {
 		testName       string
@@ -69,15 +69,15 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 	}
 	for _, tc := range testCases {
 		legacyContent, err = govv1.NewLegacyContent(tc.content, suite.govAcct)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		testProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, sdk.NewCoins(tc.initialDeposit), suite.newAddress().String(),
 			"", tc.content.GetTitle(), tc.content.GetDescription(), false)
-		suite.NoError(err)
-		suite.NoError(err)
+		suite.Require().NoError(err)
+		suite.Require().NoError(err)
 		proposalResponse, err := suite.msgServer.SubmitProposal(suite.Ctx, testProposalMsg)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		proposal, err := suite.App.GovKeeper.Keeper.Proposals.Get(suite.Ctx, proposalResponse.ProposalId)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.EqualValues(tc.status, proposal.Status)
 	}*/
 }
@@ -139,22 +139,22 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 			helpers.NewStakingCoins(1000, 18),
 			suite.newAddress().String(),
 			"", "community Pool Spend Proposal", "description", false)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		proposalResponse, err := suite.msgServer.SubmitProposal(suite.Ctx, testProposalMsg)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		proposal, err := suite.App.GovKeeper.Keeper.Proposals.Get(suite.Ctx, proposalResponse.ProposalId)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		if tc.votingPeriod {
 			suite.True(tc.expect.IsAllGTE(suite.App.GovKeeper.EGFProposalMinDeposit(suite.Ctx, sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{}), tc.amount)))
 			manyProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{spendProposal, spendProposal, spendProposal},
 				helpers.NewStakingCoins(1000, 18),
 				suite.newAddress().String(),
 				"", "community Pool Spend Proposal", "description", false)
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			proposalResponse, err = suite.msgServer.SubmitProposal(suite.Ctx, manyProposalMsg)
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			proposal, err = suite.App.GovKeeper.Keeper.Proposals.Get(suite.Ctx, proposalResponse.ProposalId)
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			suite.Require().EqualValues(proposal.Status, govv1.ProposalStatus_PROPOSAL_STATUS_DEPOSIT_PERIOD)
 			continue
 		}
@@ -203,16 +203,14 @@ func (suite *KeeperTestSuite) TestSubmitUpdateStoreProposal() {
 			},
 		},
 	}
-
 	for _, tc := range testCases {
 		msg := types.NewMsgUpdateStore(authtypes.NewModuleAddress(govtypes.ModuleName).String(), tc.updateStores)
 		_, err := suite.msgServer.UpdateStore(suite.Ctx, msg)
 		if tc.pass {
-			suite.NoError(err)
+			suite.Require().NoError(err)
 		} else {
 			suite.Error(err)
 		}
-
 	}
 }
 

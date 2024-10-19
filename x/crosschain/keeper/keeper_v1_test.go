@@ -130,9 +130,9 @@ func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, o
 	externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
 	gravityId := suite.Keeper().GetGravityID(suite.Ctx)
 	checkpoint, err := oracleSet.GetCheckpoint(gravityId)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	signature, err := types.NewEthereumSignature(checkpoint, external)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	if trontypes.ModuleName == suite.chainName {
 		externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
 
@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) SetToken(symbol string, bridgeDenoms ...string) {
 	// 	bridgeDenoms = []string{}
 	// }
 	// err := suite.Keeper().SetToken(suite.Ctx, "Test Token", symbol, 18, bridgeDenoms...)
-	// suite.NoError(err)
+	// suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) SetIBCDenom(portID, channelID, denom string) ibctransfertypes.DenomTrace {

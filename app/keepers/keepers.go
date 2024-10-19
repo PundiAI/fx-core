@@ -1,8 +1,6 @@
 package keepers
 
 import (
-	"os"
-
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
@@ -166,8 +164,7 @@ func NewAppKeeper(
 	appKeepers.GenerateKeys()
 
 	if err := bApp.RegisterStreamingServices(appOpts, appKeepers.keys); err != nil {
-		logger.Error("failed to load state streaming", "err", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	appKeepers.ParamsKeeper = initParamsKeeper(
@@ -564,8 +561,6 @@ func NewAppKeeper(
 		appCodec,
 		appKeepers.keys[migratetypes.StoreKey],
 		appKeepers.AccountKeeper,
-	)
-	appKeepers.MigrateKeeper = appKeepers.MigrateKeeper.SetMigrateI(
 		migratekeeper.NewBankMigrate(appKeepers.BankKeeper),
 		migratekeeper.NewDistrStakingMigrate(appKeepers.keys[distrtypes.StoreKey], appKeepers.keys[stakingtypes.StoreKey], appKeepers.StakingKeeper),
 		migratekeeper.NewGovMigrate(appKeepers.GovKeeper, appKeepers.AccountKeeper),

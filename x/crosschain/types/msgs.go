@@ -370,10 +370,10 @@ func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
 			return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 		}
 	}
-	return m.validateBasic()
+	return m.validate()
 }
 
-func (m *MsgBridgeCallClaim) validateBasic() (err error) {
+func (m *MsgBridgeCallClaim) validate() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
 	}

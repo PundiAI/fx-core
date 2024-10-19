@@ -11,7 +11,7 @@ import (
 
 func TestDefaultInitGenesisCustomParams(t *testing.T) {
 	defaultInitGenesisCustomParams := types.DefaultInitGenesisCustomParams()
-	require.EqualValues(t, 6, len(defaultInitGenesisCustomParams))
+	require.Len(t, defaultInitGenesisCustomParams, 6)
 
 	helpers.AssertJsonFile(t, "./init_genesis_custom_params.json", defaultInitGenesisCustomParams)
 }
