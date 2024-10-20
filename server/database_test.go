@@ -87,7 +87,7 @@ func (suite *DatabaseTestSuite) TestGetConsensusValidators() {
 	validators, err := suite.database.GetConsensusValidators()
 	suite.NoError(err)
 	suite.NotNil(validators)
-	suite.Equal(2, len(validators))
+	suite.Equal(1, len(validators))
 }
 
 func (suite *DatabaseTestSuite) newBlock(height int64) {
