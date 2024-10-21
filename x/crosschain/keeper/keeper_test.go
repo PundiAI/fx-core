@@ -128,7 +128,7 @@ func (s *KeeperMockSuite) SetupTest() {
 	s.queryClient = types.NewQueryClient(queryHelper)
 	s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
 
-	params := s.CrossChainParams()
+	params := s.CrosschainParams()
 	params.EnableSendToExternalPending = true
 	s.NoError(s.crosschainKeeper.SetParams(s.ctx, &params))
 }
@@ -137,7 +137,7 @@ func (s *KeeperMockSuite) SetupSubTest() {
 	s.SetupTest()
 }
 
-func (s *KeeperMockSuite) CrossChainParams() types.Params {
+func (s *KeeperMockSuite) CrosschainParams() types.Params {
 	switch s.moduleName {
 	case ethtypes.ModuleName:
 		return ethtypes.DefaultGenesisState().Params

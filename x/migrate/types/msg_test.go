@@ -55,7 +55,7 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err = tc.msg.ValidateBasic()
 			if tc.expectedErr == "" {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			} else {
 				require.EqualError(t, err, tc.expectedErr)
 			}

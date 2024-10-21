@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -28,7 +29,7 @@ func TestExecuteClaimMethod_PackInput(t *testing.T) {
 		Chain:      ethtypes.ModuleName,
 		EventNonce: big.NewInt(1),
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	expected := "4ac3bdc30000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000036574680000000000000000000000000000000000000000000000000000000000"
 	assert.Equal(t, expected, hex.EncodeToString(input))
 }

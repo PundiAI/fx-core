@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -35,7 +36,7 @@ type DistributionMsgServer interface {
 type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	SendCoins(ctx context.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoins(ctx context.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error
 	MintCoins(ctx context.Context, name string, amt sdk.Coins) error
 	BurnCoins(ctx context.Context, name string, amt sdk.Coins) error
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
@@ -46,7 +47,7 @@ type Erc20Keeper interface {
 	BaseCoinToEvm(ctx context.Context, holder common.Address, coin sdk.Coin) (string, error)
 
 	HasCache(ctx context.Context, key string) (bool, error)
-	SetCache(ctx context.Context, key string) error
+	SetCache(ctx context.Context, key string, amount sdkmath.Int) error
 	DeleteCache(ctx context.Context, key string) error
 
 	HasToken(ctx context.Context, token string) (bool, error)

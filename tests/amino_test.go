@@ -14,6 +14,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
@@ -202,7 +203,7 @@ func TestAminoEncode(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			app := helpers.NewApp()
 			aminoJson, err := app.LegacyAmino().MarshalJSON(testcase.msg)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, testcase.expected, string(sdk.MustSortJSON(aminoJson)))
 		})
 	}

@@ -46,7 +46,7 @@ func DefaultParams() Params {
 
 // ValidateBasic checks that the parameters have valid values.
 //
-//nolint:gocyclo
+//nolint:gocyclo // need to refactor
 func (m *Params) ValidateBasic() error {
 	if len(m.GravityId) == 0 {
 		return fmt.Errorf("gravityId cannpt be empty")

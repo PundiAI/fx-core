@@ -45,8 +45,9 @@ func TestNewAppKeeper(t *testing.T) {
 	checkStructField(t, valueOf, typeOf.Name())
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // for testing
 func checkStructField(t *testing.T, valueOf reflect.Value, name string) {
+	t.Helper()
 	valueOf = reflect.Indirect(valueOf)
 	if valueOf.Kind() != reflect.Struct ||
 		valueOf.Type().String() == "baseapp.MsgServiceRouter" {

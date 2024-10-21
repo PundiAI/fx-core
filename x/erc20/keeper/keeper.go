@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -37,7 +38,7 @@ type Keeper struct {
 	BridgeToken collections.Map[collections.Pair[string, string], types.BridgeToken] // baseDenom -> BridgeToken
 	IBCToken    collections.Map[collections.Pair[string, string], types.IBCToken]    // baseDenom -> IBCToken
 	DenomIndex  collections.Map[string, string]                                      // bridgeDenom/erc20_contract/ibc_denom -> baseDenom
-	Cache       collections.Map[string, collections.NoValue]                         // crosschain cache
+	Cache       collections.Map[string, sdkmath.Int]                                 // crosschain cache
 }
 
 // NewKeeper creates new instances of the erc20 Keeper
@@ -65,12 +66,12 @@ func NewKeeper(
 		evmErc20Keeper: evmErc20Keeper,
 		contractOwner:  common.BytesToAddress(moduleAddress),
 		authority:      authority,
-		Params:         collections.NewItem(sb, types.ParamsKey2, "params", codec.CollValue[types.Params](cdc)),
+		Params:         collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		ERC20Token:     collections.NewMap(sb, types.ERC20TokenKey, "erc20_token", collections.StringKey, codec.CollValue[types.ERC20Token](cdc)),
 		BridgeToken:    collections.NewMap(sb, types.BridgeTokenKey, "bridge_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.BridgeToken](cdc)),
 		IBCToken:       collections.NewMap(sb, types.IBCTokenKey, "ibc_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.IBCToken](cdc)),
 		DenomIndex:     collections.NewMap(sb, types.DenomIndexKey, "denom_index", collections.StringKey, collections.StringValue),
-		Cache:          collections.NewMap(sb, types.CacheKey, "cache", collections.StringKey, collections.NoValue{}),
+		Cache:          collections.NewMap(sb, types.CacheKey, "cache", collections.StringKey, sdk.IntValue),
 	}
 	schema, err := sb.Build()
 	if err != nil {

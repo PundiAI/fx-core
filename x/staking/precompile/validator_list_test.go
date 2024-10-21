@@ -19,8 +19,8 @@ import (
 func TestValidatorListABI(t *testing.T) {
 	validatorListMethod := precompile.NewValidatorListMethod(nil)
 
-	require.Equal(t, 1, len(validatorListMethod.Method.Inputs))
-	require.Equal(t, 1, len(validatorListMethod.Method.Outputs))
+	require.Len(t, validatorListMethod.Method.Inputs, 1)
+	require.Len(t, validatorListMethod.Method.Outputs, 1)
 }
 
 func (suite *PrecompileTestSuite) TestValidatorList() {
@@ -121,9 +121,9 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 					valList := make([]precompile.ValidatorList, 0, len(valsByPower))
 					for _, validator := range valsByPower {
 						consAddr, err := validator.GetConsAddr()
-						suite.NoError(err)
+						suite.Require().NoError(err)
 						info, err := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
-						suite.NoError(err)
+						suite.Require().NoError(err)
 						valList = append(valList, precompile.ValidatorList{
 							ValAddr:      validator.OperatorAddress,
 							MissedBlocks: info.MissedBlocksCounter,

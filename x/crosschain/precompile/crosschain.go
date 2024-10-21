@@ -17,34 +17,34 @@ import (
 )
 
 // Deprecated: please use BridgeCallMethod
-type CrossChainMethod struct {
+type CrosschainMethod struct {
 	*Keeper
 	abi.Method
 	abi.Event
 }
 
 // Deprecated: please use BridgeCallMethod
-func NewCrossChainMethod(keeper *Keeper) *CrossChainMethod {
-	return &CrossChainMethod{
+func NewCrosschainMethod(keeper *Keeper) *CrosschainMethod {
+	return &CrosschainMethod{
 		Keeper: keeper,
 		Method: crosschaintypes.GetABI().Methods["crossChain"],
 		Event:  crosschaintypes.GetABI().Events["CrossChain"],
 	}
 }
 
-func (m *CrossChainMethod) IsReadonly() bool {
+func (m *CrosschainMethod) IsReadonly() bool {
 	return false
 }
 
-func (m *CrossChainMethod) GetMethodId() []byte {
+func (m *CrosschainMethod) GetMethodId() []byte {
 	return m.Method.ID
 }
 
-func (m *CrossChainMethod) RequiredGas() uint64 {
+func (m *CrosschainMethod) RequiredGas() uint64 {
 	return 40_000
 }
 
-func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+func (m *CrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
@@ -92,12 +92,12 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 
 		amountCoin := sdk.NewCoin(baseCoin.Denom, sdkmath.NewIntFromBigInt(args.Amount))
 		feeCoin := sdk.NewCoin(baseCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
-		if err = crosschainKeeper.CrossChainBaseCoin(ctx, sender.Bytes(), args.Receipt,
+		if err = crosschainKeeper.CrosschainBaseCoin(ctx, sender.Bytes(), args.Receipt,
 			amountCoin, feeCoin, fxTarget, args.Memo, isOriginToken); err != nil {
 			return err
 		}
 
-		data, topic, err := m.NewCrossChainEvent(sender, args.Token, amountCoin.Denom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
+		data, topic, err := m.NewCrosschainEvent(sender, args.Token, amountCoin.Denom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
 		if err != nil {
 			return err
 		}
@@ -111,19 +111,19 @@ func (m *CrossChainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	return m.PackOutput(true)
 }
 
-func (m *CrossChainMethod) NewCrossChainEvent(sender common.Address, token common.Address, denom, receipt string, amount, fee *big.Int, target [32]byte, memo string) (data []byte, topic []common.Hash, err error) {
+func (m *CrosschainMethod) NewCrosschainEvent(sender, token common.Address, denom, receipt string, amount, fee *big.Int, target [32]byte, memo string) (data []byte, topic []common.Hash, err error) {
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, denom, receipt, amount, fee, target, memo)
 }
 
-func (m *CrossChainMethod) UnpackInput(data []byte) (*crosschaintypes.CrossChainArgs, error) {
-	args := new(crosschaintypes.CrossChainArgs)
+func (m *CrosschainMethod) UnpackInput(data []byte) (*crosschaintypes.CrosschainArgs, error) {
+	args := new(crosschaintypes.CrosschainArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
 	}
 	return args, nil
 }
 
-func (m *CrossChainMethod) PackInput(args crosschaintypes.CrossChainArgs) ([]byte, error) {
+func (m *CrosschainMethod) PackInput(args crosschaintypes.CrosschainArgs) ([]byte, error) {
 	data, err := m.Method.Inputs.Pack(args.Token, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
 	if err != nil {
 		return nil, err
@@ -131,6 +131,6 @@ func (m *CrossChainMethod) PackInput(args crosschaintypes.CrossChainArgs) ([]byt
 	return append(m.GetMethodId(), data...), nil
 }
 
-func (m *CrossChainMethod) PackOutput(success bool) ([]byte, error) {
+func (m *CrosschainMethod) PackOutput(success bool) ([]byte, error) {
 	return m.Method.Outputs.Pack(success)
 }

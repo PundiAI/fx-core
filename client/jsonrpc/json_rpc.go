@@ -243,14 +243,14 @@ func (c *NodeRPC) ABCIQuery(path string, data tmbytes.HexBytes) (*ctypes.ResultA
 }
 
 func (c *NodeRPC) BroadcastTxAsync(tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
-	return c.broadcastTX("broadcast_tx_async", tx)
+	return c.sendTx("broadcast_tx_async", tx)
 }
 
 func (c *NodeRPC) BroadcastTxSync(tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
-	return c.broadcastTX("broadcast_tx_sync", tx)
+	return c.sendTx("broadcast_tx_sync", tx)
 }
 
-func (c *NodeRPC) broadcastTX(route string, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+func (c *NodeRPC) sendTx(route string, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
 	result := new(ctypes.ResultBroadcastTx)
 	err := c.caller.Call(c.ctx, route, map[string]interface{}{"tx": tx}, result)
 	if err != nil {

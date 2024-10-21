@@ -65,7 +65,7 @@ func TestIntegrationTest(t *testing.T) {
 }
 
 func (suite *IntegrationTest) TestRun() {
-	suite.CrossChainTest()
+	suite.CrosschainTest()
 
 	suite.StakingTest()
 	suite.StakingContractTest()
@@ -89,7 +89,7 @@ func (suite *IntegrationTest) TestRun() {
 	suite.ByPassFeeTest()
 }
 
-func (suite *IntegrationTest) GetCrossChainByName(chainName string) CrosschainTestSuite {
+func (suite *IntegrationTest) GetByName(chainName string) CrosschainTestSuite {
 	for _, c := range suite.crosschain {
 		if c.chainName == chainName {
 			return c

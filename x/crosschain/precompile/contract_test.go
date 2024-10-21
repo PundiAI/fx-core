@@ -56,7 +56,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 
 	suite.signer = suite.AddTestSigner(10_000)
 
-	crosschainContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrossChainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrossChainTestMetaData.Bin))
+	crosschainContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrosschainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrosschainTestMetaData.Bin))
 	suite.Require().NoError(err)
 	suite.crosschain = crosschainContract
 }
@@ -94,11 +94,11 @@ func (suite *PrecompileTestSuite) Commit() {
 	_, err = suite.App.Commit()
 	suite.Require().NoError(err)
 	// after commit Ctx header
-	header.Height += 1
+	header.Height++
 
 	// begin block
 	header.Time = time.Now().UTC()
-	header.Height += 1
+	header.Height++
 	suite.Ctx = suite.Ctx.WithBlockHeader(header)
 	_, err = suite.App.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
@@ -113,8 +113,8 @@ func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
 	return signer
 }
 
-func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeeper.Keeper {
-	value := reflect.ValueOf(suite.App.CrossChainKeepers)
+func (suite *PrecompileTestSuite) CrosschainKeepers() map[string]crosschainkeeper.Keeper {
+	value := reflect.ValueOf(suite.App.CrosschainKeepers)
 	keepers := make(map[string]crosschainkeeper.Keeper)
 	for i := 0; i < value.NumField(); i++ {
 		res := value.Field(i).MethodByName("GetGravityID").Call([]reflect.Value{reflect.ValueOf(suite.Ctx)})
@@ -130,7 +130,7 @@ func (suite *PrecompileTestSuite) CrossChainKeepers() map[string]crosschainkeepe
 }
 
 func (suite *PrecompileTestSuite) GenerateModuleName() string {
-	keepers := suite.CrossChainKeepers()
+	keepers := suite.CrosschainKeepers()
 	modules := make([]string, 0, len(keepers))
 	for m := range keepers {
 		modules = append(modules, m)
@@ -142,7 +142,7 @@ func (suite *PrecompileTestSuite) GenerateModuleName() string {
 }
 
 func (suite *PrecompileTestSuite) GenerateOracles(moduleName string, online bool, num int) []Oracle {
-	keeper := suite.CrossChainKeepers()[moduleName]
+	keeper := suite.CrosschainKeepers()[moduleName]
 	oracles := make([]Oracle, 0, num)
 	for i := 0; i < num; i++ {
 		oracle := crosschaintypes.Oracle{

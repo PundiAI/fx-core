@@ -448,7 +448,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateTest() {
 	rewardAddress := sdk.AccAddress(helpers.NewEthPrivKey().PubKey().Address().Bytes())
 	txRsp := suite.staking.SetWithdrawAddressWithResponse(delSigner.PrivKey(), rewardAddress)
 	gasPrice, err := sdk.ParseCoinNormalized(suite.network.Config.MinGasPrices)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	gasFee := gasPrice.Amount.Mul(sdkmath.NewInt(txRsp.GasWanted))
 
 	hexAddr := common.BytesToAddress(delSigner.AccAddress().Bytes())

@@ -117,7 +117,7 @@ input
 output
   - armor encrypted private key (saved to file)
 */
-//nolint:gocyclo
+//nolint:gocyclo // copy from cosmos-sdk
 func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *bufio.Reader) error {
 	name := args[0]
 	if strings.TrimSpace(name) == "" {
@@ -327,7 +327,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 	return printCreate(cmd, info, showMnemonic, showMnemonicIndiscreetly, mnemonic, outputFormat)
 }
 
-func printCreate(cmd *cobra.Command, k *keyring.Record, showMnemonic, showMnemonicIndiscreetly bool, mnemonic string, outputFormat string) error {
+func printCreate(cmd *cobra.Command, k *keyring.Record, showMnemonic, showMnemonicIndiscreetly bool, mnemonic, outputFormat string) error {
 	switch outputFormat {
 	case OutputFormatText:
 		output, err := MkAccKeyOutput(k)

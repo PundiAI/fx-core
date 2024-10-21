@@ -26,10 +26,10 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	suite.MintToken(suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
-	suite.Require().Equal(len(keys), 1)
+	suite.Require().Len(keys, 1)
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
-	suite.Require().Equal(len(ethKeys), 1)
+	suite.Require().Len(ethKeys, 1)
 	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	validators, err := suite.App.StakingKeeper.GetValidators(suite.Ctx, 10)
@@ -89,10 +89,10 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	suite.MintToken(suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
-	suite.Require().Equal(len(keys), 1)
+	suite.Require().Len(keys, 1)
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
-	suite.Require().Equal(len(ethKeys), 1)
+	suite.Require().Len(ethKeys, 1)
 	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	validators, err := suite.App.StakingKeeper.GetValidators(suite.Ctx, 10)
@@ -120,13 +120,13 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 
 	unbondingDelegations, err := suite.App.StakingKeeper.GetAllUnbondingDelegations(suite.Ctx, acc)
 	suite.Require().NoError(err)
-	suite.Require().Equal(1, len(unbondingDelegations))
+	suite.Require().Len(unbondingDelegations, 1)
 	suite.Require().Equal(unbondingDelegations[0].Entries[0].CompletionTime, completionTime)
 	suite.Require().Equal(unbondingDelegations[0].DelegatorAddress, acc.String())
 
 	slice, err := suite.App.StakingKeeper.GetUBDQueueTimeSlice(suite.Ctx, completionTime)
 	suite.Require().NoError(err)
-	suite.Require().Equal(1, len(slice))
+	suite.Require().Len(slice, 1)
 	suite.Require().Equal(acc.String(), slice[0].DelegatorAddress)
 
 	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distritypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
@@ -144,17 +144,17 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 
 	unbondingDelegations, err = suite.App.StakingKeeper.GetAllUnbondingDelegations(suite.Ctx, acc)
 	suite.Require().NoError(err)
-	suite.Require().Equal(0, len(unbondingDelegations))
+	suite.Require().Empty(unbondingDelegations)
 
 	unbondingDelegations, err = suite.App.StakingKeeper.GetAllUnbondingDelegations(suite.Ctx, ethAcc.Bytes())
 	suite.Require().NoError(err)
-	suite.Require().Equal(1, len(unbondingDelegations))
+	suite.Require().Len(unbondingDelegations, 1)
 	suite.Require().Equal(unbondingDelegations[0].Entries[0].CompletionTime, completionTime)
 	suite.Require().Equal(unbondingDelegations[0].DelegatorAddress, sdk.AccAddress(ethAcc.Bytes()).String())
 
 	slice, err = suite.App.StakingKeeper.GetUBDQueueTimeSlice(suite.Ctx, completionTime)
 	suite.Require().NoError(err)
-	suite.Require().Equal(1, len(slice))
+	suite.Require().Len(slice, 1)
 	suite.Require().Equal(sdk.AccAddress(ethAcc.Bytes()).String(), slice[0].DelegatorAddress)
 
 	ethAccBalanceV1 := suite.App.BankKeeper.GetBalance(suite.Ctx, ethAcc.Bytes(), fxtypes.DefaultDenom)
@@ -172,10 +172,10 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	suite.MintToken(suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
-	suite.Require().Equal(len(keys), 1)
+	suite.Require().Len(keys, 1)
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
-	suite.Require().Equal(len(ethKeys), 1)
+	suite.Require().Len(ethKeys, 1)
 	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	validators, err := suite.App.StakingKeeper.GetValidators(suite.Ctx, 10)
@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 
 	queue, err := suite.App.StakingKeeper.GetRedelegationQueueTimeSlice(suite.Ctx, completionTime)
 	suite.Require().NoError(err)
-	suite.Require().Equal(int(entries), len(queue))
+	suite.Require().Len(queue, int(entries))
 	suite.Require().Equal(queue[0].DelegatorAddress, acc.String())
 
 	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distritypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
@@ -233,7 +233,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 
 	queue, err = suite.App.StakingKeeper.GetRedelegationQueueTimeSlice(suite.Ctx, completionTime)
 	suite.Require().NoError(err)
-	suite.Require().Equal(int(entries), len(queue))
+	suite.Require().Len(queue, int(entries))
 	suite.Require().Equal(queue[0].DelegatorAddress, sdk.AccAddress(ethAcc.Bytes()).String())
 }
 
@@ -252,6 +252,7 @@ func GetDelegateRewards(ctx sdk.Context, app *app.App, delegate []byte, validato
 }
 
 func commitUnbonding(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
+	t.Helper()
 	i := 0
 	for i < 70 {
 		ctx = commitBlock(t, ctx, app)
@@ -261,6 +262,7 @@ func commitUnbonding(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
 }
 
 func commitBlock(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
+	t.Helper()
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
 

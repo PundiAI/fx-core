@@ -54,6 +54,7 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 }
 
 func buildApp(t *testing.T) *app.App {
+	t.Helper()
 	fxtypes.SetConfig(true)
 
 	home := filepath.Join(os.Getenv("HOME"), "tmp")
@@ -69,6 +70,7 @@ func buildApp(t *testing.T) *app.App {
 }
 
 func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) sdk.Context {
+	t.Helper()
 	header := tmproto.Header{
 		ChainID: chainId,
 		Height:  myApp.LastBlockHeight(),
@@ -89,20 +91,32 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 	// set the first validator to proposer
 	validators, err := myApp.StakingKeeper.GetAllValidators(ctx)
 	require.NoError(t, err)
-	assert.True(t, len(validators) > 0)
+	assert.NotEmpty(t, validators)
 	var pubKey cryptotypes.PubKey
-	assert.NoError(t, myApp.AppCodec().UnpackAny(validators[0].ConsensusPubkey, &pubKey))
+	require.NoError(t, myApp.AppCodec().UnpackAny(validators[0].ConsensusPubkey, &pubKey))
 	ctx = ctx.WithProposer(pubKey.Address().Bytes())
 	return ctx
 }
 
 func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
 	checkStakingMigrationDelete(t, ctx, myApp)
 
 	checkGovCustomParams(t, ctx, myApp)
+
+	checkErc20Keys(t, ctx, myApp)
+}
+
+func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+	params, err := myApp.Erc20Keeper.Params.Get(ctx)
+	require.NoError(t, err)
+
+	require.True(t, params.EnableErc20)
 }
 
 func checkGovCustomParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
 	egfCustomParams, found := myApp.GovKeeper.GetCustomParams(ctx, sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{}))
 	require.True(t, found)
 	expectEGFParams := fxgovtypes.NewCustomParams(fxgovtypes.EGFCustomParamDepositRatio.String(), fxgovtypes.DefaultEGFCustomParamVotingPeriod, fxgovtypes.DefaultCustomParamQuorum40.String())
@@ -112,11 +126,13 @@ func checkGovCustomParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
 }
 
 func checkStakingMigrationDelete(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
 	checkKeysIsDelete(t, ctx.KVStore(myApp.GetKey(stakingtypes.StoreKey)), fxstakingv8.GetRemovedStoreKeys())
 }
 
 func checkKeysIsDelete(t *testing.T, kvStore storetypes.KVStore, keys [][]byte) {
-	require.Greater(t, len(keys), 0)
+	t.Helper()
+	require.NotEmpty(t, keys)
 	checkFn := func(key []byte) {
 		iterator := storetypes.KVStorePrefixIterator(kvStore, key)
 		defer iterator.Close()

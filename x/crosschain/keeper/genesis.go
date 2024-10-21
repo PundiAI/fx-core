@@ -9,7 +9,7 @@ import (
 
 // InitGenesis import module genesis
 //
-//nolint:gocyclo
+//nolint:gocyclo // need to refactor
 func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	if err := k.SetParams(ctx, &state.Params); err != nil {
 		panic(err)
@@ -97,7 +97,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	// reset attestation state of specific validators
 	// this must be done after the above to be correct
 	for i := 0; i < len(state.Attestations); i++ {
-
 		att := state.Attestations[i]
 		claim := types.MustUnpackAttestationClaim(k.cdc, &att)
 		// reconstruct the latest event nonce for every validator

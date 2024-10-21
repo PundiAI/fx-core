@@ -23,8 +23,8 @@ import (
 func TestStakingDelegationRewardsABI(t *testing.T) {
 	delegationRewardMethod := precompile.NewDelegationRewardsMethod(nil)
 
-	require.Equal(t, 2, len(delegationRewardMethod.Method.Inputs))
-	require.Equal(t, 1, len(delegationRewardMethod.Method.Outputs))
+	require.Len(t, delegationRewardMethod.Method.Inputs, 2)
+	require.Len(t, delegationRewardMethod.Method.Outputs, 1)
 }
 
 func (suite *PrecompileTestSuite) TestDelegationRewards() {

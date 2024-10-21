@@ -14,7 +14,7 @@ type RouterKeeper struct {
 	router Router
 }
 
-// NewRouterKeeper returns a new instance of the cross chain keeper
+// NewRouterKeeper returns a new instance of the crosschain keeper
 func NewRouterKeeper(rtr Router) RouterKeeper {
 	rtr.Seal()
 

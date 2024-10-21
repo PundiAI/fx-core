@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 )
@@ -12,7 +13,7 @@ import (
 func Test_doctorCmd(t *testing.T) {
 	cmd := doctorCmd()
 	cmd.SetArgs([]string{})
-	assert.NoError(t, cmd.Execute())
+	require.NoError(t, cmd.Execute())
 }
 
 func Test_getGenesisSha256(t *testing.T) {

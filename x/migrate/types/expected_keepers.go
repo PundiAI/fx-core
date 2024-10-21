@@ -6,7 +6,7 @@ import (
 
 	addresscodec "cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -31,7 +31,7 @@ type AccountKeeper interface {
 // BankKeeper defines the expected bank keeper methods
 type BankKeeper interface {
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
-	SendCoins(ctx context.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoins(ctx context.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
 type GovKeeper interface {

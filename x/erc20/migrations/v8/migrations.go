@@ -15,7 +15,7 @@ type Migrator struct {
 	cdc               codec.BinaryCodec
 	keeper            keeper.Keeper
 	bankKeeper        bankkeeper.Keeper
-	crossChainKeepers []crosschainkeeper.Keeper
+	crosschainKeepers []crosschainkeeper.Keeper
 }
 
 func NewMigrator(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, keeper keeper.Keeper, bk bankkeeper.Keeper, cks []crosschainkeeper.Keeper) Migrator {
@@ -24,11 +24,14 @@ func NewMigrator(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, keeper kee
 		cdc:               cdc,
 		keeper:            keeper,
 		bankKeeper:        bk,
-		crossChainKeepers: cks,
+		crosschainKeepers: cks,
 	}
 }
 
 // Migrate3to4 migrates from version 3 to 4.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
+	if err := m.migrateKeys(ctx); err != nil {
+		return err
+	}
 	return m.MigrateToken(ctx)
 }

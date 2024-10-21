@@ -55,7 +55,7 @@ func (s *KeeperTestSuite) BurnEvmRefundFee(addr sdk.AccAddress, coins sdk.Coins)
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) AssertContractAddr(singer common.Address, newContractAddr common.Address) {
+func (s *KeeperTestSuite) AssertContractAddr(singer, newContractAddr common.Address) {
 	nonce, err := s.App.AccountKeeper.GetSequence(s.Ctx, singer.Bytes())
 	s.NoError(err)
 

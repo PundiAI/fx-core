@@ -485,7 +485,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	return crypto.Keccak256Hash(abiEncodedBatch[4:]).Bytes(), nil
 }
 
-func NewBridgeDenom(moduleName string, token string) string {
+func NewBridgeDenom(moduleName, token string) string {
 	return fmt.Sprintf("%s%s", moduleName, token)
 }
 

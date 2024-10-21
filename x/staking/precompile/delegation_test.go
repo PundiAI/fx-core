@@ -20,8 +20,8 @@ import (
 func TestStakingDelegationABI(t *testing.T) {
 	delegationMethod := precompile.NewDelegationMethod(nil)
 
-	require.Equal(t, 2, len(delegationMethod.Method.Inputs))
-	require.Equal(t, 2, len(delegationMethod.Method.Outputs))
+	require.Len(t, delegationMethod.Method.Inputs, 2)
+	require.Len(t, delegationMethod.Method.Outputs, 2)
 }
 
 func (suite *PrecompileTestSuite) TestDelegation() {

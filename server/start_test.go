@@ -26,7 +26,7 @@ import (
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
 
-var errCancelledInPreRun = errors.New("cancelled in prerun")
+var errCancelledInPreRun = errors.New("canceled in prerun")
 
 // Used in each test to run the function under test via Cobra
 // but to always halt the command
@@ -256,6 +256,7 @@ type precedenceCommon struct {
 }
 
 func newPrecedenceCommon(t *testing.T) precedenceCommon {
+	t.Helper()
 	retval := precedenceCommon{}
 
 	// Determine the env. var. name based off the executable name
@@ -296,7 +297,8 @@ func newPrecedenceCommon(t *testing.T) precedenceCommon {
 	return retval
 }
 
-func (v precedenceCommon) setAll(t *testing.T, setFlag *string, setEnvVar *string, setConfigFile *string) {
+func (v precedenceCommon) setAll(t *testing.T, setFlag, setEnvVar, setConfigFile *string) {
+	t.Helper()
 	if setFlag != nil {
 		if err := v.cmd.Flags().Set(v.flagName, *setFlag); err != nil {
 			t.Fatalf("Failed setting flag %q", v.flagName)
@@ -443,5 +445,5 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	}
 	err = cmd.ExecuteContext(ctx)
 	require.Errorf(t, err, sdkerrors.ErrAppConfig.Error())
-	require.Equal(t, err.Error(), "set min gas price in app.toml or flag or env variable: error in app.toml")
+	require.Equal(t, "set min gas price in app.toml or flag or env variable: error in app.toml", err.Error())
 }

@@ -54,12 +54,12 @@ func TestPackBridgeCallback(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := types.PackBridgeCallback(tt.args.sender, tt.args.receiver, tt.args._tokens, tt.args._amounts, tt.args.data, tt.args.memo)
 			if tt.err != nil {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.EqualValues(t, tt.err.Error(), err.Error())
 				return
 			}
 
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.EqualValues(t, tt.expected, hex.EncodeToString(result))
 		})
 	}

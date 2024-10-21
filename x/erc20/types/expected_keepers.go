@@ -36,9 +36,9 @@ type EvmERC20Keeper interface {
 	ERC20Symbol(ctx context.Context, contractAddr common.Address) (string, error)
 	ERC20Decimals(ctx context.Context, contractAddr common.Address) (uint8, error)
 
-	ERC20Mint(ctx context.Context, contractAddr common.Address, from, receiver common.Address, amount *big.Int) error
-	ERC20Burn(ctx context.Context, contractAddr common.Address, from, account common.Address, amount *big.Int) error
-	ERC20Transfer(ctx context.Context, contractAddr common.Address, from, receiver common.Address, amount *big.Int) error
+	ERC20Mint(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error
+	ERC20Burn(ctx context.Context, contractAddr, from, account common.Address, amount *big.Int) error
+	ERC20Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on erc20

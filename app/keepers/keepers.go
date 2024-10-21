@@ -1,8 +1,6 @@
 package keepers
 
 import (
-	"os"
-
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
@@ -88,7 +86,7 @@ import (
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
-type CrossChainKeepers struct {
+type CrosschainKeepers struct {
 	BscKeeper       crosschainkeeper.Keeper
 	PolygonKeeper   crosschainkeeper.Keeper
 	AvalancheKeeper crosschainkeeper.Keeper
@@ -99,7 +97,7 @@ type CrossChainKeepers struct {
 	Layer2Keeper    crosschainkeeper.Keeper
 }
 
-func (c CrossChainKeepers) ToSlice() []crosschainkeeper.Keeper {
+func (c CrosschainKeepers) ToSlice() []crosschainkeeper.Keeper {
 	return []crosschainkeeper.Keeper{
 		c.BscKeeper, c.PolygonKeeper, c.AvalancheKeeper, c.EthKeeper,
 		c.TronKeeper, c.ArbitrumKeeper, c.OptimismKeeper, c.Layer2Keeper,
@@ -140,7 +138,7 @@ type AppKeepers struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	CrosschainRouterKeeper crosschainkeeper.RouterKeeper
-	CrossChainKeepers
+	CrosschainKeepers
 
 	EvmKeeper       *fxevmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
@@ -166,8 +164,7 @@ func NewAppKeeper(
 	appKeepers.GenerateKeys()
 
 	if err := bApp.RegisterStreamingServices(appOpts, appKeepers.keys); err != nil {
-		logger.Error("failed to load state streaming", "err", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	appKeepers.ParamsKeeper = initParamsKeeper(
@@ -329,8 +326,8 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(feemarkettypes.ModuleName),
 	)
 
-	// cross chain precompile
-	precompileRouter := crosschainprecompile.NewRouter()
+	// crosschain precompile
+	crosschainPrecompileRouter := crosschainprecompile.NewRouter()
 	evmKeeper := evmkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[evmtypes.StoreKey],
@@ -345,7 +342,7 @@ func NewAppKeeper(
 		[]evmkeeper.CustomContractFn{
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return crosschainprecompile.NewPrecompiledContract(
-					appKeepers.BankKeeper, appKeepers.GovKeeper, precompileRouter)
+					appKeepers.BankKeeper, appKeepers.GovKeeper, crosschainPrecompileRouter)
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return stakingprecompile.NewPrecompiledContract(
@@ -371,7 +368,7 @@ func NewAppKeeper(
 		authAddr,
 	)
 
-	// init cross chain module
+	// init crosschain module
 	appKeepers.BscKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
 		bsctypes.ModuleName,
@@ -507,8 +504,8 @@ func NewAppKeeper(
 
 	appKeepers.CrosschainRouterKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
-	// cross chain precompile
-	precompileRouter.
+	// crosschain precompile
+	crosschainPrecompileRouter.
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
 		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
@@ -517,6 +514,7 @@ func NewAppKeeper(
 		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
 		AddRoute(layer2types.ModuleName, appKeepers.Layer2Keeper).
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
+	crosschainPrecompileRouter.Seal()
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
@@ -550,8 +548,7 @@ func NewAppKeeper(
 		appCodec,
 		authAddr,
 	)
-	appKeepers.IBCMiddlewareKeeper = ibcmiddlewarekeeper.NewKeeper(appCodec, appKeepers.EvmKeeper,
-		appKeepers.EthKeeper) // TODO: replace by crosschain keeper
+	appKeepers.IBCMiddlewareKeeper = ibcmiddlewarekeeper.NewKeeper(appCodec, appKeepers.EvmKeeper, appKeepers.EthKeeper)
 	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
 	transferIBCModule := ibcmiddleware.NewIBCMiddleware(appKeepers.IBCMiddlewareKeeper, appKeepers.IBCKeeper.ChannelKeeper, ibcTransferModule)
 
@@ -564,8 +561,6 @@ func NewAppKeeper(
 		appCodec,
 		appKeepers.keys[migratetypes.StoreKey],
 		appKeepers.AccountKeeper,
-	)
-	appKeepers.MigrateKeeper = appKeepers.MigrateKeeper.SetMigrateI(
 		migratekeeper.NewBankMigrate(appKeepers.BankKeeper),
 		migratekeeper.NewDistrStakingMigrate(appKeepers.keys[distrtypes.StoreKey], appKeepers.keys[stakingtypes.StoreKey], appKeepers.StakingKeeper),
 		migratekeeper.NewGovMigrate(appKeepers.GovKeeper, appKeepers.AccountKeeper),

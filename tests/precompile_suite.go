@@ -35,7 +35,7 @@ func (suite *PrecompileTestSuite) HexAddress() common.Address {
 	return common.BytesToAddress(suite.privKey.PubKey().Address())
 }
 
-func (suite *PrecompileTestSuite) TransferCrossChain(token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
+func (suite *PrecompileTestSuite) TransferCrosschain(token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
 	privateKey := suite.privKey
 	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
 	pack, err := contract.GetFIP20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
@@ -48,15 +48,15 @@ func (suite *PrecompileTestSuite) TransferCrossChain(token common.Address, recip
 	return ethTx
 }
 
-func (suite *PrecompileTestSuite) CrossChainAndResponse(token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
+func (suite *PrecompileTestSuite) CrosschainAndResponse(token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
 	privateKey := suite.privKey
-	crossChainContract := crosschaintypes.GetAddress()
-	suite.ApproveERC20(privateKey, token, crossChainContract, big.NewInt(0).Add(amount, fee))
+	crosschainContract := crosschaintypes.GetAddress()
+	suite.ApproveERC20(privateKey, token, crosschainContract, big.NewInt(0).Add(amount, fee))
 
 	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
 	pack, err := crosschaintypes.GetABI().Pack("crossChain", token, recipient, amount, fee, fxtypes.MustStrToByte32(target), "")
 	suite.Require().NoError(err)
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crossChainContract, nil, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crosschainContract, nil, pack)
 	suite.Require().NoError(err, target)
 	suite.SendTransaction(ethTx)
 	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))

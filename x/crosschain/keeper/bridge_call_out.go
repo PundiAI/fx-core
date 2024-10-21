@@ -72,7 +72,7 @@ func (k Keeper) AddOutgoingBridgeCallWithoutBuild(ctx sdk.Context, outCall *type
 	return outCall.Nonce
 }
 
-func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender common.Address, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data []byte, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
+func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, GetBridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
 		return nil, types.ErrInvalid.Wrapf("bridge call timeout height")
@@ -247,6 +247,8 @@ func (k Keeper) BridgeCallBaseCoin(
 	fxTarget *types.FxTarget,
 	originTokenAmount sdkmath.Int,
 ) (uint64, error) {
+	var cacheKey string
+	var nonce uint64
 	if fxTarget.IsIBC() {
 		if !coins.IsValid() || len(coins) != 1 {
 			return 0, sdkerrors.ErrInvalidCoins.Wrapf("ibc transfer with coins: %s", coins.String())
@@ -260,23 +262,28 @@ func (k Keeper) BridgeCallBaseCoin(
 		if err != nil {
 			return 0, err
 		}
-		sequence, err := k.IBCTransfer(ctx, from.Bytes(), toAddr, ibcCoin, fxTarget.IBCChannel, string(memo))
+		nonce, err = k.IBCTransfer(ctx, from.Bytes(), toAddr, ibcCoin, fxTarget.IBCChannel, string(memo))
 		if err != nil {
 			return 0, err
 		}
-		if originTokenAmount.IsPositive() {
-			ibcTransferKey := types.NewIBCTransferKey(fxTarget.IBCChannel, sequence)
-			if err = k.erc20Keeper.SetCache(ctx, ibcTransferKey); err != nil {
-				return 0, err
-			}
+		cacheKey = types.NewIBCTransferKey(fxTarget.IBCChannel, nonce)
+	} else {
+		var err error
+		if nonce, err = k.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, 0); err != nil {
+			return 0, err
 		}
-		return sequence, nil
+		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)
 	}
-	// todo record origin amount
-	return k.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, 0)
+
+	if originTokenAmount.IsPositive() {
+		if err := k.erc20Keeper.SetCache(ctx, cacheKey, originTokenAmount); err != nil {
+			return 0, err
+		}
+	}
+	return nonce, nil
 }
 
-func (k Keeper) CrossChainBaseCoin(
+func (k Keeper) CrosschainBaseCoin(
 	ctx sdk.Context,
 	from sdk.AccAddress,
 	receipt string,
@@ -301,7 +308,7 @@ func (k Keeper) CrossChainBaseCoin(
 	}
 
 	if originToken {
-		return k.erc20Keeper.SetCache(ctx, cacheKey)
+		return k.erc20Keeper.SetCache(ctx, cacheKey, amount.Amount.Add(fee.Amount))
 	}
 	return nil
 }

@@ -11,16 +11,16 @@ import (
 )
 
 var (
-	crossChainAddress = common.HexToAddress(contract.CrossChainAddress)
-	crossChainABI     = contract.MustABIJson(contract.ICrossChainMetaData.ABI)
+	crosschainAddress = common.HexToAddress(contract.CrosschainAddress)
+	crosschainABI     = contract.MustABIJson(contract.ICrosschainMetaData.ABI)
 )
 
 func GetAddress() common.Address {
-	return crossChainAddress
+	return crosschainAddress
 }
 
 func GetABI() abi.ABI {
-	return crossChainABI
+	return crosschainABI
 }
 
 type BridgeCoinAmountArgs struct {
@@ -50,7 +50,7 @@ func (args *CancelSendToExternalArgs) Validate() error {
 	return nil
 }
 
-type CrossChainArgs struct {
+type CrosschainArgs struct {
 	Token   common.Address `abi:"_token"`
 	Receipt string         `abi:"_receipt"`
 	Amount  *big.Int       `abi:"_amount"`
@@ -59,7 +59,7 @@ type CrossChainArgs struct {
 	Memo    string         `abi:"_memo"`
 }
 
-func (args *CrossChainArgs) Validate() error {
+func (args *CrosschainArgs) Validate() error {
 	if args.Receipt == "" {
 		return errors.New("empty receipt")
 	}

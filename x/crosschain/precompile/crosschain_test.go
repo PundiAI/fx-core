@@ -8,11 +8,11 @@ import (
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
 )
 
-func TestCrossChainABI(t *testing.T) {
-	crossChain := precompile.NewCrossChainMethod(nil)
+func TestCrosschainABI(t *testing.T) {
+	crosschain := precompile.NewCrosschainMethod(nil)
 
-	require.Equal(t, 6, len(crossChain.Method.Inputs))
-	require.Equal(t, 1, len(crossChain.Method.Outputs))
+	require.Len(t, crosschain.Method.Inputs, 6)
+	require.Len(t, crosschain.Method.Outputs, 1)
 
-	require.Equal(t, 8, len(crossChain.Event.Inputs))
+	require.Len(t, crosschain.Event.Inputs, 8)
 }

@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 			// check delegate
 			oracleDelegateAddr := oracle.GetDelegateAddress(suite.chainName)
 			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, oracleDelegateAddr, suite.ValAddr[oracleIndex])
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(msg.ValidatorAddress, delegation.ValidatorAddress)
 			suite.Truef(msg.DelegateAmount.Amount.Equal(delegation.GetShares().TruncateInt()), "expect:%s,actual:%s", msg.DelegateAmount.Amount.String(), delegation.GetShares().TruncateInt().String())
@@ -321,7 +321,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			// check delegate
 			oracleDelegateAddr := oracle.GetDelegateAddress(suite.chainName)
 			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, oracleDelegateAddr, suite.ValAddr[oracleIndex])
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(oracle.DelegateValidator, delegation.ValidatorAddress)
 			suite.Truef(expectDelegateAmount.Equal(delegation.GetShares().TruncateInt()), "expect:%s,actual:%s", expectDelegateAmount.String(), delegation.GetShares().TruncateInt().String())
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 			ChainName:        suite.chainName,
 		}
 		_, err := suite.MsgServer().BondedOracle(suite.Ctx, bondedMsg)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 	}
 
 	for i := 0; i < len(suite.oracleAddrs); i++ {
@@ -363,7 +363,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 			OracleAddress:  suite.oracleAddrs[i].String(),
 			BridgerAddress: sdk.AccAddress(suite.ValAddr[i]).String(),
 		})
-		suite.NoError(err)
+		suite.Require().NoError(err)
 	}
 
 	for _, bridger := range suite.bridgerAddrs {
@@ -556,7 +556,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 }
 
 func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
-	gasStatics := func(gasConsumed, maxGas uint64, minGas uint64, avgGas uint64) (uint64, uint64, uint64) {
+	gasStatics := func(gasConsumed, maxGas, minGas, avgGas uint64) (uint64, uint64, uint64) {
 		if gasConsumed > maxGas {
 			maxGas = gasConsumed
 		}

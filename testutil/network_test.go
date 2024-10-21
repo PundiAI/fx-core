@@ -48,14 +48,14 @@ func (suite *NetworkTestSuite) TearDownSuite() {
 func (suite *NetworkTestSuite) TestNetworkLiveness() {
 	height := int64(3)
 	latestHeight, err := suite.network.LatestHeight()
-	suite.NoError(err, "latest height failed")
+	suite.Require().NoError(err, "latest height failed")
 	suite.GreaterOrEqual(height, latestHeight)
 
 	gotHeight, err := suite.network.WaitForHeightWithTimeout(height, time.Second*3)
-	suite.NoError(err, "expected to reach %d blocks; got %d", height, gotHeight)
+	suite.Require().NoError(err, "expected to reach %d blocks; got %d", height, gotHeight)
 
 	latestHeight, err = suite.network.LatestHeight()
-	suite.NoError(err, "latest height failed")
+	suite.Require().NoError(err, "latest height failed")
 	suite.GreaterOrEqual(latestHeight, gotHeight)
 }
 
@@ -68,17 +68,17 @@ func (suite *NetworkTestSuite) TestValidatorInfo() {
 		mnemonic := suite.network.Config.Mnemonics[i]
 
 		key, err := validator.ClientCtx.Keyring.Key(validator.Ctx.Config.Moniker)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		addr, err := key.GetAddress()
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(addr, validator.Address)
-		suite.Equal(key.GetType().String(), "local")
+		suite.Equal("local", key.GetType().String())
 
 		keyringAlgos1, _ := validator.ClientCtx.Keyring.SupportedAlgorithms()
 		suite.Equal(keyringAlgos1, hd2.SupportedAlgorithms)
 
 		privKey, err := helpers.PrivKeyFromMnemonic(mnemonic, hd.Secp256k1Type, 0, 0)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(validator.Address.Bytes(), privKey.PubKey().Address().Bytes())
 	}
 }
@@ -86,14 +86,14 @@ func (suite *NetworkTestSuite) TestValidatorInfo() {
 func (suite *NetworkTestSuite) TestValidatorsPower() {
 	for _, val := range suite.network.Validators {
 		result, err := val.RPCClient.Validators(context.Background(), nil, nil, nil)
-		suite.NoError(err)
-		suite.Equal(result.Total, 4)
+		suite.Require().NoError(err)
+		suite.Equal(4, result.Total)
 		suite.Equal(len(result.Validators), result.Total)
 		var totalProposerPriority int64
 		for _, validator := range result.Validators {
 			totalProposerPriority += validator.ProposerPriority
-			suite.Equal(validator.VotingPower, int64(100))
+			suite.Equal(int64(100), validator.VotingPower)
 		}
-		suite.Equal(totalProposerPriority, int64(0))
+		suite.Equal(int64(0), totalProposerPriority)
 	}
 }

@@ -3,13 +3,13 @@
 pragma solidity ^0.8.0;
 
 /* solhint-disable no-global-import */
-import "../bridge/ICrossChain.sol";
+import "../bridge/ICrosschain.sol";
 import "../fip20/IFIP20Upgradable.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
 
-contract CrossChainTest {
+contract CrosschainTest {
     address public constant CROSS_CHAIN_ADDRESS =
         address(0x0000000000000000000000000000000000001004);
 
@@ -50,7 +50,7 @@ contract CrossChainTest {
         }
 
         return
-            ICrossChain(CROSS_CHAIN_ADDRESS).crossChain{value: msg.value}(
+            ICrosschain(CROSS_CHAIN_ADDRESS).crossChain{value: msg.value}(
                 _token,
                 _receipt,
                 _amount,
@@ -65,7 +65,7 @@ contract CrossChainTest {
         bytes32 _target
     ) external view returns (uint256) {
         return
-            ICrossChain(CROSS_CHAIN_ADDRESS).bridgeCoinAmount(_token, _target);
+            ICrosschain(CROSS_CHAIN_ADDRESS).bridgeCoinAmount(_token, _target);
     }
 
     function bridgeCall(
@@ -79,7 +79,7 @@ contract CrossChainTest {
         bytes memory _memo
     ) internal returns (uint256) {
         return
-            ICrossChain(CROSS_CHAIN_ADDRESS).bridgeCall(
+            ICrosschain(CROSS_CHAIN_ADDRESS).bridgeCall(
                 _dstChain,
                 _receiver,
                 _tokens,

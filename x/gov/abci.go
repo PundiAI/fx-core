@@ -11,14 +11,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
-	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/functionx/fx-core/v8/x/gov/keeper"
 )
 
 // EndBlocker called every block, process inflation, update validator set.
 //
-//nolint:gocyclo
+//nolint:gocyclo // copy from cosmos-sdk
 func EndBlocker(ctx sdk.Context, keeper *keeper.Keeper) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, telemetry.Now(), telemetry.MetricKeyEndBlocker)
 

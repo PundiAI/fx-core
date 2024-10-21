@@ -25,15 +25,16 @@ type Keeper struct {
 	// account keeper
 	accountKeeper types.AccountKeeper
 	// Migrate handlers
-	migrateI []MigrateI
+	migrates []MigrateI
 }
 
 // NewKeeper generates new fee market module keeper
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper, migrates ...MigrateI) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
 		accountKeeper: ak,
+		migrates:      migrates,
 	}
 }
 
@@ -42,15 +43,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-// SetMigrateI set migrate handlers
-func (k Keeper) SetMigrateI(migrate ...MigrateI) Keeper {
-	k.migrateI = migrate
-	return k
-}
-
 // GetMigrateI get all migrate handlers
 func (k Keeper) GetMigrateI() []MigrateI {
-	return k.migrateI
+	return k.migrates
 }
 
 // SetMigrateRecord set from and to migrate record

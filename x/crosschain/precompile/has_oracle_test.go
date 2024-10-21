@@ -12,10 +12,10 @@ import (
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
-func TestCrossChainHasOracleABI(t *testing.T) {
+func TestCrosschainHasOracleABI(t *testing.T) {
 	method := precompile.NewHasOracleMethod(nil)
-	require.Equal(t, 2, len(method.Method.Inputs))
-	require.Equal(t, 1, len(method.Method.Outputs))
+	require.Len(t, method.Method.Inputs, 2)
+	require.Len(t, method.Method.Outputs, 1)
 }
 
 func (suite *PrecompileTestSuite) TestHasOracle() {

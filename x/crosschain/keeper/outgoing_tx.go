@@ -12,7 +12,7 @@ import (
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
-func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
 	bridgeToken, err := k.BaseCoinToBridgeToken(ctx, sender, amount.Add(fee))
 	if err != nil {
 		return 0, err
@@ -204,7 +204,7 @@ func (k Keeper) GetLastOutgoingBatchByToken(ctx sdk.Context, token string) *type
 }
 
 // IterateBatchByBlockHeight iterates through all Batch by block in the half-open interval [start,end)
-func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uint64, cb func(*types.OutgoingTxBatch) bool) {
+func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start, end uint64, cb func(*types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
 	startKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(start)...)
 	endKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(end)...)

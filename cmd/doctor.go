@@ -78,10 +78,7 @@ func doctorCmd() *cobra.Command {
 			if err = checkTmConfig(serverCtx.Config, needUpgrade); err != nil {
 				return err
 			}
-			if err = checkCosmovisor(serverCtx.Config.RootDir, bc); err != nil {
-				return err
-			}
-			return nil
+			return checkCosmovisor(serverCtx.Config.RootDir, bc)
 		},
 	}
 	cmd.Flags().String(flags.FlagHome, fxtypes.GetDefaultNodeHome(), "The application home directory")
@@ -203,7 +200,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockch
 	return database, nil
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // for debugging
 func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) (bool, error) {
 	if bc == nil {
 		return false, nil
@@ -374,7 +371,7 @@ func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
 	return nil
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // for debugging
 func checkCosmovisor(rootPath string, bc blockchain) error {
 	cosmovisorPath := filepath.Join(rootPath, "cosmovisor")
 	if _, err := os.Stat(cosmovisorPath); err != nil {

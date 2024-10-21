@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 )
@@ -62,7 +63,7 @@ func TestRegisterInterfaces(t *testing.T) {
 	}
 	for _, implementation := range result.Msgs {
 		resolvedMsg, err := app.InterfaceRegistry().Resolve(implementation)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		if _, ok := resolvedMsg.(govProposalMsg); ok {
 			result.ProposalMsgs = append(result.ProposalMsgs, implementation)

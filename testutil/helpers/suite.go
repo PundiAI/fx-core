@@ -80,7 +80,7 @@ func (s *BaseSuite) Commit(block ...int64) sdk.Context {
 
 	for _, val := range s.ValSet.Validators {
 		pk, err := cryptocodec.FromCmtPubKeyInterface(val.PubKey)
-		s.NoError(err)
+		s.Require().NoError(err)
 		commitInfo.Votes = append(commitInfo.Votes, abci.VoteInfo{
 			Validator: abci.Validator{
 				Address: pk.Address(),
@@ -97,7 +97,7 @@ func (s *BaseSuite) Commit(block ...int64) sdk.Context {
 			false,
 			0,
 		)
-		s.NoError(s.App.SlashingKeeper.SetValidatorSigningInfo(ctx, sdk.ConsAddress(pk.Address()), signingInfo))
+		s.Require().NoError(s.App.SlashingKeeper.SetValidatorSigningInfo(ctx, sdk.ConsAddress(pk.Address()), signingInfo))
 	}
 
 	for i := lastBlockHeight; i < nextHeight; i++ {

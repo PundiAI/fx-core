@@ -35,7 +35,7 @@ func (s *BankSuite) GetAllBalances(addr sdk.AccAddress) sdk.Coins {
 	return s.bankKeeper.GetAllBalances(s.ctx, addr)
 }
 
-func (s *BankSuite) SendCoins(fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) {
+func (s *BankSuite) SendCoins(fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) {
 	err := s.bankKeeper.SendCoins(s.ctx, fromAddr, toAddr, amt)
 	s.NoError(err)
 }
