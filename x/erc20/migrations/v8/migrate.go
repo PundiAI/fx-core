@@ -21,18 +21,19 @@ func (m Migrator) MigrateToken(ctx sdk.Context) error {
 
 	mds := m.bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
-		if len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0 {
+		baseDenom := strings.ToLower(md.Symbol)
+		// exclude FX and alias empty, except PUNDIX
+		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
 			continue
 		}
-		baseDenom := strings.ToLower(md.Symbol)
 		// add other bridge/ibc token
 		for _, alias := range md.DenomUnits[0].Aliases {
 			if err := m.addToken(ctx, baseDenom, alias); err != nil {
 				return err
 			}
 		}
-		// add pundix/purse token
-		if md.Base == baseDenom {
+		// only add pundix/purse token
+		if md.Base == baseDenom || strings.Contains(md.Base, baseDenom) {
 			continue
 		}
 		if err := m.addToken(ctx, baseDenom, md.Base); err != nil {

@@ -53,6 +53,7 @@ import (
 	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
 	"github.com/functionx/fx-core/v8/x/bsc"
 	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	"github.com/functionx/fx-core/v8/x/erc20"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	"github.com/functionx/fx-core/v8/x/eth"
@@ -91,6 +92,7 @@ var maccPerms = map[string][]string{
 	layer2types.ModuleName:         {authtypes.Minter, authtypes.Burner},
 	evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 	erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
+	crosschaintypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 }
 
 func appModules(
