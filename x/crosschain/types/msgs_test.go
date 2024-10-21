@@ -173,7 +173,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -268,7 +268,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -400,7 +400,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -584,7 +584,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -780,7 +780,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -1003,7 +1003,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -1137,7 +1137,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -1273,7 +1273,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -1435,7 +1435,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -1532,7 +1532,7 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
 					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
@@ -1584,7 +1584,7 @@ func TestMsgBridgeCallConfirm_ValidateBasic(t *testing.T) {
 			if testCase.expectPass {
 				require.NoError(t, err)
 			} else {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
 				require.EqualValuesf(t, testCase.errReason, err.Error(), "%+v", testCase.msg)
 			}
@@ -1680,10 +1680,10 @@ func TestMsgBridgeCallClaim_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if len(tt.expectedError) > 0 {
-				require.NotNil(t, err, "ValidateBasic()")
+				require.Error(t, err, "ValidateBasic()")
 				assert.Equal(t, tt.expectedError, err.Error(), "ValidateBasic()")
 			} else {
-				assert.NoError(t, err, "ValidateBasic()")
+				require.NoError(t, err, "ValidateBasic()")
 			}
 		})
 	}

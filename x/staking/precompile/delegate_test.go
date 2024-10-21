@@ -208,10 +208,10 @@ func (suite *PrecompileTestSuite) TestDelegateCompare() {
 func TestStakingDelegateV2ABI(t *testing.T) {
 	delegateV2Method := precompile.NewDelegateV2Method(nil)
 
-	require.Equal(t, 2, len(delegateV2Method.Method.Inputs))
-	require.Equal(t, 1, len(delegateV2Method.Method.Outputs))
+	require.Len(t, delegateV2Method.Method.Inputs, 2)
+	require.Len(t, delegateV2Method.Method.Outputs, 1)
 
-	require.Equal(t, 3, len(delegateV2Method.Event.Inputs))
+	require.Len(t, delegateV2Method.Event.Inputs, 3)
 }
 
 func (suite *PrecompileTestSuite) TestDelegateV2() {

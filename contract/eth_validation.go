@@ -9,13 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-const (
-	// EthereumContractAddressLen is the length of contract address strings
-	EthereumContractAddressLen = 42
-
-	// EthereumAddressPrefix is the address prefix address
-	EthereumAddressPrefix = "0x"
-)
+// EthereumContractAddressLen is the length of contract address strings
+const EthereumContractAddressLen = 42
 
 var ethereumAddressRegular = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 

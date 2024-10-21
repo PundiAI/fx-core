@@ -60,7 +60,7 @@ func (c *NodeRPC) QueryAccount(address string) (sdk.AccountI, error) {
 	return account, nil
 }
 
-func (c *NodeRPC) QueryBalance(address string, denom string) (sdk.Coin, error) {
+func (c *NodeRPC) QueryBalance(address, denom string) (sdk.Coin, error) {
 	data, err := proto.Marshal(&banktypes.QueryBalanceRequest{Address: address, Denom: denom})
 	if err != nil {
 		return sdk.Coin{}, err

@@ -196,7 +196,7 @@ func (cli *Client) QueryAccount(address string) (sdk.AccountI, error) {
 	return account, nil
 }
 
-func (cli *Client) QueryBalance(address string, denom string) (sdk.Coin, error) {
+func (cli *Client) QueryBalance(address, denom string) (sdk.Coin, error) {
 	response, err := cli.BankQuery().Balance(cli.ctx, &banktypes.QueryBalanceRequest{
 		Address: address,
 		Denom:   denom,

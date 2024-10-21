@@ -19,8 +19,8 @@ import (
 func TestStakingAllowanceSharesABI(t *testing.T) {
 	allowanceSharesMethod := precompile.NewAllowanceSharesMethod(nil)
 
-	require.Equal(t, 3, len(allowanceSharesMethod.Method.Inputs))
-	require.Equal(t, 1, len(allowanceSharesMethod.Method.Outputs))
+	require.Len(t, allowanceSharesMethod.Method.Inputs, 3)
+	require.Len(t, allowanceSharesMethod.Method.Outputs, 1)
 }
 
 func (suite *PrecompileTestSuite) TestAllowanceShares() {

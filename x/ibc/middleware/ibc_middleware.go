@@ -87,11 +87,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return sdkerrors.ErrUnknownRequest.Wrapf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	if err := im.Keeper.OnAcknowledgementPacket(zeroGasConfigCtx(ctx), packet, data, ack); err != nil {
-		return err
-	}
-
-	return nil
+	return im.Keeper.OnAcknowledgementPacket(zeroGasConfigCtx(ctx), packet, data, ack)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
@@ -108,11 +104,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return sdkerrors.ErrUnknownRequest.Wrapf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	if err := im.Keeper.OnTimeoutPacket(zeroGasConfigCtx(ctx), packet, data); err != nil {
-		return err
-	}
-
-	return nil
+	return im.Keeper.OnTimeoutPacket(zeroGasConfigCtx(ctx), packet, data)
 }
 
 // zeroGasConfigCtx returns a context with a zero gas meter

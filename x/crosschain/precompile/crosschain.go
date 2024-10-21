@@ -111,7 +111,7 @@ func (m *CrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	return m.PackOutput(true)
 }
 
-func (m *CrosschainMethod) NewCrosschainEvent(sender common.Address, token common.Address, denom, receipt string, amount, fee *big.Int, target [32]byte, memo string) (data []byte, topic []common.Hash, err error) {
+func (m *CrosschainMethod) NewCrosschainEvent(sender, token common.Address, denom, receipt string, amount, fee *big.Int, target [32]byte, memo string) (data []byte, topic []common.Hash, err error) {
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, denom, receipt, amount, fee, target, memo)
 }
 

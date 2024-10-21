@@ -9,7 +9,7 @@ import (
 	cmtos "github.com/cometbft/cometbft/libs/os"
 )
 
-func ResetTestRootWithChainID(testName string, chainID string) *config.Config {
+func ResetTestRootWithChainID(testName, chainID string) *config.Config {
 	// create a unique, concurrency-safe test directory under os.TempDir()
 	rootDir, err := os.MkdirTemp("", fmt.Sprintf("%s-%s_", chainID, testName))
 	if err != nil {

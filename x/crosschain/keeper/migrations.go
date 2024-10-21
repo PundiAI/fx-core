@@ -30,8 +30,5 @@ func (m Migrator) Migrate(ctx sdk.Context) error {
 	params.EnableSendToExternalPending = enablePending
 	params.EnableBridgeCallPending = enablePending
 
-	if err := m.keeper.SetParams(ctx, &params); err != nil {
-		return err
-	}
-	return nil
+	return m.keeper.SetParams(ctx, &params)
 }

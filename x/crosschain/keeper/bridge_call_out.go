@@ -72,7 +72,7 @@ func (k Keeper) AddOutgoingBridgeCallWithoutBuild(ctx sdk.Context, outCall *type
 	return outCall.Nonce
 }
 
-func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender common.Address, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data []byte, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
+func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, GetBridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
 		return nil, types.ErrInvalid.Wrapf("bridge call timeout height")

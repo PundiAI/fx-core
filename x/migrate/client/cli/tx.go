@@ -62,7 +62,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 			}
 
 			// convert coin
-			msgs, err := getConvertCoinMsg(cliCtx, ctx, fromAddress, toAddress)
+			msgs, err := getConvertCoinMsg(ctx, cliCtx, fromAddress, toAddress)
 			if err != nil {
 				return err
 			}
@@ -81,7 +81,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 	return cmd
 }
 
-func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.AccAddress) ([]sdk.Msg, error) {
+func getConvertCoinMsg(ctx context.Context, cliCtx client.Context, from, to sdk.AccAddress) ([]sdk.Msg, error) {
 	bankClient := banktypes.NewQueryClient(cliCtx)
 	respBalances, err := bankClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{Address: from.String()})
 	if err != nil {

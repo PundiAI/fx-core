@@ -107,7 +107,6 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			suite.Require().NoError(err)
 
 			if strings.HasPrefix(tc.name, "contract") {
-
 				argsV2 := args.(types.UndelegateV2Args)
 				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestUndelegateV2Name, argsV2.Validator, argsV2.Amount)
 

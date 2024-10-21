@@ -107,6 +107,7 @@ func Test_ExportGenesisAndRunNode(t *testing.T) {
 }
 
 func exportGenesisDoc(t *testing.T, home string) *types.GenesisDoc {
+	t.Helper()
 	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(home, "data"))
 	require.NoError(t, err)
 
@@ -126,6 +127,7 @@ func exportGenesisDoc(t *testing.T, home string) *types.GenesisDoc {
 }
 
 func updateGenesisState(t *testing.T, home string, cdc codec.Codec, genesisDoc *types.GenesisDoc) {
+	t.Helper()
 	appState := app.GenesisState{}
 	err := json.Unmarshal(genesisDoc.AppState, &appState)
 	require.NoError(t, err)
@@ -205,6 +207,7 @@ func updateSlashingGenesisState(cdc codec.Codec, appState app.GenesisState, newP
 }
 
 func newPrivValidatorKey(t *testing.T, home string) *codectypes.Any {
+	t.Helper()
 	privKeyFile := filepath.Join(home, "config/priv_validator_key.json")
 	privStateFile := filepath.Join(home, "data/priv_validator_state.json")
 	secret := tmrand.Bytes(32)

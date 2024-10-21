@@ -19,8 +19,8 @@ import (
 func TestSlashingInfoABI(t *testing.T) {
 	slashingInfoMethod := precompile.NewSlashingInfoMethod(nil)
 
-	require.Equal(t, 1, len(slashingInfoMethod.Method.Inputs))
-	require.Equal(t, 2, len(slashingInfoMethod.Method.Outputs))
+	require.Len(t, slashingInfoMethod.Method.Inputs, 1)
+	require.Len(t, slashingInfoMethod.Method.Outputs, 2)
 }
 
 func (suite *PrecompileTestSuite) TestSlashingInfo() {
@@ -103,12 +103,12 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 				jailed, missed, err := slashingInfoMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
 				validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, operator)
-				suite.NoError(err)
+				suite.Require().NoError(err)
 				suite.Equal(validator.Jailed, jailed)
 				consAddr, err := validator.GetConsAddr()
-				suite.NoError(err)
+				suite.Require().NoError(err)
 				signingInfo, err := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
-				suite.NoError(err)
+				suite.Require().NoError(err)
 				suite.Equal(signingInfo.MissedBlocksCounter, missed.Int64())
 			} else {
 				suite.Error(res, errResult)

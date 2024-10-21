@@ -23,10 +23,10 @@ import (
 func TestStakingWithdrawABI(t *testing.T) {
 	withdrawMethod := precompile.NewWithdrawMethod(nil)
 
-	require.Equal(t, 1, len(withdrawMethod.Method.Inputs))
-	require.Equal(t, 1, len(withdrawMethod.Method.Outputs))
+	require.Len(t, withdrawMethod.Method.Inputs, 1)
+	require.Len(t, withdrawMethod.Method.Outputs, 1)
 
-	require.Equal(t, 3, len(withdrawMethod.Event.Inputs))
+	require.Len(t, withdrawMethod.Event.Inputs, 3)
 }
 
 func (suite *PrecompileTestSuite) TestWithdraw() {

@@ -99,7 +99,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	return &types.MsgBondedOracleResponse{}, nil
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // need to refactor
 func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*types.MsgAddDelegateResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {

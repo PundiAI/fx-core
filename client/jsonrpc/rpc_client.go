@@ -31,7 +31,7 @@ type WSClient struct {
 	log.Logger
 }
 
-func NewWsClient(url string, ctx context.Context) (*WSClient, error) {
+func NewWsClient(ctx context.Context, url string) (*WSClient, error) {
 	split := strings.Split(url, "://")
 	if len(split) > 1 && split[0] == "tcp" {
 		url = fmt.Sprintf("ws://%s", split[1])
@@ -151,8 +151,8 @@ func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan
 					continue
 				}
 				var res ctypes.ResultEvent
-				if err = tmjson.Unmarshal(resp.Result, &res); err != nil {
-					ws.Logger.Error("Parse result event", "error", err)
+				if e := tmjson.Unmarshal(resp.Result, &res); e != nil {
+					ws.Logger.Error("Parse result event", "error", e)
 				}
 				event <- res
 			case <-ws.quit:
@@ -347,13 +347,13 @@ func (cli *Client) Call(ctx context.Context, method string, params map[string]in
 
 	payload, err := json.Marshal(paramsMap)
 	if err != nil {
-		return
+		return err
 	}
 
 	reqId := fmt.Sprintf("go-%s", tmrand.Str(8))
 	body, err := json.Marshal(NewRPCRequest(reqId, method, payload))
 	if err != nil {
-		return
+		return err
 	}
 
 	if method == "subscribe" {

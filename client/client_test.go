@@ -22,7 +22,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/app"
@@ -45,7 +44,7 @@ type rpcTestClient interface {
 	GetAddressPrefix() (prefix string, err error)
 	GetModuleAccounts() ([]sdk.AccountI, error)
 	QueryAccount(address string) (sdk.AccountI, error)
-	QueryBalance(address string, denom string) (sdk.Coin, error)
+	QueryBalance(address, denom string) (sdk.Coin, error)
 	QueryBalances(address string) (sdk.Coins, error)
 	QuerySupply() (sdk.Coins, error)
 	BuildTxRaw(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit, timeout uint64, memo string) (*tx.TxRaw, error)
@@ -102,7 +101,7 @@ func (suite *rpcTestSuite) GetFirstValPrivKey() cryptotypes.PrivKey {
 
 func (suite *rpcTestSuite) GetPrivKeyByIndex(algo hd.PubKeyType, index uint32) cryptotypes.PrivKey {
 	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], algo, 0, index)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return privKey
 }
 
@@ -110,10 +109,10 @@ func (suite *rpcTestSuite) GetClients() []rpcTestClient {
 	validator := suite.GetFirstValidator()
 	suite.True(validator.AppConfig.GRPC.Enable)
 	grpcClient, err := grpc.DailClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	rpcAddress := validator.Ctx.Config.RPC.ListenAddress
-	wsClient, err := jsonrpc.NewWsClient(rpcAddress+"/websocket", context.Background())
-	suite.NoError(err)
+	wsClient, err := jsonrpc.NewWsClient(context.Background(), rpcAddress+"/websocket")
+	suite.Require().NoError(err)
 	return []rpcTestClient{
 		grpcClient,
 		jsonrpc.NewNodeRPC(jsonrpc.NewClient(rpcAddress)),
@@ -132,20 +131,20 @@ func (suite *rpcTestSuite) FirstValidatorTransferTo(index uint32, amount sdkmath
 	toAccountKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, index)
 	from := sdk.AccAddress(valKey.PubKey().Address().Bytes())
 	account, chainId, gasPrice, err := client.GetChainInfo(cli, from.String())
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	msgs := []sdk.Msg{banktypes.NewMsgSend(
 		valKey.PubKey().Address().Bytes(),
 		toAccountKey.PubKey().Address().Bytes(),
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amount)),
 	)}
 	txRaw, err := client.BuildTxRaw(chainId, account.GetSequence(), account.GetAccountNumber(), valKey, msgs, gasPrice, 250000, 0, "")
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	txResponse, err := cli.BroadcastTx(txRaw)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.Equal(uint32(0), txResponse.Code)
-	suite.True(txResponse.GasUsed < 100000)
+	suite.Less(txResponse.GasUsed, int64(100000))
 	txResponse, err = cli.WaitMined(txResponse.TxHash, time.Second, 100*time.Millisecond)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.Equal(uint32(0), txResponse.Code)
 }
 
@@ -165,27 +164,27 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 			)},
 			0, 0, "",
 		)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 
 		gas, err := cli.EstimatingGas(txRaw)
-		suite.NoError(err)
-		suite.True(gas.GasUsed < 100000)
+		suite.Require().NoError(err)
+		suite.Less(gas.GasUsed, uint64(100000))
 
 		txResponse, err := cli.BroadcastTx(txRaw)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
-		suite.True(txResponse.GasUsed < 100000)
+		suite.Less(txResponse.GasUsed, int64(100000))
 
 		txResponse, err = cli.WaitMined(txResponse.TxHash, time.Second, 100*time.Millisecond)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
 
 		txRes, err := cli.TxByHash(txResponse.TxHash)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(txResponse, txRes)
 
 		account, err := cli.QueryAccount(toAddress.String())
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		// acconts is
 		// 0. initAccount
 		// 1.fee_collector + 2.distribution + 3.bonded_tokens_pool + 4.not_bonded_tokens_pool + 5.gov + 6.mint + 7.autytypes.NewModuleAddress(crosschain)
@@ -208,23 +207,23 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 			)},
 			0, 0, "",
 		)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 
 		gas, err := cli.EstimatingGas(txRaw)
-		suite.NoError(err)
-		suite.True(gas.GasUsed < 100000)
+		suite.Require().NoError(err)
+		suite.Less(gas.GasUsed, uint64(100000))
 
 		txResponse, err := cli.BroadcastTx(txRaw)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
-		suite.True(txResponse.GasUsed < 100000)
+		suite.Less(txResponse.GasUsed, int64(100000))
 
 		txResponse, err = cli.WaitMined(txResponse.TxHash, time.Second, 100*time.Millisecond)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
 
 		account, err := cli.QueryAccount(ethAddress.String())
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(17), 0), account)
 	}
 
@@ -240,28 +239,28 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 			)},
 			0, 0, "",
 		)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 
 		gas, err := cli.EstimatingGas(txRaw)
-		suite.NoError(err)
-		suite.True(gas.GasUsed < 100000)
+		suite.Require().NoError(err)
+		suite.Less(gas.GasUsed, uint64(100000))
 
 		txResponse, err := cli.BroadcastTx(txRaw)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
-		suite.True(txResponse.GasUsed < 100000)
+		suite.Less(txResponse.GasUsed, int64(100000))
 
 		txResponse, err = cli.WaitMined(txResponse.TxHash, time.Second, 100*time.Millisecond)
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
 
 		account, err := cli.QueryAccount(ethAddress.String())
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		baseAccount, ok := account.(*authtypes.BaseAccount)
 		suite.True(ok)
 		if baseAccount.PubKey.TypeUrl != "" {
 			pubAny, err := types.NewAnyWithValue(ethPrivKey.PubKey())
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			suite.Equal("/"+proto.MessageName(&ethsecp256k1.PubKey{}), baseAccount.PubKey.TypeUrl)
 			suite.Equal(pubAny, baseAccount.PubKey)
 		}
@@ -271,7 +270,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 func (suite *rpcTestSuite) TestClient_Query() {
 	feeCollectorAddr, err := sdk.AccAddressFromHexUnsafe("f1829676db577682e944fc3493d451b67ff3e29f")
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	tests := []struct {
 		funcName string
 		params   []interface{}
@@ -302,8 +301,8 @@ func (suite *rpcTestSuite) TestClient_Query() {
 			params:   []interface{}{},
 			wantRes: []interface{}{
 				func(height int64, err error) {
-					suite.NoError(err)
-					suite.True(height >= int64(1))
+					suite.Require().NoError(err)
+					suite.GreaterOrEqual(height, int64(1))
 				},
 			},
 		},
@@ -312,7 +311,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 			params:   []interface{}{},
 			wantRes: []interface{}{
 				func(supply sdk.Coins, err error) {
-					suite.NoError(err)
+					suite.Require().NoError(err)
 					supply.IsAllGTE(
 						sdk.Coins{
 							sdk.Coin{
@@ -421,7 +420,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 				results := method.Func.Call(params)
 				if len(tt.wantRes) == 1 {
 					wantResTf := reflect.ValueOf(tt.wantRes[0])
-					suite.Equal(wantResTf.Kind(), reflect.Func)
+					suite.Equal(reflect.Func, wantResTf.Kind())
 					wantResTf.Call(results)
 				} else {
 					for i := 0; i < len(results); i++ {
@@ -440,8 +439,8 @@ func (suite *rpcTestSuite) TestClient_GetModuleAccounts() {
 	clients := suite.GetClients()
 	for i := 0; i < len(clients); i++ {
 		accounts, err := clients[i].GetModuleAccounts()
-		suite.NoError(err)
-		suite.Equal(17, len(accounts))
+		suite.Require().NoError(err)
+		suite.Len(accounts, 17)
 		suite.Equal(len(app.GetMaccPerms()), len(accounts))
 	}
 }
@@ -498,8 +497,8 @@ func (suite *rpcTestSuite) TestTmClient() {
 			params:   []interface{}{int64(1), int64(1)},
 			wantRes: []interface{}{
 				func(res1 *ctypes.ResultBlockchainInfo, err1 error, res2 *ctypes.ResultBlockchainInfo, err2 error) {
-					suite.NoError(err1)
-					suite.NoError(err2)
+					suite.Require().NoError(err1)
+					suite.Require().NoError(err2)
 					data1, _ := json.Marshal(res1.BlockMetas)
 					data2, _ := json.Marshal(res2.BlockMetas)
 					suite.Equal(data1, data2)
@@ -512,8 +511,8 @@ func (suite *rpcTestSuite) TestTmClient() {
 			params:   []interface{}{},
 			wantRes: []interface{}{
 				func(res1 *ctypes.ResultStatus, err1 error, res2 *ctypes.ResultStatus, err2 error) {
-					suite.NoError(err1)
-					suite.NoError(err2)
+					suite.Require().NoError(err1)
+					suite.Require().NoError(err2)
 					suite.EqualValues(res1.NodeInfo, res2.NodeInfo)
 					suite.EqualValues(res1.ValidatorInfo, res2.ValidatorInfo)
 				},
@@ -529,8 +528,8 @@ func (suite *rpcTestSuite) TestTmClient() {
 			params:   []interface{}{},
 			wantRes: []interface{}{
 				func(res1 *ctypes.ResultDumpConsensusState, err1 error, res2 *ctypes.ResultDumpConsensusState, err2 error) {
-					suite.NoError(err1)
-					suite.NoError(err2)
+					suite.Require().NoError(err1)
+					suite.Require().NoError(err2)
 					suite.EqualValues(len(res1.Peers), len(res2.Peers))
 				},
 			},
@@ -540,8 +539,8 @@ func (suite *rpcTestSuite) TestTmClient() {
 			params:   []interface{}{},
 			wantRes: []interface{}{
 				func(_ *ctypes.ResultConsensusState, err1 error, _ *ctypes.ResultConsensusState, err2 error) {
-					suite.NoError(err1)
-					suite.NoError(err2)
+					suite.Require().NoError(err1)
+					suite.Require().NoError(err2)
 				},
 			},
 		},
@@ -584,14 +583,14 @@ func (suite *rpcTestSuite) TestTmClient() {
 			suite.Equal(len(result1), len(result2))
 			if len(tt.wantRes) == 1 {
 				wantResTf := reflect.ValueOf(tt.wantRes[0])
-				suite.Equal(wantResTf.Kind(), reflect.Func)
+				suite.Equal(reflect.Func, wantResTf.Kind())
 				wantResTf.Call(append(result1, result2...))
 			} else {
 				for i := 0; i < len(result1); i++ {
 					data1, err1 := json.Marshal(reflect.Indirect(result1[i]).Interface())
-					suite.NoError(err1)
+					suite.Require().NoError(err1)
 					data2, err2 := json.Marshal(reflect.Indirect(result2[i]).Interface())
-					suite.NoError(err2)
+					suite.Require().NoError(err2)
 					suite.JSONEq(string(data1), string(data2))
 				}
 			}
@@ -605,7 +604,7 @@ func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 	clients := suite.GetClients()
 	for _, cli := range clients {
 		balances, err := cli.QueryBalances(sdk.AccAddress(key.PubKey().Address().Bytes()).String())
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.True(balances.IsAllPositive())
 
 		if rpc, ok := cli.(*jsonrpc.NodeRPC); ok {
@@ -616,7 +615,7 @@ func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 		}
 
 		balances, err = cli.QueryBalances(sdk.AccAddress(key.PubKey().Address().Bytes()).String())
-		suite.NoError(err)
+		suite.Require().NoError(err)
 		suite.False(balances.IsAllPositive())
 	}
 }
@@ -628,6 +627,6 @@ func (suite *rpcTestSuite) TestGRPCClient_ConvertAddress() {
 		Address: validator.Address.String(),
 		Prefix:  sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
 	})
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), res.Address, validator.ValAddress.String())
+	suite.Require().NoError(err)
+	suite.Equal(res.Address, validator.ValAddress.String())
 }

@@ -103,7 +103,7 @@ func allDelegates(kvStore storetypes.KVStore, codec codec.Codec) map[string]sdkm
 	return delegations
 }
 
-func allHolder(ctx sdk.Context, myApp *app.App, contractAddrStr string, denom string) (map[string]sdkmath.Int, map[string]sdkmath.Int) {
+func allHolder(ctx sdk.Context, myApp *app.App, contractAddrStr, denom string) (map[string]sdkmath.Int, map[string]sdkmath.Int) {
 	denomHolder := map[string]sdkmath.Int{}
 	contractHolders := map[string]sdkmath.Int{}
 

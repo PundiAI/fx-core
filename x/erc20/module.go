@@ -18,7 +18,7 @@ import (
 
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/erc20/keeper"
-	v8 "github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
+	"github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
 	"github.com/functionx/fx-core/v8/x/erc20/types"
 )
 

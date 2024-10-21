@@ -12,13 +12,13 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
 // AddDeposit adds or updates a deposit of a specific depositor on a specific proposal.
 // Activates voting period when appropriate and returns true in that case, else returns false.
 //
-//nolint:gocyclo
+//nolint:gocyclo // copy from cosmos-sdk
 func (keeper Keeper) AddDeposit(ctx context.Context, proposalID uint64, depositorAddr sdk.AccAddress, depositAmount sdk.Coins) (bool, error) {
 	// Checks to see if proposal exists
 	proposal, err := keeper.Proposals.Get(ctx, proposalID)

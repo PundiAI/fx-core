@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	v8 "github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
+	"github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
 )
 
 func TestOutgoingTransferKeyToOriginTokenKey(t *testing.T) {

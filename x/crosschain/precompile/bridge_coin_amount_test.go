@@ -10,6 +10,6 @@ import (
 
 func TestBridgeCoinAmountMethod_ABI(t *testing.T) {
 	bridgeCoinAmount := precompile.NewBridgeCoinAmountMethod(nil).Method
-	assert.Equal(t, 2, len(bridgeCoinAmount.Inputs))
-	assert.Equal(t, 1, len(bridgeCoinAmount.Outputs))
+	assert.Len(t, bridgeCoinAmount.Inputs, 2)
+	assert.Len(t, bridgeCoinAmount.Outputs, 1)
 }

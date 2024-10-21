@@ -2,11 +2,16 @@ run:
   timeout: 5m
   tests: true
   go: '1.23'
-  sort-results: true
   allow-parallel-runners: true
 
 issues:
+  max-same-issues: 10
+  exclude-dirs:
+    - 'types/legacy'
   exclude-files:
+    - '.*\\legacy\\_.*\\.go$'
+    - '.*\\legacy\\.go$'
+    - '.*\\.sol\\.go$'
     - ".*\\.pb\\.go$"
     - ".*\\.pb\\.gw\\.go$"
     - ".*\\.pulsar\\.go$"
@@ -25,27 +30,43 @@ linters:
     - dogsled
     - gosec
     - errcheck
-#    - goconst
+    - goconst
     - gosimple
     - govet
     - ineffassign
     - misspell
-#    - nakedret
+    - nakedret
     - nolintlint
     - staticcheck
     - revive
     - typecheck
     - unused
+    - thelper
+    - copyloopvar
+    - wastedassign
+    - testifylint
 
 linters-settings:
   staticcheck:
-    checks: ["all", "-SA1019"]
+    checks: [ "all", "-SA1019" ]
   stylecheck:
-    checks: ["all", "-ST1003"]
+    checks: [ "all", "-ST1003" ]
   gocyclo:
     min-complexity: 15
   gocritic:
-    disabled-checks: ["assignOp", "ifElseChain", "appendAssign"]
+    disabled-checks: [ "assignOp", "ifElseChain", "appendAssign" ]
+  misspell:
+    locale: US
+  gofumpt:
+    extra-rules: true
+  dogsled:
+    max-blank-identifiers: 6
+  nolintlint:
+    allow-unused: false
+    require-explanation: true
+    require-specific: false
+  gosimple:
+    checks: [ "all" ]
   gosec:
     excludes: [ "G115" ]
   gci:
@@ -59,11 +80,63 @@ linters-settings:
     check-blank: false
   revive:
     # https://golangci-lint.run/usage/linters/#revive
-    enable-all-rules: false
+    enable-all-rules: true
+    # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md
     rules:
-      - name: var-naming
+      - name: max-control-nesting
         disabled: false
+        exclude:
+          - "**/doctor.go"
+      - name: blank-imports
+        disabled: false
+        exclude:
+          - "**/app.go"
+      - name: function-result-limit
+        disabled: false
+        arguments:
+          - 4
+      - name: unhandled-error
+        arguments:
+          - "fmt.Printf"
+          - "fmt.Println"
+          - "strings.Builder.WriteString"
+      - name: var-naming
         arguments:
           - [ "ID", "IDS", "URL", "JSON", "RPC" ] # AllowList
           - [ "" ] # DenyList
           - - upperCaseConst: true
+
+      - name: line-length-limit
+        disabled: true
+      - name: cyclomatic
+        disabled: true
+      - name: use-any
+        disabled: true
+      - name: add-constant
+        disabled: true
+      - name: import-shadowing
+        disabled: true
+      - name: function-length
+        disabled: true
+      - name: unused-parameter
+        disabled: true
+      - name: unused-receiver
+        disabled: true
+      - name: max-public-structs
+        disabled: true
+      - name: cognitive-complexity
+        disabled: true
+      - name: flag-parameter
+        disabled: true
+      - name: indent-error-flow
+        disabled: true
+      - name: argument-limit
+        disabled: true
+      - name: bare-return
+        disabled: true
+      - name: nested-structs
+        disabled: true
+      - name: unchecked-type-assertion
+        disabled: true
+      - name: comment-spacings
+        disabled: true

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/client/cli"
 )
@@ -43,12 +44,12 @@ func TestToStringCmd(t *testing.T) {
 			cmd.SetOut(buf)
 			cmd.SetArgs(tt.args)
 			for k, v := range tt.flags {
-				assert.NoError(t, cmd.Flags().Set(k, v))
+				require.NoError(t, cmd.Flags().Set(k, v))
 			}
 			if err := cmd.Execute(); tt.wantErr {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.output, buf.String())
 			}
 		})

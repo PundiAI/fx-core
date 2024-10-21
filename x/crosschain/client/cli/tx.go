@@ -72,7 +72,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
-			OutgoingTxBatchResp, err := queryClient.OutgoingTxBatch(cmd.Context(), &types.QueryOutgoingTxBatchRequest{
+			outgoingTxBatchResp, err := queryClient.OutgoingTxBatch(cmd.Context(), &types.QueryOutgoingTxBatchRequest{
 				Nonce:         nonce,
 				TokenContract: tokenContract,
 				ChainName:     chainName,
@@ -80,7 +80,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if OutgoingTxBatchResp.Batch == nil {
+			if outgoingTxBatchResp.Batch == nil {
 				return fmt.Errorf("not found batch request by nonce, tokenContract: %v, nonce: %v", tokenContract, nonce)
 			}
 			// Determine whether it has been confirmed
@@ -103,7 +103,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			checkpoint, err := OutgoingTxBatchResp.GetBatch().GetCheckpoint(paramsResp.Params.GetGravityId())
+			checkpoint, err := outgoingTxBatchResp.GetBatch().GetCheckpoint(paramsResp.Params.GetGravityId())
 			if err != nil {
 				return err
 			}

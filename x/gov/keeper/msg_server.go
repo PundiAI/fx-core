@@ -35,7 +35,7 @@ var _ types.MsgServerPro = msgServer{}
 
 // SubmitProposal reimplements sdk/gov module's SubmitProposal
 //
-//nolint:gocyclo
+//nolint:gocyclo // copy from cosmos-sdk
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitProposal) (*v1.MsgSubmitProposalResponse, error) {
 	if msg.Title == "" {
 		return nil, sdkerrors.ErrInvalidRequest.Wrap("proposal title cannot be empty")

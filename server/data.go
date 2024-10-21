@@ -187,7 +187,7 @@ func pruneBlockCmd() *cobra.Command {
 	return cmd
 }
 
-func pruneBlockData(cmd *cobra.Command, blockStoreDB cmtdbm.DB, stateDB cmtdbm.DB) error {
+func pruneBlockData(cmd *cobra.Command, blockStoreDB, stateDB cmtdbm.DB) error {
 	enablePruning, err := cmd.Flags().GetBool(flagPruning)
 	if err != nil {
 		return err

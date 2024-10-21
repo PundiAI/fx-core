@@ -58,8 +58,8 @@ import (
 	_ "github.com/functionx/fx-core/v8/docs/statik"
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
 	fxauth "github.com/functionx/fx-core/v8/server/grpc/auth"
-	gaspricev1 "github.com/functionx/fx-core/v8/server/grpc/gasprice/legacy/v1"
-	gaspricev2 "github.com/functionx/fx-core/v8/server/grpc/gasprice/legacy/v2"
+	gaspricev1 "github.com/functionx/fx-core/v8/server/grpc/gasprice/v1"
+	gaspricev2 "github.com/functionx/fx-core/v8/server/grpc/gasprice/v2"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
@@ -266,8 +266,8 @@ func New(
 
 func (app *App) setAnteHandler(appOpts servertypes.AppOptions) {
 	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
-	BypassMinFeeMsgTypes := cast.ToStringSlice(appOpts.Get(fxcfg.BypassMinFeeMsgTypesKey))
-	MaxBypassMinFeeMsgGasUsage := cast.ToUint64(appOpts.Get(fxcfg.BypassMinFeeMsgMaxGasUsageKey))
+	bypassMinFeeMsgTypes := cast.ToStringSlice(appOpts.Get(fxcfg.BypassMinFeeMsgTypesKey))
+	maxBypassMinFeeMsgGasUsage := cast.ToUint64(appOpts.Get(fxcfg.BypassMinFeeMsgMaxGasUsageKey))
 	anteOptions := fxante.HandlerOptions{
 		AccountKeeper:   app.AccountKeeper,
 		BankKeeper:      app.BankKeeper,
@@ -278,7 +278,7 @@ func (app *App) setAnteHandler(appOpts servertypes.AppOptions) {
 		SignModeHandler: app.txConfig.SignModeHandler(),
 		SigGasConsumer:  fxante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  maxGasWanted,
-		TxFeeChecker:    fxante.NewCheckTxFeees(BypassMinFeeMsgTypes, MaxBypassMinFeeMsgGasUsage).Check,
+		TxFeeChecker:    fxante.NewCheckTxFeees(bypassMinFeeMsgTypes, maxBypassMinFeeMsgGasUsage).Check,
 		DisabledAuthzMsgs: []string{
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),

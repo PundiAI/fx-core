@@ -86,14 +86,14 @@ Example:
 
 func generateDockerComposeYml(validators []*network.Validator, outputDir, dockerImage string) error {
 	chainId := validators[0].ClientCtx.ChainID
-	IPAddress := "172.20.0.2"
+	ipAddr := "172.20.0.2"
 	data := map[string]interface{}{
-		"Subnet": fmt.Sprintf("%s/16", getSubnet(IPAddress)),
+		"Subnet": fmt.Sprintf("%s/16", getSubnet(ipAddr)),
 	}
 	persistentPeers := make([]string, 0, len(validators))
 	services := make([]map[string]interface{}, 0)
 	for i, validator := range validators {
-		ip, err := getNextIP(i, IPAddress)
+		ip, err := getNextIP(i, ipAddr)
 		if err != nil {
 			return err
 		}

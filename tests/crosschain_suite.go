@@ -95,7 +95,7 @@ func (suite *CrosschainTestSuite) CrosschainQuery() crosschaintypes.QueryClient 
 func (suite *CrosschainTestSuite) QueryParams() crosschaintypes.Params {
 	response, err := suite.CrosschainQuery().Params(suite.ctx,
 		&crosschaintypes.QueryParamsRequest{ChainName: suite.chainName})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return response.Params
 }
 
@@ -106,7 +106,7 @@ func (suite *CrosschainTestSuite) queryFxLastEventNonce() uint64 {
 			BridgerAddress: suite.BridgerAddr().String(),
 		},
 	)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return lastEventNonce.EventNonce + 1
 }
 
@@ -116,7 +116,7 @@ func (suite *CrosschainTestSuite) queryObserverExternalBlockHeight() uint64 {
 			ChainName: suite.chainName,
 		},
 	)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return response.ExternalBlockHeight
 }
 
@@ -144,7 +144,7 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 		ChainName: suite.chainName,
 		Token:     token,
 	})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	if response.Denom != fxtypes.DefaultDenom {
 		suite.Equal(crosschaintypes.NewBridgeDenom(suite.chainName, token), response.Denom)
 	}
@@ -156,7 +156,7 @@ func (suite *CrosschainTestSuite) GetBridgeTokens() (denoms []*crosschaintypes.B
 	response, err := suite.CrosschainQuery().BridgeTokens(suite.ctx, &crosschaintypes.QueryBridgeTokensRequest{
 		ChainName: suite.chainName,
 	})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return response.BridgeTokens
 }
 
@@ -165,7 +165,7 @@ func (suite *CrosschainTestSuite) GetBridgeDenomByToken(token string) (denom str
 		ChainName: suite.chainName,
 		Token:     token,
 	})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.NotEmpty(response.Denom)
 	return response.Denom
 }
@@ -175,7 +175,7 @@ func (suite *CrosschainTestSuite) GetBridgeTokenByDenom(denom string) (token str
 		ChainName: suite.chainName,
 		Denom:     denom,
 	})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.NotEmpty(response.Token)
 	return response.Token
 }
@@ -193,7 +193,7 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 			ChainName:      suite.chainName,
 		},
 	)
-	suite.Error(err, crosschaintypes.ErrNoFoundOracle)
+	suite.Require().Error(err, crosschaintypes.ErrNoFoundOracle)
 	suite.Nil(response)
 
 	txResponse := suite.BroadcastTx(suite.oraclePrivKey, &crosschaintypes.MsgBondedOracle{
@@ -211,7 +211,7 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 			ChainName:      suite.chainName,
 		},
 	)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.Equal(crosschaintypes.Oracle{
 		OracleAddress:     suite.OracleAddr().String(),
 		BridgerAddress:    suite.BridgerAddr().String(),
@@ -240,25 +240,25 @@ func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
 			ChainName:      suite.chainName,
 		},
 	)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.NotEmpty(queryResponse.OracleSets)
 
 	for _, oracleSet := range queryResponse.OracleSets {
 		var signature []byte
 		if suite.chainName == trontypes.ModuleName {
 			checkpoint, err := trontypes.GetCheckpointOracleSet(oracleSet, suite.params.GravityId)
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPrivKey)
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			err = trontypes.ValidateTronSignature(checkpoint, signature, suite.ExternalAddr())
-			suite.NoError(err)
+			suite.Require().NoError(err)
 		} else {
 			checkpoint, err := oracleSet.GetCheckpoint(suite.params.GravityId)
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			signature, err = crosschaintypes.NewEthereumSignature(checkpoint, suite.externalPrivKey)
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			err = crosschaintypes.ValidateEthereumSignature(checkpoint, signature, suite.ExternalAddr())
-			suite.NoError(err)
+			suite.Require().NoError(err)
 		}
 
 		suite.BroadcastTx(suite.bridgerPrivKey, &crosschaintypes.MsgOracleSetConfirm{
@@ -309,7 +309,7 @@ func (suite *CrosschainTestSuite) SendToTxClaimWithReceiver(receiver sdk.AccAddr
 		ChainName: suite.chainName,
 		Token:     token,
 	})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	if bridgeToken.Denom == fxtypes.DefaultDenom && len(targetIbc) == 0 {
 		balances := suite.QueryBalances(receiver)
 		suite.True(balances.IsAllGTE(sdk.NewCoins(sdk.NewCoin(bridgeToken.Denom, amount))))
@@ -349,7 +349,7 @@ func (suite *CrosschainTestSuite) SendToExternalAndResponse(count int, amount sd
 					continue
 				}
 				txId, err := strconv.ParseUint(attribute.Value, 10, 64)
-				suite.NoError(err)
+				suite.Require().NoError(err)
 				return txResponse, txId
 			}
 		}
@@ -402,7 +402,7 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 			ChainName:      suite.chainName,
 		},
 	)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.NotNil(response.Batch)
 
 	outgoingTxBatch := response.Batch
@@ -412,7 +412,7 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 	} else {
 		checkpoint, err = outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
 	}
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	signatureBytes := suite.SignatureCheckpoint(checkpoint)
 
 	suite.BroadcastTx(suite.bridgerPrivKey,
@@ -463,7 +463,7 @@ func (suite *CrosschainTestSuite) BridgeCallConfirm(nonce uint64, isSuccess bool
 	} else {
 		checkpoint, err = bridgeCall.GetCheckpoint(suite.params.GravityId)
 	}
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	signatureBytes := suite.SignatureCheckpoint(checkpoint)
 
 	suite.BroadcastTx(suite.bridgerPrivKey,
@@ -495,12 +495,12 @@ func (suite *CrosschainTestSuite) SignatureCheckpoint(checkpoint []byte) []byte 
 	var err error
 	if suite.chainName == trontypes.ModuleName {
 		signatureBytes, err = trontypes.NewTronSignature(checkpoint, suite.externalPrivKey)
-		suite.NoError(err)
-		suite.NoError(trontypes.ValidateTronSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
+		suite.Require().NoError(err)
+		suite.Require().NoError(trontypes.ValidateTronSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
 	} else {
 		signatureBytes, err = crosschaintypes.NewEthereumSignature(checkpoint, suite.externalPrivKey)
-		suite.NoError(err)
-		suite.NoError(crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
+		suite.Require().NoError(err)
+		suite.Require().NoError(crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
 	}
 	return signatureBytes
 }
@@ -510,7 +510,7 @@ func (suite *CrosschainTestSuite) QueryBridgeCallByNonce(nonce uint64) *crosscha
 		ChainName: suite.chainName,
 		Nonce:     nonce,
 	})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return response.GetBridgeCall()
 }
 
@@ -536,7 +536,7 @@ func (suite *CrosschainTestSuite) PendingExecuteClaim() []crosschaintypes.Extern
 	response, err := suite.CrosschainQuery().PendingExecuteClaim(suite.ctx, &crosschaintypes.QueryPendingExecuteClaimRequest{
 		ChainName: suite.chainName,
 	})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	externalClaims := make([]crosschaintypes.ExternalClaim, 0, len(response.Claims))
 	for _, claim := range response.Claims {
 		var externalClaim crosschaintypes.ExternalClaim

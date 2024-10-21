@@ -20,10 +20,10 @@ import (
 func TestStakingApproveSharesABI(t *testing.T) {
 	approveSharesMethod := precompile.NewApproveSharesMethod(nil)
 
-	require.Equal(t, 3, len(approveSharesMethod.Method.Inputs))
-	require.Equal(t, 1, len(approveSharesMethod.Method.Outputs))
+	require.Len(t, approveSharesMethod.Method.Inputs, 3)
+	require.Len(t, approveSharesMethod.Method.Outputs, 1)
 
-	require.Equal(t, 4, len(approveSharesMethod.Event.Inputs))
+	require.Len(t, approveSharesMethod.Event.Inputs, 4)
 }
 
 func (suite *PrecompileTestSuite) TestApproveShares() {

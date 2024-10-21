@@ -94,11 +94,11 @@ func (suite *PrecompileTestSuite) Commit() {
 	_, err = suite.App.Commit()
 	suite.Require().NoError(err)
 	// after commit Ctx header
-	header.Height += 1
+	header.Height++
 
 	// begin block
 	header.Time = time.Now().UTC()
-	header.Height += 1
+	header.Height++
 	suite.Ctx = suite.Ctx.WithBlockHeader(header)
 	_, err = suite.App.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
