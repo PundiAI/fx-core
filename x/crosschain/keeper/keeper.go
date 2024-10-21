@@ -59,7 +59,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		evmKeeper:          evmKeeper,
 		evmErc20Keeper:     evmErc20Keeper,
 		authority:          authority,
-		callbackFrom:       common.BytesToAddress(autytypes.NewModuleAddress(types.ModuleName)),
+		callbackFrom:       common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeCallSender)),
 	}
 }
 

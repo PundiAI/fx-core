@@ -12,6 +12,8 @@ const (
 
 	// RouterKey is the module name router key
 	RouterKey = ModuleName
+
+	BridgeCallSender = "bridgecall"
 )
 
 var (

@@ -14,7 +14,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	if err := k.SetParams(ctx, &state.Params); err != nil {
 		panic(err)
 	}
-	crosschainBridgeCallFrom := autytypes.NewModuleAddress(types.ModuleName)
+
+	k.ak.GetModuleAccount(ctx, types.ModuleName)
+
+	crosschainBridgeCallFrom := autytypes.NewModuleAddress(types.BridgeCallSender)
 	if account := k.ak.GetAccount(ctx, crosschainBridgeCallFrom); account == nil {
 		k.ak.SetAccount(ctx, k.ak.NewAccountWithAddress(ctx, crosschainBridgeCallFrom))
 	}
