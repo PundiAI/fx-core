@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
@@ -80,6 +81,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
 				suite.mintCoin(escrowAddress, coin)
+				suite.Require().NoError(suite.App.Erc20Keeper.SetCache(suite.Ctx, crosschaintypes.NewIBCTransferKey(packet.SourceChannel, 1), coin.Amount))
 			},
 			true,
 			"",

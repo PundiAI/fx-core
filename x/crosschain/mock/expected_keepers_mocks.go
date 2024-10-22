@@ -418,6 +418,21 @@ func (mr *MockErc20KeeperMockRecorder) GetBridgeTokens(ctx, chainName any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeTokens", reflect.TypeOf((*MockErc20Keeper)(nil).GetBridgeTokens), ctx, chainName)
 }
 
+// GetCache mocks base method.
+func (m *MockErc20Keeper) GetCache(ctx context.Context, key string) (math.Int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCache", ctx, key)
+	ret0, _ := ret[0].(math.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCache indicates an expected call of GetCache.
+func (mr *MockErc20KeeperMockRecorder) GetCache(ctx, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCache", reflect.TypeOf((*MockErc20Keeper)(nil).GetCache), ctx, key)
+}
+
 // GetERC20Token mocks base method.
 func (m *MockErc20Keeper) GetERC20Token(ctx context.Context, baseDenom string) (types4.ERC20Token, error) {
 	m.ctrl.T.Helper()

@@ -148,14 +148,11 @@ func (k Keeper) IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sd
 	if err != nil {
 		return err
 	}
-	if !found {
-		return nil
+	if found {
+		return k.erc20Keeper.DeleteCache(ctx, ibcTransferKey)
 	}
 	_, err = k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(holder.Bytes()), sdk.NewCoin(baseDenom, ibcCoin.Amount))
-	if err != nil {
-		return err
-	}
-	return k.erc20Keeper.DeleteCache(ctx, ibcTransferKey)
+	return err
 }
 
 func (k Keeper) AfterIBCAckSuccess(ctx sdk.Context, ibcChannel string, ibcSequence uint64) error {
