@@ -9,6 +9,11 @@ on:
       - main
     paths:
       - '**.go'
+      - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
+      - '!statik.go'
 
 jobs:
   analyze:

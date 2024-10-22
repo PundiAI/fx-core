@@ -10,6 +10,9 @@ on:
       - 'go.sum'
       - '.golangci.yml'
       - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
       - '!statik.go'
   pull_request:
     types:
@@ -22,6 +25,9 @@ on:
       - '.golangci.yml'
       - '.github/workflows/golang.yml'
       - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
       - '!statik.go'
 
 permissions:
