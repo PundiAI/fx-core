@@ -202,6 +202,7 @@ func New(
 	// can do so safely.
 	app.mm.SetOrderInitGenesis(orderInitBlockers()...)
 	app.mm.SetOrderExportGenesis(orderInitBlockers()...)
+	app.mm.SetOrderMigrations(orderMigrations()...)
 
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())

@@ -2,7 +2,6 @@ package v8
 
 import (
 	"context"
-	"encoding/hex"
 	"strings"
 
 	storetypes "cosmossdk.io/store/types"
@@ -19,8 +18,8 @@ import (
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	"github.com/functionx/fx-core/v8/app/keepers"
+	"github.com/functionx/fx-core/v8/app/upgrades/store"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20v8 "github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
@@ -43,13 +42,9 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 			return fromVM, err
 		}
 
-		removeStoreKeys(cacheCtx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
+		store.RemoveStoreKeys(cacheCtx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
 
 		if err = migrationGovCustomParam(cacheCtx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
-			return fromVM, err
-		}
-
-		if err = updateArbitrumParams(cacheCtx, app.ArbitrumKeeper); err != nil {
 			return fromVM, err
 		}
 
@@ -59,7 +54,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 
 		updateMetadata(cacheCtx, app.BankKeeper)
 
-		removeStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
+		store.RemoveStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
 
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
@@ -67,36 +62,12 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 	}
 }
 
-func updateArbitrumParams(ctx sdk.Context, keeper crosschainkeeper.Keeper) error {
-	params := keeper.GetParams(ctx)
-	params.AverageExternalBlockTime = 250
-	return keeper.SetParams(ctx, &params)
-}
-
 func migrationGovCustomParam(ctx sdk.Context, keeper *keeper.Keeper, storeKey *storetypes.KVStoreKey) error {
 	// 1. delete fxParams key
-	removeStoreKeys(ctx, storeKey, fxgovv8.GetRemovedStoreKeys())
+	store.RemoveStoreKeys(ctx, storeKey, fxgovv8.GetRemovedStoreKeys())
 
 	// 2. init custom params
 	return keeper.InitCustomParams(ctx)
-}
-
-func removeStoreKeys(ctx sdk.Context, storeKey *storetypes.KVStoreKey, keys [][]byte) {
-	store := ctx.KVStore(storeKey)
-
-	deleteFn := func(key []byte) {
-		iterator := storetypes.KVStorePrefixIterator(store, key)
-		defer iterator.Close()
-		for ; iterator.Valid(); iterator.Next() {
-			store.Delete(iterator.Key())
-			ctx.Logger().Info("remove store key", "kvStore", storeKey.Name(),
-				"prefix", hex.EncodeToString(key), "key", string(iterator.Key()))
-		}
-	}
-
-	for _, key := range keys {
-		deleteFn(key)
-	}
 }
 
 func migrateCrosschainModuleAccount(ctx sdk.Context, ak authkeeper.AccountKeeper) error {

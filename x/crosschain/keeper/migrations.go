@@ -3,8 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/migrations/v8"
 )
 
 type Migrator struct {
@@ -17,18 +16,15 @@ func NewMigrator(k Keeper) Migrator {
 	}
 }
 
-func (m Migrator) Migrate(ctx sdk.Context) error {
-	params := m.keeper.GetParams(ctx)
+func (m Migrator) Migrate7to8(ctx sdk.Context) error {
+	return v8.Migrate(ctx, m.keeper.storeKey)
+}
 
-	params.BridgeCallTimeout = types.DefBridgeCallTimeout
-	params.BridgeCallMaxGasLimit = types.MaxGasLimit
-
-	enablePending := false
-	if ctx.ChainID() == fxtypes.TestnetChainId {
-		enablePending = true
+func (m Migrator) Migrate7to8WithArbExternalBlockTime(ctx sdk.Context) error {
+	if err := m.Migrate7to8(ctx); err != nil {
+		return err
 	}
-	params.EnableSendToExternalPending = enablePending
-	params.EnableBridgeCallPending = enablePending
-
+	params := m.keeper.GetParams(ctx)
+	params.AverageExternalBlockTime = 250
 	return m.keeper.SetParams(ctx, &params)
 }

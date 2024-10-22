@@ -280,6 +280,48 @@ func orderInitBlockers() []string {
 	}
 }
 
+func orderMigrations() []string {
+	return []string{
+		capabilitytypes.ModuleName,
+		authtypes.ModuleName,
+		banktypes.ModuleName,
+		distrtypes.ModuleName,
+		stakingtypes.ModuleName,
+		slashingtypes.ModuleName,
+		govtypes.ModuleName,
+		minttypes.ModuleName,
+		crisistypes.ModuleName,
+		genutiltypes.ModuleName,
+		evidencetypes.ModuleName,
+		authz.ModuleName,
+		feegrant.ModuleName,
+		paramstypes.ModuleName,
+		upgradetypes.ModuleName,
+		vestingtypes.ModuleName,
+
+		erc20types.ModuleName,
+
+		bsctypes.ModuleName,
+		trontypes.ModuleName,
+		polygontypes.ModuleName,
+		avalanchetypes.ModuleName,
+		ethtypes.ModuleName,
+		arbitrumtypes.ModuleName,
+		optimismtypes.ModuleName,
+		layer2types.ModuleName,
+
+		feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
+		migratetypes.ModuleName,
+
+		ibctm.ModuleName,
+		ibctransfertypes.ModuleName,
+		ibcexported.ModuleName,
+
+		consensustypes.ModuleName,
+	}
+}
+
 func GetMaccPerms() map[string][]string {
 	dupMaccPerms := make(map[string][]string)
 	for k, v := range maccPerms {

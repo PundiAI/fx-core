@@ -108,7 +108,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	migrator := crosschainkeeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(am.Name(), 4, migrator.Migrate); err != nil {
+	if err := cfg.RegisterMigration(am.Name(), 5, migrator.Migrate7to8); err != nil {
 		panic(err)
 	}
 }
@@ -130,7 +130,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 5
+	return 6
 }
 
 // EndBlock implements app module
