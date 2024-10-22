@@ -13,7 +13,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 error ChainNameInvalid();
 error TokenInvalid();
 error OracleInvalid();
-error QuoteTypeInvalid();
+error QuoteIndexInvalid();
 error QuoteExpired();
 error VerifySignatureFailed(address, address);
 error QuoteNotFound();
@@ -288,8 +288,8 @@ contract BridgeFeeQuote is
         ) {
             revert OracleInvalid();
         }
-        if (_input.quoteIndex > maxQuoteIndex) {
-            revert QuoteTypeInvalid();
+        if (_input.quoteIndex >= maxQuoteIndex) {
+            revert QuoteIndexInvalid();
         }
         if (_input.expiry < block.timestamp) {
             revert QuoteExpired();
