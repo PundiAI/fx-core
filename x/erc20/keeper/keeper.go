@@ -19,10 +19,6 @@ import (
 
 // Keeper of this module maintains collections of erc20.
 type Keeper struct {
-	storeService store.KVStoreService
-
-	cdc codec.BinaryCodec
-
 	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
 	evmKeeper      types.EVMKeeper
@@ -58,8 +54,6 @@ func NewKeeper(
 
 	sb := collections.NewSchemaBuilder(storeService)
 	k := Keeper{
-		cdc:            cdc,
-		storeService:   storeService,
 		accountKeeper:  ak,
 		bankKeeper:     bk,
 		evmKeeper:      evmKeeper,

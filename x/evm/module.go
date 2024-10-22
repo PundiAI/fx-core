@@ -78,8 +78,7 @@ func (b AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	evm.AppModule
-	keeper         *keeper.Keeper
-	legacySubspace evmtypes.Subspace
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -88,7 +87,6 @@ func NewAppModule(k *keeper.Keeper, accountKeeper evmtypes.AccountKeeper, legacy
 		AppModule:      evm.NewAppModule(k.Keeper, accountKeeper, legacySubspace),
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
-		legacySubspace: legacySubspace,
 	}
 }
 

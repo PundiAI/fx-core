@@ -21,10 +21,10 @@ import (
 type IntegrationTest struct {
 	*TestSuite
 	crosschain []CrosschainTestSuite
-	erc20      Erc20TestSuite
-	evm        EvmTestSuite
-	staking    StakingSuite
-	precompile PrecompileTestSuite
+	// erc20      Erc20TestSuite
+	evm     EvmTestSuite
+	staking StakingSuite
+	// precompile PrecompileTestSuite
 }
 
 func TestIntegrationTest(t *testing.T) {
@@ -40,10 +40,10 @@ func TestIntegrationTest(t *testing.T) {
 			NewCrosschainWithTestSuite(bsctypes.ModuleName, testSuite),
 			NewCrosschainWithTestSuite(trontypes.ModuleName, testSuite),
 		},
-		erc20:      NewErc20TestSuite(testSuite),
-		evm:        NewEvmTestSuite(testSuite),
-		staking:    NewStakingSuite(testSuite),
-		precompile: NewPrecompileTestSuite(testSuite),
+		// erc20:      NewErc20TestSuite(testSuite),
+		evm:     NewEvmTestSuite(testSuite),
+		staking: NewStakingSuite(testSuite),
+		// precompile: NewPrecompileTestSuite(testSuite),
 	}
 	if runtime.GOOS == "linux" {
 		evmChainModules := []string{

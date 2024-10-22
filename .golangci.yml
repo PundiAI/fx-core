@@ -78,6 +78,10 @@ linters-settings:
   errcheck:
     check-type-assertions: false
     check-blank: false
+  unused:
+    field-writes-are-uses: false
+    exported-fields-are-used: false
+    local-variables-are-used: false
   revive:
     # https://golangci-lint.run/usage/linters/#revive
     enable-all-rules: true

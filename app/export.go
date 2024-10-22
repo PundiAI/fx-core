@@ -225,8 +225,6 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 	store := ctx.KVStore(app.GetKey(stakingtypes.StoreKey))
 	iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
 
-	counter := int16(0)
-
 	// Closure to ensure iterator doesn't leak.
 	func() {
 		defer iter.Close()
@@ -245,8 +243,6 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 			if err = app.StakingKeeper.SetValidator(ctx, validator); err != nil {
 				panic(err)
 			}
-
-			counter++
 		}
 	}()
 
