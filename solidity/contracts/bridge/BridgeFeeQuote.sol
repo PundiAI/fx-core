@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import {IBridgeFeeQuote, IBridgeFeeOracle} from "./IBridgeFee.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {IBridgeFeeQuote} from "./IBridgeFee.sol";
-import {IBridgeFeeOracle} from "./IBridgeFee.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 error ChainNameInvalid();
 error TokenInvalid();
 error OracleInvalid();
+error QuoteTypeInvalid();
 error QuoteExpired();
 error VerifySignatureFailed(address, address);
 error QuoteNotFound();
@@ -43,6 +43,8 @@ contract BridgeFeeQuote is
     }
 
     address public oracleContract;
+    // maximum number of quotes per oracle
+    uint256 public maxQuoteIndex;
 
     uint256 public quoteNonce;
 
@@ -51,13 +53,17 @@ contract BridgeFeeQuote is
     // chainName -> Assert
     mapping(string => Asset) public assets;
 
-    // Only one quote is allowed per chainName + token + oracle
-    mapping(bytes => Quote) internal quotes; // key: chainName + token + oracle
-    // id -> chainName + token + oracle
+    // Only one quote is allowed per chainName + token + oracle + index
+    mapping(bytes => Quote) internal quotes; // key: chainName + token + oracle + index
+    // id -> chainName + token + oracle + index
     mapping(uint256 => bytes) internal quoteIds;
 
-    function initialize(address _oracleContract) public initializer {
+    function initialize(
+        address _oracleContract,
+        uint256 _maxQuoteIndex
+    ) public initializer {
         oracleContract = _oracleContract;
+        maxQuoteIndex = _maxQuoteIndex;
 
         __Ownable_init();
         __UUPSUpgradeable_init();
@@ -90,7 +96,8 @@ contract BridgeFeeQuote is
             bytes memory asset = packAsset(
                 _inputs[i].chainName,
                 _inputs[i].token,
-                _inputs[i].oracle
+                _inputs[i].oracle,
+                _inputs[i].quoteIndex
             );
             if (quotes[asset].id > 0) {
                 delete quoteIds[quotes[asset].id];
@@ -137,22 +144,25 @@ contract BridgeFeeQuote is
 
         for (uint256 i = 0; i < oracles.length; i++) {
             for (uint256 j = 0; j < assets[_chainName].tokens.length; j++) {
-                bytes memory asset = packAsset(
-                    _chainName,
-                    assets[_chainName].tokens[j],
-                    oracles[i]
-                );
-                if (quotes[asset].expiry >= block.timestamp) {
-                    quotesList[currentIndex] = QuoteInfo({
-                        id: quotes[asset].id,
-                        chainName: _chainName,
-                        token: assets[_chainName].tokens[j],
-                        oracle: oracles[i],
-                        fee: quotes[asset].fee,
-                        gasLimit: quotes[asset].gasLimit,
-                        expiry: quotes[asset].expiry
-                    });
-                    currentIndex += 1;
+                for (uint256 k = 0; k < maxQuoteIndex; k++) {
+                    bytes memory asset = packAsset(
+                        _chainName,
+                        assets[_chainName].tokens[j],
+                        oracles[i],
+                        k
+                    );
+                    if (quotes[asset].expiry >= block.timestamp) {
+                        quotesList[currentIndex] = QuoteInfo({
+                            id: quotes[asset].id,
+                            chainName: _chainName,
+                            token: assets[_chainName].tokens[j],
+                            oracle: oracles[i],
+                            fee: quotes[asset].fee,
+                            gasLimit: quotes[asset].gasLimit,
+                            expiry: quotes[asset].expiry
+                        });
+                        currentIndex += 1;
+                    }
                 }
             }
         }
@@ -171,9 +181,12 @@ contract BridgeFeeQuote is
         if (asset.length == 0) {
             revert QuoteNotFound();
         }
-        (string memory chainName, address token, address oracle) = unpackAsset(
-            asset
-        );
+        (
+            string memory chainName,
+            address token,
+            address oracle,
+
+        ) = unpackAsset(asset);
         q = QuoteInfo({
             id: _id,
             chainName: chainName,
@@ -186,26 +199,25 @@ contract BridgeFeeQuote is
     }
 
     /**
-     * @notice Get the quote by token.
+     * @notice Get the quotes by token.
      * @param _chainName The name of the chain.
      * @param _token The address of the token.
-     * @param _amount The bridge fee amount of the token.
-     * @return QuoteInfo The quote.
-     * @return bool Whether the quote is expired.
+     * @return QuoteInfo[] The quote list.
      */
     function getQuoteByToken(
         string memory _chainName,
-        address _token,
-        uint256 _amount
-    ) external view returns (QuoteInfo memory, bool) {
+        address _token
+    ) external view returns (QuoteInfo[] memory) {
         if (!assets[_chainName].isActive) {
             revert ChainNameInvalid();
         }
         address oracle = IBridgeFeeOracle(oracleContract).defaultOracle();
 
-        bytes memory asset = packAsset(_chainName, _token, oracle);
-        return (
-            QuoteInfo({
+        QuoteInfo[] memory quotesList = new QuoteInfo[](maxQuoteIndex);
+
+        for (uint256 i = 0; i < maxQuoteIndex; i++) {
+            bytes memory asset = packAsset(_chainName, _token, oracle, i);
+            quotesList[i] = QuoteInfo({
                 id: quotes[asset].id,
                 chainName: _chainName,
                 token: _token,
@@ -213,10 +225,9 @@ contract BridgeFeeQuote is
                 fee: quotes[asset].fee,
                 gasLimit: quotes[asset].gasLimit,
                 expiry: quotes[asset].expiry
-            }),
-            quotes[asset].expiry > block.timestamp &&
-                _amount >= quotes[asset].fee
-        );
+            });
+        }
+        return quotesList;
     }
 
     function currentActiveQuoteNum(
@@ -227,17 +238,39 @@ contract BridgeFeeQuote is
             .getOracleList();
         for (uint256 i = 0; i < oracles.length; i++) {
             for (uint256 j = 0; j < assets[_chainName].tokens.length; j++) {
-                bytes memory asset = packAsset(
-                    _chainName,
-                    assets[_chainName].tokens[j],
-                    oracles[i]
-                );
-                if (quotes[asset].expiry >= block.timestamp) {
-                    num += 1;
+                for (uint256 k = 0; k < maxQuoteIndex; k++) {
+                    bytes memory asset = packAsset(
+                        _chainName,
+                        assets[_chainName].tokens[j],
+                        oracles[i],
+                        k
+                    );
+                    if (quotes[asset].expiry >= block.timestamp) {
+                        num += 1;
+                    }
                 }
             }
         }
         return num;
+    }
+
+    function getQuote(
+        string memory _chainName,
+        address _token,
+        address _oracle,
+        uint256 _index
+    ) external view returns (QuoteInfo memory) {
+        bytes memory asset = packAsset(_chainName, _token, _oracle, _index);
+        return
+            QuoteInfo({
+                id: quotes[asset].id,
+                chainName: _chainName,
+                token: _token,
+                oracle: _oracle,
+                fee: quotes[asset].fee,
+                gasLimit: quotes[asset].gasLimit,
+                expiry: quotes[asset].expiry
+            });
     }
 
     function verifyInput(QuoteInput memory _input) private {
@@ -254,6 +287,9 @@ contract BridgeFeeQuote is
             )
         ) {
             revert OracleInvalid();
+        }
+        if (_input.quoteIndex > maxQuoteIndex) {
+            revert QuoteTypeInvalid();
         }
         if (_input.expiry < block.timestamp) {
             revert QuoteExpired();
@@ -290,9 +326,10 @@ contract BridgeFeeQuote is
     function packAsset(
         string memory _chainName,
         address _token,
-        address _oracle
+        address _oracle,
+        uint256 _index
     ) internal pure returns (bytes memory) {
-        return abi.encode(_chainName, _token, _oracle);
+        return abi.encode(_chainName, _token, _oracle, _index);
     }
 
     function unpackAsset(
@@ -300,11 +337,16 @@ contract BridgeFeeQuote is
     )
         internal
         pure
-        returns (string memory chainName, address token, address oracle)
+        returns (
+            string memory chainName,
+            address token,
+            address oracle,
+            uint256 index
+        )
     {
-        (chainName, token, oracle) = abi.decode(
+        (chainName, token, oracle, index) = abi.decode(
             _packedData,
-            (string, address, address)
+            (string, address, address, uint256)
         );
     }
 
@@ -330,13 +372,16 @@ contract BridgeFeeQuote is
     function hasActiveQuote(address _oracle) internal view returns (bool) {
         for (uint256 i = 0; i < chainNames.length; i++) {
             for (uint256 j = 0; j < assets[chainNames[i]].tokens.length; j++) {
-                bytes memory asset = packAsset(
-                    chainNames[i],
-                    assets[chainNames[i]].tokens[j],
-                    _oracle
-                );
-                if (quotes[asset].expiry >= block.timestamp) {
-                    return true;
+                for (uint256 k = 0; k < maxQuoteIndex; k++) {
+                    bytes memory asset = packAsset(
+                        chainNames[i],
+                        assets[chainNames[i]].tokens[j],
+                        _oracle,
+                        k
+                    );
+                    if (quotes[asset].expiry >= block.timestamp) {
+                        return true;
+                    }
                 }
             }
         }
@@ -379,6 +424,13 @@ contract BridgeFeeQuote is
         address _oracleContract
     ) external onlyOwner returns (bool) {
         oracleContract = _oracleContract;
+        return true;
+    }
+
+    function updateMaxQuoteIndex(
+        uint256 _maxQuoteIndex
+    ) external onlyOwner returns (bool) {
+        maxQuoteIndex = _maxQuoteIndex;
         return true;
     }
 

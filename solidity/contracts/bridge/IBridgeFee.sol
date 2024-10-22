@@ -7,6 +7,7 @@ interface IBridgeFeeQuote {
         string chainName;
         address token;
         address oracle;
+        uint256 quoteIndex;
         uint256 fee;
         uint256 gasLimit;
         uint256 expiry;
@@ -33,9 +34,15 @@ interface IBridgeFeeQuote {
 
     function getQuoteByToken(
         string memory _chainName,
+        address _token
+    ) external view returns (QuoteInfo[] memory quotes);
+
+    function getQuote(
+        string memory _chainName,
         address _token,
-        uint256 _amount
-    ) external view returns (QuoteInfo memory, bool);
+        address _oracle,
+        uint256 _index
+    ) external view returns (QuoteInfo memory);
 }
 
 interface IBridgeFeeOracle {

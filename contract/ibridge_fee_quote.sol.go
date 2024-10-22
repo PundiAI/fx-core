@@ -42,18 +42,19 @@ type IBridgeFeeQuoteQuoteInfo struct {
 
 // IBridgeFeeQuoteQuoteInput is an auto generated low-level Go binding around an user-defined struct.
 type IBridgeFeeQuoteQuoteInput struct {
-	ChainName string
-	Token     common.Address
-	Oracle    common.Address
-	Fee       *big.Int
-	GasLimit  *big.Int
-	Expiry    *big.Int
-	Signature []byte
+	ChainName  string
+	Token      common.Address
+	Oracle     common.Address
+	QuoteIndex *big.Int
+	Fee        *big.Int
+	GasLimit   *big.Int
+	Expiry     *big.Int
+	Signature  []byte
 }
 
 // IBridgeFeeQuoteMetaData contains all meta data concerning the IBridgeFeeQuote contract.
 var IBridgeFeeQuoteMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"getQuoteById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"getQuoteByToken\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"}],\"name\":\"getQuoteList\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInput[]\",\"name\":\"_inputs\",\"type\":\"tuple[]\"}],\"name\":\"quote\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"getQuote\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"getQuoteById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"}],\"name\":\"getQuoteByToken\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo[]\",\"name\":\"quotes\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"}],\"name\":\"getQuoteList\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"quoteIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInput[]\",\"name\":\"_inputs\",\"type\":\"tuple[]\"}],\"name\":\"quote\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IBridgeFeeQuoteABI is the input ABI used to generate the binding from.
@@ -202,6 +203,37 @@ func (_IBridgeFeeQuote *IBridgeFeeQuoteTransactorRaw) Transact(opts *bind.Transa
 	return _IBridgeFeeQuote.Contract.contract.Transact(opts, method, params...)
 }
 
+// GetQuote is a free data retrieval call binding the contract method 0xb02e61a5.
+//
+// Solidity: function getQuote(string _chainName, address _token, address _oracle, uint256 _index) view returns((uint256,string,address,address,uint256,uint256,uint256))
+func (_IBridgeFeeQuote *IBridgeFeeQuoteCaller) GetQuote(opts *bind.CallOpts, _chainName string, _token common.Address, _oracle common.Address, _index *big.Int) (IBridgeFeeQuoteQuoteInfo, error) {
+	var out []interface{}
+	err := _IBridgeFeeQuote.contract.Call(opts, &out, "getQuote", _chainName, _token, _oracle, _index)
+
+	if err != nil {
+		return *new(IBridgeFeeQuoteQuoteInfo), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(IBridgeFeeQuoteQuoteInfo)).(*IBridgeFeeQuoteQuoteInfo)
+
+	return out0, err
+
+}
+
+// GetQuote is a free data retrieval call binding the contract method 0xb02e61a5.
+//
+// Solidity: function getQuote(string _chainName, address _token, address _oracle, uint256 _index) view returns((uint256,string,address,address,uint256,uint256,uint256))
+func (_IBridgeFeeQuote *IBridgeFeeQuoteSession) GetQuote(_chainName string, _token common.Address, _oracle common.Address, _index *big.Int) (IBridgeFeeQuoteQuoteInfo, error) {
+	return _IBridgeFeeQuote.Contract.GetQuote(&_IBridgeFeeQuote.CallOpts, _chainName, _token, _oracle, _index)
+}
+
+// GetQuote is a free data retrieval call binding the contract method 0xb02e61a5.
+//
+// Solidity: function getQuote(string _chainName, address _token, address _oracle, uint256 _index) view returns((uint256,string,address,address,uint256,uint256,uint256))
+func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuote(_chainName string, _token common.Address, _oracle common.Address, _index *big.Int) (IBridgeFeeQuoteQuoteInfo, error) {
+	return _IBridgeFeeQuote.Contract.GetQuote(&_IBridgeFeeQuote.CallOpts, _chainName, _token, _oracle, _index)
+}
+
 // GetQuoteById is a free data retrieval call binding the contract method 0xa8541c17.
 //
 // Solidity: function getQuoteById(uint256 _id) view returns((uint256,string,address,address,uint256,uint256,uint256))
@@ -233,36 +265,35 @@ func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuoteById(_id *big.Int)
 	return _IBridgeFeeQuote.Contract.GetQuoteById(&_IBridgeFeeQuote.CallOpts, _id)
 }
 
-// GetQuoteByToken is a free data retrieval call binding the contract method 0xadcdd23a.
+// GetQuoteByToken is a free data retrieval call binding the contract method 0x38fbcf5b.
 //
-// Solidity: function getQuoteByToken(string _chainName, address _token, uint256 _amount) view returns((uint256,string,address,address,uint256,uint256,uint256), bool)
-func (_IBridgeFeeQuote *IBridgeFeeQuoteCaller) GetQuoteByToken(opts *bind.CallOpts, _chainName string, _token common.Address, _amount *big.Int) (IBridgeFeeQuoteQuoteInfo, bool, error) {
+// Solidity: function getQuoteByToken(string _chainName, address _token) view returns((uint256,string,address,address,uint256,uint256,uint256)[] quotes)
+func (_IBridgeFeeQuote *IBridgeFeeQuoteCaller) GetQuoteByToken(opts *bind.CallOpts, _chainName string, _token common.Address) ([]IBridgeFeeQuoteQuoteInfo, error) {
 	var out []interface{}
-	err := _IBridgeFeeQuote.contract.Call(opts, &out, "getQuoteByToken", _chainName, _token, _amount)
+	err := _IBridgeFeeQuote.contract.Call(opts, &out, "getQuoteByToken", _chainName, _token)
 
 	if err != nil {
-		return *new(IBridgeFeeQuoteQuoteInfo), *new(bool), err
+		return *new([]IBridgeFeeQuoteQuoteInfo), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(IBridgeFeeQuoteQuoteInfo)).(*IBridgeFeeQuoteQuoteInfo)
-	out1 := *abi.ConvertType(out[1], new(bool)).(*bool)
+	out0 := *abi.ConvertType(out[0], new([]IBridgeFeeQuoteQuoteInfo)).(*[]IBridgeFeeQuoteQuoteInfo)
 
-	return out0, out1, err
+	return out0, err
 
 }
 
-// GetQuoteByToken is a free data retrieval call binding the contract method 0xadcdd23a.
+// GetQuoteByToken is a free data retrieval call binding the contract method 0x38fbcf5b.
 //
-// Solidity: function getQuoteByToken(string _chainName, address _token, uint256 _amount) view returns((uint256,string,address,address,uint256,uint256,uint256), bool)
-func (_IBridgeFeeQuote *IBridgeFeeQuoteSession) GetQuoteByToken(_chainName string, _token common.Address, _amount *big.Int) (IBridgeFeeQuoteQuoteInfo, bool, error) {
-	return _IBridgeFeeQuote.Contract.GetQuoteByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _token, _amount)
+// Solidity: function getQuoteByToken(string _chainName, address _token) view returns((uint256,string,address,address,uint256,uint256,uint256)[] quotes)
+func (_IBridgeFeeQuote *IBridgeFeeQuoteSession) GetQuoteByToken(_chainName string, _token common.Address) ([]IBridgeFeeQuoteQuoteInfo, error) {
+	return _IBridgeFeeQuote.Contract.GetQuoteByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _token)
 }
 
-// GetQuoteByToken is a free data retrieval call binding the contract method 0xadcdd23a.
+// GetQuoteByToken is a free data retrieval call binding the contract method 0x38fbcf5b.
 //
-// Solidity: function getQuoteByToken(string _chainName, address _token, uint256 _amount) view returns((uint256,string,address,address,uint256,uint256,uint256), bool)
-func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuoteByToken(_chainName string, _token common.Address, _amount *big.Int) (IBridgeFeeQuoteQuoteInfo, bool, error) {
-	return _IBridgeFeeQuote.Contract.GetQuoteByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _token, _amount)
+// Solidity: function getQuoteByToken(string _chainName, address _token) view returns((uint256,string,address,address,uint256,uint256,uint256)[] quotes)
+func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuoteByToken(_chainName string, _token common.Address) ([]IBridgeFeeQuoteQuoteInfo, error) {
+	return _IBridgeFeeQuote.Contract.GetQuoteByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _token)
 }
 
 // GetQuoteList is a free data retrieval call binding the contract method 0x398a0e6b.
@@ -296,23 +327,23 @@ func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuoteList(_chainName st
 	return _IBridgeFeeQuote.Contract.GetQuoteList(&_IBridgeFeeQuote.CallOpts, _chainName)
 }
 
-// Quote is a paid mutator transaction binding the contract method 0x9533ae43.
+// Quote is a paid mutator transaction binding the contract method 0x71a141c6.
 //
-// Solidity: function quote((string,address,address,uint256,uint256,uint256,bytes)[] _inputs) returns(bool)
+// Solidity: function quote((string,address,address,uint256,uint256,uint256,uint256,bytes)[] _inputs) returns(bool)
 func (_IBridgeFeeQuote *IBridgeFeeQuoteTransactor) Quote(opts *bind.TransactOpts, _inputs []IBridgeFeeQuoteQuoteInput) (*types.Transaction, error) {
 	return _IBridgeFeeQuote.contract.Transact(opts, "quote", _inputs)
 }
 
-// Quote is a paid mutator transaction binding the contract method 0x9533ae43.
+// Quote is a paid mutator transaction binding the contract method 0x71a141c6.
 //
-// Solidity: function quote((string,address,address,uint256,uint256,uint256,bytes)[] _inputs) returns(bool)
+// Solidity: function quote((string,address,address,uint256,uint256,uint256,uint256,bytes)[] _inputs) returns(bool)
 func (_IBridgeFeeQuote *IBridgeFeeQuoteSession) Quote(_inputs []IBridgeFeeQuoteQuoteInput) (*types.Transaction, error) {
 	return _IBridgeFeeQuote.Contract.Quote(&_IBridgeFeeQuote.TransactOpts, _inputs)
 }
 
-// Quote is a paid mutator transaction binding the contract method 0x9533ae43.
+// Quote is a paid mutator transaction binding the contract method 0x71a141c6.
 //
-// Solidity: function quote((string,address,address,uint256,uint256,uint256,bytes)[] _inputs) returns(bool)
+// Solidity: function quote((string,address,address,uint256,uint256,uint256,uint256,bytes)[] _inputs) returns(bool)
 func (_IBridgeFeeQuote *IBridgeFeeQuoteTransactorSession) Quote(_inputs []IBridgeFeeQuoteQuoteInput) (*types.Transaction, error) {
 	return _IBridgeFeeQuote.Contract.Quote(&_IBridgeFeeQuote.TransactOpts, _inputs)
 }
