@@ -49,6 +49,7 @@ type Erc20Keeper interface {
 	HasCache(ctx context.Context, key string) (bool, error)
 	SetCache(ctx context.Context, key string, amount sdkmath.Int) error
 	DeleteCache(ctx context.Context, key string) error
+	GetCache(ctx context.Context, key string) (sdkmath.Int, error)
 
 	HasToken(ctx context.Context, token string) (bool, error)
 	GetBaseDenom(ctx context.Context, token string) (string, error)

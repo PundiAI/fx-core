@@ -17,3 +17,7 @@ func (k Keeper) SetCache(ctx context.Context, key string, amount sdkmath.Int) er
 func (k Keeper) DeleteCache(ctx context.Context, key string) error {
 	return k.Cache.Remove(ctx, key)
 }
+
+func (k Keeper) GetCache(ctx context.Context, key string) (sdkmath.Int, error) {
+	return k.Cache.Get(ctx, key)
+}

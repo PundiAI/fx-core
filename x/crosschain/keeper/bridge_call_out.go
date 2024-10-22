@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -19,6 +21,7 @@ import (
 	"github.com/hashicorp/go-metrics"
 
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -138,8 +141,22 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBr
 		sdk.NewAttribute(types.AttributeKeyRefund, refund.String()),
 	))
 
+	originAmount, err := k.erc20Keeper.GetCache(ctx, types.NewOriginTokenKey(k.moduleName, data.Nonce))
+	if err != nil && !errors.IsOf(err, collections.ErrNotFound) {
+		return err
+	}
+	if errors.IsOf(err, collections.ErrNotFound) {
+		originAmount = sdkmath.ZeroInt()
+	}
+
+	originCoin := sdk.NewCoin(fxtypes.DefaultDenom, originAmount)
+	if !baseCoins.IsAllGTE(sdk.NewCoins(originCoin)) {
+		return types.ErrInvalid.Wrapf("bridge call coin less than origin amount")
+	}
+	baseCoins = baseCoins.Sub(originCoin)
+
 	for _, coin := range baseCoins {
-		_, err := k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(refund.Bytes()), coin)
+		_, err = k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(refund.Bytes()), coin)
 		if err != nil {
 			return err
 		}
