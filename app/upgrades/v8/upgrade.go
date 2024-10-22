@@ -21,6 +21,7 @@ import (
 	"github.com/functionx/fx-core/v8/app/upgrades/store"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20keeper "github.com/functionx/fx-core/v8/x/erc20/keeper"
 	erc20v8 "github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	"github.com/functionx/fx-core/v8/x/gov/keeper"
@@ -49,6 +50,10 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		}
 
 		if err = migrateBridgeBalance(cacheCtx, app.BankKeeper, app.AccountKeeper); err != nil {
+			return fromVM, err
+		}
+
+		if err = migrateERC20TokenToCrosschain(cacheCtx, app.BankKeeper, app.Erc20Keeper); err != nil {
 			return fromVM, err
 		}
 
@@ -150,6 +155,23 @@ func migrateAccountBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accoun
 		return false
 	})
 	return nil
+}
+
+func migrateERC20TokenToCrosschain(ctx sdk.Context, bankKeeper bankkeeper.Keeper, erc20Keeper erc20keeper.Keeper) error {
+	balances := bankKeeper.GetAllBalances(ctx, types.NewModuleAddress(erc20types.ModuleName))
+	migrateCoins := sdk.NewCoins()
+	for _, bal := range balances {
+		has, err := erc20Keeper.HasToken(ctx, bal.Denom)
+		if err != nil {
+			return err
+		}
+		if !has {
+			continue
+		}
+		migrateCoins = migrateCoins.Add(bal)
+	}
+	ctx.Logger().Info("migrate erc20 bridge/ibc token to crosschain", "coins", migrateCoins.String())
+	return bankKeeper.SendCoinsFromModuleToModule(ctx, erc20types.ModuleName, crosschaintypes.ModuleName, migrateCoins)
 }
 
 func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
