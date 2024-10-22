@@ -86,18 +86,16 @@ type AppModule struct {
 	keeper         *keeper.Keeper
 	accountKeeper  govtypes.AccountKeeper
 	bankKeeper     govtypes.BankKeeper
-	cdc            codec.Codec
 	legacySubspace govtypes.ParamSubspace
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ss govtypes.ParamSubspace) AppModule {
+func NewAppModule(keeper *keeper.Keeper, ak govtypes.AccountKeeper, bk govtypes.BankKeeper, ss govtypes.ParamSubspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		accountKeeper:  ak,
 		bankKeeper:     bk,
-		cdc:            cdc,
 		legacySubspace: ss,
 	}
 }

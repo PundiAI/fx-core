@@ -32,12 +32,11 @@ import (
 type KeeperMockSuite struct {
 	suite.Suite
 
-	ctx          sdk.Context
-	moduleName   string
-	wfxTokenAddr string
+	ctx        sdk.Context
+	moduleName string
 
 	queryClient types.QueryClient
-	msgServer   types.MsgServer
+	// msgServer   types.MsgServer
 
 	crosschainKeeper  crosschainkeeper.Keeper
 	stakingKeeper     *mock.MockStakingKeeper
@@ -48,7 +47,6 @@ type KeeperMockSuite struct {
 	erc20Keeper       *mock.MockErc20Keeper
 	accountKeeper     *mock.MockAccountKeeper
 	evmKeeper         *mock.MockEVMKeeper
-	evmErc20Keeper    *mock.MockEvmERC20Keeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -69,8 +67,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	}
 	for _, moduleName := range subModules {
 		suite.Run(t, &KeeperMockSuite{
-			moduleName:   moduleName,
-			wfxTokenAddr: helpers.GenHexAddress().String(),
+			moduleName: moduleName,
 		})
 	}
 }
@@ -99,7 +96,6 @@ func (s *KeeperMockSuite) SetupTest() {
 	s.erc20Keeper = mock.NewMockErc20Keeper(ctrl)
 	s.accountKeeper = mock.NewMockAccountKeeper(ctrl)
 	s.evmKeeper = mock.NewMockEVMKeeper(ctrl)
-	s.evmErc20Keeper = mock.NewMockEvmERC20Keeper(ctrl)
 
 	s.accountKeeper.EXPECT().GetModuleAddress(s.moduleName).Return(authtypes.NewEmptyModuleAccount(s.moduleName).GetAddress()).Times(1)
 
@@ -115,7 +111,6 @@ func (s *KeeperMockSuite) SetupTest() {
 		s.erc20Keeper,
 		s.accountKeeper,
 		s.evmKeeper,
-		s.evmErc20Keeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -126,7 +121,7 @@ func (s *KeeperMockSuite) SetupTest() {
 	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, myApp.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
 	s.queryClient = types.NewQueryClient(queryHelper)
-	s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
+	// s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
 
 	params := s.CrosschainParams()
 	params.EnableSendToExternalPending = true

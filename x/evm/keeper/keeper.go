@@ -28,11 +28,10 @@ type Keeper struct {
 
 	// access to account state
 	accountKeeper fxevmtypes.AccountKeeper
-	bankkeeper    types.BankKeeper
 	module        common.Address
 }
 
-func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper, bk types.BankKeeper) *Keeper {
+func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
 	addr := ak.GetModuleAddress(types.ModuleName)
 	if addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
@@ -40,7 +39,6 @@ func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper, bk types.BankK
 	return &Keeper{
 		Keeper:        ek,
 		accountKeeper: ak,
-		bankkeeper:    bk,
 		module:        common.BytesToAddress(addr),
 	}
 }

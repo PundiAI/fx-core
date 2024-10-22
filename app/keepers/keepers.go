@@ -234,7 +234,6 @@ func NewAppKeeper(
 			authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 		),
 		appKeepers.keys[stakingtypes.StoreKey],
-		appCodec,
 	)
 
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
@@ -355,7 +354,6 @@ func NewAppKeeper(
 	appKeepers.EvmKeeper = fxevmkeeper.NewKeeper(
 		evmKeeper,
 		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
 	)
 
 	appKeepers.Erc20Keeper = erc20keeper.NewKeeper(
@@ -381,7 +379,6 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
@@ -395,7 +392,6 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
-		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)
@@ -411,7 +407,6 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
@@ -425,7 +420,6 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
-		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)
@@ -441,7 +435,6 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
@@ -455,7 +448,6 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
-		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)
@@ -471,7 +463,6 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
-		appKeepers.EvmKeeper,
 		authAddr,
 	)
 	appKeepers.TronKeeper = crosschainkeeper.NewKeeper(
@@ -485,7 +476,6 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
-		appKeepers.EvmKeeper,
 		appKeepers.EvmKeeper,
 		authAddr,
 	)

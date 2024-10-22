@@ -31,7 +31,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
@@ -41,8 +40,8 @@ import (
 type PrecompileTestSuite struct {
 	helpers.BaseSuite
 
-	signer     *helpers.Signer
-	crosschain common.Address
+	// signer *helpers.Signer
+	// crosschain common.Address
 }
 
 func TestPrecompileTestSuite(t *testing.T) {
@@ -54,11 +53,11 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.Ctx = suite.Ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
 	suite.Ctx = suite.Ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e18))
 
-	suite.signer = suite.AddTestSigner(10_000)
+	// suite.signer = suite.AddTestSigner(10_000)
 
-	crosschainContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrosschainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrosschainTestMetaData.Bin))
-	suite.Require().NoError(err)
-	suite.crosschain = crosschainContract
+	// crosschainContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrosschainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrosschainTestMetaData.Bin))
+	// suite.Require().NoError(err)
+	// suite.crosschain = crosschainContract
 }
 
 func (suite *PrecompileTestSuite) SetupSubTest() {

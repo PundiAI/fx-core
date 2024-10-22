@@ -12,7 +12,6 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -28,7 +27,6 @@ import (
 
 type StakingSuite struct {
 	Erc20TestSuite
-	abi      abi.ABI
 	grantKey cryptotypes.PrivKey
 }
 
@@ -36,7 +34,6 @@ func NewStakingSuite(ts *TestSuite) StakingSuite {
 	key := helpers.NewEthPrivKey()
 	return StakingSuite{
 		Erc20TestSuite: NewErc20TestSuite(ts),
-		abi:            stakingprecompile.GetABI(),
 		grantKey:       key,
 	}
 }
