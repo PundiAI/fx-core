@@ -48,7 +48,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
     const BridgeFeeQuote = await ethers.getContractFactory("BridgeFeeQuote");
     bridgeFeeQuote = await BridgeFeeQuote.deploy();
 
-    await bridgeFeeQuote.initialize(bridgeFeeOracle.getAddress());
+    await bridgeFeeQuote.initialize(bridgeFeeOracle.getAddress(), 3);
 
     const role = await bridgeFeeOracle.QUOTE_ROLE();
     await bridgeFeeOracle.grantRole(role, bridgeFeeQuote.getAddress());
@@ -79,11 +79,12 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         fee,
         gasLimit,
         expiry,
-        oracle
+        oracle,
+        0
       );
 
       await expect(bridgeFeeQuote.quote([input]))
-        .to.be.emit(bridgeFeeQuote, "NewQuote")
+        .to.emit(bridgeFeeQuote, "NewQuote")
         .withArgs(
           0,
           input.oracle,
@@ -123,6 +124,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         chainName: chainName,
         token: token1.address,
         oracle: oracle.address,
+        quoteIndex: 0,
         fee: fee,
         gasLimit: gasLimit,
         expiry: expiry,
@@ -144,7 +146,8 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         fee,
         gasLimit,
         expiry,
-        oracle
+        oracle,
+        0
       );
       const input2 = await newBridgeFeeQuote(
         chainName,
@@ -152,7 +155,8 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         fee,
         gasLimit,
         expiry,
-        oracle
+        oracle,
+        1
       );
       await bridgeFeeQuote.quote([input, input2]);
 
@@ -182,7 +186,8 @@ describe("BridgeFeeQuoteUpgradeable", function () {
           fee,
           gasLimit,
           expiry,
-          oracle
+          oracle,
+          0
         );
         quoteList.push(input);
         await bridgeFeeQuote.quote(quoteList);
@@ -191,6 +196,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         expect(quoteL.length).to.be.equal(i + 1);
       }
     });
+
     it("first oracle quote", async function () {
       await bridgeFeeOracle.setDefaultOracle(oracle);
 
@@ -203,6 +209,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
           chainName: chainName,
           token: token1.address,
           oracle: oracle.address,
+          quoteIndex: 0,
           fee: fee,
           gasLimit: gasLimit,
           expiry: expiry,
@@ -217,14 +224,45 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         },
       ]);
 
-      const [quote, expire] = await bridgeFeeQuote.getQuoteByToken(
+      const quotes = await bridgeFeeQuote.getQuoteByToken(
         chainName,
-        token1.address,
-        2
+        token1.address
       );
-      expect(expire).to.be.true;
-      expect(quote.fee).to.be.equal(fee);
-      expect(quote.gasLimit).to.be.equal(gasLimit);
+      expect(quotes.length).to.equal(3);
+
+      for (let i = 0; i < 3; i++) {
+        if (i == 0) {
+          expect(quotes[i].fee).to.equal(fee);
+          expect(quotes[i].gasLimit).to.equal(gasLimit);
+          expect(quotes[i].expiry).to.equal(expiry);
+        } else {
+          expect(quotes[i].fee).to.equal(0);
+          expect(quotes[i].gasLimit).to.equal(0);
+          expect(quotes[i].expiry).to.equal(0);
+        }
+      }
+    });
+
+    it("oracle quote index", async function () {
+      const fee = 1;
+      const gasLimit = 0;
+      const expiry = (await currentTime()) + 3600;
+      let quoteList: IBridgeFeeQuote.QuoteInputStruct[] = [];
+      for (let i = 0; i < 3; i++) {
+        const input = await newBridgeFeeQuote(
+          chainName,
+          token1.address,
+          fee,
+          gasLimit,
+          expiry,
+          oracle,
+          i
+        );
+        quoteList.push(input);
+        await bridgeFeeQuote.quote(quoteList);
+        const quoteL = await bridgeFeeQuote.getQuoteList(chainName);
+        expect(quoteL.length).to.be.equal(i + 1);
+      }
     });
   });
 });
@@ -262,7 +300,8 @@ async function newBridgeFeeQuote(
   fee: number,
   gasLimit: number,
   expiry: number,
-  oracle: HDNodeWallet
+  oracle: HDNodeWallet,
+  index: number
 ): Promise<IBridgeFeeQuote.QuoteInputStruct> {
   const signature = await generateSignature(
     chainName,
@@ -276,6 +315,7 @@ async function newBridgeFeeQuote(
     chainName: chainName,
     token: token,
     oracle: oracle.address,
+    quoteIndex: index,
     fee: fee,
     gasLimit: gasLimit,
     expiry: expiry,
