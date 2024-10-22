@@ -82,9 +82,9 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 
 	// Iterate through remaining batches
 	k.IterateOutgoingTxBatches(ctx, func(iterBatch *types.OutgoingTxBatch) bool {
-		// If the iterated batches nonce is lower than the one that was just executed, cancel it
+		// If the iterated batches nonce is lower than the one that was just executed, resend it
 		if iterBatch.BatchNonce < batch.BatchNonce && iterBatch.TokenContract == tokenContract {
-			if err = k.RefundOutgoingTxBatch(ctx, tokenContract, iterBatch.BatchNonce); err != nil {
+			if err = k.ResendTimeoutOutgoingTxBatch(ctx, iterBatch); err != nil {
 				return true
 			}
 		}
@@ -144,23 +144,31 @@ func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchN
 	return batch
 }
 
-// RefundOutgoingTxBatch releases all TX in the batch and deletes the batch
-func (k Keeper) RefundOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) error {
-	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
-	if batch == nil {
-		return types.ErrInvalid.Wrapf("batch not found %s %d", tokenContract, batchNonce)
-	}
-	// for _, tx := range batch.Transactions {
-	// todo: need refund
-	// }
-
-	// Delete batch since it is finished
+func (k Keeper) ResendTimeoutOutgoingTxBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error {
 	k.DeleteBatch(ctx, batch)
-
+	k.DeleteBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract)
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batchNonce)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batch.BatchNonce)),
+	))
+
+	batchTimeout := k.CalExternalTimeoutHeight(ctx, GetExternalBatchTimeout)
+	if batchTimeout <= 0 {
+		return types.ErrInvalid.Wrapf("batch timeout height")
+	}
+	batch.BatchTimeout = batchTimeout
+	batch.BatchNonce = k.autoIncrementID(ctx, types.KeyLastOutgoingBatchID)
+	if err := k.StoreBatch(ctx, batch); err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeOutgoingBatch,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batch.BatchNonce)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxIds, fmt.Sprint(batch.Transactions[0].Id)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchTimeout, fmt.Sprint(batch.BatchTimeout)),
 	))
 	return nil
 }

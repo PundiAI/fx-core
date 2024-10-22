@@ -36,6 +36,7 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallResultHandler() {
 
 			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 			s.accountKeeper.EXPECT().NewAccountWithAddress(gomock.Any(), gomock.Any()).Times(1)
+			s.erc20Keeper.EXPECT().DeleteCache(gomock.Any(), gomock.Any()).Times(1)
 
 			s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &types.OutgoingBridgeCall{
 				Sender:      helpers.GenExternalAddr(s.moduleName),

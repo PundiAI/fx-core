@@ -148,23 +148,11 @@ func (k Keeper) bridgeCallSlashing(ctx sdk.Context, oracles types.Oracles, signe
 	return hasSlash
 }
 
-// cleanupTimedOutBatches deletes batches that have passed their expiration on Ethereum
-// keep in mind several things when modifying this function
-// A) unlike nonces timeouts are not monotonically increasing, meaning batch 5 can have a later timeout than batch 6
-//
-//	this means that we MUST only cleanup a single batch at a time
-//
-// B) it is possible for ethereumHeight to be zero if no events have ever occurred, make sure your code accounts for this
-// C) When we compute the timeout we do our best to estimate the Ethereum block height at that very second. But what we work with
-//
-//	here is the Ethereum block height at the time of the last SendToExternal or SendToFx to be observed. It's very important we do not
-//	project, if we do a slowdown on ethereum could cause a double spend. Instead timeouts will *only* occur after the timeout period
-//	AND any deposit or withdraw has occurred to update the Ethereum block height.
 func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) (err error) {
 	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.BatchTimeout < externalBlockHeight {
-			if err = k.RefundOutgoingTxBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
+			if err = k.ResendTimeoutOutgoingTxBatch(ctx, batch); err != nil {
 				return true
 			}
 		}
@@ -179,13 +167,16 @@ func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) (err error) {
 		if data.Timeout > externalBlockHeight {
 			return true
 		}
+
 		// 1. handler bridge call refund
 		if err = k.RefundOutgoingBridgeCall(ctx, data); err != nil {
 			return true
 		}
 
 		// 2. delete bridge call
-		k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce)
+		if err = k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce); err != nil {
+			return true
+		}
 		return false
 	})
 	return err

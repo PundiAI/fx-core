@@ -24,11 +24,6 @@ const (
 	AttributeKeyOutgoingBatchNonce   = "batch_nonce"
 	AttributeKeyOutgoingBatchTimeout = "outgoing_batch_timeout"
 
-	EventTypeIbcTransfer         = "ibc_transfer"
-	AttributeKeyIbcSendSequence  = "ibc_send_sequence"
-	AttributeKeyIbcSourcePort    = "ibc_source_port"
-	AttributeKeyIbcSourceChannel = "ibc_source_channel"
-
 	EventTypeEvmTransfer = "evm_transfer"
 
 	EventTypeBridgeCallEvent = "bridge_call_event"
