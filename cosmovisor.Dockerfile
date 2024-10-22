@@ -2,7 +2,7 @@ FROM golang:1.23.0-alpine3.19 as builder
 
 RUN apk add --no-cache git build-base linux-headers
 
-RUN go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.5.0
+RUN go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.6.0
 
 WORKDIR /app
 
