@@ -110,8 +110,9 @@ func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeC
 			return err
 		}
 	}
-	k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce)
-
+	if err := k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce); err != nil {
+		return err
+	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCallResult,
 		sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatInt(int64(claim.Nonce), 10)),
@@ -164,12 +165,15 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBr
 	return nil
 }
 
-func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, bridgeCallNonce uint64) {
+func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, bridgeCallNonce uint64) error {
 	// 1. delete bridge call
 	k.DeleteOutgoingBridgeCall(ctx, bridgeCallNonce)
 
 	// 2. delete bridge call confirm
 	k.DeleteBridgeCallConfirm(ctx, bridgeCallNonce)
+
+	// 3. delete cache origin amount
+	return k.erc20Keeper.DeleteCache(ctx, types.NewOriginTokenKey(k.moduleName, bridgeCallNonce))
 }
 
 func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, outCall *types.OutgoingBridgeCall) {
