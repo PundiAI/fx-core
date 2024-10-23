@@ -46,7 +46,7 @@ func (k ERC20TokenKeeper) Symbol(ctx context.Context, contractAddr common.Addres
 func (k ERC20TokenKeeper) Decimals(ctx context.Context, contractAddr common.Address) (uint8, error) {
 	var decimalRes struct{ Value uint8 }
 	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, contractAddr, k.abi, "decimals", &decimalRes); err != nil {
-		return 0, nil
+		return 0, err
 	}
 	return decimalRes.Value, nil
 }
