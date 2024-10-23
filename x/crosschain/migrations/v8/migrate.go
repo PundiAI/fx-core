@@ -49,10 +49,11 @@ func migrateOutgoingTxBatchBlockKey(ctx sdk.Context, storeKey storetypes.StoreKe
 		batch := new(types.OutgoingTxBatch)
 		cdc.MustUnmarshal(iter.Value(), batch)
 		batches = append(batches, batch)
+		kvStore.Delete(iter.Key())
 	}
 
 	for _, batch := range batches {
-		blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)
-		kvStore.Set(blockKey, cdc.MustMarshal(batch))
+		newBlockKey := types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)
+		kvStore.Set(newBlockKey, cdc.MustMarshal(batch))
 	}
 }
