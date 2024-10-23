@@ -2,9 +2,11 @@ package v8
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v8/app/upgrades/store"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 var (
@@ -31,7 +33,27 @@ func GetRemovedStoreKeys() [][]byte {
 	}
 }
 
-func Migrate(ctx sdk.Context, storeKey storetypes.StoreKey) error {
+func Migrate(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store.RemoveStoreKeys(ctx, storeKey, GetRemovedStoreKeys())
+	migrateOutgoingTxBatchBlockKey(ctx, storeKey, cdc)
 	return nil
+}
+
+func migrateOutgoingTxBatchBlockKey(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) {
+	kvStore := ctx.KVStore(storeKey)
+	iter := storetypes.KVStorePrefixIterator(kvStore, types.OutgoingTxBatchBlockKey)
+	defer iter.Close()
+
+	batches := make([]*types.OutgoingTxBatch, 0, 100)
+	for ; iter.Valid(); iter.Next() {
+		batch := new(types.OutgoingTxBatch)
+		cdc.MustUnmarshal(iter.Value(), batch)
+		batches = append(batches, batch)
+		kvStore.Delete(iter.Key())
+	}
+
+	for _, batch := range batches {
+		newBlockKey := types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)
+		kvStore.Set(newBlockKey, cdc.MustMarshal(batch))
+	}
 }

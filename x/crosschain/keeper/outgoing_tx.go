@@ -115,7 +115,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
 	store.Set(key, k.cdc.MustMarshal(batch))
 
-	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
+	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)
 	// Note: Only one OutgoingTxBatch can be submitted in a block
 	if store.Has(blockKey) {
 		return types.ErrInvalid.Wrapf("block:[%v] has batch request", batch.Block)
@@ -128,7 +128,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce))
-	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block))
+	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce))
 }
 
 // GetOutgoingTxBatch loads a batch object. Returns nil when not exists.
