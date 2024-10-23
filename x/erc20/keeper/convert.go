@@ -70,7 +70,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx context.Context, erc20Token types.ERC2
 	}
 
 	erc20Contract := erc20Token.GetERC20Contract()
-	if err := k.evmErc20Keeper.ERC20Mint(ctx, erc20Contract, k.contractOwner, receiver, coin.Amount.BigInt()); err != nil {
+	if err := k.evmErc20Keeper.Mint(ctx, erc20Contract, k.contractOwner, receiver, coin.Amount.BigInt()); err != nil {
 		return err
 	}
 
@@ -90,7 +90,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx context.Context, erc20Token types.ERC
 		return err
 	}
 
-	if err := k.evmErc20Keeper.ERC20Transfer(ctx, erc20Token.GetERC20Contract(), k.contractOwner, receiver, coin.Amount.BigInt()); err != nil {
+	if err := k.evmErc20Keeper.Transfer(ctx, erc20Token.GetERC20Contract(), k.contractOwner, receiver, coin.Amount.BigInt()); err != nil {
 		return err
 	}
 

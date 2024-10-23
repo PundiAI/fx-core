@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -96,7 +97,7 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 		callEvmSender = sender
 	} else {
 		var err error
-		args, err = types.PackBridgeCallback(sender, refundAddr, tokens, amounts, data, memo)
+		args, err = contract.PackBridgeCallback(sender, refundAddr, tokens, amounts, data, memo)
 		if err != nil {
 			return err
 		}

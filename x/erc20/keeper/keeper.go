@@ -22,7 +22,7 @@ type Keeper struct {
 	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
 	evmKeeper      types.EVMKeeper
-	evmErc20Keeper types.EvmERC20Keeper
+	evmErc20Keeper types.ERC20TokenKeeper
 
 	contractOwner common.Address
 
@@ -44,7 +44,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	evmKeeper types.EVMKeeper,
-	evmErc20Keeper types.EvmERC20Keeper,
+	evmErc20Keeper types.ERC20TokenKeeper,
 	authority string,
 ) Keeper {
 	moduleAddress := ak.GetModuleAddress(types.ModuleName)

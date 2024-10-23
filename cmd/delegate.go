@@ -141,16 +141,14 @@ func queryContractBalance(myApp *app.App, ctx sdk.Context, contractAddr, address
 	if contract.IsZeroEthAddress(contractAddr) {
 		return
 	}
-
-	var balanceRes struct{ Value *big.Int }
-	err := myApp.EvmKeeper.QueryContract(ctx, contractAddr, contractAddr, contract.GetFIP20().ABI, "balanceOf", &balanceRes, address)
+	balance, err := contract.NewERC20TokenKeeper(myApp.EvmKeeper).BalanceOf(ctx, contractAddr, address)
 	if err != nil {
 		panic(err)
 	}
-	if balanceRes.Value.Cmp(big.NewInt(0)) == 0 {
+	if balance.Cmp(big.NewInt(0)) == 0 {
 		return
 	}
-	holders[address.Hex()] = sdkmath.NewIntFromBigInt(balanceRes.Value)
+	holders[address.Hex()] = sdkmath.NewIntFromBigInt(balance)
 }
 
 func buildApp(db dbm.DB, height int64) (*app.App, sdk.Context, error) {

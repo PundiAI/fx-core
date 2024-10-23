@@ -62,6 +62,7 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
 
+	"github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
@@ -362,7 +363,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.EvmKeeper,
-		appKeepers.EvmKeeper,
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 

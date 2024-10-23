@@ -86,30 +86,30 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 	return 0
 }
 
-func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret []byte, err error) {
-	if len(contract.Input) <= 4 {
-		return evmtypes.PackRetErrV2(errors.New("invalid input"))
+func (c *Contract) Run(evm *vm.EVM, vmContract *vm.Contract, readonly bool) (ret []byte, err error) {
+	if len(vmContract.Input) <= 4 {
+		return contract.PackRetErrV2(errors.New("invalid input"))
 	}
 
 	for _, method := range c.methods {
-		if bytes.Equal(method.GetMethodId(), contract.Input[:4]) {
+		if bytes.Equal(method.GetMethodId(), vmContract.Input[:4]) {
 			if readonly && !method.IsReadonly() {
-				return evmtypes.PackRetErrV2(errors.New("write protection"))
+				return contract.PackRetErrV2(errors.New("write protection"))
 			}
 
 			stateDB := evm.StateDB.(evmtypes.ExtStateDB)
-			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.Context(), c.Address(), contract.Input[:4]); err != nil {
-				return evmtypes.PackRetError(err)
+			if err = c.govKeeper.CheckDisabledPrecompiles(stateDB.Context(), c.Address(), vmContract.Input[:4]); err != nil {
+				return contract.PackRetError(err)
 			}
 
-			ret, err = method.Run(evm, contract)
+			ret, err = method.Run(evm, vmContract)
 			if err != nil {
-				return evmtypes.PackRetErrV2(err)
+				return contract.PackRetErrV2(err)
 			}
 			return ret, nil
 		}
 	}
-	return evmtypes.PackRetErrV2(errors.New("unknown method"))
+	return contract.PackRetErrV2(errors.New("unknown method"))
 }
 
 func EmitEvent(evm *vm.EVM, data []byte, topics []common.Hash) {
