@@ -25,6 +25,7 @@ import (
 	nextversion "github.com/functionx/fx-core/v8/app/upgrades/v8"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
 	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
@@ -105,6 +106,8 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkGovCustomParams(t, ctx, myApp)
 
 	checkErc20Keys(t, ctx, myApp)
+
+	checkOutgoingBatch(t, ctx, myApp)
 }
 
 func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -142,5 +145,16 @@ func checkKeysIsDelete(t *testing.T, kvStore storetypes.KVStore, keys [][]byte) 
 	}
 	for _, removeKey := range keys {
 		checkFn(removeKey)
+	}
+}
+
+func checkOutgoingBatch(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+	for _, keeper := range myApp.CrosschainKeepers.ToSlice() {
+		kvStore := ctx.KVStore(myApp.GetKey(keeper.ModuleName()))
+		keeper.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+			assert.True(t, kvStore.Has(types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)))
+			return false
+		})
 	}
 }

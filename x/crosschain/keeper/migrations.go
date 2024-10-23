@@ -17,7 +17,7 @@ func NewMigrator(k Keeper) Migrator {
 }
 
 func (m Migrator) Migrate7to8(ctx sdk.Context) error {
-	return v8.Migrate(ctx, m.keeper.storeKey)
+	return v8.Migrate(ctx, m.keeper.storeKey, m.keeper.cdc)
 }
 
 func (m Migrator) Migrate7to8WithArbExternalBlockTime(ctx sdk.Context) error {
