@@ -221,7 +221,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	packBytes, err := contract.GetFxBridgeABI().Pack("oracleSetCheckpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
+	packBytes, err := contract.PackOracleSetCheckpoint(gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if err != nil {
@@ -343,7 +343,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// the methodName needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	abiEncodedBatch, err := contract.GetFxBridgeABI().Pack("submitBatchCheckpoint",
+	abiEncodedBatch, err := contract.PackSubmitBatchCheckpoint(
 		gravityID,
 		batchMethodName,
 		txAmounts,
@@ -459,7 +459,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	// the methodName needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	abiEncodedBatch, err := contract.GetFxBridgeABI().Pack("bridgeCallCheckpoint",
+	abiEncodedBatch, err := contract.PackBridgeCallCheckpoint(
 		gravityID,
 		bridgeCallMethodName,
 		gethcommon.HexToAddress(m.Sender),

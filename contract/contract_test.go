@@ -1,4 +1,4 @@
-package types_test
+package contract_test
 
 import (
 	"encoding/hex"
@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/functionx/fx-core/v8/contract"
 )
 
 func TestPackBridgeCallback(t *testing.T) {
@@ -52,7 +52,7 @@ func TestPackBridgeCallback(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := types.PackBridgeCallback(tt.args.sender, tt.args.receiver, tt.args._tokens, tt.args._amounts, tt.args.data, tt.args.memo)
+			result, err := contract.PackBridgeCallback(tt.args.sender, tt.args.receiver, tt.args._tokens, tt.args._amounts, tt.args.data, tt.args.memo)
 			if tt.err != nil {
 				require.Error(t, err)
 				require.EqualValues(t, tt.err.Error(), err.Error())

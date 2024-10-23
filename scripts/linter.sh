@@ -5,8 +5,11 @@ set -eo pipefail
 patternLimits=(
   "nolint:20"
   "#nosec:5"
-  "CrossChain:4"
+  "CrossChain:3"
   "cross chain:0"
+  "GetERC1967Proxy:4"
+  "GetWFX:9"
+  "GetFIP20:12"
 )
 
 if ! command -v rg &>/dev/null; then

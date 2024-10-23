@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/app"
+	fxevmkeeper "github.com/functionx/fx-core/v8/contract"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -38,6 +39,7 @@ type BaseSuite struct {
 	ValAddr       []sdk.ValAddress
 	App           *app.App
 	Ctx           sdk.Context
+	ERC20Token    fxevmkeeper.ERC20TokenKeeper
 }
 
 func (s *BaseSuite) SetupTest() {
@@ -55,6 +57,7 @@ func (s *BaseSuite) SetupTest() {
 	s.App = setupWithGenesisValSet(s.T(), valSet, valAccounts, valBalances...)
 	s.Ctx = s.App.GetContextForFinalizeBlock(nil)
 	s.Ctx = s.Ctx.WithProposer(s.ValSet.Proposer.Address.Bytes())
+	s.ERC20Token = fxevmkeeper.NewERC20TokenKeeper(s.App.EvmKeeper)
 }
 
 func (s *BaseSuite) AddTestSigner(amount ...int64) *Signer {
@@ -180,7 +183,7 @@ func (s *BaseSuite) CheckAllBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 }
 
 func (s *BaseSuite) CheckBalanceOf(contractAddr, address common.Address, expBal *big.Int) {
-	balanceOf, err := s.App.EvmKeeper.ERC20BalanceOf(s.Ctx, contractAddr, address)
+	balanceOf, err := s.ERC20Token.BalanceOf(s.Ctx, contractAddr, address)
 	s.Require().NoError(err)
 	s.Equal(expBal.String(), balanceOf.String())
 }

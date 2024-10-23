@@ -3,6 +3,7 @@ package testutil
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -15,21 +16,23 @@ import (
 type ERC20Suite struct {
 	contract.ERC20ABI
 	EVMSuite
+	abi abi.ABI
 }
 
 func NewERC20Suite(evmSuite EVMSuite) ERC20Suite {
 	return ERC20Suite{
 		ERC20ABI: contract.NewERC20ABI(),
 		EVMSuite: evmSuite,
+		abi:      contract.GetWFX().ABI,
 	}
 }
 
 func (s *ERC20Suite) Call(method string, res interface{}, args ...interface{}) {
-	s.EVMSuite.Call(s.ABI, method, res, args...)
+	s.EVMSuite.Call(s.abi, method, res, args...)
 }
 
 func (s *ERC20Suite) Send(method string, args ...interface{}) *evmtypes.MsgEthereumTxResponse {
-	return s.EVMSuite.Send(s.ABI, method, args...)
+	return s.EVMSuite.Send(s.abi, method, args...)
 }
 
 func (s *ERC20Suite) Deploy(symbol string) common.Address {
@@ -129,7 +132,7 @@ func (s *ERC20Suite) Approve(spender common.Address, amount *big.Int, result boo
 	}
 }
 
-func (s *ERC20Suite) Transfer(recipient common.Address, amount *big.Int, result bool) {
+func (s *ERC20Suite) Transfer(recipient common.Address, amount *big.Int, result bool) *evmtypes.MsgEthereumTxResponse {
 	before := s.BalanceOf(s.signer.Address())
 	response := s.Send("transfer", recipient, amount)
 	after := s.BalanceOf(s.signer.Address())
@@ -137,6 +140,7 @@ func (s *ERC20Suite) Transfer(recipient common.Address, amount *big.Int, result 
 	if result {
 		s.Equal(after, new(big.Int).Sub(before, amount))
 	}
+	return response
 }
 
 func (s *ERC20Suite) TransferFrom(sender, recipient common.Address, amount *big.Int, result bool) {
@@ -149,7 +153,7 @@ func (s *ERC20Suite) TransferFrom(sender, recipient common.Address, amount *big.
 	}
 }
 
-func (s *ERC20Suite) Mint(to common.Address, amount *big.Int, result bool) {
+func (s *ERC20Suite) Mint(to common.Address, amount *big.Int, result bool) *evmtypes.MsgEthereumTxResponse {
 	before := s.TotalSupply()
 	response := s.Send("mint", to, amount)
 	after := s.TotalSupply()
@@ -157,6 +161,7 @@ func (s *ERC20Suite) Mint(to common.Address, amount *big.Int, result bool) {
 	if result {
 		s.Equal(after, new(big.Int).Add(before, amount))
 	}
+	return response
 }
 
 func (s *ERC20Suite) Burn(from common.Address, amount *big.Int, result bool) {
@@ -200,7 +205,7 @@ func (s *ERC20Suite) Withdraw(to common.Address, amount *big.Int, result bool) {
 }
 
 func (s *ERC20Suite) Deposit(value *big.Int, result bool) {
-	data, err := s.ABI.Pack("deposit")
+	data, err := s.abi.Pack("deposit")
 	s.NoError(err)
 
 	msg := &core.Message{
