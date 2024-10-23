@@ -184,11 +184,7 @@ func (k Keeper) SetLatestOracleSetNonce(ctx sdk.Context, nonce uint64) {
 // GetLatestOracleSetNonce returns the latest oracleSet nonce
 func (k Keeper) GetLatestOracleSetNonce(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.LatestOracleSetNonce)
-	if len(data) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(data)
+	return sdk.BigEndianToUint64(store.Get(types.LatestOracleSetNonce))
 }
 
 // GetUnSlashedOracleSets returns all the unSlashed oracle sets in state

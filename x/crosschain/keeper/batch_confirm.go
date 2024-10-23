@@ -65,11 +65,7 @@ func (k Keeper) SetLastSlashedBatchBlock(ctx sdk.Context, blockHeight uint64) {
 // GetLastSlashedBatchBlock returns the latest slashed Batch block
 func (k Keeper) GetLastSlashedBatchBlock(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	bytes := store.Get(types.LastSlashedBatchBlock)
-	if len(bytes) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(bytes)
+	return sdk.BigEndianToUint64(store.Get(types.LastSlashedBatchBlock))
 }
 
 // GetUnSlashedBatches returns all the unSlashed batches in state
