@@ -20,11 +20,7 @@ const (
 	CrosschainAddress = "0x0000000000000000000000000000000000001004"
 )
 
-const (
-	DefaultGasCap uint64 = 30000000
-)
-
-var typeString, _ = abi.NewType("string", "", nil)
+const DefaultGasCap uint64 = 30000000
 
 var (
 	fip20Init = Contract{
@@ -93,11 +89,6 @@ func MustABIJson(str string) abi.ABI {
 		panic(err)
 	}
 	return j
-}
-
-func PackRetError(err error) ([]byte, error) {
-	pack, _ := abi.Arguments{{Type: typeString}}.Pack(err.Error())
-	return pack, err
 }
 
 func PackRetErrV2(err error) ([]byte, error) {
