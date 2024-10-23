@@ -226,9 +226,5 @@ func (k Keeper) SetLastOracleSlashBlockHeight(ctx sdk.Context, blockHeight uint6
 // GetLastOracleSlashBlockHeight returns the last proposal block height
 func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.LastOracleSlashBlockHeight)
-	if len(data) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(data)
+	return sdk.BigEndianToUint64(store.Get(types.LastOracleSlashBlockHeight))
 }

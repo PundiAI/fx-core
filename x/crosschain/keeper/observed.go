@@ -11,11 +11,7 @@ import (
 // GetLastObservedEventNonce returns the latest observed event nonce
 func (k Keeper) GetLastObservedEventNonce(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	bytes := store.Get(types.LastObservedEventNonceKey)
-	if len(bytes) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(bytes)
+	return sdk.BigEndianToUint64(store.Get(types.LastObservedEventNonceKey))
 }
 
 // SetLastObservedEventNonce sets the latest observed event nonce

@@ -246,10 +246,5 @@ func (k Keeper) SetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.
 // GetLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
 func (k Keeper) GetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetLastEventBlockHeightByOracleKey(oracleAddr)
-	if !store.Has(key) {
-		return 0
-	}
-	data := store.Get(key)
-	return sdk.BigEndianToUint64(data)
+	return sdk.BigEndianToUint64(store.Get(types.GetLastEventBlockHeightByOracleKey(oracleAddr)))
 }
