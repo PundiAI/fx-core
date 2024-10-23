@@ -299,7 +299,8 @@
         "cancun_time": null,
         "prague_time": null
       },
-      "allow_unprotected_txs": false
+      "allow_unprotected_txs": false,
+      "header_hash_num": "256"
     }
   },
   "feegrant": {

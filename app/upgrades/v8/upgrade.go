@@ -16,6 +16,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v8/app/keepers"
 	"github.com/functionx/fx-core/v8/app/upgrades/store"
@@ -24,6 +25,7 @@ import (
 	erc20keeper "github.com/functionx/fx-core/v8/x/erc20/keeper"
 	erc20v8 "github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	fxevmkeeper "github.com/functionx/fx-core/v8/x/evm/keeper"
 	"github.com/functionx/fx-core/v8/x/gov/keeper"
 	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
@@ -40,6 +42,10 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		cacheCtx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
+			return fromVM, err
+		}
+
+		if err = migrateEvmParams(cacheCtx, app.EvmKeeper); err != nil {
 			return fromVM, err
 		}
 
@@ -65,6 +71,12 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
+}
+
+func migrateEvmParams(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) error {
+	params := evmKeeper.GetParams(ctx)
+	params.HeaderHashNum = evmtypes.DefaultHeaderHashNum
+	return evmKeeper.SetParams(ctx, params)
 }
 
 func migrationGovCustomParam(ctx sdk.Context, keeper *keeper.Keeper, storeKey *storetypes.KVStoreKey) error {
