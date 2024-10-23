@@ -34,8 +34,8 @@ func NewTransferSharesMethod(keeper *Keeper) *TransferShares {
 	return &TransferShares{
 		TransferShare: &TransferShare{
 			Keeper: keeper,
-			Method: fxstakingtypes.GetABI().Methods["transferShares"],
-			Event:  fxstakingtypes.GetABI().Events["TransferShares"],
+			Method: stakingABI.Methods["transferShares"],
+			Event:  stakingABI.Events["TransferShares"],
 		},
 	}
 }
@@ -61,7 +61,7 @@ func (m *TransferShares) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error)
 	valAddr := args.GetValidator()
 	stateDB := evm.StateDB.(types.ExtStateDB)
 	var result []byte
-	if err := stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
+	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		token, reward, err := m.handlerTransferShares(ctx, evm, valAddr, contract.Caller(), args.To, args.Shares)
 		if err != nil {
 			return err
@@ -104,8 +104,8 @@ func NewTransferFromSharesMethod(keeper *Keeper) *TransferFromShares {
 	return &TransferFromShares{
 		TransferShare: &TransferShare{
 			Keeper: keeper,
-			Method: fxstakingtypes.GetABI().Methods["transferFromShares"],
-			Event:  fxstakingtypes.GetABI().Events["TransferShares"],
+			Method: stakingABI.Methods["transferFromShares"],
+			Event:  stakingABI.Events["TransferShares"],
 		},
 	}
 }
@@ -233,7 +233,7 @@ func (m *TransferShare) handlerTransferShares(
 	if err != nil {
 		return nil, nil, err
 	}
-	EmitEvent(evm, data, topic)
+	fxcontract.EmitEvent(evm, stakingAddress, data, topic)
 
 	// get to delegation
 	toDel, err := m.stakingKeeper.GetDelegation(ctx, to.Bytes(), valAddr)
@@ -260,7 +260,7 @@ func (m *TransferShare) handlerTransferShares(
 		if err != nil {
 			return nil, nil, err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, stakingAddress, data, topic)
 	}
 
 	// update from delegate, delete it if shares zero
@@ -336,7 +336,7 @@ func (m *TransferShare) handlerTransferShares(
 	if err != nil {
 		return nil, nil, err
 	}
-	EmitEvent(evm, data, topic)
+	fxcontract.EmitEvent(evm, stakingAddress, data, topic)
 
 	return token.BigInt(), toRewardCoin.Amount.BigInt(), nil
 }

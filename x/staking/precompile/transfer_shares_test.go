@@ -32,7 +32,6 @@ func TestStakingTransferSharesABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestTransferShares() {
-	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
@@ -283,11 +282,11 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 			fromSigner := suite.RandSigner()
 			toSigner := suite.RandSigner()
 
-			contract := precompile.GetAddress()
+			contract := suite.stakingAddr
 			delAddr := fromSigner.Address()
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.staking
-				delAddr = suite.staking
+				contract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 			}
 
 			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
@@ -355,9 +354,9 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == transferSharesMethod.Event.ID.String() {
+					if log.Topics[0] == suite.transferSharesMethod.Event.ID.String() {
 						suite.Require().Len(log.Topics, 3)
-						event, err := transferSharesMethod.UnpackEvent(log.ToEthereum())
+						event, err := suite.transferSharesMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)
 						suite.Require().Equal(event.To, toSigner.Address())
@@ -374,6 +373,27 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 	}
 }
 
+func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
+	pack, err := suite.transferSharesMethod.PackInput(fxstakingtypes.TransferSharesArgs{
+		Validator: val.String(),
+		To:        to,
+		Shares:    randShares,
+	})
+	suite.Require().NoError(err)
+	return pack, randShares, nil
+}
+
+func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	pack, err := suite.transferSharesMethod.PackInput(fxstakingtypes.TransferSharesArgs{
+		Validator: val.String(),
+		To:        to,
+		Shares:    shares,
+	})
+	suite.Require().NoError(err)
+	return pack, shares, nil
+}
+
 func TestStakingTransferFromSharesABI(t *testing.T) {
 	transferFromSharesMethod := precompile.NewTransferFromSharesMethod(nil)
 
@@ -382,7 +402,6 @@ func TestStakingTransferFromSharesABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestTransferFromShares() {
-	transferFromSharesMethod := precompile.NewTransferFromSharesMethod(nil)
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
@@ -636,12 +655,12 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 			// from delegate, approve sender, sender send tx, transferFrom to toSigner
 			// from delegate, approve contract, sender call contract, transferFrom to toSigner
-			contract := precompile.GetAddress()
+			contract := suite.stakingAddr
 			delAddr := fromSigner.Address()
 			spender := sender.Address()
 			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.staking
-				spender = suite.staking
+				contract = suite.stakingTestAddr
+				spender = suite.stakingTestAddr
 			}
 
 			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
@@ -726,9 +745,9 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == transferFromSharesMethod.Event.ID.String() {
+					if log.Topics[0] == suite.transferFromSharesMethod.Event.ID.String() {
 						suite.Require().Len(log.Topics, 3)
-						event, err := transferFromSharesMethod.UnpackEvent(log.ToEthereum())
+						event, err := suite.transferFromSharesMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)
 						suite.Require().Equal(event.To, toSigner.Address())
@@ -743,6 +762,32 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			}
 		})
 	}
+}
+
+func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
+	suite.approveFunc(val, from, spender, randShares)
+	pack, err := suite.transferFromSharesMethod.PackInput(fxstakingtypes.TransferFromSharesArgs{
+		Validator: val.String(),
+		From:      from,
+		To:        to,
+		Shares:    randShares,
+	})
+	suite.Require().NoError(err)
+	return pack, randShares, nil
+}
+
+func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	suite.approveFunc(val, from, spender, shares)
+	pack, err := suite.transferFromSharesMethod.PackInput(fxstakingtypes.TransferFromSharesArgs{
+		Validator: val.String(),
+		From:      from,
+		To:        to,
+		Shares:    shares,
+	})
+
+	suite.Require().NoError(err)
+	return pack, shares, nil
 }
 
 func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
@@ -1060,6 +1105,6 @@ func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
 		Shares:    delegation.Shares.TruncateInt().BigInt(),
 	})
 	suite.Require().NoError(err)
-	res := suite.EthereumTx(signer1, precompile.GetAddress(), big.NewInt(0), pack)
+	res := suite.EthereumTx(signer1, suite.stakingAddr, big.NewInt(0), pack)
 	suite.Error(res, errors.New("from has receiving redelegation"))
 }

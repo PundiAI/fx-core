@@ -25,8 +25,8 @@ type UndelegateV2Method struct {
 func NewUndelegateV2Method(keeper *Keeper) *UndelegateV2Method {
 	return &UndelegateV2Method{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["undelegateV2"],
-		Event:  fxstakingtypes.GetABI().Events["UndelegateV2"],
+		Method: stakingABI.Methods["undelegateV2"],
+		Event:  stakingABI.Events["UndelegateV2"],
 	}
 }
 
@@ -65,7 +65,7 @@ func (m *UndelegateV2Method) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		if err != nil {
 			return err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, stakingAddress, data, topic)
 		return nil
 	}); err != nil {
 		return nil, err

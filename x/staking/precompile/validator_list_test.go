@@ -9,8 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
@@ -24,7 +22,6 @@ func TestValidatorListABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestValidatorList() {
-	validatroListMethod := precompile.NewValidatorListMethod(nil)
 	testCases := []struct {
 		name     string
 		malleate func() (types.ValidatorListArgs, error)
@@ -92,21 +89,19 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 
 			args, errResult := tc.malleate()
 
-			packData, err := validatroListMethod.PackInput(args)
+			packData, err := suite.validatorListMethod.PackInput(args)
 			suite.Require().NoError(err)
-			stakingContract := precompile.GetAddress()
+			stakingContract := suite.stakingAddr
 
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestValidatorListName, args.SortBy)
-				suite.Require().NoError(err)
+				stakingContract = suite.stakingTestAddr
 			}
 
 			res := suite.EthereumTx(owner, stakingContract, big.NewInt(0), packData)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
-				valAddrs, err := validatroListMethod.UnpackOutput(res.Ret)
+				valAddrs, err := suite.validatorListMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
 				valsByPower, err := suite.App.StakingKeeper.GetBondedValidatorsByPower(suite.Ctx)
 				suite.Require().NoError(err)

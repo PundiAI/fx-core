@@ -12,8 +12,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
@@ -21,7 +19,6 @@ import (
 )
 
 func (suite *PrecompileTestSuite) TestDelegate() {
-	delegateV2Method := precompile.NewDelegateV2Method(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error)
@@ -81,11 +78,14 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (interface{}, *big.Int, error) {
 				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
-				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, val.String(), delAmount.BigInt())
+				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.stakingTestAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+				pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				})
 				suite.Require().NoError(err)
 
-				res := suite.EthereumTx(suite.signer, suite.staking, big.NewInt(0), pack)
+				res := suite.EthereumTx(suite.signer, suite.stakingTestAddr, big.NewInt(0), pack)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				return types.DelegateV2Args{
@@ -112,24 +112,22 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 
 			delAmount := helpers.NewRandAmount()
 
-			stakingContract := precompile.GetAddress()
+			stakingContract := suite.stakingAddr
 
 			var packData []byte
 			var err error
 			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 			suite.Require().NoError(err)
 			args, value, errResult := tc.malleate(operator, delAmount)
-			packData, err = delegateV2Method.PackInput(args.(types.DelegateV2Args))
+			packData, err = suite.delegateV2Method.PackInput(args.(types.DelegateV2Args))
 			suite.Require().NoError(err)
 
 			delAddr := suite.signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				delAddr = suite.staking
+				stakingContract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 
-				v2Args := args.(types.DelegateV2Args)
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, v2Args.Validator, v2Args.Amount)
-				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.stakingTestAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
 				suite.Require().NoError(err)
 			}
 
@@ -215,7 +213,6 @@ func TestStakingDelegateV2ABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestDelegateV2() {
-	delegateV2Method := precompile.NewDelegateV2Method(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error)
@@ -274,11 +271,14 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (types.DelegateV2Args, error) {
 				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
-				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
-				pack, err := contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, val.String(), delAmount.BigInt())
+				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.stakingTestAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+				pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				})
 				suite.Require().NoError(err)
 
-				res := suite.EthereumTx(suite.signer, suite.staking, big.NewInt(0), pack)
+				res := suite.EthereumTx(suite.signer, suite.stakingTestAddr, big.NewInt(0), pack)
 				suite.Require().False(res.Failed(), res.VmError)
 
 				return types.DelegateV2Args{
@@ -308,20 +308,17 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 
 			args, errResult := tc.malleate(operator, delAmount)
 
-			stakingContract := precompile.GetAddress()
+			stakingContract := suite.stakingAddr
 			delAddr := suite.signer.Address()
 
 			suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
-			packData, err := delegateV2Method.PackInput(args)
+			packData, err := suite.delegateV2Method.PackInput(args)
 			suite.Require().NoError(err)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				delAddr = suite.staking
+				stakingContract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegateV2Name, args.Validator, args.Amount)
-				suite.Require().NoError(err)
-
-				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.staking.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
+				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.stakingTestAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
 			}
 
 			delFound := true
@@ -352,10 +349,10 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == delegateV2Method.Event.ID.String() {
-						suite.Require().Equal(log.Address, precompile.GetAddress().String())
+					if log.Topics[0] == suite.delegateV2Method.Event.ID.String() {
+						suite.Require().Equal(log.Address, suite.stakingAddr.String())
 
-						event, err := delegateV2Method.UnpackEvent(log.ToEthereum())
+						event, err := suite.delegateV2Method.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.Delegator, delAddr)
 						suite.Require().Equal(event.Validator, val.GetOperator())

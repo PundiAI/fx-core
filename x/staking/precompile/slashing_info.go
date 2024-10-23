@@ -18,7 +18,7 @@ type SlashingInfoMethod struct {
 func NewSlashingInfoMethod(keeper *Keeper) *SlashingInfoMethod {
 	return &SlashingInfoMethod{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["slashingInfo"],
+		Method: stakingABI.Methods["slashingInfo"],
 	}
 }
 

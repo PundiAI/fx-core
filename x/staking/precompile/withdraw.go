@@ -25,8 +25,8 @@ type WithdrawMethod struct {
 func NewWithdrawMethod(keeper *Keeper) *WithdrawMethod {
 	return &WithdrawMethod{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["withdraw"],
-		Event:  fxstakingtypes.GetABI().Events["Withdraw"],
+		Method: stakingABI.Methods["withdraw"],
+		Event:  stakingABI.Events["Withdraw"],
 	}
 }
 
@@ -67,7 +67,7 @@ func (m *WithdrawMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error)
 		if err != nil {
 			return err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, stakingAddress, data, topic)
 
 		result, err = m.PackOutput(bigInt)
 		return err
@@ -102,12 +102,12 @@ func (m *WithdrawMethod) PackOutput(reward *big.Int) ([]byte, error) {
 	return m.Method.Outputs.Pack(reward)
 }
 
-func (m *WithdrawMethod) UnpackOutput(data []byte) (bool, error) {
+func (m *WithdrawMethod) UnpackOutput(data []byte) (*big.Int, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return amount[0].(bool), nil
+	return amount[0].(*big.Int), nil
 }
 
 func (m *WithdrawMethod) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingWithdraw, error) {

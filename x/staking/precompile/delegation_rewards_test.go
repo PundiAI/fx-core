@@ -13,8 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
@@ -28,7 +26,6 @@ func TestStakingDelegationRewardsABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestDelegationRewards() {
-	delegationRewardMethod := precompile.NewDelegationRewardsMethod(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, del common.Address) (types.DelegationRewardsArgs, error)
@@ -109,21 +106,22 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			signer := suite.RandSigner()
 			suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
 
-			stakingContract := precompile.GetAddress()
-			stakingABI := precompile.GetABI()
+			stakingContract := suite.stakingAddr
 			delAddr := signer.Address()
 
 			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-				delAddr = suite.staking
+				stakingContract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 				value = delAmt.BigInt()
 			}
 
 			operator0, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val0.GetOperator())
 			suite.Require().NoError(err)
-			pack, err := stakingABI.Pack(TestDelegateV2Name, val0.GetOperator(), delAmt.BigInt())
+			pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
+				Validator: val0.GetOperator(),
+				Amount:    delAmt.BigInt(),
+			})
 			suite.Require().NoError(err)
 
 			res := suite.EthereumTx(signer, stakingContract, value, pack)
@@ -136,20 +134,16 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			evmDenom := suite.App.EvmKeeper.GetParams(suite.Ctx).EvmDenom
 
 			args, errResult := tc.malleate(operator0, delAddr)
-			packData, err := delegationRewardMethod.PackInput(args)
+			packData, err := suite.delegationRewardsMethod.PackInput(args)
 			suite.Require().NoError(err)
-			if strings.HasPrefix(tc.name, "contract") {
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegationRewardsName, args.Validator, args.Delegator)
-				suite.Require().NoError(err)
-			}
 
 			res, err = suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, suite.signer.Address(), &stakingContract, nil, packData, false)
 			if tc.result {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
-				rewardsValue, err := stakingABI.Methods[TestDelegationRewardsName].Outputs.Unpack(res.Ret)
+				rewardsValue, err := suite.delegationRewardsMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
-				suite.Require().EqualValues(rewardsValue[0].(*big.Int).String(), resp.Rewards.AmountOf(evmDenom).TruncateInt().BigInt().String())
+				suite.Require().EqualValues(rewardsValue.String(), resp.Rewards.AmountOf(evmDenom).TruncateInt().BigInt().String())
 			} else {
 				suite.Error(res, errResult)
 			}

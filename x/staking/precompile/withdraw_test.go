@@ -12,8 +12,6 @@ import (
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
@@ -30,7 +28,6 @@ func TestStakingWithdrawABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestWithdraw() {
-	withdrawMethod := precompile.NewWithdrawMethod(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error)
@@ -107,21 +104,22 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			signer := suite.RandSigner()
 			suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
 
-			stakingContract := precompile.GetAddress()
-			stakingABI := precompile.GetABI()
+			stakingContract := suite.stakingAddr
 			delAddr := signer.Address()
 			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-				delAddr = suite.staking
+				stakingContract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 				value = delAmt.BigInt()
 			}
 
 			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 			suite.Require().NoError(err)
 
-			pack, err := stakingABI.Pack(TestDelegateV2Name, val.GetOperator(), delAmt.BigInt())
+			pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
+				Validator: val.GetOperator(),
+				Amount:    delAmt.BigInt(),
+			})
 			suite.Require().NoError(err)
 
 			res := suite.EthereumTx(signer, stakingContract, value, pack)
@@ -137,12 +135,8 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			delegation := suite.GetDelegation(delAddr.Bytes(), operator)
 
 			args, errResult := tc.malleate(operator, delegation.Shares)
-			packData, err := withdrawMethod.PackInput(args)
+			packData, err := suite.withdrawMethod.PackInput(args)
 			suite.Require().NoError(err)
-			if strings.HasPrefix(tc.name, "contract") {
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestWithdrawName, args.Validator)
-				suite.Require().NoError(err)
-			}
 			res = suite.EthereumTx(signer, stakingContract, big.NewInt(0), packData)
 
 			if tc.result {
@@ -152,18 +146,17 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(totalAfter, totalBefore)
 
-				unpack, err := stakingABI.Unpack(TestWithdrawName, res.Ret)
+				reward, err := suite.withdrawMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
-				reward := unpack[0].(*big.Int)
 				chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == withdrawMethod.Event.ID.String() {
-						suite.Require().Equal(log.Address, precompile.GetAddress().String())
+					if log.Topics[0] == suite.withdrawMethod.Event.ID.String() {
+						suite.Require().Equal(log.Address, suite.stakingAddr.String())
 
-						event, err := withdrawMethod.UnpackEvent(log.ToEthereum())
+						event, err := suite.withdrawMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.Sender, delAddr)
 						suite.Require().Equal(event.Validator, val.GetOperator())

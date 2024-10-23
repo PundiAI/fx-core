@@ -8,15 +8,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func (suite *PrecompileTestSuite) TestUndelegate() {
-	undelegateV2Method := precompile.NewUndelegateV2Method(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, shares sdkmath.LegacyDec, delAmt sdkmath.Int) (interface{}, error)
@@ -73,21 +69,22 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			val := suite.GetFirstValidator()
 			delAmt := helpers.NewRandAmount()
 
-			stakingContract := precompile.GetAddress()
-			stakingABI := precompile.GetABI()
+			stakingContract := suite.stakingAddr
 			delAddr := suite.signer.Address()
 			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-				delAddr = suite.staking
+				stakingContract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 				value = delAmt.BigInt()
 			}
 
 			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 			suite.Require().NoError(err)
 
-			pack, err := stakingABI.Pack(TestDelegateV2Name, val.GetOperator(), delAmt.BigInt())
+			pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
+				Validator: val.GetOperator(),
+				Amount:    delAmt.BigInt(),
+			})
 			suite.Require().NoError(err)
 
 			res := suite.EthereumTx(suite.signer, stakingContract, value, pack)
@@ -103,15 +100,8 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 
 			var packData []byte
 			args, errResult := tc.malleate(operator, delegation.Shares, delAmt)
-			packData, err = undelegateV2Method.PackInput(args.(types.UndelegateV2Args))
+			packData, err = suite.undelegateV2Method.PackInput(args.(types.UndelegateV2Args))
 			suite.Require().NoError(err)
-
-			if strings.HasPrefix(tc.name, "contract") {
-				argsV2 := args.(types.UndelegateV2Args)
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestUndelegateV2Name, argsV2.Validator, argsV2.Amount)
-
-				suite.Require().NoError(err)
-			}
 
 			res = suite.EthereumTx(suite.signer, stakingContract, big.NewInt(0), packData)
 

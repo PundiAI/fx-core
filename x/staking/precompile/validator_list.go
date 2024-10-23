@@ -25,7 +25,7 @@ type ValidatorList struct {
 func NewValidatorListMethod(keeper *Keeper) *ValidatorListMethod {
 	return &ValidatorListMethod{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["validatorList"],
+		Method: stakingABI.Methods["validatorList"],
 	}
 }
 

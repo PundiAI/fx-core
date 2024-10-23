@@ -90,7 +90,7 @@ func (suite *IntegrationTest) StakingContractTest() {
 
 	withdrawMethod := stakingprecompile.NewWithdrawMethod(nil)
 	for _, log := range receipt.Logs {
-		if log.Address == stakingprecompile.GetAddress() && log.Topics[0] == withdrawMethod.Event.ID {
+		if log.Address == suite.staking.stakingContract && log.Topics[0] == withdrawMethod.Event.ID {
 			unpack, err := withdrawMethod.Event.Inputs.NonIndexed().Unpack(log.Data)
 			suite.Require().NoError(err)
 			reward := unpack[1].(*big.Int)

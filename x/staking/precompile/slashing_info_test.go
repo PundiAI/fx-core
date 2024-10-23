@@ -9,8 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
@@ -88,12 +86,10 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 
 			packData, err := slashingInfoMethod.PackInput(args)
 			suite.Require().NoError(err)
-			stakingContract := precompile.GetAddress()
+			stakingContract := suite.stakingAddr
 
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestSlashingInfoName, args.Validator)
-				suite.Require().NoError(err)
+				stakingContract = suite.stakingTestAddr
 			}
 
 			res := suite.EthereumTx(owner, stakingContract, big.NewInt(0), packData)
