@@ -97,13 +97,6 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)
 	k.DeleteBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract)
-	// Delete outgoing transfer relation
-	for _, tx := range batch.Transactions {
-		key := types.NewOriginTokenKey(k.moduleName, tx.Id)
-		if err = k.erc20Keeper.DeleteCache(ctx, key); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

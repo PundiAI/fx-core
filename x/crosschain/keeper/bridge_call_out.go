@@ -313,23 +313,18 @@ func (k Keeper) CrosschainBaseCoin(
 	memo string,
 	originToken bool,
 ) error {
-	var cacheKey string
 	if fxTarget.IsIBC() {
 		sequence, err := k.IBCTransfer(ctx, from.Bytes(), receipt, amount, fxTarget.IBCChannel, memo)
 		if err != nil {
 			return err
 		}
-		cacheKey = types.NewIBCTransferKey(fxTarget.IBCChannel, sequence)
+		if originToken {
+			return k.erc20Keeper.SetCache(ctx, types.NewIBCTransferKey(fxTarget.IBCChannel, sequence), amount.Amount.Add(fee.Amount))
+		}
 	} else {
-		batchNonce, err := k.BuildOutgoingTxBatch(ctx, from, receipt, amount, fee)
-		if err != nil {
+		if _, err := k.BuildOutgoingTxBatch(ctx, from, receipt, amount, fee); err != nil {
 			return err
 		}
-		cacheKey = types.NewOriginTokenKey(fxTarget.GetModuleName(), batchNonce)
-	}
-
-	if originToken {
-		return k.erc20Keeper.SetCache(ctx, cacheKey, amount.Amount.Add(fee.Amount))
 	}
 	return nil
 }
