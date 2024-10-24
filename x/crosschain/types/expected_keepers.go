@@ -85,13 +85,3 @@ type AccountKeeper interface {
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 }
-
-type BridgeTokenKeeper interface {
-	HasToken(ctx context.Context, denom string) (bool, error)
-	GetBridgeDenoms(ctx context.Context, denom string) ([]string, error)
-	GetBridgeDenom(ctx context.Context, denom, chainName string) (string, error)
-	GetBaseDenom(ctx context.Context, alias string) (string, error)
-	GetAllTokens(ctx context.Context) ([]string, error)
-	UpdateBridgeDenom(ctx context.Context, denom string, bridgeDenoms ...string) error
-	SetToken(ctx context.Context, name, symbol string, decimals uint32, bridgeDenoms ...string) error
-}

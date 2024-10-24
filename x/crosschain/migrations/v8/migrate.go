@@ -10,6 +10,9 @@ import (
 )
 
 var (
+	// Deprecated: OutgoingTxPoolKey indexes the last nonce for the outgoing tx pool
+	OutgoingTxPoolKey = []byte{0x18}
+
 	// Deprecated: DenomToTokenKey prefixes the index of asset denom to external token
 	DenomToTokenKey = []byte{0x26}
 

@@ -2,11 +2,9 @@ package helpers
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -116,16 +114,4 @@ func GenZeroExternalAddr(module string) string {
 // HexAddrToTronAddr returns a Tron address from an hex string.
 func HexAddrToTronAddr(str string) string {
 	return types.ExternalAddrToStr(trontypes.ModuleName, common.FromHex(str))
-}
-
-// NewPubKeyFromHex returns a PubKey from a hex string.
-func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
-	pkBytes, err := hex.DecodeString(pk)
-	if err != nil {
-		panic(err)
-	}
-	if len(pkBytes) != ed25519.PubKeySize {
-		panic(sdkerrors.ErrInvalidPubKey.Wrap("size"))
-	}
-	return &ed25519.PubKey{Key: pkBytes}
 }
