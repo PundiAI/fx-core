@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	fxcontract "github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
@@ -24,8 +25,8 @@ type BridgeCallMethod struct {
 func NewBridgeCallMethod(keeper *Keeper) *BridgeCallMethod {
 	return &BridgeCallMethod{
 		Keeper: keeper,
-		Method: crosschaintypes.GetABI().Methods["bridgeCall"],
-		Event:  crosschaintypes.GetABI().Events["BridgeCallEvent"],
+		Method: crosschainABI.Methods["bridgeCall"],
+		Event:  crosschainABI.Events["BridgeCallEvent"],
 	}
 }
 
@@ -61,7 +62,7 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		originTokenAmount := sdkmath.ZeroInt()
 		if value.Sign() > 0 {
 			baseCoin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(value))
-			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(baseCoin)); err != nil {
+			if err = m.bankKeeper.SendCoins(ctx, crosschainAddress.Bytes(), sender.Bytes(), sdk.NewCoins(baseCoin)); err != nil {
 				return err
 			}
 			baseCoins = append(baseCoins, baseCoin)
@@ -93,7 +94,7 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		if err != nil {
 			return err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, crosschainAddress, data, topic)
 
 		result, err = m.PackOutput(eventNonce)
 		return err

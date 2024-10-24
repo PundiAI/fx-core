@@ -21,7 +21,7 @@ type BridgeCoinAmountMethod struct {
 func NewBridgeCoinAmountMethod(keeper *Keeper) *BridgeCoinAmountMethod {
 	return &BridgeCoinAmountMethod{
 		Keeper: keeper,
-		Method: crosschaintypes.GetABI().Methods["bridgeCoinAmount"],
+		Method: crosschainABI.Methods["bridgeCoinAmount"],
 	}
 }
 

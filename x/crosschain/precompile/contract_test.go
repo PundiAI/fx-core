@@ -41,7 +41,7 @@ type PrecompileTestSuite struct {
 	helpers.BaseSuite
 
 	// signer *helpers.Signer
-	// crosschain common.Address
+	crosschainAddr common.Address
 }
 
 func TestPrecompileTestSuite(t *testing.T) {
@@ -57,7 +57,9 @@ func (suite *PrecompileTestSuite) SetupTest() {
 
 	// crosschainContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.CrosschainTestMetaData.ABI), contract.MustDecodeHex(testscontract.CrosschainTestMetaData.Bin))
 	// suite.Require().NoError(err)
-	// suite.crosschain = crosschainContract
+	// suite.crosschainAddrTest = crosschainContract
+
+	suite.crosschainAddr = common.HexToAddress(contract.CrosschainAddress)
 }
 
 func (suite *PrecompileTestSuite) SetupSubTest() {
