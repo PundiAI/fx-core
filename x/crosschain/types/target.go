@@ -19,7 +19,6 @@ const (
 	EthTarget         = "eth"
 
 	LegacyChainPrefix = "chain/"
-	IBCPrefix         = "ibc/"
 )
 
 type FxTarget struct {

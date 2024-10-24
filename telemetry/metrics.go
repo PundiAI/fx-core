@@ -6,7 +6,6 @@ import (
 	"math/big"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/hashicorp/go-metrics"
 )
 
@@ -19,10 +18,4 @@ func SetGaugeLabelsWithDenom(keys []string, denom string, amount *big.Int, label
 	amountFloat32, _ := new(big.Float).SetInt(amount).Float32()
 	telemetry.SetGaugeWithLabels(append(keys, denom), amountFloat32,
 		append(labels, telemetry.NewLabel("denom", denom)))
-}
-
-func SetGaugeLabelsWithCoins(keys []string, coins sdk.Coins, labels ...metrics.Label) {
-	for _, coin := range coins {
-		SetGaugeLabelsWithDenom(keys, coin.Denom, coin.Amount.BigInt(), labels...)
-	}
 }

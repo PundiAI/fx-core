@@ -39,9 +39,6 @@ var (
 	// eventually executes
 	OracleAttestationKey = []byte{0x17}
 
-	// OutgoingTxPoolKey indexes the last nonce for the outgoing tx pool
-	OutgoingTxPoolKey = []byte{0x18}
-
 	// OutgoingTxBatchKey indexes outgoing tx batches under a nonce and token address
 	OutgoingTxBatchKey = []byte{0x20}
 
@@ -150,19 +147,6 @@ func GetOracleSetConfirmKey(nonce uint64, oracleAddr sdk.AccAddress) []byte {
 // Note that the claim hash does NOT include the claimer address and only identifies an event
 func GetAttestationKey(eventNonce uint64, claimHash []byte) []byte {
 	return append(OracleAttestationKey, append(sdk.Uint64ToBigEndian(eventNonce), claimHash...)...)
-}
-
-// GetOutgoingTxPoolContractPrefix returns the following key format
-// This prefix is used for iterating over unbatched transactions for a given contract
-func GetOutgoingTxPoolContractPrefix(tokenContract string) []byte {
-	return append(OutgoingTxPoolKey, []byte(tokenContract)...)
-}
-
-// GetOutgoingTxPoolKey returns the following key format
-func GetOutgoingTxPoolKey(fee ERC20Token, id uint64) []byte {
-	amount := make([]byte, 32)
-	amount = fee.Amount.BigInt().FillBytes(amount)
-	return append(OutgoingTxPoolKey, append([]byte(fee.Contract), append(amount, sdk.Uint64ToBigEndian(id)...)...)...)
 }
 
 // GetOutgoingTxBatchKey returns the following key format

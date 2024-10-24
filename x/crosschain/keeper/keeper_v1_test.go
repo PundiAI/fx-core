@@ -165,14 +165,6 @@ func (suite *KeeperTestSuite) EndBlocker() {
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) SetToken(symbol string, bridgeDenoms ...string) {
-	// if symbol == fxtypes.DefaultDenom {
-	// 	bridgeDenoms = []string{}
-	// }
-	// err := suite.Keeper().SetToken(suite.Ctx, "Test Token", symbol, 18, bridgeDenoms...)
-	// suite.Require().NoError(err)
-}
-
 func (suite *KeeperTestSuite) SetIBCDenom(portID, channelID, denom string) ibctransfertypes.DenomTrace {
 	sourcePrefix := ibctransfertypes.GetDenomPrefix(portID, channelID)
 	prefixedDenom := sourcePrefix + denom
