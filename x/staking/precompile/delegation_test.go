@@ -10,8 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
@@ -25,7 +23,6 @@ func TestStakingDelegationABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestDelegation() {
-	delegationMethod := precompile.NewDelegationMethod(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, del common.Address) (types.DelegationArgs, error)
@@ -127,21 +124,22 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 
 			delAmount := helpers.NewRandAmount()
 
-			stakingContract := precompile.GetAddress()
+			stakingContract := suite.stakingAddr
 			delAddr := suite.signer.Address()
-			stakingABI := precompile.GetABI()
 			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				delAddr = suite.staking
-				stakingABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
+				stakingContract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 				value = delAmount.BigInt()
 			}
 
 			operator0, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val0.GetOperator())
 			suite.Require().NoError(err)
 
-			pack, err := stakingABI.Pack(TestDelegateV2Name, val0.GetOperator(), delAmount.BigInt())
+			pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
+				Validator: val0.GetOperator(),
+				Amount:    delAmount.BigInt(),
+			})
 			suite.Require().NoError(err)
 
 			res := suite.EthereumTx(suite.signer, stakingContract, value, pack)
@@ -150,12 +148,8 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			suite.Commit()
 
 			args, errResult := tc.malleate(operator0, delAddr)
-			packData, err := delegationMethod.PackInput(args)
+			packData, err := suite.delegationMethod.PackInput(args)
 			suite.Require().NoError(err)
-			if strings.HasPrefix(tc.name, "contract") {
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestDelegationName, args.Validator, args.Delegator)
-				suite.Require().NoError(err)
-			}
 			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), operator0)
 			suite.Require().NoError(err)
 
@@ -163,9 +157,9 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			if tc.result {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
-				delValue, err := stakingABI.Methods[TestDelegationName].Outputs.Unpack(res.Ret)
+				delValue, _, err := suite.delegationMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
-				suite.Require().Equal(delegation.GetShares().TruncateInt().String(), delValue[0].(*big.Int).String())
+				suite.Require().Equal(delegation.GetShares().TruncateInt().String(), delValue.String())
 			} else {
 				suite.Error(res, errResult)
 			}

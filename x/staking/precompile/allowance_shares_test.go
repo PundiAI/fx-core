@@ -9,8 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
@@ -24,7 +22,6 @@ func TestStakingAllowanceSharesABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestAllowanceShares() {
-	allowanceSharesMethod := precompile.NewAllowanceSharesMethod(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, owner, spender *helpers.Signer) (types.AllowanceSharesArgs, error)
@@ -116,21 +113,19 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 
 			args, errResult := tc.malleate(operator, owner, spender)
 
-			packData, err := allowanceSharesMethod.PackInput(args)
+			packData, err := suite.allowanceSharesMethod.PackInput(args)
 			suite.Require().NoError(err)
-			stakingContract := precompile.GetAddress()
+			stakingContract := suite.stakingAddr
 
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestAllowanceSharesName, args.Validator, args.Owner, args.Spender)
-				suite.Require().NoError(err)
+				stakingContract = suite.stakingTestAddr
 			}
 
 			res := suite.EthereumTx(owner, stakingContract, big.NewInt(0), packData)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
-				shares, err := allowanceSharesMethod.UnpackOutput(res.Ret)
+				shares, err := suite.allowanceSharesMethod.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
 				if shares.Cmp(big.NewInt(0)) != 0 {
 					suite.Require().Equal(allowanceAmt.BigInt(), shares)

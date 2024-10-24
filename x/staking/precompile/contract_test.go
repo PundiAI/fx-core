@@ -1,14 +1,12 @@
 package precompile_test
 
 import (
-	"bytes"
 	"math/big"
 	"strings"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -29,28 +27,28 @@ import (
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/testutil"
-)
-
-const (
-	TestDelegateV2Name         = "delegateV2"
-	TestUndelegateV2Name       = "undelegateV2"
-	TestRedelegateV2Name       = "redelegateV2"
-	TestWithdrawName           = "withdraw"
-	TestDelegationName         = "delegation"
-	TestDelegationRewardsName  = "delegationRewards"
-	TestAllowanceSharesName    = "allowanceShares"
-	TestApproveSharesName      = "approveShares"
-	TestTransferSharesName     = "transferShares"
-	TestTransferFromSharesName = "transferFromShares"
-	TestSlashingInfoName       = "slashingInfo"
-	TestValidatorListName      = "validatorList"
+	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type PrecompileTestSuite struct {
 	helpers.BaseSuite
 	testutil.StakingSuite
-	signer  *helpers.Signer
-	staking common.Address
+	signer          *helpers.Signer
+	stakingTestAddr common.Address
+	stakingAddr     common.Address
+
+	allowanceSharesMethod   *precompile.AllowanceSharesMethod
+	approveSharesMethod     *precompile.ApproveSharesMethod
+	delegateV2Method        *precompile.DelegateV2Method
+	delegationMethod        *precompile.DelegationMethod
+	delegationRewardsMethod *precompile.DelegationRewardsMethod
+	redelegateMethodV2      *precompile.RedelegateMethodV2
+	// slashingInfoMethod       *precompile.SlashingInfoMethod
+	transferSharesMethod     *precompile.TransferShares
+	transferFromSharesMethod *precompile.TransferFromShares
+	undelegateV2Method       *precompile.UndelegateV2Method
+	validatorListMethod      *precompile.ValidatorListMethod
+	withdrawMethod           *precompile.WithdrawMethod
 }
 
 func TestPrecompileTestSuite(t *testing.T) {
@@ -74,11 +72,26 @@ func (suite *PrecompileTestSuite) SetupTest() {
 
 	stakingContract, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.StakingTestMetaData.ABI), contract.MustDecodeHex(testscontract.StakingTestMetaData.Bin))
 	suite.Require().NoError(err)
-	suite.staking = stakingContract
+	suite.stakingTestAddr = stakingContract
+
+	suite.stakingAddr = common.HexToAddress(contract.StakingAddress)
 
 	suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
 
 	suite.StakingSuite.Init(suite.Require(), suite.Ctx, suite.App.StakingKeeper)
+
+	suite.allowanceSharesMethod = precompile.NewAllowanceSharesMethod(nil)
+	suite.approveSharesMethod = precompile.NewApproveSharesMethod(nil)
+	suite.delegateV2Method = precompile.NewDelegateV2Method(nil)
+	suite.delegationMethod = precompile.NewDelegationMethod(nil)
+	suite.delegationRewardsMethod = precompile.NewDelegationRewardsMethod(nil)
+	suite.redelegateMethodV2 = precompile.NewRedelegateV2Method(nil)
+	// suite.slashingInfoMethod = precompile.NewSlashingInfoMethod(nil)
+	suite.transferSharesMethod = precompile.NewTransferSharesMethod(nil)
+	suite.transferFromSharesMethod = precompile.NewTransferFromSharesMethod(nil)
+	suite.undelegateV2Method = precompile.NewUndelegateV2Method(nil)
+	suite.validatorListMethod = precompile.NewValidatorListMethod(nil)
+	suite.withdrawMethod = precompile.NewWithdrawMethod(nil)
 }
 
 func (suite *PrecompileTestSuite) DistributionQueryClient(ctx sdk.Context) distributiontypes.QueryClient {
@@ -193,73 +206,34 @@ func (suite *PrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from,
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
-	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
-	callABI := precompile.GetABI()
-	if bytes.Equal(contractAddr.Bytes(), suite.staking.Bytes()) {
-		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-	}
-	pack, err := callABI.Pack(TestTransferSharesName, val.String(), to, randShares)
-	suite.Require().NoError(err)
-	return pack, randShares, nil
-}
-
-func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
-	callABI := precompile.GetABI()
-	if bytes.Equal(contractAddr.Bytes(), suite.staking.Bytes()) {
-		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-	}
-	pack, err := callABI.Pack(TestTransferSharesName, val.String(), to, shares)
-	suite.Require().NoError(err)
-	return pack, shares, nil
-}
-
 func (suite *PrecompileTestSuite) approveFunc(val sdk.ValAddress, owner, spender common.Address, allowance *big.Int) {
 	suite.App.StakingKeeper.SetAllowance(suite.Ctx, val, owner.Bytes(), spender.Bytes(), allowance)
 }
 
-func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
-	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
-	suite.approveFunc(val, from, spender, randShares)
-	callABI := precompile.GetABI()
-	if spender == suite.staking {
-		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-	}
-	pack, err := callABI.Pack(TestTransferFromSharesName, val.String(), from, to, randShares)
-	suite.Require().NoError(err)
-	return pack, randShares, nil
-}
-
-func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
-	suite.approveFunc(val, from, spender, shares)
-	callABI := precompile.GetABI()
-	if spender == suite.staking {
-		callABI = contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-	}
-	pack, err := callABI.Pack(TestTransferFromSharesName, val.String(), from, to, shares)
-	suite.Require().NoError(err)
-	return pack, shares, nil
-}
-
 func (suite *PrecompileTestSuite) PrecompileStakingDelegation(val sdk.ValAddress, del common.Address) (*big.Int, *big.Int) {
-	var res struct {
-		Shares *big.Int `abi:"_shares"`
-		Amount *big.Int `abi:"_delegateAmount"`
-	}
-	err := suite.App.EvmKeeper.QueryContract(suite.Ctx, del, precompile.GetAddress(), precompile.GetABI(),
-		TestDelegationName, &res, val.String(), del)
+	input, err := suite.delegationMethod.PackInput(fxstakingtypes.DelegationArgs{
+		Validator: val.String(),
+		Delegator: del,
+	})
 	suite.Require().NoError(err)
-	return res.Shares, res.Amount
+	res, err := suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, del, &suite.stakingAddr, nil, input, false)
+	suite.Require().NoError(err)
+	shares, amount, err := suite.delegationMethod.UnpackOutput(res.Ret)
+	suite.Require().NoError(err)
+	return shares, amount
 }
 
 func (suite *PrecompileTestSuite) PrecompileStakingDelegateV2(signer *helpers.Signer, val sdk.ValAddress, amt *big.Int) *big.Int {
 	suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amt)))
-	pack, err := precompile.GetABI().Pack(TestDelegateV2Name, val.String(), amt)
+	pack, err := suite.delegateV2Method.PackInput(fxstakingtypes.DelegateV2Args{
+		Validator: val.String(),
+		Amount:    amt,
+	})
 	suite.Require().NoError(err)
 
 	_, amountBefore := suite.PrecompileStakingDelegation(val, signer.Address())
 
-	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
+	res := suite.EthereumTx(signer, suite.stakingAddr, big.NewInt(0), pack)
 	suite.Require().False(res.Failed(), res.VmError)
 
 	shares, amount := suite.PrecompileStakingDelegation(val, signer.Address())
@@ -269,10 +243,10 @@ func (suite *PrecompileTestSuite) PrecompileStakingDelegateV2(signer *helpers.Si
 
 func (suite *PrecompileTestSuite) PrecompileStakingWithdraw(signer *helpers.Signer, val sdk.ValAddress) *big.Int {
 	balanceBefore := suite.App.EvmKeeper.GetEVMDenomBalance(suite.Ctx, signer.Address())
-	pack, err := precompile.GetABI().Pack(TestWithdrawName, val.String())
+	pack, err := suite.withdrawMethod.PackInput(fxstakingtypes.WithdrawArgs{Validator: val.String()})
 	suite.Require().NoError(err)
 
-	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
+	res := suite.EthereumTx(signer, suite.stakingAddr, big.NewInt(0), pack)
 	suite.Require().False(res.Failed(), res.VmError)
 
 	balanceAfter := suite.App.EvmKeeper.GetEVMDenomBalance(suite.Ctx, signer.Address())
@@ -282,10 +256,14 @@ func (suite *PrecompileTestSuite) PrecompileStakingWithdraw(signer *helpers.Sign
 
 func (suite *PrecompileTestSuite) PrecompileStakingTransferShares(signer *helpers.Signer, val sdk.ValAddress, receipt common.Address, shares *big.Int) (*big.Int, *big.Int) {
 	balanceBefore := suite.App.EvmKeeper.GetEVMDenomBalance(suite.Ctx, signer.Address())
-	pack, err := precompile.GetABI().Pack(TestTransferSharesName, val.String(), receipt, shares)
+	pack, err := suite.transferSharesMethod.PackInput(fxstakingtypes.TransferSharesArgs{
+		Validator: val.String(),
+		To:        receipt,
+		Shares:    shares,
+	})
 	suite.Require().NoError(err)
 
-	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
+	res := suite.EthereumTx(signer, suite.stakingAddr, big.NewInt(0), pack)
 	suite.Require().False(res.Failed(), res.VmError)
 
 	signerShares, _ := suite.PrecompileStakingDelegation(val, signer.Address())
@@ -297,10 +275,13 @@ func (suite *PrecompileTestSuite) PrecompileStakingTransferShares(signer *helper
 
 func (suite *PrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
 	balanceBefore := suite.App.EvmKeeper.GetEVMDenomBalance(suite.Ctx, signer.Address())
-	pack, err := precompile.GetABI().Pack(TestUndelegateV2Name, val.String(), shares)
+	pack, err := suite.undelegateV2Method.PackInput(fxstakingtypes.UndelegateV2Args{
+		Validator: val.String(),
+		Amount:    shares,
+	})
 	suite.Require().NoError(err)
 
-	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
+	res := suite.EthereumTx(signer, suite.stakingAddr, big.NewInt(0), pack)
 	suite.Require().False(res.Failed(), res.VmError)
 
 	balanceAfter := suite.App.EvmKeeper.GetEVMDenomBalance(suite.Ctx, signer.Address())
@@ -309,17 +290,26 @@ func (suite *PrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.
 }
 
 func (suite *PrecompileTestSuite) PrecompileStakingApproveShares(signer *helpers.Signer, val sdk.ValAddress, spender common.Address, shares *big.Int) {
-	pack, err := precompile.GetABI().Pack(TestApproveSharesName, val.String(), spender, shares)
+	pack, err := suite.approveSharesMethod.PackInput(fxstakingtypes.ApproveSharesArgs{
+		Validator: val.String(),
+		Spender:   spender,
+		Shares:    shares,
+	})
 	suite.Require().NoError(err)
 
-	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
+	res := suite.EthereumTx(signer, suite.stakingAddr, big.NewInt(0), pack)
 	suite.Require().False(res.Failed(), res.VmError)
 }
 
 func (suite *PrecompileTestSuite) PrecompileStakingTransferFromShares(signer *helpers.Signer, val sdk.ValAddress, from, receipt common.Address, shares *big.Int) {
-	pack, err := precompile.GetABI().Pack(TestTransferFromSharesName, val.String(), from, receipt, shares)
+	pack, err := suite.transferFromSharesMethod.PackInput(fxstakingtypes.TransferFromSharesArgs{
+		Validator: val.String(),
+		From:      from,
+		To:        receipt,
+		Shares:    shares,
+	})
 	suite.Require().NoError(err)
-	res := suite.EthereumTx(signer, precompile.GetAddress(), big.NewInt(0), pack)
+	res := suite.EthereumTx(signer, suite.stakingAddr, big.NewInt(0), pack)
 	suite.Require().False(res.Failed(), res.VmError)
 }
 
@@ -360,7 +350,7 @@ func (suite *PrecompileTestSuite) CheckDelegateLogs(logs []*evmtypes.Log, delAdd
 	existLog := false
 	for _, log := range logs {
 		if log.Topics[0] == delegateV2Method.Event.ID.String() {
-			suite.Require().Equal(log.Address, precompile.GetAddress().String())
+			suite.Require().Equal(log.Address, suite.stakingAddr.String())
 
 			event, err := delegateV2Method.UnpackEvent(log.ToEthereum())
 			suite.Require().NoError(err)
@@ -397,7 +387,7 @@ func (suite *PrecompileTestSuite) CheckRedelegateLogs(logs []*evmtypes.Log, delA
 	existLog := false
 	for _, log := range logs {
 		if log.Topics[0] == redelegateV2Method.Event.ID.String() {
-			suite.Require().Equal(log.Address, precompile.GetAddress().String())
+			suite.Require().Equal(log.Address, suite.stakingAddr.String())
 			event, err := redelegateV2Method.UnpackEvent(log.ToEthereum())
 			suite.Require().NoError(err)
 			suite.Require().Equal(event.Sender, delAddr)
@@ -441,7 +431,7 @@ func (suite *PrecompileTestSuite) CheckUndelegateLogs(logs []*evmtypes.Log, delA
 	existLog := false
 	for _, log := range logs {
 		if log.Topics[0] == undelegateV2Method.Event.ID.String() {
-			suite.Require().Equal(log.Address, precompile.GetAddress().String())
+			suite.Require().Equal(log.Address, suite.stakingAddr.String())
 			event, err := undelegateV2Method.UnpackEvent(log.ToEthereum())
 			suite.Require().NoError(err)
 			suite.Require().Equal(event.Sender, delAddr)

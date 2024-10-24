@@ -6,15 +6,7 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/functionx/fx-core/v8/contract"
-)
-
-var (
-	stakingAddress = common.HexToAddress(contract.StakingAddress)
-	stakingABI     = contract.MustABIJson(contract.IStakingMetaData.ABI)
 )
 
 type ValidatorSortBy uint8
@@ -23,14 +15,6 @@ const (
 	ValidatorSortByPower ValidatorSortBy = iota
 	ValidatorSortByMissed
 )
-
-func GetAddress() common.Address {
-	return stakingAddress
-}
-
-func GetABI() abi.ABI {
-	return stakingABI
-}
 
 type AllowanceSharesArgs struct {
 	Validator string         `abi:"_val"`

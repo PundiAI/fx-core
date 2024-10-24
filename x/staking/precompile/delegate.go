@@ -25,8 +25,8 @@ type DelegateV2Method struct {
 func NewDelegateV2Method(keeper *Keeper) *DelegateV2Method {
 	return &DelegateV2Method{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["delegateV2"],
-		Event:  fxstakingtypes.GetABI().Events["DelegateV2"],
+		Method: stakingABI.Methods["delegateV2"],
+		Event:  stakingABI.Events["DelegateV2"],
 	}
 }
 
@@ -63,7 +63,7 @@ func (m *DelegateV2Method) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		if err != nil {
 			return err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, stakingAddress, data, topic)
 		return nil
 	}); err != nil {
 		return nil, err

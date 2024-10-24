@@ -24,8 +24,8 @@ type ApproveSharesMethod struct {
 func NewApproveSharesMethod(keeper *Keeper) *ApproveSharesMethod {
 	return &ApproveSharesMethod{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["approveShares"],
-		Event:  fxstakingtypes.GetABI().Events["ApproveShares"],
+		Method: stakingABI.Methods["approveShares"],
+		Event:  stakingABI.Events["ApproveShares"],
 	}
 }
 
@@ -56,7 +56,7 @@ func (m *ApproveSharesMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, e
 		if err != nil {
 			return err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, stakingAddress, data, topic)
 
 		return nil
 	}); err != nil {

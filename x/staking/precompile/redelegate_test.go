@@ -9,17 +9,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func (suite *PrecompileTestSuite) TestRedelegate() {
-	testABI := contract.MustABIJson(testscontract.StakingTestMetaData.ABI)
-	redelegateV2Method := precompile.NewRedelegateV2Method(nil)
-
 	testCases := []struct {
 		name     string
 		malleate func(valSrc, valDst sdk.ValAddress, shares sdkmath.LegacyDec, delAmount sdkmath.Int) (interface{}, error)
@@ -82,14 +76,12 @@ func (suite *PrecompileTestSuite) TestRedelegate() {
 
 			delAmt := helpers.NewRandAmount()
 
-			stakingContract := precompile.GetAddress()
-			stakingABI := precompile.GetABI()
+			stakingContract := suite.stakingAddr
 			delAddr := suite.signer.Address()
 			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.staking
-				stakingABI = testABI
-				delAddr = suite.staking
+				stakingContract = suite.stakingTestAddr
+				delAddr = suite.stakingTestAddr
 				value = delAmt.BigInt()
 			}
 
@@ -100,7 +92,10 @@ func (suite *PrecompileTestSuite) TestRedelegate() {
 			suite.Require().NoError(err)
 
 			// delegate to val0
-			pack, err := stakingABI.Pack(TestDelegateV2Name, val0.GetOperator(), delAmt.BigInt())
+			pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
+				Validator: val0.GetOperator(),
+				Amount:    delAmt.BigInt(),
+			})
 			suite.Require().NoError(err)
 
 			res := suite.EthereumTx(suite.signer, stakingContract, value, pack)
@@ -118,14 +113,9 @@ func (suite *PrecompileTestSuite) TestRedelegate() {
 
 			var packData []byte
 			args, errResult := tc.malleate(operator0, operator1, delegation0.Shares, delAmt)
-			packData, err = redelegateV2Method.PackInput(args.(types.RedelegateV2Args))
+			packData, err = suite.redelegateMethodV2.PackInput(args.(types.RedelegateV2Args))
 			suite.Require().NoError(err)
 
-			if strings.HasPrefix(tc.name, "contract") {
-				argsV2 := args.(types.RedelegateV2Args)
-				packData, err = testABI.Pack(TestRedelegateV2Name, argsV2.ValidatorSrc, argsV2.ValidatorDst, argsV2.Amount)
-				suite.Require().NoError(err)
-			}
 			res = suite.EthereumTx(suite.signer, stakingContract, big.NewInt(0), packData)
 
 			if tc.result {

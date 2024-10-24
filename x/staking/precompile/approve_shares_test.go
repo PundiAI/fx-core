@@ -10,8 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
@@ -27,7 +25,6 @@ func TestStakingApproveSharesABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestApproveShares() {
-	approveSharesMethod := precompile.NewApproveSharesMethod(nil)
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) (fxstakingtypes.ApproveSharesArgs, error)
@@ -115,17 +112,14 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 
 			args, errResult := tc.malleate(operator, spender, allowanceAmt)
 
-			packData, err := approveSharesMethod.PackInput(args)
+			packData, err := suite.approveSharesMethod.PackInput(args)
 			suite.Require().NoError(err)
-			stakingContract := precompile.GetAddress()
+			stakingContract := suite.stakingAddr
 			sender := owner.Address()
 
 			if strings.HasPrefix(tc.name, "contract") {
-				packData, err = contract.MustABIJson(testscontract.StakingTestMetaData.ABI).Pack(TestApproveSharesName, args.Validator, args.Spender, args.Shares)
-				suite.Require().NoError(err)
-
-				stakingContract = suite.staking
-				sender = suite.staking
+				stakingContract = suite.stakingTestAddr
+				sender = suite.stakingTestAddr
 			}
 
 			allowance := suite.App.StakingKeeper.GetAllowance(suite.Ctx, operator, owner.AccAddress(), spender.AccAddress())
@@ -143,9 +137,9 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == approveSharesMethod.Event.ID.String() {
-						suite.Require().Equal(log.Address, precompile.GetAddress().String())
-						event, err := approveSharesMethod.UnpackEvent(log.ToEthereum())
+					if log.Topics[0] == suite.approveSharesMethod.Event.ID.String() {
+						suite.Require().Equal(log.Address, suite.stakingAddr.String())
+						event, err := suite.approveSharesMethod.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.Owner, sender)
 						suite.Require().Equal(event.Spender, spender.Address())

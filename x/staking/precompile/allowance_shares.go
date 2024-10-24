@@ -18,7 +18,7 @@ type AllowanceSharesMethod struct {
 func NewAllowanceSharesMethod(keeper *Keeper) *AllowanceSharesMethod {
 	return &AllowanceSharesMethod{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["allowanceShares"],
+		Method: stakingABI.Methods["allowanceShares"],
 	}
 }
 

@@ -20,7 +20,7 @@ type DelegationMethod struct {
 func NewDelegationMethod(keeper *Keeper) *DelegationMethod {
 	return &DelegationMethod{
 		Keeper: keeper,
-		Method: fxstakingtypes.GetABI().Methods["delegation"],
+		Method: stakingABI.Methods["delegation"],
 	}
 }
 

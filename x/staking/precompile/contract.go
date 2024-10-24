@@ -7,13 +7,16 @@ import (
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v8/contract"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 	fxstakingkeeper "github.com/functionx/fx-core/v8/x/staking/keeper"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
+)
+
+var (
+	stakingAddress = common.HexToAddress(contract.StakingAddress)
+	stakingABI     = contract.MustABIJson(contract.IStakingMetaData.ABI)
 )
 
 type Contract struct {
@@ -39,11 +42,6 @@ func NewPrecompiledContract(
 		slashingKeeper:   slashingKeeper,
 	}
 
-	delegateV2 := NewDelegateV2Method(keeper)
-	redelegateV2 := NewRedelegateV2Method(keeper)
-	undelegateV2 := NewUndelegateV2Method(keeper)
-	slashingInfo := NewSlashingInfoMethod(keeper)
-	validatorList := NewValidatorListMethod(keeper)
 	return &Contract{
 		methods: []contract.PrecompileMethod{
 			NewAllowanceSharesMethod(keeper),
@@ -55,19 +53,19 @@ func NewPrecompiledContract(
 			NewTransferFromSharesMethod(keeper),
 			NewWithdrawMethod(keeper),
 
-			delegateV2,
-			redelegateV2,
-			undelegateV2,
+			NewDelegateV2Method(keeper),
+			NewRedelegateV2Method(keeper),
+			NewUndelegateV2Method(keeper),
 
-			slashingInfo,
-			validatorList,
+			NewSlashingInfoMethod(keeper),
+			NewValidatorListMethod(keeper),
 		},
 		govKeeper: govKeeper,
 	}
 }
 
 func (c *Contract) Address() common.Address {
-	return fxstakingtypes.GetAddress()
+	return stakingAddress
 }
 
 func (c *Contract) IsStateful() bool {
@@ -110,13 +108,4 @@ func (c *Contract) Run(evm *vm.EVM, vmContract *vm.Contract, readonly bool) (ret
 		}
 	}
 	return contract.PackRetErrV2(errors.New("unknown method"))
-}
-
-func EmitEvent(evm *vm.EVM, data []byte, topics []common.Hash) {
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     fxstakingtypes.GetAddress(),
-		Topics:      topics,
-		Data:        data,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
 }

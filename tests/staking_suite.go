@@ -27,14 +27,16 @@ import (
 
 type StakingSuite struct {
 	Erc20TestSuite
-	grantKey cryptotypes.PrivKey
+	grantKey        cryptotypes.PrivKey
+	stakingContract common.Address
 }
 
 func NewStakingSuite(ts *TestSuite) StakingSuite {
 	key := helpers.NewEthPrivKey()
 	return StakingSuite{
-		Erc20TestSuite: NewErc20TestSuite(ts),
-		grantKey:       key,
+		Erc20TestSuite:  NewErc20TestSuite(ts),
+		grantKey:        key,
+		stakingContract: common.HexToAddress(contract.StakingAddress),
 	}
 }
 
@@ -102,11 +104,10 @@ func (suite *StakingSuite) SetWithdrawAddressWithResponse(privKey cryptotypes.Pr
 }
 
 func (suite *StakingSuite) send(privateKey cryptotypes.PrivKey, value *big.Int, data []byte) *ethtypes.Receipt {
-	stakingContract := stakingprecompile.GetAddress()
 	if value == nil {
 		value = big.NewInt(0)
 	}
-	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, value, data)
+	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &suite.stakingContract, value, data)
 	suite.Require().NoError(err)
 	return suite.SendTransaction(transaction)
 }
@@ -157,11 +158,10 @@ func (suite *StakingSuite) WithdrawReward(privateKey cryptotypes.PrivKey, valAdd
 }
 
 func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*big.Int, *big.Int) {
-	stakingContract := stakingprecompile.GetAddress()
 	method := stakingprecompile.NewDelegationMethod(nil)
 	pack, err := method.PackInput(fxstakingtypes.DelegationArgs{Validator: valAddr, Delegator: delAddr})
 	suite.Require().NoError(err)
-	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
+	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &suite.stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
 	shares, amount, err := method.UnpackOutput(output)
 	suite.Require().NoError(err)
@@ -169,11 +169,10 @@ func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*
 }
 
 func (suite *StakingSuite) Rewards(valAddr string, delAddr common.Address) *big.Int {
-	stakingContract := stakingprecompile.GetAddress()
 	method := stakingprecompile.NewDelegationRewardsMethod(nil)
 	pack, err := method.PackInput(fxstakingtypes.DelegationRewardsArgs{Validator: valAddr, Delegator: delAddr})
 	suite.Require().NoError(err)
-	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
+	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &suite.stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
 	amount, err := method.UnpackOutput(output)
 	suite.Require().NoError(err)
@@ -236,11 +235,10 @@ func (suite *StakingSuite) ApproveShares(privateKey cryptotypes.PrivKey, valAddr
 }
 
 func (suite *StakingSuite) AllowanceShares(valAddr string, owner, spender common.Address) *big.Int {
-	stakingContract := stakingprecompile.GetAddress()
 	method := stakingprecompile.NewAllowanceSharesMethod(nil)
 	pack, err := method.PackInput(fxstakingtypes.AllowanceSharesArgs{Validator: valAddr, Owner: owner, Spender: spender})
 	suite.Require().NoError(err)
-	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
+	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &suite.stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
 	amount, err := method.UnpackOutput(output)
 	suite.Require().NoError(err)
@@ -250,7 +248,7 @@ func (suite *StakingSuite) AllowanceShares(valAddr string, owner, spender common
 func (suite *StakingSuite) LogReward(logs []*ethtypes.Log, valAddr string, addr common.Address) *big.Int {
 	method := stakingprecompile.NewWithdrawMethod(nil)
 	for _, log := range logs {
-		if log.Address == stakingprecompile.GetAddress() &&
+		if log.Address == suite.stakingContract &&
 			log.Topics[0] == method.Event.ID &&
 			log.Topics[1] == addr.Hash() {
 			unpack, err := method.Event.Inputs.NonIndexed().Unpack(log.Data)
