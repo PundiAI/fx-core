@@ -68,9 +68,7 @@ func (suite *PrecompileTestSuite) TestHasOracle() {
 			packData, err := hasOracle.PackInput(args)
 			suite.Require().NoError(err)
 
-			contractAddr := crosschaintypes.GetAddress()
-
-			res, err := suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, signer.Address(), &contractAddr, nil, packData, false)
+			res, err := suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, signer.Address(), &suite.crosschainAddr, nil, packData, false)
 			if err != nil {
 				suite.Require().EqualError(err, expectErr.Error())
 				return

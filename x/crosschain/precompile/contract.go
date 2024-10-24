@@ -5,12 +5,15 @@ import (
 	"errors"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v8/contract"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+)
+
+var (
+	crosschainABI     = contract.MustABIJson(contract.ICrosschainMetaData.ABI)
+	crosschainAddress = common.HexToAddress(contract.CrosschainAddress)
 )
 
 type Contract struct {
@@ -42,7 +45,7 @@ func NewPrecompiledContract(
 }
 
 func (c *Contract) Address() common.Address {
-	return crosschaintypes.GetAddress()
+	return crosschainAddress
 }
 
 func (c *Contract) IsStateful() bool {
@@ -85,13 +88,4 @@ func (c *Contract) Run(evm *vm.EVM, vmContract *vm.Contract, readonly bool) (ret
 		}
 	}
 	return contract.PackRetErrV2(errors.New("unknown method"))
-}
-
-func EmitEvent(evm *vm.EVM, data []byte, topics []common.Hash) {
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     crosschaintypes.GetAddress(),
-		Topics:      topics,
-		Data:        data,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
 }

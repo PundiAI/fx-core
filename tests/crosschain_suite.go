@@ -12,11 +12,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v8/client"
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
@@ -33,6 +34,8 @@ type CrosschainTestSuite struct {
 	externalPrivKey     *ecdsa.PrivateKey
 	privKey             cryptotypes.PrivKey
 	executeClaimPrivKey cryptotypes.PrivKey
+
+	crosschainAddr common.Address
 }
 
 func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestSuite {
@@ -48,6 +51,7 @@ func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestS
 		externalPrivKey:     externalPrivKey,
 		privKey:             helpers.NewEthPrivKey(),
 		executeClaimPrivKey: helpers.NewEthPrivKey(),
+		crosschainAddr:      common.HexToAddress(contract.CrosschainAddress),
 	}
 }
 
@@ -80,8 +84,8 @@ func (suite *CrosschainTestSuite) ExecuteClaimAccAddress() sdk.AccAddress {
 	return suite.executeClaimPrivKey.PubKey().Address().Bytes()
 }
 
-func (suite *CrosschainTestSuite) HexAddress() gethcommon.Address {
-	return gethcommon.BytesToAddress(suite.privKey.PubKey().Address())
+func (suite *CrosschainTestSuite) HexAddress() common.Address {
+	return common.BytesToAddress(suite.privKey.PubKey().Address())
 }
 
 func (suite *CrosschainTestSuite) HexAddressString() string {
@@ -450,7 +454,7 @@ func (suite *CrosschainTestSuite) AddBridgeToken(md banktypes.Metadata) (string,
 	}
 }
 
-func (suite *CrosschainTestSuite) FormatAddress(address gethcommon.Address) string {
+func (suite *CrosschainTestSuite) FormatAddress(address common.Address) string {
 	return crosschaintypes.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
@@ -524,8 +528,7 @@ func (suite *CrosschainTestSuite) ExecuteClaim() *ethtypes.Transaction {
 	})
 	suite.Require().NoError(err)
 
-	address := crosschaintypes.GetAddress()
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.executeClaimPrivKey, &address, nil, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.executeClaimPrivKey, &suite.crosschainAddr, nil, pack)
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
@@ -559,4 +562,27 @@ func (suite *CrosschainTestSuite) UpdateParams(opts ...func(params *crosschainty
 		Params:    params,
 	}
 	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "UpdateParams", "UpdateParams")
+}
+
+func (suite *CrosschainTestSuite) Crosschain(token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
+	privateKey := suite.privKey
+	crosschainContract := suite.crosschainAddr
+	suite.ApproveERC20(privateKey, token, crosschainContract, big.NewInt(0).Add(amount, fee))
+
+	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
+	pack, err := precompile.NewCrosschainMethod(nil).PackInput(crosschaintypes.CrosschainArgs{
+		Token:   token,
+		Receipt: recipient,
+		Amount:  amount,
+		Fee:     fee,
+		Target:  fxtypes.MustStrToByte32(target),
+		Memo:    "",
+	})
+	suite.Require().NoError(err)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crosschainContract, nil, pack)
+	suite.Require().NoError(err, target)
+	suite.SendTransaction(ethTx)
+	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
+	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(new(big.Int).Add(amount, fee)) == 0)
+	return ethTx
 }
