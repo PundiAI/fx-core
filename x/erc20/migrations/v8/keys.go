@@ -83,7 +83,6 @@ func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) er
 		if err := m.keeper.ERC20Token.Set(ctx, tokenPair.Denom, tokenPair); err != nil {
 			return err
 		}
-		store.Delete(iterator.Key())
 	}
 	return nil
 }
