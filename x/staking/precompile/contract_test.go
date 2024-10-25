@@ -42,10 +42,10 @@ type PrecompileTestSuite struct {
 	delegateV2Method        *precompile.DelegateV2Method
 	delegationMethod        *precompile.DelegationMethod
 	delegationRewardsMethod *precompile.DelegationRewardsMethod
-	redelegateMethodV2      *precompile.RedelegateMethodV2
+	redelegateV2Method      *precompile.RedelegateV2Method
 	// slashingInfoMethod       *precompile.SlashingInfoMethod
-	transferSharesMethod     *precompile.TransferShares
-	transferFromSharesMethod *precompile.TransferFromShares
+	transferSharesMethod     *precompile.TransferSharesMethod
+	transferFromSharesMethod *precompile.TransferFromSharesMethod
 	undelegateV2Method       *precompile.UndelegateV2Method
 	validatorListMethod      *precompile.ValidatorListMethod
 	withdrawMethod           *precompile.WithdrawMethod
@@ -85,7 +85,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.delegateV2Method = precompile.NewDelegateV2Method(nil)
 	suite.delegationMethod = precompile.NewDelegationMethod(nil)
 	suite.delegationRewardsMethod = precompile.NewDelegationRewardsMethod(nil)
-	suite.redelegateMethodV2 = precompile.NewRedelegateV2Method(nil)
+	suite.redelegateV2Method = precompile.NewRedelegateV2Method(nil)
 	// suite.slashingInfoMethod = precompile.NewSlashingInfoMethod(nil)
 	suite.transferSharesMethod = precompile.NewTransferSharesMethod(nil)
 	suite.transferFromSharesMethod = precompile.NewTransferFromSharesMethod(nil)

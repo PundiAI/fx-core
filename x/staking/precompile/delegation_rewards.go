@@ -14,13 +14,13 @@ import (
 
 type DelegationRewardsMethod struct {
 	*Keeper
-	abi.Method
+	DelegationRewardsABI
 }
 
 func NewDelegationRewardsMethod(keeper *Keeper) *DelegationRewardsMethod {
 	return &DelegationRewardsMethod{
-		Keeper: keeper,
-		Method: stakingABI.Methods["delegationRewards"],
+		Keeper:               keeper,
+		DelegationRewardsABI: NewDelegationRewardsABI(),
 	}
 }
 
@@ -69,25 +69,35 @@ func (m *DelegationRewardsMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byt
 	return m.PackOutput(rewards.AmountOf(m.stakingDenom).TruncateInt().BigInt())
 }
 
-func (m *DelegationRewardsMethod) PackInput(args fxstakingtypes.DelegationRewardsArgs) ([]byte, error) {
+type DelegationRewardsABI struct {
+	abi.Method
+}
+
+func NewDelegationRewardsABI() DelegationRewardsABI {
+	return DelegationRewardsABI{
+		Method: stakingABI.Methods["delegationRewards"],
+	}
+}
+
+func (m DelegationRewardsABI) PackInput(args fxstakingtypes.DelegationRewardsArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Delegator)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *DelegationRewardsMethod) UnpackInput(data []byte) (*fxstakingtypes.DelegationRewardsArgs, error) {
+func (m DelegationRewardsABI) UnpackInput(data []byte) (*fxstakingtypes.DelegationRewardsArgs, error) {
 	args := new(fxstakingtypes.DelegationRewardsArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *DelegationRewardsMethod) PackOutput(amount *big.Int) ([]byte, error) {
+func (m DelegationRewardsABI) PackOutput(amount *big.Int) ([]byte, error) {
 	return m.Method.Outputs.Pack(amount)
 }
 
-func (m *DelegationRewardsMethod) UnpackOutput(data []byte) (*big.Int, error) {
+func (m DelegationRewardsABI) UnpackOutput(data []byte) (*big.Int, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return nil, err

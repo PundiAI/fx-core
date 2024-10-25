@@ -113,7 +113,7 @@ func (suite *PrecompileTestSuite) TestRedelegate() {
 
 			var packData []byte
 			args, errResult := tc.malleate(operator0, operator1, delegation0.Shares, delAmt)
-			packData, err = suite.redelegateMethodV2.PackInput(args.(types.RedelegateV2Args))
+			packData, err = suite.redelegateV2Method.PackInput(args.(types.RedelegateV2Args))
 			suite.Require().NoError(err)
 
 			res = suite.EthereumTx(suite.signer, stakingContract, big.NewInt(0), packData)

@@ -12,13 +12,13 @@ import (
 
 type SlashingInfoMethod struct {
 	*Keeper
-	abi.Method
+	SlashingABI
 }
 
 func NewSlashingInfoMethod(keeper *Keeper) *SlashingInfoMethod {
 	return &SlashingInfoMethod{
-		Keeper: keeper,
-		Method: stakingABI.Methods["slashingInfo"],
+		Keeper:      keeper,
+		SlashingABI: NewSlashingABI(),
 	}
 }
 
@@ -60,25 +60,35 @@ func (m *SlashingInfoMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 	return m.PackOutput(validator.Jailed, signingInfo.MissedBlocksCounter)
 }
 
-func (m *SlashingInfoMethod) PackInput(args fxstakingtypes.SlashingInfoArgs) ([]byte, error) {
+type SlashingABI struct {
+	abi.Method
+}
+
+func NewSlashingABI() SlashingABI {
+	return SlashingABI{
+		Method: stakingABI.Methods["slashingInfo"],
+	}
+}
+
+func (m SlashingABI) PackInput(args fxstakingtypes.SlashingInfoArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *SlashingInfoMethod) UnpackInput(data []byte) (*fxstakingtypes.SlashingInfoArgs, error) {
+func (m SlashingABI) UnpackInput(data []byte) (*fxstakingtypes.SlashingInfoArgs, error) {
 	args := new(fxstakingtypes.SlashingInfoArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *SlashingInfoMethod) PackOutput(jailed bool, missed int64) ([]byte, error) {
+func (m SlashingABI) PackOutput(jailed bool, missed int64) ([]byte, error) {
 	return m.Method.Outputs.Pack(jailed, big.NewInt(missed))
 }
 
-func (m *SlashingInfoMethod) UnpackOutput(data []byte) (bool, *big.Int, error) {
+func (m SlashingABI) UnpackOutput(data []byte) (bool, *big.Int, error) {
 	unpack, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return false, nil, err

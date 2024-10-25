@@ -18,15 +18,13 @@ import (
 
 type WithdrawMethod struct {
 	*Keeper
-	abi.Method
-	abi.Event
+	WithdrawABI
 }
 
 func NewWithdrawMethod(keeper *Keeper) *WithdrawMethod {
 	return &WithdrawMethod{
-		Keeper: keeper,
-		Method: stakingABI.Methods["withdraw"],
-		Event:  stakingABI.Events["Withdraw"],
+		Keeper:      keeper,
+		WithdrawABI: NewWithdrawABI(),
 	}
 }
 
@@ -76,7 +74,19 @@ func (m *WithdrawMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error)
 	return result, err
 }
 
-func (m *WithdrawMethod) NewWithdrawEvent(sender common.Address, validator string, reward *big.Int) (data []byte, topic []common.Hash, err error) {
+type WithdrawABI struct {
+	abi.Method
+	abi.Event
+}
+
+func NewWithdrawABI() WithdrawABI {
+	return WithdrawABI{
+		Method: stakingABI.Methods["withdraw"],
+		Event:  stakingABI.Events["Withdraw"],
+	}
+}
+
+func (m WithdrawABI) NewWithdrawEvent(sender common.Address, validator string, reward *big.Int) (data []byte, topic []common.Hash, err error) {
 	data, topic, err = types.PackTopicData(m.Event, []common.Hash{sender.Hash()}, validator, reward)
 	if err != nil {
 		return nil, nil, err
@@ -84,25 +94,25 @@ func (m *WithdrawMethod) NewWithdrawEvent(sender common.Address, validator strin
 	return data, topic, nil
 }
 
-func (m *WithdrawMethod) PackInput(args fxstakingtypes.WithdrawArgs) ([]byte, error) {
+func (m WithdrawABI) PackInput(args fxstakingtypes.WithdrawArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *WithdrawMethod) UnpackInput(data []byte) (*fxstakingtypes.WithdrawArgs, error) {
+func (m WithdrawABI) UnpackInput(data []byte) (*fxstakingtypes.WithdrawArgs, error) {
 	args := new(fxstakingtypes.WithdrawArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *WithdrawMethod) PackOutput(reward *big.Int) ([]byte, error) {
+func (m WithdrawABI) PackOutput(reward *big.Int) ([]byte, error) {
 	return m.Method.Outputs.Pack(reward)
 }
 
-func (m *WithdrawMethod) UnpackOutput(data []byte) (*big.Int, error) {
+func (m WithdrawABI) UnpackOutput(data []byte) (*big.Int, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return nil, err
@@ -110,7 +120,7 @@ func (m *WithdrawMethod) UnpackOutput(data []byte) (*big.Int, error) {
 	return amount[0].(*big.Int), nil
 }
 
-func (m *WithdrawMethod) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingWithdraw, error) {
+func (m WithdrawABI) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingWithdraw, error) {
 	if log == nil {
 		return nil, errors.New("empty log")
 	}

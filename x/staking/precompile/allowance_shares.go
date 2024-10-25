@@ -12,13 +12,13 @@ import (
 
 type AllowanceSharesMethod struct {
 	*Keeper
-	abi.Method
+	AllowanceSharesABI
 }
 
 func NewAllowanceSharesMethod(keeper *Keeper) *AllowanceSharesMethod {
 	return &AllowanceSharesMethod{
-		Keeper: keeper,
-		Method: stakingABI.Methods["allowanceShares"],
+		Keeper:             keeper,
+		AllowanceSharesABI: NewAllowanceSharesABI(),
 	}
 }
 
@@ -46,25 +46,35 @@ func (m *AllowanceSharesMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte,
 	return m.PackOutput(allowance)
 }
 
-func (m *AllowanceSharesMethod) PackInput(args fxstakingtypes.AllowanceSharesArgs) ([]byte, error) {
+type AllowanceSharesABI struct {
+	abi.Method
+}
+
+func NewAllowanceSharesABI() AllowanceSharesABI {
+	return AllowanceSharesABI{
+		Method: stakingABI.Methods["allowanceShares"],
+	}
+}
+
+func (m AllowanceSharesABI) PackInput(args fxstakingtypes.AllowanceSharesArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Owner, args.Spender)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *AllowanceSharesMethod) UnpackInput(data []byte) (*fxstakingtypes.AllowanceSharesArgs, error) {
+func (m AllowanceSharesABI) UnpackInput(data []byte) (*fxstakingtypes.AllowanceSharesArgs, error) {
 	args := new(fxstakingtypes.AllowanceSharesArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *AllowanceSharesMethod) PackOutput(amount *big.Int) ([]byte, error) {
+func (m AllowanceSharesABI) PackOutput(amount *big.Int) ([]byte, error) {
 	return m.Method.Outputs.Pack(amount)
 }
 
-func (m *AllowanceSharesMethod) UnpackOutput(data []byte) (*big.Int, error) {
+func (m AllowanceSharesABI) UnpackOutput(data []byte) (*big.Int, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return nil, err
