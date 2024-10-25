@@ -18,7 +18,7 @@ type HasOracleMethod struct {
 func NewHasOracleMethod(keeper *Keeper) *HasOracleMethod {
 	return &HasOracleMethod{
 		Keeper: keeper,
-		Method: crosschaintypes.GetABI().Methods["hasOracle"],
+		Method: crosschainABI.Methods["hasOracle"],
 	}
 }
 

@@ -4,24 +4,10 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v8/contract"
 )
-
-var (
-	crosschainAddress = common.HexToAddress(contract.CrosschainAddress)
-	crosschainABI     = contract.MustABIJson(contract.ICrosschainMetaData.ABI)
-)
-
-func GetAddress() common.Address {
-	return crosschainAddress
-}
-
-func GetABI() abi.ABI {
-	return crosschainABI
-}
 
 type BridgeCoinAmountArgs struct {
 	Token  common.Address `abi:"_token"`

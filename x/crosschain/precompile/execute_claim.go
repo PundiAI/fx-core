@@ -9,12 +9,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v8/contract"
+	fxcontract "github.com/functionx/fx-core/v8/contract"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
-var _ contract.PrecompileMethod = (*ExecuteClaimMethod)(nil)
+var _ fxcontract.PrecompileMethod = (*ExecuteClaimMethod)(nil)
 
 type ExecuteClaimMethod struct {
 	*Keeper
@@ -25,8 +25,8 @@ type ExecuteClaimMethod struct {
 func NewExecuteClaimMethod(keeper *Keeper) *ExecuteClaimMethod {
 	return &ExecuteClaimMethod{
 		Keeper: keeper,
-		Method: crosschaintypes.GetABI().Methods["executeClaim"],
-		Event:  crosschaintypes.GetABI().Events["ExecuteClaimEvent"],
+		Method: crosschainABI.Methods["executeClaim"],
+		Event:  crosschainABI.Events["ExecuteClaimEvent"],
 	}
 }
 
@@ -65,7 +65,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 		if err != nil {
 			return err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, crosschainAddress, data, topic)
 		return nil
 	}); err != nil {
 		return nil, err

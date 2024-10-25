@@ -27,8 +27,8 @@ type CrosschainMethod struct {
 func NewCrosschainMethod(keeper *Keeper) *CrosschainMethod {
 	return &CrosschainMethod{
 		Keeper: keeper,
-		Method: crosschaintypes.GetABI().Methods["crossChain"],
-		Event:  crosschaintypes.GetABI().Events["CrossChain"],
+		Method: crosschainABI.Methods["crossChain"],
+		Event:  crosschainABI.Events["CrossChain"],
 	}
 }
 
@@ -80,7 +80,7 @@ func (m *CrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 			}
 
 			baseCoin = sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(totalAmount))
-			if err = m.bankKeeper.SendCoins(ctx, crosschaintypes.GetAddress().Bytes(), sender.Bytes(), sdk.NewCoins(baseCoin)); err != nil {
+			if err = m.bankKeeper.SendCoins(ctx, crosschainAddress.Bytes(), sender.Bytes(), sdk.NewCoins(baseCoin)); err != nil {
 				return err
 			}
 		} else {
@@ -101,7 +101,7 @@ func (m *CrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 		if err != nil {
 			return err
 		}
-		EmitEvent(evm, data, topic)
+		fxcontract.EmitEvent(evm, crosschainAddress, data, topic)
 
 		return nil
 	}); err != nil {

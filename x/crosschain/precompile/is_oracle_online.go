@@ -18,7 +18,7 @@ type IsOracleOnlineMethod struct {
 func NewIsOracleOnlineMethod(keeper *Keeper) *IsOracleOnlineMethod {
 	return &IsOracleOnlineMethod{
 		Keeper: keeper,
-		Method: crosschaintypes.GetABI().Methods["isOracleOnline"],
+		Method: crosschainABI.Methods["isOracleOnline"],
 	}
 }
 
