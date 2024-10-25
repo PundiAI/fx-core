@@ -18,15 +18,13 @@ import (
 
 type UndelegateV2Method struct {
 	*Keeper
-	abi.Method
-	abi.Event
+	UndelegateABI
 }
 
 func NewUndelegateV2Method(keeper *Keeper) *UndelegateV2Method {
 	return &UndelegateV2Method{
-		Keeper: keeper,
-		Method: stakingABI.Methods["undelegateV2"],
-		Event:  stakingABI.Events["UndelegateV2"],
+		Keeper:        keeper,
+		UndelegateABI: NewUndelegateV2ABI(),
 	}
 }
 
@@ -81,25 +79,37 @@ func (m *UndelegateV2Method) NewUndelegateEvent(sender common.Address, validator
 	return data, topic, nil
 }
 
-func (m *UndelegateV2Method) PackInput(args fxstakingtypes.UndelegateV2Args) ([]byte, error) {
+type UndelegateABI struct {
+	abi.Method
+	abi.Event
+}
+
+func NewUndelegateV2ABI() UndelegateABI {
+	return UndelegateABI{
+		Method: stakingABI.Methods["undelegateV2"],
+		Event:  stakingABI.Events["UndelegateV2"],
+	}
+}
+
+func (m UndelegateABI) PackInput(args fxstakingtypes.UndelegateV2Args) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Amount)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *UndelegateV2Method) UnpackInput(data []byte) (*fxstakingtypes.UndelegateV2Args, error) {
+func (m UndelegateABI) UnpackInput(data []byte) (*fxstakingtypes.UndelegateV2Args, error) {
 	args := new(fxstakingtypes.UndelegateV2Args)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *UndelegateV2Method) PackOutput(result bool) ([]byte, error) {
+func (m UndelegateABI) PackOutput(result bool) ([]byte, error) {
 	return m.Method.Outputs.Pack(result)
 }
 
-func (m *UndelegateV2Method) UnpackOutput(data []byte) (bool, error) {
+func (m UndelegateABI) UnpackOutput(data []byte) (bool, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return false, err
@@ -107,7 +117,7 @@ func (m *UndelegateV2Method) UnpackOutput(data []byte) (bool, error) {
 	return amount[0].(bool), nil
 }
 
-func (m *UndelegateV2Method) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingUndelegateV2, error) {
+func (m UndelegateABI) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingUndelegateV2, error) {
 	if log == nil {
 		return nil, errors.New("empty log")
 	}

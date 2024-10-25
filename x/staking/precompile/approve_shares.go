@@ -17,15 +17,13 @@ import (
 
 type ApproveSharesMethod struct {
 	*Keeper
-	abi.Method
-	abi.Event
+	ApproveSharesABI
 }
 
 func NewApproveSharesMethod(keeper *Keeper) *ApproveSharesMethod {
 	return &ApproveSharesMethod{
-		Keeper: keeper,
-		Method: stakingABI.Methods["approveShares"],
-		Event:  stakingABI.Events["ApproveShares"],
+		Keeper:           keeper,
+		ApproveSharesABI: NewApproveSharesABI(),
 	}
 }
 
@@ -66,7 +64,19 @@ func (m *ApproveSharesMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, e
 	return m.PackOutput(true)
 }
 
-func (m *ApproveSharesMethod) NewApproveSharesEvent(owner, spender common.Address, validator string, shares *big.Int) (data []byte, topic []common.Hash, err error) {
+type ApproveSharesABI struct {
+	abi.Method
+	abi.Event
+}
+
+func NewApproveSharesABI() ApproveSharesABI {
+	return ApproveSharesABI{
+		Method: stakingABI.Methods["approveShares"],
+		Event:  stakingABI.Events["ApproveShares"],
+	}
+}
+
+func (m ApproveSharesABI) NewApproveSharesEvent(owner, spender common.Address, validator string, shares *big.Int) (data []byte, topic []common.Hash, err error) {
 	data, topic, err = types.PackTopicData(m.Event, []common.Hash{owner.Hash(), spender.Hash()}, validator, shares)
 	if err != nil {
 		return nil, nil, err
@@ -74,25 +84,25 @@ func (m *ApproveSharesMethod) NewApproveSharesEvent(owner, spender common.Addres
 	return data, topic, nil
 }
 
-func (m *ApproveSharesMethod) PackInput(args fxstakingtypes.ApproveSharesArgs) ([]byte, error) {
+func (m ApproveSharesABI) PackInput(args fxstakingtypes.ApproveSharesArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Spender, args.Shares)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *ApproveSharesMethod) UnpackInput(data []byte) (*fxstakingtypes.ApproveSharesArgs, error) {
+func (m ApproveSharesABI) UnpackInput(data []byte) (*fxstakingtypes.ApproveSharesArgs, error) {
 	args := new(fxstakingtypes.ApproveSharesArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *ApproveSharesMethod) PackOutput(result bool) ([]byte, error) {
+func (m ApproveSharesABI) PackOutput(result bool) ([]byte, error) {
 	return m.Method.Outputs.Pack(result)
 }
 
-func (m *ApproveSharesMethod) UnpackOutput(data []byte) (bool, error) {
+func (m ApproveSharesABI) UnpackOutput(data []byte) (bool, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return false, err
@@ -100,7 +110,7 @@ func (m *ApproveSharesMethod) UnpackOutput(data []byte) (bool, error) {
 	return amount[0].(bool), nil
 }
 
-func (m *ApproveSharesMethod) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingApproveShares, error) {
+func (m ApproveSharesABI) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingApproveShares, error) {
 	if log == nil {
 		return nil, errors.New("empty log")
 	}

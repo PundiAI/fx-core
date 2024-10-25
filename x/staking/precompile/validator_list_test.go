@@ -113,13 +113,13 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 					}
 				}
 				if args.GetSortBy() == types.ValidatorSortByMissed {
-					valList := make([]precompile.ValidatorList, 0, len(valsByPower))
+					valList := make([]precompile.Validator, 0, len(valsByPower))
 					for _, validator := range valsByPower {
 						consAddr, err := validator.GetConsAddr()
 						suite.Require().NoError(err)
 						info, err := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
 						suite.Require().NoError(err)
-						valList = append(valList, precompile.ValidatorList{
+						valList = append(valList, precompile.Validator{
 							ValAddr:      validator.OperatorAddress,
 							MissedBlocks: info.MissedBlocksCounter,
 						})

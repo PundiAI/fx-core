@@ -18,15 +18,13 @@ import (
 
 type DelegateV2Method struct {
 	*Keeper
-	abi.Method
-	abi.Event
+	DelegateV2ABI
 }
 
 func NewDelegateV2Method(keeper *Keeper) *DelegateV2Method {
 	return &DelegateV2Method{
-		Keeper: keeper,
-		Method: stakingABI.Methods["delegateV2"],
-		Event:  stakingABI.Events["DelegateV2"],
+		Keeper:        keeper,
+		DelegateV2ABI: NewDelegateV2ABI(),
 	}
 }
 
@@ -71,7 +69,19 @@ func (m *DelegateV2Method) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	return m.PackOutput(true)
 }
 
-func (m *DelegateV2Method) NewDelegateEvent(sender common.Address, validator string, amount *big.Int) (data []byte, topic []common.Hash, err error) {
+type DelegateV2ABI struct {
+	abi.Method
+	abi.Event
+}
+
+func NewDelegateV2ABI() DelegateV2ABI {
+	return DelegateV2ABI{
+		Method: stakingABI.Methods["delegateV2"],
+		Event:  stakingABI.Events["DelegateV2"],
+	}
+}
+
+func (m DelegateV2ABI) NewDelegateEvent(sender common.Address, validator string, amount *big.Int) (data []byte, topic []common.Hash, err error) {
 	data, topic, err = types.PackTopicData(m.Event, []common.Hash{sender.Hash()}, validator, amount)
 	if err != nil {
 		return nil, nil, err
@@ -79,25 +89,25 @@ func (m *DelegateV2Method) NewDelegateEvent(sender common.Address, validator str
 	return data, topic, nil
 }
 
-func (m *DelegateV2Method) PackInput(args fxstakingtypes.DelegateV2Args) ([]byte, error) {
+func (m DelegateV2ABI) PackInput(args fxstakingtypes.DelegateV2Args) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Amount)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *DelegateV2Method) UnpackInput(data []byte) (*fxstakingtypes.DelegateV2Args, error) {
+func (m DelegateV2ABI) UnpackInput(data []byte) (*fxstakingtypes.DelegateV2Args, error) {
 	args := new(fxstakingtypes.DelegateV2Args)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *DelegateV2Method) PackOutput(result bool) ([]byte, error) {
+func (m DelegateV2ABI) PackOutput(result bool) ([]byte, error) {
 	return m.Method.Outputs.Pack(result)
 }
 
-func (m *DelegateV2Method) UnpackOutput(data []byte) (bool, error) {
+func (m DelegateV2ABI) UnpackOutput(data []byte) (bool, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return false, err
@@ -105,7 +115,7 @@ func (m *DelegateV2Method) UnpackOutput(data []byte) (bool, error) {
 	return amount[0].(bool), nil
 }
 
-func (m *DelegateV2Method) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingDelegateV2, error) {
+func (m DelegateV2ABI) UnpackEvent(log *ethtypes.Log) (*fxcontract.IStakingDelegateV2, error) {
 	if log == nil {
 		return nil, errors.New("empty log")
 	}
