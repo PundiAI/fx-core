@@ -21,32 +21,29 @@ func (m Migrator) MigrateToken(ctx sdk.Context) error {
 
 	mds := m.bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
-		baseDenom := strings.ToLower(md.Symbol)
+		newBaseDenom := strings.ToLower(md.Symbol)
 		// exclude FX and alias empty, except PUNDIX
 		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
 			continue
 		}
 		// add other bridge/ibc token
 		for _, alias := range md.DenomUnits[0].Aliases {
-			if err := m.addToken(ctx, baseDenom, alias); err != nil {
+			if err := m.addToken(ctx, newBaseDenom, alias); err != nil {
 				return err
 			}
 		}
 		// only add pundix/purse token
-		if md.Base == baseDenom || strings.Contains(md.Base, baseDenom) {
+		if md.Base == newBaseDenom || strings.Contains(md.Base, newBaseDenom) {
 			continue
 		}
-		if err := m.addToken(ctx, baseDenom, md.Base); err != nil {
+		if err := m.addToken(ctx, newBaseDenom, md.Base); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m Migrator) addToken(
-	ctx sdk.Context,
-	base, alias string,
-) error {
+func (m Migrator) addToken(ctx sdk.Context, base, alias string) error {
 	if strings.HasPrefix(alias, ibctransfertypes.DenomPrefix+"/") {
 		return m.addIBCToken(ctx, base, alias)
 	}
@@ -59,23 +56,22 @@ func (m Migrator) addIBCToken(ctx sdk.Context, base, alias string) error {
 		return sdkerrors.ErrInvalidCoins.Wrapf("ibc denom hash not found: %s %s", base, alias)
 	}
 	ctx.Logger().Info("add ibc token", "base-denom", base, "alias", alias, "channel", channel)
-	return m.keeper.AddIBCToken(ctx, base, channel, alias)
+	return m.keeper.AddIBCToken(ctx, channel, base, alias)
 }
 
-func (m Migrator) addBridgeToken(
-	ctx sdk.Context,
-	base, alias string,
-) error {
+func (m Migrator) addBridgeToken(ctx sdk.Context, base, alias string) error {
 	if getExcludeBridgeToken(ctx, alias) {
 		return nil
 	}
 	for _, ck := range m.crosschainKeepers {
 		canAddFxBridgeToken := base == fxtypes.DefaultDenom && ck.ModuleName() == ethtypes.ModuleName
+
 		canAddBridgeToken := strings.HasPrefix(alias, ck.ModuleName())
 		excludeModule := ck.ModuleName() != arbitrumtypes.ModuleName && ck.ModuleName() != optimismtypes.ModuleName
 		if ctx.ChainID() == fxtypes.MainnetChainId {
 			canAddBridgeToken = canAddBridgeToken && excludeModule
 		}
+
 		if !canAddFxBridgeToken && !canAddBridgeToken {
 			continue
 		}
@@ -87,9 +83,12 @@ func (m Migrator) addBridgeToken(
 		if !found {
 			return sdkerrors.ErrKeyNotFound.Wrapf("module %s bridge token: %s", ck.ModuleName(), alias)
 		}
+		erc20Token, err := m.keeper.GetERC20Token(ctx, base)
+		if err != nil {
+			return err
+		}
 		ctx.Logger().Info("add bridge token", "base-denom", base, "alias", alias, "module", ck.ModuleName(), "contract", legacyBridgeToken.Token)
-		isNativeErc20 := LegacyIsNativeERC20(ctx, m.storeKey, m.cdc, base)
-		if err := m.keeper.AddBridgeToken(ctx, base, ck.ModuleName(), legacyBridgeToken.Token, isNativeErc20); err != nil {
+		if err := m.keeper.AddBridgeToken(ctx, base, ck.ModuleName(), legacyBridgeToken.Token, erc20Token.IsNativeERC20()); err != nil {
 			return err
 		}
 		break
