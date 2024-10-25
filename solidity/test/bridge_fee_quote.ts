@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { AddressLike, HDNodeWallet, Wallet } from "ethers";
+import { HDNodeWallet, Wallet } from "ethers";
 import {
   BridgeFeeOracle,
   BridgeFeeQuote,
@@ -18,14 +18,16 @@ describe("BridgeFeeQuoteUpgradeable", function () {
   let chainName = "TestChain";
   let oracle: HDNodeWallet;
   let owner: HardhatEthersSigner;
-  let token1: any;
-  let token2: any;
-  let tokens: AddressLike[];
+  let token1: string;
+  let token2: string;
 
   beforeEach(async function () {
     oracle = Wallet.createRandom();
 
-    [owner, token1, token2] = await ethers.getSigners();
+    [owner] = await ethers.getSigners();
+
+    token1 = "FX";
+    token2 = "usdt";
 
     const BridgeFeeQuoteTest = await ethers.getContractFactory(
       "BridgeFeeQuoteTest"
@@ -53,10 +55,8 @@ describe("BridgeFeeQuoteUpgradeable", function () {
     const role = await bridgeFeeOracle.QUOTE_ROLE();
     await bridgeFeeOracle.grantRole(role, bridgeFeeQuote.getAddress());
 
-    tokens = [token1.address, token2.address];
-
     await bridgeFeeQuote.registerChain(chainName, []);
-    await bridgeFeeQuote.registerToken(chainName, tokens);
+    await bridgeFeeQuote.registerTokenName(chainName, [token1, token2]);
   });
 
   describe("Oracle Management", function () {
@@ -75,7 +75,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
 
       const input = await newBridgeFeeQuote(
         chainName,
-        token1.address,
+        token1,
         fee,
         gasLimit,
         expiry,
@@ -89,7 +89,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
           0,
           input.oracle,
           chainName,
-          input.token,
+          input.tokenName,
           input.fee,
           input.gasLimit,
           input.expiry
@@ -113,7 +113,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
 
       const signature = await generateSignature(
         chainName,
-        token1.address,
+        token1,
         fee,
         gasLimit,
         expiry,
@@ -122,7 +122,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
 
       const quoteInput: IBridgeFeeQuote.QuoteInputStruct = {
         chainName: chainName,
-        token: token1.address,
+        tokenName: token1,
         oracle: oracle.address,
         quoteIndex: 0,
         fee: fee,
@@ -142,7 +142,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
 
       const input = await newBridgeFeeQuote(
         chainName,
-        token1.address,
+        token1,
         fee,
         gasLimit,
         expiry,
@@ -151,7 +151,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
       );
       const input2 = await newBridgeFeeQuote(
         chainName,
-        token2.address,
+        token2,
         fee,
         gasLimit,
         expiry,
@@ -173,16 +173,16 @@ describe("BridgeFeeQuoteUpgradeable", function () {
       const gasLimit = 0;
       const expiry = (await currentTime()) + 3600;
       const singers = await ethers.getSigners();
-      let tokens: AddressLike[] = [];
+      let tokens: string[] = [];
       for (let i = 0; i < number; i++) {
-        tokens.push(singers[i + 10].address);
+        tokens.push("test" + i.toString());
       }
-      await bridgeFeeQuote.registerToken(chainName, tokens);
+      await bridgeFeeQuote.registerTokenName(chainName, tokens);
       let quoteList: IBridgeFeeQuote.QuoteInputStruct[] = [];
       for (let i = 0; i < number; i++) {
         const input = await newBridgeFeeQuote(
           chainName,
-          singers[i + 10].address,
+          "test" + i.toString(),
           fee,
           gasLimit,
           expiry,
@@ -207,7 +207,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
       await bridgeFeeQuote.quote([
         {
           chainName: chainName,
-          token: token1.address,
+          tokenName: token1,
           oracle: oracle.address,
           quoteIndex: 0,
           fee: fee,
@@ -215,7 +215,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
           expiry: expiry,
           signature: await generateSignature(
             chainName,
-            token1.address,
+            token1,
             fee,
             gasLimit,
             expiry,
@@ -224,10 +224,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         },
       ]);
 
-      const quotes = await bridgeFeeQuote.getQuoteByToken(
-        chainName,
-        token1.address
-      );
+      const quotes = await bridgeFeeQuote.getQuoteByToken(chainName, token1);
       expect(quotes.length).to.equal(3);
 
       for (let i = 0; i < 3; i++) {
@@ -251,7 +248,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
       for (let i = 0; i < 3; i++) {
         const input = await newBridgeFeeQuote(
           chainName,
-          token1.address,
+          token1,
           fee,
           gasLimit,
           expiry,
@@ -269,7 +266,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
 
 async function generateSignature(
   chainName: string,
-  token: string,
+  tokenName: string,
   fee: number,
   gasLimit: number,
   expiry: number,
@@ -277,8 +274,8 @@ async function generateSignature(
 ): Promise<string> {
   const abiCoder = new ethers.AbiCoder();
   const coderHash = abiCoder.encode(
-    ["string", "address", "uint256", "uint256", "uint256"],
-    [chainName, token, fee, gasLimit, expiry]
+    ["string", "string", "uint256", "uint256", "uint256"],
+    [chainName, tokenName, fee, gasLimit, expiry]
   );
   const hash = ethers.keccak256(coderHash);
   const messageHash = ethers.solidityPackedKeccak256(
@@ -296,7 +293,7 @@ async function generateSignature(
 
 async function newBridgeFeeQuote(
   chainName: string,
-  token: string,
+  tokenName: string,
   fee: number,
   gasLimit: number,
   expiry: number,
@@ -305,7 +302,7 @@ async function newBridgeFeeQuote(
 ): Promise<IBridgeFeeQuote.QuoteInputStruct> {
   const signature = await generateSignature(
     chainName,
-    token,
+    tokenName,
     fee,
     gasLimit,
     expiry,
@@ -313,7 +310,7 @@ async function newBridgeFeeQuote(
   );
   return {
     chainName: chainName,
-    token: token,
+    tokenName: tokenName,
     oracle: oracle.address,
     quoteIndex: index,
     fee: fee,

@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 interface IBridgeFeeQuote {
     struct QuoteInput {
         string chainName;
-        address token;
+        string tokenName;
         address oracle;
         uint256 quoteIndex;
         uint256 fee;
@@ -17,7 +17,7 @@ interface IBridgeFeeQuote {
     struct QuoteInfo {
         uint256 id;
         string chainName;
-        address token;
+        string tokenName;
         address oracle;
         uint256 fee;
         uint256 gasLimit;
@@ -34,12 +34,12 @@ interface IBridgeFeeQuote {
 
     function getQuoteByToken(
         string memory _chainName,
-        address _token
+        string memory _tokenName
     ) external view returns (QuoteInfo[] memory quotes);
 
     function getQuote(
         string memory _chainName,
-        address _token,
+        string memory _tokenName,
         address _oracle,
         uint256 _index
     ) external view returns (QuoteInfo memory);
