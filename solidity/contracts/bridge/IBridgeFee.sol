@@ -3,6 +3,11 @@
 pragma solidity ^0.8.0;
 
 interface IBridgeFeeQuote {
+    struct Asset {
+        bool isActive;
+        string[] tokenNames;
+    }
+
     struct QuoteInput {
         string chainName;
         string tokenName;
@@ -43,6 +48,12 @@ interface IBridgeFeeQuote {
         address _oracle,
         uint256 _index
     ) external view returns (QuoteInfo memory);
+
+    function supportChainNames() external view returns (string[] memory);
+
+    function supportAssets(
+        string memory _chainName
+    ) external view returns (Asset memory);
 }
 
 interface IBridgeFeeOracle {
