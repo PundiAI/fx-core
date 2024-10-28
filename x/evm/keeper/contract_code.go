@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"math/big"
 
@@ -79,7 +80,7 @@ func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.AB
 		return common.Address{}, err
 	}
 
-	_, err = k.CallEVMWithoutGas(ctx, from, nil, nil, data, true)
+	_, err = k.callEvm(ctx, from, nil, nil, nonce, data, true)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -110,12 +111,12 @@ func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Ad
 }
 
 // QueryContract query contract with args and res
-func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error {
+func (k *Keeper) QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error {
 	data, err := abi.Pack(method, args...)
 	if err != nil {
 		return types.ErrABIPack.Wrap(err.Error())
 	}
-	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, nil, data, false)
+	resp, err := k.callEvm(sdk.UnwrapSDKContext(ctx), from, &contract, nil, 0, data, false)
 	if err != nil {
 		return err
 	}
@@ -126,12 +127,16 @@ func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, a
 }
 
 // ApplyContract apply contract with args
-func (k *Keeper) ApplyContract(ctx sdk.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
+func (k *Keeper) ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
 	args, err := abi.Pack(method, constructorData...)
 	if err != nil {
 		return nil, types.ErrABIPack.Wrap(err.Error())
 	}
-	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, value, args, true)
+	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	resp, err := k.callEvm(sdk.UnwrapSDKContext(ctx), from, &contract, value, nonce, args, true)
 	if err != nil {
 		return nil, err
 	}

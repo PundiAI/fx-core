@@ -105,7 +105,7 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 	}
 
 	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
-	txResp, err := k.evmKeeper.CallEVM(ctx, callEvmSender, &to, value.BigInt(), gasLimit, args, true)
+	txResp, err := k.evmKeeper.ExecuteEVM(ctx, callEvmSender, &to, value.BigInt(), gasLimit, args)
 	if err != nil {
 		return err
 	}

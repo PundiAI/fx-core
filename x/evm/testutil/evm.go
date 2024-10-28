@@ -80,7 +80,7 @@ func (s *EVMSuite) Call(abi abi.ABI, method string, res interface{}, args ...int
 }
 
 func (s *EVMSuite) CallEVM(data []byte, gasLimit uint64) *evmtypes.MsgEthereumTxResponse {
-	tx, err := s.evmKeeper.CallEVM(s.ctx, s.GetFrom(), &s.contractAddr, nil, gasLimit, data, false)
+	tx, err := s.evmKeeper.ExecuteEVM(s.ctx, s.GetFrom(), &s.contractAddr, nil, gasLimit, data)
 	s.NoError(err)
 	return tx
 }

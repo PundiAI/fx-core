@@ -9,7 +9,7 @@ import (
 )
 
 type EvmKeeper interface {
-	CallEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
+	ExecuteEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*evmtypes.MsgEthereumTxResponse, error)
 }
 
 type CrosschainKeeper interface {
