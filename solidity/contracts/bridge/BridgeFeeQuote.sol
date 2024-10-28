@@ -32,11 +32,6 @@ contract BridgeFeeQuote is
     using ECDSAUpgradeable for bytes32;
     using StringsUpgradeable for string;
 
-    struct Asset {
-        bool isActive;
-        string[] tokenNames;
-    }
-
     struct Quote {
         uint256 id;
         uint256 fee;
@@ -273,6 +268,16 @@ contract BridgeFeeQuote is
                 gasLimit: quotes[asset].gasLimit,
                 expiry: quotes[asset].expiry
             });
+    }
+
+    function supportChainNames() external view returns (string[] memory) {
+        return chainNames;
+    }
+
+    function supportAssets(
+        string memory _chainName
+    ) external view returns (Asset memory) {
+        return assets[_chainName];
     }
 
     function verifyInput(QuoteInput memory _input) private {
