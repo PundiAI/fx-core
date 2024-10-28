@@ -64,7 +64,7 @@ type Erc20Keeper interface {
 
 // EVMKeeper defines the expected EVM keeper interface used on crosschain
 type EVMKeeper interface {
-	CallEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types.MsgEthereumTxResponse, error)
+	ExecuteEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*types.MsgEthereumTxResponse, error)
 	IsContract(ctx sdk.Context, account common.Address) bool
 }
 

@@ -43,7 +43,7 @@ func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
 	}
 }
 
-// CallEVMWithoutGas performs a smart contract method call using contract data without gas
+// Deprecated: please use callEvm todo: remove this
 func (k *Keeper) CallEVMWithoutGas(
 	ctx sdk.Context,
 	from common.Address,
@@ -52,13 +52,24 @@ func (k *Keeper) CallEVMWithoutGas(
 	data []byte,
 	commit bool,
 ) (*types.MsgEthereumTxResponse, error) {
-	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
-
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
 		return nil, err
 	}
+	return k.callEvm(ctx, from, contract, value, nonce, data, commit)
+}
+
+func (k *Keeper) callEvm(
+	ctx sdk.Context,
+	from common.Address,
+	contract *common.Address,
+	value *big.Int,
+	nonce uint64,
+	data []byte,
+	commit bool,
+) (*types.MsgEthereumTxResponse, error) {
+	gasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	gasLimit := fxcontract.DefaultGasCap
 	params := ctx.ConsensusParams()
@@ -103,14 +114,13 @@ func (k *Keeper) CallEVMWithoutGas(
 	return res, nil
 }
 
-func (k *Keeper) CallEVM(
+func (k *Keeper) ExecuteEVM(
 	ctx sdk.Context,
 	from common.Address,
 	contract *common.Address,
 	value *big.Int,
 	gasLimit uint64,
 	data []byte,
-	commit bool,
 ) (*types.MsgEthereumTxResponse, error) {
 	gasMeter := ctx.GasMeter()
 	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
@@ -118,10 +128,6 @@ func (k *Keeper) CallEVM(
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
 		return nil, err
-	}
-	params := ctx.ConsensusParams()
-	if params.Block != nil && params.Block.MaxGas > 0 {
-		gasLimit = uint64(params.Block.MaxGas)
 	}
 
 	if value == nil {
@@ -141,7 +147,7 @@ func (k *Keeper) CallEVM(
 		SkipAccountChecks: false,
 	}
 
-	res, err := k.ApplyMessage(ctx, msg, types.NewNoOpTracer(), commit)
+	res, err := k.ApplyMessage(ctx, msg, types.NewNoOpTracer(), true)
 	if err != nil {
 		return nil, err
 	}

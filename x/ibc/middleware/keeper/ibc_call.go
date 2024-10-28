@@ -45,8 +45,8 @@ func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPac
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeIBCCall, attrs...))
 	}()
-	txResp, err := k.evmKeeper.CallEVM(ctx, sender,
-		evmPacket.GetToAddress(), evmPacket.Value.BigInt(), uint64(limit), evmPacket.MustGetData(), true)
+	txResp, err := k.evmKeeper.ExecuteEVM(ctx, sender,
+		evmPacket.GetToAddress(), evmPacket.Value.BigInt(), uint64(limit), evmPacket.MustGetData())
 	if err != nil {
 		evmErrCause = err.Error()
 		return err

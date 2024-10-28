@@ -530,19 +530,19 @@ func (m *MockEVMKeeper) EXPECT() *MockEVMKeeperMockRecorder {
 	return m.recorder
 }
 
-// CallEVM mocks base method.
-func (m *MockEVMKeeper) CallEVM(ctx types.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte, commit bool) (*types3.MsgEthereumTxResponse, error) {
+// ExecuteEVM mocks base method.
+func (m *MockEVMKeeper) ExecuteEVM(ctx types.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*types3.MsgEthereumTxResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CallEVM", ctx, from, contract, value, gasLimit, data, commit)
+	ret := m.ctrl.Call(m, "ExecuteEVM", ctx, from, contract, value, gasLimit, data)
 	ret0, _ := ret[0].(*types3.MsgEthereumTxResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CallEVM indicates an expected call of CallEVM.
-func (mr *MockEVMKeeperMockRecorder) CallEVM(ctx, from, contract, value, gasLimit, data, commit any) *gomock.Call {
+// ExecuteEVM indicates an expected call of ExecuteEVM.
+func (mr *MockEVMKeeperMockRecorder) ExecuteEVM(ctx, from, contract, value, gasLimit, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallEVM", reflect.TypeOf((*MockEVMKeeper)(nil).CallEVM), ctx, from, contract, value, gasLimit, data, commit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteEVM", reflect.TypeOf((*MockEVMKeeper)(nil).ExecuteEVM), ctx, from, contract, value, gasLimit, data)
 }
 
 // IsContract mocks base method.
