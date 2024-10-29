@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/big"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
@@ -80,23 +79,12 @@ func (k ERC20TokenKeeper) Allowance(ctx context.Context, contractAddr, owner, sp
 	return allowanceRes.Value, nil
 }
 
-func (k ERC20TokenKeeper) unpackRet(method string, res *types.MsgEthereumTxResponse) (*types.MsgEthereumTxResponse, error) {
-	var result struct{ Value bool }
-	if err := k.abi.UnpackIntoInterface(&result, method, res.Ret); err != nil {
-		return res, sdkerrors.ErrInvalidType.Wrapf("failed to unpack transfer: %s", err.Error())
-	}
-	if !result.Value {
-		return res, sdkerrors.ErrLogic.Wrapf("failed to execute %s", method)
-	}
-	return res, nil
-}
-
 func (k ERC20TokenKeeper) Approve(ctx context.Context, contractAddr, from, spender common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
 	res, err := k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "approve", spender, amount)
 	if err != nil {
 		return nil, err
 	}
-	return k.unpackRet("approve", res)
+	return unpackRetIsOk(k.abi, "approve", res)
 }
 
 // PackMint only used for testing
@@ -117,7 +105,7 @@ func (k ERC20TokenKeeper) Transfer(ctx context.Context, contractAddr, from, rece
 	if err != nil {
 		return nil, err
 	}
-	return k.unpackRet("transfer", res)
+	return unpackRetIsOk(k.abi, "transfer", res)
 }
 
 func (k ERC20TokenKeeper) TransferFrom(ctx context.Context, contractAddr, from, sender, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
@@ -125,7 +113,7 @@ func (k ERC20TokenKeeper) TransferFrom(ctx context.Context, contractAddr, from, 
 	if err != nil {
 		return nil, err
 	}
-	return k.unpackRet("transferFrom", res)
+	return unpackRetIsOk(k.abi, "transferFrom", res)
 }
 
 func (k ERC20TokenKeeper) TransferOwnership(ctx context.Context, contractAddr, owner, newOwner common.Address) (*types.MsgEthereumTxResponse, error) {

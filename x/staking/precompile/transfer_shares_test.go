@@ -12,14 +12,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
+	fxstakingtypes "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func TestStakingTransferSharesABI(t *testing.T) {
@@ -35,7 +36,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
-		malleate    func(val sdk.ValAddress, contract, to common.Address, shares *big.Int) ([]byte, *big.Int, []string)
+		malleate    func(val sdk.ValAddress, to common.Address, shares *big.Int) (fxstakingtypes.TransferSharesArgs, *big.Int, []string)
 		suftransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
 		error       func(errArgs []string) string
 		result      bool
@@ -279,8 +280,8 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			val := suite.GetFirstValidator()
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(10000) + 1000)).Mul(sdkmath.NewInt(1e18))
-			fromSigner := suite.RandSigner()
-			toSigner := suite.RandSigner()
+			fromSigner := suite.NewSigner()
+			toSigner := suite.NewSigner()
 
 			contract := suite.stakingAddr
 			delAddr := fromSigner.Address()
@@ -324,8 +325,9 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 			})
 			suite.Require().NoError(err)
 
-			pack, shares, _ := tc.malleate(operator, contract, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
-			res := suite.EthereumTx(fromSigner, contract, big.NewInt(0), pack)
+			args, shares, _ := tc.malleate(operator, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
+			suite.WithContract(contract).WithSigner(fromSigner)
+			res, _ := suite.TransferShares(suite.Ctx, args)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
@@ -350,13 +352,14 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 				}
 
 				fromBalance = suite.App.BankKeeper.GetBalance(suite.Ctx, fromWithdrawAddr.Bytes(), fxtypes.DefaultDenom)
-				suite.Equal(fromBeforeRewards.Rewards.String(), sdk.NewDecCoinFromCoin(fromBalance).String())
+				suite.Require().Equal(fromBeforeRewards.Rewards.String(), sdk.NewDecCoinFromCoin(fromBalance).String())
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == suite.transferSharesMethod.Event.ID.String() {
+					abi := precompile.NewTransferSharesABI()
+					if log.Topics[0] == abi.Event.ID.String() {
 						suite.Require().Len(log.Topics, 3)
-						event, err := suite.transferSharesMethod.UnpackEvent(log.ToEthereum())
+						event, err := abi.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)
 						suite.Require().Equal(event.To, toSigner.Address())
@@ -373,25 +376,23 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 	}
 }
 
-func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, to common.Address, shares *big.Int) (fxstakingtypes.TransferSharesArgs, *big.Int, []string) {
 	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
-	pack, err := suite.transferSharesMethod.PackInput(fxstakingtypes.TransferSharesArgs{
+	args := fxstakingtypes.TransferSharesArgs{
 		Validator: val.String(),
 		To:        to,
 		Shares:    randShares,
-	})
-	suite.Require().NoError(err)
-	return pack, randShares, nil
+	}
+	return args, randShares, nil
 }
 
-func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, contractAddr, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
-	pack, err := suite.transferSharesMethod.PackInput(fxstakingtypes.TransferSharesArgs{
+func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, to common.Address, shares *big.Int) (fxstakingtypes.TransferSharesArgs, *big.Int, []string) {
+	args := fxstakingtypes.TransferSharesArgs{
 		Validator: val.String(),
 		To:        to,
 		Shares:    shares,
-	})
-	suite.Require().NoError(err)
-	return pack, shares, nil
+	}
+	return args, shares, nil
 }
 
 func TestStakingTransferFromSharesABI(t *testing.T) {
@@ -405,7 +406,7 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
-		malleate    func(val sdk.ValAddress, spedner, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string)
+		malleate    func(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxstakingtypes.TransferFromSharesArgs, *big.Int, []string)
 		suftransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
 		error       func(errArgs []string) string
 		result      bool
@@ -649,9 +650,9 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			val := suite.GetFirstValidator()
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(10000) + 1000)).Mul(sdkmath.NewInt(1e18))
-			fromSigner := suite.RandSigner()
-			toSigner := suite.RandSigner()
-			sender := suite.RandSigner()
+			fromSigner := suite.NewSigner()
+			toSigner := suite.NewSigner()
+			sender := suite.NewSigner()
 
 			// from delegate, approve sender, sender send tx, transferFrom to toSigner
 			// from delegate, approve contract, sender call contract, transferFrom to toSigner
@@ -709,9 +710,11 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			}
 
 			// NOTE: if contract test, spender is staking test contract
-			pack, shares, _ := tc.malleate(operator, spender, delAddr, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
+			args, shares, _ := tc.malleate(operator, spender, delAddr, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
 
-			res := suite.EthereumTx(sender, contract, big.NewInt(0), pack)
+			suite.WithContract(contract)
+			suite.WithSigner(sender)
+			res, _ := suite.TransferFromShares(suite.Ctx, args)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
@@ -745,9 +748,10 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == suite.transferFromSharesMethod.Event.ID.String() {
+					abi := precompile.NewTransferFromSharesABI()
+					if log.Topics[0] == abi.Event.ID.String() {
 						suite.Require().Len(log.Topics, 3)
-						event, err := suite.transferFromSharesMethod.UnpackEvent(log.ToEthereum())
+						event, err := abi.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)
 						suite.Require().Equal(event.To, toSigner.Address())
@@ -764,38 +768,33 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 	}
 }
 
-func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxstakingtypes.TransferFromSharesArgs, *big.Int, []string) {
 	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
 	suite.approveFunc(val, from, spender, randShares)
-	pack, err := suite.transferFromSharesMethod.PackInput(fxstakingtypes.TransferFromSharesArgs{
+	return fxstakingtypes.TransferFromSharesArgs{
 		Validator: val.String(),
 		From:      from,
 		To:        to,
 		Shares:    randShares,
-	})
-	suite.Require().NoError(err)
-	return pack, randShares, nil
+	}, randShares, nil
 }
 
-func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxstakingtypes.TransferFromSharesArgs, *big.Int, []string) {
 	suite.approveFunc(val, from, spender, shares)
-	pack, err := suite.transferFromSharesMethod.PackInput(fxstakingtypes.TransferFromSharesArgs{
+	return fxstakingtypes.TransferFromSharesArgs{
 		Validator: val.String(),
 		From:      from,
 		To:        to,
 		Shares:    shares,
-	})
-
-	suite.Require().NoError(err)
-	return pack, shares, nil
+	}, shares, nil
 }
 
 func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	val := suite.GetFirstValidator()
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
-	signer1 := suite.RandSigner()
-	signer2 := suite.RandSigner()
-	signer3 := suite.RandSigner()
+	signer1 := suite.NewSigner()
+	signer2 := suite.NewSigner()
+	signer3 := suite.NewSigner()
 
 	suite.MintToken(signer1.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 
@@ -986,9 +985,9 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
 	val := suite.GetFirstValidator()
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
-	signer1 := suite.RandSigner()
-	signer2 := suite.RandSigner()
-	signer3 := suite.RandSigner()
+	signer1 := suite.NewSigner()
+	signer2 := suite.NewSigner()
+	signer3 := suite.NewSigner()
 
 	operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 	suite.Require().NoError(err)
@@ -1073,8 +1072,8 @@ func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
 	val := vals[0]
 	valTmp := vals[1]
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
-	signer1 := suite.RandSigner()
-	signer2 := suite.RandSigner()
+	signer1 := suite.NewSigner()
+	signer2 := suite.NewSigner()
 
 	operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 	suite.Require().NoError(err)
@@ -1090,7 +1089,8 @@ func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
 	suite.Require().NoError(err)
 
 	// redelegate
-	suite.Redelegate(operatorTmp, operator, signer1.AccAddress(), delegationTmp.Shares)
+	_, err = suite.App.StakingKeeper.BeginRedelegation(suite.Ctx, signer1.AccAddress(), operatorTmp, operator, delegationTmp.Shares)
+	suite.Require().NoError(err)
 	suite.Commit()
 
 	delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, signer1.AccAddress(), operator)
@@ -1098,13 +1098,159 @@ func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
 	suite.Require().Equal(delegationTmp.Shares, delegation.Shares)
 
 	// transfer shares
-	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
-	pack, err := transferSharesMethod.PackInput(fxstakingtypes.TransferSharesArgs{
-		Validator: val.GetOperator(),
-		To:        signer2.Address(),
-		Shares:    delegation.Shares.TruncateInt().BigInt(),
+	suite.WithSigner(signer1).WithContract(suite.stakingAddr)
+	_, _ = suite.WithError(errors.New("from has receiving redelegation")).
+		TransferShares(suite.Ctx, fxstakingtypes.TransferSharesArgs{
+			Validator: val.GetOperator(),
+			To:        signer2.Address(),
+			Shares:    delegation.Shares.TruncateInt().BigInt(),
+		})
+}
+
+func (suite *PrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ common.Address, delAmount sdkmath.Int) {
+	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
+	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
 	})
 	suite.Require().NoError(err)
-	res := suite.EthereumTx(signer1, suite.stakingAddr, big.NewInt(0), pack)
-	suite.Error(res, errors.New("from has receiving redelegation"))
+}
+
+func (suite *PrecompileTestSuite) undelegateToFunc(val sdk.ValAddress, _, to common.Address, _ sdkmath.Int) {
+	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
+	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
+	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+
+	suite.MintToken(to.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
+	suite.MintToken(to.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
+	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+
+	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) undelegateFromToFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
+	fromDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, from.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, from.Bytes(), val, fromDel.Shares)
+	suite.Require().NoError(err)
+
+	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
+	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
+	suite.Require().NoError(err)
+
+	fromDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, from.Bytes(), val)
+	suite.Require().NoError(err)
+	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, from.Bytes(), val, fromDel.Shares)
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) approveFunc(val sdk.ValAddress, owner, spender common.Address, allowance *big.Int) {
+	suite.App.StakingKeeper.SetAllowance(suite.Ctx, val, owner.Bytes(), spender.Bytes(), allowance)
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingDelegation(val sdk.ValAddress, del common.Address) (*big.Int, *big.Int) {
+	return suite.Delegation(suite.Ctx, fxstakingtypes.DelegationArgs{
+		Validator: val.String(),
+		Delegator: del,
+	})
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingTransferShares(signer *helpers.Signer, val sdk.ValAddress, receipt common.Address, shares *big.Int) (*big.Int, *big.Int) {
+	balanceBefore := suite.GetStakingBalance(signer.AccAddress())
+	suite.WithSigner(signer)
+	res, _ := suite.TransferShares(suite.Ctx, fxstakingtypes.TransferSharesArgs{
+		Validator: val.String(),
+		To:        receipt,
+		Shares:    shares,
+	})
+	suite.Require().False(res.Failed(), res.VmError)
+
+	signerShares, _ := suite.PrecompileStakingDelegation(val, signer.Address())
+
+	balanceAfter := suite.GetStakingBalance(signer.AccAddress())
+	rewards := balanceAfter.Sub(balanceBefore)
+	return signerShares, rewards.BigInt()
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
+	balanceBefore := suite.GetStakingBalance(signer.AccAddress())
+	suite.WithSigner(signer)
+	res := suite.UndelegateV2(suite.Ctx, fxstakingtypes.UndelegateV2Args{
+		Validator: val.String(),
+		Amount:    shares,
+	})
+	suite.Require().False(res.Failed(), res.VmError)
+
+	balanceAfter := suite.GetStakingBalance(signer.AccAddress())
+	rewards := balanceAfter.Sub(balanceBefore)
+	return rewards.BigInt()
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingApproveShares(signer *helpers.Signer, val sdk.ValAddress, spender common.Address, shares *big.Int) {
+	suite.WithSigner(signer)
+	suite.ApproveShares(suite.Ctx, fxstakingtypes.ApproveSharesArgs{
+		Validator: val.String(),
+		Spender:   spender,
+		Shares:    shares,
+	})
+}
+
+func (suite *PrecompileTestSuite) PrecompileStakingTransferFromShares(signer *helpers.Signer, val sdk.ValAddress, from, receipt common.Address, shares *big.Int) {
+	suite.WithSigner(signer)
+	suite.TransferFromShares(suite.Ctx, fxstakingtypes.TransferFromSharesArgs{
+		Validator: val.String(),
+		From:      from,
+		To:        receipt,
+		Shares:    shares,
+	})
+}
+
+func (suite *PrecompileTestSuite) Delegate(val sdk.ValAddress, amount sdkmath.Int, dels ...sdk.AccAddress) {
+	for _, del := range dels {
+		suite.MintToken(del, sdk.NewCoin(fxtypes.DefaultDenom, amount))
+		validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
+		suite.Require().NoError(err)
+		_, err = suite.App.StakingKeeper.Delegate(suite.Ctx, del, amount, stakingtypes.Unbonded, validator, true)
+		suite.Require().NoError(err)
+	}
 }

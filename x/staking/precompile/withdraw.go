@@ -13,7 +13,6 @@ import (
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type WithdrawMethod struct {
@@ -94,7 +93,7 @@ func (m WithdrawABI) NewWithdrawEvent(sender common.Address, validator string, r
 	return data, topic, nil
 }
 
-func (m WithdrawABI) PackInput(args fxstakingtypes.WithdrawArgs) ([]byte, error) {
+func (m WithdrawABI) PackInput(args fxcontract.WithdrawArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator)
 	if err != nil {
 		return nil, err
@@ -102,8 +101,8 @@ func (m WithdrawABI) PackInput(args fxstakingtypes.WithdrawArgs) ([]byte, error)
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m WithdrawABI) UnpackInput(data []byte) (*fxstakingtypes.WithdrawArgs, error) {
-	args := new(fxstakingtypes.WithdrawArgs)
+func (m WithdrawABI) UnpackInput(data []byte) (*fxcontract.WithdrawArgs, error) {
+	args := new(fxcontract.WithdrawArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }

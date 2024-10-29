@@ -2,16 +2,15 @@ package precompile_test
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
-	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func TestSlashingInfoABI(t *testing.T) {
@@ -22,16 +21,15 @@ func TestSlashingInfoABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestSlashingInfo() {
-	slashingInfoMethod := precompile.NewSlashingInfoMethod(nil)
 	testCases := []struct {
 		name     string
-		malleate func(val sdk.ValAddress) (types.SlashingInfoArgs, error)
+		malleate func(val sdk.ValAddress) (contract.SlashingInfoArgs, error)
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func(val sdk.ValAddress) (types.SlashingInfoArgs, error) {
-				return types.SlashingInfoArgs{
+			malleate: func(val sdk.ValAddress) (contract.SlashingInfoArgs, error) {
+				return contract.SlashingInfoArgs{
 					Validator: val.String(),
 				}, nil
 			},
@@ -39,9 +37,9 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 		},
 		{
 			name: "failed - invalid validator address",
-			malleate: func(val sdk.ValAddress) (types.SlashingInfoArgs, error) {
+			malleate: func(val sdk.ValAddress) (contract.SlashingInfoArgs, error) {
 				valStr := val.String() + "1"
-				return types.SlashingInfoArgs{
+				return contract.SlashingInfoArgs{
 					Validator: valStr,
 				}, fmt.Errorf("invalid validator address: %s", valStr)
 			},
@@ -50,8 +48,8 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 
 		{
 			name: "contract - ok",
-			malleate: func(val sdk.ValAddress) (types.SlashingInfoArgs, error) {
-				return types.SlashingInfoArgs{
+			malleate: func(val sdk.ValAddress) (contract.SlashingInfoArgs, error) {
+				return contract.SlashingInfoArgs{
 					Validator: val.String(),
 				}, nil
 			},
@@ -59,9 +57,9 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 		},
 		{
 			name: "contract - failed - invalid validator address",
-			malleate: func(val sdk.ValAddress) (types.SlashingInfoArgs, error) {
+			malleate: func(val sdk.ValAddress) (contract.SlashingInfoArgs, error) {
 				valStr := val.String() + "1"
-				return types.SlashingInfoArgs{
+				return contract.SlashingInfoArgs{
 					Validator: valStr,
 				}, fmt.Errorf("invalid validator address: %s", valStr)
 			},
@@ -71,43 +69,30 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			val := suite.GetFirstValidator()
-			owner := suite.RandSigner()
-			spender := suite.RandSigner()
+			operator := suite.GetFirstValAddr()
+			spender := suite.NewSigner()
 			allowanceAmt := helpers.NewRandAmount()
 
-			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
-			suite.Require().NoError(err)
+			suite.SetAllowance(operator, suite.signer.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
-			// set allowance
-			suite.App.StakingKeeper.SetAllowance(suite.Ctx, operator, owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
+			args, expectErr := tc.malleate(operator)
 
-			args, errResult := tc.malleate(operator)
-
-			packData, err := slashingInfoMethod.PackInput(args)
-			suite.Require().NoError(err)
-			stakingContract := suite.stakingAddr
-
+			suite.WithContract(suite.stakingAddr)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.stakingTestAddr
+				suite.WithContract(suite.stakingTestAddr)
 			}
 
-			res := suite.EthereumTx(owner, stakingContract, big.NewInt(0), packData)
+			jailed, missed := suite.WithError(expectErr).SlashingInfo(suite.Ctx, args)
 
 			if tc.result {
-				suite.Require().False(res.Failed(), res.VmError)
-				jailed, missed, err := slashingInfoMethod.UnpackOutput(res.Ret)
-				suite.Require().NoError(err)
 				validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, operator)
 				suite.Require().NoError(err)
-				suite.Equal(validator.Jailed, jailed)
+				suite.Require().Equal(validator.Jailed, jailed)
 				consAddr, err := validator.GetConsAddr()
 				suite.Require().NoError(err)
 				signingInfo, err := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
 				suite.Require().NoError(err)
-				suite.Equal(signingInfo.MissedBlocksCounter, missed.Int64())
-			} else {
-				suite.Error(res, errResult)
+				suite.Require().Equal(signingInfo.MissedBlocksCounter, missed.Int64())
 			}
 		})
 	}

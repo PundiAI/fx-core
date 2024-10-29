@@ -2,7 +2,6 @@ package precompile_test
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 	"testing"
 
@@ -12,10 +11,10 @@ import (
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
-	"github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 func TestStakingWithdrawABI(t *testing.T) {
@@ -30,14 +29,14 @@ func TestStakingWithdrawABI(t *testing.T) {
 func (suite *PrecompileTestSuite) TestWithdraw() {
 	testCases := []struct {
 		name     string
-		malleate func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error)
+		malleate func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error)
 		error    func(errArgs []string) string
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
-				return types.WithdrawArgs{
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
+				return contract.WithdrawArgs{
 					Validator: val.String(),
 				}, nil
 			},
@@ -45,9 +44,9 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "failed invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
 				newVal := val.String() + "1"
-				return types.WithdrawArgs{
+				return contract.WithdrawArgs{
 					Validator: newVal,
 				}, fmt.Errorf("invalid validator address: %s", newVal)
 			},
@@ -55,10 +54,10 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "failed validator not found",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
 
-				return types.WithdrawArgs{
+				return contract.WithdrawArgs{
 					Validator: newVal,
 				}, fmt.Errorf("validator does not exist")
 			},
@@ -66,8 +65,8 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
-				return types.WithdrawArgs{
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
+				return contract.WithdrawArgs{
 					Validator: val.String(),
 				}, nil
 			},
@@ -75,9 +74,9 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "contract - failed invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
 				newVal := val.String() + "1"
-				return types.WithdrawArgs{
+				return contract.WithdrawArgs{
 					Validator: newVal,
 				}, fmt.Errorf("invalid validator address: %s", newVal)
 			},
@@ -85,10 +84,10 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		},
 		{
 			name: "contract - failed validator not found",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (types.WithdrawArgs, error) {
+			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
 
-				return types.WithdrawArgs{
+				return contract.WithdrawArgs{
 					Validator: newVal,
 				}, fmt.Errorf("validator does not exist")
 			},
@@ -98,31 +97,25 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			val := suite.GetFirstValidator()
-
+			operator := suite.GetFirstValAddr()
 			delAmt := helpers.NewRandAmount()
-			signer := suite.RandSigner()
+
+			signer := suite.NewSigner()
 			suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
 
-			stakingContract := suite.stakingAddr
+			suite.WithContract(suite.stakingAddr)
 			delAddr := signer.Address()
-			value := big.NewInt(0)
 			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.stakingTestAddr
+				suite.WithContract(suite.stakingTestAddr)
 				delAddr = suite.stakingTestAddr
-				value = delAmt.BigInt()
+				suite.MintToken(delAddr.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
 			}
 
-			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
-			suite.Require().NoError(err)
-
-			pack, err := suite.delegateV2Method.PackInput(types.DelegateV2Args{
-				Validator: val.GetOperator(),
+			suite.WithSigner(signer)
+			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
+				Validator: operator.String(),
 				Amount:    delAmt.BigInt(),
 			})
-			suite.Require().NoError(err)
-
-			res := suite.EthereumTx(signer, stakingContract, value, pack)
 			suite.Require().False(res.Failed(), res.VmError)
 
 			suite.Commit()
@@ -134,11 +127,9 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 
 			delegation := suite.GetDelegation(delAddr.Bytes(), operator)
 
-			args, errResult := tc.malleate(operator, delegation.Shares)
-			packData, err := suite.withdrawMethod.PackInput(args)
-			suite.Require().NoError(err)
-			res = suite.EthereumTx(signer, stakingContract, big.NewInt(0), packData)
+			args, expectErr := tc.malleate(operator, delegation.Shares)
 
+			res, _ = suite.WithError(expectErr).Withdraw(suite.Ctx, args)
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
 
@@ -146,20 +137,22 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(totalAfter, totalBefore)
 
-				reward, err := suite.withdrawMethod.UnpackOutput(res.Ret)
+				abi := precompile.NewWithdrawABI()
+				reward, err := abi.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
+
 				chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == suite.withdrawMethod.Event.ID.String() {
+					if log.Topics[0] == abi.Event.ID.String() {
 						suite.Require().Equal(log.Address, suite.stakingAddr.String())
 
-						event, err := suite.withdrawMethod.UnpackEvent(log.ToEthereum())
+						event, err := abi.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.Sender, delAddr)
-						suite.Require().Equal(event.Validator, val.GetOperator())
+						suite.Require().Equal(event.Validator, operator.String())
 						suite.Require().Equal(event.Reward.String(), chainBalances.AmountOf(fxtypes.DefaultDenom).BigInt().String())
 						existLog = true
 					}
@@ -171,7 +164,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 					if event.Type == distritypes.EventTypeWithdrawRewards {
 						for _, attr := range event.Attributes {
 							if attr.Key == distritypes.AttributeKeyValidator {
-								suite.Require().Equal(attr.Value, val.GetOperator())
+								suite.Require().Equal(attr.Value, operator.String())
 								existEvent = true
 							}
 							if attr.Key == sdk.AttributeKeyAmount {
@@ -186,8 +179,6 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 					}
 				}
 				suite.Require().True(existEvent)
-			} else {
-				suite.Error(res, errResult)
 			}
 		})
 	}
