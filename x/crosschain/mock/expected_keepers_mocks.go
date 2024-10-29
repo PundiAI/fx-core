@@ -754,31 +754,31 @@ func (mr *MockAccountKeeperMockRecorder) SetAccount(ctx, acc any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).SetAccount), ctx, acc)
 }
 
-// MockBrideFeeQuoteKeeper is a mock of BrideFeeQuoteKeeper interface.
-type MockBrideFeeQuoteKeeper struct {
+// MockBridgeFeeQuoteKeeper is a mock of BridgeFeeQuoteKeeper interface.
+type MockBridgeFeeQuoteKeeper struct {
 	ctrl     *gomock.Controller
-	recorder *MockBrideFeeQuoteKeeperMockRecorder
+	recorder *MockBridgeFeeQuoteKeeperMockRecorder
 }
 
-// MockBrideFeeQuoteKeeperMockRecorder is the mock recorder for MockBrideFeeQuoteKeeper.
-type MockBrideFeeQuoteKeeperMockRecorder struct {
-	mock *MockBrideFeeQuoteKeeper
+// MockBridgeFeeQuoteKeeperMockRecorder is the mock recorder for MockBridgeFeeQuoteKeeper.
+type MockBridgeFeeQuoteKeeperMockRecorder struct {
+	mock *MockBridgeFeeQuoteKeeper
 }
 
-// NewMockBrideFeeQuoteKeeper creates a new mock instance.
-func NewMockBrideFeeQuoteKeeper(ctrl *gomock.Controller) *MockBrideFeeQuoteKeeper {
-	mock := &MockBrideFeeQuoteKeeper{ctrl: ctrl}
-	mock.recorder = &MockBrideFeeQuoteKeeperMockRecorder{mock}
+// NewMockBridgeFeeQuoteKeeper creates a new mock instance.
+func NewMockBridgeFeeQuoteKeeper(ctrl *gomock.Controller) *MockBridgeFeeQuoteKeeper {
+	mock := &MockBridgeFeeQuoteKeeper{ctrl: ctrl}
+	mock.recorder = &MockBridgeFeeQuoteKeeperMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockBrideFeeQuoteKeeper) EXPECT() *MockBrideFeeQuoteKeeperMockRecorder {
+func (m *MockBridgeFeeQuoteKeeper) EXPECT() *MockBridgeFeeQuoteKeeperMockRecorder {
 	return m.recorder
 }
 
 // GetQuotesByToken mocks base method.
-func (m *MockBrideFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error) {
+func (m *MockBridgeFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetQuotesByToken", ctx, chainName, denom)
 	ret0, _ := ret[0].([]contract.IBridgeFeeQuoteQuoteInfo)
@@ -787,7 +787,7 @@ func (m *MockBrideFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainNam
 }
 
 // GetQuotesByToken indicates an expected call of GetQuotesByToken.
-func (mr *MockBrideFeeQuoteKeeperMockRecorder) GetQuotesByToken(ctx, chainName, denom any) *gomock.Call {
+func (mr *MockBridgeFeeQuoteKeeperMockRecorder) GetQuotesByToken(ctx, chainName, denom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuotesByToken", reflect.TypeOf((*MockBrideFeeQuoteKeeper)(nil).GetQuotesByToken), ctx, chainName, denom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuotesByToken", reflect.TypeOf((*MockBridgeFeeQuoteKeeper)(nil).GetQuotesByToken), ctx, chainName, denom)
 }
