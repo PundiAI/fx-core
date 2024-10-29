@@ -37,7 +37,7 @@ interface IBridgeFeeQuote {
 
     function getQuoteById(uint256 _id) external view returns (QuoteInfo memory);
 
-    function getQuoteByToken(
+    function getQuotesByToken(
         string memory _chainName,
         string memory _tokenName
     ) external view returns (QuoteInfo[] memory quotes);

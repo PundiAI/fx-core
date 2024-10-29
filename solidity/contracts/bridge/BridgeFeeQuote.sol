@@ -201,7 +201,7 @@ contract BridgeFeeQuote is
      * @param _tokenName The address of the token.
      * @return QuoteInfo[] The quote list.
      */
-    function getQuoteByToken(
+    function getQuotesByToken(
         string memory _chainName,
         string memory _tokenName
     ) external view returns (QuoteInfo[] memory) {

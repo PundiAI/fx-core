@@ -22,6 +22,7 @@ import (
 	types2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
 	types3 "github.com/evmos/ethermint/x/evm/types"
+	contract "github.com/functionx/fx-core/v8/contract"
 	types4 "github.com/functionx/fx-core/v8/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -751,4 +752,42 @@ func (m *MockAccountKeeper) SetAccount(ctx context.Context, acc types.AccountI) 
 func (mr *MockAccountKeeperMockRecorder) SetAccount(ctx, acc any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).SetAccount), ctx, acc)
+}
+
+// MockBridgeFeeQuoteKeeper is a mock of BridgeFeeQuoteKeeper interface.
+type MockBridgeFeeQuoteKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockBridgeFeeQuoteKeeperMockRecorder
+}
+
+// MockBridgeFeeQuoteKeeperMockRecorder is the mock recorder for MockBridgeFeeQuoteKeeper.
+type MockBridgeFeeQuoteKeeperMockRecorder struct {
+	mock *MockBridgeFeeQuoteKeeper
+}
+
+// NewMockBridgeFeeQuoteKeeper creates a new mock instance.
+func NewMockBridgeFeeQuoteKeeper(ctrl *gomock.Controller) *MockBridgeFeeQuoteKeeper {
+	mock := &MockBridgeFeeQuoteKeeper{ctrl: ctrl}
+	mock.recorder = &MockBridgeFeeQuoteKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockBridgeFeeQuoteKeeper) EXPECT() *MockBridgeFeeQuoteKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetQuotesByToken mocks base method.
+func (m *MockBridgeFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetQuotesByToken", ctx, chainName, denom)
+	ret0, _ := ret[0].([]contract.IBridgeFeeQuoteQuoteInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetQuotesByToken indicates an expected call of GetQuotesByToken.
+func (mr *MockBridgeFeeQuoteKeeperMockRecorder) GetQuotesByToken(ctx, chainName, denom any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuotesByToken", reflect.TypeOf((*MockBridgeFeeQuoteKeeper)(nil).GetQuotesByToken), ctx, chainName, denom)
 }

@@ -380,6 +380,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
@@ -394,6 +395,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
@@ -408,6 +410,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
@@ -422,6 +425,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 	appKeepers.ArbitrumKeeper = crosschainkeeper.NewKeeper(
@@ -436,6 +440,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
@@ -450,6 +455,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 	appKeepers.Layer2Keeper = crosschainkeeper.NewKeeper(
@@ -464,6 +470,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 	appKeepers.TronKeeper = crosschainkeeper.NewKeeper(
@@ -478,6 +485,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
 		authAddr,
 	)
 

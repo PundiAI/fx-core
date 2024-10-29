@@ -60,7 +60,7 @@ type IBridgeFeeQuoteQuoteInput struct {
 
 // IBridgeFeeQuoteMetaData contains all meta data concerning the IBridgeFeeQuote contract.
 var IBridgeFeeQuoteMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"getQuote\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"getQuoteById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_tokenName\",\"type\":\"string\"}],\"name\":\"getQuoteByToken\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo[]\",\"name\":\"quotes\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"}],\"name\":\"getQuoteList\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"quoteIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInput[]\",\"name\":\"_inputs\",\"type\":\"tuple[]\"}],\"name\":\"quote\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"}],\"name\":\"supportAssets\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"isActive\",\"type\":\"bool\"},{\"internalType\":\"string[]\",\"name\":\"tokenNames\",\"type\":\"string[]\"}],\"internalType\":\"structIBridgeFeeQuote.Asset\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"supportChainNames\",\"outputs\":[{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"getQuote\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"getQuoteById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"}],\"name\":\"getQuoteList\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_tokenName\",\"type\":\"string\"}],\"name\":\"getQuotesByToken\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInfo[]\",\"name\":\"quotes\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"chainName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"tokenName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"oracle\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"quoteIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structIBridgeFeeQuote.QuoteInput[]\",\"name\":\"_inputs\",\"type\":\"tuple[]\"}],\"name\":\"quote\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_chainName\",\"type\":\"string\"}],\"name\":\"supportAssets\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"isActive\",\"type\":\"bool\"},{\"internalType\":\"string[]\",\"name\":\"tokenNames\",\"type\":\"string[]\"}],\"internalType\":\"structIBridgeFeeQuote.Asset\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"supportChainNames\",\"outputs\":[{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // IBridgeFeeQuoteABI is the input ABI used to generate the binding from.
@@ -271,37 +271,6 @@ func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuoteById(_id *big.Int)
 	return _IBridgeFeeQuote.Contract.GetQuoteById(&_IBridgeFeeQuote.CallOpts, _id)
 }
 
-// GetQuoteByToken is a free data retrieval call binding the contract method 0xa3101bf2.
-//
-// Solidity: function getQuoteByToken(string _chainName, string _tokenName) view returns((uint256,string,string,address,uint256,uint256,uint256)[] quotes)
-func (_IBridgeFeeQuote *IBridgeFeeQuoteCaller) GetQuoteByToken(opts *bind.CallOpts, _chainName string, _tokenName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
-	var out []interface{}
-	err := _IBridgeFeeQuote.contract.Call(opts, &out, "getQuoteByToken", _chainName, _tokenName)
-
-	if err != nil {
-		return *new([]IBridgeFeeQuoteQuoteInfo), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new([]IBridgeFeeQuoteQuoteInfo)).(*[]IBridgeFeeQuoteQuoteInfo)
-
-	return out0, err
-
-}
-
-// GetQuoteByToken is a free data retrieval call binding the contract method 0xa3101bf2.
-//
-// Solidity: function getQuoteByToken(string _chainName, string _tokenName) view returns((uint256,string,string,address,uint256,uint256,uint256)[] quotes)
-func (_IBridgeFeeQuote *IBridgeFeeQuoteSession) GetQuoteByToken(_chainName string, _tokenName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
-	return _IBridgeFeeQuote.Contract.GetQuoteByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _tokenName)
-}
-
-// GetQuoteByToken is a free data retrieval call binding the contract method 0xa3101bf2.
-//
-// Solidity: function getQuoteByToken(string _chainName, string _tokenName) view returns((uint256,string,string,address,uint256,uint256,uint256)[] quotes)
-func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuoteByToken(_chainName string, _tokenName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
-	return _IBridgeFeeQuote.Contract.GetQuoteByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _tokenName)
-}
-
 // GetQuoteList is a free data retrieval call binding the contract method 0x398a0e6b.
 //
 // Solidity: function getQuoteList(string _chainName) view returns((uint256,string,string,address,uint256,uint256,uint256)[])
@@ -331,6 +300,37 @@ func (_IBridgeFeeQuote *IBridgeFeeQuoteSession) GetQuoteList(_chainName string) 
 // Solidity: function getQuoteList(string _chainName) view returns((uint256,string,string,address,uint256,uint256,uint256)[])
 func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuoteList(_chainName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
 	return _IBridgeFeeQuote.Contract.GetQuoteList(&_IBridgeFeeQuote.CallOpts, _chainName)
+}
+
+// GetQuotesByToken is a free data retrieval call binding the contract method 0x3dd7c98c.
+//
+// Solidity: function getQuotesByToken(string _chainName, string _tokenName) view returns((uint256,string,string,address,uint256,uint256,uint256)[] quotes)
+func (_IBridgeFeeQuote *IBridgeFeeQuoteCaller) GetQuotesByToken(opts *bind.CallOpts, _chainName string, _tokenName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
+	var out []interface{}
+	err := _IBridgeFeeQuote.contract.Call(opts, &out, "getQuotesByToken", _chainName, _tokenName)
+
+	if err != nil {
+		return *new([]IBridgeFeeQuoteQuoteInfo), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]IBridgeFeeQuoteQuoteInfo)).(*[]IBridgeFeeQuoteQuoteInfo)
+
+	return out0, err
+
+}
+
+// GetQuotesByToken is a free data retrieval call binding the contract method 0x3dd7c98c.
+//
+// Solidity: function getQuotesByToken(string _chainName, string _tokenName) view returns((uint256,string,string,address,uint256,uint256,uint256)[] quotes)
+func (_IBridgeFeeQuote *IBridgeFeeQuoteSession) GetQuotesByToken(_chainName string, _tokenName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
+	return _IBridgeFeeQuote.Contract.GetQuotesByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _tokenName)
+}
+
+// GetQuotesByToken is a free data retrieval call binding the contract method 0x3dd7c98c.
+//
+// Solidity: function getQuotesByToken(string _chainName, string _tokenName) view returns((uint256,string,string,address,uint256,uint256,uint256)[] quotes)
+func (_IBridgeFeeQuote *IBridgeFeeQuoteCallerSession) GetQuotesByToken(_chainName string, _tokenName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
+	return _IBridgeFeeQuote.Contract.GetQuotesByToken(&_IBridgeFeeQuote.CallOpts, _chainName, _tokenName)
 }
 
 // SupportAssets is a free data retrieval call binding the contract method 0x1b826a1b.
