@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 
+	"github.com/functionx/fx-core/v8/contract"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
@@ -84,4 +85,8 @@ type AccountKeeper interface {
 	SetAccount(ctx context.Context, acc sdk.AccountI)
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
+}
+
+type BrideFeeQuoteKeeper interface {
+	GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error)
 }

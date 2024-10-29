@@ -18,6 +18,7 @@ const (
 
 	StakingAddress    = "0x0000000000000000000000000000000000001003"
 	CrosschainAddress = "0x0000000000000000000000000000000000001004"
+	BridgeFeeAddress  = "0x0000000000000000000000000000000000001005"
 )
 
 const DefaultGasCap uint64 = 30000000
@@ -45,6 +46,7 @@ var (
 	fxBridgeABI       = MustABIJson(IFxBridgeLogicMetaData.ABI)
 	bridgeCallbackABI = MustABIJson(IBridgeCallbackMetaData.ABI)
 	errorABI          = MustABIJson(IErrorMetaData.ABI)
+	bridgeFeeQuoteABI = MustABIJson(IBridgeFeeQuoteMetaData.ABI)
 )
 
 type Caller interface {

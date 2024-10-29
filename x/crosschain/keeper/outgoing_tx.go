@@ -2,17 +2,36 @@ package keeper
 
 import (
 	"fmt"
+	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/hashicorp/go-metrics"
 
+	"github.com/functionx/fx-core/v8/contract"
 	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
+	quoteInfos, err := k.brideFeeQuoteKeeper.GetQuotesByToken(ctx, k.moduleName, fee.Denom)
+	if err != nil {
+		return 0, err
+	}
+	var quoteInfo *contract.IBridgeFeeQuoteQuoteInfo
+	for _, quote := range quoteInfos {
+		if fee.Amount.GTE(sdkmath.NewIntFromBigInt(quote.Fee)) &&
+			new(big.Int).Sub(quote.Expiry, big.NewInt(ctx.BlockTime().UnixNano())).Sign() > 0 {
+			quoteInfo = &quote
+			break
+		}
+	}
+	if quoteInfo == nil {
+		return 0, types.ErrInvalid.Wrapf("bridge fee is too small or expired")
+	}
+
 	bridgeToken, err := k.BaseCoinToBridgeToken(ctx, sender, amount.Add(fee))
 	if err != nil {
 		return 0, err
@@ -20,8 +39,6 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, rec
 	if err = k.WithdrawBridgeToken(ctx, sender, amount.Amount, bridgeToken); err != nil {
 		return 0, err
 	}
-
-	feeReceive := "" // todo: query feeReceive from quote contract
 
 	batchTimeout := k.CalExternalTimeoutHeight(ctx, GetExternalBatchTimeout)
 	if batchTimeout <= 0 {
@@ -40,7 +57,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, rec
 			},
 		},
 		TokenContract: bridgeToken.Contract,
-		FeeReceive:    feeReceive,
+		FeeReceive:    quoteInfo.Oracle.String(),
 		Block:         uint64(ctx.BlockHeight()), // set the current block height when storing the batch
 	}
 	if err = k.StoreBatch(ctx, batch); err != nil {

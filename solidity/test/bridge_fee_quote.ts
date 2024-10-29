@@ -224,7 +224,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         },
       ]);
 
-      const quotes = await bridgeFeeQuote.getQuoteByToken(chainName, token1);
+      const quotes = await bridgeFeeQuote.getQuotesByToken(chainName, token1);
       expect(quotes.length).to.equal(3);
 
       for (let i = 0; i < 3; i++) {

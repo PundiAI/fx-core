@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
@@ -111,6 +112,7 @@ func (s *KeeperMockSuite) SetupTest() {
 		s.erc20Keeper,
 		s.accountKeeper,
 		s.evmKeeper,
+		contract.NewBridgeFeeQuoteKeeper(nil, contract.BridgeFeeAddress),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
