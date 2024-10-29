@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/statedb"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 // AccountKeeper defines the expected interface needed to retrieve account info.
@@ -36,9 +37,8 @@ type ERC20TokenKeeper interface {
 	Symbol(ctx context.Context, contractAddr common.Address) (string, error)
 	Decimals(ctx context.Context, contractAddr common.Address) (uint8, error)
 
-	Mint(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error
-	Burn(ctx context.Context, contractAddr, from, account common.Address, amount *big.Int) error
-	Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error
+	Mint(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*evmtypes.MsgEthereumTxResponse, error)
+	Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*evmtypes.MsgEthereumTxResponse, error)
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on erc20

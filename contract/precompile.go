@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -27,7 +28,7 @@ func EmitEvent(evm *vm.EVM, address common.Address, data []byte, topics []common
 }
 
 type ERC20Call struct {
-	ERC20ABI
+	abi      abi.ABI
 	evm      *vm.EVM
 	caller   vm.AccountRef
 	contract common.Address
@@ -40,7 +41,7 @@ func NewERC20Call(evm *vm.EVM, caller, contract common.Address, maxGas uint64) *
 		defMaxGas = maxGas
 	}
 	return &ERC20Call{
-		ERC20ABI: NewERC20ABI(),
+		abi:      GetWFX().ABI,
 		evm:      evm,
 		caller:   vm.AccountRef(caller),
 		contract: contract,
@@ -65,7 +66,7 @@ func (e *ERC20Call) staticCall(data []byte) (ret []byte, err error) {
 }
 
 func (e *ERC20Call) Burn(account common.Address, amount *big.Int) error {
-	data, err := e.ERC20ABI.PackBurn(account, amount)
+	data, err := e.abi.Pack("burn", account, amount)
 	if err != nil {
 		return err
 	}
@@ -77,7 +78,7 @@ func (e *ERC20Call) Burn(account common.Address, amount *big.Int) error {
 }
 
 func (e *ERC20Call) TransferFrom(from, to common.Address, amount *big.Int) error {
-	data, err := e.ERC20ABI.PackTransferFrom(from, to, amount)
+	data, err := e.abi.Pack("transferFrom", from, to, amount)
 	if err != nil {
 		return err
 	}
@@ -85,18 +86,18 @@ func (e *ERC20Call) TransferFrom(from, to common.Address, amount *big.Int) error
 	if err != nil {
 		return fmt.Errorf("call transferFrom: %s", err.Error())
 	}
-	isSuccess, err := e.UnpackTransferFrom(ret)
-	if err != nil {
-		return err
+	var unpackedRet struct{ Value bool }
+	if err = e.abi.UnpackIntoInterface(&unpackedRet, "transferFrom", ret); err != nil {
+		return fmt.Errorf("unpack transferFrom: %s", err.Error())
 	}
-	if !isSuccess {
+	if !unpackedRet.Value {
 		return errors.New("transferFrom failed")
 	}
 	return nil
 }
 
 func (e *ERC20Call) TotalSupply() (*big.Int, error) {
-	data, err := e.ERC20ABI.PackTotalSupply()
+	data, err := e.abi.Pack("totalSupply")
 	if err != nil {
 		return nil, err
 	}
@@ -104,5 +105,9 @@ func (e *ERC20Call) TotalSupply() (*big.Int, error) {
 	if err != nil {
 		return nil, fmt.Errorf("StaticCall totalSupply: %s", err.Error())
 	}
-	return e.ERC20ABI.UnpackTotalSupply(ret)
+	var unpackedRet struct{ Value *big.Int }
+	if err = e.abi.UnpackIntoInterface(&unpackedRet, "totalSupply", ret); err != nil {
+		return nil, fmt.Errorf("unpack totalSupply: %s", err.Error())
+	}
+	return unpackedRet.Value, nil
 }

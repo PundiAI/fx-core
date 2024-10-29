@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"fmt"
-	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -24,11 +23,9 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/app"
-	fxevmkeeper "github.com/functionx/fx-core/v8/contract"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -39,7 +36,6 @@ type BaseSuite struct {
 	ValAddr       []sdk.ValAddress
 	App           *app.App
 	Ctx           sdk.Context
-	ERC20Token    fxevmkeeper.ERC20TokenKeeper
 }
 
 func (s *BaseSuite) SetupTest() {
@@ -57,7 +53,6 @@ func (s *BaseSuite) SetupTest() {
 	s.App = setupWithGenesisValSet(s.T(), valSet, valAccounts, valBalances...)
 	s.Ctx = s.App.GetContextForFinalizeBlock(nil)
 	s.Ctx = s.Ctx.WithProposer(s.ValSet.Proposer.Address.Bytes())
-	s.ERC20Token = fxevmkeeper.NewERC20TokenKeeper(s.App.EvmKeeper)
 }
 
 func (s *BaseSuite) AddTestSigner(amount ...int64) *Signer {
@@ -67,6 +62,13 @@ func (s *BaseSuite) AddTestSigner(amount ...int64) *Signer {
 		defAmount = amount[0]
 	}
 	s.MintToken(signer.AccAddress(), NewStakingCoin(defAmount, 18))
+	return signer
+}
+
+func (s *BaseSuite) NewSigner() *Signer {
+	signer := NewSigner(NewEthPrivKey())
+	account := s.App.AccountKeeper.NewAccountWithAddress(s.Ctx, signer.AccAddress())
+	s.App.AccountKeeper.SetAccount(s.Ctx, account)
 	return signer
 }
 
@@ -180,12 +182,6 @@ func (s *BaseSuite) CheckBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 func (s *BaseSuite) CheckAllBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
 	s.Equal(sdk.NewCoins(expBal...).String(), balances.String())
-}
-
-func (s *BaseSuite) CheckBalanceOf(contractAddr, address common.Address, expBal *big.Int) {
-	balanceOf, err := s.ERC20Token.BalanceOf(s.Ctx, contractAddr, address)
-	s.Require().NoError(err)
-	s.Equal(expBal.String(), balanceOf.String())
 }
 
 func (s *BaseSuite) NewCoin(amounts ...sdkmath.Int) sdk.Coin {
