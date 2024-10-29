@@ -31,9 +31,9 @@ func NewERC20Suite(require *require.Assertions, signer *Signer, evmKeeper *fxevm
 }
 
 func (s ERC20TokenSuite) WithError(err error) ERC20TokenSuite {
-	nweErc20Suite := s
-	nweErc20Suite.err = err
-	return nweErc20Suite
+	newErc20Suite := s
+	newErc20Suite.err = err
+	return newErc20Suite
 }
 
 func (s ERC20TokenSuite) Error(err error) {
