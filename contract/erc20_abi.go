@@ -8,14 +8,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// Deprecated: please use ERC20TokenKeeper
 type ERC20ABI struct {
 	abi abi.ABI
 }
 
 func NewERC20ABI() ERC20ABI {
-	return ERC20ABI{
-		abi: GetWFX().ABI,
-	}
+	return ERC20ABI{}
 }
 
 func (e ERC20ABI) PackName() (data []byte, err error) {

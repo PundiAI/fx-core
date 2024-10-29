@@ -9,7 +9,7 @@ patternLimits=(
   "cross chain:0"
   "GetERC1967Proxy:4"
   "GetWFX:9"
-  "GetFIP20:12"
+  "GetFIP20:10"
 )
 
 if ! command -v rg &>/dev/null; then

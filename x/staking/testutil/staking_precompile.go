@@ -6,32 +6,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/stretchr/testify/require"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/x/evm/testutil"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type StakingPrecompileSuite struct {
-	testutil.EVMSuite
+	*require.Assertions
 }
 
 func (s *StakingPrecompileSuite) EthereumTx(data []byte, value *big.Int, gasLimit uint64, success bool) *evmtypes.MsgEthereumTxResponse {
-	toAddr := s.EVMSuite.GetContractAddr()
-	if gasLimit == 0 {
-		gasLimit = fxcontract.DefaultGasCap
-	}
-	if gasLimit < 10_000 {
-		gasLimit += 21_000 + gasLimit
-	}
-	tx, err := s.EVMSuite.EthereumTx(toAddr, data, value, gasLimit)
-	if success {
-		s.NoError(err)
-	} else {
-		s.Error(err)
-	}
-	return tx
+	return nil
 }
 
 func (s *StakingPrecompileSuite) Allowance(validator sdk.ValAddress, owner, spender common.Address) *big.Int {
@@ -42,7 +28,7 @@ func (s *StakingPrecompileSuite) Allowance(validator sdk.ValAddress, owner, spen
 		Spender:   spender,
 	})
 	s.NoError(err)
-	tx := s.CallEVM(data, method.RequiredGas())
+	tx := s.EthereumTx(data, nil, method.RequiredGas(), true)
 	output, err := method.UnpackOutput(tx.Ret)
 	s.NoError(err)
 	return output
@@ -55,7 +41,7 @@ func (s *StakingPrecompileSuite) Delegation(validator sdk.ValAddress, delegator 
 		Delegator: delegator,
 	})
 	s.NoError(err)
-	tx := s.CallEVM(data, method.RequiredGas())
+	tx := s.EthereumTx(data, nil, method.RequiredGas(), true)
 	shares, amount, err := method.UnpackOutput(tx.Ret)
 	s.NoError(err)
 	return shares, amount
@@ -68,7 +54,7 @@ func (s *StakingPrecompileSuite) DelegationRewards(validator sdk.ValAddress, del
 		Delegator: delegator,
 	})
 	s.NoError(err)
-	tx := s.CallEVM(data, method.RequiredGas())
+	tx := s.EthereumTx(data, nil, method.RequiredGas(), true)
 	rewards, err := method.UnpackOutput(tx.Ret)
 	s.NoError(err)
 	return rewards

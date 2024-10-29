@@ -4,9 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
@@ -14,22 +12,27 @@ import (
 
 type ERC20TokenKeeper struct {
 	Caller
-	abi  abi.ABI
-	from common.Address
+	abi abi.ABI
 }
 
 func NewERC20TokenKeeper(caller Caller) ERC20TokenKeeper {
 	return ERC20TokenKeeper{
 		Caller: caller,
-		abi:    GetFIP20().ABI,
-		// evm module address
-		from: common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName).Bytes()),
+		abi:    GetWFX().ABI,
 	}
+}
+
+func (k ERC20TokenKeeper) Owner(ctx context.Context, contractAddr common.Address) (common.Address, error) {
+	var ownerRes struct{ Value common.Address }
+	if err := k.QueryContract(ctx, common.Address{}, contractAddr, k.abi, "owner", &ownerRes); err != nil {
+		return common.Address{}, err
+	}
+	return ownerRes.Value, nil
 }
 
 func (k ERC20TokenKeeper) Name(ctx context.Context, contractAddr common.Address) (string, error) {
 	var nameRes struct{ Value string }
-	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, contractAddr, k.abi, "name", &nameRes); err != nil {
+	if err := k.QueryContract(ctx, common.Address{}, contractAddr, k.abi, "name", &nameRes); err != nil {
 		return "", err
 	}
 	return nameRes.Value, nil
@@ -37,7 +40,7 @@ func (k ERC20TokenKeeper) Name(ctx context.Context, contractAddr common.Address)
 
 func (k ERC20TokenKeeper) Symbol(ctx context.Context, contractAddr common.Address) (string, error) {
 	var symbolRes struct{ Value string }
-	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, contractAddr, k.abi, "symbol", &symbolRes); err != nil {
+	if err := k.QueryContract(ctx, common.Address{}, contractAddr, k.abi, "symbol", &symbolRes); err != nil {
 		return "", err
 	}
 	return symbolRes.Value, nil
@@ -45,7 +48,7 @@ func (k ERC20TokenKeeper) Symbol(ctx context.Context, contractAddr common.Addres
 
 func (k ERC20TokenKeeper) Decimals(ctx context.Context, contractAddr common.Address) (uint8, error) {
 	var decimalRes struct{ Value uint8 }
-	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, contractAddr, k.abi, "decimals", &decimalRes); err != nil {
+	if err := k.QueryContract(ctx, common.Address{}, contractAddr, k.abi, "decimals", &decimalRes); err != nil {
 		return 0, err
 	}
 	return decimalRes.Value, nil
@@ -55,7 +58,7 @@ func (k ERC20TokenKeeper) BalanceOf(ctx context.Context, contractAddr, addr comm
 	var balanceRes struct {
 		Value *big.Int
 	}
-	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, contractAddr, k.abi, "balanceOf", &balanceRes, addr); err != nil {
+	if err := k.QueryContract(ctx, common.Address{}, contractAddr, k.abi, "balanceOf", &balanceRes, addr); err != nil {
 		return big.NewInt(0), err
 	}
 	return balanceRes.Value, nil
@@ -63,35 +66,80 @@ func (k ERC20TokenKeeper) BalanceOf(ctx context.Context, contractAddr, addr comm
 
 func (k ERC20TokenKeeper) TotalSupply(ctx context.Context, contractAddr common.Address) (*big.Int, error) {
 	var totalSupplyRes struct{ Value *big.Int }
-	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, contractAddr, k.abi, "totalSupply", &totalSupplyRes); err != nil {
+	if err := k.QueryContract(ctx, common.Address{}, contractAddr, k.abi, "totalSupply", &totalSupplyRes); err != nil {
 		return nil, err
 	}
 	return totalSupplyRes.Value, nil
 }
 
-func (k ERC20TokenKeeper) Mint(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error {
-	_, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, k.abi, "mint", receiver, amount)
-	return err
+func (k ERC20TokenKeeper) Allowance(ctx context.Context, contractAddr, owner, spender common.Address) (*big.Int, error) {
+	var allowanceRes struct{ Value *big.Int }
+	if err := k.QueryContract(ctx, owner, contractAddr, k.abi, "allowance", &allowanceRes, owner, spender); err != nil {
+		return big.NewInt(0), err
+	}
+	return allowanceRes.Value, nil
 }
 
-func (k ERC20TokenKeeper) Burn(ctx context.Context, contractAddr, from, account common.Address, amount *big.Int) error {
-	_, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, k.abi, "burn", account, amount)
-	return err
+func (k ERC20TokenKeeper) unpackRet(method string, res *types.MsgEthereumTxResponse) (*types.MsgEthereumTxResponse, error) {
+	var result struct{ Value bool }
+	if err := k.abi.UnpackIntoInterface(&result, method, res.Ret); err != nil {
+		return res, sdkerrors.ErrInvalidType.Wrapf("failed to unpack transfer: %s", err.Error())
+	}
+	if !result.Value {
+		return res, sdkerrors.ErrLogic.Wrapf("failed to execute %s", method)
+	}
+	return res, nil
 }
 
-func (k ERC20TokenKeeper) Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) error {
-	res, err := k.ApplyContract(sdk.UnwrapSDKContext(ctx), from, contractAddr, nil, k.abi, "transfer", receiver, amount)
+func (k ERC20TokenKeeper) Approve(ctx context.Context, contractAddr, from, spender common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "approve", spender, amount)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	return k.unpackRet("approve", res)
+}
 
-	// Check unpackedRet execution
-	var unpackedRet struct{ Value bool }
-	if err = k.abi.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return sdkerrors.ErrInvalidType.Wrapf("failed to unpack transfer: %s", err.Error())
+// PackMint only used for testing
+func (k ERC20TokenKeeper) PackMint(receiver common.Address, amount *big.Int) ([]byte, error) {
+	return k.abi.Pack("mint", receiver, amount)
+}
+
+func (k ERC20TokenKeeper) Mint(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "mint", receiver, amount)
+}
+
+func (k ERC20TokenKeeper) Burn(ctx context.Context, contractAddr, from, account common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "burn", account, amount)
+}
+
+func (k ERC20TokenKeeper) Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "transfer", receiver, amount)
+	if err != nil {
+		return nil, err
 	}
-	if !unpackedRet.Value {
-		return sdkerrors.ErrLogic.Wrap("failed to execute transfer")
+	return k.unpackRet("transfer", res)
+}
+
+func (k ERC20TokenKeeper) TransferFrom(ctx context.Context, contractAddr, from, sender, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "transferFrom", sender, receiver, amount)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	return k.unpackRet("transferFrom", res)
+}
+
+func (k ERC20TokenKeeper) TransferOwnership(ctx context.Context, contractAddr, owner, newOwner common.Address) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, owner, contractAddr, nil, k.abi, "transferOwnership", newOwner)
+}
+
+func (k ERC20TokenKeeper) Withdraw(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "withdraw0", receiver, amount)
+}
+
+func (k ERC20TokenKeeper) WithdrawToSelf(ctx context.Context, contractAddr, from common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "withdraw", from, amount)
+}
+
+func (k ERC20TokenKeeper) Deposit(ctx context.Context, contractAddr, from common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, from, contractAddr, amount, k.abi, "deposit")
 }

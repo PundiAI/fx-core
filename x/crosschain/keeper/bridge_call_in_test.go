@@ -4,6 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
@@ -54,7 +55,10 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 				suite.Require().NoError(err)
 				if !tc.CallContract {
 					for i, addr := range erc20Addrs {
-						suite.CheckBalanceOf(addr, tc.Msg.GetToAddr(), tc.Msg.Amounts[i].BigInt())
+						erc20Token := contract.NewERC20TokenKeeper(suite.App.EvmKeeper)
+						balanceOf, err := erc20Token.BalanceOf(suite.Ctx, addr, tc.Msg.GetToAddr())
+						suite.Require().NoError(err)
+						suite.Equal(tc.Msg.Amounts[i].BigInt().String(), balanceOf.String())
 					}
 				}
 			} else {

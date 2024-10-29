@@ -40,19 +40,19 @@ func (s *KeeperTestSuite) AssertCode(address common.Address, code []byte) {
 func (s *KeeperTestSuite) TestKeeper_DeployContract() {
 	erc1967Proxy := contract.GetERC1967Proxy()
 	erc20 := contract.GetFIP20()
-	singer := s.EVMSuite.HexAddr()
-	newContractAddr, err := s.App.EvmKeeper.DeployContract(s.Ctx, singer,
+	sender := s.AddTestSigner().Address()
+	newContractAddr, err := s.App.EvmKeeper.DeployContract(s.Ctx, sender,
 		erc1967Proxy.ABI, erc1967Proxy.Bin, erc20.Address, []byte{})
 	s.Require().NoError(err)
 
-	s.AssertContractAddr(singer, newContractAddr)
+	s.AssertContractAddr(sender, newContractAddr)
 }
 
 func (s *KeeperTestSuite) TestKeeper_DeployUpgradableContract() {
-	singer := s.EVMSuite.HexAddr()
-	newContractAddr := s.EVMSuite.DeployUpgradableERC20Logic("USD")
+	erc20Suite := s.NewERC20TokenSuite()
+	newContractAddr := erc20Suite.DeployERC20Token(s.Ctx, "USD")
 
-	s.AssertContractAddr(singer, newContractAddr)
+	s.AssertContractAddr(erc20Suite.HexAddress(), newContractAddr)
 }
 
 func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_FIP20() {
@@ -61,25 +61,26 @@ func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_FIP20() {
 	err := s.App.EvmKeeper.CreateContractWithCode(s.Ctx, fip20.Address, v3TestFIP20Code)
 	s.Require().NoError(err)
 
-	s.EVMSuite.DeployUpgradableERC20Logic("USD")
-	erc20Suite := s.NewERC20Suite()
+	erc20Suite := s.NewERC20TokenSuite()
+	erc20Suite.DeployERC20Token(s.Ctx, "USD")
 
-	erc20Suite.OnTest("USD Token", "USD", uint8(18), big.NewInt(0), erc20Suite.HexAddr())
+	erc20Suite.OnTest(s.Ctx, "USD Token", "USD", uint8(18), big.NewInt(0), erc20Suite.HexAddress())
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
-	erc20Suite.Mint(erc20Suite.HexAddr(), big.NewInt(100), true)
-	erc20Suite.Transfer(newSigner.Address(), big.NewInt(100), true)
+	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), big.NewInt(100))
+	erc20Suite.Transfer(s.Ctx, newSigner.Address(), big.NewInt(100))
 
 	err = s.App.EvmKeeper.UpdateContractCode(s.Ctx, fip20.Address, fip20.Code)
 	s.Require().NoError(err)
 
-	erc20Suite.OnTest("USD Token", "USD", uint8(18), big.NewInt(100), erc20Suite.HexAddr())
-	erc20Suite.TransferOwnership(newSigner.Address(), true)
+	erc20Suite.OnTest(s.Ctx, "USD Token", "USD", uint8(18), big.NewInt(100), erc20Suite.HexAddress())
+	erc20Suite.TransferOwnership(s.Ctx, newSigner.Address())
 }
 
 func (s *KeeperTestSuite) TestCodeCheck() {
 	for _, c := range []contract.Contract{contract.GetFIP20(), contract.GetWFX()} {
-		addr, err := s.App.EvmKeeper.DeployContract(s.Ctx, s.HexAddr(), c.ABI, c.Bin)
+		contractOwner := s.AddTestSigner()
+		addr, err := s.App.EvmKeeper.DeployContract(s.Ctx, contractOwner.Address(), c.ABI, c.Bin)
 		s.NoError(err)
 
 		account := s.App.EvmKeeper.GetAccount(s.Ctx, addr)
@@ -99,39 +100,39 @@ func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_WFX() {
 	err := s.App.EvmKeeper.CreateContractWithCode(s.Ctx, wfx.Address, v3TestWFXCode)
 	s.Require().NoError(err)
 
-	erc20Suite := s.NewERC20Suite()
+	erc20Suite := s.NewERC20TokenSuite()
 	initializeArgs := []interface{}{"Wrapped Function X", "WFX", uint8(18), common.BytesToAddress(s.App.AccountKeeper.GetModuleAddress(evmtypes.ModuleName))}
-	wfxAddress, err := s.App.EvmKeeper.DeployUpgradableContract(s.Ctx, erc20Suite.HexAddr(), wfx.Address, nil, &wfx.ABI, initializeArgs...)
+	wfxAddress, err := s.App.EvmKeeper.DeployUpgradableContract(s.Ctx, erc20Suite.HexAddress(), wfx.Address, nil, &wfx.ABI, initializeArgs...)
 	s.Require().NoError(err)
-	erc20Suite.WithContractAddr(wfxAddress)
+	erc20Suite.WithContract(wfxAddress)
 
-	erc20Suite.OnTest("Wrapped Function X", "WFX", uint8(18), big.NewInt(0), erc20Suite.HexAddr())
+	erc20Suite.OnTest(s.Ctx, "Wrapped Function X", "WFX", uint8(18), big.NewInt(0), erc20Suite.HexAddress())
 
-	erc20Suite.Deposit(big.NewInt(100), true)
+	erc20Suite.Deposit(s.Ctx, big.NewInt(100))
 
 	err = s.App.EvmKeeper.UpdateContractCode(s.Ctx, wfx.Address, v4TestWFXCode)
 	s.Require().NoError(err)
 
-	s.Require().True(erc20Suite.BalanceOf(erc20Suite.HexAddr()).Cmp(big.NewInt(100)) == 0)
+	s.Require().True(erc20Suite.BalanceOf(s.Ctx, erc20Suite.HexAddress()).Cmp(big.NewInt(100)) == 0)
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
 	s.MintToken(newSigner.AccAddress(), helpers.NewStakingCoin(100, 18))
-	erc20Suite.Transfer(newSigner.Address(), big.NewInt(100), true)
+	erc20Suite.Transfer(s.Ctx, newSigner.Address(), big.NewInt(100))
 
-	erc20Suite.Approve(newSigner.Address(), big.NewInt(100), true)
+	erc20Suite.Approve(s.Ctx, newSigner.Address(), big.NewInt(100))
 
-	erc20Suite.Deposit(big.NewInt(100), true)
-	erc20Suite.Transfer(newSigner.Address(), big.NewInt(100), true)
-	erc20Suite.OnTest("Wrapped Function X", "WFX", uint8(18), big.NewInt(200), erc20Suite.HexAddr())
-	s.Require().True(erc20Suite.BalanceOf(newSigner.Address()).Cmp(big.NewInt(200)) == 0)
+	erc20Suite.Deposit(s.Ctx, big.NewInt(100))
+	erc20Suite.Transfer(s.Ctx, newSigner.Address(), big.NewInt(100))
+	erc20Suite.OnTest(s.Ctx, "Wrapped Function X", "WFX", uint8(18), big.NewInt(200), erc20Suite.HexAddress())
+	s.Require().True(erc20Suite.BalanceOf(s.Ctx, newSigner.Address()).Cmp(big.NewInt(200)) == 0)
 
 	err = s.App.EvmKeeper.UpdateContractCode(s.Ctx, wfx.Address, wfx.Code)
 	s.Require().NoError(err)
 
-	erc20Suite.Burn(newSigner.Address(), big.NewInt(100), true)
-	erc20Suite.Deposit(big.NewInt(100), true)
-	erc20Suite.WithdrawSelf(big.NewInt(50), true)
-	erc20Suite.Withdraw(newSigner.Address(), big.NewInt(50), true)
+	erc20Suite.Burn(s.Ctx, newSigner.Address(), big.NewInt(100))
+	erc20Suite.Deposit(s.Ctx, big.NewInt(100))
+	erc20Suite.WithdrawSelf(s.Ctx, big.NewInt(50))
+	erc20Suite.Withdraw(s.Ctx, newSigner.Address(), big.NewInt(50))
 
-	erc20Suite.OnTest("Wrapped Function X", "WFX", uint8(18), big.NewInt(100), erc20Suite.HexAddr())
+	erc20Suite.OnTest(s.Ctx, "Wrapped Function X", "WFX", uint8(18), big.NewInt(100), erc20Suite.HexAddress())
 }

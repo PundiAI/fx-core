@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"math/big"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,26 +12,18 @@ import (
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/evm/testutil"
 )
 
 type KeeperTestSuite struct {
 	helpers.BaseSuite
-	testutil.EVMSuite
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (s *KeeperTestSuite) SetupTest() {
-	s.BaseSuite.SetupTest()
-	s.EVMSuite.Init(s.Require(), s.Ctx, s.App.EvmKeeper, s.BaseSuite.AddTestSigner())
-	s.EVMSuite.WithGasPrice(big.NewInt(500 * 1e9))
-}
-
-func (s *KeeperTestSuite) NewERC20Suite() testutil.ERC20Suite {
-	return testutil.NewERC20Suite(s.EVMSuite)
+func (s *KeeperTestSuite) NewERC20TokenSuite() helpers.ERC20TokenSuite {
+	return helpers.NewERC20Suite(s.Require(), s.AddTestSigner(), s.App.EvmKeeper)
 }
 
 func (s *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
@@ -55,10 +46,10 @@ func (s *KeeperTestSuite) BurnEvmRefundFee(addr sdk.AccAddress, coins sdk.Coins)
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) AssertContractAddr(singer, newContractAddr common.Address) {
-	nonce, err := s.App.AccountKeeper.GetSequence(s.Ctx, singer.Bytes())
-	s.NoError(err)
+func (s *KeeperTestSuite) AssertContractAddr(sender, newContractAddr common.Address) {
+	nonce, err := s.App.AccountKeeper.GetSequence(s.Ctx, sender.Bytes())
+	s.Require().NoError(err)
 
-	contractAddr := crypto.CreateAddress(singer, nonce-1)
+	contractAddr := crypto.CreateAddress(sender, nonce-1)
 	s.Equal(contractAddr, newContractAddr)
 }

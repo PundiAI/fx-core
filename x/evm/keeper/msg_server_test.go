@@ -6,18 +6,49 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
+	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
-func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
-	erc20Suite := s.NewERC20Suite()
-	contractAddr := erc20Suite.Deploy("TEST")
+func (s *KeeperTestSuite) ethereumTx(signer *helpers.Signer, to *common.Address, data []byte, value *big.Int, gasLimit uint64) (*types.MsgEthereumTxResponse, error) {
+	chanId := s.App.EvmKeeper.ChainID()
+	s.Equal(fxtypes.EIP155ChainID(s.Ctx.ChainID()), chanId)
+	if value == nil {
+		value = big.NewInt(0)
+	}
 
-	erc20Suite.Mint(erc20Suite.HexAddr(), big.NewInt(100), true)
+	nonce := s.App.EvmKeeper.GetNonce(s.Ctx, signer.Address())
+	tx := types.NewTx(
+		chanId,
+		nonce,
+		to,
+		value,
+		gasLimit,
+		big.NewInt(500*1e9),
+		nil,
+		nil,
+		data,
+		nil,
+	)
+	tx.From = signer.Address().Bytes()
+	s.NoError(tx.Sign(ethtypes.LatestSignerForChainID(chanId), signer))
+
+	return s.App.EvmKeeper.EthereumTx(s.Ctx, tx)
+}
+
+func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
+	signer := s.NewSigner()
+	erc20Suite := s.NewERC20TokenSuite()
+	erc20Suite.WithSigner(signer)
+
+	contractAddr := erc20Suite.DeployERC20Token(s.Ctx, "TEST")
+	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), big.NewInt(100))
 
 	gasLimit := uint64(71000)
 
@@ -29,10 +60,10 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
 
 	recipient := helpers.GenHexAddress()
 	amount := big.NewInt(10)
-	data, err := erc20Suite.PackTransfer(recipient, amount)
+	data, err := erc20Suite.ERC20TokenKeeper.PackMint(recipient, amount)
 	s.Require().NoError(err)
 
-	res, err := s.EVMSuite.EthereumTx(&contractAddr, data, nil, gasLimit)
+	res, err := s.ethereumTx(signer, &contractAddr, data, nil, gasLimit)
 	s.Require().NoError(err)
 	s.Require().False(res.Failed(), res)
 
@@ -40,12 +71,12 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
 	s.Commit()
 
 	refundAmount := gasPrice * int64(gasLimit-res.GasUsed)
-	s.BurnEvmRefundFee(erc20Suite.AccAddr(), helpers.NewStakingCoins(refundAmount, 0))
+	s.BurnEvmRefundFee(erc20Suite.AccAddress(), helpers.NewStakingCoins(refundAmount, 0))
 
 	totalSupplyAfter := s.App.BankKeeper.GetSupply(s.Ctx, fxtypes.DefaultDenom)
 	s.Require().Equal(totalSupplyBefore.String(), totalSupplyAfter.String())
 
-	s.Require().Equal(amount, erc20Suite.BalanceOf(recipient))
+	s.Require().Equal(amount, erc20Suite.BalanceOf(s.Ctx, recipient))
 }
 
 func (s *KeeperTestSuite) TestKeeper_EthereumTx_Value() {
@@ -54,12 +85,13 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Value() {
 
 	gasLimit := uint64(71000)
 
+	signer := s.AddTestSigner()
 	totalSupplyBefore := s.App.BankKeeper.GetSupply(s.Ctx, fxtypes.DefaultDenom)
 	// Mint the max gas to the FeeCollector to ensure balance in case of refund
 	mintAmount := sdkmath.NewInt(s.App.FeeMarketKeeper.GetBaseFee(s.Ctx).Int64() * int64(gasLimit))
 	s.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, mintAmount)))
 
-	res, err := s.EVMSuite.EthereumTx(&recipient, nil, amount, gasLimit)
+	res, err := s.ethereumTx(signer, &recipient, nil, amount, gasLimit)
 	s.Require().NoError(err)
 	s.Require().False(res.Failed(), res)
 
@@ -67,7 +99,7 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Value() {
 	s.Commit()
 
 	refundAmount := sdkmath.NewInt(s.App.FeeMarketKeeper.GetBaseFee(s.Ctx).Int64() * int64(gasLimit-res.GasUsed))
-	s.BurnEvmRefundFee(s.EVMSuite.AccAddr(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, refundAmount)))
+	s.BurnEvmRefundFee(signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, refundAmount)))
 
 	totalSupplyAfter := s.App.BankKeeper.GetSupply(s.Ctx, fxtypes.DefaultDenom)
 	s.Require().Equal(totalSupplyBefore.String(), totalSupplyAfter.String())
@@ -80,29 +112,33 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Value() {
 }
 
 func (s *KeeperTestSuite) TestKeeper_CallContract() {
-	s.EVMSuite.DeployUpgradableERC20Logic("USD")
-
-	erc20Suite := s.NewERC20Suite()
+	erc20Suite := s.NewERC20TokenSuite()
+	contract := erc20Suite.DeployERC20Token(s.Ctx, "USD")
 
 	amount := big.NewInt(100)
-	recipient := erc20Suite.HexAddr()
-	data, err := erc20Suite.PackMint(recipient, amount)
+	recipient := erc20Suite.HexAddress()
+	data, err := erc20Suite.ERC20TokenKeeper.PackMint(recipient, amount)
 	s.Require().NoError(err)
 
-	account := s.App.AccountKeeper.GetAccount(s.Ctx, authtypes.NewModuleAddress(types.ModuleName))
-	s.Require().NotNil(account)
-
 	// failed: not authorized
-	err = s.EVMSuite.CallContract(data)
+	_, err = s.App.EvmKeeper.CallContract(s.Ctx, &fxevmtypes.MsgCallContract{
+		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ContractAddress: contract.String(),
+		Data:            common.Bytes2Hex(data),
+	})
 	s.Require().EqualError(err, "Ownable: caller is not the owner: evm transaction execution failed")
 
 	// transfer erc20 token owner to evm module
 	evmModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName))
-	erc20Suite.TransferOwnership(evmModuleAddr, true)
+	erc20Suite.TransferOwnership(s.Ctx, evmModuleAddr)
 
 	// success
-	err = s.EVMSuite.CallContract(data)
+	_, err = s.App.EvmKeeper.CallContract(s.Ctx, &fxevmtypes.MsgCallContract{
+		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ContractAddress: contract.String(),
+		Data:            common.Bytes2Hex(data),
+	})
 	s.Require().NoError(err)
 
-	s.Equal(amount, erc20Suite.BalanceOf(recipient))
+	s.Equal(amount, erc20Suite.BalanceOf(s.Ctx, recipient))
 }
