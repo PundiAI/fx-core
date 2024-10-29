@@ -87,6 +87,6 @@ type AccountKeeper interface {
 	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 }
 
-type BrideFeeQuoteKeeper interface {
+type BridgeFeeQuoteKeeper interface {
 	GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error)
 }

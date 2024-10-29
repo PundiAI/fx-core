@@ -28,7 +28,7 @@ type Keeper struct {
 	ibcTransferKeeper   types.IBCTransferKeeper
 	erc20Keeper         types.Erc20Keeper
 	evmKeeper           types.EVMKeeper
-	brideFeeQuoteKeeper types.BrideFeeQuoteKeeper
+	brideFeeQuoteKeeper types.BridgeFeeQuoteKeeper
 
 	authority    string
 	callbackFrom common.Address
@@ -38,7 +38,7 @@ type Keeper struct {
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionMsgServer,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
-	evmKeeper types.EVMKeeper, brideFeeQuoteKeeper types.BrideFeeQuoteKeeper, authority string,
+	evmKeeper types.EVMKeeper, brideFeeQuoteKeeper types.BridgeFeeQuoteKeeper, authority string,
 ) Keeper {
 	if addr := ak.GetModuleAddress(moduleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", moduleName))
