@@ -102,12 +102,12 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	return result, err
 }
 
-func (m *BridgeCallMethod) NewBridgeCallEvent(args *crosschaintypes.BridgeCallArgs, sender, origin common.Address, eventNonce *big.Int) (data []byte, topic []common.Hash, err error) {
+func (m *BridgeCallMethod) NewBridgeCallEvent(args *fxcontract.BridgeCallArgs, sender, origin common.Address, eventNonce *big.Int) (data []byte, topic []common.Hash, err error) {
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()}, origin, args.Value, eventNonce, args.DstChain, args.Tokens, args.Amounts, args.Data, args.Memo)
 }
 
-func (m *BridgeCallMethod) UnpackInput(data []byte) (*crosschaintypes.BridgeCallArgs, error) {
-	args := new(crosschaintypes.BridgeCallArgs)
+func (m *BridgeCallMethod) UnpackInput(data []byte) (*fxcontract.BridgeCallArgs, error) {
+	args := new(fxcontract.BridgeCallArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (m *BridgeCallMethod) PackOutput(nonceNonce *big.Int) ([]byte, error) {
 	return m.Method.Outputs.Pack(nonceNonce)
 }
 
-func (m *BridgeCallMethod) PackInput(args crosschaintypes.BridgeCallArgs) ([]byte, error) {
+func (m *BridgeCallMethod) PackInput(args fxcontract.BridgeCallArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.DstChain, args.Refund, args.Tokens, args.Amounts, args.To, args.Data, args.Value, args.Memo)
 	if err != nil {
 		return nil, err

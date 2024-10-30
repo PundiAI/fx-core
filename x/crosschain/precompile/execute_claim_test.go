@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
@@ -25,7 +25,7 @@ func TestExecuteClaimMethod_ABI(t *testing.T) {
 
 func TestExecuteClaimMethod_PackInput(t *testing.T) {
 	executeClaim := precompile.NewExecuteClaimMethod(nil)
-	input, err := executeClaim.PackInput(types.ExecuteClaimArgs{
+	input, err := executeClaim.PackInput(contract.ExecuteClaimArgs{
 		Chain:      ethtypes.ModuleName,
 		EventNonce: big.NewInt(1),
 	})

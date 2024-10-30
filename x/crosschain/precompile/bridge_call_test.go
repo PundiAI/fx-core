@@ -12,7 +12,6 @@ import (
 	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
 func TestBridgeCallABI(t *testing.T) {
@@ -150,7 +149,7 @@ func TestContract_BridgeCall_NewBridgeCallEvent(t *testing.T) {
 	sender := common.BytesToAddress([]byte{0x1})
 	origin := common.BytesToAddress([]byte{0x2})
 	nonce := big.NewInt(100)
-	args := &types.BridgeCallArgs{
+	args := &contract.BridgeCallArgs{
 		DstChain: "eth",
 		Refund:   common.BytesToAddress([]byte{0x3}),
 		Tokens:   []common.Address{common.BytesToAddress([]byte{0x4}), common.BytesToAddress([]byte{0x5})},

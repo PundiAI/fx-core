@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	"github.com/functionx/fx-core/v8/contract"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	"github.com/functionx/fx-core/v8/x/evm/types"
 )
@@ -49,7 +50,7 @@ func (m *HasOracleMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error
 	return m.PackOutput(hasOracle)
 }
 
-func (m *HasOracleMethod) PackInput(args crosschaintypes.HasOracleArgs) ([]byte, error) {
+func (m *HasOracleMethod) PackInput(args contract.HasOracleArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Chain, args.ExternalAddress)
 	if err != nil {
 		return nil, err
@@ -57,8 +58,8 @@ func (m *HasOracleMethod) PackInput(args crosschaintypes.HasOracleArgs) ([]byte,
 	return append(m.GetMethodId(), arguments...), nil
 }
 
-func (m *HasOracleMethod) UnpackInput(data []byte) (*crosschaintypes.HasOracleArgs, error) {
-	args := new(crosschaintypes.HasOracleArgs)
+func (m *HasOracleMethod) UnpackInput(data []byte) (*contract.HasOracleArgs, error) {
+	args := new(contract.HasOracleArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }

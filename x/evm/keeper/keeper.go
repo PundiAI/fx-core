@@ -43,22 +43,6 @@ func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper) *Keeper {
 	}
 }
 
-// Deprecated: please use callEvm todo: remove this
-func (k *Keeper) CallEVMWithoutGas(
-	ctx sdk.Context,
-	from common.Address,
-	contract *common.Address,
-	value *big.Int,
-	data []byte,
-	commit bool,
-) (*types.MsgEthereumTxResponse, error) {
-	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	return k.callEvm(ctx, from, contract, value, nonce, data, commit)
-}
-
 func (k *Keeper) callEvm(
 	ctx sdk.Context,
 	from common.Address,
