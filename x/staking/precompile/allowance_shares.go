@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxstakingtypes "github.com/functionx/fx-core/v8/contract"
+	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
 )
 
@@ -56,7 +56,7 @@ func NewAllowanceSharesABI() AllowanceSharesABI {
 	}
 }
 
-func (m AllowanceSharesABI) PackInput(args fxstakingtypes.AllowanceSharesArgs) ([]byte, error) {
+func (m AllowanceSharesABI) PackInput(args fxcontract.AllowanceSharesArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Owner, args.Spender)
 	if err != nil {
 		return nil, err
@@ -64,8 +64,8 @@ func (m AllowanceSharesABI) PackInput(args fxstakingtypes.AllowanceSharesArgs) (
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m AllowanceSharesABI) UnpackInput(data []byte) (*fxstakingtypes.AllowanceSharesArgs, error) {
-	args := new(fxstakingtypes.AllowanceSharesArgs)
+func (m AllowanceSharesABI) UnpackInput(data []byte) (*fxcontract.AllowanceSharesArgs, error) {
+	args := new(fxcontract.AllowanceSharesArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }

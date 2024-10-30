@@ -2,7 +2,6 @@ package precompile_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -12,21 +11,20 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
 func TestStakingWithdrawABI(t *testing.T) {
-	withdrawMethod := precompile.NewWithdrawMethod(nil)
+	withdrawABI := precompile.NewWithdrawABI()
 
-	require.Len(t, withdrawMethod.Method.Inputs, 1)
-	require.Len(t, withdrawMethod.Method.Outputs, 1)
+	require.Len(t, withdrawABI.Method.Inputs, 1)
+	require.Len(t, withdrawABI.Method.Outputs, 1)
 
-	require.Len(t, withdrawMethod.Event.Inputs, 3)
+	require.Len(t, withdrawABI.Event.Inputs, 3)
 }
 
-func (suite *PrecompileTestSuite) TestWithdraw() {
+func (suite *StakingPrecompileTestSuite) TestWithdraw() {
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error)
@@ -63,55 +61,14 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			},
 			result: false,
 		},
-		{
-			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
-				return contract.WithdrawArgs{
-					Validator: val.String(),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - failed invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
-				newVal := val.String() + "1"
-				return contract.WithdrawArgs{
-					Validator: newVal,
-				}, fmt.Errorf("invalid validator address: %s", newVal)
-			},
-			result: false,
-		},
-		{
-			name: "contract - failed validator not found",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec) (contract.WithdrawArgs, error) {
-				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-
-				return contract.WithdrawArgs{
-					Validator: newVal,
-				}, fmt.Errorf("validator does not exist")
-			},
-			result: false,
-		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			operator := suite.GetFirstValAddr()
-			delAmt := helpers.NewRandAmount()
+			delAddr := suite.GetDelAddr()
+			delAmt := suite.GetStakingBalance(delAddr.Bytes())
 
-			signer := suite.NewSigner()
-			suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
-
-			suite.WithContract(suite.stakingAddr)
-			delAddr := signer.Address()
-			if strings.HasPrefix(tc.name, "contract") {
-				suite.WithContract(suite.stakingTestAddr)
-				delAddr = suite.stakingTestAddr
-				suite.MintToken(delAddr.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
-			}
-
-			suite.WithSigner(signer)
 			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
 				Validator: operator.String(),
 				Amount:    delAmt.BigInt(),
@@ -137,8 +94,8 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(totalAfter, totalBefore)
 
-				abi := precompile.NewWithdrawABI()
-				reward, err := abi.UnpackOutput(res.Ret)
+				withdrawABI := precompile.NewWithdrawABI()
+				reward, err := withdrawABI.UnpackOutput(res.Ret)
 				suite.Require().NoError(err)
 
 				chainBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, delAddr.Bytes())
@@ -146,10 +103,10 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == abi.Event.ID.String() {
-						suite.Require().Equal(log.Address, suite.stakingAddr.String())
+					if log.Topics[0] == withdrawABI.Event.ID.String() {
+						suite.Require().Equal(contract.StakingAddress, log.Address)
 
-						event, err := abi.UnpackEvent(log.ToEthereum())
+						event, err := withdrawABI.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.Sender, delAddr)
 						suite.Require().Equal(event.Validator, operator.String())

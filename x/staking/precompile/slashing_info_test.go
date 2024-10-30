@@ -2,7 +2,6 @@ package precompile_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,13 +13,13 @@ import (
 )
 
 func TestSlashingInfoABI(t *testing.T) {
-	slashingInfoMethod := precompile.NewSlashingInfoMethod(nil)
+	slashingInfoABI := precompile.NewSlashingInfoABI()
 
-	require.Len(t, slashingInfoMethod.Method.Inputs, 1)
-	require.Len(t, slashingInfoMethod.Method.Outputs, 2)
+	require.Len(t, slashingInfoABI.Method.Inputs, 1)
+	require.Len(t, slashingInfoABI.Method.Outputs, 2)
 }
 
-func (suite *PrecompileTestSuite) TestSlashingInfo() {
+func (suite *StakingPrecompileTestSuite) TestSlashingInfo() {
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress) (contract.SlashingInfoArgs, error)
@@ -45,26 +44,6 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 			},
 			result: false,
 		},
-
-		{
-			name: "contract - ok",
-			malleate: func(val sdk.ValAddress) (contract.SlashingInfoArgs, error) {
-				return contract.SlashingInfoArgs{
-					Validator: val.String(),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - failed - invalid validator address",
-			malleate: func(val sdk.ValAddress) (contract.SlashingInfoArgs, error) {
-				valStr := val.String() + "1"
-				return contract.SlashingInfoArgs{
-					Validator: valStr,
-				}, fmt.Errorf("invalid validator address: %s", valStr)
-			},
-			result: false,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -76,11 +55,6 @@ func (suite *PrecompileTestSuite) TestSlashingInfo() {
 			suite.SetAllowance(operator, suite.signer.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
 			args, expectErr := tc.malleate(operator)
-
-			suite.WithContract(suite.stakingAddr)
-			if strings.HasPrefix(tc.name, "contract") {
-				suite.WithContract(suite.stakingTestAddr)
-			}
 
 			jailed, missed := suite.WithError(expectErr).SlashingInfo(suite.Ctx, args)
 

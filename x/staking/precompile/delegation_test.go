@@ -2,7 +2,6 @@ package precompile_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,18 +10,17 @@ import (
 
 	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
 func TestStakingDelegationABI(t *testing.T) {
-	delegationMethod := precompile.NewDelegationMethod(nil)
+	delegationABI := precompile.NewDelegationABI()
 
-	require.Len(t, delegationMethod.Method.Inputs, 2)
-	require.Len(t, delegationMethod.Method.Outputs, 2)
+	require.Len(t, delegationABI.Method.Inputs, 2)
+	require.Len(t, delegationABI.Method.Outputs, 2)
 }
 
-func (suite *PrecompileTestSuite) TestDelegation() {
+func (suite *StakingPrecompileTestSuite) TestDelegation() {
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, del common.Address) (contract.DelegationArgs, error)
@@ -72,64 +70,13 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			},
 			result: false,
 		},
-
-		{
-			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, del common.Address) (contract.DelegationArgs, error) {
-				return contract.DelegationArgs{
-					Validator: val.String(),
-					Delegator: del,
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - ok - zero",
-			malleate: func(val sdk.ValAddress, del common.Address) (contract.DelegationArgs, error) {
-				return contract.DelegationArgs{
-					Validator: val.String(),
-					Delegator: del,
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - failed invalid validator address",
-			malleate: func(val sdk.ValAddress, del common.Address) (contract.DelegationArgs, error) {
-				newVal := val.String() + "1"
-				return contract.DelegationArgs{
-					Validator: newVal,
-					Delegator: del,
-				}, fmt.Errorf("invalid validator address: %s", newVal)
-			},
-			result: false,
-		},
-		{
-			name: "contract - failed validator not found",
-			malleate: func(val sdk.ValAddress, del common.Address) (contract.DelegationArgs, error) {
-				newVal := sdk.ValAddress(suite.signer.AccAddress()).String()
-
-				return contract.DelegationArgs{
-					Validator: newVal,
-					Delegator: del,
-				}, fmt.Errorf("validator does not exist")
-			},
-			result: false,
-		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			operator0 := suite.GetFirstValAddr()
 			delAmount := helpers.NewRandAmount()
-
-			suite.WithContract(suite.stakingAddr)
-			delAddr := suite.signer.Address()
-			if strings.HasPrefix(tc.name, "contract") {
-				suite.WithContract(suite.stakingTestAddr)
-				delAddr = suite.stakingTestAddr
-				suite.MintToken(delAddr.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
-			}
+			delAddr := suite.GetDelAddr()
 
 			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
 				Validator: operator0.String(),

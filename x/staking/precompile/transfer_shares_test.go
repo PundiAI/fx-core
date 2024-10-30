@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -17,26 +16,26 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	fxstakingtypes "github.com/functionx/fx-core/v8/contract"
+	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
 func TestStakingTransferSharesABI(t *testing.T) {
-	transferSharesMethod := precompile.NewTransferSharesMethod(nil)
+	transferSharesABI := precompile.NewTransferSharesABI()
 
-	require.Len(t, transferSharesMethod.Method.Inputs, 3)
-	require.Len(t, transferSharesMethod.Method.Outputs, 2)
+	require.Len(t, transferSharesABI.Method.Inputs, 3)
+	require.Len(t, transferSharesABI.Method.Outputs, 2)
 
-	require.Len(t, transferSharesMethod.Event.Inputs, 5)
+	require.Len(t, transferSharesABI.Event.Inputs, 5)
 }
 
-func (suite *PrecompileTestSuite) TestTransferShares() {
+func (suite *StakingPrecompileTestSuite) TestTransferShares() {
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
-		malleate    func(val sdk.ValAddress, to common.Address, shares *big.Int) (fxstakingtypes.TransferSharesArgs, *big.Int, []string)
+		malleate    func(val sdk.ValAddress, to common.Address, shares *big.Int) (fxcontract.TransferSharesArgs, *big.Int, []string)
 		suftransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
 		error       func(errArgs []string) string
 		result      bool
@@ -157,138 +156,21 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
-
-		{
-			name:        "contract - ok - from delegated",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferRand,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - undelegate from and to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.undelegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - undelegate to and from",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.undelegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - delegate from and to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - delegate to and from",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - transfer all - undelegate to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferAll,
-			suftransfer: suite.undelegateToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - transfer all - delegate from and to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferAll,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - transfer all - delegate to and from",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferAll,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferRand,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - delegate from and to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - delegate to and from",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - undelegate from and to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.undelegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - undelegate to and from",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferRand,
-			suftransfer: suite.undelegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - transfer all",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferAll,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - transfer all - undelegate to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferAll,
-			suftransfer: suite.undelegateToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - transfer all - delegate from and to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferAll,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - transfer all - delegate to and from",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferAll,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			val := suite.GetFirstValidator()
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(10000) + 1000)).Mul(sdkmath.NewInt(1e18))
-			fromSigner := suite.NewSigner()
+			suite.signer = suite.NewSigner()
 			toSigner := suite.NewSigner()
 
-			contract := suite.stakingAddr
-			delAddr := fromSigner.Address()
-			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.stakingTestAddr
-				delAddr = suite.stakingTestAddr
-			}
+			// contract := suite.stakingAddr
+			delAddr := suite.GetDelAddr()
+			// if strings.HasPrefix(tc.name, "contract") {
+			// 	contract = suite.stakingTestAddr
+			// 	delAddr = suite.stakingTestAddr
+			// }
 
 			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 			suite.Require().NoError(err)
@@ -326,7 +208,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 			suite.Require().NoError(err)
 
 			args, shares, _ := tc.malleate(operator, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
-			suite.WithContract(contract).WithSigner(fromSigner)
+			suite.WithSigner(suite.signer)
 			res, _ := suite.TransferShares(suite.Ctx, args)
 
 			if tc.result {
@@ -356,10 +238,10 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					abi := precompile.NewTransferSharesABI()
-					if log.Topics[0] == abi.Event.ID.String() {
+					transferSharesABI := precompile.NewTransferSharesABI()
+					if log.Topics[0] == transferSharesABI.Event.ID.String() {
 						suite.Require().Len(log.Topics, 3)
-						event, err := abi.UnpackEvent(log.ToEthereum())
+						event, err := transferSharesABI.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)
 						suite.Require().Equal(event.To, toSigner.Address())
@@ -376,9 +258,9 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 	}
 }
 
-func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, to common.Address, shares *big.Int) (fxstakingtypes.TransferSharesArgs, *big.Int, []string) {
+func (suite *StakingPrecompileTestSuite) packTransferRand(val sdk.ValAddress, to common.Address, shares *big.Int) (fxcontract.TransferSharesArgs, *big.Int, []string) {
 	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
-	args := fxstakingtypes.TransferSharesArgs{
+	args := fxcontract.TransferSharesArgs{
 		Validator: val.String(),
 		To:        to,
 		Shares:    randShares,
@@ -386,8 +268,8 @@ func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, to common
 	return args, randShares, nil
 }
 
-func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, to common.Address, shares *big.Int) (fxstakingtypes.TransferSharesArgs, *big.Int, []string) {
-	args := fxstakingtypes.TransferSharesArgs{
+func (suite *StakingPrecompileTestSuite) packTransferAll(val sdk.ValAddress, to common.Address, shares *big.Int) (fxcontract.TransferSharesArgs, *big.Int, []string) {
+	args := fxcontract.TransferSharesArgs{
 		Validator: val.String(),
 		To:        to,
 		Shares:    shares,
@@ -396,17 +278,17 @@ func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, to common.
 }
 
 func TestStakingTransferFromSharesABI(t *testing.T) {
-	transferFromSharesMethod := precompile.NewTransferFromSharesMethod(nil)
+	transferFromSharesABI := precompile.NewTransferFromSharesABI()
 
-	require.Len(t, transferFromSharesMethod.Method.Inputs, 4)
-	require.Len(t, transferFromSharesMethod.Method.Outputs, 2)
+	require.Len(t, transferFromSharesABI.Method.Inputs, 4)
+	require.Len(t, transferFromSharesABI.Method.Outputs, 2)
 }
 
-func (suite *PrecompileTestSuite) TestTransferFromShares() {
+func (suite *StakingPrecompileTestSuite) TestTransferFromShares() {
 	testCases := []struct {
 		name        string
 		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
-		malleate    func(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxstakingtypes.TransferFromSharesArgs, *big.Int, []string)
+		malleate    func(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxcontract.TransferFromSharesArgs, *big.Int, []string)
 		suftransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
 		error       func(errArgs []string) string
 		result      bool
@@ -527,123 +409,6 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
-
-		{
-			name:        "contract - ok - from delegated",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromRand,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - undelegate from and to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.undelegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - undelegate to and from",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.undelegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - delegate from and to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - delegate to and from",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - transfer all - undelegate to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromAll,
-			suftransfer: suite.undelegateToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - transfer all - delegate from and to",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromAll,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from delegated - transfer all - delegate to and from",
-			pretransfer: suite.delegateFromFunc,
-			malleate:    suite.packTransferFromAll,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromRand,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - delegate from and to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - delegate to and from",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - undelegate from and to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.undelegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - undelegate to and from",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromRand,
-			suftransfer: suite.undelegateToFromFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - transfer all",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromAll,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - transfer all - undelegate to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromAll,
-			suftransfer: suite.undelegateToFunc,
-			result:      true,
-		},
-		{
-			name:        "contract - ok - from and to delegated - transfer all - delegate from and to",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromAll,
-			suftransfer: suite.delegateFromToFunc,
-			result:      true,
-		},
-		{
-			name:        "ok - from and to delegated - transfer all - delegate to and from",
-			pretransfer: suite.delegateFromToFunc,
-			malleate:    suite.packTransferFromAll,
-			suftransfer: suite.delegateToFromFunc,
-			result:      true,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -652,17 +417,12 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(10000) + 1000)).Mul(sdkmath.NewInt(1e18))
 			fromSigner := suite.NewSigner()
 			toSigner := suite.NewSigner()
-			sender := suite.NewSigner()
+			suite.signer = suite.NewSigner()
 
 			// from delegate, approve sender, sender send tx, transferFrom to toSigner
 			// from delegate, approve contract, sender call contract, transferFrom to toSigner
-			contract := suite.stakingAddr
 			delAddr := fromSigner.Address()
-			spender := sender.Address()
-			if strings.HasPrefix(tc.name, "contract") {
-				contract = suite.stakingTestAddr
-				spender = suite.stakingTestAddr
-			}
+			spender := suite.GetDelAddr()
 
 			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 			suite.Require().NoError(err)
@@ -712,8 +472,7 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			// NOTE: if contract test, spender is staking test contract
 			args, shares, _ := tc.malleate(operator, spender, delAddr, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
 
-			suite.WithContract(contract)
-			suite.WithSigner(sender)
+			suite.WithSigner(suite.signer)
 			res, _ := suite.TransferFromShares(suite.Ctx, args)
 
 			if tc.result {
@@ -748,10 +507,10 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					abi := precompile.NewTransferFromSharesABI()
-					if log.Topics[0] == abi.Event.ID.String() {
+					transferFromSharesABI := precompile.NewTransferFromSharesABI()
+					if log.Topics[0] == transferFromSharesABI.Event.ID.String() {
 						suite.Require().Len(log.Topics, 3)
-						event, err := abi.UnpackEvent(log.ToEthereum())
+						event, err := transferFromSharesABI.UnpackEvent(log.ToEthereum())
 						suite.Require().NoError(err)
 						suite.Require().Equal(event.From, delAddr)
 						suite.Require().Equal(event.To, toSigner.Address())
@@ -768,10 +527,10 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 	}
 }
 
-func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxstakingtypes.TransferFromSharesArgs, *big.Int, []string) {
+func (suite *StakingPrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxcontract.TransferFromSharesArgs, *big.Int, []string) {
 	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
 	suite.approveFunc(val, from, spender, randShares)
-	return fxstakingtypes.TransferFromSharesArgs{
+	return fxcontract.TransferFromSharesArgs{
 		Validator: val.String(),
 		From:      from,
 		To:        to,
@@ -779,9 +538,9 @@ func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spend
 	}, randShares, nil
 }
 
-func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxstakingtypes.TransferFromSharesArgs, *big.Int, []string) {
+func (suite *StakingPrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) (fxcontract.TransferFromSharesArgs, *big.Int, []string) {
 	suite.approveFunc(val, from, spender, shares)
-	return fxstakingtypes.TransferFromSharesArgs{
+	return fxcontract.TransferFromSharesArgs{
 		Validator: val.String(),
 		From:      from,
 		To:        to,
@@ -789,7 +548,10 @@ func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spende
 	}, shares, nil
 }
 
-func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
+func (suite *StakingPrecompileTestSuite) TestTransferSharesCompare() {
+	if !suite.IsCallPrecompile() {
+		suite.T().Skip()
+	}
 	val := suite.GetFirstValidator()
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
 	signer1 := suite.NewSigner()
@@ -982,7 +744,10 @@ func (suite *PrecompileTestSuite) TestTransferSharesCompare() {
 	suite.Require().EqualValues(0, startingInfo.PreviousPeriod) // transfer all shares, starting info removed
 }
 
-func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
+func (suite *StakingPrecompileTestSuite) TestPrecompileStakingSteps() {
+	if !suite.IsCallPrecompile() {
+		suite.T().Skip()
+	}
 	val := suite.GetFirstValidator()
 	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
 	signer1 := suite.NewSigner()
@@ -1067,7 +832,7 @@ func (suite *PrecompileTestSuite) TestPrecompileStakingSteps() {
 	suite.Commit()
 }
 
-func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
+func (suite *StakingPrecompileTestSuite) TestTransferSharesRedelegate() {
 	vals := suite.GetValidators()
 	val := vals[0]
 	valTmp := vals[1]
@@ -1100,14 +865,14 @@ func (suite *PrecompileTestSuite) TestTransferSharesRedelegate() {
 	// transfer shares
 	suite.WithSigner(signer1).WithContract(suite.stakingAddr)
 	_, _ = suite.WithError(errors.New("from has receiving redelegation")).
-		TransferShares(suite.Ctx, fxstakingtypes.TransferSharesArgs{
+		TransferShares(suite.Ctx, fxcontract.TransferSharesArgs{
 			Validator: val.GetOperator(),
 			To:        signer2.Address(),
 			Shares:    delegation.Shares.TruncateInt().BigInt(),
 		})
 }
 
-func (suite *PrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ common.Address, delAmount sdkmath.Int) {
+func (suite *StakingPrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ common.Address, delAmount sdkmath.Int) {
 	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
@@ -1117,14 +882,14 @@ func (suite *PrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ c
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) undelegateToFunc(val sdk.ValAddress, _, to common.Address, _ sdkmath.Int) {
+func (suite *StakingPrecompileTestSuite) undelegateToFunc(val sdk.ValAddress, _, to common.Address, _ sdkmath.Int) {
 	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
 	suite.Require().NoError(err)
 	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
+func (suite *StakingPrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
 	suite.MintToken(from.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
@@ -1142,7 +907,7 @@ func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, t
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
+func (suite *StakingPrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
 	suite.MintToken(to.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
 	_, err := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper.Keeper).Delegate(suite.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
@@ -1160,7 +925,7 @@ func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, t
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) undelegateFromToFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
+func (suite *StakingPrecompileTestSuite) undelegateFromToFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
 	fromDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, from.Bytes(), val)
 	suite.Require().NoError(err)
 	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, from.Bytes(), val, fromDel.Shares)
@@ -1172,7 +937,7 @@ func (suite *PrecompileTestSuite) undelegateFromToFunc(val sdk.ValAddress, from,
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
+func (suite *StakingPrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
 	toDel, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, to.Bytes(), val)
 	suite.Require().NoError(err)
 	_, _, err = suite.App.StakingKeeper.Undelegate(suite.Ctx, to.Bytes(), val, toDel.Shares)
@@ -1184,21 +949,21 @@ func (suite *PrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from,
 	suite.Require().NoError(err)
 }
 
-func (suite *PrecompileTestSuite) approveFunc(val sdk.ValAddress, owner, spender common.Address, allowance *big.Int) {
+func (suite *StakingPrecompileTestSuite) approveFunc(val sdk.ValAddress, owner, spender common.Address, allowance *big.Int) {
 	suite.App.StakingKeeper.SetAllowance(suite.Ctx, val, owner.Bytes(), spender.Bytes(), allowance)
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingDelegation(val sdk.ValAddress, del common.Address) (*big.Int, *big.Int) {
-	return suite.Delegation(suite.Ctx, fxstakingtypes.DelegationArgs{
+func (suite *StakingPrecompileTestSuite) PrecompileStakingDelegation(val sdk.ValAddress, del common.Address) (*big.Int, *big.Int) {
+	return suite.Delegation(suite.Ctx, fxcontract.DelegationArgs{
 		Validator: val.String(),
 		Delegator: del,
 	})
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingTransferShares(signer *helpers.Signer, val sdk.ValAddress, receipt common.Address, shares *big.Int) (*big.Int, *big.Int) {
+func (suite *StakingPrecompileTestSuite) PrecompileStakingTransferShares(signer *helpers.Signer, val sdk.ValAddress, receipt common.Address, shares *big.Int) (*big.Int, *big.Int) {
 	balanceBefore := suite.GetStakingBalance(signer.AccAddress())
 	suite.WithSigner(signer)
-	res, _ := suite.TransferShares(suite.Ctx, fxstakingtypes.TransferSharesArgs{
+	res, _ := suite.TransferShares(suite.Ctx, fxcontract.TransferSharesArgs{
 		Validator: val.String(),
 		To:        receipt,
 		Shares:    shares,
@@ -1212,10 +977,10 @@ func (suite *PrecompileTestSuite) PrecompileStakingTransferShares(signer *helper
 	return signerShares, rewards.BigInt()
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
+func (suite *StakingPrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
 	balanceBefore := suite.GetStakingBalance(signer.AccAddress())
 	suite.WithSigner(signer)
-	res := suite.UndelegateV2(suite.Ctx, fxstakingtypes.UndelegateV2Args{
+	res := suite.UndelegateV2(suite.Ctx, fxcontract.UndelegateV2Args{
 		Validator: val.String(),
 		Amount:    shares,
 	})
@@ -1226,18 +991,18 @@ func (suite *PrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.
 	return rewards.BigInt()
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingApproveShares(signer *helpers.Signer, val sdk.ValAddress, spender common.Address, shares *big.Int) {
+func (suite *StakingPrecompileTestSuite) PrecompileStakingApproveShares(signer *helpers.Signer, val sdk.ValAddress, spender common.Address, shares *big.Int) {
 	suite.WithSigner(signer)
-	suite.ApproveShares(suite.Ctx, fxstakingtypes.ApproveSharesArgs{
+	suite.ApproveShares(suite.Ctx, fxcontract.ApproveSharesArgs{
 		Validator: val.String(),
 		Spender:   spender,
 		Shares:    shares,
 	})
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingTransferFromShares(signer *helpers.Signer, val sdk.ValAddress, from, receipt common.Address, shares *big.Int) {
+func (suite *StakingPrecompileTestSuite) PrecompileStakingTransferFromShares(signer *helpers.Signer, val sdk.ValAddress, from, receipt common.Address, shares *big.Int) {
 	suite.WithSigner(signer)
-	suite.TransferFromShares(suite.Ctx, fxstakingtypes.TransferFromSharesArgs{
+	suite.TransferFromShares(suite.Ctx, fxcontract.TransferFromSharesArgs{
 		Validator: val.String(),
 		From:      from,
 		To:        receipt,
@@ -1245,7 +1010,7 @@ func (suite *PrecompileTestSuite) PrecompileStakingTransferFromShares(signer *he
 	})
 }
 
-func (suite *PrecompileTestSuite) Delegate(val sdk.ValAddress, amount sdkmath.Int, dels ...sdk.AccAddress) {
+func (suite *StakingPrecompileTestSuite) Delegate(val sdk.ValAddress, amount sdkmath.Int, dels ...sdk.AccAddress) {
 	for _, del := range dels {
 		suite.MintToken(del, sdk.NewCoin(fxtypes.DefaultDenom, amount))
 		validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)

@@ -18,49 +18,64 @@ import (
 	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
-type PrecompileTestSuite struct {
+type StakingPrecompileTestSuite struct {
 	helpers.BaseSuite
 
-	signer          *helpers.Signer
-	stakingTestAddr common.Address
-	stakingAddr     common.Address
+	signer      *helpers.Signer
+	stakingAddr common.Address
 
 	helpers.StakingPrecompileSuite
 }
 
-func TestPrecompileTestSuite(t *testing.T) {
-	fxtypes.SetConfig(true)
-	suite.Run(t, new(PrecompileTestSuite))
+func TestStakingPrecompileTestSuite(t *testing.T) {
+	testingSuite := new(StakingPrecompileTestSuite)
+	testingSuite.stakingAddr = common.HexToAddress(contract.StakingAddress)
+	suite.Run(t, testingSuite)
 }
 
-func (suite *PrecompileTestSuite) SetupSubTest() {
+func TestStakingPrecompileTestSuite_Contract(t *testing.T) {
+	suite.Run(t, new(StakingPrecompileTestSuite))
+}
+
+func (suite *StakingPrecompileTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *PrecompileTestSuite) SetupTest() {
+func (suite *StakingPrecompileTestSuite) SetupTest() {
 	suite.MintValNumber = 2
 	suite.BaseSuite.SetupTest()
 	suite.Commit(10)
 
-	suite.signer = suite.NewSigner()
-	suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18))))
+	suite.signer = suite.AddTestSigner()
 
-	var err error
-	suite.stakingTestAddr, err = suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.StakingTestMetaData.ABI), contract.MustDecodeHex(testscontract.StakingTestMetaData.Bin))
-	suite.Require().NoError(err)
-
-	suite.stakingAddr = common.HexToAddress(contract.StakingAddress)
+	if !suite.IsCallPrecompile() {
+		stakingTestAddr, err := suite.App.EvmKeeper.DeployContract(suite.Ctx, suite.signer.Address(), contract.MustABIJson(testscontract.StakingTestMetaData.ABI), contract.MustDecodeHex(testscontract.StakingTestMetaData.Bin))
+		suite.Require().NoError(err)
+		suite.stakingAddr = stakingTestAddr
+		suite.MintToken(suite.stakingAddr.Bytes(), helpers.NewStakingCoin(10000, 18))
+	}
 
 	suite.StakingPrecompileSuite = helpers.NewStakingPrecompileSuite(suite.Require(), suite.signer, suite.App.EvmKeeper, suite.stakingAddr)
 }
 
-func (suite *PrecompileTestSuite) DistributionQueryClient(ctx sdk.Context) distributiontypes.QueryClient {
+func (suite *StakingPrecompileTestSuite) GetDelAddr() common.Address {
+	if suite.IsCallPrecompile() {
+		return suite.signer.Address()
+	}
+	return suite.stakingAddr
+}
+
+func (suite *StakingPrecompileTestSuite) IsCallPrecompile() bool {
+	return suite.stakingAddr.String() == contract.StakingAddress
+}
+
+func (suite *StakingPrecompileTestSuite) DistributionQueryClient(ctx sdk.Context) distributiontypes.QueryClient {
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, suite.App.InterfaceRegistry())
 	distributiontypes.RegisterQueryServer(queryHelper, distributionkeeper.NewQuerier(suite.App.DistrKeeper))
 	return distributiontypes.NewQueryClient(queryHelper)
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingDelegateV2(signer *helpers.Signer, val sdk.ValAddress, amt *big.Int) *big.Int {
+func (suite *StakingPrecompileTestSuite) PrecompileStakingDelegateV2(signer *helpers.Signer, val sdk.ValAddress, amt *big.Int) *big.Int {
 	suite.MintToken(signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(amt)))
 
 	_, amountBefore := suite.Delegation(suite.Ctx, contract.DelegationArgs{
@@ -84,7 +99,7 @@ func (suite *PrecompileTestSuite) PrecompileStakingDelegateV2(signer *helpers.Si
 	return shares
 }
 
-func (suite *PrecompileTestSuite) PrecompileStakingWithdraw(signer *helpers.Signer, val sdk.ValAddress) sdk.Coins {
+func (suite *StakingPrecompileTestSuite) PrecompileStakingWithdraw(signer *helpers.Signer, val sdk.ValAddress) sdk.Coins {
 	balanceBefore := suite.App.BankKeeper.GetAllBalances(suite.Ctx, signer.AccAddress())
 
 	suite.WithSigner(signer)

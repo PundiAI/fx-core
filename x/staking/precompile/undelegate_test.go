@@ -18,7 +18,7 @@ import (
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
-func (suite *PrecompileTestSuite) TestUndelegate() {
+func (suite *StakingPrecompileTestSuite) TestUndelegate() {
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, shares sdkmath.LegacyDec, delAmt sdkmath.Int) (contract.UndelegateV2Args, error)
@@ -46,42 +46,14 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			},
 			result: false,
 		},
-
-		{
-			name: "contract - ok v2",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec, delAmt sdkmath.Int) (contract.UndelegateV2Args, error) {
-				return contract.UndelegateV2Args{
-					Validator: val.String(),
-					Amount:    delAmt.BigInt(),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - failed - v2 invalid validator address",
-			malleate: func(val sdk.ValAddress, shares sdkmath.LegacyDec, delAmt sdkmath.Int) (contract.UndelegateV2Args, error) {
-				newVal := val.String() + "1"
-				return contract.UndelegateV2Args{
-					Validator: newVal,
-					Amount:    delAmt.BigInt(),
-				}, fmt.Errorf("invalid validator address: %s", newVal)
-			},
-			result: false,
-		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			operator := suite.GetFirstValAddr()
 			delAmt := helpers.NewRandAmount()
+			delAddr := suite.GetDelAddr()
 
-			suite.WithContract(suite.stakingAddr)
-			delAddr := suite.signer.Address()
-			if strings.HasPrefix(tc.name, "contract") {
-				suite.WithContract(suite.stakingTestAddr)
-				delAddr = suite.stakingTestAddr
-				suite.MintToken(delAddr.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
-			}
 			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
 				Validator: operator.String(),
 				Amount:    delAmt.BigInt(),
@@ -120,13 +92,13 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 	}
 }
 
-func (suite *PrecompileTestSuite) CheckUndelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valAddr string, shares, amount *big.Int, completionTime time.Time) {
-	undelegateV2Method := precompile.NewUndelegateV2Method(nil)
+func (suite *StakingPrecompileTestSuite) CheckUndelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valAddr string, shares, amount *big.Int, completionTime time.Time) {
+	undelegateV2ABI := precompile.NewUndelegateV2ABI()
 	existLog := false
 	for _, log := range logs {
-		if log.Topics[0] == undelegateV2Method.Event.ID.String() {
-			suite.Require().Equal(log.Address, suite.stakingAddr.String())
-			event, err := undelegateV2Method.UnpackEvent(log.ToEthereum())
+		if log.Topics[0] == undelegateV2ABI.Event.ID.String() {
+			suite.Require().Equal(log.Address, contract.StakingAddress)
+			event, err := undelegateV2ABI.UnpackEvent(log.ToEthereum())
 			suite.Require().NoError(err)
 			suite.Require().Equal(event.Sender, delAddr)
 			suite.Require().Equal(event.Validator, valAddr)
@@ -138,7 +110,7 @@ func (suite *PrecompileTestSuite) CheckUndelegateLogs(logs []*evmtypes.Log, delA
 	suite.Require().True(existLog)
 }
 
-func (suite *PrecompileTestSuite) CheckUndelegateEvents(ctx sdk.Context, valAddr string, amount *big.Int, completionTime time.Time) {
+func (suite *StakingPrecompileTestSuite) CheckUndelegateEvents(ctx sdk.Context, valAddr string, amount *big.Int, completionTime time.Time) {
 	existEvent := false
 	for _, event := range ctx.EventManager().Events() {
 		if event.Type == stakingtypes.EventTypeUnbond {

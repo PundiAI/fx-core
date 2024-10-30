@@ -20,7 +20,10 @@ import (
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
-func (suite *PrecompileTestSuite) TestDelegateCompare() {
+func (suite *StakingPrecompileTestSuite) TestDelegateCompare() {
+	if !suite.IsCallPrecompile() {
+		suite.T().Skip()
+	}
 	val := suite.GetFirstValidator()
 	delAmount := helpers.NewRandAmount()
 	signer1 := suite.NewSigner()
@@ -55,15 +58,15 @@ func (suite *PrecompileTestSuite) TestDelegateCompare() {
 }
 
 func TestStakingDelegateV2ABI(t *testing.T) {
-	delegateV2Method := precompile.NewDelegateV2Method(nil)
+	delegateV2ABI := precompile.NewDelegateV2ABI()
 
-	require.Len(t, delegateV2Method.Method.Inputs, 2)
-	require.Len(t, delegateV2Method.Method.Outputs, 1)
+	require.Len(t, delegateV2ABI.Method.Inputs, 2)
+	require.Len(t, delegateV2ABI.Method.Outputs, 1)
 
-	require.Len(t, delegateV2Method.Event.Inputs, 3)
+	require.Len(t, delegateV2ABI.Event.Inputs, 3)
 }
 
-func (suite *PrecompileTestSuite) TestDelegateV2() {
+func (suite *StakingPrecompileTestSuite) TestDelegateV2() {
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, delAmount sdkmath.Int) (contract.DelegateV2Args, error)
@@ -82,12 +85,11 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 		{
 			name: "ok - delegate - multiple",
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (contract.DelegateV2Args, error) {
-				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
-
-				validator, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, val)
-				suite.Require().NoError(err)
-				_, err = suite.App.StakingKeeper.Delegate(suite.Ctx, suite.signer.AccAddress(), delAmount, stakingtypes.Unbonded, validator, true)
-				suite.Require().NoError(err)
+				res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
+					Validator: val.String(),
+					Amount:    delAmount.BigInt(),
+				})
+				suite.Require().False(res.Failed(), res.VmError)
 
 				return contract.DelegateV2Args{
 					Validator: val.String(),
@@ -106,45 +108,6 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 			},
 			result: false,
 		},
-		{
-			name: "contract - ok",
-			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (contract.DelegateV2Args, error) {
-				return contract.DelegateV2Args{
-					Validator: val.String(),
-					Amount:    delAmount.BigInt(),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - ok - delegate - multiple",
-			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (contract.DelegateV2Args, error) {
-				suite.MintToken(suite.signer.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
-
-				suite.Require().NoError(suite.App.BankKeeper.SendCoins(suite.Ctx, suite.signer.AccAddress(), suite.stakingTestAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount))))
-
-				suite.WithContract(suite.stakingTestAddr)
-				res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
-					Validator: val.String(),
-					Amount:    delAmount.BigInt(),
-				})
-				suite.Require().False(res.Failed(), res.VmError)
-
-				return contract.DelegateV2Args{
-					Validator: val.String(),
-					Amount:    delAmount.BigInt(),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - failed - invalid validator address",
-			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (contract.DelegateV2Args, error) {
-				return contract.DelegateV2Args{Validator: val.String() + "1", Amount: delAmount.BigInt()},
-					fmt.Errorf("invalid validator address: %s", val.String()+"1")
-			},
-			result: false,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -154,13 +117,7 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 
 			args, expectErr := tc.malleate(operator, delAmount)
 
-			suite.WithContract(suite.stakingAddr)
-			delAddr := suite.signer.Address()
-			if strings.HasPrefix(tc.name, "contract") {
-				suite.WithContract(suite.stakingTestAddr)
-				delAddr = suite.stakingTestAddr
-				suite.MintToken(delAddr.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmount))
-			}
+			delAddr := suite.GetDelAddr()
 
 			delFound := true
 			delBefore, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr.Bytes(), operator)
@@ -187,34 +144,21 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), valAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
 				suite.Require().Equal(delAmount, valAfter.GetTokens().Sub(valBefore.GetTokens()))
 
-				existLog := false
-				for _, log := range res.Logs {
-					abi := precompile.NewDelegateV2ABI()
-					if log.Topics[0] == abi.Event.ID.String() {
-						suite.Require().Equal(log.Address, suite.stakingAddr.String())
-
-						event, err := abi.UnpackEvent(log.ToEthereum())
-						suite.Require().NoError(err)
-						suite.Require().Equal(event.Delegator, delAddr)
-						suite.Require().Equal(event.Validator, operator.String())
-						suite.Require().Equal(event.Amount.String(), delAmount.BigInt().String())
-						existLog = true
-					}
-				}
-				suite.Require().True(existLog)
+				suite.CheckDelegateLogs(res.Logs, delAddr, operator.String(), delAmount.BigInt())
+				suite.CheckDelegateEvents(suite.Ctx, operator, delAmount)
 			}
 		})
 	}
 }
 
-func (suite *PrecompileTestSuite) CheckDelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valAddr string, amount, shares *big.Int) {
-	delegateV2Method := precompile.NewDelegateV2Method(nil)
+func (suite *StakingPrecompileTestSuite) CheckDelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valAddr string, amount *big.Int) {
+	delegateV2ABI := precompile.NewDelegateV2ABI()
 	existLog := false
 	for _, log := range logs {
-		if log.Topics[0] == delegateV2Method.Event.ID.String() {
-			suite.Require().Equal(log.Address, suite.stakingAddr.String())
+		if log.Topics[0] == delegateV2ABI.Event.ID.String() {
+			suite.Require().Equal(contract.StakingAddress, log.Address)
 
-			event, err := delegateV2Method.UnpackEvent(log.ToEthereum())
+			event, err := delegateV2ABI.UnpackEvent(log.ToEthereum())
 			suite.Require().NoError(err)
 			suite.Require().Equal(event.Delegator, delAddr)
 			suite.Require().Equal(event.Validator, valAddr)
@@ -225,7 +169,7 @@ func (suite *PrecompileTestSuite) CheckDelegateLogs(logs []*evmtypes.Log, delAdd
 	suite.Require().True(existLog)
 }
 
-func (suite *PrecompileTestSuite) CheckDelegateEvents(ctx sdk.Context, valAddr sdk.ValAddress, delAmount sdkmath.Int) {
+func (suite *StakingPrecompileTestSuite) CheckDelegateEvents(ctx sdk.Context, valAddr sdk.ValAddress, delAmount sdkmath.Int) {
 	existEvent := false
 	for _, event := range ctx.EventManager().Events() {
 		if event.Type == stakingtypes.EventTypeDelegate {
