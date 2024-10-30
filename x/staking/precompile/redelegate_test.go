@@ -18,7 +18,7 @@ import (
 	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
-func (suite *PrecompileTestSuite) TestRedelegate() {
+func (suite *StakingPrecompileTestSuite) TestRedelegate() {
 	testCases := []struct {
 		name     string
 		malleate func(valSrc, valDst sdk.ValAddress, shares sdkmath.LegacyDec, delAmount sdkmath.Int) (contract.RedelegateV2Args, error)
@@ -48,44 +48,13 @@ func (suite *PrecompileTestSuite) TestRedelegate() {
 			},
 			result: false,
 		},
-
-		{
-			name: "contract - ok v2",
-			malleate: func(valSrc, valDst sdk.ValAddress, shares sdkmath.LegacyDec, delAmount sdkmath.Int) (contract.RedelegateV2Args, error) {
-				return contract.RedelegateV2Args{
-					ValidatorSrc: valSrc.String(),
-					ValidatorDst: valDst.String(),
-					Amount:       delAmount.BigInt(),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - failed - v2 invalid validator src",
-			malleate: func(_, valDst sdk.ValAddress, shares sdkmath.LegacyDec, delAmount sdkmath.Int) (contract.RedelegateV2Args, error) {
-				valSrc := sdk.ValAddress(suite.signer.Address().Bytes())
-				return contract.RedelegateV2Args{
-					ValidatorSrc: valSrc.String(),
-					ValidatorDst: valDst.String(),
-					Amount:       delAmount.BigInt(),
-				}, fmt.Errorf("validator does not exist")
-			},
-			result: false,
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			operator0 := suite.GetFirstValAddr()
 			operator1 := suite.GetSecondValAddr()
 			delAmt := helpers.NewRandAmount()
-
-			suite.WithContract(suite.stakingAddr)
-			delAddr := suite.signer.Address()
-			if strings.HasPrefix(tc.name, "contract") {
-				suite.WithContract(suite.stakingTestAddr)
-				delAddr = suite.stakingTestAddr
-				suite.MintToken(delAddr.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, delAmt))
-			}
+			delAddr := suite.GetDelAddr()
 
 			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
 				Validator: operator0.String(),
@@ -129,13 +98,13 @@ func (suite *PrecompileTestSuite) TestRedelegate() {
 	}
 }
 
-func (suite *PrecompileTestSuite) CheckRedelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valSrc, valDst string, shares, amount *big.Int, completionTime int64) {
-	redelegateV2Method := precompile.NewRedelegateV2Method(nil)
+func (suite *StakingPrecompileTestSuite) CheckRedelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valSrc, valDst string, shares, amount *big.Int, completionTime int64) {
+	redelegateV2ABI := precompile.NewRedelegateV2ABI()
 	existLog := false
 	for _, log := range logs {
-		if log.Topics[0] == redelegateV2Method.Event.ID.String() {
-			suite.Require().Equal(log.Address, suite.stakingAddr.String())
-			event, err := redelegateV2Method.UnpackEvent(log.ToEthereum())
+		if log.Topics[0] == redelegateV2ABI.Event.ID.String() {
+			suite.Require().Equal(log.Address, contract.StakingAddress)
+			event, err := redelegateV2ABI.UnpackEvent(log.ToEthereum())
 			suite.Require().NoError(err)
 			suite.Require().Equal(event.Sender, delAddr)
 			suite.Require().Equal(event.ValSrc, valSrc)
@@ -148,7 +117,7 @@ func (suite *PrecompileTestSuite) CheckRedelegateLogs(logs []*evmtypes.Log, delA
 	suite.Require().True(existLog)
 }
 
-func (suite *PrecompileTestSuite) CheckRedelegateEvents(ctx sdk.Context, valSrc, valDst string, amount *big.Int, completionTime time.Time) {
+func (suite *StakingPrecompileTestSuite) CheckRedelegateEvents(ctx sdk.Context, valSrc, valDst string, amount *big.Int, completionTime time.Time) {
 	existEvent := false
 	for _, event := range ctx.EventManager().Events() {
 		if event.Type != stakingtypes.EventTypeRedelegate {

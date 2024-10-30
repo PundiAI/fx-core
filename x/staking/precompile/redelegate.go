@@ -23,7 +23,7 @@ type RedelegateV2Method struct {
 func NewRedelegateV2Method(keeper *Keeper) *RedelegateV2Method {
 	return &RedelegateV2Method{
 		Keeper:        keeper,
-		RedelegateABI: NewRedelegateABI(),
+		RedelegateABI: NewRedelegateV2ABI(),
 	}
 }
 
@@ -78,7 +78,7 @@ type RedelegateABI struct {
 	abi.Event
 }
 
-func NewRedelegateABI() RedelegateABI {
+func NewRedelegateV2ABI() RedelegateABI {
 	return RedelegateABI{
 		Method: stakingABI.Methods["redelegateV2"],
 		Event:  stakingABI.Events["RedelegateV2"],

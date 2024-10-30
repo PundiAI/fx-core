@@ -3,7 +3,6 @@ package precompile_test
 import (
 	"fmt"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,13 +13,13 @@ import (
 )
 
 func TestValidatorListABI(t *testing.T) {
-	validatorListMethod := precompile2.NewValidatorListMethod(nil)
+	validatorListABI := precompile2.NewValidatorListABI()
 
-	require.Len(t, validatorListMethod.Method.Inputs, 1)
-	require.Len(t, validatorListMethod.Method.Outputs, 1)
+	require.Len(t, validatorListABI.Method.Inputs, 1)
+	require.Len(t, validatorListABI.Method.Outputs, 1)
 }
 
-func (suite *PrecompileTestSuite) TestValidatorList() {
+func (suite *StakingPrecompileTestSuite) TestValidatorList() {
 	testCases := []struct {
 		name     string
 		malleate func() (contract.ValidatorListArgs, error)
@@ -53,24 +52,6 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 			},
 			result: false,
 		},
-		{
-			name: "contract - ok",
-			malleate: func() (contract.ValidatorListArgs, error) {
-				return contract.ValidatorListArgs{
-					SortBy: uint8(contract.ValidatorSortByPower),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - ok - missed",
-			malleate: func() (contract.ValidatorListArgs, error) {
-				return contract.ValidatorListArgs{
-					SortBy: uint8(contract.ValidatorSortByMissed),
-				}, nil
-			},
-			result: true,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -82,11 +63,6 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 			suite.SetAllowance(operator, suite.signer.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
 			args, expectErr := tc.malleate()
-
-			suite.WithContract(suite.stakingAddr)
-			if strings.HasPrefix(tc.name, "contract") {
-				suite.WithContract(suite.stakingTestAddr)
-			}
 
 			valAddrs := suite.WithError(expectErr).ValidatorList(suite.Ctx, args)
 			if tc.result {
