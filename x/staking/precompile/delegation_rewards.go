@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type DelegationRewardsMethod struct {
@@ -79,7 +79,7 @@ func NewDelegationRewardsABI() DelegationRewardsABI {
 	}
 }
 
-func (m DelegationRewardsABI) PackInput(args fxstakingtypes.DelegationRewardsArgs) ([]byte, error) {
+func (m DelegationRewardsABI) PackInput(args fxcontract.DelegationRewardsArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Delegator)
 	if err != nil {
 		return nil, err
@@ -87,8 +87,8 @@ func (m DelegationRewardsABI) PackInput(args fxstakingtypes.DelegationRewardsArg
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m DelegationRewardsABI) UnpackInput(data []byte) (*fxstakingtypes.DelegationRewardsArgs, error) {
-	args := new(fxstakingtypes.DelegationRewardsArgs)
+func (m DelegationRewardsABI) UnpackInput(data []byte) (*fxcontract.DelegationRewardsArgs, error) {
+	args := new(fxcontract.DelegationRewardsArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }

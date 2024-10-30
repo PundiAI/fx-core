@@ -13,7 +13,6 @@ import (
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type UndelegateV2Method struct {
@@ -91,7 +90,7 @@ func NewUndelegateV2ABI() UndelegateABI {
 	}
 }
 
-func (m UndelegateABI) PackInput(args fxstakingtypes.UndelegateV2Args) ([]byte, error) {
+func (m UndelegateABI) PackInput(args fxcontract.UndelegateV2Args) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Amount)
 	if err != nil {
 		return nil, err
@@ -99,8 +98,8 @@ func (m UndelegateABI) PackInput(args fxstakingtypes.UndelegateV2Args) ([]byte, 
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m UndelegateABI) UnpackInput(data []byte) (*fxstakingtypes.UndelegateV2Args, error) {
-	args := new(fxstakingtypes.UndelegateV2Args)
+func (m UndelegateABI) UnpackInput(data []byte) (*fxcontract.UndelegateV2Args, error) {
+	args := new(fxcontract.UndelegateV2Args)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }

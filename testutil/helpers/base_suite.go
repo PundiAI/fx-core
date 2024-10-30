@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v8/app"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -57,7 +58,7 @@ func (s *BaseSuite) SetupTest() {
 
 func (s *BaseSuite) AddTestSigner(amount ...int64) *Signer {
 	signer := NewSigner(NewEthPrivKey())
-	defAmount := int64(100)
+	defAmount := int64(10000)
 	if len(amount) > 0 {
 		defAmount = amount[0]
 	}
@@ -182,6 +183,11 @@ func (s *BaseSuite) CheckBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 func (s *BaseSuite) CheckAllBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
 	s.Equal(sdk.NewCoins(expBal...).String(), balances.String())
+}
+
+func (s *BaseSuite) GetStakingBalance(addr sdk.AccAddress) sdkmath.Int {
+	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
+	return balances.AmountOf(fxtypes.DefaultDenom)
 }
 
 func (s *BaseSuite) NewCoin(amounts ...sdkmath.Int) sdk.Coin {

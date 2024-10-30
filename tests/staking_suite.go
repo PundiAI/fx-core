@@ -21,8 +21,7 @@ import (
 	"github.com/functionx/fx-core/v8/contract"
 	testscontract "github.com/functionx/fx-core/v8/tests/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	stakingprecompile "github.com/functionx/fx-core/v8/x/staking/precompile"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
+	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
 type StakingSuite struct {
@@ -113,15 +112,15 @@ func (suite *StakingSuite) send(privateKey cryptotypes.PrivKey, value *big.Int, 
 }
 
 func (suite *StakingSuite) DelegateV2(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewDelegateV2Method(nil)
-	pack, err := method.PackInput(fxstakingtypes.DelegateV2Args{Validator: valAddr, Amount: delAmount})
+	method := precompile.NewDelegateV2Method(nil)
+	pack, err := method.PackInput(contract.DelegateV2Args{Validator: valAddr, Amount: delAmount})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, big.NewInt(0), pack)
 }
 
 func (suite *StakingSuite) RedelegateV2(privateKey cryptotypes.PrivKey, valSrc, valDst string, amount *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewRedelegateV2Method(nil)
-	pack, err := method.PackInput(fxstakingtypes.RedelegateV2Args{ValidatorSrc: valSrc, ValidatorDst: valDst, Amount: amount})
+	method := precompile.NewRedelegateV2Method(nil)
+	pack, err := method.PackInput(contract.RedelegateV2Args{ValidatorSrc: valSrc, ValidatorDst: valDst, Amount: amount})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, nil, pack)
 }
@@ -144,22 +143,22 @@ func (suite *StakingSuite) WithdrawByContract(privateKey cryptotypes.PrivKey, co
 }
 
 func (suite *StakingSuite) UnDelegateV2(privateKey cryptotypes.PrivKey, valAddr string, amount *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewUndelegateV2Method(nil)
-	pack, err := method.PackInput(fxstakingtypes.UndelegateV2Args{Validator: valAddr, Amount: amount})
+	method := precompile.NewUndelegateV2Method(nil)
+	pack, err := method.PackInput(contract.UndelegateV2Args{Validator: valAddr, Amount: amount})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, nil, pack)
 }
 
 func (suite *StakingSuite) WithdrawReward(privateKey cryptotypes.PrivKey, valAddr string) *ethtypes.Receipt {
-	method := stakingprecompile.NewWithdrawMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.WithdrawArgs{Validator: valAddr})
+	method := precompile.NewWithdrawMethod(nil)
+	pack, err := method.PackInput(contract.WithdrawArgs{Validator: valAddr})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, nil, pack)
 }
 
 func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*big.Int, *big.Int) {
-	method := stakingprecompile.NewDelegationMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.DelegationArgs{Validator: valAddr, Delegator: delAddr})
+	method := precompile.NewDelegationMethod(nil)
+	pack, err := method.PackInput(contract.DelegationArgs{Validator: valAddr, Delegator: delAddr})
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &suite.stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
@@ -169,8 +168,8 @@ func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*
 }
 
 func (suite *StakingSuite) Rewards(valAddr string, delAddr common.Address) *big.Int {
-	method := stakingprecompile.NewDelegationRewardsMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.DelegationRewardsArgs{Validator: valAddr, Delegator: delAddr})
+	method := precompile.NewDelegationRewardsMethod(nil)
+	pack, err := method.PackInput(contract.DelegationRewardsArgs{Validator: valAddr, Delegator: delAddr})
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &suite.stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
@@ -180,8 +179,8 @@ func (suite *StakingSuite) Rewards(valAddr string, delAddr common.Address) *big.
 }
 
 func (suite *StakingSuite) TransferShares(privateKey cryptotypes.PrivKey, valAddr string, receipt common.Address, shares *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewTransferSharesMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.TransferSharesArgs{Validator: valAddr, To: receipt, Shares: shares})
+	method := precompile.NewTransferSharesMethod(nil)
+	pack, err := method.PackInput(contract.TransferSharesArgs{Validator: valAddr, To: receipt, Shares: shares})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, nil, pack)
 }
@@ -204,8 +203,8 @@ func (suite *StakingSuite) TransferSharesByContract(privateKey cryptotypes.PrivK
 }
 
 func (suite *StakingSuite) TransferFromShares(privateKey cryptotypes.PrivKey, valAddr string, from, receipt common.Address, shares *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewTransferFromSharesMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.TransferFromSharesArgs{Validator: valAddr, From: from, To: receipt, Shares: shares})
+	method := precompile.NewTransferFromSharesMethod(nil)
+	pack, err := method.PackInput(contract.TransferFromSharesArgs{Validator: valAddr, From: from, To: receipt, Shares: shares})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, nil, pack)
 }
@@ -228,15 +227,15 @@ func (suite *StakingSuite) TransferFromSharesByContract(privateKey cryptotypes.P
 }
 
 func (suite *StakingSuite) ApproveShares(privateKey cryptotypes.PrivKey, valAddr string, spender common.Address, shares *big.Int) *ethtypes.Receipt {
-	method := stakingprecompile.NewApproveSharesMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.ApproveSharesArgs{Validator: valAddr, Spender: spender, Shares: shares})
+	method := precompile.NewApproveSharesMethod(nil)
+	pack, err := method.PackInput(contract.ApproveSharesArgs{Validator: valAddr, Spender: spender, Shares: shares})
 	suite.Require().NoError(err)
 	return suite.send(privateKey, nil, pack)
 }
 
 func (suite *StakingSuite) AllowanceShares(valAddr string, owner, spender common.Address) *big.Int {
-	method := stakingprecompile.NewAllowanceSharesMethod(nil)
-	pack, err := method.PackInput(fxstakingtypes.AllowanceSharesArgs{Validator: valAddr, Owner: owner, Spender: spender})
+	method := precompile.NewAllowanceSharesMethod(nil)
+	pack, err := method.PackInput(contract.AllowanceSharesArgs{Validator: valAddr, Owner: owner, Spender: spender})
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &suite.stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
@@ -246,7 +245,7 @@ func (suite *StakingSuite) AllowanceShares(valAddr string, owner, spender common
 }
 
 func (suite *StakingSuite) LogReward(logs []*ethtypes.Log, valAddr string, addr common.Address) *big.Int {
-	method := stakingprecompile.NewWithdrawMethod(nil)
+	method := precompile.NewWithdrawMethod(nil)
 	for _, log := range logs {
 		if log.Address == suite.stakingContract &&
 			log.Topics[0] == method.Event.ID &&

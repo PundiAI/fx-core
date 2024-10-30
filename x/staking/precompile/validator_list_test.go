@@ -2,124 +2,87 @@ package precompile_test
 
 import (
 	"fmt"
-	"math/big"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/staking/precompile"
-	"github.com/functionx/fx-core/v8/x/staking/types"
+	precompile2 "github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
 func TestValidatorListABI(t *testing.T) {
-	validatorListMethod := precompile.NewValidatorListMethod(nil)
+	validatorListABI := precompile2.NewValidatorListABI()
 
-	require.Len(t, validatorListMethod.Method.Inputs, 1)
-	require.Len(t, validatorListMethod.Method.Outputs, 1)
+	require.Len(t, validatorListABI.Method.Inputs, 1)
+	require.Len(t, validatorListABI.Method.Outputs, 1)
 }
 
-func (suite *PrecompileTestSuite) TestValidatorList() {
+func (suite *StakingPrecompileTestSuite) TestValidatorList() {
 	testCases := []struct {
 		name     string
-		malleate func() (types.ValidatorListArgs, error)
+		malleate func() (contract.ValidatorListArgs, error)
 		result   bool
 	}{
 		{
 			name: "ok",
-			malleate: func() (types.ValidatorListArgs, error) {
-				return types.ValidatorListArgs{
-					SortBy: uint8(types.ValidatorSortByPower),
+			malleate: func() (contract.ValidatorListArgs, error) {
+				return contract.ValidatorListArgs{
+					SortBy: uint8(contract.ValidatorSortByPower),
 				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "ok - missed",
-			malleate: func() (types.ValidatorListArgs, error) {
-				return types.ValidatorListArgs{
-					SortBy: uint8(types.ValidatorSortByMissed),
+			malleate: func() (contract.ValidatorListArgs, error) {
+				return contract.ValidatorListArgs{
+					SortBy: uint8(contract.ValidatorSortByMissed),
 				}, nil
 			},
 			result: true,
 		},
 		{
 			name: "failed - invalid order value",
-			malleate: func() (types.ValidatorListArgs, error) {
-				return types.ValidatorListArgs{
+			malleate: func() (contract.ValidatorListArgs, error) {
+				return contract.ValidatorListArgs{
 					SortBy: 100,
 				}, fmt.Errorf("over the sort by limit")
 			},
 			result: false,
 		},
-		{
-			name: "contract - ok",
-			malleate: func() (types.ValidatorListArgs, error) {
-				return types.ValidatorListArgs{
-					SortBy: uint8(types.ValidatorSortByPower),
-				}, nil
-			},
-			result: true,
-		},
-		{
-			name: "contract - ok - missed",
-			malleate: func() (types.ValidatorListArgs, error) {
-				return types.ValidatorListArgs{
-					SortBy: uint8(types.ValidatorSortByMissed),
-				}, nil
-			},
-			result: true,
-		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			val := suite.GetFirstValidator()
-			owner := suite.RandSigner()
-			spender := suite.RandSigner()
+			operator := suite.GetFirstValAddr()
+			spender := suite.NewSigner()
 			allowanceAmt := helpers.NewRandAmount()
 
-			operator, err := suite.App.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
-			suite.Require().NoError(err)
+			suite.SetAllowance(operator, suite.signer.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
-			// set allowance
-			suite.App.StakingKeeper.SetAllowance(suite.Ctx, operator, owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
+			args, expectErr := tc.malleate()
 
-			args, errResult := tc.malleate()
-
-			packData, err := suite.validatorListMethod.PackInput(args)
-			suite.Require().NoError(err)
-			stakingContract := suite.stakingAddr
-
-			if strings.HasPrefix(tc.name, "contract") {
-				stakingContract = suite.stakingTestAddr
-			}
-
-			res := suite.EthereumTx(owner, stakingContract, big.NewInt(0), packData)
-
+			valAddrs := suite.WithError(expectErr).ValidatorList(suite.Ctx, args)
 			if tc.result {
-				suite.Require().False(res.Failed(), res.VmError)
-				valAddrs, err := suite.validatorListMethod.UnpackOutput(res.Ret)
-				suite.Require().NoError(err)
 				valsByPower, err := suite.App.StakingKeeper.GetBondedValidatorsByPower(suite.Ctx)
 				suite.Require().NoError(err)
-				suite.Equal(len(valAddrs), len(valsByPower))
+				suite.Require().Equal(len(valAddrs), len(valsByPower))
 
-				if args.GetSortBy() == types.ValidatorSortByPower {
+				if args.GetSortBy() == contract.ValidatorSortByPower {
 					for index, addr := range valAddrs {
-						suite.Equal(addr, valsByPower[index].OperatorAddress)
+						suite.Require().Equal(addr, valsByPower[index].OperatorAddress)
 					}
 				}
-				if args.GetSortBy() == types.ValidatorSortByMissed {
-					valList := make([]precompile.Validator, 0, len(valsByPower))
+				if args.GetSortBy() == contract.ValidatorSortByMissed {
+					valList := make([]precompile2.Validator, 0, len(valsByPower))
 					for _, validator := range valsByPower {
 						consAddr, err := validator.GetConsAddr()
 						suite.Require().NoError(err)
 						info, err := suite.App.SlashingKeeper.GetValidatorSigningInfo(suite.Ctx, consAddr)
 						suite.Require().NoError(err)
-						valList = append(valList, precompile.Validator{
+						valList = append(valList, precompile2.Validator{
 							ValAddr:      validator.OperatorAddress,
 							MissedBlocks: info.MissedBlocksCounter,
 						})
@@ -128,11 +91,9 @@ func (suite *PrecompileTestSuite) TestValidatorList() {
 						return valList[i].MissedBlocks > valList[j].MissedBlocks
 					})
 					for index, addr := range valAddrs {
-						suite.Equal(addr, valList[index].ValAddr)
+						suite.Require().Equal(addr, valList[index].ValAddr)
 					}
 				}
-			} else {
-				suite.Error(res, errResult)
 			}
 		})
 	}

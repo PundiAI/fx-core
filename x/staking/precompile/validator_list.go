@@ -4,8 +4,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type ValidatorListMethod struct {
@@ -48,9 +48,9 @@ func (m *ValidatorListMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, e
 
 	valAddrs := make([]string, 0, len(bondedVals))
 	switch args.GetSortBy() {
-	case fxstakingtypes.ValidatorSortByPower:
+	case fxcontract.ValidatorSortByPower:
 		valAddrs = validatorListPower(bondedVals)
-	case fxstakingtypes.ValidatorSortByMissed:
+	case fxcontract.ValidatorSortByMissed:
 		valAddrs, err = m.ValidatorListMissedBlock(cacheCtx, bondedVals)
 		if err != nil {
 			return nil, err
@@ -70,7 +70,7 @@ func NewValidatorListABI() ValidatorListABI {
 	}
 }
 
-func (m ValidatorListABI) PackInput(args fxstakingtypes.ValidatorListArgs) ([]byte, error) {
+func (m ValidatorListABI) PackInput(args fxcontract.ValidatorListArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.SortBy)
 	if err != nil {
 		return nil, err
@@ -78,8 +78,8 @@ func (m ValidatorListABI) PackInput(args fxstakingtypes.ValidatorListArgs) ([]by
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m ValidatorListABI) UnpackInput(data []byte) (*fxstakingtypes.ValidatorListArgs, error) {
-	args := new(fxstakingtypes.ValidatorListArgs)
+func (m ValidatorListABI) UnpackInput(data []byte) (*fxcontract.ValidatorListArgs, error) {
+	args := new(fxcontract.ValidatorListArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
