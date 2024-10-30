@@ -54,6 +54,8 @@ interface IBridgeFeeQuote {
     function supportAssets(
         string memory _chainName
     ) external view returns (Asset memory);
+
+    function maxQuoteIndex() external view returns (uint256);
 }
 
 interface IBridgeFeeOracle {
