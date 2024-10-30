@@ -113,7 +113,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 				suite.CheckUndelegateLogs(res.Logs, delAddr, operator.String(), delegation.Shares.TruncateInt().BigInt(),
 					undelegations[0].Entries[0].Balance.BigInt(), undelegations[0].Entries[0].CompletionTime)
 
-				suite.CheckUndeledateEvents(suite.Ctx, operator.String(), undelegations[0].Entries[0].Balance.BigInt(),
+				suite.CheckUndelegateEvents(suite.Ctx, operator.String(), undelegations[0].Entries[0].Balance.BigInt(),
 					undelegations[0].Entries[0].CompletionTime)
 			}
 		})
@@ -138,7 +138,7 @@ func (suite *PrecompileTestSuite) CheckUndelegateLogs(logs []*evmtypes.Log, delA
 	suite.Require().True(existLog)
 }
 
-func (suite *PrecompileTestSuite) CheckUndeledateEvents(ctx sdk.Context, valAddr string, amount *big.Int, completionTime time.Time) {
+func (suite *PrecompileTestSuite) CheckUndelegateEvents(ctx sdk.Context, valAddr string, amount *big.Int, completionTime time.Time) {
 	existEvent := false
 	for _, event := range ctx.EventManager().Events() {
 		if event.Type == stakingtypes.EventTypeUnbond {

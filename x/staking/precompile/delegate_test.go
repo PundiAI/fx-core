@@ -179,13 +179,13 @@ func (suite *PrecompileTestSuite) TestDelegateV2() {
 
 				delAfter := suite.GetDelegation(delAddr.Bytes(), operator)
 
-				vaAfter := suite.GetValidator(operator)
+				valAfter := suite.GetValidator(operator)
 
 				if !delFound {
 					delBefore = stakingtypes.Delegation{Shares: sdkmath.LegacyZeroDec()}
 				}
-				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), vaAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
-				suite.Require().Equal(delAmount, vaAfter.GetTokens().Sub(valBefore.GetTokens()))
+				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), valAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
+				suite.Require().Equal(delAmount, valAfter.GetTokens().Sub(valBefore.GetTokens()))
 
 				existLog := false
 				for _, log := range res.Logs {
