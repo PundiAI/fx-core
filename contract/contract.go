@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strings"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -148,4 +149,15 @@ func PackBridgeCallCheckpoint(gravityID, methodName [32]byte, sender, refund com
 		timeout,
 		eventNonce,
 	)
+}
+
+func unpackRetIsOk(abi abi.ABI, method string, res *evmtypes.MsgEthereumTxResponse) (*evmtypes.MsgEthereumTxResponse, error) {
+	var ret struct{ Value bool }
+	if err := abi.UnpackIntoInterface(&ret, method, res.Ret); err != nil {
+		return res, sdkerrors.ErrInvalidType.Wrapf("failed to unpack %s: %s", method, err.Error())
+	}
+	if !ret.Value {
+		return res, sdkerrors.ErrLogic.Wrapf("failed to execute %s", method)
+	}
+	return res, nil
 }

@@ -1,4 +1,4 @@
-package types
+package contract
 
 import (
 	"errors"
@@ -59,24 +59,6 @@ func (args *ApproveSharesArgs) GetValidator() sdk.ValAddress {
 	return valAddr
 }
 
-type DelegateArgs struct {
-	Validator string `abi:"_val"`
-}
-
-// Validate validates the args
-func (args *DelegateArgs) Validate() error {
-	if _, err := sdk.ValAddressFromBech32(args.Validator); err != nil {
-		return fmt.Errorf("invalid validator address: %s", args.Validator)
-	}
-	return nil
-}
-
-// GetValidator returns the validator address, caller must ensure the validator address is valid
-func (args *DelegateArgs) GetValidator() sdk.ValAddress {
-	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
-	return valAddr
-}
-
 type DelegateV2Args struct {
 	Validator string   `abi:"_val"`
 	Amount    *big.Int `abi:"_amount"`
@@ -91,6 +73,12 @@ func (args *DelegateV2Args) Validate() error {
 		return errors.New("invalid amount")
 	}
 	return nil
+}
+
+// GetValidator returns the validator address, caller must ensure the validator address is valid
+func (args *DelegateV2Args) GetValidator() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
+	return valAddr
 }
 
 type DelegationArgs struct {
@@ -131,38 +119,6 @@ func (args *DelegationRewardsArgs) GetValidator() sdk.ValAddress {
 	return valAddr
 }
 
-type RedelegateArgs struct {
-	ValidatorSrc string   `abi:"_valSrc"`
-	ValidatorDst string   `abi:"_valDst"`
-	Shares       *big.Int `abi:"_shares"`
-}
-
-// Validate validates the args
-func (args *RedelegateArgs) Validate() error {
-	if _, err := sdk.ValAddressFromBech32(args.ValidatorSrc); err != nil {
-		return fmt.Errorf("invalid validator src address: %s", args.ValidatorSrc)
-	}
-	if _, err := sdk.ValAddressFromBech32(args.ValidatorDst); err != nil {
-		return fmt.Errorf("invalid validator dst address: %s", args.ValidatorDst)
-	}
-	if args.Shares == nil || args.Shares.Sign() <= 0 {
-		return errors.New("invalid shares")
-	}
-	return nil
-}
-
-// GetValidatorSrc returns the validator src address, caller must ensure the validator address is valid
-func (args *RedelegateArgs) GetValidatorSrc() sdk.ValAddress {
-	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorSrc)
-	return valAddr
-}
-
-// GetValidatorDst returns the validator dest address, caller must ensure the validator address is valid
-func (args *RedelegateArgs) GetValidatorDst() sdk.ValAddress {
-	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorDst)
-	return valAddr
-}
-
 type RedelegateV2Args struct {
 	ValidatorSrc string   `abi:"_valSrc"`
 	ValidatorDst string   `abi:"_valDst"`
@@ -181,6 +137,18 @@ func (args *RedelegateV2Args) Validate() error {
 		return errors.New("invalid amount")
 	}
 	return nil
+}
+
+// GetValidatorSrc returns the validator src address, caller must ensure the validator address is valid
+func (args *RedelegateV2Args) GetValidatorSrc() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorSrc)
+	return valAddr
+}
+
+// GetValidatorDst returns the validator dest address, caller must ensure the validator address is valid
+func (args *RedelegateV2Args) GetValidatorDst() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.ValidatorDst)
+	return valAddr
 }
 
 type TransferSharesArgs struct {
@@ -204,6 +172,11 @@ func (args *TransferSharesArgs) Validate() error {
 func (args *TransferSharesArgs) GetValidator() sdk.ValAddress {
 	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
 	return valAddr
+}
+
+type TransferSharesRet struct {
+	Token  *big.Int
+	Reward *big.Int
 }
 
 type TransferFromSharesArgs struct {
@@ -230,26 +203,9 @@ func (args *TransferFromSharesArgs) GetValidator() sdk.ValAddress {
 	return valAddr
 }
 
-type UndelegateArgs struct {
-	Validator string   `abi:"_val"`
-	Shares    *big.Int `abi:"_shares"`
-}
-
-// Validate validates the args
-func (args *UndelegateArgs) Validate() error {
-	if _, err := sdk.ValAddressFromBech32(args.Validator); err != nil {
-		return fmt.Errorf("invalid validator address: %s", args.Validator)
-	}
-	if args.Shares == nil || args.Shares.Sign() <= 0 {
-		return errors.New("invalid shares")
-	}
-	return nil
-}
-
-// GetValidator returns the validator address, caller must ensure the validator address is valid
-func (args *UndelegateArgs) GetValidator() sdk.ValAddress {
-	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
-	return valAddr
+type TransferFromSharesRet struct {
+	Token  *big.Int
+	Reward *big.Int
 }
 
 type UndelegateV2Args struct {
@@ -266,6 +222,12 @@ func (args *UndelegateV2Args) Validate() error {
 		return errors.New("invalid amount")
 	}
 	return nil
+}
+
+// GetValidator returns the validator address, caller must ensure the validator address is valid
+func (args *UndelegateV2Args) GetValidator() sdk.ValAddress {
+	valAddr, _ := sdk.ValAddressFromBech32(args.Validator)
+	return valAddr
 }
 
 type WithdrawArgs struct {

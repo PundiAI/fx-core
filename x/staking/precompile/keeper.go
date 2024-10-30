@@ -77,8 +77,8 @@ func (k Keeper) handlerTransferShares(
 		return nil, nil, err
 	}
 
-	withdrawMethod := NewWithdrawMethod(nil)
-	data, topic, err := withdrawMethod.NewWithdrawEvent(from, valAddr.String(), withdrawRewardRes.Amount.AmountOf(k.stakingDenom).BigInt())
+	withdrawABI := NewWithdrawABI()
+	data, topic, err := withdrawABI.NewWithdrawEvent(from, valAddr.String(), withdrawRewardRes.Amount.AmountOf(k.stakingDenom).BigInt())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -105,7 +105,7 @@ func (k Keeper) handlerTransferShares(
 		if err != nil {
 			return nil, nil, err
 		}
-		data, topic, err = withdrawMethod.NewWithdrawEvent(to, valAddr.String(), toWithdrawRewardsRes.Amount.AmountOf(k.stakingDenom).BigInt())
+		data, topic, err = withdrawABI.NewWithdrawEvent(to, valAddr.String(), toWithdrawRewardsRes.Amount.AmountOf(k.stakingDenom).BigInt())
 		if err != nil {
 			return nil, nil, err
 		}

@@ -20,12 +20,14 @@ func NewContractBaseSuite(require *require.Assertions, signer *Signer) *Contract
 	}
 }
 
-func (s *ContractBaseSuite) WithContract(addr common.Address) {
+func (s *ContractBaseSuite) WithContract(addr common.Address) *ContractBaseSuite {
 	s.contract = addr
+	return s
 }
 
-func (s *ContractBaseSuite) WithSigner(signer *Signer) {
+func (s *ContractBaseSuite) WithSigner(signer *Signer) *ContractBaseSuite {
 	s.signer = signer
+	return s
 }
 
 func (s *ContractBaseSuite) HexAddress() common.Address {

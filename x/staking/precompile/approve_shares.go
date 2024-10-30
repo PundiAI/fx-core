@@ -12,7 +12,6 @@ import (
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type ApproveSharesMethod struct {
@@ -84,7 +83,7 @@ func (m ApproveSharesABI) NewApproveSharesEvent(owner, spender common.Address, v
 	return data, topic, nil
 }
 
-func (m ApproveSharesABI) PackInput(args fxstakingtypes.ApproveSharesArgs) ([]byte, error) {
+func (m ApproveSharesABI) PackInput(args fxcontract.ApproveSharesArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Spender, args.Shares)
 	if err != nil {
 		return nil, err
@@ -92,8 +91,8 @@ func (m ApproveSharesABI) PackInput(args fxstakingtypes.ApproveSharesArgs) ([]by
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m ApproveSharesABI) UnpackInput(data []byte) (*fxstakingtypes.ApproveSharesArgs, error) {
-	args := new(fxstakingtypes.ApproveSharesArgs)
+func (m ApproveSharesABI) UnpackInput(data []byte) (*fxcontract.ApproveSharesArgs, error) {
+	args := new(fxcontract.ApproveSharesArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }

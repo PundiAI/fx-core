@@ -13,7 +13,6 @@ import (
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type TransferSharesMethod struct {
@@ -89,7 +88,7 @@ func NewTransferSharesABI() TransferSharesABI {
 	}
 }
 
-func (m TransferSharesABI) PackInput(args fxstakingtypes.TransferSharesArgs) ([]byte, error) {
+func (m TransferSharesABI) PackInput(args fxcontract.TransferSharesArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.To, args.Shares)
 	if err != nil {
 		return nil, err
@@ -97,8 +96,8 @@ func (m TransferSharesABI) PackInput(args fxstakingtypes.TransferSharesArgs) ([]
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m TransferSharesABI) UnpackInput(data []byte) (*fxstakingtypes.TransferSharesArgs, error) {
-	args := new(fxstakingtypes.TransferSharesArgs)
+func (m TransferSharesABI) UnpackInput(data []byte) (*fxcontract.TransferSharesArgs, error) {
+	args := new(fxcontract.TransferSharesArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
@@ -182,7 +181,7 @@ func NewTransferFromSharesABI() TransferFromSharesABI {
 	}
 }
 
-func (m TransferFromSharesABI) PackInput(args fxstakingtypes.TransferFromSharesArgs) ([]byte, error) {
+func (m TransferFromSharesABI) PackInput(args fxcontract.TransferFromSharesArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.From, args.To, args.Shares)
 	if err != nil {
 		return nil, err
@@ -190,8 +189,8 @@ func (m TransferFromSharesABI) PackInput(args fxstakingtypes.TransferFromSharesA
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m TransferFromSharesABI) UnpackInput(data []byte) (*fxstakingtypes.TransferFromSharesArgs, error) {
-	args := new(fxstakingtypes.TransferFromSharesArgs)
+func (m TransferFromSharesABI) UnpackInput(data []byte) (*fxcontract.TransferFromSharesArgs, error) {
+	args := new(fxcontract.TransferFromSharesArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }

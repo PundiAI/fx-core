@@ -13,7 +13,6 @@ import (
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingtypes "github.com/functionx/fx-core/v8/x/staking/types"
 )
 
 type DelegateV2Method struct {
@@ -89,7 +88,7 @@ func (m DelegateV2ABI) NewDelegateEvent(sender common.Address, validator string,
 	return data, topic, nil
 }
 
-func (m DelegateV2ABI) PackInput(args fxstakingtypes.DelegateV2Args) ([]byte, error) {
+func (m DelegateV2ABI) PackInput(args fxcontract.DelegateV2Args) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Validator, args.Amount)
 	if err != nil {
 		return nil, err
@@ -97,8 +96,8 @@ func (m DelegateV2ABI) PackInput(args fxstakingtypes.DelegateV2Args) ([]byte, er
 	return append(m.Method.ID, arguments...), nil
 }
 
-func (m DelegateV2ABI) UnpackInput(data []byte) (*fxstakingtypes.DelegateV2Args, error) {
-	args := new(fxstakingtypes.DelegateV2Args)
+func (m DelegateV2ABI) UnpackInput(data []byte) (*fxcontract.DelegateV2Args, error) {
+	args := new(fxcontract.DelegateV2Args)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
