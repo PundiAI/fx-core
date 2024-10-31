@@ -21,7 +21,7 @@ func (s *KeeperMockSuite) TestQueryServer_BridgeCalls() {
 	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data1)
 	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data2)
 	actual, err := s.queryClient.BridgeCalls(s.ctx, &types.QueryBridgeCallsRequest{
-		ChainName: s.moduleName,
+		ChainName: s.chainName,
 		Pagination: &query.PageRequest{
 			Offset:     0,
 			Limit:      1,
@@ -32,7 +32,7 @@ func (s *KeeperMockSuite) TestQueryServer_BridgeCalls() {
 	s.Equal(len(actual.BridgeCalls), 1)
 
 	actual, err = s.queryClient.BridgeCalls(s.ctx, &types.QueryBridgeCallsRequest{
-		ChainName: s.moduleName,
+		ChainName: s.chainName,
 		Pagination: &query.PageRequest{
 			Offset:     0,
 			Limit:      2,

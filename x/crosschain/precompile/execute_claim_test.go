@@ -14,18 +14,18 @@ import (
 )
 
 func TestExecuteClaimMethod_ABI(t *testing.T) {
-	executeClaim := precompile.NewExecuteClaimMethod(nil)
+	executeClaimABI := precompile.NewExecuteClaimABI()
 
 	methodStr := `function executeClaim(string _chain, uint256 _eventNonce) returns(bool _result)`
-	assert.Equal(t, methodStr, executeClaim.Method.String())
+	assert.Equal(t, methodStr, executeClaimABI.Method.String())
 
 	eventStr := `event ExecuteClaimEvent(address indexed _sender, uint256 _eventNonce, string _chain)`
-	assert.Equal(t, eventStr, executeClaim.Event.String())
+	assert.Equal(t, eventStr, executeClaimABI.Event.String())
 }
 
 func TestExecuteClaimMethod_PackInput(t *testing.T) {
-	executeClaim := precompile.NewExecuteClaimMethod(nil)
-	input, err := executeClaim.PackInput(contract.ExecuteClaimArgs{
+	executeClaimABI := precompile.NewExecuteClaimABI()
+	input, err := executeClaimABI.PackInput(contract.ExecuteClaimArgs{
 		Chain:      ethtypes.ModuleName,
 		EventNonce: big.NewInt(1),
 	})

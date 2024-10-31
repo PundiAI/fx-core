@@ -13,13 +13,13 @@ import (
 
 type IsOracleOnlineMethod struct {
 	*Keeper
-	abi.Method
+	IsOracleOnlineABI
 }
 
 func NewIsOracleOnlineMethod(keeper *Keeper) *IsOracleOnlineMethod {
 	return &IsOracleOnlineMethod{
-		Keeper: keeper,
-		Method: crosschainABI.Methods["isOracleOnline"],
+		Keeper:            keeper,
+		IsOracleOnlineABI: NewIsOracleOnlineABI(),
 	}
 }
 
@@ -54,6 +54,16 @@ func (i *IsOracleOnlineMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, 
 
 	oracle, has := router.GetOracle(stateDB.Context(), oracleAddr)
 	return i.PackOutput(has && oracle.Online)
+}
+
+type IsOracleOnlineABI struct {
+	abi.Method
+}
+
+func NewIsOracleOnlineABI() IsOracleOnlineABI {
+	return IsOracleOnlineABI{
+		Method: crosschainABI.Methods["isOracleOnline"],
+	}
 }
 
 func (i *IsOracleOnlineMethod) PackInput(args contract.IsOracleOnlineArgs) ([]byte, error) {

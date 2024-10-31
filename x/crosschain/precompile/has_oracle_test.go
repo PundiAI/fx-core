@@ -9,13 +9,14 @@ import (
 	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 func TestCrosschainHasOracleABI(t *testing.T) {
-	method := precompile.NewHasOracleMethod(nil)
-	require.Len(t, method.Method.Inputs, 2)
-	require.Len(t, method.Method.Outputs, 1)
+	hasOracleABI := precompile.NewHasOracleABI()
+	require.Len(t, hasOracleABI.Method.Inputs, 2)
+	require.Len(t, hasOracleABI.Method.Outputs, 1)
 }
 
 func (suite *CrosschainPrecompileTestSuite) TestHasOracle() {
@@ -27,11 +28,10 @@ func (suite *CrosschainPrecompileTestSuite) TestHasOracle() {
 		{
 			name: "has oracle",
 			malleate: func() (contract.HasOracleArgs, error) {
-				moduleName := suite.GenerateModuleName()
-				oracle := suite.GenerateRandOracle(moduleName, true)
+				oracle := suite.SetOracle(true)
 				return contract.HasOracleArgs{
-					Chain:           moduleName,
-					ExternalAddress: oracle.GetExternalHexAddr(),
+					Chain:           suite.chainName,
+					ExternalAddress: types.ExternalAddrToHexAddr(suite.chainName, oracle.ExternalAddress),
 				}, nil
 			},
 			result: true,

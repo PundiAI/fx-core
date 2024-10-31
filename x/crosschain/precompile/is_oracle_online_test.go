@@ -9,13 +9,14 @@ import (
 	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
+	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
 func TestCrosschainIsOracleOnlineABI(t *testing.T) {
-	method := precompile.NewIsOracleOnlineMethod(nil)
-	require.Len(t, method.Method.Inputs, 2)
-	require.Len(t, method.Method.Outputs, 1)
+	isOracleOnlineABI := precompile.NewIsOracleOnlineABI()
+	require.Len(t, isOracleOnlineABI.Method.Inputs, 2)
+	require.Len(t, isOracleOnlineABI.Method.Outputs, 1)
 }
 
 func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
@@ -27,11 +28,10 @@ func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
 		{
 			name: "oracle online",
 			malleate: func() (contract.IsOracleOnlineArgs, error) {
-				moduleName := suite.GenerateModuleName()
-				oracle := suite.GenerateRandOracle(moduleName, true)
+				oracle := suite.SetOracle(true)
 				return contract.IsOracleOnlineArgs{
-					Chain:           moduleName,
-					ExternalAddress: oracle.GetExternalHexAddr(),
+					Chain:           suite.chainName,
+					ExternalAddress: types.ExternalAddrToHexAddr(suite.chainName, oracle.ExternalAddress),
 				}, nil
 			},
 			result: true,
@@ -39,11 +39,10 @@ func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
 		{
 			name: "oracle offline",
 			malleate: func() (contract.IsOracleOnlineArgs, error) {
-				moduleName := suite.GenerateModuleName()
-				oracle := suite.GenerateRandOracle(moduleName, false)
+				oracle := suite.SetOracle(false)
 				return contract.IsOracleOnlineArgs{
-					Chain:           moduleName,
-					ExternalAddress: oracle.GetExternalHexAddr(),
+					Chain:           suite.chainName,
+					ExternalAddress: types.ExternalAddrToHexAddr(suite.chainName, oracle.ExternalAddress),
 				}, nil
 			},
 			result: false,
@@ -75,7 +74,7 @@ func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
 			args, expectErr := tc.malleate()
 
 			result := suite.WithError(expectErr).IsOracleOnline(suite.Ctx, args)
-			suite.Require().Equal(tc.result, result)
+			suite.Require().Equal(tc.result, result, suite.chainName)
 		})
 	}
 }

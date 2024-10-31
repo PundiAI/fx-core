@@ -105,6 +105,29 @@ func (c CrosschainKeepers) ToSlice() []crosschainkeeper.Keeper {
 	}
 }
 
+func (c CrosschainKeepers) GetKeeper(moduleName string) crosschainkeeper.Keeper {
+	switch moduleName {
+	case bsctypes.ModuleName:
+		return c.BscKeeper
+	case polygontypes.ModuleName:
+		return c.PolygonKeeper
+	case trontypes.ModuleName:
+		return c.TronKeeper
+	case ethtypes.ModuleName:
+		return c.EthKeeper
+	case avalanchetypes.ModuleName:
+		return c.AvalancheKeeper
+	case arbitrumtypes.ModuleName:
+		return c.ArbitrumKeeper
+	case optimismtypes.ModuleName:
+		return c.OptimismKeeper
+	case layer2types.ModuleName:
+		return c.Layer2Keeper
+	default:
+		panic("invalid chain name")
+	}
+}
+
 type AppKeepers struct {
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey

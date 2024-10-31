@@ -37,21 +37,21 @@ func (k CrosschainPrecompileKeeper) BridgeCoinAmount(ctx context.Context, args B
 }
 
 func (k CrosschainPrecompileKeeper) HasOracle(ctx context.Context, args HasOracleArgs) (bool, error) {
-	res := struct{ HasOracle bool }{}
+	res := struct{ Has bool }{}
 	err := k.QueryContract(ctx, common.Address{}, k.contractAddr, k.abi, "hasOracle", &res, args.Chain, args.ExternalAddress)
 	if err != nil {
 		return false, err
 	}
-	return res.HasOracle, nil
+	return res.Has, nil
 }
 
 func (k CrosschainPrecompileKeeper) IsOracleOnline(ctx context.Context, args IsOracleOnlineArgs) (bool, error) {
-	res := struct{ IsOracleOnline bool }{}
+	res := struct{ Online bool }{}
 	err := k.QueryContract(ctx, common.Address{}, k.contractAddr, k.abi, "isOracleOnline", &res, args.Chain, args.ExternalAddress)
 	if err != nil {
 		return false, err
 	}
-	return res.IsOracleOnline, nil
+	return res.Online, nil
 }
 
 func (k CrosschainPrecompileKeeper) BridgeCall(ctx context.Context, from common.Address, args BridgeCallArgs) (*evmtypes.MsgEthereumTxResponse, *big.Int, error) {

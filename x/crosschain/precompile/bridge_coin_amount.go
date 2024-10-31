@@ -15,13 +15,13 @@ import (
 
 type BridgeCoinAmountMethod struct {
 	*Keeper
-	abi.Method
+	BridgeCoinAmountABI
 }
 
 func NewBridgeCoinAmountMethod(keeper *Keeper) *BridgeCoinAmountMethod {
 	return &BridgeCoinAmountMethod{
-		Keeper: keeper,
-		Method: crosschainABI.Methods["bridgeCoinAmount"],
+		Keeper:              keeper,
+		BridgeCoinAmountABI: NewBridgeCoinAmountABI(),
 	}
 }
 
@@ -57,15 +57,25 @@ func (m *BridgeCoinAmountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 	return m.PackOutput(totalSupply.Amount.BigInt())
 }
 
-func (m *BridgeCoinAmountMethod) PackInput(args fxcontract.BridgeCoinAmountArgs) ([]byte, error) {
+type BridgeCoinAmountABI struct {
+	abi.Method
+}
+
+func NewBridgeCoinAmountABI() BridgeCoinAmountABI {
+	return BridgeCoinAmountABI{
+		Method: crosschainABI.Methods["bridgeCoinAmount"],
+	}
+}
+
+func (m BridgeCoinAmountABI) PackInput(args fxcontract.BridgeCoinAmountArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Token, args.Target)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *BridgeCoinAmountMethod) UnpackInput(data []byte) (*fxcontract.BridgeCoinAmountArgs, error) {
+func (m BridgeCoinAmountABI) UnpackInput(data []byte) (*fxcontract.BridgeCoinAmountArgs, error) {
 	args := new(fxcontract.BridgeCoinAmountArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
@@ -73,11 +83,11 @@ func (m *BridgeCoinAmountMethod) UnpackInput(data []byte) (*fxcontract.BridgeCoi
 	return args, nil
 }
 
-func (m *BridgeCoinAmountMethod) PackOutput(amount *big.Int) ([]byte, error) {
+func (m BridgeCoinAmountABI) PackOutput(amount *big.Int) ([]byte, error) {
 	return m.Method.Outputs.Pack(amount)
 }
 
-func (m *BridgeCoinAmountMethod) UnpackOutput(data []byte) (*big.Int, error) {
+func (m BridgeCoinAmountABI) UnpackOutput(data []byte) (*big.Int, error) {
 	amount, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return nil, err

@@ -18,15 +18,13 @@ import (
 
 type BridgeCallMethod struct {
 	*Keeper
-	abi.Method
-	abi.Event
+	BridgeCallABI
 }
 
 func NewBridgeCallMethod(keeper *Keeper) *BridgeCallMethod {
 	return &BridgeCallMethod{
-		Keeper: keeper,
-		Method: crosschainABI.Methods["bridgeCall"],
-		Event:  crosschainABI.Events["BridgeCallEvent"],
+		Keeper:        keeper,
+		BridgeCallABI: NewBridgeCallABI(),
 	}
 }
 
@@ -102,11 +100,23 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	return result, err
 }
 
-func (m *BridgeCallMethod) NewBridgeCallEvent(args *fxcontract.BridgeCallArgs, sender, origin common.Address, eventNonce *big.Int) (data []byte, topic []common.Hash, err error) {
+type BridgeCallABI struct {
+	abi.Method
+	abi.Event
+}
+
+func NewBridgeCallABI() BridgeCallABI {
+	return BridgeCallABI{
+		Method: crosschainABI.Methods["bridgeCall"],
+		Event:  crosschainABI.Events["BridgeCallEvent"],
+	}
+}
+
+func (m BridgeCallABI) NewBridgeCallEvent(args *fxcontract.BridgeCallArgs, sender, origin common.Address, eventNonce *big.Int) (data []byte, topic []common.Hash, err error) {
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()}, origin, args.Value, eventNonce, args.DstChain, args.Tokens, args.Amounts, args.Data, args.Memo)
 }
 
-func (m *BridgeCallMethod) UnpackInput(data []byte) (*fxcontract.BridgeCallArgs, error) {
+func (m BridgeCallABI) UnpackInput(data []byte) (*fxcontract.BridgeCallArgs, error) {
 	args := new(fxcontract.BridgeCallArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
@@ -114,14 +124,14 @@ func (m *BridgeCallMethod) UnpackInput(data []byte) (*fxcontract.BridgeCallArgs,
 	return args, nil
 }
 
-func (m *BridgeCallMethod) PackOutput(nonceNonce *big.Int) ([]byte, error) {
+func (m BridgeCallABI) PackOutput(nonceNonce *big.Int) ([]byte, error) {
 	return m.Method.Outputs.Pack(nonceNonce)
 }
 
-func (m *BridgeCallMethod) PackInput(args fxcontract.BridgeCallArgs) ([]byte, error) {
+func (m BridgeCallABI) PackInput(args fxcontract.BridgeCallArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.DstChain, args.Refund, args.Tokens, args.Amounts, args.To, args.Data, args.Value, args.Memo)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }

@@ -13,13 +13,13 @@ import (
 
 type HasOracleMethod struct {
 	*Keeper
-	abi.Method
+	HasOracleABI
 }
 
 func NewHasOracleMethod(keeper *Keeper) *HasOracleMethod {
 	return &HasOracleMethod{
-		Keeper: keeper,
-		Method: crosschainABI.Methods["hasOracle"],
+		Keeper:       keeper,
+		HasOracleABI: NewHasOracleABI(),
 	}
 }
 
@@ -50,25 +50,35 @@ func (m *HasOracleMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error
 	return m.PackOutput(hasOracle)
 }
 
-func (m *HasOracleMethod) PackInput(args contract.HasOracleArgs) ([]byte, error) {
+type HasOracleABI struct {
+	abi.Method
+}
+
+func NewHasOracleABI() HasOracleABI {
+	return HasOracleABI{
+		Method: crosschainABI.Methods["hasOracle"],
+	}
+}
+
+func (m HasOracleABI) PackInput(args contract.HasOracleArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Chain, args.ExternalAddress)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *HasOracleMethod) UnpackInput(data []byte) (*contract.HasOracleArgs, error) {
+func (m HasOracleABI) UnpackInput(data []byte) (*contract.HasOracleArgs, error) {
 	args := new(contract.HasOracleArgs)
 	err := types.ParseMethodArgs(m.Method, args, data[4:])
 	return args, err
 }
 
-func (m *HasOracleMethod) PackOutput(result bool) ([]byte, error) {
+func (m HasOracleABI) PackOutput(result bool) ([]byte, error) {
 	return m.Method.Outputs.Pack(result)
 }
 
-func (m *HasOracleMethod) UnpackOutput(data []byte) (bool, error) {
+func (m HasOracleABI) UnpackOutput(data []byte) (bool, error) {
 	result, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return false, err
