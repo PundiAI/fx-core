@@ -56,6 +56,14 @@ interface IBridgeFeeQuote {
     ) external view returns (Asset memory);
 
     function maxQuoteIndex() external view returns (uint256);
+
+    function makeMessageHash(
+        string memory _chainName,
+        string memory _tokenName,
+        uint256 _fee,
+        uint256 _gasLimit,
+        uint256 _expiry
+    ) external pure returns (bytes32);
 }
 
 interface IBridgeFeeOracle {
