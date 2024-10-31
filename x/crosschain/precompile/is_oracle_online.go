@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	"github.com/functionx/fx-core/v8/contract"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	"github.com/functionx/fx-core/v8/x/evm/types"
 )
@@ -55,7 +56,7 @@ func (i *IsOracleOnlineMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, 
 	return i.PackOutput(has && oracle.Online)
 }
 
-func (i *IsOracleOnlineMethod) PackInput(args crosschaintypes.IsOracleOnlineArgs) ([]byte, error) {
+func (i *IsOracleOnlineMethod) PackInput(args contract.IsOracleOnlineArgs) ([]byte, error) {
 	arguments, err := i.Method.Inputs.Pack(args.Chain, args.ExternalAddress)
 	if err != nil {
 		return nil, err
@@ -63,8 +64,8 @@ func (i *IsOracleOnlineMethod) PackInput(args crosschaintypes.IsOracleOnlineArgs
 	return append(i.GetMethodId(), arguments...), nil
 }
 
-func (i *IsOracleOnlineMethod) UnpackInput(data []byte) (*crosschaintypes.IsOracleOnlineArgs, error) {
-	args := new(crosschaintypes.IsOracleOnlineArgs)
+func (i *IsOracleOnlineMethod) UnpackInput(data []byte) (*contract.IsOracleOnlineArgs, error) {
+	args := new(contract.IsOracleOnlineArgs)
 	err := types.ParseMethodArgs(i.Method, args, data[4:])
 	return args, err
 }

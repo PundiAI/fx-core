@@ -1,12 +1,10 @@
-package types
+package contract
 
 import (
 	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/functionx/fx-core/v8/contract"
 )
 
 type BridgeCoinAmountArgs struct {
@@ -21,21 +19,7 @@ func (args *BridgeCoinAmountArgs) Validate() error {
 	return nil
 }
 
-type CancelSendToExternalArgs struct {
-	Chain string   `abi:"_chain"`
-	TxID  *big.Int `abi:"_txID"`
-}
-
-func (args *CancelSendToExternalArgs) Validate() error {
-	if err := ValidateModuleName(args.Chain); err != nil {
-		return err
-	}
-	if args.TxID == nil || args.TxID.Sign() <= 0 {
-		return errors.New("invalid tx id")
-	}
-	return nil
-}
-
+// Deprecated: After the upgrade to v8
 type CrosschainArgs struct {
 	Token   common.Address `abi:"_token"`
 	Receipt string         `abi:"_receipt"`
@@ -61,27 +45,6 @@ func (args *CrosschainArgs) Validate() error {
 	return nil
 }
 
-type IncreaseBridgeFeeArgs struct {
-	Chain string         `abi:"_chain"`
-	TxID  *big.Int       `abi:"_txID"`
-	Token common.Address `abi:"_token"`
-	Fee   *big.Int       `abi:"_fee"`
-}
-
-func (args *IncreaseBridgeFeeArgs) Validate() error {
-	if err := ValidateModuleName(args.Chain); err != nil {
-		return err
-	}
-
-	if args.TxID == nil || args.TxID.Sign() <= 0 {
-		return errors.New("invalid tx id")
-	}
-	if args.Fee == nil || args.Fee.Sign() <= 0 {
-		return errors.New("invalid add bridge fee")
-	}
-	return nil
-}
-
 type BridgeCallArgs struct {
 	DstChain string           `abi:"_dstChain"`
 	Refund   common.Address   `abi:"_refund"`
@@ -94,8 +57,8 @@ type BridgeCallArgs struct {
 }
 
 func (args *BridgeCallArgs) Validate() error {
-	if err := ValidateModuleName(args.DstChain); err != nil {
-		return err
+	if args.DstChain == "" {
+		return errors.New("empty chain")
 	}
 	if args.Value.Sign() != 0 {
 		return errors.New("value must be zero")
@@ -103,7 +66,7 @@ func (args *BridgeCallArgs) Validate() error {
 	if len(args.Tokens) != len(args.Amounts) {
 		return errors.New("tokens and amounts do not match")
 	}
-	if len(args.Amounts) > 0 && contract.IsZeroEthAddress(args.Refund) {
+	if len(args.Amounts) > 0 && IsZeroEthAddress(args.Refund) {
 		return errors.New("refund cannot be empty")
 	}
 	return nil
@@ -115,8 +78,8 @@ type ExecuteClaimArgs struct {
 }
 
 func (args *ExecuteClaimArgs) Validate() error {
-	if err := ValidateModuleName(args.Chain); err != nil {
-		return err
+	if args.Chain == "" {
+		return errors.New("empty chain")
 	}
 	if args.EventNonce == nil || args.EventNonce.Sign() <= 0 {
 		return errors.New("invalid event nonce")
@@ -130,10 +93,10 @@ type HasOracleArgs struct {
 }
 
 func (args *HasOracleArgs) Validate() error {
-	if err := ValidateModuleName(args.Chain); err != nil {
-		return err
+	if args.Chain == "" {
+		return errors.New("empty chain")
 	}
-	if contract.IsZeroEthAddress(args.ExternalAddress) {
+	if IsZeroEthAddress(args.ExternalAddress) {
 		return errors.New("invalid external address")
 	}
 	return nil
@@ -145,10 +108,10 @@ type IsOracleOnlineArgs struct {
 }
 
 func (args *IsOracleOnlineArgs) Validate() error {
-	if err := ValidateModuleName(args.Chain); err != nil {
-		return err
+	if args.Chain == "" {
+		return errors.New("empty chain")
 	}
-	if contract.IsZeroEthAddress(args.ExternalAddress) {
+	if IsZeroEthAddress(args.ExternalAddress) {
 		return errors.New("invalid external address")
 	}
 	return nil

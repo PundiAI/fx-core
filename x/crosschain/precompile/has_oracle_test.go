@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	"github.com/functionx/fx-core/v8/x/crosschain/precompile"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
@@ -18,18 +18,18 @@ func TestCrosschainHasOracleABI(t *testing.T) {
 	require.Len(t, method.Method.Outputs, 1)
 }
 
-func (suite *PrecompileTestSuite) TestHasOracle() {
+func (suite *CrosschainPrecompileTestSuite) TestHasOracle() {
 	testCases := []struct {
 		name     string
-		malleate func() (crosschaintypes.HasOracleArgs, error)
+		malleate func() (contract.HasOracleArgs, error)
 		result   bool
 	}{
 		{
 			name: "has oracle",
-			malleate: func() (crosschaintypes.HasOracleArgs, error) {
+			malleate: func() (contract.HasOracleArgs, error) {
 				moduleName := suite.GenerateModuleName()
 				oracle := suite.GenerateRandOracle(moduleName, true)
-				return crosschaintypes.HasOracleArgs{
+				return contract.HasOracleArgs{
 					Chain:           moduleName,
 					ExternalAddress: oracle.GetExternalHexAddr(),
 				}, nil
@@ -38,8 +38,8 @@ func (suite *PrecompileTestSuite) TestHasOracle() {
 		},
 		{
 			name: "not has oracle",
-			malleate: func() (crosschaintypes.HasOracleArgs, error) {
-				return crosschaintypes.HasOracleArgs{
+			malleate: func() (contract.HasOracleArgs, error) {
+				return contract.HasOracleArgs{
 					Chain:           ethtypes.ModuleName,
 					ExternalAddress: helpers.GenHexAddress(),
 				}, nil
@@ -48,8 +48,8 @@ func (suite *PrecompileTestSuite) TestHasOracle() {
 		},
 		{
 			name: "invalid chain",
-			malleate: func() (crosschaintypes.HasOracleArgs, error) {
-				return crosschaintypes.HasOracleArgs{
+			malleate: func() (contract.HasOracleArgs, error) {
+				return contract.HasOracleArgs{
 					Chain:           "invalid_chain",
 					ExternalAddress: helpers.GenHexAddress(),
 				}, fmt.Errorf("invalid module name: %s: evm transaction execution failed", "invalid_chain")
@@ -60,21 +60,9 @@ func (suite *PrecompileTestSuite) TestHasOracle() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			signer := suite.RandSigner()
-
 			args, expectErr := tc.malleate()
 
-			hasOracle := precompile.NewHasOracleMethod(nil)
-			packData, err := hasOracle.PackInput(args)
-			suite.Require().NoError(err)
-
-			res, err := suite.App.EvmKeeper.CallEVMWithoutGas(suite.Ctx, signer.Address(), &suite.crosschainAddr, nil, packData, false)
-			if err != nil {
-				suite.Require().EqualError(err, expectErr.Error())
-				return
-			}
-			result, err := hasOracle.UnpackOutput(res.Ret)
-			suite.Require().NoError(err)
+			result := suite.WithError(expectErr).HasOracle(suite.Ctx, args)
 			suite.Require().Equal(tc.result, result)
 		})
 	}

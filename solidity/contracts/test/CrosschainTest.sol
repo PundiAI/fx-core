@@ -90,4 +90,34 @@ contract CrosschainTest {
                 _memo
             );
     }
+
+    function executeClaim(
+        string memory _chain,
+        uint256 _eventNonce
+    ) external returns (bool _result) {
+        return
+            ICrosschain(CROSS_CHAIN_ADDRESS).executeClaim(_chain, _eventNonce);
+    }
+
+    function hasOracle(
+        string memory _chain,
+        address _externalAddress
+    ) external view returns (bool _result) {
+        return
+            ICrosschain(CROSS_CHAIN_ADDRESS).hasOracle(
+                _chain,
+                _externalAddress
+            );
+    }
+
+    function isOracleOnline(
+        string memory _chain,
+        address _externalAddress
+    ) external view returns (bool _result) {
+        return
+            ICrosschain(CROSS_CHAIN_ADDRESS).isOracleOnline(
+                _chain,
+                _externalAddress
+            );
+    }
 }

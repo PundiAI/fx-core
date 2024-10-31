@@ -115,15 +115,15 @@ func (m *CrosschainMethod) NewCrosschainEvent(sender, token common.Address, deno
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, denom, receipt, amount, fee, target, memo)
 }
 
-func (m *CrosschainMethod) UnpackInput(data []byte) (*crosschaintypes.CrosschainArgs, error) {
-	args := new(crosschaintypes.CrosschainArgs)
+func (m *CrosschainMethod) UnpackInput(data []byte) (*fxcontract.CrosschainArgs, error) {
+	args := new(fxcontract.CrosschainArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
 	}
 	return args, nil
 }
 
-func (m *CrosschainMethod) PackInput(args crosschaintypes.CrosschainArgs) ([]byte, error) {
+func (m *CrosschainMethod) PackInput(args fxcontract.CrosschainArgs) ([]byte, error) {
 	data, err := m.Method.Inputs.Pack(args.Token, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
 	if err != nil {
 		return nil, err

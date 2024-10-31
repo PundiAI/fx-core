@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/functionx/fx-core/v8/contract"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
@@ -78,7 +77,7 @@ func (m *ExecuteClaimMethod) NewExecuteClaimEvent(sender common.Address, eventNo
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain)
 }
 
-func (m *ExecuteClaimMethod) PackInput(args crosschaintypes.ExecuteClaimArgs) ([]byte, error) {
+func (m *ExecuteClaimMethod) PackInput(args fxcontract.ExecuteClaimArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Chain, args.EventNonce)
 	if err != nil {
 		return nil, err
@@ -86,8 +85,8 @@ func (m *ExecuteClaimMethod) PackInput(args crosschaintypes.ExecuteClaimArgs) ([
 	return append(m.GetMethodId(), arguments...), nil
 }
 
-func (m *ExecuteClaimMethod) UnpackInput(data []byte) (*crosschaintypes.ExecuteClaimArgs, error) {
-	args := new(crosschaintypes.ExecuteClaimArgs)
+func (m *ExecuteClaimMethod) UnpackInput(data []byte) (*fxcontract.ExecuteClaimArgs, error) {
+	args := new(fxcontract.ExecuteClaimArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
 	}

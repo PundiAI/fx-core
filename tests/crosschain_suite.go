@@ -522,7 +522,7 @@ func (suite *CrosschainTestSuite) ExecuteClaim() *ethtypes.Transaction {
 	externalClaims := suite.PendingExecuteClaim()
 	suite.Require().True(len(externalClaims) > 0)
 
-	pack, err := precompile.NewExecuteClaimMethod(nil).PackInput(crosschaintypes.ExecuteClaimArgs{
+	pack, err := precompile.NewExecuteClaimMethod(nil).PackInput(contract.ExecuteClaimArgs{
 		Chain:      suite.chainName,
 		EventNonce: new(big.Int).SetUint64(externalClaims[0].GetEventNonce()),
 	})
@@ -570,7 +570,7 @@ func (suite *CrosschainTestSuite) Crosschain(token common.Address, recipient str
 	suite.ApproveERC20(privateKey, token, crosschainContract, big.NewInt(0).Add(amount, fee))
 
 	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	pack, err := precompile.NewCrosschainMethod(nil).PackInput(crosschaintypes.CrosschainArgs{
+	pack, err := precompile.NewCrosschainMethod(nil).PackInput(contract.CrosschainArgs{
 		Token:   token,
 		Receipt: recipient,
 		Amount:  amount,

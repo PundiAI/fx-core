@@ -7,8 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	fxcontract "github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
@@ -57,7 +57,7 @@ func (m *BridgeCoinAmountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 	return m.PackOutput(totalSupply.Amount.BigInt())
 }
 
-func (m *BridgeCoinAmountMethod) PackInput(args crosschaintypes.BridgeCoinAmountArgs) ([]byte, error) {
+func (m *BridgeCoinAmountMethod) PackInput(args fxcontract.BridgeCoinAmountArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Token, args.Target)
 	if err != nil {
 		return nil, err
@@ -65,8 +65,8 @@ func (m *BridgeCoinAmountMethod) PackInput(args crosschaintypes.BridgeCoinAmount
 	return append(m.GetMethodId(), arguments...), nil
 }
 
-func (m *BridgeCoinAmountMethod) UnpackInput(data []byte) (*crosschaintypes.BridgeCoinAmountArgs, error) {
-	args := new(crosschaintypes.BridgeCoinAmountArgs)
+func (m *BridgeCoinAmountMethod) UnpackInput(data []byte) (*fxcontract.BridgeCoinAmountArgs, error) {
+	args := new(fxcontract.BridgeCoinAmountArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
 	}
