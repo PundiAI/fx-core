@@ -16,19 +16,17 @@ import (
 	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 )
 
-// Deprecated: please use BridgeCallMethod
+// Deprecated: After the upgrade to v8
 type CrosschainMethod struct {
 	*Keeper
-	abi.Method
-	abi.Event
+	CrosschainABI
 }
 
-// Deprecated: please use BridgeCallMethod
+// Deprecated: After the upgrade to v8
 func NewCrosschainMethod(keeper *Keeper) *CrosschainMethod {
 	return &CrosschainMethod{
-		Keeper: keeper,
-		Method: crosschainABI.Methods["crossChain"],
-		Event:  crosschainABI.Events["CrossChain"],
+		Keeper:        keeper,
+		CrosschainABI: NewCrosschainABI(),
 	}
 }
 
@@ -111,11 +109,25 @@ func (m *CrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 	return m.PackOutput(true)
 }
 
-func (m *CrosschainMethod) NewCrosschainEvent(sender, token common.Address, denom, receipt string, amount, fee *big.Int, target [32]byte, memo string) (data []byte, topic []common.Hash, err error) {
+// Deprecated: After the upgrade to v8
+type CrosschainABI struct {
+	abi.Method
+	abi.Event
+}
+
+// Deprecated: After the upgrade to v8
+func NewCrosschainABI() CrosschainABI {
+	return CrosschainABI{
+		Method: crosschainABI.Methods["crossChain"],
+		Event:  crosschainABI.Events["CrossChain"],
+	}
+}
+
+func (m CrosschainABI) NewCrosschainEvent(sender, token common.Address, denom, receipt string, amount, fee *big.Int, target [32]byte, memo string) (data []byte, topic []common.Hash, err error) {
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), token.Hash()}, denom, receipt, amount, fee, target, memo)
 }
 
-func (m *CrosschainMethod) UnpackInput(data []byte) (*fxcontract.CrosschainArgs, error) {
+func (m CrosschainABI) UnpackInput(data []byte) (*fxcontract.CrosschainArgs, error) {
 	args := new(fxcontract.CrosschainArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
@@ -123,14 +135,14 @@ func (m *CrosschainMethod) UnpackInput(data []byte) (*fxcontract.CrosschainArgs,
 	return args, nil
 }
 
-func (m *CrosschainMethod) PackInput(args fxcontract.CrosschainArgs) ([]byte, error) {
+func (m CrosschainABI) PackInput(args fxcontract.CrosschainArgs) ([]byte, error) {
 	data, err := m.Method.Inputs.Pack(args.Token, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), data...), nil
+	return append(m.Method.ID, data...), nil
 }
 
-func (m *CrosschainMethod) PackOutput(success bool) ([]byte, error) {
+func (m CrosschainABI) PackOutput(success bool) ([]byte, error) {
 	return m.Method.Outputs.Pack(success)
 }

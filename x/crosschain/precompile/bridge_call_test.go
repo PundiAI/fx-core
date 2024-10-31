@@ -15,20 +15,20 @@ import (
 )
 
 func TestBridgeCallABI(t *testing.T) {
-	bridgeCall := precompile.NewBridgeCallMethod(nil)
+	bridgeCallABI := precompile.NewBridgeCallABI()
 
-	require.Len(t, bridgeCall.Method.Inputs, 8)
-	require.Len(t, bridgeCall.Method.Outputs, 1)
+	require.Len(t, bridgeCallABI.Method.Inputs, 8)
+	require.Len(t, bridgeCallABI.Method.Outputs, 1)
 }
 
 func TestContract_BridgeCall_Input(t *testing.T) {
-	bridgeCall := precompile.NewBridgeCallMethod(nil)
+	bridgeCallABI := precompile.NewBridgeCallABI()
 
-	assert.Equal(t, `bridgeCall(string,address,address[],uint256[],address,bytes,uint256,bytes)`, bridgeCall.Method.Sig)
-	assert.Equal(t, "payable", bridgeCall.Method.StateMutability)
-	assert.Len(t, bridgeCall.Method.Inputs, 8)
+	assert.Equal(t, `bridgeCall(string,address,address[],uint256[],address,bytes,uint256,bytes)`, bridgeCallABI.Method.Sig)
+	assert.Equal(t, "payable", bridgeCallABI.Method.StateMutability)
+	assert.Len(t, bridgeCallABI.Method.Inputs, 8)
 
-	inputs := bridgeCall.Method.Inputs
+	inputs := bridgeCallABI.Method.Inputs
 	type Args struct {
 		DstChain string
 		Refund   common.Address
@@ -78,10 +78,10 @@ func TestContract_BridgeCall_Input(t *testing.T) {
 }
 
 func TestContract_BridgeCall_Output(t *testing.T) {
-	bridgeCall := precompile.NewBridgeCallMethod(nil)
-	assert.Len(t, bridgeCall.Method.Outputs, 1)
+	bridgeCallABI := precompile.NewBridgeCallABI()
+	assert.Len(t, bridgeCallABI.Method.Outputs, 1)
 
-	outputs := bridgeCall.Method.Outputs
+	outputs := bridgeCallABI.Method.Outputs
 	eventNonce := big.NewInt(1)
 	outputData, err := outputs.Pack(eventNonce)
 	require.NoError(t, err)
@@ -95,16 +95,16 @@ func TestContract_BridgeCall_Output(t *testing.T) {
 }
 
 func TestContract_BridgeCall_Event(t *testing.T) {
-	bridgeCall := precompile.NewBridgeCallMethod(nil)
+	bridgeCallABI := precompile.NewBridgeCallABI()
 
-	assert.Equal(t, `BridgeCallEvent(address,address,address,address,uint256,uint256,string,address[],uint256[],bytes,bytes)`, bridgeCall.Event.Sig)
-	assert.Equal(t, "0x4a9b24da6150ef33e7c41038842b7c94fe89a4fff22dccb2c3fd79f0176062c6", bridgeCall.Event.ID.String())
-	assert.Len(t, bridgeCall.Event.Inputs, 11)
-	assert.Len(t, bridgeCall.Event.Inputs.NonIndexed(), 8)
+	assert.Equal(t, `BridgeCallEvent(address,address,address,address,uint256,uint256,string,address[],uint256[],bytes,bytes)`, bridgeCallABI.Event.Sig)
+	assert.Equal(t, "0x4a9b24da6150ef33e7c41038842b7c94fe89a4fff22dccb2c3fd79f0176062c6", bridgeCallABI.Event.ID.String())
+	assert.Len(t, bridgeCallABI.Event.Inputs, 11)
+	assert.Len(t, bridgeCallABI.Event.Inputs.NonIndexed(), 8)
 	for i := 0; i < 3; i++ {
-		assert.True(t, bridgeCall.Event.Inputs[i].Indexed)
+		assert.True(t, bridgeCallABI.Event.Inputs[i].Indexed)
 	}
-	inputs := bridgeCall.Event.Inputs
+	inputs := bridgeCallABI.Event.Inputs
 
 	args := contract.ICrosschainBridgeCallEvent{
 		TxOrigin:   helpers.GenHexAddress(),
@@ -144,7 +144,7 @@ func TestContract_BridgeCall_Event(t *testing.T) {
 }
 
 func TestContract_BridgeCall_NewBridgeCallEvent(t *testing.T) {
-	bridgeCall := precompile.NewBridgeCallMethod(nil)
+	bridgeCallABI := precompile.NewBridgeCallABI()
 
 	sender := common.BytesToAddress([]byte{0x1})
 	origin := common.BytesToAddress([]byte{0x2})
@@ -159,7 +159,7 @@ func TestContract_BridgeCall_NewBridgeCallEvent(t *testing.T) {
 		Value:    big.NewInt(100),
 		Memo:     []byte{0x1, 0x2, 0x3},
 	}
-	dataNew, topicNew, err := bridgeCall.NewBridgeCallEvent(args, sender, origin, nonce)
+	dataNew, topicNew, err := bridgeCallABI.NewBridgeCallEvent(args, sender, origin, nonce)
 	require.NoError(t, err)
 	expectData := "0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000000365746800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000000000000000000000000000000000000001c80000000000000000000000000000000000000000000000000000000000000003010203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030102030000000000000000000000000000000000000000000000000000000000"
 	require.EqualValues(t, expectData, hex.EncodeToString(dataNew))

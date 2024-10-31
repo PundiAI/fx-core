@@ -9,10 +9,10 @@ import (
 )
 
 func TestCrosschainABI(t *testing.T) {
-	crosschain := precompile.NewCrosschainMethod(nil)
+	crosschainABI := precompile.NewCrosschainABI()
 
-	require.Len(t, crosschain.Method.Inputs, 6)
-	require.Len(t, crosschain.Method.Outputs, 1)
+	require.Len(t, crosschainABI.Method.Inputs, 6)
+	require.Len(t, crosschainABI.Method.Outputs, 1)
 
-	require.Len(t, crosschain.Event.Inputs, 8)
+	require.Len(t, crosschainABI.Event.Inputs, 8)
 }

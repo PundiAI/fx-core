@@ -20,12 +20,12 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallResultHandler() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			msg := &types.MsgBridgeCallResultClaim{
-				ChainName:      s.moduleName,
+				ChainName:      s.chainName,
 				BridgerAddress: helpers.GenAccAddress().String(),
 				EventNonce:     1,
 				BlockHeight:    1,
 				Nonce:          1,
-				TxOrigin:       helpers.GenExternalAddr(s.moduleName),
+				TxOrigin:       helpers.GenExternalAddr(s.chainName),
 				Success:        true,
 				Cause:          "",
 			}
@@ -39,7 +39,7 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallResultHandler() {
 			s.erc20Keeper.EXPECT().DeleteCache(gomock.Any(), gomock.Any()).Times(1)
 
 			s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &types.OutgoingBridgeCall{
-				Sender:      helpers.GenExternalAddr(s.moduleName),
+				Sender:      helpers.GenExternalAddr(s.chainName),
 				Refund:      "",
 				Tokens:      nil,
 				To:          "",

@@ -17,24 +17,18 @@ import (
 	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/crosschain/mock"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
-	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
-	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v8/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
 type KeeperMockSuite struct {
 	suite.Suite
 
-	ctx        sdk.Context
-	moduleName string
+	ctx       sdk.Context
+	chainName string
 
 	queryClient types.QueryClient
 	// msgServer   types.MsgServer
@@ -51,30 +45,20 @@ type KeeperMockSuite struct {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	mustTestModule := []string{
+	modules := []string{
 		trontypes.ModuleName,
 		ethtypes.ModuleName,
 	}
-	subModules := mustTestModule
 	if os.Getenv("TEST_CROSSCHAIN") == "true" {
-		subModules = append(subModules, []string{
-			bsctypes.ModuleName,
-			polygontypes.ModuleName,
-			avalanchetypes.ModuleName,
-			arbitrumtypes.ModuleName,
-			optimismtypes.ModuleName,
-			layer2types.ModuleName,
-		}...)
+		modules = types.GetSupportChains()
 	}
-	for _, moduleName := range subModules {
-		suite.Run(t, &KeeperMockSuite{
-			moduleName: moduleName,
-		})
+	for _, moduleName := range modules {
+		suite.Run(t, &KeeperMockSuite{chainName: moduleName})
 	}
 }
 
 func (s *KeeperMockSuite) SetupTest() {
-	key := storetypes.NewKVStoreKey(s.moduleName)
+	key := storetypes.NewKVStoreKey(s.chainName)
 
 	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	s.ctx = testCtx.Ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
@@ -98,11 +82,11 @@ func (s *KeeperMockSuite) SetupTest() {
 	s.accountKeeper = mock.NewMockAccountKeeper(ctrl)
 	s.evmKeeper = mock.NewMockEVMKeeper(ctrl)
 
-	s.accountKeeper.EXPECT().GetModuleAddress(s.moduleName).Return(authtypes.NewEmptyModuleAccount(s.moduleName).GetAddress()).Times(1)
+	s.accountKeeper.EXPECT().GetModuleAddress(s.chainName).Return(authtypes.NewEmptyModuleAccount(s.chainName).GetAddress()).Times(1)
 
 	s.crosschainKeeper = crosschainkeeper.NewKeeper(
 		myApp.AppCodec(),
-		s.moduleName,
+		s.chainName,
 		key,
 		s.stakingKeeper,
 		s.stakingMsgServer,
@@ -117,42 +101,15 @@ func (s *KeeperMockSuite) SetupTest() {
 	)
 
 	crosschainRouter := crosschainkeeper.NewRouter()
-	crosschainRouter.AddRoute(s.moduleName, crosschainkeeper.NewModuleHandler(s.crosschainKeeper))
+	crosschainRouter.AddRoute(s.chainName, crosschainkeeper.NewModuleHandler(s.crosschainKeeper))
 	crosschainRouterKeeper := crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, myApp.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
 	s.queryClient = types.NewQueryClient(queryHelper)
 	// s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
-
-	params := s.CrosschainParams()
-	params.EnableSendToExternalPending = true
-	s.NoError(s.crosschainKeeper.SetParams(s.ctx, &params))
 }
 
 func (s *KeeperMockSuite) SetupSubTest() {
 	s.SetupTest()
-}
-
-func (s *KeeperMockSuite) CrosschainParams() types.Params {
-	switch s.moduleName {
-	case ethtypes.ModuleName:
-		return ethtypes.DefaultGenesisState().Params
-	case bsctypes.ModuleName:
-		return bsctypes.DefaultGenesisState().Params
-	case polygontypes.ModuleName:
-		return polygontypes.DefaultGenesisState().Params
-	case trontypes.ModuleName:
-		return trontypes.DefaultGenesisState().Params
-	case avalanchetypes.ModuleName:
-		return avalanchetypes.DefaultGenesisState().Params
-	case optimismtypes.ModuleName:
-		return optimismtypes.DefaultGenesisState().Params
-	case arbitrumtypes.ModuleName:
-		return arbitrumtypes.DefaultGenesisState().Params
-	case layer2types.ModuleName:
-		return layer2types.DefaultGenesisState().Params
-	default:
-		panic("module not support")
-	}
 }

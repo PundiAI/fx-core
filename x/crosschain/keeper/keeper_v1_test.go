@@ -18,15 +18,9 @@ import (
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
-	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
-	layer2types "github.com/functionx/fx-core/v8/x/layer2/types"
-	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v8/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
@@ -40,27 +34,15 @@ type KeeperTestSuite struct {
 }
 
 func TestCrosschainKeeperTestSuite(t *testing.T) {
-	mustTestModule := []string{
+	modules := []string{
 		trontypes.ModuleName,
 		ethtypes.ModuleName,
 	}
-
-	subModules := mustTestModule
 	if os.Getenv("TEST_CROSSCHAIN") == "true" {
-		subModules = append(subModules, []string{
-			bsctypes.ModuleName,
-			polygontypes.ModuleName,
-			avalanchetypes.ModuleName,
-			arbitrumtypes.ModuleName,
-			optimismtypes.ModuleName,
-			layer2types.ModuleName,
-		}...)
+		modules = types.GetSupportChains()
 	}
-
-	for _, moduleName := range subModules {
-		suite.Run(t, &KeeperTestSuite{
-			chainName: moduleName,
-		})
+	for _, moduleName := range modules {
+		suite.Run(t, &KeeperTestSuite{chainName: moduleName})
 	}
 }
 
@@ -75,26 +57,7 @@ func (suite *KeeperTestSuite) QueryClient() types.QueryClient {
 }
 
 func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
-	switch suite.chainName {
-	case bsctypes.ModuleName:
-		return suite.App.BscKeeper
-	case polygontypes.ModuleName:
-		return suite.App.PolygonKeeper
-	case trontypes.ModuleName:
-		return suite.App.TronKeeper
-	case ethtypes.ModuleName:
-		return suite.App.EthKeeper
-	case avalanchetypes.ModuleName:
-		return suite.App.AvalancheKeeper
-	case arbitrumtypes.ModuleName:
-		return suite.App.ArbitrumKeeper
-	case optimismtypes.ModuleName:
-		return suite.App.OptimismKeeper
-	case layer2types.ModuleName:
-		return suite.App.Layer2Keeper
-	default:
-		panic("invalid chain name")
-	}
+	return suite.App.CrosschainKeepers.GetKeeper(suite.chainName)
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

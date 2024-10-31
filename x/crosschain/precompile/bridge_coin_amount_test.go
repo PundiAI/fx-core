@@ -9,7 +9,7 @@ import (
 )
 
 func TestBridgeCoinAmountMethod_ABI(t *testing.T) {
-	bridgeCoinAmount := precompile.NewBridgeCoinAmountMethod(nil).Method
-	assert.Len(t, bridgeCoinAmount.Inputs, 2)
-	assert.Len(t, bridgeCoinAmount.Outputs, 1)
+	bridgeCoinAmountABI := precompile.NewBridgeCoinAmountABI()
+	assert.Len(t, bridgeCoinAmountABI.Inputs, 2)
+	assert.Len(t, bridgeCoinAmountABI.Outputs, 1)
 }

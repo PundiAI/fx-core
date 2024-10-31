@@ -17,15 +17,13 @@ var _ fxcontract.PrecompileMethod = (*ExecuteClaimMethod)(nil)
 
 type ExecuteClaimMethod struct {
 	*Keeper
-	abi.Method
-	abi.Event
+	ExecuteClaimABI
 }
 
 func NewExecuteClaimMethod(keeper *Keeper) *ExecuteClaimMethod {
 	return &ExecuteClaimMethod{
-		Keeper: keeper,
-		Method: crosschainABI.Methods["executeClaim"],
-		Event:  crosschainABI.Events["ExecuteClaimEvent"],
+		Keeper:          keeper,
+		ExecuteClaimABI: NewExecuteClaimABI(),
 	}
 }
 
@@ -73,19 +71,31 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 	return m.PackOutput(true)
 }
 
-func (m *ExecuteClaimMethod) NewExecuteClaimEvent(sender common.Address, eventNonce *big.Int, dstChain string) (data []byte, topic []common.Hash, err error) {
+type ExecuteClaimABI struct {
+	abi.Method
+	abi.Event
+}
+
+func NewExecuteClaimABI() ExecuteClaimABI {
+	return ExecuteClaimABI{
+		Method: crosschainABI.Methods["executeClaim"],
+		Event:  crosschainABI.Events["ExecuteClaimEvent"],
+	}
+}
+
+func (m ExecuteClaimABI) NewExecuteClaimEvent(sender common.Address, eventNonce *big.Int, dstChain string) (data []byte, topic []common.Hash, err error) {
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain)
 }
 
-func (m *ExecuteClaimMethod) PackInput(args fxcontract.ExecuteClaimArgs) ([]byte, error) {
+func (m ExecuteClaimABI) PackInput(args fxcontract.ExecuteClaimArgs) ([]byte, error) {
 	arguments, err := m.Method.Inputs.Pack(args.Chain, args.EventNonce)
 	if err != nil {
 		return nil, err
 	}
-	return append(m.GetMethodId(), arguments...), nil
+	return append(m.Method.ID, arguments...), nil
 }
 
-func (m *ExecuteClaimMethod) UnpackInput(data []byte) (*fxcontract.ExecuteClaimArgs, error) {
+func (m ExecuteClaimABI) UnpackInput(data []byte) (*fxcontract.ExecuteClaimArgs, error) {
 	args := new(fxcontract.ExecuteClaimArgs)
 	if err := evmtypes.ParseMethodArgs(m.Method, args, data[4:]); err != nil {
 		return nil, err
@@ -93,11 +103,11 @@ func (m *ExecuteClaimMethod) UnpackInput(data []byte) (*fxcontract.ExecuteClaimA
 	return args, nil
 }
 
-func (m *ExecuteClaimMethod) PackOutput(success bool) ([]byte, error) {
+func (m ExecuteClaimABI) PackOutput(success bool) ([]byte, error) {
 	return m.Method.Outputs.Pack(success)
 }
 
-func (m *ExecuteClaimMethod) UnpackOutput(data []byte) (bool, error) {
+func (m ExecuteClaimABI) UnpackOutput(data []byte) (bool, error) {
 	success, err := m.Method.Outputs.Unpack(data)
 	if err != nil {
 		return false, err
