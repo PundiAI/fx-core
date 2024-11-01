@@ -9,6 +9,8 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
 )
@@ -38,6 +40,13 @@ func (m Migrator) MigrateToken(ctx sdk.Context) error {
 		}
 		if err := m.addToken(ctx, newBaseDenom, md.Base); err != nil {
 			return err
+		}
+
+		// add purse bsc module bridge token
+		if strings.HasPrefix(md.Base, ibctransfertypes.DenomPrefix+"/") {
+			if err := m.addBscBridgePurse(ctx, newBaseDenom, md.Base); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -88,10 +97,28 @@ func (m Migrator) addBridgeToken(ctx sdk.Context, base, alias string) error {
 			return err
 		}
 		ctx.Logger().Info("add bridge token", "base-denom", base, "alias", alias, "module", ck.ModuleName(), "contract", legacyBridgeToken.Token)
-		if err := m.keeper.AddBridgeToken(ctx, base, ck.ModuleName(), legacyBridgeToken.Token, erc20Token.IsNativeERC20()); err != nil {
+		if err = m.keeper.AddBridgeToken(ctx, base, ck.ModuleName(), legacyBridgeToken.Token, erc20Token.IsNativeERC20()); err != nil {
 			return err
 		}
 		break
+	}
+	return nil
+}
+
+func (m Migrator) addBscBridgePurse(ctx sdk.Context, newBaseDenom, base string) error {
+	for _, ck := range m.crosschainKeepers {
+		if ck.ModuleName() != bsctypes.ModuleName {
+			continue
+		}
+		legacyBridgeToken, found := ck.LegacyGetDenomBridgeToken(ctx, base)
+		if !found {
+			return sdkerrors.ErrKeyNotFound.Wrapf("module %s bridge token: %s", ck.ModuleName(), base)
+		}
+		bridgeDenom := crosschaintypes.NewBridgeDenom(ck.ModuleName(), legacyBridgeToken.Token)
+		ctx.Logger().Info("add bridge token", "base-denom", newBaseDenom, "alias", bridgeDenom, "module", ck.ModuleName(), "contract", legacyBridgeToken.Token)
+		if err := m.keeper.AddBridgeToken(ctx, newBaseDenom, ck.ModuleName(), legacyBridgeToken.Token, false); err != nil {
+			return err
+		}
 	}
 	return nil
 }

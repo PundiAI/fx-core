@@ -55,6 +55,10 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 			return fromVM, err
 		}
 
+		if err = NewPundix(app).Migrate(cacheCtx); err != nil {
+			return nil, err
+		}
+
 		if err = migrateBridgeBalance(cacheCtx, app.BankKeeper, app.AccountKeeper); err != nil {
 			return fromVM, err
 		}
@@ -136,7 +140,6 @@ func migrateBridgeBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, account
 			}
 		}
 	}
-	// todo migrate bridge token and ibc token balance to crosschain module
 	return nil
 }
 

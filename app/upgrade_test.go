@@ -1,7 +1,11 @@
 package app_test
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
@@ -10,22 +14,31 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	dbm "github.com/cosmos/cosmos-db"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/app"
 	nextversion "github.com/functionx/fx-core/v8/app/upgrades/v8"
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v8/types"
+	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	fxgovv8 "github.com/functionx/fx-core/v8/x/gov/migrations/v8"
 	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
@@ -108,6 +121,8 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkErc20Keys(t, ctx, myApp)
 
 	checkOutgoingBatch(t, ctx, myApp)
+
+	checkPundixChainMigrate(t, ctx, myApp)
 }
 
 func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -156,5 +171,66 @@ func checkOutgoingBatch(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			assert.True(t, kvStore.Has(types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)))
 			return false
 		})
+	}
+}
+
+func checkPundixChainMigrate(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	pundixGenesisPath := path.Join(fxtypes.GetDefaultNodeHome(), "config/pundix_genesis.json")
+	appState, err := nextversion.ReadGenesisState(pundixGenesisPath)
+	require.NoError(t, err)
+
+	checkPundixBank(t, ctx, myApp, appState[banktypes.ModuleName])
+}
+
+func checkPundixBank(t *testing.T, ctx sdk.Context, myApp *app.App, raw json.RawMessage) {
+	t.Helper()
+
+	var bankGenesis banktypes.GenesisState
+	require.NoError(t, tmjson.Unmarshal(raw, &bankGenesis))
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(myApp.EvmKeeper)
+
+	// pundix token
+	pundixToken, err := myApp.Erc20Keeper.GetERC20Token(ctx, "pundix")
+	require.NoError(t, err)
+	pundixBridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, pundixToken.GetDenom())
+	require.NoError(t, err)
+	pundixDenomHash := sha256.Sum256([]byte(fmt.Sprintf("%s/channel-0/%s", ibctransfertypes.ModuleName, pundixBridgeToken.BridgeDenom())))
+	pundixIBCDenom := fmt.Sprintf("%s/%X", ibctransfertypes.DenomPrefix, pundixDenomHash[:])
+
+	// purse token
+	purseToken, err := myApp.Erc20Keeper.GetERC20Token(ctx, "purse")
+	require.NoError(t, err)
+	purseBscBridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, bsctypes.ModuleName, purseToken.GetDenom())
+	require.NoError(t, err)
+
+	totalSupply, err := erc20TokenKeeper.TotalSupply(ctx, purseToken.GetERC20Contract())
+	require.NoError(t, err)
+	require.Equal(t, totalSupply.String(), bankGenesis.Supply.AmountOf(purseBscBridgeToken.BridgeDenom()).String())
+
+	erc20Addr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
+	balOf, err := erc20TokenKeeper.BalanceOf(ctx, purseToken.GetERC20Contract(), erc20Addr)
+	require.NoError(t, err)
+	supply := myApp.BankKeeper.GetSupply(ctx, purseToken.GetDenom())
+	require.Equal(t, balOf.String(), supply.Amount.String())
+
+	pxEscrowAddr, err := nextversion.GetPxChannelEscrowAddr()
+	require.NoError(t, err)
+
+	for _, bal := range bankGenesis.Balances {
+		if bal.Address == pxEscrowAddr {
+			continue
+		}
+		bech32Addr, err := sdk.GetFromBech32(bal.Address, "px")
+		require.NoError(t, err)
+		account := myApp.AccountKeeper.GetAccount(ctx, bech32Addr)
+		if _, ok := account.(sdk.ModuleAccountI); ok {
+			continue
+		}
+
+		allBal := myApp.BankKeeper.GetAllBalances(ctx, bech32Addr)
+		require.True(t, allBal.AmountOf(pundixToken.GetDenom()).GTE(bal.Coins.AmountOf(pundixIBCDenom)))
+		require.True(t, allBal.AmountOf(purseToken.GetDenom()).GTE(bal.Coins.AmountOf(purseBscBridgeToken.BridgeDenom())))
 	}
 }
