@@ -111,7 +111,7 @@ describe("bridge call tests", function () {
     const tokens = [await erc20Token.getAddress()];
     const amount = ethers.parseEther("1");
     const amounts: BigNumberish[] = [amount];
-    const value = ethers.parseEther("9");
+    const quoteId = 1;
     const lastEventNonce = await fxBridge.state_lastEventNonce();
 
     await erc20Token.approve(await fxBridge.getAddress(), amount);
@@ -124,7 +124,7 @@ describe("bridge call tests", function () {
         amounts,
         user1.address,
         "0x",
-        value,
+        quoteId,
         "0x"
       )
     )
@@ -134,12 +134,12 @@ describe("bridge call tests", function () {
         user1.address,
         user1.address,
         deploy.address,
-        value,
         BigInt(Number(lastEventNonce) + 1),
         fxcoreChainId,
         tokens,
         amounts,
         "0x",
+        quoteId,
         "0x"
       );
   });
@@ -148,7 +148,7 @@ describe("bridge call tests", function () {
     const tokens = [await erc20Token.getAddress()];
     const amount = ethers.parseEther("1");
     const amounts: BigNumberish[] = [amount];
-    const value = ethers.parseEther("9");
+    const quoteId = 1;
     const lastEventNonce = await fxBridge.state_lastEventNonce();
     const data = encodeFunctionData(
       erc20Token.interface.formatJson(),
@@ -165,7 +165,7 @@ describe("bridge call tests", function () {
         amounts,
         user1.address,
         data,
-        value,
+        quoteId,
         "0x"
       )
     )
@@ -175,12 +175,12 @@ describe("bridge call tests", function () {
         user1.address,
         user1.address,
         deploy.address,
-        value,
         BigInt(Number(lastEventNonce) + 1),
         fxcoreChainId,
         tokens,
         amounts,
         data,
+        quoteId,
         "0x"
       );
   });
@@ -189,7 +189,7 @@ describe("bridge call tests", function () {
     const tokens = [await erc20Token.getAddress()];
     const amount = ethers.parseEther("1");
     const amounts: BigNumberish[] = [amount];
-    const value = ethers.parseEther("9");
+    const quoteId = 1;
     const lastEventNonce = await fxBridge.state_lastEventNonce();
     const data = encodeFunctionData(
       erc20Token.interface.formatJson(),
@@ -212,7 +212,7 @@ describe("bridge call tests", function () {
         amounts,
         user1.address,
         data,
-        value,
+        quoteId,
         demo
       )
     )
@@ -222,12 +222,12 @@ describe("bridge call tests", function () {
         user1.address,
         user1.address,
         deploy.address,
-        value,
         BigInt(Number(lastEventNonce) + 1),
         fxcoreChainId,
         tokens,
         amounts,
         data,
+        quoteId,
         demo
       );
   });

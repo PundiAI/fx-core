@@ -113,6 +113,8 @@ var (
 	OutgoingBridgeCallAddressAndNonceKey = []byte{0x49}
 
 	PendingExecuteClaimKey = []byte{0x54}
+
+	BridgeCallQuoteKey = []byte{0x55}
 )
 
 // GetOracleKey returns the following key format
@@ -202,4 +204,8 @@ func ParseOutgoingBridgeCallNonce(key []byte, address string) (nonce uint64) {
 
 func GetPendingExecuteClaimKey(nonce uint64) []byte {
 	return append(PendingExecuteClaimKey, sdk.Uint64ToBigEndian(nonce)...)
+}
+
+func GetBridgeCallQuoteKey(nonce uint64) []byte {
+	return append(BridgeCallQuoteKey, sdk.Uint64ToBigEndian(nonce)...)
 }

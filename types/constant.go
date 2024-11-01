@@ -83,3 +83,7 @@ func VerifyAddressFormat(bz []byte) error {
 
 	return nil
 }
+
+func IsOriginDenom(denom string) bool {
+	return denom == DefaultDenom
+}

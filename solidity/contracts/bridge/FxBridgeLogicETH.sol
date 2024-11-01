@@ -332,7 +332,7 @@ contract FxBridgeLogicETH is
         uint256[] memory _amounts,
         address _to,
         bytes memory _data,
-        uint256 _value,
+        uint256 _quoteId,
         bytes memory _memo
     ) external nonReentrant whenNotPaused returns (uint256) {
         require(bytes(_dstChain).length == 0, "Invalid dstChain");
@@ -352,12 +352,12 @@ contract FxBridgeLogicETH is
             _to,
             // solhint-disable-next-line avoid-tx-origin
             tx.origin,
-            _value,
             state_lastEventNonce,
             _dstChain,
             _tokens,
             _amounts,
             _data,
+            _quoteId,
             _memo
         );
 
@@ -855,12 +855,12 @@ contract FxBridgeLogicETH is
         address indexed _refund,
         address indexed _to,
         address _txOrigin,
-        uint256 _value,
         uint256 _eventNonce,
         string _dstChain,
         address[] _tokens,
         uint256[] _amounts,
         bytes _data,
+        uint256 _quoteId,
         bytes _memo
     );
 

@@ -5,13 +5,13 @@ import (
 	"math/big"
 	"strconv"
 
-	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
 	"github.com/functionx/fx-core/v8/contract"
+	fxtypes "github.com/functionx/fx-core/v8/types"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -43,7 +43,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 	err := k.BridgeCallEvm(cacheCtx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
-		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), msg.Value, isMemoSendCallTo)
+		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), isMemoSendCallTo)
 	if !ctx.IsCheckTx() {
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "bridge_call_in"},
@@ -58,23 +58,32 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		commit()
 		return nil
 	}
+
 	// refund bridge-call case of error
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
 
-	refundAddr := msg.GetRefundAddr()
-	outCallNonce, err := k.AddOutgoingBridgeCall(ctx, refundAddr, refundAddr, baseCoins, common.Address{}, nil, nil, msg.EventNonce)
-	if err != nil {
+	if err = k.bankKeeper.SendCoins(ctx, receiverAddr.Bytes(), msg.GetRefundAddr().Bytes(), baseCoins); err != nil {
 		return err
 	}
+
+	for _, coin := range baseCoins {
+		if fxtypes.IsOriginDenom(coin.Denom) {
+			continue
+		}
+		if _, err = k.erc20Keeper.BaseCoinToEvm(ctx, msg.GetRefundAddr(), coin); err != nil {
+			return err
+		}
+	}
+
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeBridgeCallRefundOut,
+		types.EventTypeBridgeCallFailed,
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", msg.EventNonce)),
-		sdk.NewAttribute(types.AttributeKeyBridgeCallNonce, fmt.Sprintf("%d", outCallNonce)),
+		sdk.NewAttribute(types.AttributeKeyBridgeCallFailedRefundAddr, msg.GetRefundAddr().Hex()),
 	))
 	return nil
 }
 
-func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, value sdkmath.Int, isMemoSendCallTo bool) error {
+func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, isMemoSendCallTo bool) error {
 	tokens := make([]common.Address, 0, baseCoins.Len())
 	amounts := make([]*big.Int, 0, baseCoins.Len())
 	for _, coin := range baseCoins {
@@ -105,7 +114,7 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 	}
 
 	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
-	txResp, err := k.evmKeeper.ExecuteEVM(ctx, callEvmSender, &to, value.BigInt(), gasLimit, args)
+	txResp, err := k.evmKeeper.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
 	if err != nil {
 		return err
 	}

@@ -75,7 +75,7 @@ contract CrosschainTest {
         uint256[] memory _amounts,
         address _to,
         bytes memory _data,
-        uint256 _value,
+        uint256 _quoteId,
         bytes memory _memo
     ) internal returns (uint256) {
         return
@@ -86,7 +86,7 @@ contract CrosschainTest {
                 _amounts,
                 _to,
                 _data,
-                _value,
+                _quoteId,
                 _memo
             );
     }

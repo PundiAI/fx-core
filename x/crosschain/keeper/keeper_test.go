@@ -97,6 +97,7 @@ func (s *KeeperMockSuite) SetupTest() {
 		s.accountKeeper,
 		s.evmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(nil, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(nil),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

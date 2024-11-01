@@ -32,3 +32,7 @@ func (m *BridgeToken) BridgeDenom() string {
 func (m *BridgeToken) IsOrigin() bool {
 	return m.Denom == fxtypes.DefaultDenom
 }
+
+func (m *BridgeToken) GetContractAddress() common.Address {
+	return common.HexToAddress(m.Contract)
+}

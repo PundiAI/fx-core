@@ -494,6 +494,20 @@ func (mr *MockErc20KeeperMockRecorder) HasToken(ctx, token any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasToken", reflect.TypeOf((*MockErc20Keeper)(nil).HasToken), ctx, token)
 }
 
+// ReSetCache mocks base method.
+func (m *MockErc20Keeper) ReSetCache(ctx context.Context, oldKey, newKey string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReSetCache", ctx, oldKey, newKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReSetCache indicates an expected call of ReSetCache.
+func (mr *MockErc20KeeperMockRecorder) ReSetCache(ctx, oldKey, newKey any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReSetCache", reflect.TypeOf((*MockErc20Keeper)(nil).ReSetCache), ctx, oldKey, newKey)
+}
+
 // SetCache mocks base method.
 func (m *MockErc20Keeper) SetCache(ctx context.Context, key string, amount math.Int) error {
 	m.ctrl.T.Helper()
@@ -777,6 +791,21 @@ func (m *MockBridgeFeeQuoteKeeper) EXPECT() *MockBridgeFeeQuoteKeeperMockRecorde
 	return m.recorder
 }
 
+// GetQuoteById mocks base method.
+func (m *MockBridgeFeeQuoteKeeper) GetQuoteById(ctx context.Context, id *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetQuoteById", ctx, id)
+	ret0, _ := ret[0].(contract.IBridgeFeeQuoteQuoteInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetQuoteById indicates an expected call of GetQuoteById.
+func (mr *MockBridgeFeeQuoteKeeperMockRecorder) GetQuoteById(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuoteById", reflect.TypeOf((*MockBridgeFeeQuoteKeeper)(nil).GetQuoteById), ctx, id)
+}
+
 // GetQuotesByToken mocks base method.
 func (m *MockBridgeFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error) {
 	m.ctrl.T.Helper()
@@ -790,4 +819,42 @@ func (m *MockBridgeFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainNa
 func (mr *MockBridgeFeeQuoteKeeperMockRecorder) GetQuotesByToken(ctx, chainName, denom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuotesByToken", reflect.TypeOf((*MockBridgeFeeQuoteKeeper)(nil).GetQuotesByToken), ctx, chainName, denom)
+}
+
+// MockERC20TokenKeeper is a mock of ERC20TokenKeeper interface.
+type MockERC20TokenKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockERC20TokenKeeperMockRecorder
+}
+
+// MockERC20TokenKeeperMockRecorder is the mock recorder for MockERC20TokenKeeper.
+type MockERC20TokenKeeperMockRecorder struct {
+	mock *MockERC20TokenKeeper
+}
+
+// NewMockERC20TokenKeeper creates a new mock instance.
+func NewMockERC20TokenKeeper(ctrl *gomock.Controller) *MockERC20TokenKeeper {
+	mock := &MockERC20TokenKeeper{ctrl: ctrl}
+	mock.recorder = &MockERC20TokenKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockERC20TokenKeeper) EXPECT() *MockERC20TokenKeeperMockRecorder {
+	return m.recorder
+}
+
+// Transfer mocks base method.
+func (m *MockERC20TokenKeeper) Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types3.MsgEthereumTxResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Transfer", ctx, contractAddr, from, receiver, amount)
+	ret0, _ := ret[0].(*types3.MsgEthereumTxResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Transfer indicates an expected call of Transfer.
+func (mr *MockERC20TokenKeeperMockRecorder) Transfer(ctx, contractAddr, from, receiver, amount any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transfer", reflect.TypeOf((*MockERC20TokenKeeper)(nil).Transfer), ctx, contractAddr, from, receiver, amount)
 }

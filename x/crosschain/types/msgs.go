@@ -386,7 +386,7 @@ func (m *MsgBridgeCallClaim) validate() (err error) {
 	if err = ValidateExternalAddr(m.ChainName, m.Refund); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
 	}
-	if m.Value.IsNil() || m.Value.IsNegative() {
+	if m.QuoteId.IsNil() || m.QuoteId.IsNegative() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid value")
 	}
 	if len(m.Data) > 0 {
@@ -416,7 +416,7 @@ func (m *MsgBridgeCallClaim) GetClaimer() sdk.AccAddress {
 }
 
 func (m *MsgBridgeCallClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Refund, m.To, m.TokenContracts, m.Amounts, m.Data, m.Value.String())
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%v/%v/%s", m.BlockHeight, m.EventNonce, m.Sender, m.Refund, m.To, m.TokenContracts, m.Amounts, m.Data, m.QuoteId.String())
 	return tmhash.Sum([]byte(path))
 }
 
