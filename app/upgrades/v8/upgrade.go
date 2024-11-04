@@ -6,6 +6,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -31,7 +32,7 @@ import (
 	fxstakingv8 "github.com/functionx/fx-core/v8/x/staking/migrations/v8"
 )
 
-func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 
@@ -55,7 +56,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 			return fromVM, err
 		}
 
-		if err = NewPundix(app).Migrate(cacheCtx); err != nil {
+		if err = NewPundix(cdc, app).Migrate(cacheCtx); err != nil {
 			return fromVM, err
 		}
 
