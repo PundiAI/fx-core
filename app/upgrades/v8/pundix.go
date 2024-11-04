@@ -13,6 +13,7 @@ import (
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -36,6 +37,7 @@ import (
 )
 
 type Pundix struct {
+	cdc               codec.Codec
 	accountKeeper     authkeeper.AccountKeeper
 	erc20Keeper       erc20keeper.Keeper
 	bankKeeper        bankkeeper.Keeper
@@ -44,8 +46,9 @@ type Pundix struct {
 	storeKey          storetypes.StoreKey
 }
 
-func NewPundix(app *keepers.AppKeepers) *Pundix {
+func NewPundix(cdc codec.Codec, app *keepers.AppKeepers) *Pundix {
 	return &Pundix{
+		cdc:               cdc,
 		accountKeeper:     app.AccountKeeper,
 		erc20Keeper:       app.Erc20Keeper,
 		bankKeeper:        app.BankKeeper,
@@ -61,6 +64,15 @@ func (m *Pundix) Migrate(ctx sdk.Context) error {
 	if err != nil {
 		return err
 	}
+
+	authRaw, ok := appState[types.ModuleName]
+	if !ok || len(authRaw) == 0 {
+		return sdkerrors.ErrNotFound.Wrap("auth genesis")
+	}
+	if err = m.migrateAuth(ctx, appState[types.ModuleName]); err != nil {
+		return err
+	}
+
 	// todo migrate other data
 	bankGenesis, ok := appState[banktypes.ModuleName]
 	if !ok || len(bankGenesis) == 0 {
@@ -69,9 +81,43 @@ func (m *Pundix) Migrate(ctx sdk.Context) error {
 	return m.migrateBank(ctx, bankGenesis)
 }
 
+func (m *Pundix) migrateAuth(ctx sdk.Context, authRaw json.RawMessage) error {
+	var authGenesis types.GenesisState
+	if err := m.cdc.UnmarshalJSON(authRaw, &authGenesis); err != nil {
+		return err
+	}
+	genesisAccounts, err := types.UnpackAccounts(authGenesis.Accounts)
+	if err != nil {
+		return err
+	}
+	for _, genAcc := range genesisAccounts {
+		pubKey := genAcc.GetPubKey()
+		if pubKey == nil {
+			continue
+		}
+		baseAcc, ok := genAcc.(*types.BaseAccount)
+		if !ok {
+			continue
+		}
+		accAddr, err := sdk.GetFromBech32(baseAcc.Address, "px")
+		if err != nil {
+			return err
+		}
+		if m.accountKeeper.HasAccount(ctx, accAddr) {
+			continue
+		}
+		newAcc := m.accountKeeper.NewAccountWithAddress(ctx, accAddr)
+		if err = newAcc.SetPubKey(pubKey); err != nil {
+			return err
+		}
+		m.accountKeeper.SetAccount(ctx, newAcc)
+	}
+	return nil
+}
+
 func (m *Pundix) migrateBank(ctx sdk.Context, bankRaw json.RawMessage) error {
 	var bankGenesis banktypes.GenesisState
-	if err := tmjson.Unmarshal(bankRaw, &bankGenesis); err != nil {
+	if err := m.cdc.UnmarshalJSON(bankRaw, &bankGenesis); err != nil {
 		return err
 	}
 	if err := m.migratePUNDIX(ctx, bankGenesis.Balances, bankGenesis.Supply); err != nil {

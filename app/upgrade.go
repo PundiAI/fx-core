@@ -35,6 +35,7 @@ func (app *App) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		plan.UpgradeName,
 		plan.CreateUpgradeHandler(
+			app.appCodec,
 			app.mm,
 			app.configurator,
 			&app.AppKeepers,
