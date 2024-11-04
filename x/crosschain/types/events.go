@@ -31,7 +31,12 @@ const (
 	EventTypeBridgeCall         = "bridge_call"
 	AttributeKeyBridgeCallNonce = "bridge_call_nonce"
 
-	EventTypeBridgeCallRefundOut = "bridge_call_refund_out"
+	EventTypeBridgeCallFailed              = "bridge_call_failed"
+	AttributeKeyBridgeCallFailedRefundAddr = "refund_addr"
+
+	EventTypeBridgeCallResend            = "bridge_call_resend"
+	AttributeKeyBridgeCallResendOldNonce = "old_bridge_call_nonce"
+	AttributeKeyBridgeCallResendNewNonce = "new_bridge_call_nonce"
 
 	EventTypeBridgeCallRefund = "bridge_call_refund"
 	AttributeKeyRefund        = "refund"

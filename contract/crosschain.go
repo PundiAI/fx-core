@@ -52,7 +52,7 @@ type BridgeCallArgs struct {
 	Amounts  []*big.Int       `abi:"_amounts"`
 	To       common.Address   `abi:"_to"`
 	Data     []byte           `abi:"_data"`
-	Value    *big.Int         `abi:"_value"`
+	QuoteId  *big.Int         `abi:"_quoteId"`
 	Memo     []byte           `abi:"_memo"`
 }
 
@@ -60,14 +60,14 @@ func (args *BridgeCallArgs) Validate() error {
 	if args.DstChain == "" {
 		return errors.New("empty chain")
 	}
-	if args.Value.Sign() != 0 {
-		return errors.New("value must be zero")
-	}
 	if len(args.Tokens) != len(args.Amounts) {
 		return errors.New("tokens and amounts do not match")
 	}
 	if len(args.Amounts) > 0 && IsZeroEthAddress(args.Refund) {
 		return errors.New("refund cannot be empty")
+	}
+	if args.QuoteId.Sign() < 0 {
+		return errors.New("quoteId cannot be negative")
 	}
 	return nil
 }

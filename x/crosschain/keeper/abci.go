@@ -168,15 +168,24 @@ func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) (err error) {
 			return true
 		}
 
-		// 1. handler bridge call refund
-		if err = k.RefundOutgoingBridgeCall(ctx, data); err != nil {
-			return true
+		quoteId := k.GetOutgoingBridgeCallQuoteId(ctx, data.Nonce)
+		if quoteId == nil || quoteId.Sign() == 0 {
+			// 1. handler bridge call refund
+			if err = k.RefundOutgoingBridgeCall(ctx, data); err != nil {
+				return true
+			}
+		} else {
+			// 1. resend bridge call
+			if err = k.ResendBridgeCall(ctx, *data, quoteId); err != nil {
+				return true
+			}
 		}
 
 		// 2. delete bridge call
 		if err = k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce); err != nil {
 			return true
 		}
+
 		return false
 	})
 	return err

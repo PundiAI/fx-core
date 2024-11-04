@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 				},
 				To:       helpers.GenExternalAddr(suite.chainName),
 				Data:     "",
-				Value:    sdkmath.ZeroInt(),
+				QuoteId:  sdkmath.ZeroInt(),
 				Memo:     "",
 				TxOrigin: helpers.GenExternalAddr(suite.chainName),
 			},

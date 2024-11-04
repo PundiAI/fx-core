@@ -2,6 +2,7 @@ package precompile
 
 import (
 	"context"
+	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +23,7 @@ type CrosschainKeeper interface {
 	ExecuteClaim(ctx sdk.Context, eventNonce uint64) error
 	BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error)
 	CrosschainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *crosschaintypes.FxTarget, memo string, originToken bool) error
-	BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, fxTarget *crosschaintypes.FxTarget, originTokenAmount sdkmath.Int) (uint64, error)
+	BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId *big.Int, fxTarget *crosschaintypes.FxTarget, originTokenAmount sdkmath.Int) (uint64, error)
 	GetBaseDenomByErc20(ctx sdk.Context, erc20Addr common.Address) (erc20types.ERC20Token, error)
 
 	HasOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) bool

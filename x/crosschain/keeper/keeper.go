@@ -29,6 +29,7 @@ type Keeper struct {
 	erc20Keeper         types.Erc20Keeper
 	evmKeeper           types.EVMKeeper
 	brideFeeQuoteKeeper types.BridgeFeeQuoteKeeper
+	erc20TokenKeeper    types.ERC20TokenKeeper
 
 	authority    string
 	callbackFrom common.Address
@@ -38,7 +39,7 @@ type Keeper struct {
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionMsgServer,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
-	evmKeeper types.EVMKeeper, brideFeeQuoteKeeper types.BridgeFeeQuoteKeeper, authority string,
+	evmKeeper types.EVMKeeper, brideFeeQuoteKeeper types.BridgeFeeQuoteKeeper, evmErc20Keeper types.ERC20TokenKeeper, authority string,
 ) Keeper {
 	if addr := ak.GetModuleAddress(moduleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", moduleName))
@@ -58,6 +59,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		erc20Keeper:         erc20Keeper,
 		evmKeeper:           evmKeeper,
 		brideFeeQuoteKeeper: brideFeeQuoteKeeper,
+		erc20TokenKeeper:    evmErc20Keeper,
 
 		authority:    authority,
 		callbackFrom: common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeCallSender)),
@@ -70,6 +72,10 @@ func (k Keeper) GetAuthority() string {
 
 func (k Keeper) GetCallbackFrom() common.Address {
 	return k.callbackFrom
+}
+
+func (k Keeper) GetModuleEvmAddress() common.Address {
+	return common.BytesToAddress(k.ak.GetModuleAddress(k.moduleName))
 }
 
 // Logger returns a module-specific logger.

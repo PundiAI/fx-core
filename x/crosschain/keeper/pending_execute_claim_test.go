@@ -25,7 +25,7 @@ func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
 				Amounts:        []sdkmath.Int{sdkmath.NewInt(1)},
 				To:             helpers.GenExternalAddr(s.chainName),
 				Data:           "",
-				Value:          sdkmath.NewInt(0),
+				QuoteId:        sdkmath.NewInt(0),
 				Memo:           "",
 				TxOrigin:       "",
 			},

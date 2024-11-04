@@ -404,6 +404,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
@@ -419,6 +420,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
@@ -434,6 +436,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
@@ -449,6 +452,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 	appKeepers.ArbitrumKeeper = crosschainkeeper.NewKeeper(
@@ -464,6 +468,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
@@ -479,6 +484,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 	appKeepers.Layer2Keeper = crosschainkeeper.NewKeeper(
@@ -494,6 +500,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 	appKeepers.TronKeeper = crosschainkeeper.NewKeeper(
@@ -509,6 +516,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
 		contract.NewBridgeFeeQuoteKeeper(appKeepers.EvmKeeper, contract.BridgeFeeAddress),
+		contract.NewERC20TokenKeeper(appKeepers.EvmKeeper),
 		authAddr,
 	)
 

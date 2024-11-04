@@ -51,6 +51,7 @@ type Erc20Keeper interface {
 	SetCache(ctx context.Context, key string, amount sdkmath.Int) error
 	DeleteCache(ctx context.Context, key string) error
 	GetCache(ctx context.Context, key string) (sdkmath.Int, error)
+	ReSetCache(ctx context.Context, oldKey, newKey string) error
 
 	HasToken(ctx context.Context, token string) (bool, error)
 	GetBaseDenom(ctx context.Context, token string) (string, error)
@@ -89,4 +90,9 @@ type AccountKeeper interface {
 
 type BridgeFeeQuoteKeeper interface {
 	GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error)
+	GetQuoteById(ctx context.Context, id *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error)
+}
+
+type ERC20TokenKeeper interface {
+	Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error)
 }

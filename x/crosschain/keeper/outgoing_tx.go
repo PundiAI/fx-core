@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
@@ -22,8 +21,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, rec
 	}
 	var quoteInfo *contract.IBridgeFeeQuoteQuoteInfo
 	for _, quote := range quoteInfos {
-		if fee.Amount.GTE(sdkmath.NewIntFromBigInt(quote.Fee)) &&
-			new(big.Int).Sub(quote.Expiry, big.NewInt(ctx.BlockTime().UnixNano())).Sign() > 0 {
+		if fee.Amount.GTE(sdkmath.NewIntFromBigInt(quote.Fee)) && !quote.IsTimeout(ctx.BlockTime()) {
 			quoteInfo = &quote
 			break
 		}

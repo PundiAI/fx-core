@@ -11,7 +11,7 @@ interface IBridgeCall {
         uint256[] memory _amounts,
         address _to,
         bytes memory _data,
-        uint256 _value,
+        uint256 _quoteId,
         bytes memory _memo
     ) external payable returns (uint256 _eventNonce);
 }

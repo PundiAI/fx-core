@@ -83,7 +83,7 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 			baseCoins = append(baseCoins, baseCoin)
 		}
 		nonce, err := crosschainKeeper.BridgeCallBaseCoin(ctx, sender, args.Refund, args.To,
-			baseCoins, args.Data, args.Memo, fxTarget, originTokenAmount)
+			baseCoins, args.Data, args.Memo, args.QuoteId, fxTarget, originTokenAmount)
 		if err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func NewBridgeCallABI() BridgeCallABI {
 }
 
 func (m BridgeCallABI) NewBridgeCallEvent(args *fxcontract.BridgeCallArgs, sender, origin common.Address, eventNonce *big.Int) (data []byte, topic []common.Hash, err error) {
-	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()}, origin, args.Value, eventNonce, args.DstChain, args.Tokens, args.Amounts, args.Data, args.Memo)
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()}, origin, eventNonce, args.DstChain, args.Tokens, args.Amounts, args.Data, args.QuoteId, args.Memo)
 }
 
 func (m BridgeCallABI) UnpackInput(data []byte) (*fxcontract.BridgeCallArgs, error) {
@@ -129,7 +129,7 @@ func (m BridgeCallABI) PackOutput(nonceNonce *big.Int) ([]byte, error) {
 }
 
 func (m BridgeCallABI) PackInput(args fxcontract.BridgeCallArgs) ([]byte, error) {
-	arguments, err := m.Method.Inputs.Pack(args.DstChain, args.Refund, args.Tokens, args.Amounts, args.To, args.Data, args.Value, args.Memo)
+	arguments, err := m.Method.Inputs.Pack(args.DstChain, args.Refund, args.Tokens, args.Amounts, args.To, args.Data, args.QuoteId, args.Memo)
 	if err != nil {
 		return nil, err
 	}
