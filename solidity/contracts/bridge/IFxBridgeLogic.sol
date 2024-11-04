@@ -229,12 +229,12 @@ interface IFxBridgeLogic is IBridgeCall {
         address indexed _refund,
         address indexed _to,
         address _txOrigin,
-        uint256 _value,
         uint256 _eventNonce,
         string _dstChain,
         address[] _tokens,
         uint256[] _amounts,
         bytes _data,
+        uint256 _quoteId,
         bytes _memo
     );
 
