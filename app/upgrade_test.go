@@ -181,7 +181,10 @@ func checkPundixChainMigrate(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	appState, err := nextversion.ReadGenesisState(pundixGenesisPath)
 	require.NoError(t, err)
 
-	checkPundixBank(t, ctx, myApp, appState[banktypes.ModuleName])
+	bankGenesis, ok := appState[banktypes.ModuleName]
+	require.True(t, ok)
+	require.NotEmpty(t, bankGenesis)
+	checkPundixBank(t, ctx, myApp, bankGenesis)
 }
 
 func checkPundixBank(t *testing.T, ctx sdk.Context, myApp *app.App, raw json.RawMessage) {

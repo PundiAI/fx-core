@@ -20,10 +20,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v8/app/keepers"
 	"github.com/functionx/fx-core/v8/contract"
@@ -62,7 +62,11 @@ func (m *Pundix) Migrate(ctx sdk.Context) error {
 		return err
 	}
 	// todo migrate other data
-	return m.migrateBank(ctx, appState[banktypes.ModuleName])
+	bankGenesis, ok := appState[banktypes.ModuleName]
+	if !ok || len(bankGenesis) == 0 {
+		return sdkerrors.ErrNotFound.Wrap("bank genesis")
+	}
+	return m.migrateBank(ctx, bankGenesis)
 }
 
 func (m *Pundix) migrateBank(ctx sdk.Context, bankRaw json.RawMessage) error {
@@ -287,7 +291,7 @@ func (m *Pundix) migratePundixPurse(
 
 func (m *Pundix) updatePurseErc20Owner(ctx sdk.Context, erc20Token erc20types.ERC20Token) error {
 	erc20ModuleHexAddress := common.BytesToAddress(types.NewModuleAddress(erc20types.ModuleName).Bytes())
-	newOwner := common.BytesToAddress(types.NewModuleAddress(govtypes.ModuleName))
+	newOwner := common.BytesToAddress(types.NewModuleAddress(evmtypes.ModuleName))
 	if _, err := m.erc20TokenKeeper.TransferOwnership(ctx, erc20Token.GetERC20Contract(), erc20ModuleHexAddress, newOwner); err != nil {
 		return err
 	}
