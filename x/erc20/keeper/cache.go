@@ -27,7 +27,10 @@ func (k Keeper) GetCache(ctx context.Context, key string) (sdkmath.Int, error) {
 func (k Keeper) ReSetCache(ctx context.Context, oldKey, newKey string) error {
 	amount, err := k.Cache.Get(ctx, oldKey)
 	if err == nil {
-		return k.Cache.Set(ctx, newKey, amount)
+		if err = k.Cache.Set(ctx, newKey, amount); err != nil {
+			return err
+		}
+		return k.Cache.Remove(ctx, oldKey)
 	}
 
 	if !errors.IsOf(err, collections.ErrNotFound) {

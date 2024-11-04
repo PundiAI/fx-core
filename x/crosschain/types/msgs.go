@@ -387,7 +387,7 @@ func (m *MsgBridgeCallClaim) validate() (err error) {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid refund address: %s", err)
 	}
 	if m.QuoteId.IsNil() || m.QuoteId.IsNegative() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid value")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid quote ID")
 	}
 	if len(m.Data) > 0 {
 		if _, err = hex.DecodeString(m.Data); err != nil {
