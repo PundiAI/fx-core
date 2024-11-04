@@ -56,7 +56,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		}
 
 		if err = NewPundix(app).Migrate(cacheCtx); err != nil {
-			return nil, err
+			return fromVM, err
 		}
 
 		if err = migrateBridgeBalance(cacheCtx, app.BankKeeper, app.AccountKeeper); err != nil {
