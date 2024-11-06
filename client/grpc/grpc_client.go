@@ -350,6 +350,17 @@ func (cli *Client) GetModuleAccounts() ([]sdk.AccountI, error) {
 	return accounts, nil
 }
 
+func (cli *Client) GetModuleAccountByName(moduleName string) (sdk.AccountI, error) {
+	response, err := cli.AuthQuery().ModuleAccountByName(cli.ctx, &authtypes.QueryModuleAccountByNameRequest{
+		Name: moduleName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var account sdk.AccountI
+	return account, client.NewAccountCodec().UnpackAny(response.Account, &account)
+}
+
 func (cli *Client) GetSyncing() (bool, error) {
 	response, err := cli.TMServiceClient().GetSyncing(cli.ctx, &cmtservice.GetSyncingRequest{})
 	if err != nil {

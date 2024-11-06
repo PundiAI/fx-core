@@ -45,6 +45,7 @@ import (
 // testing requirements.
 func DefaultNetworkConfig(opts ...func(config *network.Config)) network.Config {
 	newApp := helpers.NewApp()
+	chainID := fxtypes.MainnetChainId
 	cfg := network.Config{
 		Codec:             newApp.AppCodec(),
 		InterfaceRegistry: newApp.InterfaceRegistry(),
@@ -61,7 +62,7 @@ func DefaultNetworkConfig(opts ...func(config *network.Config)) network.Config {
 				ctx.Viper,
 				baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(appConfig.Pruning)),
 				baseapp.SetMinGasPrices(appConfig.MinGasPrices),
-				baseapp.SetChainID(fxtypes.MainnetChainId),
+				baseapp.SetChainID(chainID),
 			)
 		},
 		GenesisState:    NoSupplyGenesisState(newApp.AppCodec(), newApp.ModuleBasics),
@@ -69,7 +70,7 @@ func DefaultNetworkConfig(opts ...func(config *network.Config)) network.Config {
 		StakingTokens:   sdk.TokensFromConsensusPower(5000, sdk.DefaultPowerReduction), // 500_000
 		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),  // 10_000
 		NumValidators:   4,
-		ChainID:         fxtypes.MainnetChainId,
+		ChainID:         chainID,
 		BondDenom:       fxtypes.DefaultDenom,
 		MinGasPrices:    fxtypes.GetDefGasPrice().String(),
 		PruningStrategy: pruningtypes.PruningOptionNothing,

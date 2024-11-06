@@ -11,9 +11,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 )
 
@@ -60,4 +62,13 @@ func NewStakingCoin(amount, power int64) sdk.Coin {
 
 func NewStakingCoins(amount, power int64) sdk.Coins {
 	return sdk.NewCoins(NewStakingCoin(amount, power))
+}
+
+func NewBigInt(amount, power int64) *big.Int {
+	powerBig := new(big.Int).Exp(big.NewInt(10), big.NewInt(power), nil)
+	return new(big.Int).Mul(big.NewInt(amount), powerBig)
+}
+
+func PackERC20Mint(receiver common.Address, amount *big.Int) ([]byte, error) {
+	return contract.GetFIP20().ABI.Pack("mint", receiver, amount)
 }

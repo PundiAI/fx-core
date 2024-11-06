@@ -1,4 +1,4 @@
-package tests
+package integration
 
 import (
 	"encoding/hex"
@@ -6,14 +6,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v8/testutil/helpers"
@@ -21,83 +18,79 @@ import (
 	migratetypes "github.com/functionx/fx-core/v8/x/migrate/types"
 )
 
-func (suite *IntegrationTest) migrateAccount(fromPrivateKey, toPrivateKey cryptotypes.PrivKey) {
-	fromAddr := sdk.AccAddress(fromPrivateKey.PubKey().Address().Bytes())
-	toAddress := common.BytesToAddress(toPrivateKey.PubKey().Address())
+func (suite *IntegrationTest) migrateAccount(fromSigner, toSigner *helpers.Signer) {
+	fromAddr := fromSigner.AccAddress()
+	toAddress := toSigner.Address()
 
-	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(fromAddr, toAddress.Bytes()))
+	migrateSign, err := toSigner.PrivKey().Sign(migratetypes.MigrateAccountSignatureHash(fromAddr, toAddress.Bytes()))
 	suite.Require().NoError(err)
 
 	msg := migratetypes.NewMsgMigrateAccount(fromAddr, toAddress, hex.EncodeToString(migrateSign))
-	suite.BroadcastTx(fromPrivateKey, msg)
+	suite.BroadcastTx(fromSigner, msg)
 }
 
 func (suite *IntegrationTest) MigrateTestDelegate() {
-	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.Secp256k1Type, 0, 0)
-	suite.Require().NoError(err)
-	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
+	fromSigner := helpers.NewSigner(helpers.NewPriKey())
+	fromAccAddress := fromSigner.AccAddress()
 	amount := sdkmath.NewInt(20).MulRaw(1e18)
 	suite.Send(fromAccAddress, suite.NewCoin(amount))
-	suite.CheckBalance(fromAccAddress, suite.NewCoin(amount))
+	suite.EqualBalance(fromAccAddress, suite.NewCoin(amount))
 
-	valAddress := suite.QueryValidatorByToken()
+	valAddress := suite.GetValSortByToken()
 	delegateAmount := suite.NewCoin(sdkmath.NewInt(1).MulRaw(1e18))
-	suite.Delegate(fromPrivKey, valAddress, delegateAmount)
+	suite.Delegate(fromSigner, valAddress, delegateAmount)
 	amount = amount.Sub(sdkmath.NewInt(3).MulRaw(1e18))
-	suite.CheckBalance(fromAccAddress, suite.NewCoin(amount))
-	suite.CheckDelegate(fromAccAddress, valAddress, delegateAmount)
+	suite.EqualBalance(fromAccAddress, suite.NewCoin(amount))
+	suite.EqualDelegate(fromAccAddress, valAddress, delegateAmount)
 
 	withdrawAddr := sdk.AccAddress(helpers.NewPriKey().PubKey().Address().Bytes())
-	suite.SetWithdrawAddr(fromPrivKey, withdrawAddr)
+	suite.SetWithdrawAddress(fromSigner, withdrawAddr)
 	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
-	suite.CheckBalance(fromAccAddress, suite.NewCoin(amount))
-	suite.CheckWithdrawAddr(fromAccAddress, withdrawAddr)
+	suite.EqualBalance(fromAccAddress, suite.NewCoin(amount))
 
 	// ===> migration
 
-	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.EthSecp256k1Type, 0, 0)
-	suite.Require().NoError(err)
-	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
-	suite.CheckBalance(toAccAddress, suite.NewCoin(sdkmath.ZeroInt()))
+	toSigner := helpers.NewSigner(helpers.NewEthPrivKey())
+	toAccAddress := toSigner.AccAddress()
+	suite.EqualBalance(toAccAddress, suite.NewCoin(sdkmath.ZeroInt()))
 
-	suite.migrateAccount(fromPrivKey, toPrivKey)
+	suite.migrateAccount(fromSigner, toSigner)
 	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
 
-	suite.CheckBalance(fromAccAddress, suite.NewCoin(sdkmath.ZeroInt()))
-	suite.CheckDelegate(fromAccAddress, valAddress, suite.NewCoin(sdkmath.ZeroInt()))
+	suite.EqualBalance(fromAccAddress, suite.NewCoin(sdkmath.ZeroInt()))
+	suite.EqualDelegate(fromAccAddress, valAddress, suite.NewCoin(sdkmath.ZeroInt()))
 
-	suite.CheckBalance(toAccAddress, suite.NewCoin(amount))
-	suite.CheckDelegate(toAccAddress, valAddress, delegateAmount)
-	suite.CheckWithdrawAddr(toAccAddress, toAccAddress)
+	suite.EqualBalance(toAccAddress, suite.NewCoin(amount))
+	suite.EqualDelegate(toAccAddress, valAddress, delegateAmount)
+	suite.EqualWithdrawAddr(toAccAddress, toAccAddress)
 
-	suite.Delegate(toPrivKey, valAddress, suite.NewCoin(sdkmath.NewInt(1).MulRaw(1e18)))
+	suite.Delegate(toSigner, valAddress, suite.NewCoin(sdkmath.NewInt(1).MulRaw(1e18)))
 	amount = amount.Sub(sdkmath.NewInt(3).MulRaw(1e18))
-	balances := suite.QueryBalances(toAccAddress)
+	balances := suite.GetAllBalances(toAccAddress)
 	suite.True(balances.AmountOf(fxtypes.DefaultDenom).GT(amount))
 
 	delegateAmount = delegateAmount.Add(suite.NewCoin(sdkmath.NewInt(1).MulRaw(1e18)))
-	suite.CheckDelegate(toAccAddress, valAddress, delegateAmount)
+	suite.EqualDelegate(toAccAddress, valAddress, delegateAmount)
 
-	suite.WithdrawReward(toPrivKey, valAddress)
+	suite.WithdrawReward(toSigner, valAddress)
 	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
-	balances2 := suite.QueryBalances(toAccAddress)
+	balances2 := suite.GetAllBalances(toAccAddress)
 	suite.True(balances2.AmountOf(fxtypes.DefaultDenom).GT(amount))
 }
 
 func (suite *IntegrationTest) MigrateTestUnDelegate() {
-	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.Secp256k1Type, 0, 0)
-	suite.Require().NoError(err)
-	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
+	fromSigner := helpers.NewSigner(helpers.NewPriKey())
+	fromAccAddress := fromSigner.AccAddress()
 	amount := sdkmath.NewInt(20).MulRaw(1e18)
 	suite.Send(fromAccAddress, suite.NewCoin(amount))
 
-	valAddress := suite.QueryValidatorByToken()
+	valAddress := suite.GetValSortByToken()
 	delegateAmount := suite.NewCoin(sdkmath.NewInt(2).MulRaw(1e18))
-	suite.Delegate(fromPrivKey, valAddress, delegateAmount)
+	suite.Delegate(fromSigner, valAddress, delegateAmount)
 	amount = amount.Sub(sdkmath.NewInt(2 + 2).MulRaw(1e18))
 
 	delegateAmount = delegateAmount.Sub(suite.NewCoin(sdkmath.NewInt(1).MulRaw(1e18)))
-	txResponse := suite.Undelegate(fromPrivKey, valAddress, delegateAmount)
+	txResponse := suite.Undelegate(fromSigner, valAddress, delegateAmount)
 	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
 
 	block := suite.QueryBlockByTxHash(txResponse.TxHash)
@@ -107,21 +100,20 @@ func (suite *IntegrationTest) MigrateTestUnDelegate() {
 		InitialBalance: delegateAmount.Amount,
 		Balance:        delegateAmount.Amount,
 	}
-	suite.CheckUndelegate(fromAccAddress, valAddress, unbondingDelegationEntry)
+	suite.EqualUndelegate(fromAccAddress, valAddress, unbondingDelegationEntry)
 
 	// ===> migration
 
-	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.EthSecp256k1Type, 0, 0)
-	suite.Require().NoError(err)
-	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
+	toSigner := helpers.NewSigner(helpers.NewEthPrivKey())
+	toAccAddress := toSigner.AccAddress()
 
-	suite.migrateAccount(fromPrivKey, toPrivKey)
+	suite.migrateAccount(fromSigner, toSigner)
 	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
 
-	balances2 := suite.QueryBalances(toAccAddress)
+	balances2 := suite.GetAllBalances(toAccAddress)
 	suite.True(balances2.AmountOf(fxtypes.DefaultDenom).GT(amount))
-	suite.CheckDelegate(toAccAddress, valAddress, delegateAmount)
-	suite.CheckUndelegate(toAccAddress, valAddress, unbondingDelegationEntry)
+	suite.EqualDelegate(toAccAddress, valAddress, delegateAmount)
+	suite.EqualUndelegate(toAccAddress, valAddress, unbondingDelegationEntry)
 }
 
 func TestSignature(t *testing.T) {
