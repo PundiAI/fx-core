@@ -63,12 +63,13 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/functionx/fx-core/v8/contract"
+	"github.com/functionx/fx-core/v8/precompiles/crosschain"
+	stakingprecompile "github.com/functionx/fx-core/v8/precompiles/staking"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v8/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
 	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
-	crosschainprecompile "github.com/functionx/fx-core/v8/x/crosschain/precompile"
 	erc20keeper "github.com/functionx/fx-core/v8/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
@@ -83,7 +84,6 @@ import (
 	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v8/x/polygon/types"
 	fxstakingkeeper "github.com/functionx/fx-core/v8/x/staking/keeper"
-	stakingprecompile "github.com/functionx/fx-core/v8/x/staking/precompile"
 	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
 )
 
@@ -350,7 +350,7 @@ func NewAppKeeper(
 	)
 
 	// crosschain precompile
-	crosschainPrecompileRouter := crosschainprecompile.NewRouter()
+	crosschainPrecompileRouter := crosschain.NewRouter()
 	evmKeeper := evmkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[evmtypes.StoreKey],
@@ -364,7 +364,7 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(evmtypes.ModuleName),
 		[]evmkeeper.CustomContractFn{
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
-				return crosschainprecompile.NewPrecompiledContract(
+				return crosschain.NewPrecompiledContract(
 					appKeepers.BankKeeper, appKeepers.GovKeeper, crosschainPrecompileRouter)
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {

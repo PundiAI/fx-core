@@ -7,8 +7,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/functionx/fx-core/v8/contract"
+	stakingprecompile "github.com/functionx/fx-core/v8/precompiles/staking"
 	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/staking/precompile"
 )
 
 type StakingPrecompileSuite struct {
@@ -97,7 +97,7 @@ func (suite *StakingPrecompileSuite) AllowanceShares(valAddr string, owner, spen
 }
 
 func (suite *StakingPrecompileSuite) LogReward(logs []*ethtypes.Log, valAddr string, addr common.Address) *big.Int {
-	withdrawABI := precompile.NewWithdrawABI()
+	withdrawABI := stakingprecompile.NewWithdrawABI()
 	for _, log := range logs {
 		if log.Address.String() == contract.StakingAddress &&
 			log.Topics[0] == withdrawABI.Event.ID &&
