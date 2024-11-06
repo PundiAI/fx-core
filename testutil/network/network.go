@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -44,6 +45,9 @@ import (
 
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
 )
+
+// package-wide network lock to only allow one test network at a time
+var lock = new(sync.Mutex)
 
 // AppConstructor defines a function which accepts a network configuration and
 // creates an ABCI Application to provide to Tendermint.
@@ -95,6 +99,7 @@ type Network struct {
 	BaseDir    string
 	Config     Config
 	Validators []*Validator
+	ctx        context.Context
 	cancel     context.CancelFunc
 }
 
@@ -121,6 +126,9 @@ type Validator struct {
 // New creates a new Network for integration tests or in-process testnets run via the CLI
 func New(t *testing.T, cfg Config) *Network {
 	t.Helper()
+	// only one caller/test can create and use a network at a time
+	t.Log("acquiring test network lock")
+	lock.Lock()
 
 	baseDir := t.TempDir()
 
@@ -136,15 +144,15 @@ func New(t *testing.T, cfg Config) *Network {
 	require.NoError(t, err)
 
 	network := &Network{
+		ctx:        context.Background(),
 		logger:     logger,
 		BaseDir:    baseDir,
 		Config:     cfg,
 		Validators: validators,
 	}
 
-	ctx := context.Background()
-	ctx, network.cancel = context.WithCancel(ctx)
-	errGroup, ctx := errgroup.WithContext(ctx)
+	network.ctx, network.cancel = context.WithCancel(network.ctx)
+	errGroup, ctx := errgroup.WithContext(network.ctx)
 
 	t.Log("starting test network...")
 	for _, val := range network.Validators {
@@ -409,6 +417,10 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config, logger log.Logger
 	return validators, nil
 }
 
+func (n *Network) GetContext() context.Context {
+	return n.ctx
+}
+
 // LatestHeight returns the latest height of the network or an error if the
 // query fails or no validators exist.
 func (n *Network) LatestHeight() (int64, error) {
@@ -416,7 +428,7 @@ func (n *Network) LatestHeight() (int64, error) {
 		return 0, errors.New("no validators available")
 	}
 
-	status, err := n.Validators[0].RPCClient.Status(context.Background())
+	status, err := n.Validators[0].RPCClient.Status(n.ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -458,7 +470,7 @@ func (n *Network) WaitForHeightWithTimeout(h int64, t time.Duration) (int64, err
 			ticker.Stop()
 			return latestHeight, errors.New("timeout exceeded waiting for block")
 		case <-ticker.C:
-			status, err := val.RPCClient.Status(context.Background())
+			status, err := val.RPCClient.Status(n.ctx)
 			if err == nil && status != nil {
 				latestHeight = status.SyncInfo.LatestBlockHeight
 				if latestHeight >= h {
@@ -490,9 +502,13 @@ func (n *Network) WaitForNextBlock() error {
 // test networks. This method must be called when a test is finished, typically
 // in a defer.
 func (n *Network) Cleanup() {
+	defer func() {
+		lock.Unlock()
+		n.logger.Info("released test network lock")
+	}()
 	n.logger.Info("cleaning up test network...")
 	startTime := time.Now()
-	shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancelFn := context.WithTimeout(n.ctx, 5*time.Second)
 	defer cancelFn()
 	n.cancel()
 	for _, v := range n.Validators {

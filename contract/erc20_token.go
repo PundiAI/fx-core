@@ -87,11 +87,6 @@ func (k ERC20TokenKeeper) Approve(ctx context.Context, contractAddr, from, spend
 	return unpackRetIsOk(k.abi, "approve", res)
 }
 
-// PackMint only used for testing
-func (k ERC20TokenKeeper) PackMint(receiver common.Address, amount *big.Int) ([]byte, error) {
-	return k.abi.Pack("mint", receiver, amount)
-}
-
 func (k ERC20TokenKeeper) Mint(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
 	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "mint", receiver, amount)
 }

@@ -150,6 +150,7 @@ message MsgSendToFxClaim {
   ];
   string sender = 5;
   string receiver = 6;
+  // Deprecated: After the upgrade to v8
   string target_ibc = 7;
   string bridger_address = 8;
   string chain_name = 9;
@@ -231,6 +232,7 @@ message MsgBridgeTokenClaim {
   string symbol = 5;
   uint64 decimals = 6;
   string bridger_address = 7;
+  // Deprecated: After the upgrade to v8
   string channel_ibc = 8; // Bridge Token channel IBC
   string chain_name = 9;
 }

@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	suite.Require().EqualError(err, "no delegation for (address, validator) tuple")
 
 	// migrate
-	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distritypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
+	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distrtypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
 	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 	err = m.Execute(suite.Ctx, suite.App.AppCodec(), acc, ethAcc)
@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	suite.Require().Len(slice, 1)
 	suite.Require().Equal(acc.String(), slice[0].DelegatorAddress)
 
-	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distritypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
+	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distrtypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
 	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 	err = m.Execute(suite.Ctx, suite.App.AppCodec(), acc, ethAcc)
@@ -214,7 +214,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	suite.Require().Len(queue, int(entries))
 	suite.Require().Equal(queue[0].DelegatorAddress, acc.String())
 
-	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distritypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
+	m := migratekeeper.NewDistrStakingMigrate(suite.App.GetKey(distrtypes.StoreKey), suite.App.GetKey(stakingtypes.StoreKey), suite.App.StakingKeeper)
 	err = m.Validate(suite.Ctx, suite.App.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 	err = m.Execute(suite.Ctx, suite.App.AppCodec(), acc, ethAcc)
@@ -239,9 +239,9 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 
 func GetDelegateRewards(ctx sdk.Context, app *app.App, delegate []byte, validator string) (sdk.DecCoins, error) {
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	distritypes.RegisterQueryServer(queryHelper, distributionkeeper.NewQuerier(app.DistrKeeper))
-	queryClient := distritypes.NewQueryClient(queryHelper)
-	rewards, err := queryClient.DelegationRewards(context.Background(), &distritypes.QueryDelegationRewardsRequest{
+	distrtypes.RegisterQueryServer(queryHelper, distributionkeeper.NewQuerier(app.DistrKeeper))
+	queryClient := distrtypes.NewQueryClient(queryHelper)
+	rewards, err := queryClient.DelegationRewards(context.Background(), &distrtypes.QueryDelegationRewardsRequest{
 		DelegatorAddress: sdk.AccAddress(delegate).String(),
 		ValidatorAddress: validator,
 	})

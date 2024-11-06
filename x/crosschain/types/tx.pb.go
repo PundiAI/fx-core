@@ -779,15 +779,16 @@ func (m *MsgOracleSetUpdatedClaim) GetChainName() string {
 }
 
 type MsgSendToFxClaim struct {
-	EventNonce     uint64                `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
-	BlockHeight    uint64                `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
-	TokenContract  string                `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	Amount         cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`
-	Sender         string                `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
-	Receiver       string                `protobuf:"bytes,6,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	TargetIbc      string                `protobuf:"bytes,7,opt,name=target_ibc,json=targetIbc,proto3" json:"target_ibc,omitempty"`
-	BridgerAddress string                `protobuf:"bytes,8,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
-	ChainName      string                `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	EventNonce    uint64                `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
+	BlockHeight   uint64                `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+	TokenContract string                `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	Amount        cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`
+	Sender        string                `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
+	Receiver      string                `protobuf:"bytes,6,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	// Deprecated: After the upgrade to v8
+	TargetIbc      string `protobuf:"bytes,7,opt,name=target_ibc,json=targetIbc,proto3" json:"target_ibc,omitempty"`
+	BridgerAddress string `protobuf:"bytes,8,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ChainName      string `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgSendToFxClaim) Reset()         { *m = MsgSendToFxClaim{} }
@@ -1281,8 +1282,9 @@ type MsgBridgeTokenClaim struct {
 	Symbol         string `protobuf:"bytes,5,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	Decimals       uint64 `protobuf:"varint,6,opt,name=decimals,proto3" json:"decimals,omitempty"`
 	BridgerAddress string `protobuf:"bytes,7,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
-	ChannelIbc     string `protobuf:"bytes,8,opt,name=channel_ibc,json=channelIbc,proto3" json:"channel_ibc,omitempty"`
-	ChainName      string `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	// Deprecated: After the upgrade to v8
+	ChannelIbc string `protobuf:"bytes,8,opt,name=channel_ibc,json=channelIbc,proto3" json:"channel_ibc,omitempty"`
+	ChainName  string `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgBridgeTokenClaim) Reset()         { *m = MsgBridgeTokenClaim{} }
