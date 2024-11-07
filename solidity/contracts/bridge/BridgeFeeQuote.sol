@@ -65,13 +65,13 @@ contract BridgeFeeQuote is
         oracleContract = _oracleContract;
         maxQuoteIndex = _maxQuoteIndex;
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADE_ROLE, msg.sender);
-        _grantRole(OWNER_ROLE, msg.sender);
-
         __AccessControl_init();
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADE_ROLE, msg.sender);
+        _grantRole(OWNER_ROLE, msg.sender);
     }
 
     event NewQuote(
@@ -414,6 +414,9 @@ contract BridgeFeeQuote is
     ) external onlyRole(OWNER_ROLE) returns (bool) {
         if (assets[_chainName].isActive) {
             revert ChainNameAlreadyExists();
+        }
+        if (_chainName.equal("")) {
+            revert ChainNameInvalid();
         }
         assets[_chainName] = Asset({isActive: true, tokenNames: _tokenNames});
         chainNames.push(_chainName);

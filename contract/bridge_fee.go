@@ -13,7 +13,7 @@ func DeployBridgeFeeContract(
 	evmKeeper EvmKeeper,
 	bridgeFeeQuoteKeeper BridgeFeeQuoteKeeper,
 	bridgeFeeOracleKeeper BridgeFeeOracleKeeper,
-	bridgeDenomWithChain map[string][]string,
+	bridgeDenoms []BridgeDenoms,
 	evmModuleAddress, owner, defaultOracleAddress common.Address,
 ) error {
 	if err := deployBridgeProxy(
@@ -40,7 +40,7 @@ func DeployBridgeFeeContract(
 	if err := initBridgeFeeOracle(ctx, bridgeFeeOracleKeeper, owner, defaultOracleAddress); err != nil {
 		return err
 	}
-	return initBridgeFeeQuote(ctx, bridgeFeeQuoteKeeper, bridgeDenomWithChain, owner)
+	return initBridgeFeeQuote(ctx, bridgeFeeQuoteKeeper, bridgeDenoms, owner)
 }
 
 func deployBridgeProxy(
@@ -101,7 +101,7 @@ func initBridgeFeeOracle(
 func initBridgeFeeQuote(
 	ctx sdk.Context,
 	bridgeFeeQuoteKeeper BridgeFeeQuoteKeeper,
-	bridgeDenomWithChain map[string][]string,
+	bridgeDenoms []BridgeDenoms,
 	owner common.Address,
 ) error {
 	if _, err := bridgeFeeQuoteKeeper.Initialize(ctx, common.HexToAddress(BridgeFeeOracleAddress), big.NewInt(DefaultMaxQuoteIndex)); err != nil {
@@ -121,8 +121,8 @@ func initBridgeFeeQuote(
 	if _, err = bridgeFeeQuoteKeeper.GrantRole(ctx, upgradeRole, owner); err != nil {
 		return err
 	}
-	for chainName, denoms := range bridgeDenomWithChain {
-		if _, err = bridgeFeeQuoteKeeper.RegisterChain(ctx, chainName, denoms...); err != nil {
+	for _, bridgeDenom := range bridgeDenoms {
+		if _, err = bridgeFeeQuoteKeeper.RegisterChain(ctx, bridgeDenom.ChainName, bridgeDenom.Denoms...); err != nil {
 			return err
 		}
 	}

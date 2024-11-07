@@ -17,7 +17,7 @@ type BridgeFeeOracleKeeper struct {
 	contract common.Address
 }
 
-func NewBrideFeeOracleKeeper(caller Caller, contract string) BridgeFeeOracleKeeper {
+func NewBridgeFeeOracleKeeper(caller Caller, contract string) BridgeFeeOracleKeeper {
 	return BridgeFeeOracleKeeper{
 		Caller:   caller,
 		abi:      GetBridgeFeeOracle().ABI,

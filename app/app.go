@@ -349,7 +349,7 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 	}
 
 	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(app.EvmKeeper, contract.BridgeFeeAddress)
-	bridgeFeeOracleKeeper := contract.NewBrideFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
+	bridgeFeeOracleKeeper := contract.NewBridgeFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
 
 	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
 	moduleAddress := common.BytesToAddress(acc.Bytes())
@@ -361,15 +361,18 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 	if len(delegations) == 0 {
 		return nil, errors.New("no delegations found")
 	}
-
+	bridgeDenoms := []contract.BridgeDenoms{
+		{
+			ChainName: ethtypes.ModuleName,
+			Denoms:    []string{fxtypes.DefaultDenom},
+		},
+	}
 	if err = contract.DeployBridgeFeeContract(
 		ctx,
 		app.EvmKeeper,
 		bridgeFeeQuoteKeeper,
 		bridgeFeeOracleKeeper,
-		map[string][]string{
-			ethtypes.ModuleName: {fxtypes.DefaultDenom},
-		},
+		bridgeDenoms,
 		moduleAddress, moduleAddress,
 		common.BytesToAddress(sdk.MustAccAddressFromBech32(delegations[0].DelegatorAddress).Bytes()),
 	); err != nil {
