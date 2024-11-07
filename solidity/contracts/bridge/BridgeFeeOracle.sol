@@ -36,13 +36,13 @@ contract BridgeFeeOracle is
     function initialize(address _crosschain) public initializer {
         crosschainContract = _crosschain;
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADE_ROLE, msg.sender);
-        _grantRole(OWNER_ROLE, msg.sender);
-
         __AccessControl_init();
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADE_ROLE, msg.sender);
+        _grantRole(OWNER_ROLE, msg.sender);
     }
 
     /**

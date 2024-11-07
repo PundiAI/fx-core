@@ -76,19 +76,22 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 		store.RemoveStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
 
 		quoteKeeper := contract.NewBridgeFeeQuoteKeeper(app.EvmKeeper, contract.BridgeFeeAddress)
-		oracleKeeper := contract.NewBrideFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
-		bridgeDenomWithChain := make(map[string][]string)
+		oracleKeeper := contract.NewBridgeFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
 		chains := crosschaintypes.GetSupportChains()
-		for _, chain := range chains {
+		bridgeDenoms := make([]contract.BridgeDenoms, len(chains))
+		for index, chain := range chains {
 			denoms := make([]string, 0)
-			bridgeTokens, err := app.Erc20Keeper.GetBridgeTokens(ctx, chain)
+			bridgeTokens, err := app.Erc20Keeper.GetBridgeTokens(cacheCtx, chain)
 			if err != nil {
 				return fromVM, err
 			}
 			for _, token := range bridgeTokens {
 				denoms = append(denoms, token.GetDenom())
 			}
-			bridgeDenomWithChain[chain] = denoms
+			bridgeDenoms[index] = contract.BridgeDenoms{
+				ChainName: chain,
+				Denoms:    denoms,
+			}
 		}
 		acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
 		moduleAddress := common.BytesToAddress(acc.Bytes())
@@ -103,7 +106,7 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 			app.EvmKeeper,
 			quoteKeeper,
 			oracleKeeper,
-			bridgeDenomWithChain,
+			bridgeDenoms,
 			moduleAddress,
 			// TODO set bridge fee contract owner address before mainnet upgrade
 			moduleAddress,
