@@ -2,6 +2,7 @@ package v8
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	storetypes "cosmossdk.io/store/types"
@@ -17,10 +18,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v8/app/keepers"
 	"github.com/functionx/fx-core/v8/app/upgrades/store"
+	"github.com/functionx/fx-core/v8/contract"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
 	erc20keeper "github.com/functionx/fx-core/v8/x/erc20/keeper"
@@ -72,6 +75,42 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 
 		store.RemoveStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
 
+		quoteKeeper := contract.NewBridgeFeeQuoteKeeper(app.EvmKeeper, contract.BridgeFeeAddress)
+		oracleKeeper := contract.NewBrideFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
+		bridgeDenomWithChain := make(map[string][]string)
+		chains := crosschaintypes.GetSupportChains()
+		for _, chain := range chains {
+			denoms := make([]string, 0)
+			bridgeTokens, err := app.Erc20Keeper.GetBridgeTokens(ctx, chain)
+			if err != nil {
+				return fromVM, err
+			}
+			for _, token := range bridgeTokens {
+				denoms = append(denoms, token.GetDenom())
+			}
+			bridgeDenomWithChain[chain] = denoms
+		}
+		acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
+		moduleAddress := common.BytesToAddress(acc.Bytes())
+
+		oracles := app.CrosschainKeepers.EthKeeper.GetAllOracles(cacheCtx, true)
+		if oracles.Len() <= 0 {
+			return fromVM, errors.New("no oracle found")
+		}
+
+		if err = contract.DeployBridgeFeeContract(
+			cacheCtx,
+			app.EvmKeeper,
+			quoteKeeper,
+			oracleKeeper,
+			bridgeDenomWithChain,
+			moduleAddress,
+			// TODO set bridge fee contract owner address before mainnet upgrade
+			moduleAddress,
+			common.HexToAddress(oracles[0].ExternalAddress),
+		); err != nil {
+			return fromVM, err
+		}
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil

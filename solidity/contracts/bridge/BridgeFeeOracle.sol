@@ -19,6 +19,8 @@ contract BridgeFeeOracle is
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     bytes32 public constant QUOTE_ROLE = keccak256("QUOTE_ROLE");
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 public constant UPGRADE_ROLE = keccak256("UPGRADE_ROLE");
 
     address public crosschainContract;
     address public defaultOracle;
@@ -31,14 +33,16 @@ contract BridgeFeeOracle is
     EnumerableSetUpgradeable.AddressSet private oracles;
     mapping(address => State) public oracleStatus;
 
-    function initialize(address _crossChain) public initializer {
+    function initialize(address _crosschain) public initializer {
+        crosschainContract = _crosschain;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADE_ROLE, msg.sender);
+        _grantRole(OWNER_ROLE, msg.sender);
+
         __AccessControl_init();
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
-
-        crosschainContract = _crossChain;
-
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /**
@@ -68,7 +72,7 @@ contract BridgeFeeOracle is
 
     function blackOracle(
         address _oracle
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
+    ) external onlyRole(OWNER_ROLE) nonReentrant {
         if (oracleStatus[_oracle].isBlacklisted) return;
         if (oracleStatus[_oracle].isActive) {
             oracleStatus[_oracle].isActive = false;
@@ -79,7 +83,7 @@ contract BridgeFeeOracle is
 
     function setDefaultOracle(
         address _defaultOracle
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(OWNER_ROLE) {
         if (!oracles.contains(_defaultOracle)) {
             oracleStatus[_defaultOracle] = State(false, true);
             oracles.add(_defaultOracle);
@@ -93,5 +97,5 @@ contract BridgeFeeOracle is
 
     function _authorizeUpgrade(
         address
-    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {} // solhint-disable-line no-empty-blocks
+    ) internal override onlyRole(UPGRADE_ROLE) {} // solhint-disable-line no-empty-blocks
 }
