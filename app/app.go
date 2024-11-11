@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -55,6 +56,7 @@ import (
 
 	fxante "github.com/functionx/fx-core/v8/ante"
 	"github.com/functionx/fx-core/v8/app/keepers"
+	"github.com/functionx/fx-core/v8/contract"
 	_ "github.com/functionx/fx-core/v8/docs/statik"
 	fxcfg "github.com/functionx/fx-core/v8/server/config"
 	fxauth "github.com/functionx/fx-core/v8/server/grpc/auth"
@@ -64,6 +66,7 @@ import (
 	"github.com/functionx/fx-core/v8/x/crosschain"
 	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
 	ibcmiddlewaretypes "github.com/functionx/fx-core/v8/x/ibc/middleware/types"
 )
@@ -345,6 +348,36 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 		panic(err)
 	}
 
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(app.EvmKeeper, contract.BridgeFeeAddress)
+	bridgeFeeOracleKeeper := contract.NewBridgeFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
+
+	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
+	moduleAddress := common.BytesToAddress(acc.Bytes())
+
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(delegations) == 0 {
+		return nil, errors.New("no delegations found")
+	}
+	bridgeDenoms := []contract.BridgeDenoms{
+		{
+			ChainName: ethtypes.ModuleName,
+			Denoms:    []string{fxtypes.DefaultDenom},
+		},
+	}
+	if err = contract.DeployBridgeFeeContract(
+		ctx,
+		app.EvmKeeper,
+		bridgeFeeQuoteKeeper,
+		bridgeFeeOracleKeeper,
+		bridgeDenoms,
+		moduleAddress, moduleAddress,
+		common.BytesToAddress(sdk.MustAccAddressFromBech32(delegations[0].DelegatorAddress).Bytes()),
+	); err != nil {
+		return nil, err
+	}
 	return response, nil
 }
 

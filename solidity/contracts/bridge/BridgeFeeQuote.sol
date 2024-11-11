@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IBridgeFeeQuote, IBridgeFeeOracle} from "./IBridgeFee.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
@@ -25,12 +25,15 @@ contract BridgeFeeQuote is
     IBridgeFeeQuote,
     Initializable,
     UUPSUpgradeable,
-    OwnableUpgradeable,
+    AccessControlUpgradeable,
     ReentrancyGuardUpgradeable
 {
     using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
     using ECDSAUpgradeable for bytes32;
     using StringsUpgradeable for string;
+
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 public constant UPGRADE_ROLE = keccak256("UPGRADE_ROLE");
 
     struct Quote {
         uint256 id;
@@ -62,9 +65,13 @@ contract BridgeFeeQuote is
         oracleContract = _oracleContract;
         maxQuoteIndex = _maxQuoteIndex;
 
-        __Ownable_init();
+        __AccessControl_init();
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADE_ROLE, msg.sender);
+        _grantRole(OWNER_ROLE, msg.sender);
     }
 
     event NewQuote(
@@ -404,9 +411,12 @@ contract BridgeFeeQuote is
     function registerChain(
         string memory _chainName,
         string[] memory _tokenNames
-    ) external onlyOwner returns (bool) {
+    ) external onlyRole(OWNER_ROLE) returns (bool) {
         if (assets[_chainName].isActive) {
             revert ChainNameAlreadyExists();
+        }
+        if (_chainName.equal("")) {
+            revert ChainNameInvalid();
         }
         assets[_chainName] = Asset({isActive: true, tokenNames: _tokenNames});
         chainNames.push(_chainName);
@@ -416,7 +426,7 @@ contract BridgeFeeQuote is
     function registerTokenName(
         string memory _chainName,
         string[] memory _tokenNames
-    ) external onlyOwner returns (bool) {
+    ) external onlyRole(OWNER_ROLE) returns (bool) {
         if (!assets[_chainName].isActive) {
             revert ChainNameInvalid();
         }
@@ -434,20 +444,21 @@ contract BridgeFeeQuote is
 
     function updateOracleContract(
         address _oracleContract
-    ) external onlyOwner returns (bool) {
+    ) external onlyRole(OWNER_ROLE) returns (bool) {
         oracleContract = _oracleContract;
         return true;
     }
 
     function updateMaxQuoteIndex(
         uint256 _maxQuoteIndex
-    ) external onlyOwner returns (bool) {
+    ) external onlyRole(OWNER_ROLE) returns (bool) {
         maxQuoteIndex = _maxQuoteIndex;
         return true;
     }
 
     receive() external payable {}
 
-    // solhint-disable-next-line no-empty-blocks
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address
+    ) internal override onlyRole(UPGRADE_ROLE) {} // solhint-disable-line no-empty-blocks
 }
