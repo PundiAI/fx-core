@@ -19,7 +19,7 @@ func TestExecuteClaimMethod_ABI(t *testing.T) {
 	methodStr := `function executeClaim(string _chain, uint256 _eventNonce) returns(bool _result)`
 	assert.Equal(t, methodStr, executeClaimABI.Method.String())
 
-	eventStr := `event ExecuteClaimEvent(address indexed _sender, uint256 _eventNonce, string _chain)`
+	eventStr := `event ExecuteClaimEvent(address indexed _sender, uint256 _eventNonce, string _chain, string _errReason)`
 	assert.Equal(t, eventStr, executeClaimABI.Event.String())
 }
 

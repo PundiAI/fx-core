@@ -66,6 +66,7 @@ interface ICrosschain is IBridgeCall {
     event ExecuteClaimEvent(
         address indexed _sender,
         uint256 _eventNonce,
-        string _chain
+        string _chain,
+        string _errReason
     );
 }

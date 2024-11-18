@@ -27,7 +27,7 @@ type BankKeeper interface {
 }
 
 type CrosschainKeeper interface {
-	ExecuteClaim(ctx sdk.Context, eventNonce uint64) error
+	ExecuteClaim(ctx sdk.Context, eventNonce uint64) (error, error)
 	BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error)
 	CrosschainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *crosschaintypes.FxTarget, memo string, originToken bool) error
 	BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId *big.Int, fxTarget *crosschaintypes.FxTarget, originTokenAmount sdkmath.Int) (uint64, error)
