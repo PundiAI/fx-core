@@ -362,59 +362,56 @@ func (k Keeper) handleBridgeCallQuote(ctx sdk.Context, from common.Address, brid
 	if quoteId == nil || quoteId.Sign() <= 0 {
 		return nil
 	}
-	quoteInfo, err := k.brideFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
+	contractQuote, err := k.brideFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
 	if err != nil {
 		return err
 	}
-	if quoteInfo.IsTimeout(ctx.BlockTime()) {
+	if contractQuote.IsTimeout(ctx.BlockTime()) {
 		return types.ErrInvalid.Wrapf("quote is timeout")
 	}
 
 	// transfer fee to module
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, quoteInfo.TokenName)
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, contractQuote.TokenName)
 	if err != nil {
 		return err
 	}
 
 	if bridgeToken.IsOrigin() {
-		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(quoteInfo.Fee)))
+		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(contractQuote.Fee)))
 		if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from.Bytes(), k.moduleName, fees); err != nil {
 			return err
 		}
 	} else {
-		if _, err = k.erc20TokenKeeper.Transfer(ctx, bridgeToken.GetContractAddress(), from, k.GetModuleEvmAddress(), quoteInfo.Fee); err != nil {
+		if _, err = k.erc20TokenKeeper.Transfer(ctx, bridgeToken.GetContractAddress(), from, k.GetModuleEvmAddress(), contractQuote.Fee); err != nil {
 			return err
 		}
 	}
 
-	k.SetOutgoingBridgeCallQuoteId(ctx, bridgeCallNonce, quoteId)
+	k.SetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce, types.NewQuoteInfo(contractQuote))
 	return nil
 }
 
 func (k Keeper) TransferQuoteFeeToRelayer(ctx sdk.Context, bridgeCallNonce uint64) error {
-	quoteId := k.GetOutgoingBridgeCallQuoteId(ctx, bridgeCallNonce)
-	if quoteId.Sign() <= 0 {
+	quoteInfo, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
+	if !found {
 		return nil
 	}
 
-	k.DeleteOutgoingBridgeCallQuoteId(ctx, bridgeCallNonce)
+	k.DeleteOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
 
-	quoteInfo, err := k.brideFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
-	if err != nil {
-		return err
-	}
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, quoteInfo.TokenName)
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, quoteInfo.Token)
 	if err != nil {
 		return err
 	}
 
+	quoteOracle := quoteInfo.OracleAddress()
 	if bridgeToken.IsOrigin() {
-		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(quoteInfo.Fee)))
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, quoteInfo.Oracle.Bytes(), fees); err != nil {
+		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, quoteInfo.Fee))
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, quoteOracle.Bytes(), fees); err != nil {
 			return err
 		}
 	} else {
-		if _, err = k.erc20TokenKeeper.Transfer(ctx, bridgeToken.GetContractAddress(), k.GetModuleEvmAddress(), quoteInfo.Oracle, quoteInfo.Fee); err != nil {
+		if _, err = k.erc20TokenKeeper.Transfer(ctx, bridgeToken.GetContractAddress(), k.GetModuleEvmAddress(), quoteOracle, quoteInfo.Fee.BigInt()); err != nil {
 			return err
 		}
 	}
@@ -422,36 +419,43 @@ func (k Keeper) TransferQuoteFeeToRelayer(ctx sdk.Context, bridgeCallNonce uint6
 	return nil
 }
 
-func (k Keeper) SetOutgoingBridgeCallQuoteId(ctx sdk.Context, nonce uint64, quoteId *big.Int) {
+func (k Keeper) SetOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64, quoteInfo types.QuoteInfo) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetBridgeCallQuoteKey(nonce), sdk.Uint64ToBigEndian(quoteId.Uint64()))
+	store.Set(types.GetBridgeCallQuoteKey(nonce), k.cdc.MustMarshal(&quoteInfo))
 }
 
-func (k Keeper) GetOutgoingBridgeCallQuoteId(ctx sdk.Context, nonce uint64) *big.Int {
+func (k Keeper) GetOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64) (types.QuoteInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	return new(big.Int).SetUint64(sdk.BigEndianToUint64(store.Get(types.GetBridgeCallQuoteKey(nonce))))
+	bz := store.Get(types.GetBridgeCallQuoteKey(nonce))
+	if bz == nil {
+		return types.QuoteInfo{}, false
+	}
+
+	quoteInfo := types.QuoteInfo{}
+	k.cdc.MustUnmarshal(bz, &quoteInfo)
+	return quoteInfo, true
 }
 
-func (k Keeper) DeleteOutgoingBridgeCallQuoteId(ctx sdk.Context, nonce uint64) {
+func (k Keeper) DeleteOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetBridgeCallQuoteKey(nonce))
 }
 
-func (k Keeper) ResendBridgeCall(ctx sdk.Context, bridgeCall types.OutgoingBridgeCall, quoteId *big.Int) error {
+func (k Keeper) ResendBridgeCall(ctx sdk.Context, bridgeCall types.OutgoingBridgeCall, quoteInfo types.QuoteInfo) error {
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, GetBridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
 		return types.ErrInvalid.Wrapf("bridge call timeout height")
 	}
 
 	oldBridgeCallNonce := bridgeCall.Nonce
-	k.DeleteOutgoingBridgeCallQuoteId(ctx, oldBridgeCallNonce)
+	k.DeleteOutgoingBridgeCallQuoteInfo(ctx, oldBridgeCallNonce)
 
 	newBridgeCallNonce := k.autoIncrementID(ctx, types.KeyLastBridgeCallID)
 	bridgeCall.Nonce = newBridgeCallNonce
 	bridgeCall.Timeout = bridgeCallTimeout
 	k.SetOutgoingBridgeCall(ctx, &bridgeCall)
-	k.SetOutgoingBridgeCallQuoteId(ctx, newBridgeCallNonce, quoteId)
+	k.SetOutgoingBridgeCallQuoteInfo(ctx, newBridgeCallNonce, quoteInfo)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallResend,
 		sdk.NewAttribute(types.AttributeKeyBridgeCallResendOldNonce, fmt.Sprintf("%d", oldBridgeCallNonce)),

@@ -507,3 +507,18 @@ func NewOriginTokenKey(moduleName string, id uint64) string {
 func NewIBCTransferKey(ibcChannel string, ibcSequence uint64) string {
 	return fmt.Sprintf("%s/%d", ibcChannel, ibcSequence)
 }
+
+func NewQuoteInfo(quote contract.IBridgeFeeQuoteQuoteInfo) QuoteInfo {
+	return QuoteInfo{
+		Id:       quote.Id.Uint64(),
+		Token:    quote.TokenName,
+		Fee:      sdkmath.NewIntFromBigInt(quote.Fee),
+		Oracle:   quote.Oracle.Hex(),
+		GasLimit: quote.GasLimit.Uint64(),
+		Expiry:   quote.Expiry.Uint64(),
+	}
+}
+
+func (q QuoteInfo) OracleAddress() gethcommon.Address {
+	return gethcommon.HexToAddress(q.Oracle)
+}
