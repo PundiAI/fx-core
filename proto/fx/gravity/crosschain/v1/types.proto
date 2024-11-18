@@ -205,3 +205,16 @@ message OutgoingBridgeCall {
   uint64 block_height = 9;
   uint64 event_nonce = 10;
 }
+
+message QuoteInfo {
+  uint64 id = 1;
+  string token = 2;
+  string fee = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string oracle = 4;
+  uint64 gas_limit = 5;
+  uint64 expiry = 6;
+}
