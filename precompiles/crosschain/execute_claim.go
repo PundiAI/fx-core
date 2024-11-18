@@ -55,10 +55,11 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 	}
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		if err = crosschainKeeper.ExecuteClaim(ctx, args.EventNonce.Uint64()); err != nil {
-			return err
+		preExecuteErr, executeErr := crosschainKeeper.ExecuteClaim(ctx, args.EventNonce.Uint64())
+		if preExecuteErr != nil {
+			return preExecuteErr
 		}
-		data, topic, err := m.NewExecuteClaimEvent(contract.Caller(), args.EventNonce, args.Chain)
+		data, topic, err := m.NewExecuteClaimEvent(contract.Caller(), args.EventNonce, args.Chain, executeErr)
 		if err != nil {
 			return err
 		}
@@ -83,8 +84,12 @@ func NewExecuteClaimABI() ExecuteClaimABI {
 	}
 }
 
-func (m ExecuteClaimABI) NewExecuteClaimEvent(sender common.Address, eventNonce *big.Int, dstChain string) (data []byte, topic []common.Hash, err error) {
-	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain)
+func (m ExecuteClaimABI) NewExecuteClaimEvent(sender common.Address, eventNonce *big.Int, dstChain string, executeErr error) (data []byte, topic []common.Hash, err error) {
+	errReason := ""
+	if executeErr != nil {
+		errReason = executeErr.Error()
+	}
+	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain, errReason)
 }
 
 func (m ExecuteClaimABI) PackInput(args fxcontract.ExecuteClaimArgs) ([]byte, error) {

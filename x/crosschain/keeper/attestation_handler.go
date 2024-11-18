@@ -27,20 +27,26 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 	}
 }
 
-func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) error {
-	externalClaim, err := k.GetPendingExecuteClaim(ctx, eventNonce)
-	if err != nil {
-		return err
+func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) (preExecuteErr, executeErr error) {
+	externalClaim, preExecuteErr := k.GetPendingExecuteClaim(ctx, eventNonce)
+	if preExecuteErr != nil {
+		return preExecuteErr, nil
 	}
 	k.DeletePendingExecuteClaim(ctx, eventNonce)
+
+	cacheCtx, commit := ctx.CacheContext()
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToFxClaim:
-		return k.SendToFxExecuted(ctx, claim)
+		executeErr = k.SendToFxExecuted(cacheCtx, claim)
 	case *types.MsgBridgeCallClaim:
-		return k.BridgeCallHandler(ctx, claim)
+		executeErr = k.BridgeCallHandler(cacheCtx, claim)
 	case *types.MsgBridgeCallResultClaim:
-		return k.BridgeCallResultHandler(ctx, claim)
+		executeErr = k.BridgeCallResultHandler(cacheCtx, claim)
 	default:
-		return sdkerrors.ErrInvalidRequest.Wrapf("invalid claim type: %s", claim.GetType())
+		executeErr = sdkerrors.ErrInvalidRequest.Wrapf("invalid claim type: %s", claim.GetType())
 	}
+	if executeErr == nil {
+		commit()
+	}
+	return nil, executeErr
 }
