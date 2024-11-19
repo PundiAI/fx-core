@@ -40,7 +40,9 @@ type AppModuleBasic struct {
 // DefaultGenesis returns default genesis state as raw bytes for the evm
 // module.
 func (b AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return b.AppModuleBasic.DefaultGenesis(cdc)
+	state := evmtypes.DefaultGenesisState()
+	state.Params.EvmDenom = fxtypes.DefaultDenom
+	return cdc.MustMarshalJSON(state)
 }
 
 // ValidateGenesis is the validation check of the Genesis
