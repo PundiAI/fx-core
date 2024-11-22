@@ -31,5 +31,5 @@ cat <<EOF >./release-note.md
 
 $changelog
 
-**Full Changelog**: https://github.com/FunctionX/fx-core/commits/$version.
+**Full Changelog**: https://github.com/PundiAI/fx-core/commits/$version.
 EOF
