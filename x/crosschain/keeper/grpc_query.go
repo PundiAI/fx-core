@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/functionx/fx-core/v8/contract"
 	"github.com/functionx/fx-core/v8/x/crosschain/types"
 )
 
@@ -440,4 +441,46 @@ func (k QueryServer) PendingExecuteClaim(c context.Context, req *types.QueryPend
 		return nil, status.Errorf(codes.Internal, "paginate: %v", err)
 	}
 	return &types.QueryPendingExecuteClaimResponse{Claims: claims, Pagination: pageRes}, nil
+}
+
+func (k QueryServer) BridgeCallQuoteByNonce(ctx context.Context, request *types.QueryBridgeCallQuoteByNonceRequest) (*types.QueryBridgeCallQuoteByNonceResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	quote, found := k.GetOutgoingBridgeCallQuoteInfo(sdk.UnwrapSDKContext(ctx), request.GetNonce())
+	if !found {
+		return nil, status.Error(codes.NotFound, "quote not found")
+	}
+	return &types.QueryBridgeCallQuoteByNonceResponse{Quote: &quote}, nil
+}
+
+func (k QueryServer) BridgeCallsByFeeReceiver(c context.Context, req *types.QueryBridgeCallsByFeeReceiverRequest) (*types.QueryBridgeCallsByFeeReceiverResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if err := contract.ValidateEthereumAddress(req.FeeReceiver); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid fee receiver address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	store := ctx.KVStore(k.storeKey)
+	pendingStore := prefix.NewStore(store, types.OutgoingBridgeCallNonceKey)
+
+	datas, pageRes, err := query.GenericFilteredPaginate(k.cdc, pendingStore, req.Pagination, func(key []byte, data *types.OutgoingBridgeCall) (*types.OutgoingBridgeCall, error) {
+		quote, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, data.Nonce)
+		if !found {
+			return nil, nil
+		}
+		if quote.GetOracle() != req.FeeReceiver {
+			return nil, nil
+		}
+		return data, nil
+	}, func() *types.OutgoingBridgeCall {
+		return &types.OutgoingBridgeCall{}
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryBridgeCallsByFeeReceiverResponse{BridgeCalls: datas, Pagination: pageRes}, nil
 }

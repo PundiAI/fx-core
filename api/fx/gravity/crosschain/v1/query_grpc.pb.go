@@ -50,6 +50,8 @@ const (
 	Query_BridgeTokens_FullMethodName                      = "/fx.gravity.crosschain.v1.Query/BridgeTokens"
 	Query_BridgeCoinByDenom_FullMethodName                 = "/fx.gravity.crosschain.v1.Query/BridgeCoinByDenom"
 	Query_BridgeChainList_FullMethodName                   = "/fx.gravity.crosschain.v1.Query/BridgeChainList"
+	Query_BridgeCallQuoteByNonce_FullMethodName            = "/fx.gravity.crosschain.v1.Query/BridgeCallQuoteByNonce"
+	Query_BridgeCallsByFeeReceiver_FullMethodName          = "/fx.gravity.crosschain.v1.Query/BridgeCallsByFeeReceiver"
 )
 
 // QueryClient is the client API for Query service.
@@ -89,6 +91,8 @@ type QueryClient interface {
 	BridgeTokens(ctx context.Context, in *QueryBridgeTokensRequest, opts ...grpc.CallOption) (*QueryBridgeTokensResponse, error)
 	BridgeCoinByDenom(ctx context.Context, in *QueryBridgeCoinByDenomRequest, opts ...grpc.CallOption) (*QueryBridgeCoinByDenomResponse, error)
 	BridgeChainList(ctx context.Context, in *QueryBridgeChainListRequest, opts ...grpc.CallOption) (*QueryBridgeChainListResponse, error)
+	BridgeCallQuoteByNonce(ctx context.Context, in *QueryBridgeCallQuoteByNonceRequest, opts ...grpc.CallOption) (*QueryBridgeCallQuoteByNonceResponse, error)
+	BridgeCallsByFeeReceiver(ctx context.Context, in *QueryBridgeCallsByFeeReceiverRequest, opts ...grpc.CallOption) (*QueryBridgeCallsByFeeReceiverResponse, error)
 }
 
 type queryClient struct {
@@ -378,6 +382,24 @@ func (c *queryClient) BridgeChainList(ctx context.Context, in *QueryBridgeChainL
 	return out, nil
 }
 
+func (c *queryClient) BridgeCallQuoteByNonce(ctx context.Context, in *QueryBridgeCallQuoteByNonceRequest, opts ...grpc.CallOption) (*QueryBridgeCallQuoteByNonceResponse, error) {
+	out := new(QueryBridgeCallQuoteByNonceResponse)
+	err := c.cc.Invoke(ctx, Query_BridgeCallQuoteByNonce_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) BridgeCallsByFeeReceiver(ctx context.Context, in *QueryBridgeCallsByFeeReceiverRequest, opts ...grpc.CallOption) (*QueryBridgeCallsByFeeReceiverResponse, error) {
+	out := new(QueryBridgeCallsByFeeReceiverResponse)
+	err := c.cc.Invoke(ctx, Query_BridgeCallsByFeeReceiver_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -415,6 +437,8 @@ type QueryServer interface {
 	BridgeTokens(context.Context, *QueryBridgeTokensRequest) (*QueryBridgeTokensResponse, error)
 	BridgeCoinByDenom(context.Context, *QueryBridgeCoinByDenomRequest) (*QueryBridgeCoinByDenomResponse, error)
 	BridgeChainList(context.Context, *QueryBridgeChainListRequest) (*QueryBridgeChainListResponse, error)
+	BridgeCallQuoteByNonce(context.Context, *QueryBridgeCallQuoteByNonceRequest) (*QueryBridgeCallQuoteByNonceResponse, error)
+	BridgeCallsByFeeReceiver(context.Context, *QueryBridgeCallsByFeeReceiverRequest) (*QueryBridgeCallsByFeeReceiverResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -514,6 +538,12 @@ func (UnimplementedQueryServer) BridgeCoinByDenom(context.Context, *QueryBridgeC
 }
 func (UnimplementedQueryServer) BridgeChainList(context.Context, *QueryBridgeChainListRequest) (*QueryBridgeChainListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BridgeChainList not implemented")
+}
+func (UnimplementedQueryServer) BridgeCallQuoteByNonce(context.Context, *QueryBridgeCallQuoteByNonceRequest) (*QueryBridgeCallQuoteByNonceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallQuoteByNonce not implemented")
+}
+func (UnimplementedQueryServer) BridgeCallsByFeeReceiver(context.Context, *QueryBridgeCallsByFeeReceiverRequest) (*QueryBridgeCallsByFeeReceiverResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallsByFeeReceiver not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -1086,6 +1116,42 @@ func _Query_BridgeChainList_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_BridgeCallQuoteByNonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBridgeCallQuoteByNonceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BridgeCallQuoteByNonce(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_BridgeCallQuoteByNonce_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BridgeCallQuoteByNonce(ctx, req.(*QueryBridgeCallQuoteByNonceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_BridgeCallsByFeeReceiver_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBridgeCallsByFeeReceiverRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BridgeCallsByFeeReceiver(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_BridgeCallsByFeeReceiver_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BridgeCallsByFeeReceiver(ctx, req.(*QueryBridgeCallsByFeeReceiverRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1216,6 +1282,14 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BridgeChainList",
 			Handler:    _Query_BridgeChainList_Handler,
+		},
+		{
+			MethodName: "BridgeCallQuoteByNonce",
+			Handler:    _Query_BridgeCallQuoteByNonce_Handler,
+		},
+		{
+			MethodName: "BridgeCallsByFeeReceiver",
+			Handler:    _Query_BridgeCallsByFeeReceiver_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
