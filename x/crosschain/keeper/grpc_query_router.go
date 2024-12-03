@@ -266,3 +266,19 @@ func (k RouterKeeper) PendingExecuteClaim(ctx context.Context, req *types.QueryP
 		return queryServer.PendingExecuteClaim(ctx, req)
 	}
 }
+
+func (k RouterKeeper) BridgeCallQuoteByNonce(ctx context.Context, req *types.QueryBridgeCallQuoteByNonceRequest) (*types.QueryBridgeCallQuoteByNonceResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeCallQuoteByNonce(ctx, req)
+	}
+}
+
+func (k RouterKeeper) BridgeCallsByFeeReceiver(ctx context.Context, request *types.QueryBridgeCallsByFeeReceiverRequest) (*types.QueryBridgeCallsByFeeReceiverResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(request.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeCallsByFeeReceiver(ctx, request)
+	}
+}
