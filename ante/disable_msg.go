@@ -7,7 +7,7 @@ import (
 
 type DisableMsgDecorator struct {
 	govKeeper Govkeeper
-	// disabledMsgs is a set that contains type urls of unauthorized msgs.
+	// disabledMsgTypes is a set that contains type urls of unauthorized msgs.
 	disabledMsgTypes []string
 }
 

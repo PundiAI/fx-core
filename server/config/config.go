@@ -40,7 +40,7 @@ func DefaultBypassMinFee() BypassMinFee {
 type Config struct {
 	config.Config `mapstructure:",squash"`
 
-	// BypassMinFeeMsgTypes defines custom that will bypass minimum fee checks during CheckTx.
+	// BypassMinFee defines custom that will bypass minimum fee checks during CheckTx.
 	BypassMinFee BypassMinFee `mapstructure:"bypass-min-fee"`
 
 	EVM     ethermintconfig.EVMConfig     `mapstructure:"evm"`
