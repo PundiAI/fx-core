@@ -13,22 +13,25 @@ import (
 	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
 )
 
-func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, bridgeToken erc20types.BridgeToken) (sdk.Coin, error) {
-	baseCoin := sdk.NewCoin(bridgeToken.Denom, amount)
+func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, bridgeToken erc20types.BridgeToken) (baseCoin sdk.Coin, err error) {
+	baseCoin = sdk.NewCoin(bridgeToken.Denom, amount)
 	if bridgeToken.IsOrigin() {
 		return baseCoin, nil
 	}
 	bridgeCoins := sdk.NewCoins(sdk.NewCoin(bridgeToken.BridgeDenom(), amount))
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, types.ModuleName, bridgeCoins); err != nil {
+	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, types.ModuleName, bridgeCoins); err != nil {
 		return sdk.Coin{}, err
 	}
 	baseCoins := sdk.NewCoins(baseCoin)
-	if !bridgeToken.IsNative {
-		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, baseCoins); err != nil {
-			return sdk.Coin{}, err
-		}
+	if bridgeToken.IsNative {
+		err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, bridgeCoins)
+	} else {
+		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, baseCoins)
 	}
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, holder, baseCoins)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, holder, baseCoins)
 	return baseCoin, err
 }
 
@@ -42,12 +45,15 @@ func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, holder sdk.AccAddress
 	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, types.ModuleName, baseCoins); err != nil {
 		return bridgeToken, err
 	}
-	if !bridgeToken.IsNative {
-		if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, baseCoins); err != nil {
-			return bridgeToken, err
-		}
-	}
 	bridgeCoins := sdk.NewCoins(sdk.NewCoin(bridgeToken.BridgeDenom(), baseCoin.Amount))
+	if bridgeToken.IsNative {
+		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, bridgeCoins)
+	} else {
+		err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, baseCoins)
+	}
+	if err != nil {
+		return bridgeToken, err
+	}
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, holder, bridgeCoins)
 	return bridgeToken, err
 }
