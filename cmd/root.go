@@ -24,7 +24,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
@@ -131,7 +130,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(rootCmd, tempApplication.ModuleBasics, tempApplication.GetTxConfig())
+	initRootCmd(rootCmd, tempApplication)
 
 	// add keyring to autocli opts
 	autoCliOpts := tempApplication.AutoCliOpts()
@@ -145,13 +144,12 @@ func NewRootCmd() *cobra.Command {
 
 func initRootCmd(
 	rootCmd *cobra.Command,
-	basicManager module.BasicManager,
-	txConfig client.TxConfig,
+	app *app.App,
 ) {
 	defaultNodeHome := fxtypes.GetDefaultNodeHome()
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(basicManager, defaultNodeHome),
-		genutilcli.Commands(txConfig, basicManager, defaultNodeHome),
+		InitCmd(app.DefaultGenesis(), defaultNodeHome),
+		genutilcli.Commands(app.GetTxConfig(), app.ModuleBasics, defaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(),
 		pruningCommand(newApp, defaultNodeHome),

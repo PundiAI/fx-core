@@ -398,7 +398,7 @@ func (app *App) GetTxConfig() client.TxConfig {
 
 // DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
 func (app *App) DefaultGenesis() map[string]json.RawMessage {
-	return NewDefAppGenesisByDenom(app.appCodec, app.ModuleBasics)
+	return newDefAppGenesisByDenom(app.appCodec, app.ModuleBasics)
 }
 
 // RegisterServices registers all module services

@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -65,7 +64,7 @@ func DefaultNetworkConfig(opts ...func(config *network.Config)) network.Config {
 				baseapp.SetChainID(chainID),
 			)
 		},
-		GenesisState:    NoSupplyGenesisState(newApp.AppCodec(), newApp.ModuleBasics),
+		GenesisState:    NoSupplyGenesisState(newApp),
 		TimeoutCommit:   500 * time.Millisecond,
 		StakingTokens:   sdk.TokensFromConsensusPower(5000, sdk.DefaultPowerReduction), // 500_000
 		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),  // 10_000
@@ -96,8 +95,9 @@ func DefaultNetworkConfig(opts ...func(config *network.Config)) network.Config {
 	return cfg
 }
 
-func NoSupplyGenesisState(cdc codec.JSONCodec, moduleBasics module.BasicManager) app.GenesisState {
-	genesisState := app.NewDefAppGenesisByDenom(cdc, moduleBasics)
+func NoSupplyGenesisState(myApp *app.App) app.GenesisState {
+	genesisState := myApp.DefaultGenesis()
+	cdc := myApp.AppCodec()
 
 	// reset supply
 	bankState := banktypes.DefaultGenesisState()

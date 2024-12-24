@@ -9,12 +9,10 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmed25519 "github.com/cometbft/cometbft/crypto/ed25519"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -23,18 +21,6 @@ import (
 	"github.com/functionx/fx-core/v8/app"
 	fxtypes "github.com/functionx/fx-core/v8/types"
 )
-
-func newGenesisState(cdc codec.JSONCodec, moduleBasics module.BasicManager) app.GenesisState {
-	genesis := app.NewDefAppGenesisByDenom(cdc, moduleBasics)
-	bankState := new(banktypes.GenesisState)
-	cdc.MustUnmarshalJSON(genesis[banktypes.ModuleName], bankState)
-	bankState.Balances = append(bankState.Balances, banktypes.Balance{
-		Address: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(4_000).MulRaw(1e18))),
-	})
-	genesis[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
-	return genesis
-}
 
 func generateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tmtypes.ValidatorSet, genAccs authtypes.GenesisAccounts, balances []banktypes.Balance) {
 	if initCoins == nil || initCoins.Len() <= 0 {
@@ -64,7 +50,7 @@ func setupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	t.Helper()
 
 	myApp := NewApp()
-	genesisState := newGenesisState(myApp.AppCodec(), myApp.ModuleBasics)
+	genesisState := myApp.DefaultGenesis()
 
 	// set genesis accounts
 	var authGenesis authtypes.GenesisState
