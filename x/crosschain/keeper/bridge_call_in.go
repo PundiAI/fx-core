@@ -62,16 +62,18 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	// refund bridge-call case of error
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
 
-	if err = k.bankKeeper.SendCoins(ctx, receiverAddr.Bytes(), msg.GetRefundAddr().Bytes(), baseCoins); err != nil {
-		return err
-	}
-
-	for _, coin := range baseCoins {
-		if fxtypes.IsOriginDenom(coin.Denom) {
-			continue
-		}
-		if _, err = k.erc20Keeper.BaseCoinToEvm(ctx, msg.GetRefundAddr(), coin); err != nil {
+	if !baseCoins.Empty() {
+		if err = k.bankKeeper.SendCoins(ctx, receiverAddr.Bytes(), msg.GetRefundAddr().Bytes(), baseCoins); err != nil {
 			return err
+		}
+
+		for _, coin := range baseCoins {
+			if fxtypes.IsOriginDenom(coin.Denom) {
+				continue
+			}
+			if _, err = k.erc20Keeper.BaseCoinToEvm(ctx, msg.GetRefundAddr(), coin); err != nil {
+				return err
+			}
 		}
 	}
 
