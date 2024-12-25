@@ -6,7 +6,7 @@
 
 * [Rosetta API Swagger](openapi)
 
-* [More Developer Doc](https://functionx.gitbook.io/home/developers)
+* [More Developer Doc](https://pundi.gitbook.io/pundi/readme/pundi-aifx/developers)
 
 # f(x)Core Status
 
@@ -16,6 +16,6 @@
 
 # f(x)Core SDK
 
-* [Go SDK](https://github.com/functionx/fx-core)
-* [Node SDK](https://github.com/functionx/fx-js-sdk)
-* [Python SDK](https://github.com/functionx/fx-py-sdk)
+* [Go SDK](https://github.com/pundiai/fx-core)
+* [Node SDK](https://github.com/pundiai/fx-js-sdk)
+* [Python SDK](https://github.com/pundiai/fx-py-sdk)

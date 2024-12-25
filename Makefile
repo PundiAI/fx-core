@@ -119,7 +119,7 @@ $(INSTALL_DIR):
 
 docker:
 	@echo "--> Building fxcore docker image"
-	docker build --progress plain -t ghcr.io/functionx/fx-core:latest .
+	docker build --progress plain -t ghcr.io/pundiai/fx-core:latest .
 
 run-local: install
 	@./local-node.sh init

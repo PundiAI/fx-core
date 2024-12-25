@@ -269,7 +269,7 @@ replace (
 
 	github.com/cockroachdb/pebble => github.com/cockroachdb/pebble v0.0.0-20230209160836-829675f94811
 
-	github.com/ethereum/go-ethereum => github.com/functionx/go-ethereum v1.10.20-0.20240425065928-ebb09502e7a7
+	github.com/ethereum/go-ethereum => github.com/pundiai/go-ethereum v1.10.20-0.20240425065928-ebb09502e7a7
 	github.com/evmos/ethermint => github.com/pundiai/ethermint v0.6.1-0.20241022071115-5e0afc7c501c
 
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
