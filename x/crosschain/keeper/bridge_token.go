@@ -66,7 +66,7 @@ func (k Keeper) BridgeCoinSupply(ctx context.Context, token, target string) (sdk
 	return supply, nil
 }
 
-func (k Keeper) GetBaseDenomByErc20(ctx sdk.Context, erc20Addr common.Address) (erc20types.ERC20Token, error) {
+func (k Keeper) GetERC20TokenByAddr(ctx sdk.Context, erc20Addr common.Address) (erc20types.ERC20Token, error) {
 	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, erc20Addr.String())
 	if err != nil {
 		return erc20types.ERC20Token{}, err
