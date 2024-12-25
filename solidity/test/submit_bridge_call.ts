@@ -4,7 +4,7 @@ import { expect } from "chai";
 import {
   ERC20TokenTest,
   FxBridgeLogic,
-  BridgeCallbackTest,
+  BridgeCallContextTest,
 } from "../typechain-types";
 import { encodeBytes32String } from "ethers";
 import { getSignerAddresses, submitBridgeCall } from "./common";
@@ -15,7 +15,7 @@ describe("submit bridge call tests", function () {
   let user1: HardhatEthersSigner;
   let erc20Token: ERC20TokenTest;
   let fxBridge: FxBridgeLogic;
-  let bridgeCallback: BridgeCallbackTest;
+  let bridgeCallContextTest: BridgeCallContextTest;
 
   let totalSupply = "10000";
   const gravityId: string = encodeBytes32String("eth-fxcore");
@@ -88,10 +88,10 @@ describe("submit bridge call tests", function () {
 
     await erc20Token.transferOwnership(await fxBridge.getAddress());
 
-    const bridgeCallbackFactory = await ethers.getContractFactory(
-      "BridgeCallbackTest"
+    const bridgeCallContextTestFactory = await ethers.getContractFactory(
+      "BridgeCallContextTest"
     );
-    bridgeCallback = await bridgeCallbackFactory.deploy(
+    bridgeCallContextTest = await bridgeCallContextTestFactory.deploy(
       await fxBridge.getAddress()
     );
   });
@@ -119,23 +119,23 @@ describe("submit bridge call tests", function () {
     );
   });
 
-  it("submit bridge call with bridge callback", async function () {
+  it("submit bridge call with bridge context on bridge call", async function () {
     const erc20TokenAddress = await erc20Token.getAddress();
     const amount = "1000";
     const timeout = (await ethers.provider.getBlockNumber()) + 1000;
-    const bridgeCallbackAddress = await bridgeCallback.getAddress();
+    const bridgeCallContextAddress = await bridgeCallContextTest.getAddress();
 
     await erc20Token.transfer(
       await fxBridge.getAddress(),
       ethers.parseEther("1")
     );
 
-    const ownerBal1 = await erc20Token.balanceOf(bridgeCallbackAddress);
+    const ownerBal1 = await erc20Token.balanceOf(bridgeCallContextAddress);
     await submitBridgeCall(
       gravityId,
       user1.address,
       user1.address,
-      bridgeCallbackAddress,
+      bridgeCallContextAddress,
       "0x",
       "0x",
       [erc20TokenAddress],
@@ -147,8 +147,44 @@ describe("submit bridge call tests", function () {
       powers,
       fxBridge
     );
-    const ownerBal2 = await erc20Token.balanceOf(bridgeCallbackAddress);
+    const ownerBal2 = await erc20Token.balanceOf(bridgeCallContextAddress);
     expect(ownerBal2).to.equal(ownerBal1 + BigInt(amount));
+    expect(await bridgeCallContextTest.callFlag()).to.equal(true);
+    expect(await bridgeCallContextTest.revertFlag()).to.equal(false);
+  });
+
+  it("submit bridge call with bridge context on revert", async function () {
+    const erc20TokenAddress = await erc20Token.getAddress();
+    const amount = "1000";
+    const timeout = (await ethers.provider.getBlockNumber()) + 1000;
+    const bridgeCallContextAddress = await bridgeCallContextTest.getAddress();
+
+    await erc20Token.transfer(
+      await fxBridge.getAddress(),
+      ethers.parseEther("1")
+    );
+
+    const ownerBal1 = await erc20Token.balanceOf(user1.address);
+    await submitBridgeCall(
+      gravityId,
+      user1.address,
+      user1.address,
+      bridgeCallContextAddress,
+      "0x",
+      "0x",
+      [erc20TokenAddress],
+      [amount],
+      1,
+      timeout,
+      1,
+      validators,
+      powers,
+      fxBridge
+    );
+    const ownerBal2 = await erc20Token.balanceOf(user1.address);
+    expect(ownerBal2).to.equal(ownerBal1 + BigInt(amount));
+    expect(await bridgeCallContextTest.revertFlag()).to.equal(true);
+    expect(await bridgeCallContextTest.callFlag()).to.equal(false);
   });
 
   it("submit bridge call with refund", async function () {

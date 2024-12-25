@@ -108,7 +108,7 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 		callEvmSender = sender
 	} else {
 		var err error
-		args, err = contract.PackBridgeCallback(sender, refundAddr, tokens, amounts, data, memo)
+		args, err = contract.PackOnBridgeCall(sender, refundAddr, tokens, amounts, data, memo)
 		if err != nil {
 			return err
 		}

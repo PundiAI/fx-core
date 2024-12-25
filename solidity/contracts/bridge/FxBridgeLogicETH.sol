@@ -12,7 +12,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
-import {IBridgeCallback} from "./IBridgeCallback.sol";
+import {IBridgeCallContext} from "./IBridgeCallContext.sol";
 
 /* solhint-disable custom-errors */
 
@@ -622,14 +622,15 @@ contract FxBridgeLogicETH is
                 _input.tokens,
                 _input.amounts
             );
-
-            if (_input.eventNonce > 0) {
-                return;
-            }
         }
 
         if (_input.to.isContract()) {
-            IBridgeCallback(_input.to).bridgeCallback(
+            if (_input.eventNonce > 0) {
+                IBridgeCallContext(_input.to).onRevert(_input.data);
+                return;
+            }
+
+            IBridgeCallContext(_input.to).onBridgeCall(
                 _input.sender,
                 _input.refund,
                 _input.tokens,

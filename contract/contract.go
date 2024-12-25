@@ -70,9 +70,9 @@ var (
 		Code:    []byte{},
 	}
 
-	fxBridgeABI       = MustABIJson(IFxBridgeLogicMetaData.ABI)
-	bridgeCallbackABI = MustABIJson(IBridgeCallbackMetaData.ABI)
-	errorABI          = MustABIJson(IErrorMetaData.ABI)
+	fxBridgeABI          = MustABIJson(IFxBridgeLogicMetaData.ABI)
+	bridgeCallContextABI = MustABIJson(IBridgeCallContextMetaData.ABI)
+	errorABI             = MustABIJson(IErrorMetaData.ABI)
 )
 
 type Caller interface {
@@ -136,8 +136,8 @@ func PackRetErrV2(err error) ([]byte, error) {
 	return pack, err
 }
 
-func PackBridgeCallback(sender, receiver common.Address, tokens []common.Address, amounts []*big.Int, data, memo []byte) ([]byte, error) {
-	return bridgeCallbackABI.Pack("bridgeCallback",
+func PackOnBridgeCall(sender, receiver common.Address, tokens []common.Address, amounts []*big.Int, data, memo []byte) ([]byte, error) {
+	return bridgeCallContextABI.Pack("onBridgeCall",
 		sender,
 		receiver,
 		tokens,

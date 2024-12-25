@@ -4,8 +4,7 @@ import { expect } from "chai";
 import {
   ERC20TokenTest,
   FxBridgeLogic,
-  BridgeCallFee,
-  BridgeCallbackTest,
+  BridgeCallContextTest,
 } from "../typechain-types";
 import { AbiCoder, encodeBytes32String } from "ethers";
 import { getSignerAddresses, submitBridgeCall } from "./common";
@@ -16,8 +15,7 @@ describe("submit bridge call tests", function () {
   let user1: HardhatEthersSigner;
   let erc20Token: ERC20TokenTest;
   let fxBridge: FxBridgeLogic;
-  let bridgeCallFee: BridgeCallFee;
-  let bridgeCallback: BridgeCallbackTest;
+  let bridgeCallContextTest: BridgeCallContextTest;
 
   let token1: ERC20TokenTest;
   let token2: ERC20TokenTest;
@@ -93,30 +91,11 @@ describe("submit bridge call tests", function () {
 
     await erc20Token.transferOwnership(await fxBridge.getAddress());
 
-    const bridgeCallFeeFactory = await ethers.getContractFactory(
-      "BridgeCallFee"
+    const bridgeCallContextTestFactory = await ethers.getContractFactory(
+      "BridgeCallContextTest"
     );
-    const bridgeCallFeeDeploy = await bridgeCallFeeFactory.deploy();
-
-    const bridgeCallFeeERC1967Proxy = await ethers.getContractFactory(
-      "ERC1967Proxy"
-    );
-    const bridgeCallFeeProxy = await bridgeCallFeeERC1967Proxy.deploy(
-      await bridgeCallFeeDeploy.getAddress(),
-      "0x"
-    );
-
-    bridgeCallFee = await ethers.getContractAt(
-      "BridgeCallFee",
-      await bridgeCallFeeProxy.getAddress()
-    );
-    await bridgeCallFee.initialize(await fxBridge.getAddress());
-
-    const bridgeCallbackFactory = await ethers.getContractFactory(
-      "BridgeCallbackTest"
-    );
-    bridgeCallback = await bridgeCallbackFactory.deploy(
-      await bridgeCallFee.getAddress()
+    bridgeCallContextTest = await bridgeCallContextTestFactory.deploy(
+      await fxBridge.getAddress()
     );
 
     const erc2TokenFactory = await ethers.getContractFactory("ERC20TokenTest");
@@ -152,7 +131,7 @@ describe("submit bridge call tests", function () {
     const erc20TokenAddress = await erc20Token.getAddress();
     const amount = "1000";
     const timeout = (await ethers.provider.getBlockNumber()) + 1000;
-    const bridgeCallFeeAddress = await bridgeCallFee.getAddress();
+    const bridgeCallContextAddress = await bridgeCallContextTest.getAddress();
 
     await erc20Token.transfer(
       await fxBridge.getAddress(),
@@ -163,16 +142,16 @@ describe("submit bridge call tests", function () {
 
     const memo = new AbiCoder().encode(
       ["address", "bytes"],
-      [await bridgeCallback.getAddress(), "0x"]
+      [await bridgeCallContextTest.getAddress(), "0x"]
     );
 
-    const deployBal1 = await token1.balanceOf(bridgeCallFeeAddress);
-    const callFlag1 = await bridgeCallback.callFlag();
+    const deployBal1 = await token1.balanceOf(bridgeCallContextAddress);
+    const callFlag1 = await bridgeCallContextTest.callFlag();
     await submitBridgeCall(
       gravityId,
       user1.address,
-      bridgeCallFeeAddress,
-      bridgeCallFeeAddress,
+      bridgeCallContextAddress,
+      bridgeCallContextAddress,
       "0x",
       memo,
       [erc20TokenAddress, await token1.getAddress()],
@@ -185,9 +164,9 @@ describe("submit bridge call tests", function () {
       fxBridge
     );
 
-    const deployBal2 = await token1.balanceOf(bridgeCallFeeAddress);
+    const deployBal2 = await token1.balanceOf(bridgeCallContextAddress);
     expect(deployBal2).to.be.equal(deployBal1 + BigInt(amount));
-    const callFlag2 = await bridgeCallback.callFlag();
+    const callFlag2 = await bridgeCallContextTest.callFlag();
     expect(callFlag2).to.be.equal(!callFlag1);
   });
 });

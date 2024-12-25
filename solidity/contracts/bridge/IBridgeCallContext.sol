@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-interface IBridgeCallback {
-    function bridgeCallback(
+interface IBridgeCallContext {
+    function onBridgeCall(
         address _sender,
         address _refund,
         address[] memory _tokens,
@@ -10,4 +10,6 @@ interface IBridgeCallback {
         bytes memory _data,
         bytes memory _memo
     ) external;
+
+    function onRevert(bytes memory _msg) external;
 }
