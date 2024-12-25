@@ -292,7 +292,7 @@ func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeToken
 	for _, token := range tokens {
 		bridgeTokens = append(bridgeTokens, &types.BridgeToken{
 			Token: token.Contract,
-			Denom: token.BridgeDenom(),
+			Denom: token.GetDenom(),
 		})
 	}
 	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
