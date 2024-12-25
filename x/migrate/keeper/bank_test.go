@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	migratekeeper "github.com/functionx/fx-core/v8/x/migrate/keeper"
+	migratekeeper "github.com/pundiai/fx-core/v8/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateBank() {

@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
-	"github.com/functionx/fx-core/v8/types/legacy"
+	"github.com/pundiai/fx-core/v8/types/legacy"
 )
 
 // RegisterInterfaces register implementations

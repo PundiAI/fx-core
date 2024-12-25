@@ -16,12 +16,12 @@ import (
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 type KeeperTestSuite struct {

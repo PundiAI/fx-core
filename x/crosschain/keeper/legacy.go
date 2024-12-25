@@ -3,8 +3,8 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/migrations/v8"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/migrations/v8"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 // Deprecated: do not use, remove in v8

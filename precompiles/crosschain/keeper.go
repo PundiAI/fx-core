@@ -10,10 +10,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v8/contract"
-	types2 "github.com/functionx/fx-core/v8/precompiles/types"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	types2 "github.com/pundiai/fx-core/v8/precompiles/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 type Keeper struct {

@@ -4,8 +4,8 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 func (s *KeeperMockSuite) TestQueryServer_BridgeCalls() {

@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 var _ fxcontract.PrecompileMethod = (*ExecuteClaimMethod)(nil)

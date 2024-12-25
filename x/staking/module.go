@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/functionx/fx-core/v8/x/staking/keeper"
+	"github.com/pundiai/fx-core/v8/x/staking/keeper"
 )
 
 var (

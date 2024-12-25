@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/contract"
 )
 
 var _ sdk.Msg = &MsgCallContract{}

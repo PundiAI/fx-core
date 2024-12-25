@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	"github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/erc20/migrations/v8"
 )
 
 func TestOutgoingTransferKeyToOriginTokenKey(t *testing.T) {

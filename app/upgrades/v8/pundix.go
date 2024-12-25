@@ -26,14 +26,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v8/app/keepers"
-	"github.com/functionx/fx-core/v8/contract"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20keeper "github.com/functionx/fx-core/v8/x/erc20/keeper"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	"github.com/pundiai/fx-core/v8/app/keepers"
+	"github.com/pundiai/fx-core/v8/contract"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	bsctypes "github.com/pundiai/fx-core/v8/x/bsc/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
 type Pundix struct {

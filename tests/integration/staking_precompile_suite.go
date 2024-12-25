@@ -6,9 +6,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/v8/contract"
-	stakingprecompile "github.com/functionx/fx-core/v8/precompiles/staking"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/contract"
+	stakingprecompile "github.com/pundiai/fx-core/v8/precompiles/staking"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
 )
 
 type StakingPrecompileSuite struct {

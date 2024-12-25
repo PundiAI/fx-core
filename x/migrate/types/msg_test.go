@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v8/app"
-	"github.com/functionx/fx-core/v8/x/migrate/types"
+	_ "github.com/pundiai/fx-core/v8/app"
+	"github.com/pundiai/fx-core/v8/x/migrate/types"
 )
 
 func TestMsgMigrateAccountValidation(t *testing.T) {

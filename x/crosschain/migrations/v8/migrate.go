@@ -5,8 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v8/app/upgrades/store"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/app/upgrades/store"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 var (

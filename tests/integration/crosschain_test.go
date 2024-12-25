@@ -1,7 +1,7 @@
 package integration
 
 import (
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 func (suite *IntegrationTest) CrosschainTest() {

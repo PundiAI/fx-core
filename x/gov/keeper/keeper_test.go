@@ -18,12 +18,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	"github.com/functionx/fx-core/v8/x/gov/keeper"
-	"github.com/functionx/fx-core/v8/x/gov/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	"github.com/pundiai/fx-core/v8/x/gov/keeper"
+	"github.com/pundiai/fx-core/v8/x/gov/types"
 )
 
 type KeeperTestSuite struct {

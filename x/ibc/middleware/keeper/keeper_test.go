@@ -9,9 +9,9 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	ibcmiddleware "github.com/functionx/fx-core/v8/x/ibc/middleware"
-	"github.com/functionx/fx-core/v8/x/ibc/middleware/keeper"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	ibcmiddleware "github.com/pundiai/fx-core/v8/x/ibc/middleware"
+	"github.com/pundiai/fx-core/v8/x/ibc/middleware/keeper"
 )
 
 type KeeperTestSuite struct {

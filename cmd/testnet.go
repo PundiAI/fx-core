@@ -15,9 +15,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v8/testutil"
-	"github.com/functionx/fx-core/v8/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/testutil"
+	"github.com/pundiai/fx-core/v8/testutil/network"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 const (

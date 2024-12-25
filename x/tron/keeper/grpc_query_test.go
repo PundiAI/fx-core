@@ -3,9 +3,9 @@ package keeper_test
 import (
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_GetOracleByExternalAddr() {

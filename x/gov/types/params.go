@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 var (

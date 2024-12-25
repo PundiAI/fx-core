@@ -13,10 +13,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestMsgBondedOracle() {

@@ -12,10 +12,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/client/grpc"
-	"github.com/functionx/fx-core/v8/testutil"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/testutil/network"
+	"github.com/pundiai/fx-core/v8/client/grpc"
+	"github.com/pundiai/fx-core/v8/testutil"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/testutil/network"
 )
 
 type IntegrationTest struct {

@@ -7,7 +7,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v8/x/staking/types"
+	"github.com/pundiai/fx-core/v8/x/staking/types"
 )
 
 // SetAllowance sets the allowance of a spender for a delegator.

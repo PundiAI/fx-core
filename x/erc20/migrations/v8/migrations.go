@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v8/x/erc20/keeper"
+	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
+	"github.com/pundiai/fx-core/v8/x/erc20/keeper"
 )
 
 type Migrator struct {

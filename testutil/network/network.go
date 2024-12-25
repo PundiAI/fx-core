@@ -43,7 +43,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	fxcfg "github.com/functionx/fx-core/v8/server/config"
+	fxcfg "github.com/pundiai/fx-core/v8/server/config"
 )
 
 // package-wide network lock to only allow one test network at a time

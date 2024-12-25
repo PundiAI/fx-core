@@ -11,9 +11,9 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v8/app"
-	"github.com/functionx/fx-core/v8/app/keepers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/app"
+	"github.com/pundiai/fx-core/v8/app/keepers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 func TestNewAppKeeper(t *testing.T) {

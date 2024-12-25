@@ -5,8 +5,8 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/functionx/fx-core/v8/app/upgrades"
-	nextversion "github.com/functionx/fx-core/v8/app/upgrades/v8"
+	"github.com/pundiai/fx-core/v8/app/upgrades"
+	nextversion "github.com/pundiai/fx-core/v8/app/upgrades/v8"
 )
 
 func (app *App) GetUpgrade() upgrades.Upgrade {

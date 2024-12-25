@@ -16,10 +16,10 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v8/x/erc20/keeper"
-	"github.com/functionx/fx-core/v8/x/erc20/migrations/v8"
-	"github.com/functionx/fx-core/v8/x/erc20/types"
+	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
+	"github.com/pundiai/fx-core/v8/x/erc20/keeper"
+	"github.com/pundiai/fx-core/v8/x/erc20/migrations/v8"
+	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 // type check to ensure the interface is properly implemented

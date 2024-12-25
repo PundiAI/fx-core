@@ -35,10 +35,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/functionx/fx-core/v8/client"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	migratetypes "github.com/functionx/fx-core/v8/x/migrate/types"
+	"github.com/pundiai/fx-core/v8/client"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	migratetypes "github.com/pundiai/fx-core/v8/x/migrate/types"
 )
 
 type Client struct {

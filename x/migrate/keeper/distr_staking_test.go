@@ -17,9 +17,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/app"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	migratekeeper "github.com/functionx/fx-core/v8/x/migrate/keeper"
+	"github.com/pundiai/fx-core/v8/app"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	migratekeeper "github.com/pundiai/fx-core/v8/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {

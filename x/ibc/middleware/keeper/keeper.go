@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
-	"github.com/functionx/fx-core/v8/x/ibc/middleware/types"
+	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
 )
 
 type Keeper struct {

@@ -9,9 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/hashicorp/go-metrics"
 
-	"github.com/functionx/fx-core/v8/contract"
-	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	fxtelemetry "github.com/pundiai/fx-core/v8/telemetry"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {

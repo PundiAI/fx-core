@@ -21,9 +21,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v8/x/gov/client/cli"
-	"github.com/functionx/fx-core/v8/x/gov/keeper"
-	"github.com/functionx/fx-core/v8/x/gov/types"
+	"github.com/pundiai/fx-core/v8/x/gov/client/cli"
+	"github.com/pundiai/fx-core/v8/x/gov/keeper"
+	"github.com/pundiai/fx-core/v8/x/gov/types"
 )
 
 var (

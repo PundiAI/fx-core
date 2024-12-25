@@ -29,9 +29,9 @@ import (
 	ethermintserver "github.com/evmos/ethermint/server"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/functionx/fx-core/v8/app"
-	"github.com/functionx/fx-core/v8/server"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/app"
+	"github.com/pundiai/fx-core/v8/server"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 // StartInProcess creates and starts an in-process local test network.

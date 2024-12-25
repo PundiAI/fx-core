@@ -25,9 +25,9 @@ import (
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/app"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/app"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 type BaseSuite struct {

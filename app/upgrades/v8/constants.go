@@ -3,7 +3,7 @@ package v8
 import (
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/functionx/fx-core/v8/app/upgrades"
+	"github.com/pundiai/fx-core/v8/app/upgrades"
 )
 
 var Upgrade = upgrades.Upgrade{

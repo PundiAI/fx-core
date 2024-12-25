@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
 
-	fxgovtypes "github.com/functionx/fx-core/v8/x/gov/types"
+	fxgovtypes "github.com/pundiai/fx-core/v8/x/gov/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

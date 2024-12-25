@@ -5,8 +5,8 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/viper"
 
-	"github.com/functionx/fx-core/v8/app"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/app"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 type AppOpts struct {

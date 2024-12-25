@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
-	fxtelemetry "github.com/functionx/fx-core/v8/telemetry"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	fxtelemetry "github.com/pundiai/fx-core/v8/telemetry"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim) error {

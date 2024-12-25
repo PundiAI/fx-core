@@ -3,7 +3,7 @@ package crosschain
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 
-	crosschainv1 "github.com/functionx/fx-core/v8/api/fx/gravity/crosschain/v1"
+	crosschainv1 "github.com/pundiai/fx-core/v8/api/fx/gravity/crosschain/v1"
 )
 
 type AutoCLIAppModule struct {

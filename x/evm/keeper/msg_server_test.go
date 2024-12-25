@@ -11,9 +11,9 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	fxevmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 func (s *KeeperTestSuite) ethereumTx(signer *helpers.Signer, to *common.Address, data []byte, value *big.Int, gasLimit uint64) (*types.MsgEthereumTxResponse, error) {

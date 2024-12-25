@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 func (k Keeper) ConfirmHandler(ctx sdk.Context, confirm types.Confirm) error {

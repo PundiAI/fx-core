@@ -22,8 +22,8 @@ import (
 	types2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	common "github.com/ethereum/go-ethereum/common"
 	types3 "github.com/evmos/ethermint/x/evm/types"
-	contract "github.com/functionx/fx-core/v8/contract"
-	types4 "github.com/functionx/fx-core/v8/x/erc20/types"
+	contract "github.com/pundiai/fx-core/v8/contract"
+	types4 "github.com/pundiai/fx-core/v8/x/erc20/types"
 	gomock "go.uber.org/mock/gomock"
 )
 

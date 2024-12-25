@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/precompiles/crosschain"
+	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 )
 
 func TestCrosschainABI(t *testing.T) {

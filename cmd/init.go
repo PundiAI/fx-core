@@ -22,7 +22,7 @@ import (
 	"github.com/cosmos/go-bip39"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v8/app"
+	"github.com/pundiai/fx-core/v8/app"
 )
 
 const (

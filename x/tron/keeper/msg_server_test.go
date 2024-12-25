@@ -6,9 +6,9 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {

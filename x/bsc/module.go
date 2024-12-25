@@ -15,11 +15,11 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v8/x/bsc/types"
-	"github.com/functionx/fx-core/v8/x/crosschain"
-	crosschaincli "github.com/functionx/fx-core/v8/x/crosschain/client/cli"
-	crosschainkeeper "github.com/functionx/fx-core/v8/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/bsc/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain"
+	crosschaincli "github.com/pundiai/fx-core/v8/x/crosschain/client/cli"
+	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 // type check to ensure the interface is properly implemented

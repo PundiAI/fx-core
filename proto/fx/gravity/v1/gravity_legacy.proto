@@ -4,7 +4,7 @@ package fx.gravity.v1;
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/functionx/fx-core/types/legacy";
+option go_package = "github.com/pundiai/fx-core/types/legacy";
 
 // Deprecated: after upgrade v3
 message MsgValsetConfirm {

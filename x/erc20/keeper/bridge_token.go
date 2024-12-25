@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/collections"
 
-	"github.com/functionx/fx-core/v8/x/erc20/types"
+	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func (k Keeper) HasToken(ctx context.Context, denom string) (bool, error) {

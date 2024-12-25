@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	"github.com/functionx/fx-core/v8/x/erc20/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func (m Migrator) migrateKeys(ctx sdk.Context) error {

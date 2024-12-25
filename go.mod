@@ -1,4 +1,4 @@
-module github.com/functionx/fx-core/v8
+module github.com/pundiai/fx-core/v8
 
 go 1.23
 

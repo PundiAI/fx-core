@@ -8,7 +8,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "amino/amino.proto";
 
-option go_package = "github.com/functionx/fx-core/types/legacy";
+option go_package = "github.com/pundiai/fx-core/types/legacy";
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 // Deprecated: Do not use.

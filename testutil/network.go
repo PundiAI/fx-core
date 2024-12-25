@@ -32,12 +32,12 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v8/app"
-	fxcfg "github.com/functionx/fx-core/v8/server/config"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	"github.com/pundiai/fx-core/v8/app"
+	fxcfg "github.com/pundiai/fx-core/v8/server/config"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/testutil/network"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
 // DefaultNetworkConfig returns a sane default configuration suitable for nearly all

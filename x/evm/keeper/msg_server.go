@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	fxevmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 var _ types.MsgServer = &Keeper{}
