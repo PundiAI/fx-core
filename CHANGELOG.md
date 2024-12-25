@@ -345,8 +345,8 @@
 
 ### Bug Fixes
 
-* Fix --node flag parsing. [issues#22](https://github.com/FunctionX/fx-core/issues/22)
-* Fix --output flag parsing. [issues#34](https://github.com/FunctionX/fx-core/issues/34)
+* Fix --node flag parsing. [issues#22](https://github.com/pundiai/fx-core/issues/22)
+* Fix --output flag parsing. [issues#34](https://github.com/pundiai/fx-core/issues/34)
 * Fix ibc router is not empty, receive address parse error
 
 ### Deprecated

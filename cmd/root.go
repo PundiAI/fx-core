@@ -81,7 +81,7 @@ func NewRootCmd() *cobra.Command {
 
 	rootCmd := &cobra.Command{
 		Use:   fxtypes.Name + "d",
-		Short: "FunctionX Core BlockChain App",
+		Short: "Pundi AIFX BlockChain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) (err error) {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())

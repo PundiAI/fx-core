@@ -7,7 +7,7 @@ trap 'rm -rf ./tmp-swagger-gen ./third_party' EXIT
 
 commit_hash=$(grep 'github.com/evmos/ethermint =>' go.mod | awk -F '-' '{print $NF}')
 if [[ ! -f "./build/$commit_hash.zip" ]]; then
-  wget -c "https://github.com/functionx/ethermint/archive/$commit_hash.zip" -O "./build/$commit_hash.zip"
+  wget -c "https://github.com/pundiai/ethermint/archive/$commit_hash.zip" -O "./build/$commit_hash.zip"
 fi
 unzip -q -o "./build/$commit_hash.zip" -d "./build"
 # shellcheck disable=SC2010

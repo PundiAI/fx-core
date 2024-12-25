@@ -2,13 +2,13 @@
 
 **fxcore** is a blockchain built using Cosmos SDK and Cometbft.
 
-[![Version](https://img.shields.io/github/v/release/functionx/fx-core.svg)](https://github.com/functionx/fx-core/releases/latest)
-[![License](https://img.shields.io/github/license/functionx/fx-core.svg)](https://github.com/functionx/fx-core/blob/main/LICENSE)
-[![API Reference](https://pkg.go.dev/badge/github.com/functionx/fx-core.svg)](https://pkg.go.dev/github.com/functionx/fx-core/v8)
-[![Go Report Card](https://goreportcard.com/badge/github.com/functionx/fx-core/v8)](https://goreportcard.com/report/github.com/functionx/fx-core/v8)
-[![Go Tests/Lint](https://github.com/FunctionX/fx-core/actions/workflows/golang.yml/badge.svg)](https://github.com/FunctionX/fx-core/actions/workflows/golang.yml)
-[![CodeQL](https://github.com/FunctionX/fx-core/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/FunctionX/fx-core/actions/workflows/codeql-analysis.yml)
-[![Solidity](https://github.com/FunctionX/fx-core/actions/workflows/solidity.yml/badge.svg)](https://github.com/FunctionX/fx-core/actions/workflows/solidity.yml)
+[![Version](https://img.shields.io/github/v/release/pundiai/fx-core.svg)](https://github.com/pundiai/fx-core/releases/latest)
+[![License](https://img.shields.io/github/license/pundiai/fx-core.svg)](https://github.com/pundiai/fx-core/blob/main/LICENSE)
+[![API Reference](https://pkg.go.dev/badge/github.com/pundiai/fx-core.svg)](https://pkg.go.dev/github.com/pundiai/fx-core/v8)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pundiai/fx-core/v8)](https://goreportcard.com/report/github.com/pundiai/fx-core/v8)
+[![Go Tests/Lint](https://github.com/pundiai/fx-core/actions/workflows/golang.yml/badge.svg)](https://github.com/pundiai/fx-core/actions/workflows/golang.yml)
+[![CodeQL](https://github.com/pundiai/fx-core/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/pundiai/fx-core/actions/workflows/codeql-analysis.yml)
+[![Solidity](https://github.com/pundiai/fx-core/actions/workflows/solidity.yml/badge.svg)](https://github.com/pundiai/fx-core/actions/workflows/solidity.yml)
 
 **Note**: Requires [Go 1.23+](https://go.dev/dl)
 
@@ -27,7 +27,7 @@ make install
 ### Usage
 
 ```
-FunctionX Core BlockChain App
+Pundi AIFX BlockChain App
 
 Usage:
   fxcored [command]
@@ -75,7 +75,7 @@ Use "fxcored [command] --help" for more information about a command.
 
 ## Learn more
 
-- [Function X Docs](https://functionx.gitbook.io)
+- [Pundi AIFX Docs](https://pundi.gitbook.io)
 - [Cosmos SDK Documentation](https://docs.cosmos.network)
 
 ## License

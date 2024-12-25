@@ -10,7 +10,7 @@ COPY . .
 
 RUN make build
 
-FROM ghcr.io/functionx/fx-core:7.5.0 as fxv7_5
+FROM ghcr.io/pundiai/fx-core:7.5.1 as fxv7_5
 
 FROM alpine:3.19
 

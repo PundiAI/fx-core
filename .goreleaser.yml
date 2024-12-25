@@ -107,7 +107,7 @@ release:
     ## 🔨 Build from source
     
     ```bash
-    git clone https://github.com/functionx/fx-core.git
+    git clone https://github.com/pundiai/fx-core.git
     cd fx-core && git checkout {{ .Tag }}
     make install
     ```
@@ -115,11 +115,11 @@ release:
     ## 🐳 Docker Images
     
     ```bash
-    docker pull ghcr.io/functionx/fx-core:{{ .Version }}
+    docker pull ghcr.io/pundiai/fx-core:{{ .Version }}
     ```
     
     ```bash
-    docker pull ghcr.io/functionx/fxcorevisor:{{ .Version }}
+    docker pull ghcr.io/pundiai/fxcorevisor:{{ .Version }}
     ```
     
     ## ⚡️ Download binaries
