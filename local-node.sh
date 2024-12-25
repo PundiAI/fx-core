@@ -3,7 +3,6 @@
 set -eo pipefail
 
 export FX_HOME=${FX_HOME:-"/tmp/fxcore"}
-genesis_tmp="$FX_HOME/config/genesis.json.tmp"
 
 if [[ "$1" == "init" ]]; then
   if [ -d "$FX_HOME" ]; then
@@ -15,12 +14,6 @@ if [[ "$1" == "init" ]]; then
 
   # Initialize private validator, p2p, genesis, and application configuration files
   fxcored init local --chain-id fxcore --default-denom FX
-
-  # update consensus params
-  jq '.consensus.params.block.max_gas = "30000000"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
-    mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
-  jq '.consensus.params.block.max_bytes = "1048576"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
-    mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
 
   fxcored config config.toml rpc.cors_allowed_origins "*"
   # open prometheus
@@ -47,11 +40,6 @@ if [[ "$1" == "init" ]]; then
   echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
   if [ -n "${2:-""}" ]; then
     fxcored genesis add-genesis-account fx1 10004000000000000000000000FX
-    # update genesis total supply
-    jq '.app_state.bank.supply[0].amount = "388604525462891000000000000"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
-      mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
-    jq '.app_state.gov.voting_params.voting_period = "15s"' "$FX_HOME/config/genesis.json" >"$genesis_tmp" &&
-      mv "$genesis_tmp" "$FX_HOME/config/genesis.json"
   else
     fxcored genesis add-genesis-account fx1 4000000000000000000000FX
   fi

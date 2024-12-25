@@ -29,10 +29,7 @@ import (
 	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
 )
 
-const (
-	InitTotalSupply     = "378604525462891000000000000"
-	EthModuleInitAmount = "378600525462891000000000000"
-)
+const EthModuleInitAmount = "378600525462891000000000000"
 
 // GenesisState The genesis state of the blockchain is represented here as a map of raw json
 // messages key'd by a identifier string.
@@ -43,15 +40,11 @@ const (
 // object provided to it during init.
 type GenesisState map[string]json.RawMessage
 
-// NewDefAppGenesisByDenom return new genesis state
+// newDefAppGenesisByDenom return new genesis state
 //
 //nolint:gocyclo // a lot of modules need to be modified
-func NewDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManager) GenesisState {
+func newDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManager) GenesisState {
 	denom := fxtypes.DefaultDenom
-	fxTotalSupply, ok := sdkmath.NewIntFromString(InitTotalSupply)
-	if !ok {
-		panic("invalid fx total supply")
-	}
 	ethInitAmount, ok := sdkmath.NewIntFromString(EthModuleInitAmount)
 	if !ok {
 		panic("invalid eth module init amount")
@@ -111,11 +104,12 @@ func NewDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManag
 			state := banktypes.DefaultGenesisState()
 			state.DenomMetadata = []banktypes.Metadata{fxtypes.NewFXMetaData()}
 
-			state.Supply = sdk.NewCoins(sdk.NewCoin(denom, fxTotalSupply))
+			ethModuleInitCoins := sdk.NewCoins(sdk.NewCoin(denom, ethInitAmount))
 			state.Balances = append(state.Balances, banktypes.Balance{
 				Address: authtypes.NewModuleAddress(ethtypes.ModuleName).String(),
-				Coins:   sdk.NewCoins(sdk.NewCoin(denom, ethInitAmount)),
+				Coins:   ethModuleInitCoins,
 			})
+			state.Supply = ethModuleInitCoins
 			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case paramstypes.ModuleName:
 			if mod, ok := m.(module.HasGenesisBasics); ok {
