@@ -16,9 +16,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func TestAminoEncode(t *testing.T) {

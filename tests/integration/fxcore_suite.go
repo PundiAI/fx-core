@@ -22,9 +22,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v8/client/grpc"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	"github.com/pundiai/fx-core/v8/client/grpc"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 type FxCoreSuite struct {

@@ -10,9 +10,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
-	"github.com/functionx/fx-core/v8/contract"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {

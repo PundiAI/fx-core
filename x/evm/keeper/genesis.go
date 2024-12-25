@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/contract"
 )
 
 // InitGenesis initializes genesis state based on exported genesis

@@ -12,10 +12,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	fxevmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 func (suite *IntegrationTest) WFXTest() {

@@ -19,9 +19,9 @@ import (
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	migratetypes "github.com/functionx/fx-core/v8/x/migrate/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	migratetypes "github.com/pundiai/fx-core/v8/x/migrate/types"
 )
 
 type KeeperTestSuite struct {

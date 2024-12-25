@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/erc20/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func (k Keeper) BaseCoinToEvm(ctx context.Context, holder common.Address, coin sdk.Coin) (string, error) {

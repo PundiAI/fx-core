@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/contract"
 )
 
 func TestPackBridgeCallback(t *testing.T) {

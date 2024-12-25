@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 var _ QueryServer = Querier{}

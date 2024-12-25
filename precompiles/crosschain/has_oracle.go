@@ -6,9 +6,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v8/contract"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	"github.com/functionx/fx-core/v8/x/evm/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 type HasOracleMethod struct {

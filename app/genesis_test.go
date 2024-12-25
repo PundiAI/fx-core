@@ -3,7 +3,7 @@ package app_test
 import (
 	"testing"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
 )
 
 func TestNewDefaultGenesisByDenom(t *testing.T) {

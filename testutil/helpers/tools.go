@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 func IsLocalTest() bool {

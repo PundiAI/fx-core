@@ -4,7 +4,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 // --- ORACLE SET CONFIRMS --- //

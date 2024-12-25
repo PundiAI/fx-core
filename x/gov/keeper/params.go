@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v8/x/gov/types"
+	"github.com/pundiai/fx-core/v8/x/gov/types"
 )
 
 func (keeper Keeper) GetSwitchParams(ctx sdk.Context) (params types.SwitchParams) {

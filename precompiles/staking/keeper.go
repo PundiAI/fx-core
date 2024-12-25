@@ -13,8 +13,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/precompiles/types"
+	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/types"
 )
 
 type Validator struct {

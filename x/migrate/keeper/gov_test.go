@@ -11,9 +11,9 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxgovkeeper "github.com/functionx/fx-core/v8/x/gov/keeper"
-	migratekeeper "github.com/functionx/fx-core/v8/x/migrate/keeper"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxgovkeeper "github.com/pundiai/fx-core/v8/x/gov/keeper"
+	migratekeeper "github.com/pundiai/fx-core/v8/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateGovInactive() {

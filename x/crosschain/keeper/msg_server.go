@@ -11,7 +11,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/hashicorp/go-metrics"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 var _ types.MsgServer = MsgServer{}

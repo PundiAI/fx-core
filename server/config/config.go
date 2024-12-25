@@ -9,7 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 
-	"github.com/functionx/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/contract"
 )
 
 // BypassMinFee defines custom that will bypass minimum fee checks during CheckTx.

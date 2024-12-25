@@ -10,9 +10,9 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	fxevmkeeper "github.com/functionx/fx-core/v8/x/evm/keeper"
+	"github.com/pundiai/fx-core/v8/contract"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	fxevmkeeper "github.com/pundiai/fx-core/v8/x/evm/keeper"
 )
 
 type ERC20TokenSuite struct {

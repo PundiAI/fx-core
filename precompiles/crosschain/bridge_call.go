@@ -10,10 +10,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 type BridgeCallMethod struct {

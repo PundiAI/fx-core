@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v8/app"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v8/x/tron/types"
+	_ "github.com/pundiai/fx-core/v8/app"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 const (

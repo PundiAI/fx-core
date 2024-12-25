@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
-	govtypes "github.com/functionx/fx-core/v8/x/gov/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
+	govtypes "github.com/pundiai/fx-core/v8/x/gov/types"
 )
 
 func (suite *KeeperTestSuite) TestGRPCQueryCustomParams() {

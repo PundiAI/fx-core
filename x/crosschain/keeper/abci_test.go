@@ -9,8 +9,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestOracleUpdate() {

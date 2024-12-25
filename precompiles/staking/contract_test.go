@@ -12,10 +12,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	testscontract "github.com/pundiai/fx-core/v8/tests/contract"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 type StakingPrecompileTestSuite struct {

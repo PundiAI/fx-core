@@ -3,7 +3,7 @@ package v8
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 var (

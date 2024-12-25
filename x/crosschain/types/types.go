@@ -13,8 +13,8 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v8/contract"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 func NewDelegateAmount(amount sdkmath.Int) sdk.Coin {

@@ -20,7 +20,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/pkg/errors"
 
-	"github.com/functionx/fx-core/v8/client"
+	"github.com/pundiai/fx-core/v8/client"
 )
 
 type jsonRPCCaller interface {

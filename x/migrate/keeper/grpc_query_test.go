@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
-	"github.com/functionx/fx-core/v8/x/migrate/types"
+	"github.com/pundiai/fx-core/v8/x/migrate/types"
 )
 
 func (suite *KeeperTestSuite) TestMigrateRecord() {

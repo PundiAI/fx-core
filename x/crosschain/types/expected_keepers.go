@@ -13,8 +13,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v8/contract"
-	erc20types "github.com/functionx/fx-core/v8/x/erc20/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 type StakingKeeper interface {

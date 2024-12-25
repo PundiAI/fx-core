@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v8/x/migrate/types"
+	"github.com/pundiai/fx-core/v8/x/migrate/types"
 )
 
 func GetQueryCmd() *cobra.Command {

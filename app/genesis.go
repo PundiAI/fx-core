@@ -25,8 +25,8 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
 const EthModuleInitAmount = "378600525462891000000000000"

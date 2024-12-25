@@ -16,10 +16,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/precompiles/staking"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/staking"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 func TestStakingTransferSharesABI(t *testing.T) {

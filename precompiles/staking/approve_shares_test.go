@@ -9,9 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/precompiles/staking"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
+	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/staking"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
 )
 
 func TestStakingApproveSharesABI(t *testing.T) {

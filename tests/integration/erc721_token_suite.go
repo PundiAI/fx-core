@@ -6,8 +6,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/v8/tests/contract"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/tests/contract"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
 )
 
 type ERC721TokenSuite struct {

@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/functionx/fx-core/v8/x/erc20/types"
+	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func (k Keeper) CheckEnableErc20(ctx context.Context) error {

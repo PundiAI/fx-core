@@ -16,7 +16,7 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {

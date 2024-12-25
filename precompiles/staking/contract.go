@@ -9,10 +9,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/precompiles/types"
-	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
-	fxstakingkeeper "github.com/functionx/fx-core/v8/x/staking/keeper"
+	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/types"
+	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
+	fxstakingkeeper "github.com/pundiai/fx-core/v8/x/staking/keeper"
 )
 
 var (

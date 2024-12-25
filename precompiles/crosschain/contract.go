@@ -7,9 +7,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/precompiles/types"
-	evmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/types"
+	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 var (

@@ -8,8 +8,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/erc20/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func (k Keeper) RegisterNativeCoin(ctx context.Context, name, symbol string, decimals uint8) (types.ERC20Token, error) {

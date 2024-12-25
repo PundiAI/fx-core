@@ -14,7 +14,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	"github.com/functionx/fx-core/v8/x/gov/types"
+	"github.com/pundiai/fx-core/v8/x/gov/types"
 )
 
 type msgServer struct {

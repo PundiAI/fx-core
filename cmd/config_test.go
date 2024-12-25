@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	fxcfg "github.com/functionx/fx-core/v8/server/config"
+	fxcfg "github.com/pundiai/fx-core/v8/server/config"
 )
 
 func Test_updateCfgCmd(t *testing.T) {

@@ -56,3 +56,10 @@ for pattern_limit in "${patternLimits[@]}"; do
   allowed_count=$(echo "$pattern_limit" | cut -d: -f2)
   check_pattern_count "$pattern" "$allowed_count"
 done
+
+pattern_result=$(rg functionx --glob '!**/genesis.json' --glob '!**/config.toml' --glob '!**/linter.sh' ./)
+if [[ "$(echo "$pattern_result" | wc -l)" -ne 19 ]]; then
+  echo "functionx should be replaced with pundiai"
+  echo "$pattern_result"
+  exit 1
+fi

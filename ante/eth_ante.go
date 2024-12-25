@@ -7,7 +7,7 @@ import (
 )
 
 // Just copy, because the pendingTxListener property of the TxListenerDecorator is internal
-// https://github.com/FunctionX/ethermint/blob/fxcore/v0.22.x/app/ante/tx_listener.go
+// https://github.com/pundiai/ethermint/blob/fxcore/v0.22.x/app/ante/tx_listener.go
 
 type TxListenerDecorator struct {
 	pendingTxListener evmante.PendingTxListener

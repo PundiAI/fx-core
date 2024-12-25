@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/abi"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 // GetCheckpointOracleSet returns the checkpoint

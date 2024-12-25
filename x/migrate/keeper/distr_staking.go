@@ -9,7 +9,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v8/x/migrate/types"
+	"github.com/pundiai/fx-core/v8/x/migrate/types"
 )
 
 type DistrStakingMigrate struct {

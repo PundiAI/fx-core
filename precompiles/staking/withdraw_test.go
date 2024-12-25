@@ -10,9 +10,9 @@ import (
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/precompiles/staking"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/staking"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 func TestStakingWithdrawABI(t *testing.T) {

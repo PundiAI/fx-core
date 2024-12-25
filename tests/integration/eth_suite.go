@@ -13,10 +13,10 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/client"
-	"github.com/functionx/fx-core/v8/contract"
-	testscontract "github.com/functionx/fx-core/v8/tests/contract"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/client"
+	"github.com/pundiai/fx-core/v8/contract"
+	testscontract "github.com/pundiai/fx-core/v8/tests/contract"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
 )
 
 type EthSuite struct {

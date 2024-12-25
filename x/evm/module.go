@@ -17,9 +17,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	"github.com/functionx/fx-core/v8/x/evm/keeper"
-	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/x/evm/keeper"
+	fxevmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 var (

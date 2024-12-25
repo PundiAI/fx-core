@@ -35,11 +35,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/functionx/fx-core/v8/app"
-	fxcfg "github.com/functionx/fx-core/v8/server/config"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/app"
+	fxcfg "github.com/pundiai/fx-core/v8/server/config"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/testutil/network"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 func Test_ExportGenesisAndRunNode(t *testing.T) {

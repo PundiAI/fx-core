@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v8/precompiles/crosschain"
+	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 )
 
 func TestBridgeCoinAmountMethod_ABI(t *testing.T) {

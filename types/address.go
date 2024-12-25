@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/contract"
 )
 
 func ParseAddress(addr string) (accAddr sdk.AccAddress, isEvmAddr bool, err error) {

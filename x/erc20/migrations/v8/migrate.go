@@ -7,12 +7,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
-	arbitrumtypes "github.com/functionx/fx-core/v8/x/arbitrum/types"
-	bsctypes "github.com/functionx/fx-core/v8/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/v8/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v8/x/eth/types"
-	optimismtypes "github.com/functionx/fx-core/v8/x/optimism/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	arbitrumtypes "github.com/pundiai/fx-core/v8/x/arbitrum/types"
+	bsctypes "github.com/pundiai/fx-core/v8/x/bsc/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
+	optimismtypes "github.com/pundiai/fx-core/v8/x/optimism/types"
 )
 
 func (m Migrator) MigrateToken(ctx sdk.Context) error {

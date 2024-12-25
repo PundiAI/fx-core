@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/precompiles/crosschain"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
 )
 
 func TestBridgeCallABI(t *testing.T) {

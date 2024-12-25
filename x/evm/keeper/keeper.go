@@ -19,8 +19,8 @@ import (
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	fxevmtypes "github.com/functionx/fx-core/v8/x/evm/types"
+	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	fxevmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 type Keeper struct {

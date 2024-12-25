@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/migrations/v8"
+	"github.com/pundiai/fx-core/v8/x/crosschain/migrations/v8"
 )
 
 type Migrator struct {

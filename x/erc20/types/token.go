@@ -5,7 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 type TokenPair ERC20Token

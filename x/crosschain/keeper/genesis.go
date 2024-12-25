@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/functionx/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 // InitGenesis import module genesis

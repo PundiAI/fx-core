@@ -24,15 +24,15 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v8/app"
-	"github.com/functionx/fx-core/v8/client"
-	"github.com/functionx/fx-core/v8/client/grpc"
-	"github.com/functionx/fx-core/v8/client/jsonrpc"
-	fxauth "github.com/functionx/fx-core/v8/server/grpc/auth"
-	"github.com/functionx/fx-core/v8/testutil"
-	"github.com/functionx/fx-core/v8/testutil/helpers"
-	"github.com/functionx/fx-core/v8/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/app"
+	"github.com/pundiai/fx-core/v8/client"
+	"github.com/pundiai/fx-core/v8/client/grpc"
+	"github.com/pundiai/fx-core/v8/client/jsonrpc"
+	fxauth "github.com/pundiai/fx-core/v8/server/grpc/auth"
+	"github.com/pundiai/fx-core/v8/testutil"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	"github.com/pundiai/fx-core/v8/testutil/network"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 type rpcTestClient interface {

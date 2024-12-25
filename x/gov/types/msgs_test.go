@@ -7,7 +7,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v8/x/gov/types"
+	"github.com/pundiai/fx-core/v8/x/gov/types"
 )
 
 func TestNewMsgUpdateStore(t *testing.T) {

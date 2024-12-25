@@ -11,8 +11,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxcontract "github.com/functionx/fx-core/v8/contract"
-	"github.com/functionx/fx-core/v8/x/evm/types"
+	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 type RedelegateV2Method struct {
