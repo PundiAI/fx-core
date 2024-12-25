@@ -6,28 +6,28 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/pundiai/fx-core/v8/contract"
-	types2 "github.com/pundiai/fx-core/v8/precompiles/types"
+	"github.com/pundiai/fx-core/v8/precompiles/types"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 type Keeper struct {
 	router     *Router
-	bankKeeper types2.BankKeeper
+	bankKeeper types.BankKeeper
 }
 
-func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, evm *vm.EVM, crosschainKeeper types2.CrosschainKeeper, holder, tokenAddr common.Address, amount *big.Int) (sdk.Coin, error) {
-	erc20Token, err := crosschainKeeper.GetBaseDenomByErc20(ctx, tokenAddr)
+func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, evm *vm.EVM, crosschainKeeper types.CrosschainKeeper, holder, tokenAddr common.Address, amount *big.Int) (sdk.Coin, error) {
+	erc20Token, err := crosschainKeeper.GetERC20TokenByAddr(ctx, tokenAddr)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
 	baseCoin := sdk.NewCoin(erc20Token.Denom, sdkmath.NewIntFromBigInt(amount))
-	erc20ModuleAddress := common.BytesToAddress(types.NewModuleAddress(erc20types.ModuleName))
+	erc20ModuleAddress := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
 
 	erc20Call := contract.NewERC20Call(evm, erc20ModuleAddress, tokenAddr, 0)
 	if erc20Token.IsNativeCoin() {
