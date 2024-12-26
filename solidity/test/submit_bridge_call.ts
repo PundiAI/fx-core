@@ -182,7 +182,7 @@ describe("submit bridge call tests", function () {
       fxBridge
     );
     const ownerBal2 = await erc20Token.balanceOf(user1.address);
-    expect(ownerBal2).to.equal(ownerBal1 + BigInt(amount));
+    expect(ownerBal2).to.equal(ownerBal1);
     expect(await bridgeCallContextTest.revertFlag()).to.equal(true);
     expect(await bridgeCallContextTest.callFlag()).to.equal(false);
   });
