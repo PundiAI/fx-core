@@ -25,6 +25,7 @@ import (
 	"github.com/pundiai/fx-core/v8/app/upgrades/store"
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	bsctypes "github.com/pundiai/fx-core/v8/x/bsc/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
 	erc20v8 "github.com/pundiai/fx-core/v8/x/erc20/migrations/v8"
@@ -56,10 +57,6 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 		store.RemoveStoreKeys(cacheCtx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
 
 		if err = migrationGovCustomParam(cacheCtx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
-			return fromVM, err
-		}
-
-		if err = NewPundix(cdc, app).Migrate(cacheCtx); err != nil {
 			return fromVM, err
 		}
 
@@ -114,6 +111,11 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 		); err != nil {
 			return fromVM, err
 		}
+
+		if err = mintPurseBridgeToken(cacheCtx, app.Erc20Keeper, app.BankKeeper); err != nil {
+			return fromVM, err
+		}
+
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
@@ -212,7 +214,7 @@ func migrateAccountBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accoun
 
 		return false
 	})
-	return nil
+	return err
 }
 
 func migrateERC20TokenToCrosschain(ctx sdk.Context, bankKeeper bankkeeper.Keeper, erc20Keeper erc20keeper.Keeper) error {
@@ -251,4 +253,23 @@ func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
 
 		bankKeeper.SetDenomMetaData(ctx, md)
 	}
+}
+
+func mintPurseBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bankKeeper bankkeeper.Keeper) error {
+	pxEscrowPurse, err := getPundixEscrowPurseAmount(ctx)
+	if err != nil {
+		return err
+	}
+
+	ibcToken, err := erc20Keeper.GetIBCToken(ctx, "channel-0", "purse")
+	if err != nil {
+		return err
+	}
+	bscPurseToken, err := erc20Keeper.GetBridgeToken(ctx, bsctypes.ModuleName, "purse")
+	if err != nil {
+		return err
+	}
+	ibcTokenSupply := bankKeeper.GetSupply(ctx, ibcToken.GetIbcDenom())
+	bscPurseAmount := sdk.NewCoin(bscPurseToken.BridgeDenom(), pxEscrowPurse.Sub(ibcTokenSupply.Amount))
+	return bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(bscPurseAmount))
 }

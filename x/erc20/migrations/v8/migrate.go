@@ -97,7 +97,13 @@ func (m Migrator) addBridgeToken(ctx sdk.Context, base, alias string) error {
 			return err
 		}
 		ctx.Logger().Info("add bridge token", "base-denom", base, "alias", alias, "module", ck.ModuleName(), "contract", legacyBridgeToken.Token)
-		if err = m.keeper.AddBridgeToken(ctx, base, ck.ModuleName(), legacyBridgeToken.Token, erc20Token.IsNativeERC20()); err != nil {
+		isNative := erc20Token.IsNativeERC20()
+
+		// NOTE: purse bridge token can not mint/burn
+		if base == "purse" {
+			isNative = true
+		}
+		if err = m.keeper.AddBridgeToken(ctx, base, ck.ModuleName(), legacyBridgeToken.Token, isNative); err != nil {
 			return err
 		}
 		break
@@ -116,7 +122,8 @@ func (m Migrator) addBscBridgePurse(ctx sdk.Context, newBaseDenom, base string) 
 		}
 		bridgeDenom := crosschaintypes.NewBridgeDenom(ck.ModuleName(), legacyBridgeToken.Token)
 		ctx.Logger().Info("add bridge token", "base-denom", newBaseDenom, "alias", bridgeDenom, "module", ck.ModuleName(), "contract", legacyBridgeToken.Token)
-		if err := m.keeper.AddBridgeToken(ctx, newBaseDenom, ck.ModuleName(), legacyBridgeToken.Token, false); err != nil {
+		// NOTE: purse bridge token can not mint/burn
+		if err := m.keeper.AddBridgeToken(ctx, newBaseDenom, ck.ModuleName(), legacyBridgeToken.Token, true); err != nil {
 			return err
 		}
 	}
