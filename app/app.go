@@ -348,12 +348,6 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 		panic(err)
 	}
 
-	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(app.EvmKeeper, contract.BridgeFeeAddress)
-	bridgeFeeOracleKeeper := contract.NewBridgeFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
-
-	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
-	moduleAddress := common.BytesToAddress(acc.Bytes())
-
 	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
 	if err != nil {
 		return nil, err
@@ -367,17 +361,25 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 			Denoms:    []string{fxtypes.DefaultDenom},
 		},
 	}
-	if err = contract.DeployBridgeFeeContract(
+
+	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
+	moduleAddress := common.BytesToAddress(acc.Bytes())
+
+	if err = DeployBridgeFeeContract(
 		ctx,
 		app.EvmKeeper,
-		bridgeFeeQuoteKeeper,
-		bridgeFeeOracleKeeper,
 		bridgeDenoms,
-		moduleAddress, moduleAddress,
+		moduleAddress,
+		moduleAddress,
 		common.BytesToAddress(sdk.MustAccAddressFromBech32(delegations[0].DelegatorAddress).Bytes()),
 	); err != nil {
 		return nil, err
 	}
+
+	if err = DeployAccessControlContract(ctx, app.EvmKeeper, moduleAddress, moduleAddress); err != nil {
+		return nil, err
+	}
+
 	return response, nil
 }
 

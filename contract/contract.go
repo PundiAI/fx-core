@@ -22,6 +22,7 @@ const (
 	BridgeFeeAddress       = "0x0000000000000000000000000000000000001005"
 	BridgeFeeOracleAddress = "0x0000000000000000000000000000000000001006"
 	BankAddress            = "0x0000000000000000000000000000000000001007"
+	AccessControlAddress   = "0x0000000000000000000000000000000000001008"
 )
 
 const DefaultGasCap uint64 = 30000000
@@ -71,6 +72,13 @@ var (
 		Code:    []byte{},
 	}
 
+	accessControl = Contract{
+		Address: common.Address{},
+		ABI:     MustABIJson(AccessControlMetaData.ABI),
+		Bin:     MustDecodeHex(AccessControlMetaData.Bin),
+		Code:    []byte{},
+	}
+
 	fxBridgeABI          = MustABIJson(IFxBridgeLogicMetaData.ABI)
 	bridgeCallContextABI = MustABIJson(IBridgeCallContextMetaData.ABI)
 	errorABI             = MustABIJson(IErrorMetaData.ABI)
@@ -114,6 +122,10 @@ func GetBridgeFeeQuote() Contract {
 
 func GetBridgeFeeOracle() Contract {
 	return bridgeFeeOracle
+}
+
+func GetAccessControl() Contract {
+	return accessControl
 }
 
 func MustDecodeHex(str string) []byte {
