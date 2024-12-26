@@ -1,11 +1,14 @@
 package types
 
 import (
+	"context"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 type EvmKeeper interface {
@@ -14,6 +17,11 @@ type EvmKeeper interface {
 
 type CrosschainKeeper interface {
 	IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) error
+	IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) (string, error)
 	IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin, ibcChannel string, ibcSequence uint64) error
 	AfterIBCAckSuccess(ctx sdk.Context, sourceChannel string, sequence uint64) error
+}
+
+type CrosschainRouterMsgServer interface {
+	SendToExternal(ctx context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error)
 }
