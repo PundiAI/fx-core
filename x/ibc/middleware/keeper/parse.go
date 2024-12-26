@@ -1,8 +1,13 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
 )
 
 func parseIBCCoinDenom(packet channeltypes.Packet, packetDenom string) string {
@@ -46,4 +51,40 @@ func parseIBCCoinDenom(packet channeltypes.Packet, packetDenom string) string {
 		receiveDenom = denomTrace.IBCDenom()
 	}
 	return receiveDenom
+}
+
+func parseReceiveAndAmountByPacketWithRouter(data types.FungibleTokenPacketData) (sdk.AccAddress, sdkmath.Int, sdkmath.Int, error) {
+	// parse the transfer amount
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
+	if !ok {
+		return nil, sdkmath.Int{}, sdkmath.Int{}, transfertypes.ErrInvalidAmount.Wrapf("unable to parse transfer amount (%s) into sdkmath.Int", data.Amount)
+	}
+
+	addressBytes, _, err := fxtypes.ParseAddress(data.Sender)
+	if err != nil {
+		return nil, sdkmath.Int{}, sdkmath.Int{}, err
+	}
+	feeAmount, ok := sdkmath.NewIntFromString(data.Fee)
+	if !ok || feeAmount.IsNegative() {
+		return nil, sdkmath.Int{}, sdkmath.Int{}, transfertypes.ErrInvalidAmount.Wrapf("fee amount is invalid:%s", data.Fee)
+	}
+	return addressBytes, transferAmount, feeAmount, nil
+}
+
+func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdkmath.Int, sdkmath.Int, error) {
+	// parse the transfer amount
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
+	if !ok {
+		return sdkmath.Int{}, sdkmath.Int{}, transfertypes.ErrInvalidAmount.Wrapf("unable to parse transfer amount (%s) into sdkmath.Int", data.Amount)
+	}
+
+	feeAmount := sdkmath.ZeroInt()
+	if data.Router != "" {
+		fee, ok := sdkmath.NewIntFromString(data.Fee)
+		if !ok || fee.IsNegative() {
+			return sdkmath.Int{}, sdkmath.Int{}, transfertypes.ErrInvalidAmount.Wrapf("fee amount is invalid:%s", data.Fee)
+		}
+		feeAmount = fee
+	}
+	return transferAmount, feeAmount, nil
 }
