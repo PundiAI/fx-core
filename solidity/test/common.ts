@@ -86,11 +86,7 @@ export async function signHash(signers: HardhatEthersSigner[], hash: string) {
   return { v, r, s };
 }
 
-export async function encodeFunctionData(
-  abi: string,
-  funcName: string,
-  args: any[]
-) {
+export function encodeFunctionData(abi: string, funcName: string, args: any[]) {
   const iface = new Interface(abi);
   return iface.encodeFunctionData(funcName, args);
 }

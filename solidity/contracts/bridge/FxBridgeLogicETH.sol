@@ -504,7 +504,7 @@ contract FxBridgeLogicETH is
 
         bool success = false;
         bytes memory cause = new bytes(0);
-        try this._transferAndBridgeCallback(_input) {
+        try this._onBridgeCall(_input) {
             success = true;
             // solhint-disable-next-line no-empty-blocks
         } catch Error(string memory reason) {
@@ -605,20 +605,11 @@ contract FxBridgeLogicETH is
         );
     }
 
-    function _transferAndBridgeCallback(
-        BridgeCallData memory _input
-    ) public onlySelf {
+    function _onBridgeCall(BridgeCallData memory _input) public onlySelf {
         if (_input.tokens.length > 0) {
-            require(_input.refund != address(0), "Refund address is empty");
-
-            address _receiver = _input.to;
-            if (_input.eventNonce > 0) {
-                _receiver = _input.refund;
-            }
-
             _transferERC20(
                 address(this),
-                _receiver,
+                _input.to,
                 _input.tokens,
                 _input.amounts
             );

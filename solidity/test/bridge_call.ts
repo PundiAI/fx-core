@@ -145,7 +145,8 @@ describe("bridge call tests", function () {
   });
 
   it("bridge call erc20 with data", async function () {
-    const tokens = [await erc20Token.getAddress()];
+    const token = await erc20Token.getAddress();
+    const tokens = [token];
     const amount = ethers.parseEther("1");
     const amounts: BigNumberish[] = [amount];
     const quoteId = 1;
