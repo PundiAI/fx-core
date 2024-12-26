@@ -6,6 +6,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/pundiai/fx-core/v8/app/upgrades"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -45,4 +46,16 @@ func getPundixEscrowPurseAmount(ctx sdk.Context) (sdkmath.Int, error) {
 		return sdkmath.ZeroInt(), fmt.Errorf("pundix escrow purse amount is invalid")
 	}
 	return purseAmount, nil
+}
+
+const (
+	testnetOwnerAddress = "0x2DC5f63149F922c8F73A36A7f295Ed2Af269D7d8"
+	mainnetOwnerAddress = "0xE77A7EA2F1DC25968b5941a456d99D37b80E98B5"
+)
+
+func getContractOwner(ctx sdk.Context) common.Address {
+	if ctx.ChainID() == fxtypes.TestnetChainId {
+		return common.HexToAddress(testnetOwnerAddress)
+	}
+	return common.HexToAddress(mainnetOwnerAddress)
 }

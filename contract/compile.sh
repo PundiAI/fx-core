@@ -33,7 +33,7 @@ echo "===> Compiling contracts"
 contracts=(WFXUpgradable FIP20Upgradable IError ERC1967Proxy)
 contracts+=(IStaking IBank)
 contracts+=(IFxBridgeLogic IBridgeCallContext ICrosschain)
-contracts+=(BridgeFeeQuote BridgeFeeOracle BridgeProxy)
+contracts+=(BridgeFeeQuote BridgeFeeOracle BridgeProxy AccessControl)
 contracts+=(CrosschainTest StakingTest ERC721TokenTest)
 
 for contract in "${contracts[@]}"; do

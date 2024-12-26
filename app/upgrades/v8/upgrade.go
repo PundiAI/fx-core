@@ -26,6 +26,7 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	bsctypes "github.com/pundiai/fx-core/v8/x/bsc/types"
+	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
 	erc20v8 "github.com/pundiai/fx-core/v8/x/erc20/migrations/v8"
@@ -72,47 +73,24 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 
 		store.RemoveStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
 
-		quoteKeeper := contract.NewBridgeFeeQuoteKeeper(app.EvmKeeper, contract.BridgeFeeAddress)
-		oracleKeeper := contract.NewBridgeFeeOracleKeeper(app.EvmKeeper, contract.BridgeFeeOracleAddress)
-		chains := crosschaintypes.GetSupportChains()
-		bridgeDenoms := make([]contract.BridgeDenoms, len(chains))
-		for index, chain := range chains {
-			denoms := make([]string, 0)
-			bridgeTokens, err := app.Erc20Keeper.GetBridgeTokens(cacheCtx, chain)
-			if err != nil {
-				return fromVM, err
-			}
-			for _, token := range bridgeTokens {
-				denoms = append(denoms, token.GetDenom())
-			}
-			bridgeDenoms[index] = contract.BridgeDenoms{
-				ChainName: chain,
-				Denoms:    denoms,
-			}
+		if err = mintPurseBridgeToken(cacheCtx, app.Erc20Keeper, app.BankKeeper); err != nil {
+			return fromVM, err
 		}
+
 		acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
 		moduleAddress := common.BytesToAddress(acc.Bytes())
 
-		oracles := app.CrosschainKeepers.EthKeeper.GetAllOracles(cacheCtx, true)
-		if oracles.Len() <= 0 {
-			return fromVM, errors.New("no oracle found")
-		}
-
-		if err = contract.DeployBridgeFeeContract(
+		if err = deployBridgeFeeContract(
 			cacheCtx,
 			app.EvmKeeper,
-			quoteKeeper,
-			oracleKeeper,
-			bridgeDenoms,
+			app.Erc20Keeper,
+			app.CrosschainKeepers.EthKeeper,
 			moduleAddress,
-			// TODO set bridge fee contract owner address before mainnet upgrade
-			moduleAddress,
-			common.HexToAddress(oracles[0].ExternalAddress),
 		); err != nil {
 			return fromVM, err
 		}
 
-		if err = mintPurseBridgeToken(cacheCtx, app.Erc20Keeper, app.BankKeeper); err != nil {
+		if err = deployAccessControlContract(cacheCtx, app.EvmKeeper, moduleAddress); err != nil {
 			return fromVM, err
 		}
 
@@ -272,4 +250,62 @@ func mintPurseBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bankK
 	ibcTokenSupply := bankKeeper.GetSupply(ctx, ibcToken.GetIbcDenom())
 	bscPurseAmount := sdk.NewCoin(bscPurseToken.BridgeDenom(), pxEscrowPurse.Sub(ibcTokenSupply.Amount))
 	return bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(bscPurseAmount))
+}
+
+func deployBridgeFeeContract(
+	cacheCtx sdk.Context,
+	evmKeeper *fxevmkeeper.Keeper,
+	erc20Keeper erc20keeper.Keeper,
+	crosschainKeeper crosschainkeeper.Keeper,
+	evmModuleAddress common.Address,
+) error {
+	quoteKeeper := contract.NewBridgeFeeQuoteKeeper(evmKeeper, contract.BridgeFeeAddress)
+	oracleKeeper := contract.NewBridgeFeeOracleKeeper(evmKeeper, contract.BridgeFeeOracleAddress)
+
+	chains := crosschaintypes.GetSupportChains()
+	bridgeDenoms := make([]contract.BridgeDenoms, len(chains))
+	for index, chain := range chains {
+		denoms := make([]string, 0)
+		bridgeTokens, err := erc20Keeper.GetBridgeTokens(cacheCtx, chain)
+		if err != nil {
+			return err
+		}
+		for _, token := range bridgeTokens {
+			denoms = append(denoms, token.GetDenom())
+		}
+		bridgeDenoms[index] = contract.BridgeDenoms{
+			ChainName: chain,
+			Denoms:    denoms,
+		}
+	}
+
+	oracles := crosschainKeeper.GetAllOracles(cacheCtx, true)
+	if oracles.Len() <= 0 {
+		return errors.New("no oracle found")
+	}
+	return contract.DeployBridgeFeeContract(
+		cacheCtx,
+		evmKeeper,
+		quoteKeeper,
+		oracleKeeper,
+		bridgeDenoms,
+		evmModuleAddress,
+		getContractOwner(cacheCtx),
+		common.HexToAddress(oracles[0].ExternalAddress),
+	)
+}
+
+func deployAccessControlContract(
+	cacheCtx sdk.Context,
+	evmKeeper *fxevmkeeper.Keeper,
+	evmModuleAddress common.Address,
+) error {
+	accessControl := contract.NewAccessControlKeeper(evmKeeper, contract.AccessControlAddress)
+	return contract.DeployAccessControlContract(
+		cacheCtx,
+		evmKeeper,
+		accessControl,
+		evmModuleAddress,
+		getContractOwner(cacheCtx),
+	)
 }
