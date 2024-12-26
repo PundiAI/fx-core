@@ -63,6 +63,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/bank"
 	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 	stakingprecompile "github.com/pundiai/fx-core/v8/precompiles/staking"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -363,6 +364,11 @@ func NewAppKeeper(
 		cast.ToString(appOpts.Get(srvflags.EVMTracer)),
 		appKeepers.GetSubspace(evmtypes.ModuleName),
 		[]evmkeeper.CustomContractFn{
+			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
+				return bank.NewPrecompiledContract(
+					appKeepers.BankKeeper, appKeepers.Erc20Keeper, appKeepers.GovKeeper,
+				)
+			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return crosschain.NewPrecompiledContract(
 					appKeepers.BankKeeper, appKeepers.GovKeeper, crosschainPrecompileRouter)
