@@ -10,16 +10,18 @@ import (
 )
 
 type Keeper struct {
-	cdc              codec.Codec
-	evmKeeper        types.EvmKeeper
-	crosschainKeeper types.CrosschainKeeper
+	cdc                       codec.Codec
+	evmKeeper                 types.EvmKeeper
+	crosschainKeeper          types.CrosschainKeeper
+	crosschaniRouterMsgServer types.CrosschainRouterMsgServer
 }
 
-func NewKeeper(cdc codec.Codec, evmKeeper types.EvmKeeper, crosschainKeeper types.CrosschainKeeper) Keeper {
+func NewKeeper(cdc codec.Codec, evmKeeper types.EvmKeeper, crosschainKeeper types.CrosschainKeeper, crosschaniRouterMsgServer types.CrosschainRouterMsgServer) Keeper {
 	return Keeper{
-		cdc:              cdc,
-		evmKeeper:        evmKeeper,
-		crosschainKeeper: crosschainKeeper,
+		cdc:                       cdc,
+		evmKeeper:                 evmKeeper,
+		crosschainKeeper:          crosschainKeeper,
+		crosschaniRouterMsgServer: crosschaniRouterMsgServer,
 	}
 }
 
