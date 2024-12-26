@@ -88,3 +88,7 @@ type EvmKeeper interface {
 type SlashingKeeper interface {
 	GetValidatorSigningInfo(ctx context.Context, address sdk.ConsAddress) (slashingtypes.ValidatorSigningInfo, error)
 }
+
+type Erc20Keeper interface {
+	GetBaseDenom(ctx context.Context, token string) (string, error)
+}

@@ -173,16 +173,18 @@ func (s *BaseSuite) Balance(acc sdk.AccAddress) sdk.Coins {
 	return s.App.BankKeeper.GetAllBalances(s.Ctx, acc)
 }
 
-func (s *BaseSuite) CheckBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
+func (s *BaseSuite) AssertBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
 	for _, bal := range expBal {
 		s.Equal(bal.Amount, balances.AmountOf(bal.Denom), bal.Denom)
 	}
 }
 
-func (s *BaseSuite) CheckAllBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
+func (s *BaseSuite) AssertAllBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
-	s.Equal(sdk.NewCoins(expBal...).String(), balances.String())
+	if s.Len(balances, len(expBal), balances.String()) {
+		s.Equal(sdk.NewCoins(expBal...).String(), balances.String())
+	}
 }
 
 func (s *BaseSuite) GetStakingBalance(addr sdk.AccAddress) sdkmath.Int {
