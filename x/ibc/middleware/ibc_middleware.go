@@ -8,6 +8,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/keeper"
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
 )
@@ -40,6 +41,10 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 
 	if len(data.GetFee()) == 0 {
 		data.Fee = sdkmath.ZeroInt().String()
+	}
+
+	if fxtypes.IsPundixChannel(packet.GetDestPort(), packet.GetDestChannel()) && data.Denom == fxtypes.GetPundixUnWrapDenom(ctx.ChainID()) {
+		data.Denom = fxtypes.PundixWrapDenom
 	}
 
 	if err := data.ValidateBasic(); err != nil {
