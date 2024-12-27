@@ -26,7 +26,7 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, baseCoins sdk.Coins, to common.Address, data, memo []byte, eventNonce uint64) (uint64, error) {
+func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, baseCoins sdk.Coins, to common.Address, data, memo []byte, gasLimit, eventNonce uint64) (uint64, error) {
 	tokens := make([]types.ERC20Token, 0, len(baseCoins))
 	for _, baseCoin := range baseCoins {
 		bridgeToken, err := k.BaseCoinToBridgeToken(ctx, sender.Bytes(), baseCoin)
@@ -38,7 +38,7 @@ func (k Keeper) AddOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common
 		}
 		tokens = append(tokens, types.NewERC20Token(baseCoin.Amount, bridgeToken.Contract))
 	}
-	outCall, err := k.BuildOutgoingBridgeCall(ctx, sender, refundAddr, tokens, to, data, memo, eventNonce)
+	outCall, err := k.BuildOutgoingBridgeCall(ctx, sender, refundAddr, tokens, to, data, memo, gasLimit, eventNonce)
 	if err != nil {
 		return 0, err
 	}
@@ -76,7 +76,7 @@ func (k Keeper) AddOutgoingBridgeCallWithoutBuild(ctx sdk.Context, outCall *type
 	return outCall.Nonce
 }
 
-func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
+func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr common.Address, tokens []types.ERC20Token, to common.Address, data, memo []byte, gasLimit, eventNonce uint64) (*types.OutgoingBridgeCall, error) {
 	bridgeCallTimeout := k.CalExternalTimeoutHeight(ctx, GetBridgeCallTimeout)
 	if bridgeCallTimeout <= 0 {
 		return nil, types.ErrInvalid.Wrapf("bridge call timeout height")
@@ -94,6 +94,7 @@ func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr comm
 		To:          types.ExternalAddrToStr(k.moduleName, to.Bytes()),
 		Data:        hex.EncodeToString(data),
 		Memo:        hex.EncodeToString(memo),
+		GasLimit:    gasLimit,
 		EventNonce:  eventNonce,
 	}
 	return outCall, nil
@@ -288,7 +289,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 		cacheKey = types.NewIBCTransferKey(fxTarget.IBCChannel, nonce)
 	} else {
 		var err error
-		if nonce, err = k.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, 0); err != nil {
+		if nonce, err = k.AddOutgoingBridgeCall(ctx, from, refund, coins, to, data, memo, gasLimit.Uint64(), 0); err != nil {
 			return 0, err
 		}
 		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)

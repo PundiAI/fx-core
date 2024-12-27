@@ -184,7 +184,7 @@ func PackSubmitBatchCheckpoint(gravityID, methodName [32]byte, amounts []*big.In
 	)
 }
 
-func PackBridgeCallCheckpoint(gravityID, methodName [32]byte, sender, refund common.Address, tokens []common.Address, amounts []*big.Int, to common.Address, data, memo []byte, nonce, timeout, eventNonce *big.Int) ([]byte, error) {
+func PackBridgeCallCheckpoint(gravityID, methodName [32]byte, sender, refund common.Address, tokens []common.Address, amounts []*big.Int, to common.Address, data, memo []byte, nonce, timeout, gasLimit, eventNonce *big.Int) ([]byte, error) {
 	return fxBridgeABI.Pack("bridgeCallCheckpoint",
 		gravityID,
 		methodName,
@@ -197,6 +197,7 @@ func PackBridgeCallCheckpoint(gravityID, methodName [32]byte, sender, refund com
 		memo,
 		nonce,
 		timeout,
+		gasLimit,
 		eventNonce,
 	)
 }

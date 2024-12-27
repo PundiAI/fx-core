@@ -5831,6 +5831,9 @@ paths:
                   block_height:
                     type: string
                     format: uint64
+                  gas_limit:
+                    type: string
+                    format: uint64
                   event_nonce:
                     type: string
                     format: uint64
@@ -6083,6 +6086,9 @@ paths:
                       type: string
                       format: uint64
                     block_height:
+                      type: string
+                      format: uint64
+                    gas_limit:
                       type: string
                       format: uint64
                     event_nonce:
@@ -6804,6 +6810,9 @@ paths:
                     block_height:
                       type: string
                       format: uint64
+                    gas_limit:
+                      type: string
+                      format: uint64
                     event_nonce:
                       type: string
                       format: uint64
@@ -7135,6 +7144,9 @@ paths:
                       type: string
                       format: uint64
                     block_height:
+                      type: string
+                      format: uint64
+                    gas_limit:
                       type: string
                       format: uint64
                     event_nonce:
@@ -8348,6 +8360,9 @@ paths:
                       type: string
                       format: uint64
                     block_height:
+                      type: string
+                      format: uint64
+                    gas_limit:
                       type: string
                       format: uint64
                     event_nonce:
@@ -42289,6 +42304,9 @@ definitions:
       block_height:
         type: string
         format: uint64
+      gas_limit:
+        type: string
+        format: uint64
       event_nonce:
         type: string
         format: uint64
@@ -42506,6 +42524,9 @@ definitions:
           block_height:
             type: string
             format: uint64
+          gas_limit:
+            type: string
+            format: uint64
           event_nonce:
             type: string
             format: uint64
@@ -42544,6 +42565,9 @@ definitions:
               type: string
               format: uint64
             block_height:
+              type: string
+              format: uint64
+            gas_limit:
               type: string
               format: uint64
             event_nonce:
@@ -42628,6 +42652,9 @@ definitions:
             block_height:
               type: string
               format: uint64
+            gas_limit:
+              type: string
+              format: uint64
             event_nonce:
               type: string
               format: uint64
@@ -42692,6 +42719,9 @@ definitions:
               type: string
               format: uint64
             block_height:
+              type: string
+              format: uint64
+            gas_limit:
               type: string
               format: uint64
             event_nonce:
@@ -42942,6 +42972,9 @@ definitions:
               type: string
               format: uint64
             block_height:
+              type: string
+              format: uint64
+            gas_limit:
               type: string
               format: uint64
             event_nonce:
