@@ -15,7 +15,7 @@ import (
 )
 
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
-	quoteInfos, err := k.brideFeeQuoteKeeper.GetQuotesByToken(ctx, k.moduleName, fee.Denom)
+	quoteInfos, err := k.bridgeFeeQuoteKeeper.GetQuotesByToken(ctx, k.moduleName, fee.Denom)
 	if err != nil {
 		return 0, err
 	}

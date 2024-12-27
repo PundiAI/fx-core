@@ -164,15 +164,15 @@ func (k Keeper) handleBridgeCallInQuote(ctx sdk.Context, from common.Address, qu
 }
 
 func (k Keeper) validatorQuoteGasLimit(ctx sdk.Context, quoteId, gasLimit *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error) {
-	contractQuote, err := k.brideFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
+	contractQuote, err := k.bridgeFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
 	if err != nil {
 		return contract.IBridgeFeeQuoteQuoteInfo{}, err
 	}
 	if contractQuote.IsTimeout(ctx.BlockTime()) {
-		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote is timeout")
+		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote has timed out")
 	}
 	if contractQuote.GasLimit.Cmp(gasLimit) < 0 {
-		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote gas limit less than gas limit")
+		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote gas limit is less than gas limit")
 	}
 	return contractQuote, nil
 }
