@@ -1,19 +1,37 @@
 name: CodeQL
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
     paths:
       - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/codeql-analysis.yml'
       - '!**.pb.go'
       - '!**.pb.gw.go'
       - '!**.pulsar.go'
       - '!**.sol.go'
       - '!statik.go'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/codeql-analysis.yml'
+      - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
+      - '!statik.go'
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
 
 jobs:
   analyze:

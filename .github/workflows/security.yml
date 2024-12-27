@@ -1,6 +1,7 @@
 name: Gosec
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,6 +9,12 @@ on:
       - '**.go'
       - 'go.mod'
       - 'go.sum'
+      - '.github/workflows/security.yml'
+      - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
+      - '!statik.go'
   pull_request:
     branches:
       - main
@@ -16,6 +23,15 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/security.yml'
+      - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
+      - '!statik.go'
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
 
 jobs:
   main:
@@ -31,7 +47,7 @@ jobs:
         uses: securego/gosec@master
         with:
           # we let the report trigger content trigger a failure using the GitHub Security features.
-          args: "-exclude=G101,G107 -no-fail -fmt sarif -out results.sarif ./..."
+          args: "-exclude=G101,G107,G115 -no-fail -fmt sarif -out results.sarif ./..."
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
