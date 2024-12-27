@@ -619,7 +619,10 @@ contract FxBridgeLogicETH is
 
         if (_input.to.isContract()) {
             if (_input.eventNonce > 0) {
-                IBridgeCallContext(_input.to).onRevert(_input.data);
+                IBridgeCallContext(_input.to).onRevert(
+                    _input.eventNonce,
+                    _input.data
+                );
                 return;
             }
 

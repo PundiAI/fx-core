@@ -11,5 +11,5 @@ interface IBridgeCallContext {
         bytes memory _memo
     ) external;
 
-    function onRevert(bytes memory _msg) external;
+    function onRevert(uint256 nonce, bytes memory _msg) external;
 }

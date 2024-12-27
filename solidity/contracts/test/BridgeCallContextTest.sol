@@ -27,7 +27,7 @@ contract BridgeCallContextTest is IBridgeCallContext {
         callFlag = !callFlag;
     }
 
-    function onRevert(bytes memory) external override onlyFxBridge {
+    function onRevert(uint256, bytes memory) external override onlyFxBridge {
         revertFlag = !revertFlag;
     }
 

@@ -31,7 +31,7 @@ var (
 
 // IBridgeCallContextMetaData contains all meta data concerning the IBridgeCallContext contract.
 var IBridgeCallContextMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"onBridgeCall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_msg\",\"type\":\"bytes\"}],\"name\":\"onRevert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"onBridgeCall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_msg\",\"type\":\"bytes\"}],\"name\":\"onRevert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IBridgeCallContextABI is the input ABI used to generate the binding from.
@@ -201,23 +201,23 @@ func (_IBridgeCallContext *IBridgeCallContextTransactorSession) OnBridgeCall(_se
 	return _IBridgeCallContext.Contract.OnBridgeCall(&_IBridgeCallContext.TransactOpts, _sender, _refund, _tokens, _amounts, _data, _memo)
 }
 
-// OnRevert is a paid mutator transaction binding the contract method 0x8fcaa0b5.
+// OnRevert is a paid mutator transaction binding the contract method 0x32e1e16e.
 //
-// Solidity: function onRevert(bytes _msg) returns()
-func (_IBridgeCallContext *IBridgeCallContextTransactor) OnRevert(opts *bind.TransactOpts, _msg []byte) (*types.Transaction, error) {
-	return _IBridgeCallContext.contract.Transact(opts, "onRevert", _msg)
+// Solidity: function onRevert(uint256 nonce, bytes _msg) returns()
+func (_IBridgeCallContext *IBridgeCallContextTransactor) OnRevert(opts *bind.TransactOpts, nonce *big.Int, _msg []byte) (*types.Transaction, error) {
+	return _IBridgeCallContext.contract.Transact(opts, "onRevert", nonce, _msg)
 }
 
-// OnRevert is a paid mutator transaction binding the contract method 0x8fcaa0b5.
+// OnRevert is a paid mutator transaction binding the contract method 0x32e1e16e.
 //
-// Solidity: function onRevert(bytes _msg) returns()
-func (_IBridgeCallContext *IBridgeCallContextSession) OnRevert(_msg []byte) (*types.Transaction, error) {
-	return _IBridgeCallContext.Contract.OnRevert(&_IBridgeCallContext.TransactOpts, _msg)
+// Solidity: function onRevert(uint256 nonce, bytes _msg) returns()
+func (_IBridgeCallContext *IBridgeCallContextSession) OnRevert(nonce *big.Int, _msg []byte) (*types.Transaction, error) {
+	return _IBridgeCallContext.Contract.OnRevert(&_IBridgeCallContext.TransactOpts, nonce, _msg)
 }
 
-// OnRevert is a paid mutator transaction binding the contract method 0x8fcaa0b5.
+// OnRevert is a paid mutator transaction binding the contract method 0x32e1e16e.
 //
-// Solidity: function onRevert(bytes _msg) returns()
-func (_IBridgeCallContext *IBridgeCallContextTransactorSession) OnRevert(_msg []byte) (*types.Transaction, error) {
-	return _IBridgeCallContext.Contract.OnRevert(&_IBridgeCallContext.TransactOpts, _msg)
+// Solidity: function onRevert(uint256 nonce, bytes _msg) returns()
+func (_IBridgeCallContext *IBridgeCallContextTransactorSession) OnRevert(nonce *big.Int, _msg []byte) (*types.Transaction, error) {
+	return _IBridgeCallContext.Contract.OnRevert(&_IBridgeCallContext.TransactOpts, nonce, _msg)
 }
