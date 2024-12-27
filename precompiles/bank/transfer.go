@@ -1,6 +1,7 @@
 package bank
 
 import (
+	"context"
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,20 +10,19 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	pretypes "github.com/pundiai/fx-core/v8/precompiles/types"
 	"github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
 type TransferFromModuleToAccountMethod struct {
 	*Keeper
 	TransferFromModuleToAccountABI
-	accessControlAddr common.Address
 }
 
 func NewTransferFromModuleToAccountMethod(keeper *Keeper) *TransferFromModuleToAccountMethod {
 	return &TransferFromModuleToAccountMethod{
 		Keeper:                         keeper,
 		TransferFromModuleToAccountABI: NewTransferFromModuleToAccountABI(),
-		accessControlAddr:              common.Address{}, // TODO: set access control address
 	}
 }
 
@@ -39,7 +39,12 @@ func (m *TransferFromModuleToAccountMethod) RequiredGas() uint64 {
 }
 
 func (m *TransferFromModuleToAccountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
-	if !fxcontract.IsZeroEthAddress(m.accessControlAddr) && m.accessControlAddr != contract.Caller() {
+	accessControlKeeper := fxcontract.NewAccessControlKeeper(pretypes.NewVMCall(evm, contract), fxcontract.AccessControlAddress)
+	has, err := accessControlKeeper.HasRole(context.TODO(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
+	if err != nil {
+		return nil, err
+	}
+	if !has {
 		return nil, errors.New("access denied")
 	}
 	args, err := m.UnpackInput(contract.Input)
@@ -95,14 +100,12 @@ func (m TransferFromModuleToAccountABI) UnpackOutput(data []byte) (bool, error) 
 type TransferFromAccountToModuleMethod struct {
 	*Keeper
 	TransferFromAccountToModuleABI
-	accessControlAddr common.Address
 }
 
 func NewTransferFromAccountToModuleMethod(keeper *Keeper) *TransferFromAccountToModuleMethod {
 	return &TransferFromAccountToModuleMethod{
 		Keeper:                         keeper,
 		TransferFromAccountToModuleABI: NewTransferFromAccountToModuleABI(),
-		accessControlAddr:              common.Address{}, // TODO: set access control address
 	}
 }
 
@@ -119,7 +122,12 @@ func (m *TransferFromAccountToModuleMethod) RequiredGas() uint64 {
 }
 
 func (m *TransferFromAccountToModuleMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
-	if !fxcontract.IsZeroEthAddress(m.accessControlAddr) && m.accessControlAddr != contract.Caller() {
+	accessControlKeeper := fxcontract.NewAccessControlKeeper(pretypes.NewVMCall(evm, contract), fxcontract.AccessControlAddress)
+	has, err := accessControlKeeper.HasRole(context.TODO(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
+	if err != nil {
+		return nil, err
+	}
+	if !has {
 		return nil, errors.New("access denied")
 	}
 	args, err := m.UnpackInput(contract.Input)

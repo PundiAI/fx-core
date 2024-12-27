@@ -36,7 +36,7 @@ func (k AccessControlKeeper) GrantRole(ctx context.Context, role common.Hash, ac
 
 func (k AccessControlKeeper) HasRole(ctx context.Context, role common.Hash, account common.Address) (bool, error) {
 	var res struct{ has bool }
-	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "hasRole", &res, role, account); err != nil {
+	if err := k.QueryContract(ctx, k.from, k.contract, k.abi, "hasRole", &res, role, account); err != nil {
 		return false, err
 	}
 	return res.has, nil
