@@ -53,6 +53,7 @@ type BridgeCallArgs struct {
 	To       common.Address   `abi:"_to"`
 	Data     []byte           `abi:"_data"`
 	QuoteId  *big.Int         `abi:"_quoteId"`
+	GasLimit *big.Int         `abi:"_gasLimit"`
 	Memo     []byte           `abi:"_memo"`
 }
 

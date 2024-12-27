@@ -297,6 +297,7 @@ contract FxBridgeLogic is
         address _to,
         bytes memory _data,
         uint256 _quoteId,
+        uint256 _gasLimit,
         bytes memory _memo
     ) external nonReentrant whenNotPaused returns (uint256) {
         require(bytes(_dstChain).length == 0, "Invalid dstChain");
@@ -322,6 +323,7 @@ contract FxBridgeLogic is
             _amounts,
             _data,
             _quoteId,
+            _gasLimit,
             _memo
         );
 
@@ -813,6 +815,7 @@ contract FxBridgeLogic is
         uint256[] _amounts,
         bytes _data,
         uint256 _quoteId,
+        uint256 _gasLimit,
         bytes _memo
     );
 

@@ -265,7 +265,7 @@ func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uin
 	}
 }
 
-func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId *big.Int, fxTarget *types.FxTarget, originTokenAmount sdkmath.Int) (uint64, error) {
+func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId, gasLimit *big.Int, fxTarget *types.FxTarget, originTokenAmount sdkmath.Int) (uint64, error) {
 	var cacheKey string
 	var nonce uint64
 	if fxTarget.IsIBC() {
@@ -293,7 +293,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 		}
 		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)
 
-		if err = k.handleBridgeCallQuote(ctx, from, nonce, quoteId); err != nil {
+		if err = k.handleBridgeCallQuote(ctx, from, nonce, quoteId, gasLimit); err != nil {
 			return 0, err
 		}
 	}
@@ -358,7 +358,7 @@ func (k Keeper) IBCTransfer(
 	return transferResponse.Sequence, nil
 }
 
-func (k Keeper) handleBridgeCallQuote(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId *big.Int) error {
+func (k Keeper) handleBridgeCallQuote(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
 	if quoteId == nil || quoteId.Sign() <= 0 {
 		return nil
 	}
@@ -368,6 +368,9 @@ func (k Keeper) handleBridgeCallQuote(ctx sdk.Context, from common.Address, brid
 	}
 	if contractQuote.IsTimeout(ctx.BlockTime()) {
 		return types.ErrInvalid.Wrapf("quote is timeout")
+	}
+	if contractQuote.GasLimit.Cmp(gasLimit) < 0 {
+		return types.ErrInvalid.Wrapf("quote gas limit less than gas limit")
 	}
 
 	// transfer fee to module

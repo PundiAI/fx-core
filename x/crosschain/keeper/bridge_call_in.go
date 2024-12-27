@@ -43,7 +43,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 	err := k.BridgeCallEvm(cacheCtx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
-		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), isMemoSendCallTo)
+		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), isMemoSendCallTo, msg.GetGasLimit())
 	if !ctx.IsCheckTx() {
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "bridge_call_in"},
@@ -85,7 +85,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 	return nil
 }
 
-func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, isMemoSendCallTo bool) error {
+func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, isMemoSendCallTo bool, gasLimit uint64) error {
 	tokens := make([]common.Address, 0, baseCoins.Len())
 	amounts := make([]*big.Int, 0, baseCoins.Len())
 	for _, coin := range baseCoins {
@@ -115,7 +115,9 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 		callEvmSender = k.GetCallbackFrom()
 	}
 
-	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
+	if gasLimit == 0 {
+		gasLimit = k.GetBridgeCallMaxGasLimit(ctx)
+	}
 	txResp, err := k.evmKeeper.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
 	if err != nil {
 		return err

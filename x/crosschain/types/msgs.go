@@ -475,6 +475,10 @@ func (m *MsgBridgeCallClaim) GetAmounts() []*big.Int {
 	return amts
 }
 
+func (m *MsgBridgeCallClaim) GetGasLimit() uint64 {
+	return m.GasLimit.Uint64()
+}
+
 func (m *MsgBridgeCallResultClaim) GetType() ClaimType {
 	return CLAIM_TYPE_BRIDGE_CALL_RESULT
 }
