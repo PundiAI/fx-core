@@ -12,6 +12,22 @@ interface IBridgeCall {
         address _to,
         bytes memory _data,
         uint256 _quoteId,
+        uint256 _gasLimit,
         bytes memory _memo
     ) external payable returns (uint256 _eventNonce);
+
+    event BridgeCallEvent(
+        address indexed _sender,
+        address indexed _receiver,
+        address indexed _to,
+        address _txOrigin,
+        uint256 _eventNonce,
+        string _dstChain,
+        address[] _tokens,
+        uint256[] _amounts,
+        bytes _data,
+        uint256 _quoteId,
+        uint256 _gasLimit,
+        bytes _memo
+    );
 }

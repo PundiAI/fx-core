@@ -113,6 +113,7 @@ describe("bridge pause test", function () {
           signers[0].address,
           "0x",
           0,
+          0,
           "0x"
         )
     ).to.be.emit(fxBridgeContract, "BridgeCallEvent");
@@ -131,6 +132,7 @@ describe("bridge pause test", function () {
           [ethers.parseEther("10")],
           signers[0].address,
           "0x",
+          0,
           0,
           "0x"
         )

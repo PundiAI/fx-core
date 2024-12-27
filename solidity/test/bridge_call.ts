@@ -89,6 +89,7 @@ describe("bridge call tests", function () {
       user1.address,
       "0x",
       0,
+      30000000,
       "0x"
     );
 
@@ -125,6 +126,7 @@ describe("bridge call tests", function () {
         user1.address,
         "0x",
         quoteId,
+        0,
         "0x"
       )
     )
@@ -140,6 +142,7 @@ describe("bridge call tests", function () {
         amounts,
         "0x",
         quoteId,
+        0,
         "0x"
       );
   });
@@ -167,6 +170,7 @@ describe("bridge call tests", function () {
         user1.address,
         data,
         quoteId,
+        0,
         "0x"
       )
     )
@@ -182,6 +186,7 @@ describe("bridge call tests", function () {
         amounts,
         data,
         quoteId,
+        0,
         "0x"
       );
   });
@@ -214,6 +219,7 @@ describe("bridge call tests", function () {
         user1.address,
         data,
         quoteId,
+        0,
         demo
       )
     )
@@ -229,6 +235,7 @@ describe("bridge call tests", function () {
         amounts,
         data,
         quoteId,
+        0,
         demo
       );
   });
@@ -307,6 +314,7 @@ describe("bridge call tests", function () {
         user1.address,
         "0x",
         0,
+        30000000,
         "0x"
       );
 
@@ -337,6 +345,7 @@ describe("bridge call tests", function () {
         user1.address,
         "0x",
         0,
+        30000000,
         "0x"
       );
     });
@@ -358,6 +367,7 @@ describe("bridge call tests", function () {
         user1.address,
         "0x",
         0,
+        30000000,
         "0x"
       );
     });

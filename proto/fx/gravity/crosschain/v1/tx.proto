@@ -179,8 +179,13 @@ message MsgBridgeCallClaim {
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
-  string memo = 12;
-  string tx_origin = 13;
+  string gas_limit = 12 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string memo = 13;
+  string tx_origin = 14;
 }
 
 message MsgBridgeCallResultClaim {

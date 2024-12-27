@@ -332,6 +332,7 @@ contract FxBridgeLogicETH is
         uint256[] memory _amounts,
         address _to,
         bytes memory _data,
+        uint256 _gasLimit,
         uint256 _quoteId,
         bytes memory _memo
     ) external nonReentrant whenNotPaused returns (uint256) {
@@ -358,6 +359,7 @@ contract FxBridgeLogicETH is
             _amounts,
             _data,
             _quoteId,
+            _gasLimit,
             _memo
         );
 
@@ -853,6 +855,7 @@ contract FxBridgeLogicETH is
         uint256[] _amounts,
         bytes _data,
         uint256 _quoteId,
+        uint256 _gasLimit,
         bytes _memo
     );
 

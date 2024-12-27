@@ -3,10 +3,11 @@
 pragma solidity ^0.8.10;
 
 import {IBridgeCall} from "./IBridgeCall.sol";
+import {IBridgeOracle} from "./IBridgeOracle.sol";
 
 // NOTE: if using an interface to invoke the precompiled contract
 // need to use solidity version 0.8.10 and later.
-interface ICrosschain is IBridgeCall {
+interface ICrosschain is IBridgeCall, IBridgeOracle {
     // Deprecated: please use `IBridgeCall.bridgeCall`
     function crossChain(
         address _token,
@@ -27,16 +28,6 @@ interface ICrosschain is IBridgeCall {
         uint256 _eventNonce
     ) external returns (bool _result);
 
-    function hasOracle(
-        string memory _chain,
-        address _externalAddress
-    ) external view returns (bool _result);
-
-    function isOracleOnline(
-        string memory _chain,
-        address _externalAddress
-    ) external view returns (bool _result);
-
     // Deprecated
     event CrossChain(
         address indexed sender,
@@ -47,20 +38,6 @@ interface ICrosschain is IBridgeCall {
         uint256 fee,
         bytes32 target,
         string memo
-    );
-
-    event BridgeCallEvent(
-        address indexed _sender,
-        address indexed _receiver,
-        address indexed _to,
-        address _txOrigin,
-        uint256 _eventNonce,
-        string _dstChain,
-        address[] _tokens,
-        uint256[] _amounts,
-        bytes _data,
-        uint256 _quoteId,
-        bytes _memo
     );
 
     event ExecuteClaimEvent(
