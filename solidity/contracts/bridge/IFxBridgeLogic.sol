@@ -56,6 +56,7 @@ interface IFxBridgeLogic is IBridgeCall {
         bytes data;
         bytes memo;
         uint256 timeout;
+        uint256 gasLimit;
         uint256 eventNonce;
     }
 
@@ -190,6 +191,7 @@ interface IFxBridgeLogic is IBridgeCall {
         bytes memory _memo,
         uint256 _nonce,
         uint256 _timeout,
+        uint256 _gasLimit,
         uint256 _eventNonce
     ) external returns (bytes32);
 
@@ -223,20 +225,6 @@ interface IFxBridgeLogic is IBridgeCall {
         uint256[] _powers
     );
     event TransferOwnerEvent(address _token, address _newOwner);
-
-    event BridgeCallEvent(
-        address indexed _sender,
-        address indexed _refund,
-        address indexed _to,
-        address _txOrigin,
-        uint256 _eventNonce,
-        string _dstChain,
-        address[] _tokens,
-        uint256[] _amounts,
-        bytes _data,
-        uint256 _quoteId,
-        bytes _memo
-    );
 
     event SubmitBridgeCallEvent(
         address indexed _txOrigin,

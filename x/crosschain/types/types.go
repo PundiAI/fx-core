@@ -471,6 +471,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 		memoBytes,
 		big.NewInt(int64(m.Nonce)),
 		big.NewInt(int64(m.Timeout)),
+		big.NewInt(int64(m.GasLimit)),
 		big.NewInt(int64(m.EventNonce)),
 	)
 	// this should never happen outside of test since any case that could crash on encoding

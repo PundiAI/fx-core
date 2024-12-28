@@ -78,12 +78,13 @@ func TestOutgoingBridgeCall_Checkpoint(t *testing.T) {
 		Nonce:       1,
 		Timeout:     1067,
 		BlockHeight: 100,
+		GasLimit:    1,
 		EventNonce:  8,
 	}
 	checkpoint, err := outgoingBridgeCall.GetCheckpoint("eth-fxcore")
 	require.NoError(t, err)
 
-	expected := "0xf23ffd1b999eaa4bfd0ee669b6132d8d3918093085c42f9afdce264d38fa5686"[2:]
+	expected := "0x95f46bf1632d15754dfabe962488771705216fa2c15130ff17b1999459384561"[2:]
 	assert.Equal(t, expected, hex.EncodeToString(checkpoint))
 }
 

@@ -70,6 +70,9 @@ func (args *BridgeCallArgs) Validate() error {
 	if args.QuoteId.Sign() < 0 {
 		return errors.New("quoteId cannot be negative")
 	}
+	if args.GasLimit.Sign() < 0 || !args.GasLimit.IsUint64() {
+		return errors.New("invalid gas limit")
+	}
 	return nil
 }
 
