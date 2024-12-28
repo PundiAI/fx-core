@@ -21,6 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
+	"github.com/pundiai/fx-core/v8/contract"
 	fxtelemetry "github.com/pundiai/fx-core/v8/telemetry"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
@@ -110,6 +111,10 @@ func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeC
 		if err := k.RefundOutgoingBridgeCall(ctx, outgoingBridgeCall); err != nil {
 			return err
 		}
+
+		if err := k.BridgeCallOnRevert(ctx, claim.Nonce, outgoingBridgeCall.To, claim.Cause); err != nil {
+			return err
+		}
 	}
 	if err := k.DeleteOutgoingBridgeCallRecord(ctx, claim.Nonce); err != nil {
 		return err
@@ -124,6 +129,25 @@ func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeC
 		sdk.NewAttribute(types.AttributeKeyStateSuccess, strconv.FormatBool(claim.Success)),
 		sdk.NewAttribute(types.AttributeKeyErrCause, claim.Cause),
 	))
+	return nil
+}
+
+func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, nonce uint64, toAddr, cause string) error {
+	args, err := contract.PackOnRevert(nonce, []byte(cause))
+	if err != nil {
+		return err
+	}
+	callEvmSender := k.GetCallbackFrom()
+	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
+	to := common.HexToAddress(toAddr)
+
+	txResp, err := k.evmKeeper.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
+	if err != nil {
+		return err
+	}
+	if txResp.Failed() {
+		return types.ErrInvalid.Wrap(txResp.VmError)
+	}
 	return nil
 }
 
@@ -293,7 +317,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 		}
 		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)
 
-		if err = k.handleBridgeCallQuote(ctx, from, nonce, quoteId, gasLimit); err != nil {
+		if err = k.handleBridgeCallOutQuote(ctx, from, nonce, quoteId, gasLimit); err != nil {
 			return 0, err
 		}
 	}
@@ -358,19 +382,14 @@ func (k Keeper) IBCTransfer(
 	return transferResponse.Sequence, nil
 }
 
-func (k Keeper) handleBridgeCallQuote(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
-	if quoteId == nil || quoteId.Sign() <= 0 {
+func (k Keeper) handleBridgeCallOutQuote(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
+	if quoteId == nil || quoteId.Sign() <= 0 || gasLimit == nil || gasLimit.Sign() <= 0 {
 		return nil
 	}
-	contractQuote, err := k.brideFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
+
+	contractQuote, err := k.validatorQuoteGasLimit(ctx, quoteId, gasLimit)
 	if err != nil {
 		return err
-	}
-	if contractQuote.IsTimeout(ctx.BlockTime()) {
-		return types.ErrInvalid.Wrapf("quote is timeout")
-	}
-	if contractQuote.GasLimit.Cmp(gasLimit) < 0 {
-		return types.ErrInvalid.Wrapf("quote gas limit less than gas limit")
 	}
 
 	// transfer fee to module

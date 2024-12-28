@@ -160,6 +160,13 @@ func PackOnBridgeCall(sender, receiver common.Address, tokens []common.Address, 
 	)
 }
 
+func PackOnRevert(nonce uint64, cause []byte) ([]byte, error) {
+	return bridgeCallContextABI.Pack("onRevert",
+		nonce,
+		cause,
+	)
+}
+
 func PackOracleSetCheckpoint(gravityID, methodName [32]byte, nonce *big.Int, memberAddresses []common.Address, convertedPowers []*big.Int) ([]byte, error) {
 	return fxBridgeABI.Pack("oracleSetCheckpoint",
 		gravityID,

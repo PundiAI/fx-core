@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strconv"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -41,6 +42,10 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		baseCoins = baseCoins.Add(baseCoin)
 	}
 
+	if err := k.handleBridgeCallInQuote(ctx, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.BigInt()); err != nil {
+		return err
+	}
+
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 	err := k.BridgeCallEvm(cacheCtx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
 		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), isMemoSendCallTo, msg.GetGasLimit())
@@ -58,6 +63,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		commit()
 		return nil
 	}
+	revertMsg := err.Error()
 
 	// refund bridge-call case of error
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
@@ -82,7 +88,11 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", msg.EventNonce)),
 		sdk.NewAttribute(types.AttributeKeyBridgeCallFailedRefundAddr, msg.GetRefundAddr().Hex()),
 	))
-	return nil
+
+	// onRevert bridgecall
+	_, err = k.AddOutgoingBridgeCall(ctx, msg.GetToAddr(), common.Address{}, sdk.NewCoins(),
+		msg.GetSenderAddr(), []byte(revertMsg), []byte{}, msg.EventNonce)
+	return err
 }
 
 func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, isMemoSendCallTo bool, gasLimit uint64) error {
@@ -126,4 +136,43 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 		return types.ErrInvalid.Wrap(txResp.VmError)
 	}
 	return nil
+}
+
+func (k Keeper) handleBridgeCallInQuote(ctx sdk.Context, from common.Address, quoteId, gasLimit *big.Int) error {
+	if quoteId == nil || quoteId.Sign() <= 0 || gasLimit == nil || gasLimit.Sign() <= 0 {
+		return nil
+	}
+
+	contractQuote, err := k.validatorQuoteGasLimit(ctx, quoteId, gasLimit)
+	if err != nil {
+		return err
+	}
+
+	// transfer fee to quote oracle
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, contractQuote.TokenName)
+	if err != nil {
+		return err
+	}
+
+	if bridgeToken.IsOrigin() {
+		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(contractQuote.Fee)))
+		return k.bankKeeper.SendCoins(ctx, from.Bytes(), contractQuote.Oracle.Bytes(), fees)
+	}
+
+	_, err = k.erc20TokenKeeper.Transfer(ctx, bridgeToken.GetContractAddress(), from, contractQuote.Oracle, contractQuote.Fee)
+	return err
+}
+
+func (k Keeper) validatorQuoteGasLimit(ctx sdk.Context, quoteId, gasLimit *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error) {
+	contractQuote, err := k.bridgeFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
+	if err != nil {
+		return contract.IBridgeFeeQuoteQuoteInfo{}, err
+	}
+	if contractQuote.IsTimeout(ctx.BlockTime()) {
+		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote has timed out")
+	}
+	if contractQuote.GasLimit.Cmp(gasLimit) < 0 {
+		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote gas limit is less than gas limit")
+	}
+	return contractQuote, nil
 }
