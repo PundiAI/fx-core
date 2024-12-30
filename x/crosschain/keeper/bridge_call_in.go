@@ -91,7 +91,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 
 	// onRevert bridgecall
 	_, err = k.AddOutgoingBridgeCall(ctx, msg.GetToAddr(), common.Address{}, sdk.NewCoins(),
-		msg.GetSenderAddr(), []byte(revertMsg), []byte{}, msg.EventNonce)
+		msg.GetSenderAddr(), []byte(revertMsg), []byte{}, 0, msg.EventNonce)
 	return err
 }
 
