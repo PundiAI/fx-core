@@ -144,15 +144,7 @@ func migrateBridgeBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, account
 			// pundix, purse
 			srcDenoms = append(srcDenoms, md.Base)
 		}
-		// bridge token, exclude ibc
-		bridgeTokens := make([]string, 0, len(md.DenomUnits[0].Aliases))
-		for _, alias := range md.DenomUnits[0].Aliases {
-			if strings.HasPrefix(alias, ibctransfertypes.DenomPrefix+"/") {
-				continue
-			}
-			bridgeTokens = append(bridgeTokens, alias)
-		}
-		srcDenoms = append(srcDenoms, bridgeTokens...)
+		srcDenoms = append(srcDenoms, md.DenomUnits[0].Aliases...)
 		if len(srcDenoms) == 0 {
 			continue
 		}
@@ -249,7 +241,7 @@ func mintPurseBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bankK
 	}
 	ibcTokenSupply := bankKeeper.GetSupply(ctx, ibcToken.GetIbcDenom())
 	bscPurseAmount := sdk.NewCoin(bscPurseToken.BridgeDenom(), pxEscrowPurse.Sub(ibcTokenSupply.Amount))
-	return bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(bscPurseAmount))
+	return bankKeeper.MintCoins(ctx, bsctypes.ModuleName, sdk.NewCoins(bscPurseAmount))
 }
 
 func deployBridgeFeeContract(
