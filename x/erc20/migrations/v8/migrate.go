@@ -23,10 +23,14 @@ func (m Migrator) MigrateToken(ctx sdk.Context) error {
 
 	mds := m.bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
-		newBaseDenom := strings.ToLower(md.Symbol)
 		// exclude FX and alias empty, except PUNDIX
 		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
 			continue
+		}
+
+		newBaseDenom := md.Base
+		if !strings.Contains(md.Base, strings.ToLower(md.Symbol)) {
+			newBaseDenom = strings.ToLower(md.Symbol)
 		}
 		// add other bridge/ibc token
 		for _, alias := range md.DenomUnits[0].Aliases {
