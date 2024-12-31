@@ -62,11 +62,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install abigen
+      - name: Install abigen # https://geth.ethereum.org/downloads
         run: |
-          wget -q https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.12.0-e501b3b0.tar.gz
-          tar -zxvf geth-alltools-linux-amd64-1.12.0-e501b3b0.tar.gz
-          sudo mv geth-alltools-linux-amd64-1.12.0-e501b3b0/abigen /usr/local/bin
+          wget -q https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.14.12-293a300d.tar.gz
+          tar -zxvf geth-alltools-linux-amd64-1.14.12-293a300d.tar.gz
+          sudo mv geth-alltools-linux-amd64-1.14.12-293a300d/abigen /usr/local/bin
       - name: Run abigen
         run: make contract-abigen
       - name: Check diff

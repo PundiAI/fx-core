@@ -10,8 +10,8 @@ for cmd in "${commands[@]}"; do
 done
 
 abigen_version=$(abigen --version | awk '{print $3}')
-if ! [[ "$abigen_version" =~ ^1.12.0-stable.* ]]; then
-  echo "expected abigen version 1.12.0, but got $abigen_version, please upgrade abigen first" && exit 1
+if ! [[ "$abigen_version" =~ ^1.14.12-stable.* ]]; then
+  echo "expected abigen version 1.14.12, but got $abigen_version, please upgrade abigen first" && exit 1
 fi
 
 project_dir="$(git rev-parse --show-toplevel)"

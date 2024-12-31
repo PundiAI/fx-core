@@ -227,17 +227,16 @@ func (suite *CrosschainSuite) SendOracleSetConfirm() {
 	suite.NotEmpty(queryResponse.OracleSets)
 
 	for _, oracleSet := range queryResponse.OracleSets {
+		checkpoint, err := oracleSet.GetCheckpoint(suite.params.GravityId)
+		suite.Require().NoError(err)
+
 		var signature []byte
 		if suite.chainName == trontypes.ModuleName {
-			checkpoint, err := trontypes.GetCheckpointOracleSet(oracleSet, suite.params.GravityId)
-			suite.Require().NoError(err)
 			signature, err = trontypes.NewTronSignature(checkpoint, suite.external)
 			suite.Require().NoError(err)
 			err = trontypes.ValidateTronSignature(checkpoint, signature, suite.ExternalAddr())
 			suite.Require().NoError(err)
 		} else {
-			checkpoint, err := oracleSet.GetCheckpoint(suite.params.GravityId)
-			suite.Require().NoError(err)
 			signature, err = crosschaintypes.NewEthereumSignature(checkpoint, suite.external)
 			suite.Require().NoError(err)
 			err = crosschaintypes.ValidateEthereumSignature(checkpoint, signature, suite.ExternalAddr())
@@ -362,12 +361,7 @@ func (suite *CrosschainSuite) SendConfirmBatch() {
 	suite.NotNil(response.Batch)
 
 	outgoingTxBatch := response.Batch
-	var checkpoint []byte
-	if suite.chainName == trontypes.ModuleName {
-		checkpoint, err = trontypes.GetCheckpointConfirmBatch(outgoingTxBatch, suite.params.GravityId)
-	} else {
-		checkpoint, err = outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
-	}
+	checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
 	suite.Require().NoError(err)
 	signatureBytes := suite.SignatureCheckpoint(checkpoint)
 
@@ -412,13 +406,7 @@ func (suite *CrosschainSuite) FormatAddress(address common.Address) string {
 
 func (suite *CrosschainSuite) BridgeCallConfirm(nonce uint64, isSuccess bool) {
 	bridgeCall := suite.QueryBridgeCallByNonce(nonce)
-	var checkpoint []byte
-	var err error
-	if suite.chainName == trontypes.ModuleName {
-		checkpoint, err = trontypes.GetCheckpointBridgeCall(bridgeCall, suite.params.GravityId)
-	} else {
-		checkpoint, err = bridgeCall.GetCheckpoint(suite.params.GravityId)
-	}
+	checkpoint, err := bridgeCall.GetCheckpoint(suite.params.GravityId)
 	suite.Require().NoError(err)
 	signatureBytes := suite.SignatureCheckpoint(checkpoint)
 

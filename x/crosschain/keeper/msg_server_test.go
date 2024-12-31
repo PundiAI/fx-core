@@ -404,9 +404,6 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 
 	gravityId := suite.Keeper().GetGravityID(suite.Ctx)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
-	if trontypes.ModuleName == suite.chainName {
-		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)
-	}
 	suite.Require().NoError(err)
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[0])
@@ -527,9 +524,6 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		suite.Require().EqualValues(fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	}
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
-	if trontypes.ModuleName == suite.chainName {
-		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)
-	}
 	suite.Require().NoError(err)
 
 	// oracle Online!!!

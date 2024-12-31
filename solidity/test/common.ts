@@ -8,6 +8,7 @@ import {
 } from "ethers";
 import { arrayify } from "@ethersproject/bytes";
 import { FxBridgeLogic } from "../typechain-types";
+import { expect } from "chai";
 
 export function examplePowers(): number[] {
   return [
@@ -22,48 +23,35 @@ export async function getSignerAddresses(signers: HardhatEthersSigner[]) {
 
 export function makeSubmitBridgeCallHash(
   gravityId: string,
-  sender: string,
-  receiver: string,
-  tokens: string[],
-  amounts: string[],
-  to: string,
-  data: string,
-  memo: string,
+  methodName: string,
   nonce: number | string,
-  timeout: number | string,
-  eventNonce: number | string
+  input: FxBridgeLogic.BridgeCallDataStruct
 ) {
-  let methodName = encodeBytes32String("bridgeCall");
   let abiCoder = new AbiCoder();
   return keccak256(
     abiCoder.encode(
       [
         "bytes32",
         "bytes32",
-        "address",
-        "address",
-        "address[]",
-        "uint256[]",
-        "address",
-        "bytes",
-        "bytes",
         "uint256",
-        "uint256",
-        "uint256",
+        "tuple(address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256)",
       ],
       [
         gravityId,
         methodName,
-        sender,
-        receiver,
-        tokens,
-        amounts,
-        to,
-        data,
-        memo,
         nonce,
-        timeout,
-        eventNonce,
+        [
+          input.sender,
+          input.refund,
+          input.tokens,
+          input.amounts,
+          input.to,
+          input.data,
+          input.memo,
+          input.timeout,
+          input.gasLimit,
+          input.eventNonce,
+        ],
       ]
     )
   );
@@ -93,6 +81,7 @@ export function encodeFunctionData(abi: string, funcName: string, args: any[]) {
 
 export async function submitBridgeCall(
   gravityId: string,
+  nonce: number | string,
   sender: string,
   refund: string,
   to: string,
@@ -100,30 +89,13 @@ export async function submitBridgeCall(
   memo: string,
   tokens: string[],
   amounts: string[],
-  nonce: number | string,
   timeout: number,
+  gasLimit: number,
   eventNonce: number,
   validators: HardhatEthersSigner[],
   powers: number[],
   fxBridge: FxBridgeLogic
 ) {
-  const digest = makeSubmitBridgeCallHash(
-    gravityId,
-    sender,
-    refund,
-    tokens,
-    amounts,
-    to,
-    data,
-    memo,
-    nonce,
-    timeout,
-    eventNonce
-  );
-
-  const { v, r, s } = await signHash(validators, digest);
-
-  const valAddresses = await getSignerAddresses(validators);
   const bridgeCallData: FxBridgeLogic.BridgeCallDataStruct = {
     sender: sender,
     refund: refund,
@@ -133,14 +105,40 @@ export async function submitBridgeCall(
     data: data,
     memo: memo,
     timeout: timeout,
+    gasLimit: gasLimit,
     eventNonce: eventNonce,
   };
+
+  const methodName = encodeBytes32String("bridgeCall");
+
+  const digest = makeSubmitBridgeCallHash(
+    gravityId,
+    methodName,
+    nonce,
+    bridgeCallData
+  );
+
+  const checkpoint = await fxBridge.bridgeCallCheckpoint(
+    gravityId,
+    methodName,
+    nonce,
+    bridgeCallData
+  );
+  expect(checkpoint).to.equal(digest);
+
+  const { v, r, s } = await signHash(validators, digest);
+
+  const valAddresses = await getSignerAddresses(validators);
+
+  const curOracleSigns: FxBridgeLogic.OracleSignatures = {
+    oracles: valAddresses,
+    powers: powers,
+    r: r,
+    s: s,
+    v: v,
+  };
   return await fxBridge.submitBridgeCall(
-    valAddresses,
-    powers,
-    v,
-    r,
-    s,
+    curOracleSigns,
     [0, nonce],
     bridgeCallData
   );

@@ -29,8 +29,8 @@ var (
 	_ = abi.ConvertType
 )
 
-// IFxBridgeLogicBridgeCallData is an auto generated low-level Go binding around an user-defined struct.
-type IFxBridgeLogicBridgeCallData struct {
+// FxBridgeBaseBridgeCallData is an auto generated low-level Go binding around an user-defined struct.
+type FxBridgeBaseBridgeCallData struct {
 	Sender     common.Address
 	Refund     common.Address
 	Tokens     []common.Address
@@ -43,16 +43,25 @@ type IFxBridgeLogicBridgeCallData struct {
 	EventNonce *big.Int
 }
 
-// IFxBridgeLogicBridgeToken is an auto generated low-level Go binding around an user-defined struct.
-type IFxBridgeLogicBridgeToken struct {
+// FxBridgeBaseBridgeToken is an auto generated low-level Go binding around an user-defined struct.
+type FxBridgeBaseBridgeToken struct {
 	Addr     common.Address
 	Name     string
 	Symbol   string
 	Decimals uint8
 }
 
-// IFxBridgeLogicTokenStatus is an auto generated low-level Go binding around an user-defined struct.
-type IFxBridgeLogicTokenStatus struct {
+// FxBridgeBaseOracleSignatures is an auto generated low-level Go binding around an user-defined struct.
+type FxBridgeBaseOracleSignatures struct {
+	Oracles []common.Address
+	Powers  []*big.Int
+	R       [][32]byte
+	S       [][32]byte
+	V       []uint8
+}
+
+// FxBridgeBaseTokenStatus is an auto generated low-level Go binding around an user-defined struct.
+type FxBridgeBaseTokenStatus struct {
 	IsOriginated bool
 	IsActive     bool
 	IsExist      bool
@@ -60,7 +69,7 @@ type IFxBridgeLogicTokenStatus struct {
 
 // IFxBridgeLogicMetaData contains all meta data concerning the IFxBridgeLogic contract.
 var IFxBridgeLogicMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"_symbol\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"_decimals\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"_channelIBC\",\"type\":\"bytes32\"}],\"name\":\"AddBridgeTokenEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_receiver\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_txOrigin\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"_dstChain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"indexed\":false,\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_quoteId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_gasLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"BridgeCallEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"_newOracleSetNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"_oracles\",\"type\":\"address[]\"},{\"indexed\":false,\"internalType\":\"uint256[]\",\"name\":\"_powers\",\"type\":\"uint256[]\"}],\"name\":\"OracleSetUpdatedEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"_destination\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"_targetIBC\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"}],\"name\":\"SendToFxEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_txOrigin\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"_success\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_cause\",\"type\":\"bytes\"}],\"name\":\"SubmitBridgeCallEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"_batchNonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"}],\"name\":\"TransactionBatchExecutedEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"TransferOwnerEvent\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"activeBridgeToken\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_channelIBC\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"_isOriginated\",\"type\":\"bool\"}],\"name\":\"addBridgeToken\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_dstChain\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"_quoteId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"bridgeCall\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_fxbridgeId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_methodName\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"_nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_timeout\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"}],\"name\":\"bridgeCallCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"bridgeTokens\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"checkAssetStatus\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_currentOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_currentPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint8[]\",\"name\":\"_v\",\"type\":\"uint8[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_r\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_s\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32\",\"name\":\"_theHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_powerThreshold\",\"type\":\"uint256\"}],\"name\":\"checkOracleSignatures\",\"outputs\":[],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_erc20Address\",\"type\":\"address\"}],\"name\":\"convert_decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBridgeTokenList\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"decimals\",\"type\":\"uint8\"}],\"internalType\":\"structIFxBridgeLogic.BridgeToken[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_erc20Address\",\"type\":\"address\"}],\"name\":\"lastBatchNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_oracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_powers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"_oracleSetNonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_fxBridgeId\",\"type\":\"bytes32\"}],\"name\":\"makeCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_fxbridgeId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_methodName\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_oracleSetNonce\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"_oracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_powers\",\"type\":\"uint256[]\"}],\"name\":\"oracleSetCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"pauseBridgeToken\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_destination\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_targetIBC\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"sendToFx\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_fxBridgeId\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_erc20Address\",\"type\":\"address\"}],\"name\":\"state_lastBatchNonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"state_lastBridgeCallNonces\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_lastEventNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_lastOracleSetCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_lastOracleSetNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_powerThreshold\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_currentOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_currentPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint8[]\",\"name\":\"_v\",\"type\":\"uint8[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_r\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_s\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address[]\",\"name\":\"_destinations\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_fees\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[2]\",\"name\":\"_nonceArray\",\"type\":\"uint256[2]\"},{\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_batchTimeout\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_feeReceive\",\"type\":\"address\"}],\"name\":\"submitBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_fxbridgeId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_methodName\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address[]\",\"name\":\"_destinations\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_fees\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"_batchNonce\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_batchTimeout\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_feeReceive\",\"type\":\"address\"}],\"name\":\"submitBatchCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_currentOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_currentPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint8[]\",\"name\":\"_v\",\"type\":\"uint8[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_r\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_s\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256[2]\",\"name\":\"_nonceArray\",\"type\":\"uint256[2]\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"memo\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"eventNonce\",\"type\":\"uint256\"}],\"internalType\":\"structIFxBridgeLogic.BridgeCallData\",\"name\":\"_input\",\"type\":\"tuple\"}],\"name\":\"submitBridgeCall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"tokenStatus\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"isOriginated\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isActive\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isExist\",\"type\":\"bool\"}],\"internalType\":\"structIFxBridgeLogic.TokenStatus\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"transferOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_newOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_newPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"_newOracleSetNonce\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"_currentOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_currentPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"_currentOracleSetNonce\",\"type\":\"uint256\"},{\"internalType\":\"uint8[]\",\"name\":\"_v\",\"type\":\"uint8[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_r\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_s\",\"type\":\"bytes32[]\"}],\"name\":\"updateOracleSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"_symbol\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"_decimals\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"_channelIBC\",\"type\":\"bytes32\"}],\"name\":\"AddBridgeTokenEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_refund\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_txOrigin\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"_dstChain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"indexed\":false,\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_quoteId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_gasLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"BridgeCallEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"_newOracleSetNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"_oracles\",\"type\":\"address[]\"},{\"indexed\":false,\"internalType\":\"uint256[]\",\"name\":\"_powers\",\"type\":\"uint256[]\"}],\"name\":\"OracleSetUpdatedEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"_destination\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"_targetIBC\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"}],\"name\":\"SendToFxEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_txOrigin\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_nonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"_success\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_cause\",\"type\":\"bytes\"}],\"name\":\"SubmitBridgeCallEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"_batchNonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"}],\"name\":\"TransactionBatchExecutedEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"TransferOwnerEvent\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"activeBridgeToken\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_channelIBC\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"_isOriginated\",\"type\":\"bool\"}],\"name\":\"addBridgeToken\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_dstChain\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"_quoteId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_memo\",\"type\":\"bytes\"}],\"name\":\"bridgeCall\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_eventNonce\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_fxbridgeId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_methodName\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_nonce\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"memo\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"eventNonce\",\"type\":\"uint256\"}],\"internalType\":\"structFxBridgeBase.BridgeCallData\",\"name\":\"_input\",\"type\":\"tuple\"}],\"name\":\"bridgeCallCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"bridgeTokens\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"checkAssetStatus\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_erc20Address\",\"type\":\"address\"}],\"name\":\"convert_decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBridgeTokenList\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"decimals\",\"type\":\"uint8\"}],\"internalType\":\"structFxBridgeBase.BridgeToken[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"getTokenStatus\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"isOriginated\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isActive\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isExist\",\"type\":\"bool\"}],\"internalType\":\"structFxBridgeBase.TokenStatus\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_erc20Address\",\"type\":\"address\"}],\"name\":\"lastBatchNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_fxbridgeId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_methodName\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_oracleSetNonce\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"_oracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_powers\",\"type\":\"uint256[]\"}],\"name\":\"oracleSetCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenAddr\",\"type\":\"address\"}],\"name\":\"pauseBridgeToken\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_destination\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_targetIBC\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"sendToFx\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_fxBridgeId\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_erc20Address\",\"type\":\"address\"}],\"name\":\"state_lastBatchNonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"state_lastBridgeCallNonces\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_lastEventNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_lastOracleSetCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_lastOracleSetNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"state_powerThreshold\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_currentOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_currentPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint8[]\",\"name\":\"_v\",\"type\":\"uint8[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_r\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_s\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address[]\",\"name\":\"_destinations\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_fees\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[2]\",\"name\":\"_nonceArray\",\"type\":\"uint256[2]\"},{\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_batchTimeout\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_feeReceive\",\"type\":\"address\"}],\"name\":\"submitBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_fxbridgeId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_methodName\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address[]\",\"name\":\"_destinations\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_fees\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"_batchNonce\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_tokenContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_batchTimeout\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_feeReceive\",\"type\":\"address\"}],\"name\":\"submitBatchCheckpoint\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address[]\",\"name\":\"oracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"powers\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"r\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"s\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint8[]\",\"name\":\"v\",\"type\":\"uint8[]\"}],\"internalType\":\"structFxBridgeBase.OracleSignatures\",\"name\":\"_curOracleSigns\",\"type\":\"tuple\"},{\"internalType\":\"uint256[2]\",\"name\":\"_nonceArray\",\"type\":\"uint256[2]\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"refund\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"memo\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"eventNonce\",\"type\":\"uint256\"}],\"internalType\":\"structFxBridgeBase.BridgeCallData\",\"name\":\"_input\",\"type\":\"tuple\"}],\"name\":\"submitBridgeCall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"transferOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_newOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_newPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"_newOracleSetNonce\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"_currentOracles\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_currentPowers\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"_currentOracleSetNonce\",\"type\":\"uint256\"},{\"internalType\":\"uint8[]\",\"name\":\"_v\",\"type\":\"uint8[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_r\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"_s\",\"type\":\"bytes32[]\"}],\"name\":\"updateOracleSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // IFxBridgeLogicABI is the input ABI used to generate the binding from.
@@ -209,6 +218,37 @@ func (_IFxBridgeLogic *IFxBridgeLogicTransactorRaw) Transact(opts *bind.Transact
 	return _IFxBridgeLogic.Contract.contract.Transact(opts, method, params...)
 }
 
+// BridgeCallCheckpoint is a free data retrieval call binding the contract method 0x1cb8b55b.
+//
+// Solidity: function bridgeCallCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _nonce, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicCaller) BridgeCallCheckpoint(opts *bind.CallOpts, _fxbridgeId [32]byte, _methodName [32]byte, _nonce *big.Int, _input FxBridgeBaseBridgeCallData) ([32]byte, error) {
+	var out []interface{}
+	err := _IFxBridgeLogic.contract.Call(opts, &out, "bridgeCallCheckpoint", _fxbridgeId, _methodName, _nonce, _input)
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// BridgeCallCheckpoint is a free data retrieval call binding the contract method 0x1cb8b55b.
+//
+// Solidity: function bridgeCallCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _nonce, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicSession) BridgeCallCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _nonce *big.Int, _input FxBridgeBaseBridgeCallData) ([32]byte, error) {
+	return _IFxBridgeLogic.Contract.BridgeCallCheckpoint(&_IFxBridgeLogic.CallOpts, _fxbridgeId, _methodName, _nonce, _input)
+}
+
+// BridgeCallCheckpoint is a free data retrieval call binding the contract method 0x1cb8b55b.
+//
+// Solidity: function bridgeCallCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _nonce, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) BridgeCallCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _nonce *big.Int, _input FxBridgeBaseBridgeCallData) ([32]byte, error) {
+	return _IFxBridgeLogic.Contract.BridgeCallCheckpoint(&_IFxBridgeLogic.CallOpts, _fxbridgeId, _methodName, _nonce, _input)
+}
+
 // BridgeTokens is a free data retrieval call binding the contract method 0x70e5a898.
 //
 // Solidity: function bridgeTokens(uint256 _index) view returns(address)
@@ -271,35 +311,6 @@ func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) CheckAssetStatus(_tokenAddr 
 	return _IFxBridgeLogic.Contract.CheckAssetStatus(&_IFxBridgeLogic.CallOpts, _tokenAddr)
 }
 
-// CheckOracleSignatures is a free data retrieval call binding the contract method 0x285a190a.
-//
-// Solidity: function checkOracleSignatures(address[] _currentOracles, uint256[] _currentPowers, uint8[] _v, bytes32[] _r, bytes32[] _s, bytes32 _theHash, uint256 _powerThreshold) pure returns()
-func (_IFxBridgeLogic *IFxBridgeLogicCaller) CheckOracleSignatures(opts *bind.CallOpts, _currentOracles []common.Address, _currentPowers []*big.Int, _v []uint8, _r [][32]byte, _s [][32]byte, _theHash [32]byte, _powerThreshold *big.Int) error {
-	var out []interface{}
-	err := _IFxBridgeLogic.contract.Call(opts, &out, "checkOracleSignatures", _currentOracles, _currentPowers, _v, _r, _s, _theHash, _powerThreshold)
-
-	if err != nil {
-		return err
-	}
-
-	return err
-
-}
-
-// CheckOracleSignatures is a free data retrieval call binding the contract method 0x285a190a.
-//
-// Solidity: function checkOracleSignatures(address[] _currentOracles, uint256[] _currentPowers, uint8[] _v, bytes32[] _r, bytes32[] _s, bytes32 _theHash, uint256 _powerThreshold) pure returns()
-func (_IFxBridgeLogic *IFxBridgeLogicSession) CheckOracleSignatures(_currentOracles []common.Address, _currentPowers []*big.Int, _v []uint8, _r [][32]byte, _s [][32]byte, _theHash [32]byte, _powerThreshold *big.Int) error {
-	return _IFxBridgeLogic.Contract.CheckOracleSignatures(&_IFxBridgeLogic.CallOpts, _currentOracles, _currentPowers, _v, _r, _s, _theHash, _powerThreshold)
-}
-
-// CheckOracleSignatures is a free data retrieval call binding the contract method 0x285a190a.
-//
-// Solidity: function checkOracleSignatures(address[] _currentOracles, uint256[] _currentPowers, uint8[] _v, bytes32[] _r, bytes32[] _s, bytes32 _theHash, uint256 _powerThreshold) pure returns()
-func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) CheckOracleSignatures(_currentOracles []common.Address, _currentPowers []*big.Int, _v []uint8, _r [][32]byte, _s [][32]byte, _theHash [32]byte, _powerThreshold *big.Int) error {
-	return _IFxBridgeLogic.Contract.CheckOracleSignatures(&_IFxBridgeLogic.CallOpts, _currentOracles, _currentPowers, _v, _r, _s, _theHash, _powerThreshold)
-}
-
 // ConvertDecimals is a free data retrieval call binding the contract method 0x7d9a8ea6.
 //
 // Solidity: function convert_decimals(address _erc20Address) view returns(uint8)
@@ -334,15 +345,15 @@ func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) ConvertDecimals(_erc20Addres
 // GetBridgeTokenList is a free data retrieval call binding the contract method 0x283040b4.
 //
 // Solidity: function getBridgeTokenList() view returns((address,string,string,uint8)[])
-func (_IFxBridgeLogic *IFxBridgeLogicCaller) GetBridgeTokenList(opts *bind.CallOpts) ([]IFxBridgeLogicBridgeToken, error) {
+func (_IFxBridgeLogic *IFxBridgeLogicCaller) GetBridgeTokenList(opts *bind.CallOpts) ([]FxBridgeBaseBridgeToken, error) {
 	var out []interface{}
 	err := _IFxBridgeLogic.contract.Call(opts, &out, "getBridgeTokenList")
 
 	if err != nil {
-		return *new([]IFxBridgeLogicBridgeToken), err
+		return *new([]FxBridgeBaseBridgeToken), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new([]IFxBridgeLogicBridgeToken)).(*[]IFxBridgeLogicBridgeToken)
+	out0 := *abi.ConvertType(out[0], new([]FxBridgeBaseBridgeToken)).(*[]FxBridgeBaseBridgeToken)
 
 	return out0, err
 
@@ -351,15 +362,46 @@ func (_IFxBridgeLogic *IFxBridgeLogicCaller) GetBridgeTokenList(opts *bind.CallO
 // GetBridgeTokenList is a free data retrieval call binding the contract method 0x283040b4.
 //
 // Solidity: function getBridgeTokenList() view returns((address,string,string,uint8)[])
-func (_IFxBridgeLogic *IFxBridgeLogicSession) GetBridgeTokenList() ([]IFxBridgeLogicBridgeToken, error) {
+func (_IFxBridgeLogic *IFxBridgeLogicSession) GetBridgeTokenList() ([]FxBridgeBaseBridgeToken, error) {
 	return _IFxBridgeLogic.Contract.GetBridgeTokenList(&_IFxBridgeLogic.CallOpts)
 }
 
 // GetBridgeTokenList is a free data retrieval call binding the contract method 0x283040b4.
 //
 // Solidity: function getBridgeTokenList() view returns((address,string,string,uint8)[])
-func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) GetBridgeTokenList() ([]IFxBridgeLogicBridgeToken, error) {
+func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) GetBridgeTokenList() ([]FxBridgeBaseBridgeToken, error) {
 	return _IFxBridgeLogic.Contract.GetBridgeTokenList(&_IFxBridgeLogic.CallOpts)
+}
+
+// GetTokenStatus is a free data retrieval call binding the contract method 0xa3ff31b5.
+//
+// Solidity: function getTokenStatus(address _tokenAddr) view returns((bool,bool,bool))
+func (_IFxBridgeLogic *IFxBridgeLogicCaller) GetTokenStatus(opts *bind.CallOpts, _tokenAddr common.Address) (FxBridgeBaseTokenStatus, error) {
+	var out []interface{}
+	err := _IFxBridgeLogic.contract.Call(opts, &out, "getTokenStatus", _tokenAddr)
+
+	if err != nil {
+		return *new(FxBridgeBaseTokenStatus), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(FxBridgeBaseTokenStatus)).(*FxBridgeBaseTokenStatus)
+
+	return out0, err
+
+}
+
+// GetTokenStatus is a free data retrieval call binding the contract method 0xa3ff31b5.
+//
+// Solidity: function getTokenStatus(address _tokenAddr) view returns((bool,bool,bool))
+func (_IFxBridgeLogic *IFxBridgeLogicSession) GetTokenStatus(_tokenAddr common.Address) (FxBridgeBaseTokenStatus, error) {
+	return _IFxBridgeLogic.Contract.GetTokenStatus(&_IFxBridgeLogic.CallOpts, _tokenAddr)
+}
+
+// GetTokenStatus is a free data retrieval call binding the contract method 0xa3ff31b5.
+//
+// Solidity: function getTokenStatus(address _tokenAddr) view returns((bool,bool,bool))
+func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) GetTokenStatus(_tokenAddr common.Address) (FxBridgeBaseTokenStatus, error) {
+	return _IFxBridgeLogic.Contract.GetTokenStatus(&_IFxBridgeLogic.CallOpts, _tokenAddr)
 }
 
 // LastBatchNonce is a free data retrieval call binding the contract method 0x011b2174.
@@ -393,12 +435,12 @@ func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) LastBatchNonce(_erc20Address
 	return _IFxBridgeLogic.Contract.LastBatchNonce(&_IFxBridgeLogic.CallOpts, _erc20Address)
 }
 
-// MakeCheckpoint is a free data retrieval call binding the contract method 0x71cbf381.
+// OracleSetCheckpoint is a free data retrieval call binding the contract method 0xa955665f.
 //
-// Solidity: function makeCheckpoint(address[] _oracles, uint256[] _powers, uint256 _oracleSetNonce, bytes32 _fxBridgeId) pure returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicCaller) MakeCheckpoint(opts *bind.CallOpts, _oracles []common.Address, _powers []*big.Int, _oracleSetNonce *big.Int, _fxBridgeId [32]byte) ([32]byte, error) {
+// Solidity: function oracleSetCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _oracleSetNonce, address[] _oracles, uint256[] _powers) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicCaller) OracleSetCheckpoint(opts *bind.CallOpts, _fxbridgeId [32]byte, _methodName [32]byte, _oracleSetNonce *big.Int, _oracles []common.Address, _powers []*big.Int) ([32]byte, error) {
 	var out []interface{}
-	err := _IFxBridgeLogic.contract.Call(opts, &out, "makeCheckpoint", _oracles, _powers, _oracleSetNonce, _fxBridgeId)
+	err := _IFxBridgeLogic.contract.Call(opts, &out, "oracleSetCheckpoint", _fxbridgeId, _methodName, _oracleSetNonce, _oracles, _powers)
 
 	if err != nil {
 		return *new([32]byte), err
@@ -410,18 +452,18 @@ func (_IFxBridgeLogic *IFxBridgeLogicCaller) MakeCheckpoint(opts *bind.CallOpts,
 
 }
 
-// MakeCheckpoint is a free data retrieval call binding the contract method 0x71cbf381.
+// OracleSetCheckpoint is a free data retrieval call binding the contract method 0xa955665f.
 //
-// Solidity: function makeCheckpoint(address[] _oracles, uint256[] _powers, uint256 _oracleSetNonce, bytes32 _fxBridgeId) pure returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicSession) MakeCheckpoint(_oracles []common.Address, _powers []*big.Int, _oracleSetNonce *big.Int, _fxBridgeId [32]byte) ([32]byte, error) {
-	return _IFxBridgeLogic.Contract.MakeCheckpoint(&_IFxBridgeLogic.CallOpts, _oracles, _powers, _oracleSetNonce, _fxBridgeId)
+// Solidity: function oracleSetCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _oracleSetNonce, address[] _oracles, uint256[] _powers) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicSession) OracleSetCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _oracleSetNonce *big.Int, _oracles []common.Address, _powers []*big.Int) ([32]byte, error) {
+	return _IFxBridgeLogic.Contract.OracleSetCheckpoint(&_IFxBridgeLogic.CallOpts, _fxbridgeId, _methodName, _oracleSetNonce, _oracles, _powers)
 }
 
-// MakeCheckpoint is a free data retrieval call binding the contract method 0x71cbf381.
+// OracleSetCheckpoint is a free data retrieval call binding the contract method 0xa955665f.
 //
-// Solidity: function makeCheckpoint(address[] _oracles, uint256[] _powers, uint256 _oracleSetNonce, bytes32 _fxBridgeId) pure returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) MakeCheckpoint(_oracles []common.Address, _powers []*big.Int, _oracleSetNonce *big.Int, _fxBridgeId [32]byte) ([32]byte, error) {
-	return _IFxBridgeLogic.Contract.MakeCheckpoint(&_IFxBridgeLogic.CallOpts, _oracles, _powers, _oracleSetNonce, _fxBridgeId)
+// Solidity: function oracleSetCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _oracleSetNonce, address[] _oracles, uint256[] _powers) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) OracleSetCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _oracleSetNonce *big.Int, _oracles []common.Address, _powers []*big.Int) ([32]byte, error) {
+	return _IFxBridgeLogic.Contract.OracleSetCheckpoint(&_IFxBridgeLogic.CallOpts, _fxbridgeId, _methodName, _oracleSetNonce, _oracles, _powers)
 }
 
 // StateFxBridgeId is a free data retrieval call binding the contract method 0xf92367fd.
@@ -641,35 +683,35 @@ func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) StatePowerThreshold() (*big.
 	return _IFxBridgeLogic.Contract.StatePowerThreshold(&_IFxBridgeLogic.CallOpts)
 }
 
-// TokenStatus is a free data retrieval call binding the contract method 0x0acac942.
+// SubmitBatchCheckpoint is a free data retrieval call binding the contract method 0x3d1e51f9.
 //
-// Solidity: function tokenStatus(address _tokenAddr) view returns((bool,bool,bool))
-func (_IFxBridgeLogic *IFxBridgeLogicCaller) TokenStatus(opts *bind.CallOpts, _tokenAddr common.Address) (IFxBridgeLogicTokenStatus, error) {
+// Solidity: function submitBatchCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256[] _amounts, address[] _destinations, uint256[] _fees, uint256 _batchNonce, address _tokenContract, uint256 _batchTimeout, address _feeReceive) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicCaller) SubmitBatchCheckpoint(opts *bind.CallOpts, _fxbridgeId [32]byte, _methodName [32]byte, _amounts []*big.Int, _destinations []common.Address, _fees []*big.Int, _batchNonce *big.Int, _tokenContract common.Address, _batchTimeout *big.Int, _feeReceive common.Address) ([32]byte, error) {
 	var out []interface{}
-	err := _IFxBridgeLogic.contract.Call(opts, &out, "tokenStatus", _tokenAddr)
+	err := _IFxBridgeLogic.contract.Call(opts, &out, "submitBatchCheckpoint", _fxbridgeId, _methodName, _amounts, _destinations, _fees, _batchNonce, _tokenContract, _batchTimeout, _feeReceive)
 
 	if err != nil {
-		return *new(IFxBridgeLogicTokenStatus), err
+		return *new([32]byte), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(IFxBridgeLogicTokenStatus)).(*IFxBridgeLogicTokenStatus)
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 
 	return out0, err
 
 }
 
-// TokenStatus is a free data retrieval call binding the contract method 0x0acac942.
+// SubmitBatchCheckpoint is a free data retrieval call binding the contract method 0x3d1e51f9.
 //
-// Solidity: function tokenStatus(address _tokenAddr) view returns((bool,bool,bool))
-func (_IFxBridgeLogic *IFxBridgeLogicSession) TokenStatus(_tokenAddr common.Address) (IFxBridgeLogicTokenStatus, error) {
-	return _IFxBridgeLogic.Contract.TokenStatus(&_IFxBridgeLogic.CallOpts, _tokenAddr)
+// Solidity: function submitBatchCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256[] _amounts, address[] _destinations, uint256[] _fees, uint256 _batchNonce, address _tokenContract, uint256 _batchTimeout, address _feeReceive) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicSession) SubmitBatchCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _amounts []*big.Int, _destinations []common.Address, _fees []*big.Int, _batchNonce *big.Int, _tokenContract common.Address, _batchTimeout *big.Int, _feeReceive common.Address) ([32]byte, error) {
+	return _IFxBridgeLogic.Contract.SubmitBatchCheckpoint(&_IFxBridgeLogic.CallOpts, _fxbridgeId, _methodName, _amounts, _destinations, _fees, _batchNonce, _tokenContract, _batchTimeout, _feeReceive)
 }
 
-// TokenStatus is a free data retrieval call binding the contract method 0x0acac942.
+// SubmitBatchCheckpoint is a free data retrieval call binding the contract method 0x3d1e51f9.
 //
-// Solidity: function tokenStatus(address _tokenAddr) view returns((bool,bool,bool))
-func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) TokenStatus(_tokenAddr common.Address) (IFxBridgeLogicTokenStatus, error) {
-	return _IFxBridgeLogic.Contract.TokenStatus(&_IFxBridgeLogic.CallOpts, _tokenAddr)
+// Solidity: function submitBatchCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256[] _amounts, address[] _destinations, uint256[] _fees, uint256 _batchNonce, address _tokenContract, uint256 _batchTimeout, address _feeReceive) pure returns(bytes32)
+func (_IFxBridgeLogic *IFxBridgeLogicCallerSession) SubmitBatchCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _amounts []*big.Int, _destinations []common.Address, _fees []*big.Int, _batchNonce *big.Int, _tokenContract common.Address, _batchTimeout *big.Int, _feeReceive common.Address) ([32]byte, error) {
+	return _IFxBridgeLogic.Contract.SubmitBatchCheckpoint(&_IFxBridgeLogic.CallOpts, _fxbridgeId, _methodName, _amounts, _destinations, _fees, _batchNonce, _tokenContract, _batchTimeout, _feeReceive)
 }
 
 // Version is a free data retrieval call binding the contract method 0x54fd4d50.
@@ -766,48 +808,6 @@ func (_IFxBridgeLogic *IFxBridgeLogicTransactorSession) BridgeCall(_dstChain str
 	return _IFxBridgeLogic.Contract.BridgeCall(&_IFxBridgeLogic.TransactOpts, _dstChain, _refund, _tokens, _amounts, _to, _data, _quoteId, _gasLimit, _memo)
 }
 
-// BridgeCallCheckpoint is a paid mutator transaction binding the contract method 0xf7eccbdb.
-//
-// Solidity: function bridgeCallCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, address _sender, address _refund, address[] _tokens, uint256[] _amounts, address _to, bytes _data, bytes _memo, uint256 _nonce, uint256 _timeout, uint256 _gasLimit, uint256 _eventNonce) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicTransactor) BridgeCallCheckpoint(opts *bind.TransactOpts, _fxbridgeId [32]byte, _methodName [32]byte, _sender common.Address, _refund common.Address, _tokens []common.Address, _amounts []*big.Int, _to common.Address, _data []byte, _memo []byte, _nonce *big.Int, _timeout *big.Int, _gasLimit *big.Int, _eventNonce *big.Int) (*types.Transaction, error) {
-	return _IFxBridgeLogic.contract.Transact(opts, "bridgeCallCheckpoint", _fxbridgeId, _methodName, _sender, _refund, _tokens, _amounts, _to, _data, _memo, _nonce, _timeout, _gasLimit, _eventNonce)
-}
-
-// BridgeCallCheckpoint is a paid mutator transaction binding the contract method 0xf7eccbdb.
-//
-// Solidity: function bridgeCallCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, address _sender, address _refund, address[] _tokens, uint256[] _amounts, address _to, bytes _data, bytes _memo, uint256 _nonce, uint256 _timeout, uint256 _gasLimit, uint256 _eventNonce) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicSession) BridgeCallCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _sender common.Address, _refund common.Address, _tokens []common.Address, _amounts []*big.Int, _to common.Address, _data []byte, _memo []byte, _nonce *big.Int, _timeout *big.Int, _gasLimit *big.Int, _eventNonce *big.Int) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.BridgeCallCheckpoint(&_IFxBridgeLogic.TransactOpts, _fxbridgeId, _methodName, _sender, _refund, _tokens, _amounts, _to, _data, _memo, _nonce, _timeout, _gasLimit, _eventNonce)
-}
-
-// BridgeCallCheckpoint is a paid mutator transaction binding the contract method 0xf7eccbdb.
-//
-// Solidity: function bridgeCallCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, address _sender, address _refund, address[] _tokens, uint256[] _amounts, address _to, bytes _data, bytes _memo, uint256 _nonce, uint256 _timeout, uint256 _gasLimit, uint256 _eventNonce) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicTransactorSession) BridgeCallCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _sender common.Address, _refund common.Address, _tokens []common.Address, _amounts []*big.Int, _to common.Address, _data []byte, _memo []byte, _nonce *big.Int, _timeout *big.Int, _gasLimit *big.Int, _eventNonce *big.Int) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.BridgeCallCheckpoint(&_IFxBridgeLogic.TransactOpts, _fxbridgeId, _methodName, _sender, _refund, _tokens, _amounts, _to, _data, _memo, _nonce, _timeout, _gasLimit, _eventNonce)
-}
-
-// OracleSetCheckpoint is a paid mutator transaction binding the contract method 0xa955665f.
-//
-// Solidity: function oracleSetCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _oracleSetNonce, address[] _oracles, uint256[] _powers) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicTransactor) OracleSetCheckpoint(opts *bind.TransactOpts, _fxbridgeId [32]byte, _methodName [32]byte, _oracleSetNonce *big.Int, _oracles []common.Address, _powers []*big.Int) (*types.Transaction, error) {
-	return _IFxBridgeLogic.contract.Transact(opts, "oracleSetCheckpoint", _fxbridgeId, _methodName, _oracleSetNonce, _oracles, _powers)
-}
-
-// OracleSetCheckpoint is a paid mutator transaction binding the contract method 0xa955665f.
-//
-// Solidity: function oracleSetCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _oracleSetNonce, address[] _oracles, uint256[] _powers) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicSession) OracleSetCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _oracleSetNonce *big.Int, _oracles []common.Address, _powers []*big.Int) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.OracleSetCheckpoint(&_IFxBridgeLogic.TransactOpts, _fxbridgeId, _methodName, _oracleSetNonce, _oracles, _powers)
-}
-
-// OracleSetCheckpoint is a paid mutator transaction binding the contract method 0xa955665f.
-//
-// Solidity: function oracleSetCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256 _oracleSetNonce, address[] _oracles, uint256[] _powers) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicTransactorSession) OracleSetCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _oracleSetNonce *big.Int, _oracles []common.Address, _powers []*big.Int) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.OracleSetCheckpoint(&_IFxBridgeLogic.TransactOpts, _fxbridgeId, _methodName, _oracleSetNonce, _oracles, _powers)
-}
-
 // Pause is a paid mutator transaction binding the contract method 0x8456cb59.
 //
 // Solidity: function pause() returns()
@@ -892,46 +892,25 @@ func (_IFxBridgeLogic *IFxBridgeLogicTransactorSession) SubmitBatch(_currentOrac
 	return _IFxBridgeLogic.Contract.SubmitBatch(&_IFxBridgeLogic.TransactOpts, _currentOracles, _currentPowers, _v, _r, _s, _amounts, _destinations, _fees, _nonceArray, _tokenContract, _batchTimeout, _feeReceive)
 }
 
-// SubmitBatchCheckpoint is a paid mutator transaction binding the contract method 0x3d1e51f9.
+// SubmitBridgeCall is a paid mutator transaction binding the contract method 0x9a5aa044.
 //
-// Solidity: function submitBatchCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256[] _amounts, address[] _destinations, uint256[] _fees, uint256 _batchNonce, address _tokenContract, uint256 _batchTimeout, address _feeReceive) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicTransactor) SubmitBatchCheckpoint(opts *bind.TransactOpts, _fxbridgeId [32]byte, _methodName [32]byte, _amounts []*big.Int, _destinations []common.Address, _fees []*big.Int, _batchNonce *big.Int, _tokenContract common.Address, _batchTimeout *big.Int, _feeReceive common.Address) (*types.Transaction, error) {
-	return _IFxBridgeLogic.contract.Transact(opts, "submitBatchCheckpoint", _fxbridgeId, _methodName, _amounts, _destinations, _fees, _batchNonce, _tokenContract, _batchTimeout, _feeReceive)
+// Solidity: function submitBridgeCall((address[],uint256[],bytes32[],bytes32[],uint8[]) _curOracleSigns, uint256[2] _nonceArray, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) returns()
+func (_IFxBridgeLogic *IFxBridgeLogicTransactor) SubmitBridgeCall(opts *bind.TransactOpts, _curOracleSigns FxBridgeBaseOracleSignatures, _nonceArray [2]*big.Int, _input FxBridgeBaseBridgeCallData) (*types.Transaction, error) {
+	return _IFxBridgeLogic.contract.Transact(opts, "submitBridgeCall", _curOracleSigns, _nonceArray, _input)
 }
 
-// SubmitBatchCheckpoint is a paid mutator transaction binding the contract method 0x3d1e51f9.
+// SubmitBridgeCall is a paid mutator transaction binding the contract method 0x9a5aa044.
 //
-// Solidity: function submitBatchCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256[] _amounts, address[] _destinations, uint256[] _fees, uint256 _batchNonce, address _tokenContract, uint256 _batchTimeout, address _feeReceive) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicSession) SubmitBatchCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _amounts []*big.Int, _destinations []common.Address, _fees []*big.Int, _batchNonce *big.Int, _tokenContract common.Address, _batchTimeout *big.Int, _feeReceive common.Address) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.SubmitBatchCheckpoint(&_IFxBridgeLogic.TransactOpts, _fxbridgeId, _methodName, _amounts, _destinations, _fees, _batchNonce, _tokenContract, _batchTimeout, _feeReceive)
+// Solidity: function submitBridgeCall((address[],uint256[],bytes32[],bytes32[],uint8[]) _curOracleSigns, uint256[2] _nonceArray, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) returns()
+func (_IFxBridgeLogic *IFxBridgeLogicSession) SubmitBridgeCall(_curOracleSigns FxBridgeBaseOracleSignatures, _nonceArray [2]*big.Int, _input FxBridgeBaseBridgeCallData) (*types.Transaction, error) {
+	return _IFxBridgeLogic.Contract.SubmitBridgeCall(&_IFxBridgeLogic.TransactOpts, _curOracleSigns, _nonceArray, _input)
 }
 
-// SubmitBatchCheckpoint is a paid mutator transaction binding the contract method 0x3d1e51f9.
+// SubmitBridgeCall is a paid mutator transaction binding the contract method 0x9a5aa044.
 //
-// Solidity: function submitBatchCheckpoint(bytes32 _fxbridgeId, bytes32 _methodName, uint256[] _amounts, address[] _destinations, uint256[] _fees, uint256 _batchNonce, address _tokenContract, uint256 _batchTimeout, address _feeReceive) returns(bytes32)
-func (_IFxBridgeLogic *IFxBridgeLogicTransactorSession) SubmitBatchCheckpoint(_fxbridgeId [32]byte, _methodName [32]byte, _amounts []*big.Int, _destinations []common.Address, _fees []*big.Int, _batchNonce *big.Int, _tokenContract common.Address, _batchTimeout *big.Int, _feeReceive common.Address) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.SubmitBatchCheckpoint(&_IFxBridgeLogic.TransactOpts, _fxbridgeId, _methodName, _amounts, _destinations, _fees, _batchNonce, _tokenContract, _batchTimeout, _feeReceive)
-}
-
-// SubmitBridgeCall is a paid mutator transaction binding the contract method 0x43acf2af.
-//
-// Solidity: function submitBridgeCall(address[] _currentOracles, uint256[] _currentPowers, uint8[] _v, bytes32[] _r, bytes32[] _s, uint256[2] _nonceArray, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) returns()
-func (_IFxBridgeLogic *IFxBridgeLogicTransactor) SubmitBridgeCall(opts *bind.TransactOpts, _currentOracles []common.Address, _currentPowers []*big.Int, _v []uint8, _r [][32]byte, _s [][32]byte, _nonceArray [2]*big.Int, _input IFxBridgeLogicBridgeCallData) (*types.Transaction, error) {
-	return _IFxBridgeLogic.contract.Transact(opts, "submitBridgeCall", _currentOracles, _currentPowers, _v, _r, _s, _nonceArray, _input)
-}
-
-// SubmitBridgeCall is a paid mutator transaction binding the contract method 0x43acf2af.
-//
-// Solidity: function submitBridgeCall(address[] _currentOracles, uint256[] _currentPowers, uint8[] _v, bytes32[] _r, bytes32[] _s, uint256[2] _nonceArray, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) returns()
-func (_IFxBridgeLogic *IFxBridgeLogicSession) SubmitBridgeCall(_currentOracles []common.Address, _currentPowers []*big.Int, _v []uint8, _r [][32]byte, _s [][32]byte, _nonceArray [2]*big.Int, _input IFxBridgeLogicBridgeCallData) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.SubmitBridgeCall(&_IFxBridgeLogic.TransactOpts, _currentOracles, _currentPowers, _v, _r, _s, _nonceArray, _input)
-}
-
-// SubmitBridgeCall is a paid mutator transaction binding the contract method 0x43acf2af.
-//
-// Solidity: function submitBridgeCall(address[] _currentOracles, uint256[] _currentPowers, uint8[] _v, bytes32[] _r, bytes32[] _s, uint256[2] _nonceArray, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) returns()
-func (_IFxBridgeLogic *IFxBridgeLogicTransactorSession) SubmitBridgeCall(_currentOracles []common.Address, _currentPowers []*big.Int, _v []uint8, _r [][32]byte, _s [][32]byte, _nonceArray [2]*big.Int, _input IFxBridgeLogicBridgeCallData) (*types.Transaction, error) {
-	return _IFxBridgeLogic.Contract.SubmitBridgeCall(&_IFxBridgeLogic.TransactOpts, _currentOracles, _currentPowers, _v, _r, _s, _nonceArray, _input)
+// Solidity: function submitBridgeCall((address[],uint256[],bytes32[],bytes32[],uint8[]) _curOracleSigns, uint256[2] _nonceArray, (address,address,address[],uint256[],address,bytes,bytes,uint256,uint256,uint256) _input) returns()
+func (_IFxBridgeLogic *IFxBridgeLogicTransactorSession) SubmitBridgeCall(_curOracleSigns FxBridgeBaseOracleSignatures, _nonceArray [2]*big.Int, _input FxBridgeBaseBridgeCallData) (*types.Transaction, error) {
+	return _IFxBridgeLogic.Contract.SubmitBridgeCall(&_IFxBridgeLogic.TransactOpts, _curOracleSigns, _nonceArray, _input)
 }
 
 // TransferOwner is a paid mutator transaction binding the contract method 0x31678cf6.
@@ -1216,7 +1195,7 @@ func (it *IFxBridgeLogicBridgeCallEventIterator) Close() error {
 // IFxBridgeLogicBridgeCallEvent represents a BridgeCallEvent event raised by the IFxBridgeLogic contract.
 type IFxBridgeLogicBridgeCallEvent struct {
 	Sender     common.Address
-	Receiver   common.Address
+	Refund     common.Address
 	To         common.Address
 	TxOrigin   common.Address
 	EventNonce *big.Int
@@ -1232,23 +1211,23 @@ type IFxBridgeLogicBridgeCallEvent struct {
 
 // FilterBridgeCallEvent is a free log retrieval operation binding the contract event 0xcaa0e5b7ba998f542b3804184a5d30836451c57f6d1f031c466272e188f4a70f.
 //
-// Solidity: event BridgeCallEvent(address indexed _sender, address indexed _receiver, address indexed _to, address _txOrigin, uint256 _eventNonce, string _dstChain, address[] _tokens, uint256[] _amounts, bytes _data, uint256 _quoteId, uint256 _gasLimit, bytes _memo)
-func (_IFxBridgeLogic *IFxBridgeLogicFilterer) FilterBridgeCallEvent(opts *bind.FilterOpts, _sender []common.Address, _receiver []common.Address, _to []common.Address) (*IFxBridgeLogicBridgeCallEventIterator, error) {
+// Solidity: event BridgeCallEvent(address indexed _sender, address indexed _refund, address indexed _to, address _txOrigin, uint256 _eventNonce, string _dstChain, address[] _tokens, uint256[] _amounts, bytes _data, uint256 _quoteId, uint256 _gasLimit, bytes _memo)
+func (_IFxBridgeLogic *IFxBridgeLogicFilterer) FilterBridgeCallEvent(opts *bind.FilterOpts, _sender []common.Address, _refund []common.Address, _to []common.Address) (*IFxBridgeLogicBridgeCallEventIterator, error) {
 
 	var _senderRule []interface{}
 	for _, _senderItem := range _sender {
 		_senderRule = append(_senderRule, _senderItem)
 	}
-	var _receiverRule []interface{}
-	for _, _receiverItem := range _receiver {
-		_receiverRule = append(_receiverRule, _receiverItem)
+	var _refundRule []interface{}
+	for _, _refundItem := range _refund {
+		_refundRule = append(_refundRule, _refundItem)
 	}
 	var _toRule []interface{}
 	for _, _toItem := range _to {
 		_toRule = append(_toRule, _toItem)
 	}
 
-	logs, sub, err := _IFxBridgeLogic.contract.FilterLogs(opts, "BridgeCallEvent", _senderRule, _receiverRule, _toRule)
+	logs, sub, err := _IFxBridgeLogic.contract.FilterLogs(opts, "BridgeCallEvent", _senderRule, _refundRule, _toRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1257,23 +1236,23 @@ func (_IFxBridgeLogic *IFxBridgeLogicFilterer) FilterBridgeCallEvent(opts *bind.
 
 // WatchBridgeCallEvent is a free log subscription operation binding the contract event 0xcaa0e5b7ba998f542b3804184a5d30836451c57f6d1f031c466272e188f4a70f.
 //
-// Solidity: event BridgeCallEvent(address indexed _sender, address indexed _receiver, address indexed _to, address _txOrigin, uint256 _eventNonce, string _dstChain, address[] _tokens, uint256[] _amounts, bytes _data, uint256 _quoteId, uint256 _gasLimit, bytes _memo)
-func (_IFxBridgeLogic *IFxBridgeLogicFilterer) WatchBridgeCallEvent(opts *bind.WatchOpts, sink chan<- *IFxBridgeLogicBridgeCallEvent, _sender []common.Address, _receiver []common.Address, _to []common.Address) (event.Subscription, error) {
+// Solidity: event BridgeCallEvent(address indexed _sender, address indexed _refund, address indexed _to, address _txOrigin, uint256 _eventNonce, string _dstChain, address[] _tokens, uint256[] _amounts, bytes _data, uint256 _quoteId, uint256 _gasLimit, bytes _memo)
+func (_IFxBridgeLogic *IFxBridgeLogicFilterer) WatchBridgeCallEvent(opts *bind.WatchOpts, sink chan<- *IFxBridgeLogicBridgeCallEvent, _sender []common.Address, _refund []common.Address, _to []common.Address) (event.Subscription, error) {
 
 	var _senderRule []interface{}
 	for _, _senderItem := range _sender {
 		_senderRule = append(_senderRule, _senderItem)
 	}
-	var _receiverRule []interface{}
-	for _, _receiverItem := range _receiver {
-		_receiverRule = append(_receiverRule, _receiverItem)
+	var _refundRule []interface{}
+	for _, _refundItem := range _refund {
+		_refundRule = append(_refundRule, _refundItem)
 	}
 	var _toRule []interface{}
 	for _, _toItem := range _to {
 		_toRule = append(_toRule, _toItem)
 	}
 
-	logs, sub, err := _IFxBridgeLogic.contract.WatchLogs(opts, "BridgeCallEvent", _senderRule, _receiverRule, _toRule)
+	logs, sub, err := _IFxBridgeLogic.contract.WatchLogs(opts, "BridgeCallEvent", _senderRule, _refundRule, _toRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1307,7 +1286,7 @@ func (_IFxBridgeLogic *IFxBridgeLogicFilterer) WatchBridgeCallEvent(opts *bind.W
 
 // ParseBridgeCallEvent is a log parse operation binding the contract event 0xcaa0e5b7ba998f542b3804184a5d30836451c57f6d1f031c466272e188f4a70f.
 //
-// Solidity: event BridgeCallEvent(address indexed _sender, address indexed _receiver, address indexed _to, address _txOrigin, uint256 _eventNonce, string _dstChain, address[] _tokens, uint256[] _amounts, bytes _data, uint256 _quoteId, uint256 _gasLimit, bytes _memo)
+// Solidity: event BridgeCallEvent(address indexed _sender, address indexed _refund, address indexed _to, address _txOrigin, uint256 _eventNonce, string _dstChain, address[] _tokens, uint256[] _amounts, bytes _data, uint256 _quoteId, uint256 _gasLimit, bytes _memo)
 func (_IFxBridgeLogic *IFxBridgeLogicFilterer) ParseBridgeCallEvent(log types.Log) (*IFxBridgeLogicBridgeCallEvent, error) {
 	event := new(IFxBridgeLogicBridgeCallEvent)
 	if err := _IFxBridgeLogic.contract.UnpackLog(event, "BridgeCallEvent", log); err != nil {

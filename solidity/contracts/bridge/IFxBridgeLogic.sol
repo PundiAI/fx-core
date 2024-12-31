@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-
+/* solhint-disable one-contract-per-file */
 pragma solidity ^0.8.0;
 
 import {IBridgeCall} from "./IBridgeCall.sol";
+import {FxBridgeBase} from "./FxBridgeBase.sol";
 
-interface IFxBridgeLogic is IBridgeCall {
+interface IFxBridgeLogic is IBridgeCall, FxBridgeBase {
     /* solhint-disable func-name-mixedcase */
     function state_fxBridgeId() external view returns (bytes32);
     function state_powerThreshold() external view returns (uint256);
@@ -17,48 +18,24 @@ interface IFxBridgeLogic is IBridgeCall {
     ) external view returns (uint256);
 
     function bridgeTokens(uint256 _index) external view returns (address);
-    function tokenStatus(
+    function getTokenStatus(
         address _tokenAddr
     ) external view returns (TokenStatus memory);
     function version() external view returns (string memory);
     function state_lastBridgeCallNonces(
         uint256 _index
     ) external view returns (bool);
+    /* ============== BSC FUNCTIONS =============== */
+    function convert_decimals(
+        address _erc20Address
+    ) external view returns (uint8);
     /* solhint-disable func-name-mixedcase */
 
-    struct TokenStatus {
-        bool isOriginated;
-        bool isActive;
-        bool isExist;
-    }
+    function lastBatchNonce(
+        address _erc20Address
+    ) external view returns (uint256);
 
-    struct TransferInfo {
-        uint256 amount;
-        address destination;
-        uint256 fee;
-        address exchange;
-        uint256 minExchange;
-    }
-
-    struct BridgeToken {
-        address addr;
-        string name;
-        string symbol;
-        uint8 decimals;
-    }
-
-    struct BridgeCallData {
-        address sender;
-        address refund;
-        address[] tokens;
-        uint256[] amounts;
-        address to;
-        bytes data;
-        bytes memo;
-        uint256 timeout;
-        uint256 gasLimit;
-        uint256 eventNonce;
-    }
+    function checkAssetStatus(address _tokenAddr) external view returns (bool);
 
     function addBridgeToken(
         address _tokenAddr,
@@ -105,13 +82,9 @@ interface IFxBridgeLogic is IBridgeCall {
     ) external;
 
     function submitBridgeCall(
-        address[] memory _currentOracles,
-        uint256[] memory _currentPowers,
-        uint8[] memory _v,
-        bytes32[] memory _r,
-        bytes32[] memory _s,
-        uint256[2] memory _nonceArray,
-        BridgeCallData memory _input
+        OracleSignatures calldata _curOracleSigns,
+        uint256[2] calldata _nonceArray,
+        BridgeCallData calldata _input
     ) external;
 
     function transferOwner(
@@ -119,43 +92,13 @@ interface IFxBridgeLogic is IBridgeCall {
         address _newOwner
     ) external returns (bool);
 
-    /* =============== QUERY FUNCTIONS =============== */
-
-    function lastBatchNonce(
-        address _erc20Address
-    ) external view returns (uint256);
-
-    function checkAssetStatus(address _tokenAddr) external view returns (bool);
-
     /* ============== HELP FUNCTIONS =============== */
-
-    function makeCheckpoint(
-        address[] memory _oracles,
-        uint256[] memory _powers,
-        uint256 _oracleSetNonce,
-        bytes32 _fxBridgeId
-    ) external pure returns (bytes32);
-
-    function checkOracleSignatures(
-        address[] memory _currentOracles,
-        uint256[] memory _currentPowers,
-        uint8[] memory _v,
-        bytes32[] memory _r,
-        bytes32[] memory _s,
-        bytes32 _theHash,
-        uint256 _powerThreshold
-    ) external pure;
 
     function pause() external;
 
     function unpause() external;
 
     function getBridgeTokenList() external view returns (BridgeToken[] memory);
-
-    /* ============== BSC FUNCTIONS =============== */
-    function convert_decimals(
-        address _erc20Address
-    ) external view returns (uint8);
 
     /* =============== CHECKPOINTS =============== */
 
@@ -165,7 +108,7 @@ interface IFxBridgeLogic is IBridgeCall {
         uint256 _oracleSetNonce,
         address[] memory _oracles,
         uint256[] memory _powers
-    ) external returns (bytes32);
+    ) external pure returns (bytes32);
 
     function submitBatchCheckpoint(
         bytes32 _fxbridgeId,
@@ -177,60 +120,12 @@ interface IFxBridgeLogic is IBridgeCall {
         address _tokenContract,
         uint256 _batchTimeout,
         address _feeReceive
-    ) external returns (bytes32);
+    ) external pure returns (bytes32);
 
     function bridgeCallCheckpoint(
         bytes32 _fxbridgeId,
         bytes32 _methodName,
-        address _sender,
-        address _refund,
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        address _to,
-        bytes memory _data,
-        bytes memory _memo,
         uint256 _nonce,
-        uint256 _timeout,
-        uint256 _gasLimit,
-        uint256 _eventNonce
-    ) external returns (bytes32);
-
-    /* =============== EVENTS =============== */
-
-    event TransactionBatchExecutedEvent(
-        uint256 indexed _batchNonce,
-        address indexed _token,
-        uint256 _eventNonce
-    );
-    event SendToFxEvent(
-        address indexed _tokenContract,
-        address indexed _sender,
-        bytes32 indexed _destination,
-        bytes32 _targetIBC,
-        uint256 _amount,
-        uint256 _eventNonce
-    );
-    event AddBridgeTokenEvent(
-        address indexed _tokenContract,
-        string _name,
-        string _symbol,
-        uint8 _decimals,
-        uint256 _eventNonce,
-        bytes32 _channelIBC
-    );
-    event OracleSetUpdatedEvent(
-        uint256 indexed _newOracleSetNonce,
-        uint256 _eventNonce,
-        address[] _oracles,
-        uint256[] _powers
-    );
-    event TransferOwnerEvent(address _token, address _newOwner);
-
-    event SubmitBridgeCallEvent(
-        address indexed _txOrigin,
-        uint256 _nonce,
-        uint256 _eventNonce,
-        bool _success,
-        bytes _cause
-    );
+        BridgeCallData calldata _input
+    ) external pure returns (bytes32);
 }

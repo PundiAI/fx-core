@@ -18,7 +18,7 @@ interface IBridgeCall {
 
     event BridgeCallEvent(
         address indexed _sender,
-        address indexed _receiver,
+        address indexed _refund,
         address indexed _to,
         address _txOrigin,
         uint256 _eventNonce,

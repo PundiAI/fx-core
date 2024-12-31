@@ -99,9 +99,6 @@ func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, o
 	if trontypes.ModuleName == suite.chainName {
 		externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
 
-		checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSet, gravityId)
-		suite.Require().NoError(err)
-
 		signature, err = trontypes.NewTronSignature(checkpoint, external)
 		suite.Require().NoError(err)
 	}

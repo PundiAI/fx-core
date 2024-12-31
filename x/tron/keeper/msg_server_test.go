@@ -63,11 +63,11 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 				_, bridger, externalKey := suite.NewOracleByBridger()
 				params, err := suite.queryServer.Params(suite.Ctx, &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				suite.Require().NoError(err)
-				batchHash, err := trontypes.GetCheckpointConfirmBatch(newOutgoingTx, params.Params.GravityId)
+				checkpoint, err := newOutgoingTx.GetCheckpoint(params.Params.GravityId)
 				suite.Require().NoError(err)
 				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
 				suite.Require().NoError(err)
-				signature, err := trontypes.NewTronSignature(batchHash, key)
+				signature, err := trontypes.NewTronSignature(checkpoint, key)
 				suite.Require().NoError(err)
 				msg = &crosschaintypes.MsgConfirmBatch{
 					Nonce:           newOutgoingTx.BatchNonce,
@@ -145,9 +145,9 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 				suite.Require().NoError(err)
 				params, err := suite.queryServer.Params(suite.Ctx, &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				suite.Require().NoError(err)
-				oracleSetHash, err := trontypes.GetCheckpointOracleSet(newOracleSet, params.Params.GravityId)
+				checkpoint, err := newOracleSet.GetCheckpoint(params.Params.GravityId)
 				suite.Require().NoError(err)
-				signature, err := trontypes.NewTronSignature(oracleSetHash, key)
+				signature, err := trontypes.NewTronSignature(checkpoint, key)
 				suite.Require().NoError(err)
 				msg = &crosschaintypes.MsgOracleSetConfirm{
 					Nonce:           newOracleSet.Nonce,

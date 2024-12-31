@@ -43,18 +43,9 @@ func (k Keeper) BatchConfirmHandler(ctx sdk.Context, msg *types.MsgConfirmBatch)
 		return types.ErrInvalid.Wrapf("couldn't find batch")
 	}
 
-	var checkpoint []byte
-	var err error
-	if k.moduleName == trontypes.ModuleName {
-		checkpoint, err = trontypes.GetCheckpointConfirmBatch(batch, k.GetGravityID(ctx))
-		if err != nil {
-			return types.ErrInvalid.Wrapf("checkpoint generation")
-		}
-	} else {
-		checkpoint, err = batch.GetCheckpoint(k.GetGravityID(ctx))
-		if err != nil {
-			return types.ErrInvalid.Wrap(err.Error())
-		}
+	checkpoint, err := batch.GetCheckpoint(k.GetGravityID(ctx))
+	if err != nil {
+		return types.ErrInvalid.Wrap(err.Error())
 	}
 
 	oracleAddr, err := k.ValidateConfirmSign(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
@@ -75,18 +66,9 @@ func (k Keeper) OracleSetConfirmHandler(ctx sdk.Context, msg *types.MsgOracleSet
 		return types.ErrInvalid.Wrapf("couldn't find oracleSet")
 	}
 
-	var checkpoint []byte
-	var err error
-	if k.moduleName == trontypes.ModuleName {
-		checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSet, k.GetGravityID(ctx))
-		if err != nil {
-			return err
-		}
-	} else {
-		checkpoint, err = oracleSet.GetCheckpoint(k.GetGravityID(ctx))
-		if err != nil {
-			return types.ErrInvalid.Wrap(err.Error())
-		}
+	checkpoint, err := oracleSet.GetCheckpoint(k.GetGravityID(ctx))
+	if err != nil {
+		return types.ErrInvalid.Wrap(err.Error())
 	}
 
 	oracleAddr, err := k.ValidateConfirmSign(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)
@@ -107,18 +89,9 @@ func (k Keeper) BridgeCallConfirmHandler(ctx sdk.Context, msg *types.MsgBridgeCa
 		return types.ErrInvalid.Wrapf("couldn't find outgoing bridge call")
 	}
 
-	var checkpoint []byte
-	var err error
-	if k.moduleName == trontypes.ModuleName {
-		checkpoint, err = trontypes.GetCheckpointBridgeCall(outgoingBridgeCall, k.GetGravityID(ctx))
-		if err != nil {
-			return types.ErrInvalid.Wrap(err.Error())
-		}
-	} else {
-		checkpoint, err = outgoingBridgeCall.GetCheckpoint(k.GetGravityID(ctx))
-		if err != nil {
-			return types.ErrInvalid.Wrap(err.Error())
-		}
+	checkpoint, err := outgoingBridgeCall.GetCheckpoint(k.GetGravityID(ctx))
+	if err != nil {
+		return types.ErrInvalid.Wrap(err.Error())
 	}
 
 	oracleAddr, err := k.ValidateConfirmSign(ctx, msg.BridgerAddress, msg.ExternalAddress, msg.Signature, checkpoint)

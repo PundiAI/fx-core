@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { IFxBridgeLogic } from "../typechain-types";
+import { FxBridgeLogic } from "../typechain-types";
 import { AbiCoder, TransactionRequest } from "ethers";
 
 describe("fork network and fx bridge test", function () {
@@ -60,9 +60,7 @@ describe("fork network and fx bridge test", function () {
 
     const bridgeFactory = await ethers.getContractFactory(bridgeContractName);
 
-    const bridgeContract = bridgeFactory.attach(
-      bridgeAddress
-    ) as IFxBridgeLogic;
+    const bridgeContract = bridgeFactory.attach(bridgeAddress) as FxBridgeLogic;
 
     const oldFxBridgeId = await bridgeContract.state_fxBridgeId();
     const oldPowerThreshold = await bridgeContract.state_powerThreshold();
