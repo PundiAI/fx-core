@@ -1,12 +1,15 @@
 package app_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"cosmossdk.io/collections"
 	coreheader "cosmossdk.io/core/header"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -15,6 +18,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -26,6 +30,7 @@ import (
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	fxgovv8 "github.com/pundiai/fx-core/v8/x/gov/migrations/v8"
 	fxgovtypes "github.com/pundiai/fx-core/v8/x/gov/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
@@ -39,6 +44,8 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 
 	ctx := newContext(t, myApp, chainId, false)
 
+	bdd := beforeUpgrade(ctx, myApp)
+
 	// 1. set upgrade plan
 	require.NoError(t, myApp.UpgradeKeeper.ScheduleUpgrade(ctx, upgradetypes.Plan{
 		Name:   nextversion.Upgrade.UpgradeName,
@@ -51,7 +58,7 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
 	// 3. check the status after the upgrade
-	checkAppUpgrade(t, ctx, myApp)
+	checkAppUpgrade(t, ctx, myApp, bdd)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -99,7 +106,25 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 	return ctx
 }
 
-func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
+type BeforeUpgradeData struct {
+	AccountBalances map[string]sdk.Coins
+	ModuleBalances  map[string]sdk.Coins
+}
+
+func beforeUpgrade(ctx sdk.Context, myApp *app.App) BeforeUpgradeData {
+	bdd := BeforeUpgradeData{
+		AccountBalances: make(map[string]sdk.Coins),
+		ModuleBalances:  make(map[string]sdk.Coins),
+	}
+
+	accountBalance, moduleBalance := allBalances(ctx, myApp)
+	bdd.AccountBalances = accountBalance
+	bdd.ModuleBalances = moduleBalance
+
+	return bdd
+}
+
+func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
 	t.Helper()
 	checkStakingMigrationDelete(t, ctx, myApp)
 
@@ -108,6 +133,8 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkErc20Keys(t, ctx, myApp)
 
 	checkOutgoingBatch(t, ctx, myApp)
+
+	checkMigrateBalance(t, ctx, myApp, bdd)
 }
 
 func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -157,4 +184,129 @@ func checkOutgoingBatch(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			return false
 		})
 	}
+}
+
+func checkMigrateBalance(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
+	t.Helper()
+
+	newAccountBalance, newModuleBalance := allBalances(ctx, myApp)
+	require.Equal(t, len(newAccountBalance), len(bdd.AccountBalances))
+
+	// check address balance
+	checkAccountBalance(t, ctx, myApp, bdd.AccountBalances, newAccountBalance)
+
+	for moduleName, coins := range newModuleBalance {
+		if moduleName == erc20types.ModuleName {
+			for _, coin := range coins {
+				found, err := myApp.Erc20Keeper.HasToken(ctx, coin.Denom)
+				require.NoError(t, err)
+				require.False(t, found)
+
+				found, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, coin.Denom)
+				require.NoError(t, err)
+				require.True(t, found, coin.Denom)
+			}
+		}
+	}
+}
+
+func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountBalances, newAccountBalance map[string]sdk.Coins) {
+	t.Helper()
+
+	for addrStr, coins := range accountBalances {
+		delete(newAccountBalance, addrStr)
+
+		addr := sdk.MustAccAddressFromBech32(addrStr)
+		for _, coin := range coins {
+			foundMD := myApp.BankKeeper.HasDenomMetaData(ctx, coin.Denom)
+			foundToken, err := myApp.Erc20Keeper.HasToken(ctx, coin.Denom)
+			require.NoError(t, err)
+
+			if !foundToken && !foundMD {
+				balance := myApp.BankKeeper.GetBalance(ctx, addr, coin.Denom)
+				require.Equal(t, balance.Amount, coin.Amount)
+				continue
+			}
+
+			baseDenom := coin.Denom
+			if foundToken {
+				baseDenom, err = myApp.Erc20Keeper.GetBaseDenom(ctx, coin.Denom)
+				require.NoError(t, err)
+			}
+
+			tokenDenoms := make(map[string]struct{}, 0)
+			tokenDenoms[baseDenom] = struct{}{}
+			for _, keeper := range myApp.CrosschainKeepers.ToSlice() {
+				bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, keeper.ModuleName(), baseDenom)
+				if errors.Is(err, collections.ErrNotFound) {
+					continue
+				}
+				require.NoError(t, err)
+				tokenDenoms[bridgeToken.BridgeDenom()] = struct{}{}
+			}
+			ibcTokens, err := getIBCTokens(ctx, myApp, baseDenom)
+			require.NoError(t, err)
+			for _, ibcToken := range ibcTokens {
+				tokenDenoms[ibcToken.GetIbcDenom()] = struct{}{}
+			}
+
+			amount := sdkmath.ZeroInt()
+			for denom := range tokenDenoms {
+				amount = amount.Add(coins.AmountOf(denom))
+			}
+
+			balance := myApp.BankKeeper.GetBalance(ctx, addr, baseDenom)
+			require.Equal(t, balance.Amount, amount)
+		}
+	}
+	require.Empty(t, newAccountBalance)
+}
+
+func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {
+	accountBalance := make(map[string]sdk.Coins)
+	moduleBalance := make(map[string]sdk.Coins)
+	myApp.BankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, balance sdk.Coin) bool {
+		account := myApp.AccountKeeper.GetAccount(ctx, addr)
+		if ma, ok := account.(*authtypes.ModuleAccount); ok {
+			if ma.Name == stakingtypes.BondedPoolName ||
+				ma.Name == stakingtypes.NotBondedPoolName ||
+				ma.Name == distributiontypes.ModuleName {
+				return false
+			}
+
+			coins, ok := moduleBalance[ma.Name]
+			if !ok {
+				coins = sdk.NewCoins()
+			}
+			coins = coins.Add(balance)
+			moduleBalance[ma.Name] = coins
+			return false
+		}
+		coins, ok := accountBalance[addr.String()]
+		if !ok {
+			coins = sdk.NewCoins()
+		}
+		coins = coins.Add(balance)
+		accountBalance[addr.String()] = coins
+		return false
+	})
+	return accountBalance, moduleBalance
+}
+
+func getIBCTokens(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.IBCToken, error) {
+	rng := collections.NewPrefixedPairRange[string, string](baseDenom)
+	iter, err := myApp.Erc20Keeper.IBCToken.Iterate(ctx, rng)
+	if err != nil {
+		return nil, err
+	}
+	kvs, err := iter.KeyValues()
+	if err != nil {
+		return nil, err
+	}
+
+	tokens := make([]erc20types.IBCToken, 0, len(kvs))
+	for _, kv := range kvs {
+		tokens = append(tokens, kv.Value)
+	}
+	return tokens, nil
 }
