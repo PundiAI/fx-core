@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -215,7 +216,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	memberAddresses := make([]gethcommon.Address, len(m.Members))
 	convertedPowers := make([]*big.Int, len(m.Members))
 	for i, m := range m.Members {
-		memberAddresses[i] = gethcommon.HexToAddress(m.ExternalAddress)
+		memberAddresses[i] = toHexAddr(gravityIDStr, m.ExternalAddress)
 		convertedPowers[i] = big.NewInt(int64(m.Power))
 	}
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
@@ -336,7 +337,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	txFees := make([]*big.Int, len(m.Transactions))
 	for i, tx := range m.Transactions {
 		txAmounts[i] = tx.Token.Amount.BigInt()
-		txDestinations[i] = gethcommon.HexToAddress(tx.DestAddress)
+		txDestinations[i] = toHexAddr(gravityIDString, tx.DestAddress)
 		txFees[i] = tx.Fee.Amount.BigInt()
 	}
 
@@ -350,9 +351,9 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 		txDestinations,
 		txFees,
 		big.NewInt(int64(m.BatchNonce)),
-		gethcommon.HexToAddress(m.TokenContract),
+		toHexAddr(gravityIDString, m.TokenContract),
 		big.NewInt(int64(m.BatchTimeout)),
-		gethcommon.HexToAddress(m.FeeReceive),
+		toHexAddr(gravityIDString, m.FeeReceive),
 	)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -452,7 +453,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	contracts := make([]gethcommon.Address, 0, len(m.Tokens))
 	amounts := make([]*big.Int, 0, len(m.Tokens))
 	for _, token := range m.Tokens {
-		contracts = append(contracts, gethcommon.HexToAddress(token.Contract))
+		contracts = append(contracts, toHexAddr(gravityIDString, token.Contract))
 		amounts = append(amounts, token.Amount.BigInt())
 	}
 
@@ -464,11 +465,11 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 		bridgeCallMethodName,
 		big.NewInt(int64(m.Nonce)),
 		&contract.FxBridgeBaseBridgeCallData{
-			Sender:     gethcommon.HexToAddress(m.Sender),
-			Refund:     gethcommon.HexToAddress(m.Refund),
+			Sender:     toHexAddr(gravityIDString, m.Sender),
+			Refund:     toHexAddr(gravityIDString, m.Refund),
 			Tokens:     contracts,
 			Amounts:    amounts,
-			To:         gethcommon.HexToAddress(m.To),
+			To:         toHexAddr(gravityIDString, m.To),
 			Data:       dataBytes,
 			Memo:       memoBytes,
 			Timeout:    big.NewInt(int64(m.Timeout)),
@@ -524,4 +525,15 @@ func NewQuoteInfo(quote contract.IBridgeFeeQuoteQuoteInfo) QuoteInfo {
 
 func (q QuoteInfo) OracleAddress() gethcommon.Address {
 	return gethcommon.HexToAddress(q.Oracle)
+}
+
+func toHexAddr(gravityId, addr string) gethcommon.Address {
+	if gravityId == "fx-tron-bridge" || gravityId == "fx-tron-bridge-testnet" {
+		tronAddr, err := address.Base58ToAddress(addr)
+		if err != nil {
+			panic(err)
+		}
+		return gethcommon.BytesToAddress(tronAddr.Bytes()[1:])
+	}
+	return gethcommon.HexToAddress(addr)
 }
