@@ -138,5 +138,5 @@
     "indexer": "kv",
     "psql-conn": ""
   },
-  "version": "0.38.12"
+  "version": "0.38.13"
 }
