@@ -40,21 +40,8 @@ func StartJSONRPC(
 		return nil, fmt.Errorf("client %T does not implement EventsClient", clientCtx.Client)
 	}
 
-	var rpcStream *stream.RPCStream
-	var err error
 	queryClient := rpctypes.NewQueryClient(clientCtx)
-	for i := 0; i < ethermintserver.MaxRetry; i++ {
-		rpcStream, err = stream.NewRPCStreams(evtClient, logger, clientCtx.TxConfig.TxDecoder(), queryClient.ValidatorAccount)
-		if err == nil {
-			break
-		}
-		time.Sleep(time.Second)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create rpc streams after %d attempts: %w", ethermintserver.MaxRetry, err)
-	}
-
+	rpcStream := stream.NewRPCStreams(evtClient, logger, clientCtx.TxConfig.TxDecoder(), queryClient.ValidatorAccount)
 	app.RegisterPendingTxListener(rpcStream.ListenPendingTx)
 
 	ethlog.Root().SetHandler(ethlog.FuncHandler(func(r *ethlog.Record) error {
@@ -77,7 +64,7 @@ func StartJSONRPC(
 	apis := rpc.GetRPCAPIs(srvCtx, clientCtx, rpcStream, allowUnprotectedTxs, indexer, rpcAPIArr)
 
 	for _, api := range apis {
-		if err = rpcServer.RegisterName(api.Namespace, api.Service); err != nil {
+		if err := rpcServer.RegisterName(api.Namespace, api.Service); err != nil {
 			srvCtx.Logger.Error(
 				"failed to register service in JSON RPC namespace",
 				"namespace", api.Namespace,
@@ -131,7 +118,7 @@ func StartJSONRPC(
 
 	srvCtx.Logger.Info("Starting JSON WebSocket server", "address", config.JSONRPC.WsAddress)
 
-	wsSrv := rpc.NewWebsocketsServer(clientCtx, srvCtx.Logger, rpcStream, config)
+	wsSrv := rpc.NewWebsocketsServer(ctx, clientCtx, srvCtx.Logger, rpcStream, config)
 	wsSrv.Start()
 	return httpSrv, nil
 }
