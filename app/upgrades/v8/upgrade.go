@@ -34,6 +34,7 @@ import (
 	fxevmkeeper "github.com/pundiai/fx-core/v8/x/evm/keeper"
 	"github.com/pundiai/fx-core/v8/x/gov/keeper"
 	fxgovv8 "github.com/pundiai/fx-core/v8/x/gov/migrations/v8"
+	layer2types "github.com/pundiai/fx-core/v8/x/layer2/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
 )
 
@@ -93,6 +94,8 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 		if err = deployAccessControlContract(cacheCtx, app.EvmKeeper, moduleAddress); err != nil {
 			return fromVM, err
 		}
+
+		fixBaseOracleStatus(cacheCtx, app.CrosschainKeepers.Layer2Keeper)
 
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
@@ -300,4 +303,18 @@ func deployAccessControlContract(
 		evmModuleAddress,
 		getContractOwner(cacheCtx),
 	)
+}
+
+func fixBaseOracleStatus(ctx sdk.Context, crosschainKeeper crosschainkeeper.Keeper) {
+	if crosschainKeeper.ModuleName() != layer2types.ModuleName {
+		return
+	}
+	oracles := crosschainKeeper.GetAllOracles(ctx, false)
+	for _, oracle := range oracles {
+		oracle.Online = true
+		oracle.SlashTimes = 0
+		oracle.StartHeight = ctx.BlockHeight()
+		crosschainKeeper.SetOracle(ctx, oracle)
+	}
+	crosschainKeeper.SetLastTotalPower(ctx)
 }
