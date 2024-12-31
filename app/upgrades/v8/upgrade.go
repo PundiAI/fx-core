@@ -141,7 +141,10 @@ func migrateBridgeBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, account
 		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
 			continue
 		}
-		dstBase := strings.ToLower(md.Symbol)
+		dstBase := md.Base
+		if !strings.Contains(md.Base, strings.ToLower(md.Symbol)) {
+			dstBase = strings.ToLower(md.Symbol)
+		}
 		srcDenoms := make([]string, 0, len(md.DenomUnits[0].Aliases)+1)
 		if md.Base != dstBase {
 			// pundix, purse

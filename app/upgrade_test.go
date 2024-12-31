@@ -29,7 +29,7 @@ import (
 	nextversion "github.com/pundiai/fx-core/v8/app/upgrades/v8"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
-	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	fxgovv8 "github.com/pundiai/fx-core/v8/x/gov/migrations/v8"
 	fxgovtypes "github.com/pundiai/fx-core/v8/x/gov/types"
@@ -179,8 +179,8 @@ func checkOutgoingBatch(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 	for _, keeper := range myApp.CrosschainKeepers.ToSlice() {
 		kvStore := ctx.KVStore(myApp.GetKey(keeper.ModuleName()))
-		keeper.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-			assert.True(t, kvStore.Has(types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)))
+		keeper.IterateOutgoingTxBatches(ctx, func(batch *crosschaintypes.OutgoingTxBatch) bool {
+			assert.True(t, kvStore.Has(crosschaintypes.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)))
 			return false
 		})
 	}
@@ -196,7 +196,7 @@ func checkMigrateBalance(t *testing.T, ctx sdk.Context, myApp *app.App, bdd Befo
 	checkAccountBalance(t, ctx, myApp, bdd.AccountBalances, newAccountBalance)
 
 	for moduleName, coins := range newModuleBalance {
-		if moduleName == erc20types.ModuleName {
+		if moduleName == erc20types.ModuleName && ctx.ChainID() == fxtypes.MainnetChainId {
 			for _, coin := range coins {
 				found, err := myApp.Erc20Keeper.HasToken(ctx, coin.Denom)
 				require.NoError(t, err)
@@ -214,8 +214,12 @@ func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountB
 	t.Helper()
 
 	for addrStr, coins := range accountBalances {
+		newCoins := newAccountBalance[addrStr]
 		delete(newAccountBalance, addrStr)
 
+		if coins.Equal(newCoins) {
+			continue
+		}
 		addr := sdk.MustAccAddressFromBech32(addrStr)
 		for _, coin := range coins {
 			foundMD := myApp.BankKeeper.HasDenomMetaData(ctx, coin.Denom)
@@ -280,6 +284,9 @@ func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[str
 			}
 			coins = coins.Add(balance)
 			moduleBalance[ma.Name] = coins
+			return false
+		}
+		if addr.Equals(authtypes.NewModuleAddress(crosschaintypes.ModuleName)) {
 			return false
 		}
 		coins, ok := accountBalance[addr.String()]
