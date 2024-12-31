@@ -79,7 +79,11 @@ func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) er
 			}
 			continue
 		}
-		tokenPair.Denom = strings.ToLower(md.Symbol)
+		tokenPair.Denom = md.Base
+		if !strings.Contains(md.Base, strings.ToLower(md.Symbol)) {
+			// reset pundix and purse
+			tokenPair.Denom = strings.ToLower(md.Symbol)
+		}
 		if err := m.keeper.ERC20Token.Set(ctx, tokenPair.Denom, tokenPair); err != nil {
 			return err
 		}
