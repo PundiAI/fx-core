@@ -103,6 +103,7 @@ describe("submit bridge call tests", function () {
 
     await submitBridgeCall(
       gravityId,
+      1,
       user1.address,
       user1.address,
       user1.address,
@@ -110,8 +111,8 @@ describe("submit bridge call tests", function () {
       "0x",
       [erc20TokenAddress],
       [amount],
-      1,
       timeout,
+      1,
       0,
       validators,
       powers,
@@ -133,6 +134,7 @@ describe("submit bridge call tests", function () {
     const ownerBal1 = await erc20Token.balanceOf(bridgeCallContextAddress);
     await submitBridgeCall(
       gravityId,
+      1,
       user1.address,
       user1.address,
       bridgeCallContextAddress,
@@ -140,8 +142,8 @@ describe("submit bridge call tests", function () {
       "0x",
       [erc20TokenAddress],
       [amount],
-      1,
       timeout,
+      0,
       0,
       validators,
       powers,
@@ -167,6 +169,7 @@ describe("submit bridge call tests", function () {
     const ownerBal1 = await erc20Token.balanceOf(user1.address);
     await submitBridgeCall(
       gravityId,
+      1,
       user1.address,
       user1.address,
       bridgeCallContextAddress,
@@ -174,8 +177,8 @@ describe("submit bridge call tests", function () {
       "0x",
       [erc20TokenAddress],
       [amount],
-      1,
       timeout,
+      0,
       1,
       validators,
       powers,
@@ -200,6 +203,7 @@ describe("submit bridge call tests", function () {
     const ownerBal1 = await erc20Token.balanceOf(user1.address);
     await submitBridgeCall(
       gravityId,
+      1,
       user1.address,
       user1.address,
       user1.address,
@@ -207,8 +211,8 @@ describe("submit bridge call tests", function () {
       "0x",
       [erc20TokenAddress],
       [amount],
-      1,
       timeout,
+      0,
       1,
       validators,
       powers,
@@ -287,6 +291,7 @@ describe("submit bridge call tests", function () {
 
       await submitBridgeCall(
         gravityId,
+        1,
         user1.address,
         user1.address,
         user1.address,
@@ -294,8 +299,8 @@ describe("submit bridge call tests", function () {
         "0x",
         tokens,
         amounts,
-        1,
         timeout,
+        0,
         0,
         validators,
         powers,
@@ -314,6 +319,7 @@ describe("submit bridge call tests", function () {
 
       await submitBridgeCall(
         gravityId,
+        1,
         user1.address,
         user1.address,
         user1.address,
@@ -321,8 +327,8 @@ describe("submit bridge call tests", function () {
         "0x",
         tokens,
         amounts,
-        1,
         timeout,
+        0,
         0,
         validators,
         powers,
@@ -342,6 +348,7 @@ describe("submit bridge call tests", function () {
 
       await submitBridgeCall(
         gravityId,
+        1,
         user1.address,
         user1.address,
         user1.address,
@@ -349,8 +356,8 @@ describe("submit bridge call tests", function () {
         "0x",
         tokens,
         amounts,
-        1,
         timeout,
+        0,
         0,
         validators,
         powers,

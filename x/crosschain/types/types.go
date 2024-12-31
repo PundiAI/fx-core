@@ -462,17 +462,19 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	abiEncodedBatch, err := contract.PackBridgeCallCheckpoint(
 		gravityID,
 		bridgeCallMethodName,
-		gethcommon.HexToAddress(m.Sender),
-		gethcommon.HexToAddress(m.Refund),
-		contracts,
-		amounts,
-		gethcommon.HexToAddress(m.To),
-		dataBytes,
-		memoBytes,
 		big.NewInt(int64(m.Nonce)),
-		big.NewInt(int64(m.Timeout)),
-		big.NewInt(int64(m.GasLimit)),
-		big.NewInt(int64(m.EventNonce)),
+		&contract.FxBridgeBaseBridgeCallData{
+			Sender:     gethcommon.HexToAddress(m.Sender),
+			Refund:     gethcommon.HexToAddress(m.Refund),
+			Tokens:     contracts,
+			Amounts:    amounts,
+			To:         gethcommon.HexToAddress(m.To),
+			Data:       dataBytes,
+			Memo:       memoBytes,
+			Timeout:    big.NewInt(int64(m.Timeout)),
+			GasLimit:   big.NewInt(int64(m.GasLimit)),
+			EventNonce: big.NewInt(int64(m.EventNonce)),
+		},
 	)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.

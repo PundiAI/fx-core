@@ -71,7 +71,7 @@ describe("bridge call tests", function () {
     );
   });
 
-  const fxcoreChainId = "";
+  const bridgeId = "";
 
   it("bridge call erc20", async function () {
     const tokens = [await erc20Token.getAddress()];
@@ -82,7 +82,7 @@ describe("bridge call tests", function () {
     const lastEventNonce = await fxBridge.state_lastEventNonce();
 
     await fxBridge.bridgeCall(
-      fxcoreChainId,
+      bridgeId,
       user1.address,
       tokens,
       amounts,
@@ -119,7 +119,7 @@ describe("bridge call tests", function () {
 
     await expect(
       fxBridge.bridgeCall(
-        fxcoreChainId,
+        bridgeId,
         user1.address,
         tokens,
         amounts,
@@ -137,7 +137,7 @@ describe("bridge call tests", function () {
         user1.address,
         deploy.address,
         BigInt(Number(lastEventNonce) + 1),
-        fxcoreChainId,
+        bridgeId,
         tokens,
         amounts,
         "0x",
@@ -163,7 +163,7 @@ describe("bridge call tests", function () {
 
     await expect(
       fxBridge.bridgeCall(
-        fxcoreChainId,
+        bridgeId,
         user1.address,
         tokens,
         amounts,
@@ -181,7 +181,7 @@ describe("bridge call tests", function () {
         user1.address,
         deploy.address,
         BigInt(Number(lastEventNonce) + 1),
-        fxcoreChainId,
+        bridgeId,
         tokens,
         amounts,
         data,
@@ -212,7 +212,7 @@ describe("bridge call tests", function () {
 
     await expect(
       fxBridge.bridgeCall(
-        fxcoreChainId,
+        bridgeId,
         user1.address,
         tokens,
         amounts,
@@ -230,7 +230,7 @@ describe("bridge call tests", function () {
         user1.address,
         deploy.address,
         BigInt(Number(lastEventNonce) + 1),
-        fxcoreChainId,
+        bridgeId,
         tokens,
         amounts,
         data,
@@ -307,7 +307,7 @@ describe("bridge call tests", function () {
       const amounts = [BigInt(1), BigInt(2)];
 
       await fxBridge.bridgeCall(
-        fxcoreChainId,
+        bridgeId,
         user1.address,
         tokens,
         amounts,
@@ -338,7 +338,7 @@ describe("bridge call tests", function () {
       const amounts = [BigInt(1), BigInt(2), BigInt(3)];
 
       await fxBridge.bridgeCall(
-        fxcoreChainId,
+        bridgeId,
         user1.address,
         tokens,
         amounts,
@@ -360,7 +360,7 @@ describe("bridge call tests", function () {
       const amounts = [BigInt(1), BigInt(2), BigInt(3), BigInt(4)];
 
       await fxBridge.bridgeCall(
-        fxcoreChainId,
+        bridgeId,
         user1.address,
         tokens,
         amounts,

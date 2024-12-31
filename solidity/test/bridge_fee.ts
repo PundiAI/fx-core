@@ -149,6 +149,7 @@ describe("submit bridge call tests", function () {
     const callFlag1 = await bridgeCallContextTest.callFlag();
     await submitBridgeCall(
       gravityId,
+      1,
       user1.address,
       bridgeCallContextAddress,
       bridgeCallContextAddress,
@@ -156,8 +157,8 @@ describe("submit bridge call tests", function () {
       memo,
       [erc20TokenAddress, await token1.getAddress()],
       [amount, amount],
-      1,
       timeout,
+      0,
       0,
       validators,
       powers,

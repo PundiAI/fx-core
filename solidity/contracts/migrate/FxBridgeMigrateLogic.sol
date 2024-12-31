@@ -1,12 +1,12 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 
 pragma experimental ABIEncoderV2;
 pragma solidity ^0.8.0;
 
-import {FxBridgeLogicETH} from "./FxBridgeLogicETH.sol";
+import {FxBridgeLogic} from "../bridge/FxBridgeLogic.sol";
 
 /* solhint-disable custom-errors */
-contract FxBridgeMigrateLogicETH is FxBridgeLogicETH {
+contract FxBridgeMigrateLogic is FxBridgeLogic {
     /* =============== MIGRATE =============== */
     function migrateInit(
         bytes32 _fxBridgeId,
