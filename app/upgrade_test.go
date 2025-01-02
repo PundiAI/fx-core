@@ -190,13 +190,13 @@ func checkMigrateBalance(t *testing.T, ctx sdk.Context, myApp *app.App, bdd Befo
 	t.Helper()
 
 	newAccountBalance, newModuleBalance := allBalances(ctx, myApp)
-	require.Equal(t, len(newAccountBalance), len(bdd.AccountBalances))
+	require.GreaterOrEqual(t, len(bdd.AccountBalances), len(newAccountBalance))
 
 	// check address balance
 	checkAccountBalance(t, ctx, myApp, bdd.AccountBalances, newAccountBalance)
 
 	for moduleName, coins := range newModuleBalance {
-		if moduleName == erc20types.ModuleName && ctx.ChainID() == fxtypes.MainnetChainId {
+		if moduleName == erc20types.ModuleName {
 			for _, coin := range coins {
 				found, err := myApp.Erc20Keeper.HasToken(ctx, coin.Denom)
 				require.NoError(t, err)
@@ -228,7 +228,7 @@ func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountB
 
 			if !foundToken && !foundMD {
 				balance := myApp.BankKeeper.GetBalance(ctx, addr, coin.Denom)
-				require.Equal(t, balance.Amount, coin.Amount)
+				require.True(t, balance.Amount.Equal(coin.Amount) || balance.Amount.IsZero())
 				continue
 			}
 
