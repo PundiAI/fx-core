@@ -1,4 +1,4 @@
-FROM golang:1.23.0-alpine3.19 as builder
+FROM golang:1.23.1-alpine3.19 as builder
 
 RUN apk add --no-cache git build-base linux-headers binutils-gold
 
