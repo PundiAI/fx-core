@@ -9,6 +9,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -67,7 +68,10 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgUpdateChainOracles{}
 	_ sdk.Msg = &MsgClaim{}
+	_ sdk.Msg = &MsgConfirm{}
 )
+
+var _ codectypes.UnpackInterfacesMessage = &MsgClaim{}
 
 func (m *MsgBondedOracle) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
@@ -308,6 +312,11 @@ func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 		panic(sdkerrors.ErrInvalidRequest.Wrapf("expected claim type %T, got %T", new(ExternalClaim), m.Claim.GetCachedValue()))
 	}
 	return []sdk.AccAddress{claim.GetClaimer()}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgClaim) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return sdktx.UnpackInterfaces(unpacker, []*codectypes.Any{m.Claim})
 }
 
 func (m *MsgSendToFxClaim) GetType() ClaimType {
@@ -676,4 +685,9 @@ func (m *MsgUpdateChainOracles) ValidateBasic() error {
 		oraclesMap[addr] = true
 	}
 	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (m MsgConfirm) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return sdktx.UnpackInterfaces(unpacker, []*codectypes.Any{m.Confirm})
 }

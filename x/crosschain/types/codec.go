@@ -40,8 +40,13 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgConfirm{},
 	)
 
-	registry.RegisterInterface(
-		"gravity.v1beta1.ExternalClaim",
+	registry.RegisterImplementations(
+		(*govv1betal.Content)(nil),
+		&InitCrossChainParamsProposal{},
+		&UpdateChainOraclesProposal{},
+	)
+
+	registry.RegisterImplementations(
 		(*ExternalClaim)(nil),
 		&MsgSendToExternalClaim{},
 		&MsgSendToFxClaim{},
@@ -51,18 +56,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgBridgeCallResultClaim{},
 	)
 
-	registry.RegisterInterface(
-		"gravity.v1beta1.Confirm",
+	registry.RegisterImplementations(
 		(*Confirm)(nil),
 		&MsgConfirmBatch{},
 		&MsgOracleSetConfirm{},
 		&MsgBridgeCallConfirm{},
-	)
-
-	registry.RegisterImplementations(
-		(*govv1betal.Content)(nil),
-		&InitCrossChainParamsProposal{},
-		&UpdateChainOraclesProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
