@@ -30,6 +30,19 @@ func Test_MsgServiceRouter(t *testing.T) {
 		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}):            {},
 		sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}):               {},
 		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}):                {},
+
+		// MsgClaim
+		sdk.MsgTypeURL(&crosschaintypes.MsgSendToExternalClaim{}):   {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgSendToFxClaim{}):         {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallClaim{}):       {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgBridgeTokenClaim{}):      {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgOracleSetUpdatedClaim{}): {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallResultClaim{}): {},
+
+		// MsgConfirm
+		sdk.MsgTypeURL(&crosschaintypes.MsgConfirmBatch{}):      {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgOracleSetConfirm{}):  {},
+		sdk.MsgTypeURL(&crosschaintypes.MsgBridgeCallConfirm{}): {},
 	}
 	for _, msg := range myApp.InterfaceRegistry().ListImplementations(sdk.MsgInterfaceProtoName) {
 		if _, ok := deprecated[msg]; ok {

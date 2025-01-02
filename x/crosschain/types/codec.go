@@ -37,7 +37,17 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgUpdateChainOracles{},
 
 		&MsgClaim{},
+		&MsgSendToExternalClaim{},
+		&MsgSendToFxClaim{},
+		&MsgBridgeCallClaim{},
+		&MsgBridgeTokenClaim{},
+		&MsgOracleSetUpdatedClaim{},
+		&MsgBridgeCallResultClaim{},
+
 		&MsgConfirm{},
+		&MsgConfirmBatch{},
+		&MsgOracleSetConfirm{},
+		&MsgBridgeCallConfirm{},
 	)
 
 	registry.RegisterImplementations(
