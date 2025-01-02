@@ -59,3 +59,8 @@ func getContractOwner(ctx sdk.Context) common.Address {
 	}
 	return common.HexToAddress(mainnetOwnerAddress)
 }
+
+const (
+	pundixSymbol = "PUNDIX"
+	purseSymbol  = "PURSE"
+)

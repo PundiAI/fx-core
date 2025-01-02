@@ -3,8 +3,11 @@ package v8
 import (
 	"context"
 	"errors"
+	"fmt"
+	"slices"
 	"strings"
 
+	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,8 +15,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	bankv2 "github.com/cosmos/cosmos-sdk/x/bank/migrations/v2"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -46,9 +51,18 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 			return fromVM, err
 		}
 
+		removeDenoms, err := removeTestnetDeprecatedDenom(cacheCtx, cdc, app.GetKey(banktypes.ModuleName), app.GetKey(erc20types.ModuleName))
+		if err != nil {
+			return fromVM, err
+		}
+
 		cacheCtx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
+			return fromVM, err
+		}
+
+		if err = removeTestnetDeprecatedCoins(cacheCtx, app.BankKeeper, app.AccountKeeper, removeDenoms); err != nil {
 			return fromVM, err
 		}
 
@@ -70,11 +84,17 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 			return fromVM, err
 		}
 
-		updateMetadata(cacheCtx, app.BankKeeper)
+		if err = updateMetadata(cacheCtx, app.BankKeeper); err != nil {
+			return fromVM, err
+		}
 
 		store.RemoveStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
 
 		if err = mintPurseBridgeToken(cacheCtx, app.Erc20Keeper, app.BankKeeper); err != nil {
+			return fromVM, err
+		}
+
+		if err = removeTestnetERC20DeprecatedCoins(cacheCtx, app.BankKeeper); err != nil {
 			return fromVM, err
 		}
 
@@ -126,11 +146,11 @@ func migrateCrosschainModuleAccount(ctx sdk.Context, ak authkeeper.AccountKeeper
 	if acc == nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("crosschain account not exist")
 	}
-	baseAcc, ok := acc.(*types.BaseAccount)
+	baseAcc, ok := acc.(*authtypes.BaseAccount)
 	if !ok {
 		return sdkerrors.ErrInvalidAddress.Wrapf("crosschain account not base account")
 	}
-	macc := types.NewModuleAccount(baseAcc, crosschaintypes.ModuleName, perms...)
+	macc := authtypes.NewModuleAccount(baseAcc, crosschaintypes.ModuleName, perms...)
 	ak.SetModuleAccount(ctx, macc)
 	return nil
 }
@@ -138,7 +158,7 @@ func migrateCrosschainModuleAccount(ctx sdk.Context, ak authkeeper.AccountKeeper
 func migrateBridgeBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accountKeeper authkeeper.AccountKeeper) error {
 	mds := bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
-		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
+		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
 			continue
 		}
 		dstBase := md.Base
@@ -194,7 +214,7 @@ func migrateAccountBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accoun
 }
 
 func migrateERC20TokenToCrosschain(ctx sdk.Context, bankKeeper bankkeeper.Keeper, erc20Keeper erc20keeper.Keeper) error {
-	balances := bankKeeper.GetAllBalances(ctx, types.NewModuleAddress(erc20types.ModuleName))
+	balances := bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(erc20types.ModuleName))
 	migrateCoins := sdk.NewCoins()
 	for _, bal := range balances {
 		has, err := erc20Keeper.HasToken(ctx, bal.Denom)
@@ -210,10 +230,12 @@ func migrateERC20TokenToCrosschain(ctx sdk.Context, bankKeeper bankkeeper.Keeper
 	return bankKeeper.SendCoinsFromModuleToModule(ctx, erc20types.ModuleName, crosschaintypes.ModuleName, migrateCoins)
 }
 
-func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
+func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
 	mds := bankKeeper.GetAllDenomMetaData(ctx)
+
+	removeMetadata := make([]string, 0, 2)
 	for _, md := range mds {
-		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
+		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
 			continue
 		}
 		// remove alias
@@ -222,6 +244,8 @@ func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
 		newBase := strings.ToLower(md.Symbol)
 		// update pundix/purse base denom
 		if md.Base != newBase && !strings.Contains(md.Base, newBase) && !strings.HasPrefix(md.Display, ibctransfertypes.ModuleName+"/"+ibcchanneltypes.ChannelPrefix) {
+			removeMetadata = append(removeMetadata, md.Base)
+
 			md.Base = newBase
 			md.Display = newBase
 			md.DenomUnits[0].Denom = newBase
@@ -229,6 +253,21 @@ func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
 
 		bankKeeper.SetDenomMetaData(ctx, md)
 	}
+
+	bk, ok := bankKeeper.(bankkeeper.BaseKeeper)
+	if !ok {
+		return errors.New("bank keeper not implement bank.BaseKeeper")
+	}
+	for _, base := range removeMetadata {
+		if !bankKeeper.HasDenomMetaData(ctx, base) {
+			continue
+		}
+		ctx.Logger().Info("remove metadata", "base", base)
+		if err := bk.BaseViewKeeper.DenomMetadata.Remove(ctx, base); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func mintPurseBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bankKeeper bankkeeper.Keeper) error {
@@ -320,4 +359,92 @@ func fixBaseOracleStatus(ctx sdk.Context, crosschainKeeper crosschainkeeper.Keep
 		crosschainKeeper.SetOracle(ctx, oracle)
 	}
 	crosschainKeeper.SetLastTotalPower(ctx)
+}
+
+func removeTestnetDeprecatedDenom(ctx sdk.Context, cdc codec.Codec, bankStoreKey, erc20StoreKey storetypes.StoreKey) ([]string, error) {
+	if ctx.ChainID() != fxtypes.TestnetChainId {
+		return nil, nil
+	}
+	removeDenom := make([]string, 0, 10)
+
+	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankStoreKey), bankv2.DenomMetadataPrefix)
+	iterator := denomMetaDataStore.Iterator(nil, nil)
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+
+	for ; iterator.Valid(); iterator.Next() {
+		var md banktypes.Metadata
+		cdc.MustUnmarshal(iterator.Value(), &md)
+
+		if len(md.DenomUnits) == 0 ||
+			len(md.DenomUnits[0].Aliases) > 0 ||
+			md.Base == fxtypes.DefaultDenom || md.Symbol == pundixSymbol || md.Symbol == purseSymbol {
+			continue
+		}
+		removeDenom = append(removeDenom, md.Base)
+	}
+
+	erc20Store := ctx.KVStore(erc20StoreKey)
+	erc20TokenPairStore := prefix.NewStore(erc20Store, erc20v8.KeyPrefixTokenPair)
+	erc20TokenPairByDenomStore := prefix.NewStore(erc20Store, erc20v8.KeyPrefixTokenPairByDenom)
+	for _, denom := range removeDenom {
+		ctx.Logger().Info("remove deprecated token", "denom", denom)
+		denomMetaDataStore.Delete([]byte(denom))
+		idBz := erc20TokenPairByDenomStore.Get([]byte(denom))
+		if len(idBz) == 0 {
+			return nil, fmt.Errorf("token pair not found: %s", denom)
+		}
+		erc20TokenPairStore.Delete(idBz)
+		erc20TokenPairByDenomStore.Delete([]byte(denom))
+	}
+
+	return removeDenom, nil
+}
+
+func removeTestnetDeprecatedCoins(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accountKeeper authkeeper.AccountKeeper, denoms []string) error {
+	if ctx.ChainID() != fxtypes.TestnetChainId {
+		return nil
+	}
+
+	var err error
+	bankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, balance sdk.Coin) bool {
+		if !slices.Contains(denoms, balance.Denom) {
+			return false
+		}
+		ctx.Logger().Info("remove deprecated coins ", "address", addr.String(), "amount", balance.String())
+		account := accountKeeper.GetAccount(ctx, addr)
+		if ma, ok := account.(sdk.ModuleAccountI); ok {
+			if ma.GetName() != erc20types.ModuleName {
+				if err = bankKeeper.SendCoinsFromModuleToModule(ctx, ma.GetName(), erc20types.ModuleName, sdk.NewCoins(balance)); err != nil {
+					return true
+				}
+			}
+		} else {
+			if err = bankKeeper.SendCoinsFromAccountToModule(ctx, addr, erc20types.ModuleName, sdk.NewCoins(balance)); err != nil {
+				return true
+			}
+		}
+		if err = bankKeeper.BurnCoins(ctx, erc20types.ModuleName, sdk.NewCoins(balance)); err != nil {
+			return true
+		}
+		return false
+	})
+	return err
+}
+
+func removeTestnetERC20DeprecatedCoins(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
+	if ctx.ChainID() != fxtypes.TestnetChainId {
+		return nil
+	}
+	coins := bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(erc20types.ModuleName))
+	for _, bal := range coins {
+		md, found := bankKeeper.GetDenomMetaData(ctx, bal.Denom)
+		if found && !strings.HasPrefix(md.Display, "transfer/channel-") && !strings.HasSuffix(md.Name, "IBC token") {
+			continue
+		}
+		ctx.Logger().Info("deprecated erc20 coins ", "coins", bal.String())
+		if err := bankKeeper.BurnCoins(ctx, erc20types.ModuleName, sdk.NewCoins(bal)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
