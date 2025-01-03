@@ -46,13 +46,14 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name == 'push' }}
           platforms: linux/amd64, linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
 
   cosmovisor-lite:
     runs-on: ubuntu-latest
     needs: fxcore
+    if: github.event_name == 'push'
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -82,13 +83,14 @@ jobs:
         with:
           context: .
           file: ./Dockerfile.cosmovisor-lite
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           platforms: linux/amd64, linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
 
   cosmovisor:
     runs-on: ubuntu-latest
     needs: fxcore
+    if: github.event_name == 'push'
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -118,6 +120,6 @@ jobs:
         with:
           context: .
           file: ./Dockerfile.cosmovisor
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           platforms: linux/amd64, linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
