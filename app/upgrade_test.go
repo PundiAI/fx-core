@@ -31,6 +31,7 @@ import (
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	fxgovv8 "github.com/pundiai/fx-core/v8/x/gov/migrations/v8"
 	fxgovtypes "github.com/pundiai/fx-core/v8/x/gov/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
@@ -59,6 +60,29 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 
 	// 3. check the status after the upgrade
 	checkAppUpgrade(t, ctx, myApp, bdd)
+}
+
+func Test_UpgradeTestnet(t *testing.T) {
+	helpers.SkipTest(t, "Skipping local test:", t.Name())
+
+	chainId := fxtypes.TestnetChainId
+	myApp := buildApp(t)
+
+	ctx := newContext(t, myApp, chainId, false)
+
+	// 1. set upgrade plan
+	require.NoError(t, myApp.UpgradeKeeper.ScheduleUpgrade(ctx, upgradetypes.Plan{
+		Name:   nextversion.Upgrade.UpgradeName,
+		Height: ctx.BlockHeight(),
+	}))
+
+	// 2. execute upgrade
+	responsePreBlock, err := upgrade.PreBlocker(ctx, myApp.UpgradeKeeper)
+	require.NoError(t, err)
+	require.True(t, responsePreBlock.IsConsensusParamsChanged())
+
+	// 3. check the status after the upgrade
+	checkBridgeToken(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -135,6 +159,8 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkOutgoingBatch(t, ctx, myApp)
 
 	checkMigrateBalance(t, ctx, myApp, bdd)
+
+	checkBridgeToken(t, ctx, myApp)
 }
 
 func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -264,6 +290,17 @@ func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountB
 		}
 	}
 	require.Empty(t, newAccountBalance)
+}
+
+func checkBridgeToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	ethTokens, err := myApp.Erc20Keeper.GetBridgeTokens(ctx, ethtypes.ModuleName)
+	require.NoError(t, err)
+	require.NotEmpty(t, ethTokens)
+	for _, token := range ethTokens {
+		require.Equal(t, ethtypes.ModuleName, token.ChainName)
+	}
 }
 
 func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {

@@ -17,7 +17,7 @@ func (k Keeper) GetBaseDenom(ctx context.Context, token string) (string, error) 
 }
 
 func (k Keeper) GetBridgeToken(ctx context.Context, chainName, baseDenom string) (types.BridgeToken, error) {
-	return k.BridgeToken.Get(ctx, collections.Join(baseDenom, chainName))
+	return k.BridgeToken.Get(ctx, collections.Join(chainName, baseDenom))
 }
 
 func (k Keeper) GetBridgeTokens(ctx context.Context, chainName string) ([]types.BridgeToken, error) {
@@ -41,7 +41,7 @@ func (k Keeper) GetBridgeTokens(ctx context.Context, chainName string) ([]types.
 }
 
 func (k Keeper) AddBridgeToken(ctx context.Context, baseDenom, chainName, contract string, isNative bool) error {
-	key := collections.Join(baseDenom, chainName)
+	key := collections.Join(chainName, baseDenom)
 	has, err := k.BridgeToken.Has(ctx, key)
 	if err != nil {
 		return err

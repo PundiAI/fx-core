@@ -47,80 +47,106 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 
-		if err := migrateCrosschainModuleAccount(cacheCtx, app.AccountKeeper); err != nil {
-			return fromVM, err
+		if cacheCtx.ChainID() == fxtypes.TestnetChainId {
+			if err := migrateTestnetBridgeToken(cacheCtx, app.Erc20Keeper); err != nil {
+				return fromVM, err
+			}
+			commit()
+			cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
+			return fromVM, nil
 		}
 
-		removeDenoms, err := removeTestnetDeprecatedDenom(cacheCtx, cdc, app.GetKey(banktypes.ModuleName), app.GetKey(erc20types.ModuleName))
+		toVM, err := upgradeV8(cacheCtx, cdc, mm, configurator, app, fromVM, plan)
 		if err != nil {
 			return fromVM, err
 		}
-
-		cacheCtx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
-		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
-		if err != nil {
-			return fromVM, err
-		}
-
-		if err = removeTestnetDeprecatedCoins(cacheCtx, app.BankKeeper, app.AccountKeeper, removeDenoms); err != nil {
-			return fromVM, err
-		}
-
-		if err = migrateEvmParams(cacheCtx, app.EvmKeeper); err != nil {
-			return fromVM, err
-		}
-
-		store.RemoveStoreKeys(cacheCtx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
-
-		if err = migrationGovCustomParam(cacheCtx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
-			return fromVM, err
-		}
-
-		if err = migrateBridgeBalance(cacheCtx, app.BankKeeper, app.AccountKeeper); err != nil {
-			return fromVM, err
-		}
-
-		if err = migrateERC20TokenToCrosschain(cacheCtx, app.BankKeeper, app.Erc20Keeper); err != nil {
-			return fromVM, err
-		}
-
-		if err = updateMetadata(cacheCtx, app.BankKeeper); err != nil {
-			return fromVM, err
-		}
-
-		store.RemoveStoreKeys(cacheCtx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
-
-		if err = mintPurseBridgeToken(cacheCtx, app.Erc20Keeper, app.BankKeeper); err != nil {
-			return fromVM, err
-		}
-
-		if err = removeTestnetERC20DeprecatedCoins(cacheCtx, app.BankKeeper); err != nil {
-			return fromVM, err
-		}
-
-		acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
-		moduleAddress := common.BytesToAddress(acc.Bytes())
-
-		if err = deployBridgeFeeContract(
-			cacheCtx,
-			app.EvmKeeper,
-			app.Erc20Keeper,
-			app.CrosschainKeepers.EthKeeper,
-			moduleAddress,
-		); err != nil {
-			return fromVM, err
-		}
-
-		if err = deployAccessControlContract(cacheCtx, app.EvmKeeper, moduleAddress); err != nil {
-			return fromVM, err
-		}
-
-		fixBaseOracleStatus(cacheCtx, app.CrosschainKeepers.Layer2Keeper)
 
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
+}
+
+func upgradeV8(
+	ctx sdk.Context,
+	cdc codec.Codec,
+	mm *module.Manager,
+	configurator module.Configurator,
+	app *keepers.AppKeepers,
+	fromVM module.VersionMap,
+	plan upgradetypes.Plan,
+) (module.VersionMap, error) {
+	if err := migrateCrosschainModuleAccount(ctx, app.AccountKeeper); err != nil {
+		return fromVM, err
+	}
+
+	removeDenoms, err := removeTestnetDeprecatedDenom(ctx, cdc, app.GetKey(banktypes.ModuleName), app.GetKey(erc20types.ModuleName))
+	if err != nil {
+		return fromVM, err
+	}
+
+	ctx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
+	toVM, err := mm.RunMigrations(ctx, configurator, fromVM)
+	if err != nil {
+		return fromVM, err
+	}
+
+	if err = removeTestnetDeprecatedCoins(ctx, app.BankKeeper, app.AccountKeeper, removeDenoms); err != nil {
+		return fromVM, err
+	}
+
+	if err = migrateEvmParams(ctx, app.EvmKeeper); err != nil {
+		return fromVM, err
+	}
+
+	store.RemoveStoreKeys(ctx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
+
+	if err = migrationGovCustomParam(ctx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
+		return fromVM, err
+	}
+
+	if err = migrateBridgeBalance(ctx, app.BankKeeper, app.AccountKeeper); err != nil {
+		return fromVM, err
+	}
+
+	if err = migrateERC20TokenToCrosschain(ctx, app.BankKeeper, app.Erc20Keeper); err != nil {
+		return fromVM, err
+	}
+
+	if err = updateMetadata(ctx, app.BankKeeper); err != nil {
+		return fromVM, err
+	}
+
+	store.RemoveStoreKeys(ctx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
+
+	if err = mintPurseBridgeToken(ctx, app.Erc20Keeper, app.BankKeeper); err != nil {
+		return fromVM, err
+	}
+
+	if err = removeTestnetERC20DeprecatedCoins(ctx, app.BankKeeper); err != nil {
+		return fromVM, err
+	}
+
+	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
+	moduleAddress := common.BytesToAddress(acc.Bytes())
+
+	if err = deployBridgeFeeContract(
+		ctx,
+		app.EvmKeeper,
+		app.Erc20Keeper,
+		app.CrosschainKeepers.EthKeeper,
+		moduleAddress,
+	); err != nil {
+		return fromVM, err
+	}
+
+	if err = deployAccessControlContract(ctx, app.EvmKeeper, moduleAddress); err != nil {
+		return fromVM, err
+	}
+
+	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
+
+	return toVM, nil
 }
 
 func migrateEvmParams(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) error {
@@ -443,6 +469,35 @@ func removeTestnetERC20DeprecatedCoins(ctx sdk.Context, bankKeeper bankkeeper.Ke
 		}
 		ctx.Logger().Info("deprecated erc20 coins ", "coins", bal.String())
 		if err := bankKeeper.BurnCoins(ctx, erc20types.ModuleName, sdk.NewCoins(bal)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func migrateTestnetBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper) error {
+	// get all bridge token
+	iter, err := erc20Keeper.BridgeToken.Iterate(ctx, nil)
+	if err != nil {
+		return err
+	}
+	kvs, err := iter.KeyValues()
+	if err != nil {
+		return err
+	}
+	bridgeTokens := make([]erc20types.BridgeToken, 0, len(kvs))
+	for _, kv := range kvs {
+		bridgeTokens = append(bridgeTokens, kv.Value)
+	}
+
+	// clear all
+	if err = erc20Keeper.BridgeToken.Clear(ctx, nil); err != nil {
+		return err
+	}
+
+	// add new bridge token
+	for _, token := range bridgeTokens {
+		if err = erc20Keeper.AddBridgeToken(ctx, token.Denom, token.ChainName, token.Contract, token.IsNative); err != nil {
 			return err
 		}
 	}
