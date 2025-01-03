@@ -7,8 +7,8 @@ on:
   pull_request:
     paths:
       - 'Dockerfile'
-      - 'cosmovisor.Dockerfile'
-      - 'cosmovisor_lite.Dockerfile'
+      - 'Dockerfile.cosmovisor'
+      - 'Dockerfile.cosmovisor-lite'
       - '.github/workflows/docker.yml'
 
 permissions:
@@ -50,8 +50,9 @@ jobs:
           platforms: linux/amd64, linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
 
-  cosmovisor_lite:
+  cosmovisor-lite:
     runs-on: ubuntu-latest
+    needs: fxcore
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -80,13 +81,14 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./cosmovisor_lite.Dockerfile
+          file: ./Dockerfile.cosmovisor-lite
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64, linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
 
   cosmovisor:
     runs-on: ubuntu-latest
+    needs: fxcore
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -115,7 +117,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./cosmovisor.Dockerfile
+          file: ./Dockerfile.cosmovisor
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64, linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
