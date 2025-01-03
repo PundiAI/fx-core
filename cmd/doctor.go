@@ -280,48 +280,50 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 	}
 	if chainId == fxtypes.MainnetChainId {
 		if blockHeight < fxtypes.MainnetBlockHeightV2 {
-			fmt.Printf("%sVersion: V1\n", SPACE)
+			fmt.Printf("%sVersion: v1\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV3 {
-			fmt.Printf("%sVersion: V2\n", SPACE)
+			fmt.Printf("%sVersion: v2\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV4 {
 			fmt.Printf("%sVersion: v3\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV5 {
-			fmt.Printf("%sVersion: V4\n", SPACE)
+			fmt.Printf("%sVersion: v4\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV6 {
-			fmt.Printf("%sVersion: V5\n", SPACE)
+			fmt.Printf("%sVersion: v5\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV7 {
-			fmt.Printf("%sVersion: V6\n", SPACE)
+			fmt.Printf("%sVersion: v6\n", SPACE)
 		}
 	}
 	if chainId == fxtypes.TestnetChainId {
 		if blockHeight < fxtypes.TestnetBlockHeightV2 {
-			fmt.Printf("%sVersion: V1\n", SPACE)
+			fmt.Printf("%sVersion: v1\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV3 {
-			fmt.Printf("%sVersion: V2\n", SPACE)
+			fmt.Printf("%sVersion: v2\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV4 {
-			fmt.Printf("%sVersion: V3\n", SPACE)
+			fmt.Printf("%sVersion: v3\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV41 {
-			fmt.Printf("%sVersion: V4\n", SPACE)
+			fmt.Printf("%sVersion: v4\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV42 {
-			fmt.Printf("%sVersion: V4.1\n", SPACE)
+			fmt.Printf("%sVersion: v4.1\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV5 {
-			fmt.Printf("%sVersion: V4.2\n", SPACE)
+			fmt.Printf("%sVersion: v4.2\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV6 {
-			fmt.Printf("%sVersion: V5.0\n", SPACE)
+			fmt.Printf("%sVersion: v5.0\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV7 {
-			fmt.Printf("%sVersion: V6.0\n", SPACE)
+			fmt.Printf("%sVersion: v6.0\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV71 {
-			fmt.Printf("%sVersion: V7.0\n", SPACE)
+			fmt.Printf("%sVersion: v7.0\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV72 {
-			fmt.Printf("%sVersion: V7.1\n", SPACE)
+			fmt.Printf("%sVersion: v7.1\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV73 {
-			fmt.Printf("%sVersion: V7.2\n", SPACE)
+			fmt.Printf("%sVersion: v7.2\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV74 {
-			fmt.Printf("%sVersion: V7.3\n", SPACE)
+			fmt.Printf("%sVersion: v7.3\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV75 {
-			fmt.Printf("%sVersion: V7.4\n", SPACE)
+			fmt.Printf("%sVersion: v7.4\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV8 {
-			fmt.Printf("%sVersion: V8\n", SPACE)
+			fmt.Printf("%sVersion: v8\n", SPACE)
+		} else if blockHeight < fxtypes.TestnetBlockHeightV81 {
+			fmt.Printf("%sVersion: v8.1\n", SPACE)
 		}
 	}
 	return plan != nil, nil
