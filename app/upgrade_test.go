@@ -83,6 +83,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 
 	// 3. check the status after the upgrade
 	checkBridgeToken(t, ctx, myApp)
+	checkErc20Token(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -161,6 +162,7 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkMigrateBalance(t, ctx, myApp, bdd)
 
 	checkBridgeToken(t, ctx, myApp)
+	checkErc20Token(t, ctx, myApp)
 }
 
 func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -300,6 +302,28 @@ func checkBridgeToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.NotEmpty(t, ethTokens)
 	for _, token := range ethTokens {
 		require.Equal(t, ethtypes.ModuleName, token.ChainName)
+	}
+}
+
+func checkErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	iter, err := myApp.Erc20Keeper.ERC20Token.Iterate(ctx, nil)
+	require.NoError(t, err)
+	defer iter.Close()
+
+	kvs, err := iter.KeyValues()
+	require.NoError(t, err)
+
+	erc20Tokens := make([]erc20types.ERC20Token, 0, len(kvs))
+	for _, kv := range kvs {
+		erc20Tokens = append(erc20Tokens, kv.Value)
+	}
+
+	for _, et := range erc20Tokens {
+		has, err := myApp.Erc20Keeper.DenomIndex.Has(ctx, et.Erc20Address)
+		require.NoError(t, err)
+		require.True(t, has)
 	}
 }
 

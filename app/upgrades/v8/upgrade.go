@@ -51,6 +51,9 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 			if err := migrateTestnetBridgeToken(cacheCtx, app.Erc20Keeper); err != nil {
 				return fromVM, err
 			}
+			if err := migrateTestnetErc20Token(cacheCtx, app.Erc20Keeper); err != nil {
+				return fromVM, err
+			}
 			commit()
 			cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 			return fromVM, nil
@@ -481,6 +484,7 @@ func migrateTestnetBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper) 
 	if err != nil {
 		return err
 	}
+	defer iter.Close()
 	kvs, err := iter.KeyValues()
 	if err != nil {
 		return err
@@ -498,6 +502,29 @@ func migrateTestnetBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper) 
 	// add new bridge token
 	for _, token := range bridgeTokens {
 		if err = erc20Keeper.AddBridgeToken(ctx, token.Denom, token.ChainName, token.Contract, token.IsNative); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func migrateTestnetErc20Token(ctx sdk.Context, erc20Keeper erc20keeper.Keeper) error {
+	iter, err := erc20Keeper.ERC20Token.Iterate(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer iter.Close()
+	kvs, err := iter.KeyValues()
+	if err != nil {
+		return err
+	}
+	erc20Tokens := make([]erc20types.ERC20Token, 0, len(kvs))
+	for _, kv := range kvs {
+		erc20Tokens = append(erc20Tokens, kv.Value)
+	}
+	// set erc20 token
+	for _, et := range erc20Tokens {
+		if err = erc20Keeper.DenomIndex.Set(ctx, et.Erc20Address, et.Denom); err != nil {
 			return err
 		}
 	}
