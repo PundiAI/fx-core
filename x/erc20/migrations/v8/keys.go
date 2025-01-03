@@ -77,6 +77,9 @@ func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) er
 			if err := m.keeper.ERC20Token.Set(ctx, md.Base, tokenPair); err != nil {
 				return err
 			}
+			if err := m.keeper.DenomIndex.Set(ctx, tokenPair.Erc20Address, md.Base); err != nil {
+				return err
+			}
 			continue
 		}
 		tokenPair.Denom = md.Base
@@ -85,6 +88,9 @@ func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) er
 			tokenPair.Denom = strings.ToLower(md.Symbol)
 		}
 		if err := m.keeper.ERC20Token.Set(ctx, tokenPair.Denom, tokenPair); err != nil {
+			return err
+		}
+		if err := m.keeper.DenomIndex.Set(ctx, tokenPair.Erc20Address, tokenPair.Denom); err != nil {
 			return err
 		}
 	}
