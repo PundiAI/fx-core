@@ -56,7 +56,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&UpdateChainOraclesProposal{},
 	)
 
-	registry.RegisterImplementations(
+	registry.RegisterInterface(
+		"fx.gravity.crosschain.v1.ExternalClaim",
 		(*ExternalClaim)(nil),
 		&MsgSendToExternalClaim{},
 		&MsgSendToFxClaim{},
@@ -66,7 +67,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgBridgeCallResultClaim{},
 	)
 
-	registry.RegisterImplementations(
+	registry.RegisterInterface(
+		"fx.gravity.crosschain.v1.Confirm",
 		(*Confirm)(nil),
 		&MsgConfirmBatch{},
 		&MsgOracleSetConfirm{},
