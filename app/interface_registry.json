@@ -16,6 +16,8 @@
     "cosmos.tx.v1beta1.TxExtensionOptionI",
     "cosmos.vesting.v1beta1.VestingAccount",
     "ethermint.evm.v1.TxData",
+    "fx.gravity.crosschain.v1.Confirm",
+    "fx.gravity.crosschain.v1.ExternalClaim",
     "fx.ibc.applications.transfer.v1.MemoPacket",
     "ibc.core.channel.v1.ChannelI",
     "ibc.core.channel.v1.CounterpartyChannelI",

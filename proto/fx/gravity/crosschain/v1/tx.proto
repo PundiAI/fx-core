@@ -291,7 +291,8 @@ message MsgClaim {
   string chain_name = 1;
   string bridger_address = 2;
   google.protobuf.Any claim = 3
-      [ (cosmos_proto.accepts_interface) = "ExternalClaim" ];
+      [ (cosmos_proto.accepts_interface) =
+            "fx.gravity.crosschain.v1.ExternalClaim" ];
 }
 
 message MsgClaimResponse {}
@@ -303,7 +304,7 @@ message MsgConfirm {
   string chain_name = 1;
   string bridger_address = 2;
   google.protobuf.Any confirm = 3
-      [ (cosmos_proto.accepts_interface) = "Confirm" ];
+      [ (cosmos_proto.accepts_interface) = "fx.gravity.crosschain.v1.Confirm" ];
 }
 
 message MsgConfirmResponse {}
