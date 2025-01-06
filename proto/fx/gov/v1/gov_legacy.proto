@@ -11,7 +11,6 @@ import "amino/amino.proto";
 option go_package = "github.com/pundiai/fx-core/types/legacy";
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
-// Deprecated: Do not use.
 message MsgUpdateFXParams {
   option deprecated = true;
 
@@ -26,7 +25,6 @@ message MsgUpdateFXParams {
 }
 
 // MsgUpdateBaseParams is the Msg/UpdateParams request type.
-// Deprecated: Do not use.
 message MsgUpdateEGFParams {
   option deprecated = true;
 
@@ -40,7 +38,6 @@ message MsgUpdateEGFParams {
   EGFParams params = 2 [ (gogoproto.nullable) = false ];
 }
 
-// Deprecated: Do not use.
 message MsgUpdateParams {
   option deprecated = true;
 
@@ -49,7 +46,6 @@ message MsgUpdateParams {
   LegacyParams params = 2 [ (gogoproto.nullable) = false ];
 }
 
-// Deprecated: Do not use.
 message LegacyParams {
   option deprecated = true;
 
@@ -67,31 +63,17 @@ message LegacyParams {
 
   google.protobuf.Duration voting_period = 4 [ (gogoproto.stdduration) = true ];
 
-  string quorum = 5 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "quorum,omitempty"
-  ];
+  string quorum = 5 [ (gogoproto.jsontag) = "quorum,omitempty" ];
 
   google.protobuf.Duration max_deposit_period = 6 [
     (gogoproto.stdduration) = true,
     (gogoproto.jsontag) = "max_deposit_period,omitempty"
   ];
 
-  string threshold = 7 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "threshold,omitempty"
-  ];
+  string threshold = 7 [ (gogoproto.jsontag) = "threshold,omitempty" ];
 
-  string veto_threshold = 8 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "veto_threshold,omitempty"
-  ];
+  string veto_threshold = 8
+      [ (gogoproto.jsontag) = "veto_threshold,omitempty" ];
 
   //  The ratio representing the proportion of the deposit value that must be
   //  paid at proposal submission.
@@ -159,7 +141,6 @@ message Params {
   bool burn_vote_veto = 12;
 }
 
-// Deprecated
 message EGFParams {
   option deprecated = true;
 
