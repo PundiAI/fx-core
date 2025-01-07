@@ -31,6 +31,7 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
@@ -84,6 +85,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
 	// 3. check the status after the upgrade
+	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
 	checkPundixPurse(t, ctx, myApp)
 	checkTotalSupply(t, ctx, myApp)
 }
@@ -167,6 +169,15 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkErc20Token(t, ctx, myApp)
 	checkPundixPurse(t, ctx, myApp)
 	checkTotalSupply(t, ctx, myApp)
+	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
+}
+
+func checkLayer2OracleIsOnline(t *testing.T, ctx sdk.Context, layer2Keeper crosschainkeeper.Keeper) {
+	t.Helper()
+	oracles := layer2Keeper.GetAllOracles(ctx, false)
+	for _, oracle := range oracles {
+		assert.True(t, oracle.Online, oracle.OracleAddress)
+	}
 }
 
 func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {

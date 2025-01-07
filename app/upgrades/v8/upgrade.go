@@ -66,6 +66,8 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 }
 
 func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
+	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
+
 	if err := fixPundixCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
 		return err
 	}
