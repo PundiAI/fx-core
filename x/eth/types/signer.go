@@ -4,6 +4,8 @@ import (
 	"crypto/ecdsa"
 
 	"github.com/ethereum/go-ethereum/crypto"
+
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 const signaturePrefix = "\x19Ethereum Signed Message:\n32"
@@ -11,7 +13,7 @@ const signaturePrefix = "\x19Ethereum Signed Message:\n32"
 // NewEthereumSignature creates a new signuature over a given byte array
 func NewEthereumSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	if privateKey == nil {
-		return nil, ErrInvalid.Wrapf("private key is nil")
+		return nil, crosschaintypes.ErrInvalid.Wrapf("private key is nil")
 	}
 	protectedHash := crypto.Keccak256Hash(append([]uint8(signaturePrefix), hash...))
 	return crypto.Sign(protectedHash.Bytes(), privateKey)
@@ -19,7 +21,7 @@ func NewEthereumSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, er
 
 func EthAddressFromSignature(hash, signature []byte) (string, error) {
 	if len(signature) < 65 {
-		return "", ErrInvalid.Wrapf("signature too short")
+		return "", crosschaintypes.ErrInvalid.Wrapf("signature too short")
 	}
 	// To verify signature
 	// - use crypto.SigToPub to get the public key
@@ -42,7 +44,7 @@ func EthAddressFromSignature(hash, signature []byte) (string, error) {
 	protectedHash := crypto.Keccak256Hash(append([]uint8(signaturePrefix), hash...))
 	pubkey, err := crypto.SigToPub(protectedHash.Bytes(), signature)
 	if err != nil {
-		return "", ErrInvalid.Wrapf("signature verification failed: %s", err.Error())
+		return "", crosschaintypes.ErrInvalid.Wrapf("signature verification failed: %s", err.Error())
 	}
 
 	addr := crypto.PubkeyToAddress(*pubkey)
@@ -57,7 +59,7 @@ func ValidateEthereumSignature(hash, signature []byte, ethAddress string) error 
 		return err
 	}
 	if addr != ethAddress {
-		return ErrInvalid.Wrapf("signature not matching")
+		return crosschaintypes.ErrInvalid.Wrapf("signature not matching")
 	}
 	return nil
 }

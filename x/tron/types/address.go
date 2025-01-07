@@ -9,10 +9,10 @@ import (
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 
-	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
-var _ crosschaintypes.ExternalAddress = tronAddress{}
+var _ fxtypes.ExternalAddress = tronAddress{}
 
 type tronAddress struct{}
 

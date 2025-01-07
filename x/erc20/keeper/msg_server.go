@@ -52,3 +52,36 @@ func (s msgServer) ToggleTokenConversion(c context.Context, req *types.MsgToggle
 	}
 	return &types.MsgToggleTokenConversionResponse{Erc20Token: erc20Token}, nil
 }
+
+func (s msgServer) RegisterNativeCoin(c context.Context, req *types.MsgRegisterNativeCoin) (*types.MsgRegisterNativeCoinResponse, error) {
+	if s.k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.k.authority, req.Authority)
+	}
+	erc20Token, err := s.k.RegisterNativeCoin(c, req.Name, req.Symbol, uint8(req.Decimals))
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgRegisterNativeCoinResponse{Erc20Token: erc20Token}, nil
+}
+
+func (s msgServer) RegisterNativeERC20(c context.Context, req *types.MsgRegisterNativeERC20) (*types.MsgRegisterNativeERC20Response, error) {
+	if s.k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.k.authority, req.Authority)
+	}
+	erc20Addr := common.HexToAddress(req.ContractAddress)
+	erc20Token, err := s.k.RegisterNativeERC20(c, erc20Addr)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgRegisterNativeERC20Response{Erc20Token: erc20Token}, nil
+}
+
+func (s msgServer) UpdateBridgeToken(c context.Context, req *types.MsgUpdateBridgeToken) (*types.MsgUpdateBridgeTokenResponse, error) {
+	if s.k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.k.authority, req.Authority)
+	}
+
+	_, err := s.k.UpdateBridgeToken(c, req.BaseDenom, req.Channel, req.IbcDenom,
+		req.ChainName, req.ContractAddress, req.NativeToken)
+	return &types.MsgUpdateBridgeTokenResponse{}, err
+}

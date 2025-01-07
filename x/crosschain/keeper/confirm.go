@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
@@ -133,7 +134,7 @@ func (k Keeper) ValidateConfirmSign(ctx sdk.Context, bridgerAddr, signatureAddr,
 			return nil, types.ErrInvalid.Wrapf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature)
 		}
 	} else {
-		if err = types.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
+		if err = ethtypes.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
 			return nil, types.ErrInvalid.Wrapf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature)
 		}
 	}

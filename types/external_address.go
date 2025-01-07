@@ -45,6 +45,11 @@ func GetSupportChains() []string {
 	return chains
 }
 
+func IsSupportChain(chainName string) bool {
+	_, ok := externalAddressRouter[chainName]
+	return ok
+}
+
 func RegisterExternalAddress(chainName string, validate ExternalAddress) {
 	if err := ValidateModuleName(chainName); err != nil {
 		panic(sdkerrors.ErrInvalidRequest.Wrapf("invalid chain name: %s", chainName))

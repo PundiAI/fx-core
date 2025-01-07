@@ -22,6 +22,9 @@ const (
 	Msg_ConvertCoin_FullMethodName           = "/fx.erc20.v1.Msg/ConvertCoin"
 	Msg_UpdateParams_FullMethodName          = "/fx.erc20.v1.Msg/UpdateParams"
 	Msg_ToggleTokenConversion_FullMethodName = "/fx.erc20.v1.Msg/ToggleTokenConversion"
+	Msg_RegisterNativeCoin_FullMethodName    = "/fx.erc20.v1.Msg/RegisterNativeCoin"
+	Msg_RegisterNativeERC20_FullMethodName   = "/fx.erc20.v1.Msg/RegisterNativeERC20"
+	Msg_UpdateBridgeToken_FullMethodName     = "/fx.erc20.v1.Msg/UpdateBridgeToken"
 )
 
 // MsgClient is the client API for Msg service.
@@ -35,6 +38,9 @@ type MsgClient interface {
 	// parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	ToggleTokenConversion(ctx context.Context, in *MsgToggleTokenConversion, opts ...grpc.CallOption) (*MsgToggleTokenConversionResponse, error)
+	RegisterNativeCoin(ctx context.Context, in *MsgRegisterNativeCoin, opts ...grpc.CallOption) (*MsgRegisterNativeCoinResponse, error)
+	RegisterNativeERC20(ctx context.Context, in *MsgRegisterNativeERC20, opts ...grpc.CallOption) (*MsgRegisterNativeERC20Response, error)
+	UpdateBridgeToken(ctx context.Context, in *MsgUpdateBridgeToken, opts ...grpc.CallOption) (*MsgUpdateBridgeTokenResponse, error)
 }
 
 type msgClient struct {
@@ -72,6 +78,33 @@ func (c *msgClient) ToggleTokenConversion(ctx context.Context, in *MsgToggleToke
 	return out, nil
 }
 
+func (c *msgClient) RegisterNativeCoin(ctx context.Context, in *MsgRegisterNativeCoin, opts ...grpc.CallOption) (*MsgRegisterNativeCoinResponse, error) {
+	out := new(MsgRegisterNativeCoinResponse)
+	err := c.cc.Invoke(ctx, Msg_RegisterNativeCoin_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RegisterNativeERC20(ctx context.Context, in *MsgRegisterNativeERC20, opts ...grpc.CallOption) (*MsgRegisterNativeERC20Response, error) {
+	out := new(MsgRegisterNativeERC20Response)
+	err := c.cc.Invoke(ctx, Msg_RegisterNativeERC20_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateBridgeToken(ctx context.Context, in *MsgUpdateBridgeToken, opts ...grpc.CallOption) (*MsgUpdateBridgeTokenResponse, error) {
+	out := new(MsgUpdateBridgeTokenResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateBridgeToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -83,6 +116,9 @@ type MsgServer interface {
 	// parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	ToggleTokenConversion(context.Context, *MsgToggleTokenConversion) (*MsgToggleTokenConversionResponse, error)
+	RegisterNativeCoin(context.Context, *MsgRegisterNativeCoin) (*MsgRegisterNativeCoinResponse, error)
+	RegisterNativeERC20(context.Context, *MsgRegisterNativeERC20) (*MsgRegisterNativeERC20Response, error)
+	UpdateBridgeToken(context.Context, *MsgUpdateBridgeToken) (*MsgUpdateBridgeTokenResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -98,6 +134,15 @@ func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*
 }
 func (UnimplementedMsgServer) ToggleTokenConversion(context.Context, *MsgToggleTokenConversion) (*MsgToggleTokenConversionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ToggleTokenConversion not implemented")
+}
+func (UnimplementedMsgServer) RegisterNativeCoin(context.Context, *MsgRegisterNativeCoin) (*MsgRegisterNativeCoinResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterNativeCoin not implemented")
+}
+func (UnimplementedMsgServer) RegisterNativeERC20(context.Context, *MsgRegisterNativeERC20) (*MsgRegisterNativeERC20Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterNativeERC20 not implemented")
+}
+func (UnimplementedMsgServer) UpdateBridgeToken(context.Context, *MsgUpdateBridgeToken) (*MsgUpdateBridgeTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBridgeToken not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -166,6 +211,60 @@ func _Msg_ToggleTokenConversion_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_RegisterNativeCoin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterNativeCoin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RegisterNativeCoin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RegisterNativeCoin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RegisterNativeCoin(ctx, req.(*MsgRegisterNativeCoin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RegisterNativeERC20_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterNativeERC20)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RegisterNativeERC20(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RegisterNativeERC20_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RegisterNativeERC20(ctx, req.(*MsgRegisterNativeERC20))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateBridgeToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateBridgeToken)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateBridgeToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateBridgeToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateBridgeToken(ctx, req.(*MsgUpdateBridgeToken))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -184,6 +283,18 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ToggleTokenConversion",
 			Handler:    _Msg_ToggleTokenConversion_Handler,
+		},
+		{
+			MethodName: "RegisterNativeCoin",
+			Handler:    _Msg_RegisterNativeCoin_Handler,
+		},
+		{
+			MethodName: "RegisterNativeERC20",
+			Handler:    _Msg_RegisterNativeERC20_Handler,
+		},
+		{
+			MethodName: "UpdateBridgeToken",
+			Handler:    _Msg_UpdateBridgeToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

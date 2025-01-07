@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -36,7 +38,7 @@ func (k Keeper) RegisterNativeCoin(ctx context.Context, name, symbol string, dec
 	return erc20Token, nil
 }
 
-func (k Keeper) RegisterNativeERC20(ctx sdk.Context, erc20Addr common.Address) (types.ERC20Token, error) {
+func (k Keeper) RegisterNativeERC20(ctx context.Context, erc20Addr common.Address) (types.ERC20Token, error) {
 	if err := k.CheckEnableErc20(ctx); err != nil {
 		return types.ERC20Token{}, err
 	}
@@ -51,7 +53,8 @@ func (k Keeper) RegisterNativeERC20(ctx sdk.Context, erc20Addr common.Address) (
 		return types.ERC20Token{}, err
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeRegisterERC20,
 		sdk.NewAttribute(types.AttributeKeyDenom, erc20Token.Denom),
 		sdk.NewAttribute(types.AttributeKeyTokenAddress, erc20Token.Erc20Address),
@@ -66,6 +69,9 @@ func (k Keeper) AddERC20Token(ctx context.Context, name, symbol string, decimals
 		metadata = fxtypes.NewFXMetaData()
 	} else {
 		metadata = fxtypes.NewMetadata(name, symbol, uint32(decimals))
+	}
+	if err := metadata.Validate(); err != nil {
+		return types.ERC20Token{}, sdkerrors.ErrInvalidRequest.Wrapf("metadata: %s", err.Error())
 	}
 	if !k.bankKeeper.HasDenomMetaData(ctx, metadata.Base) {
 		k.bankKeeper.SetDenomMetaData(ctx, metadata)
@@ -117,4 +123,23 @@ func (k Keeper) ToggleTokenConvert(ctx context.Context, token string) (types.ERC
 		sdk.NewAttribute(types.AttributeKeyTokenAddress, erc20Token.Erc20Address),
 	))
 	return erc20Token, nil
+}
+
+func (k Keeper) UpdateBridgeToken(ctx context.Context, baseDenom, channel, ibcDenom, chainName, contractAddr string, isNative bool) (types.ERC20Token, error) {
+	erc20Token, err := k.ERC20Token.Get(ctx, baseDenom)
+	if err != nil {
+		return types.ERC20Token{}, sdkerrors.ErrNotFound.Wrapf("token %s not found", baseDenom)
+	}
+
+	// add ibc token
+	isIBCDenom := strings.HasPrefix(ibcDenom, ibctransfertypes.DenomPrefix+"/")
+	if isIBCDenom {
+		return erc20Token, k.AddIBCToken(ctx, channel, baseDenom, ibcDenom)
+	}
+
+	// add bridge token
+	if !fxtypes.IsSupportChain(chainName) {
+		return types.ERC20Token{}, sdkerrors.ErrKeyNotFound.Wrapf("chain name %s not found", chainName)
+	}
+	return erc20Token, k.AddBridgeToken(ctx, baseDenom, chainName, contractAddr, isNative)
 }

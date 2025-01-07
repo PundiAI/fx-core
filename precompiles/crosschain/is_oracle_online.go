@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/pundiai/fx-core/v8/contract"
-	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
@@ -47,7 +47,7 @@ func (i *IsOracleOnlineMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, 
 		return nil, fmt.Errorf("chain not support: %s", args.Chain)
 	}
 
-	oracleAddr, has := router.GetOracleAddrByExternalAddr(stateDB.Context(), crosschaintypes.ExternalAddrToStr(args.Chain, args.ExternalAddress.Bytes()))
+	oracleAddr, has := router.GetOracleAddrByExternalAddr(stateDB.Context(), fxtypes.ExternalAddrToStr(args.Chain, args.ExternalAddress.Bytes()))
 	if !has {
 		return i.PackOutput(false)
 	}

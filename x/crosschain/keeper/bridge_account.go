@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/types"
 )
 
 func (k Keeper) CreateBridgeAccount(ctx sdk.Context, address string) {

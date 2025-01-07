@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	types2 "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
 func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {
@@ -107,7 +108,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
+			signature, err := types2.NewEthereumSignature(checkpoint, privateKey)
 			if err != nil {
 				return err
 			}
@@ -177,7 +178,7 @@ func CmdOracleSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
+			signature, err := types2.NewEthereumSignature(checkpoint, privateKey)
 			if err != nil {
 				return err
 			}

@@ -7,6 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 const (
@@ -58,7 +60,7 @@ func (m *UpdateChainOraclesProposal) ProposalType() string {
 }
 
 func (m *UpdateChainOraclesProposal) ValidateBasic() error {
-	if _, ok := externalAddressRouter[m.ChainName]; !ok {
+	if !fxtypes.IsSupportChain(m.ChainName) {
 		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized crosschain name")
 	}
 	if err := govv1betal.ValidateAbstract(m); err != nil {

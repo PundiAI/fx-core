@@ -1,6 +1,7 @@
 package bank_test
 
 import (
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -46,6 +47,6 @@ func (suite *BankPrecompileTestSuite) SetupSubTest() {
 }
 
 func (suite *BankPrecompileTestSuite) SetErc20Token(name string, token common.Address) {
-	_, err := suite.App.Erc20Keeper.AddERC20Token(suite.Ctx, name, name, 18, token, types.OWNER_EXTERNAL)
+	_, err := suite.App.Erc20Keeper.AddERC20Token(suite.Ctx, name, strings.ToUpper(name), 18, token, types.OWNER_EXTERNAL)
 	suite.Require().NoError(err)
 }

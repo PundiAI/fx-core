@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/pundiai/fx-core/v8/contract"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
@@ -135,7 +136,7 @@ func (k QueryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoing
 }
 
 func (k QueryServer) OutgoingTxBatch(c context.Context, req *types.QueryOutgoingTxBatchRequest) (*types.QueryOutgoingTxBatchResponse, error) {
-	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
+	if err := fxtypes.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
 	if req.GetNonce() <= 0 {
@@ -163,7 +164,7 @@ func (k QueryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfir
 
 // BatchConfirms returns the batch confirmations by nonce and token contract
 func (k QueryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
-	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
+	if err := fxtypes.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
 	if req.GetNonce() <= 0 {
@@ -201,7 +202,7 @@ func (k QueryServer) DenomToToken(c context.Context, req *types.QueryDenomToToke
 }
 
 func (k QueryServer) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequest) (*types.QueryTokenToDenomResponse, error) {
-	if err := types.ValidateExternalAddr(req.ChainName, req.GetToken()); err != nil {
+	if err := fxtypes.ValidateExternalAddr(req.ChainName, req.GetToken()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
 	baseDenom, err := k.erc20Keeper.GetBaseDenom(c, req.Token)
@@ -237,7 +238,7 @@ func (k QueryServer) GetOracleByBridgerAddr(c context.Context, req *types.QueryO
 }
 
 func (k QueryServer) GetOracleByExternalAddr(c context.Context, req *types.QueryOracleByExternalAddrRequest) (*types.QueryOracleResponse, error) {
-	if err := types.ValidateExternalAddr(req.ChainName, req.GetExternalAddress()); err != nil {
+	if err := fxtypes.ValidateExternalAddr(req.ChainName, req.GetExternalAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "external address")
 	}
 
@@ -310,7 +311,7 @@ func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridge
 }
 
 func (k QueryServer) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
-	return &types.QueryBridgeChainListResponse{ChainNames: types.GetSupportChains()}, nil
+	return &types.QueryBridgeChainListResponse{ChainNames: fxtypes.GetSupportChains()}, nil
 }
 
 func (k QueryServer) BridgeCalls(c context.Context, req *types.QueryBridgeCallsRequest) (*types.QueryBridgeCallsResponse, error) {
