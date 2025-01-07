@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
@@ -137,7 +138,7 @@ func CmdGetOracle(chainName string) *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			if err := types.ValidateExternalAddr(chainName, args[0]); err == nil {
+			if err := fxtypes.ValidateExternalAddr(chainName, args[0]); err == nil {
 				res, err := queryClient.GetOracleByExternalAddr(cmd.Context(), &types.QueryOracleByExternalAddrRequest{
 					ExternalAddress: args[0],
 					ChainName:       chainName,
@@ -240,7 +241,7 @@ func CmdCovertBridgeToken(chainName string) *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			tokenContract := args[0]
-			if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
+			if err := fxtypes.ValidateExternalAddr(chainName, tokenContract); err != nil {
 				return err
 			}
 			channelIbc := args[1]

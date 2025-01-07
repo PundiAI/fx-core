@@ -52,7 +52,7 @@ func (suite *CrosschainPrecompileTestSuite) SetupTest() {
 
 	suite.CrosschainPrecompileSuite = helpers.NewCrosschainPrecompileSuite(suite.Require(), suite.signer, suite.App.EvmKeeper, suite.crosschainAddr)
 
-	chainNames := crosschaintypes.GetSupportChains()
+	chainNames := fxtypes.GetSupportChains()
 	suite.chainName = chainNames[tmrand.Intn(len(chainNames))]
 }
 

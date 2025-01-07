@@ -19,6 +19,7 @@ import (
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/x/eth/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
@@ -67,7 +68,7 @@ func (suite *CrosschainSuite) OracleAddr() sdk.AccAddress {
 
 func (suite *CrosschainSuite) ExternalAddr() string {
 	address := ethcrypto.PubkeyToAddress(suite.external.PublicKey)
-	return crosschaintypes.ExternalAddrToStr(suite.chainName, address.Bytes())
+	return fxtypes.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
 func (suite *CrosschainSuite) BridgerAddr() sdk.AccAddress {
@@ -75,7 +76,7 @@ func (suite *CrosschainSuite) BridgerAddr() sdk.AccAddress {
 }
 
 func (suite *CrosschainSuite) HexAddressString() string {
-	return crosschaintypes.ExternalAddrToStr(suite.chainName, suite.signer.Address().Bytes())
+	return fxtypes.ExternalAddrToStr(suite.chainName, suite.signer.Address().Bytes())
 }
 
 func (suite *CrosschainSuite) CrosschainQuery() crosschaintypes.QueryClient {
@@ -237,9 +238,9 @@ func (suite *CrosschainSuite) SendOracleSetConfirm() {
 			err = trontypes.ValidateTronSignature(checkpoint, signature, suite.ExternalAddr())
 			suite.Require().NoError(err)
 		} else {
-			signature, err = crosschaintypes.NewEthereumSignature(checkpoint, suite.external)
+			signature, err = types.NewEthereumSignature(checkpoint, suite.external)
 			suite.Require().NoError(err)
-			err = crosschaintypes.ValidateEthereumSignature(checkpoint, signature, suite.ExternalAddr())
+			err = types.ValidateEthereumSignature(checkpoint, signature, suite.ExternalAddr())
 			suite.Require().NoError(err)
 		}
 
@@ -401,7 +402,7 @@ func (suite *CrosschainSuite) AddBridgeToken(md banktypes.Metadata) (string, cro
 }
 
 func (suite *CrosschainSuite) FormatAddress(address common.Address) string {
-	return crosschaintypes.ExternalAddrToStr(suite.chainName, address.Bytes())
+	return fxtypes.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
 func (suite *CrosschainSuite) BridgeCallConfirm(nonce uint64, isSuccess bool) {
@@ -442,9 +443,9 @@ func (suite *CrosschainSuite) SignatureCheckpoint(checkpoint []byte) []byte {
 		suite.Require().NoError(err)
 		suite.Require().NoError(trontypes.ValidateTronSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
 	} else {
-		signatureBytes, err = crosschaintypes.NewEthereumSignature(checkpoint, suite.external)
+		signatureBytes, err = types.NewEthereumSignature(checkpoint, suite.external)
 		suite.Require().NoError(err)
-		suite.Require().NoError(crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
+		suite.Require().NoError(types.ValidateEthereumSignature(checkpoint, signatureBytes, suite.ExternalAddr()))
 	}
 	return signatureBytes
 }

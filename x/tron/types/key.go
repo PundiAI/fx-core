@@ -1,6 +1,8 @@
 package types
 
-import crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+import (
+	fxtypes "github.com/pundiai/fx-core/v8/types"
+)
 
 const (
 	// ModuleName is the name of the module
@@ -11,5 +13,5 @@ const (
 )
 
 func init() {
-	crosschaintypes.RegisterExternalAddress(ModuleName, tronAddress{})
+	fxtypes.RegisterExternalAddress(ModuleName, tronAddress{})
 }

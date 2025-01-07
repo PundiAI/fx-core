@@ -17,6 +17,7 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/testutil"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	"github.com/pundiai/fx-core/v8/x/crosschain/mock"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
@@ -50,7 +51,7 @@ func TestKeeperTestSuite(t *testing.T) {
 		ethtypes.ModuleName,
 	}
 	if os.Getenv("TEST_CROSSCHAIN") == "true" {
-		modules = types.GetSupportChains()
+		modules = fxtypes.GetSupportChains()
 	}
 	for _, moduleName := range modules {
 		suite.Run(t, &KeeperMockSuite{chainName: moduleName})

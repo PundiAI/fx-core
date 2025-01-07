@@ -406,12 +406,12 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 	suite.Require().NoError(err)
 
-	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[0])
+	external1Signature, err := ethtypes.NewEthereumSignature(checkpoint, suite.externalPris[0])
 	if trontypes.ModuleName == suite.chainName {
 		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[0])
 	}
 	suite.Require().NoError(err)
-	external2Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[1])
+	external2Signature, err := ethtypes.NewEthereumSignature(checkpoint, suite.externalPris[1])
 	if trontypes.ModuleName == suite.chainName {
 		external2Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[1])
 	}
@@ -532,7 +532,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	oracle.Online = true
 	suite.Keeper().SetOracle(suite.Ctx, oracle)
 
-	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[0])
+	external1Signature, err := ethtypes.NewEthereumSignature(checkpoint, suite.externalPris[0])
 	if trontypes.ModuleName == suite.chainName {
 		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[0])
 	}

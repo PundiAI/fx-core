@@ -89,10 +89,10 @@ func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr comm
 		Nonce:       nextID,
 		Timeout:     bridgeCallTimeout,
 		BlockHeight: uint64(ctx.BlockHeight()),
-		Sender:      types.ExternalAddrToStr(k.moduleName, sender.Bytes()),
-		Refund:      types.ExternalAddrToStr(k.moduleName, refundAddr.Bytes()),
+		Sender:      fxtypes.ExternalAddrToStr(k.moduleName, sender.Bytes()),
+		Refund:      fxtypes.ExternalAddrToStr(k.moduleName, refundAddr.Bytes()),
 		Tokens:      tokens,
-		To:          types.ExternalAddrToStr(k.moduleName, to.Bytes()),
+		To:          fxtypes.ExternalAddrToStr(k.moduleName, to.Bytes()),
 		Data:        hex.EncodeToString(data),
 		Memo:        hex.EncodeToString(memo),
 		GasLimit:    gasLimit,
@@ -153,7 +153,7 @@ func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, nonce uint64, toAddr, cause 
 }
 
 func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBridgeCall) error {
-	refund := types.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
+	refund := fxtypes.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
 	baseCoins := sdk.NewCoins()
 	for _, token := range data.Tokens {
 		bridgeToken, err := k.DepositBridgeToken(ctx, refund.Bytes(), token.Amount, token.Contract)

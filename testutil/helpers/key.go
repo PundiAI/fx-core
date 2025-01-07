@@ -15,7 +15,7 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 
-	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 

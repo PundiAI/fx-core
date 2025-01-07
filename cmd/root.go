@@ -199,7 +199,7 @@ func queryCommand() *cobra.Command {
 		fxcli.QueryStoreCmd(),
 		fxcli.QueryValidatorByConsAddr(),
 		fxcli.QueryGasPricesCmd(),
-		crosschaincli.GetQueryCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
+		crosschaincli.GetQueryCmd(crosschaintypes.ModuleName, fxtypes.GetSupportChains()...),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
@@ -226,7 +226,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
 		authcmd.GetSimulateCmd(),
-		crosschaincli.GetTxCmd(crosschaintypes.ModuleName, crosschaintypes.GetSupportChains()...),
+		crosschaincli.GetTxCmd(crosschaintypes.ModuleName, fxtypes.GetSupportChains()...),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")

@@ -327,7 +327,7 @@ func deployBridgeFeeContract(
 	quoteKeeper := contract.NewBridgeFeeQuoteKeeper(evmKeeper, contract.BridgeFeeAddress)
 	oracleKeeper := contract.NewBridgeFeeOracleKeeper(evmKeeper, contract.BridgeFeeOracleAddress)
 
-	chains := crosschaintypes.GetSupportChains()
+	chains := fxtypes.GetSupportChains()
 	bridgeDenoms := make([]contract.BridgeDenoms, len(chains))
 	for index, chain := range chains {
 		denoms := make([]string, 0)

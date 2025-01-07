@@ -24,6 +24,15 @@ service Msg {
 
   rpc ToggleTokenConversion(MsgToggleTokenConversion)
       returns (MsgToggleTokenConversionResponse);
+
+  rpc RegisterNativeCoin(MsgRegisterNativeCoin)
+      returns (MsgRegisterNativeCoinResponse);
+
+  rpc RegisterNativeERC20(MsgRegisterNativeERC20)
+      returns (MsgRegisterNativeERC20Response);
+
+  rpc UpdateBridgeToken(MsgUpdateBridgeToken)
+      returns (MsgUpdateBridgeTokenResponse);
 }
 
 // MsgConvertCoin defines a Msg to convert a Cosmos Coin to a ERC20 token
@@ -76,3 +85,50 @@ message MsgToggleTokenConversion {
 message MsgToggleTokenConversionResponse {
   ERC20Token erc20_token = 1 [ (gogoproto.nullable) = false ];
 }
+
+message MsgRegisterNativeCoin {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "erc20/MsgRegisterNativeCoin";
+
+  // authority is the address of the governance account.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  string name = 2;
+  string symbol = 3;
+  uint32 decimals = 4;
+}
+
+message MsgRegisterNativeCoinResponse {
+  ERC20Token erc20_token = 1 [ (gogoproto.nullable) = false ];
+}
+
+message MsgRegisterNativeERC20 {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "erc20/MsgRegisterNativeERC20";
+
+  // authority is the address of the governance account.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  string contractAddress = 2;
+}
+
+message MsgRegisterNativeERC20Response {
+  ERC20Token erc20_token = 1 [ (gogoproto.nullable) = false ];
+}
+
+message MsgUpdateBridgeToken {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "erc20/MsgUpdateBridgeToken";
+
+  // authority is the address of the governance account.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  string base_denom = 2;
+  string channel = 3;
+  string ibc_denom = 4;
+  string chain_name = 5;
+  string contract_address = 6;
+  bool native_token = 7;
+}
+
+message MsgUpdateBridgeTokenResponse {}

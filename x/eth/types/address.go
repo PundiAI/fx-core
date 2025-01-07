@@ -5,9 +5,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/pundiai/fx-core/v8/contract"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
-var _ ExternalAddress = EthereumAddress{}
+var _ fxtypes.ExternalAddress = EthereumAddress{}
 
 type EthereumAddress struct{}
 

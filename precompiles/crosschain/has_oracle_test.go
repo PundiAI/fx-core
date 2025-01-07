@@ -9,7 +9,7 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
-	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	"github.com/pundiai/fx-core/v8/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 

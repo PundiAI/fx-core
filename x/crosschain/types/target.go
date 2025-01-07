@@ -10,6 +10,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 const (
@@ -108,7 +110,7 @@ func (i FxTarget) ValidateExternalAddr(receive string) (err error) {
 	if i.isIBC {
 		_, err = sdk.GetFromBech32(receive, i.Bech32Prefix)
 	} else {
-		err = ValidateExternalAddr(i.GetModuleName(), receive)
+		err = fxtypes.ValidateExternalAddr(i.GetModuleName(), receive)
 	}
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)

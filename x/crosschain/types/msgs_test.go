@@ -17,6 +17,7 @@ import (
 
 	_ "github.com/pundiai/fx-core/v8/app"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
@@ -1704,6 +1705,6 @@ func externalAddressToUpper(address string) string {
 }
 
 func getRandModule() string {
-	modules := types.GetSupportChains()
+	modules := fxtypes.GetSupportChains()
 	return modules[tmrand.Intn(len(modules))]
 }

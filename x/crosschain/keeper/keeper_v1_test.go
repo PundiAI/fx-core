@@ -39,7 +39,7 @@ func TestCrosschainKeeperTestSuite(t *testing.T) {
 		ethtypes.ModuleName,
 	}
 	if os.Getenv("TEST_CROSSCHAIN") == "true" {
-		modules = types.GetSupportChains()
+		modules = fxtypes.GetSupportChains()
 	}
 	for _, moduleName := range modules {
 		suite.Run(t, &KeeperTestSuite{chainName: moduleName})
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) ModuleAddress() sdk.AccAddress {
 
 func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
 	address := crypto.PubkeyToAddress(publicKey)
-	return types.ExternalAddrToStr(suite.chainName, address.Bytes())
+	return fxtypes.ExternalAddrToStr(suite.chainName, address.Bytes())
 }
 
 func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, oracleSet *types.OracleSet) (string, []byte) {
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, o
 	gravityId := suite.Keeper().GetGravityID(suite.Ctx)
 	checkpoint, err := oracleSet.GetCheckpoint(gravityId)
 	suite.Require().NoError(err)
-	signature, err := types.NewEthereumSignature(checkpoint, external)
+	signature, err := ethtypes.NewEthereumSignature(checkpoint, external)
 	suite.Require().NoError(err)
 	if trontypes.ModuleName == suite.chainName {
 		externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
