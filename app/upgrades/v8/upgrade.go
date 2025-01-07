@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
+	"math/big"
 	"strings"
 
-	"cosmossdk.io/store/prefix"
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,8 +17,6 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	bankv2 "github.com/cosmos/cosmos-sdk/x/bank/migrations/v2"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -36,6 +34,7 @@ import (
 	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
 	erc20v8 "github.com/pundiai/fx-core/v8/x/erc20/migrations/v8"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	fxevmkeeper "github.com/pundiai/fx-core/v8/x/evm/keeper"
 	"github.com/pundiai/fx-core/v8/x/gov/keeper"
 	fxgovv8 "github.com/pundiai/fx-core/v8/x/gov/migrations/v8"
@@ -47,32 +46,37 @@ func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator modu
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 
+		var err error
+		var toVM module.VersionMap
 		if cacheCtx.ChainID() == fxtypes.TestnetChainId {
-			if err := migrateTestnetBridgeToken(cacheCtx, app.Erc20Keeper); err != nil {
+			if err = upgradeTestnet(cacheCtx, app); err != nil {
 				return fromVM, err
 			}
-			if err := migrateTestnetErc20Token(cacheCtx, app.Erc20Keeper); err != nil {
+			toVM = fromVM
+		} else {
+			toVM, err = upgradeMainnet(cacheCtx, mm, configurator, app, fromVM, plan)
+			if err != nil {
 				return fromVM, err
 			}
-			commit()
-			cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
-			return fromVM, nil
 		}
-
-		toVM, err := upgradeV8(cacheCtx, cdc, mm, configurator, app, fromVM, plan)
-		if err != nil {
-			return fromVM, err
-		}
-
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
 }
 
-func upgradeV8(
+func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
+	if err := fixPundixCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
+		return err
+	}
+	if err := fixPurseCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
+		return err
+	}
+	return fixTestnetTokenAmount(ctx, app.BankKeeper, app.EvmKeeper, app.Erc20Keeper)
+}
+
+func upgradeMainnet(
 	ctx sdk.Context,
-	cdc codec.Codec,
 	mm *module.Manager,
 	configurator module.Configurator,
 	app *keepers.AppKeepers,
@@ -83,18 +87,9 @@ func upgradeV8(
 		return fromVM, err
 	}
 
-	removeDenoms, err := removeTestnetDeprecatedDenom(ctx, cdc, app.GetKey(banktypes.ModuleName), app.GetKey(erc20types.ModuleName))
-	if err != nil {
-		return fromVM, err
-	}
-
 	ctx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
 	toVM, err := mm.RunMigrations(ctx, configurator, fromVM)
 	if err != nil {
-		return fromVM, err
-	}
-
-	if err = removeTestnetDeprecatedCoins(ctx, app.BankKeeper, app.AccountKeeper, removeDenoms); err != nil {
 		return fromVM, err
 	}
 
@@ -116,6 +111,14 @@ func upgradeV8(
 		return fromVM, err
 	}
 
+	if err = fixPundixCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
+		return fromVM, err
+	}
+
+	if err = fixPurseCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
+		return fromVM, err
+	}
+
 	if err = updateMetadata(ctx, app.BankKeeper); err != nil {
 		return fromVM, err
 	}
@@ -123,10 +126,6 @@ func upgradeV8(
 	store.RemoveStoreKeys(ctx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
 
 	if err = mintPurseBridgeToken(ctx, app.Erc20Keeper, app.BankKeeper); err != nil {
-		return fromVM, err
-	}
-
-	if err = removeTestnetERC20DeprecatedCoins(ctx, app.BankKeeper); err != nil {
 		return fromVM, err
 	}
 
@@ -390,141 +389,104 @@ func fixBaseOracleStatus(ctx sdk.Context, crosschainKeeper crosschainkeeper.Keep
 	crosschainKeeper.SetLastTotalPower(ctx)
 }
 
-func removeTestnetDeprecatedDenom(ctx sdk.Context, cdc codec.Codec, bankStoreKey, erc20StoreKey storetypes.StoreKey) ([]string, error) {
-	if ctx.ChainID() != fxtypes.TestnetChainId {
-		return nil, nil
+func fixPundixCoin(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper, bankKeeper bankkeeper.Keeper) error {
+	erc20Contract := contract.NewERC20TokenKeeper(evmKeeper)
+	erc20Token, err := erc20Keeper.GetERC20Token(ctx, pundixBase)
+	if err != nil {
+		return err
 	}
-	removeDenom := make([]string, 0, 10)
+	erc20PundixSupply, err := erc20Contract.TotalSupply(ctx, erc20Token.GetERC20Contract())
+	if err != nil {
+		return err
+	}
+	erc20ModulePurseBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), pundixBase)
+	if !erc20ModulePurseBalance.IsZero() {
+		erc20PundixSupply = big.NewInt(0).Sub(erc20PundixSupply, erc20ModulePurseBalance.Amount.BigInt())
+	}
 
-	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankStoreKey), bankv2.DenomMetadataPrefix)
-	iterator := denomMetaDataStore.Iterator(nil, nil)
-	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	fixCoins := sdk.NewCoins(sdk.NewCoin(pundixBase, sdkmath.NewIntFromBigInt(erc20PundixSupply)))
+	return bankKeeper.MintCoins(ctx, erc20types.ModuleName, fixCoins)
+}
 
-	for ; iterator.Valid(); iterator.Next() {
-		var md banktypes.Metadata
-		cdc.MustUnmarshal(iterator.Value(), &md)
+func fixPurseCoin(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper, bankKeeper bankkeeper.Keeper) error {
+	erc20Contract := contract.NewERC20TokenKeeper(evmKeeper)
+	purseToken, err := erc20Keeper.GetERC20Token(ctx, purseBase)
+	if err != nil {
+		return err
+	}
+	contractPurseSupply, err := erc20Contract.TotalSupply(ctx, purseToken.GetERC20Contract())
+	if err != nil {
+		return err
+	}
+	erc20ModulePurseBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), purseBase)
+	if !erc20ModulePurseBalance.IsZero() {
+		contractPurseSupply = big.NewInt(0).Sub(contractPurseSupply, erc20ModulePurseBalance.Amount.BigInt())
+	}
 
-		if len(md.DenomUnits) == 0 ||
-			len(md.DenomUnits[0].Aliases) > 0 ||
-			md.Base == fxtypes.DefaultDenom || md.Symbol == pundixSymbol || md.Symbol == purseSymbol {
+	ethPurseToken, err := erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, purseBase)
+	if err != nil {
+		return err
+	}
+	ethPurseTokenSupply := bankKeeper.GetSupply(ctx, ethPurseToken.BridgeDenom())
+
+	bscPurseToken, err := erc20Keeper.GetBridgeToken(ctx, bsctypes.ModuleName, purseBase)
+	if err != nil {
+		return err
+	}
+	bscPurseTokenSupply := bankKeeper.GetSupply(ctx, bscPurseToken.BridgeDenom())
+
+	ibcPurseToken, err := erc20Keeper.GetIBCToken(ctx, "channel-0", purseBase)
+	if err != nil {
+		return err
+	}
+
+	erc20PurseSupply := sdk.NewCoin(purseBase, sdkmath.NewIntFromBigInt(contractPurseSupply))
+	if err = bankKeeper.MintCoins(ctx, erc20types.ModuleName, sdk.NewCoins(erc20PurseSupply)); err != nil {
+		return err
+	}
+
+	crosschainPurseSupply := sdk.NewCoin(purseBase, bscPurseTokenSupply.Amount.Add(ethPurseTokenSupply.Amount))
+	if err = bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(crosschainPurseSupply)); err != nil {
+		return err
+	}
+
+	basePurseSupply := bankKeeper.GetSupply(ctx, purseBase)
+	ibcPurseSupply := bankKeeper.GetSupply(ctx, ibcPurseToken.GetIbcDenom())
+
+	needIBCPurseSupply := sdk.NewCoin(ibcPurseToken.GetIbcDenom(), basePurseSupply.Amount.Sub(ibcPurseSupply.Amount))
+	return bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(needIBCPurseSupply))
+}
+
+func fixTestnetTokenAmount(ctx sdk.Context, bankKeeper bankkeeper.Keeper, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper) error {
+	// fx1ntaua8eyzefqwva6evmsx9wn9d4jcs7klnvvzn 0x9afbcE9F2416520733BAcb370315D32B6B2c43d6
+	fixAddress := authtypes.NewModuleAddress("testnet")
+	fixTokens := getTestnetTokenAmount(ctx)
+	for denom, amount := range fixTokens {
+		coins := sdk.NewCoins(sdk.NewCoin(denom, amount.Abs()))
+		if amount.IsNegative() {
+			if err := bankKeeper.MintCoins(ctx, erc20types.ModuleName, coins); err != nil {
+				return err
+			}
+			if err := bankKeeper.SendCoinsFromModuleToAccount(ctx, erc20types.ModuleName, fixAddress, coins); err != nil {
+				return err
+			}
 			continue
 		}
-		removeDenom = append(removeDenom, md.Base)
-	}
 
-	erc20Store := ctx.KVStore(erc20StoreKey)
-	erc20TokenPairStore := prefix.NewStore(erc20Store, erc20v8.KeyPrefixTokenPair)
-	erc20TokenPairByDenomStore := prefix.NewStore(erc20Store, erc20v8.KeyPrefixTokenPairByDenom)
-	for _, denom := range removeDenom {
-		ctx.Logger().Info("remove deprecated token", "denom", denom)
-		denomMetaDataStore.Delete([]byte(denom))
-		idBz := erc20TokenPairByDenomStore.Get([]byte(denom))
-		if len(idBz) == 0 {
-			return nil, fmt.Errorf("token pair not found: %s", denom)
-		}
-		erc20TokenPairStore.Delete(idBz)
-		erc20TokenPairByDenomStore.Delete([]byte(denom))
-	}
-
-	return removeDenom, nil
-}
-
-func removeTestnetDeprecatedCoins(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accountKeeper authkeeper.AccountKeeper, denoms []string) error {
-	if ctx.ChainID() != fxtypes.TestnetChainId {
-		return nil
-	}
-
-	var err error
-	bankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, balance sdk.Coin) bool {
-		if !slices.Contains(denoms, balance.Denom) {
-			return false
-		}
-		ctx.Logger().Info("remove deprecated coins ", "address", addr.String(), "amount", balance.String())
-		account := accountKeeper.GetAccount(ctx, addr)
-		if ma, ok := account.(sdk.ModuleAccountI); ok {
-			if ma.GetName() != erc20types.ModuleName {
-				if err = bankKeeper.SendCoinsFromModuleToModule(ctx, ma.GetName(), erc20types.ModuleName, sdk.NewCoins(balance)); err != nil {
-					return true
-				}
-			}
-		} else {
-			if err = bankKeeper.SendCoinsFromAccountToModule(ctx, addr, erc20types.ModuleName, sdk.NewCoins(balance)); err != nil {
-				return true
-			}
-		}
-		if err = bankKeeper.BurnCoins(ctx, erc20types.ModuleName, sdk.NewCoins(balance)); err != nil {
-			return true
-		}
-		return false
-	})
-	return err
-}
-
-func removeTestnetERC20DeprecatedCoins(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
-	if ctx.ChainID() != fxtypes.TestnetChainId {
-		return nil
-	}
-	coins := bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(erc20types.ModuleName))
-	for _, bal := range coins {
-		md, found := bankKeeper.GetDenomMetaData(ctx, bal.Denom)
-		if found && !strings.HasPrefix(md.Display, "transfer/channel-") && !strings.HasSuffix(md.Name, "IBC token") {
-			continue
-		}
-		ctx.Logger().Info("deprecated erc20 coins ", "coins", bal.String())
-		if err := bankKeeper.BurnCoins(ctx, erc20types.ModuleName, sdk.NewCoins(bal)); err != nil {
+		erc20Token, err := erc20Keeper.GetERC20Token(ctx, denom)
+		if err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func migrateTestnetBridgeToken(ctx sdk.Context, erc20Keeper erc20keeper.Keeper) error {
-	// get all bridge token
-	iter, err := erc20Keeper.BridgeToken.Iterate(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer iter.Close()
-	kvs, err := iter.KeyValues()
-	if err != nil {
-		return err
-	}
-	bridgeTokens := make([]erc20types.BridgeToken, 0, len(kvs))
-	for _, kv := range kvs {
-		bridgeTokens = append(bridgeTokens, kv.Value)
-	}
-
-	// clear all
-	if err = erc20Keeper.BridgeToken.Clear(ctx, nil); err != nil {
-		return err
-	}
-
-	// add new bridge token
-	for _, token := range bridgeTokens {
-		if err = erc20Keeper.AddBridgeToken(ctx, token.Denom, token.ChainName, token.Contract, token.IsNative); err != nil {
+		if !erc20Token.IsNativeCoin() {
+			return fmt.Errorf("token %s is not native coin", denom)
+		}
+		tokenKeeper := contract.NewERC20TokenKeeper(evmKeeper)
+		erc20ModuleAddress := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
+		if _, err = tokenKeeper.Burn(ctx, erc20Token.GetERC20Contract(), erc20ModuleAddress,
+			common.BytesToAddress(fixAddress.Bytes()), amount.BigInt()); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func migrateTestnetErc20Token(ctx sdk.Context, erc20Keeper erc20keeper.Keeper) error {
-	iter, err := erc20Keeper.ERC20Token.Iterate(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer iter.Close()
-	kvs, err := iter.KeyValues()
-	if err != nil {
-		return err
-	}
-	erc20Tokens := make([]erc20types.ERC20Token, 0, len(kvs))
-	for _, kv := range kvs {
-		erc20Tokens = append(erc20Tokens, kv.Value)
-	}
-	// set erc20 token
-	for _, et := range erc20Tokens {
-		if err = erc20Keeper.DenomIndex.Set(ctx, et.Erc20Address, et.Denom); err != nil {
+		if err = bankKeeper.BurnCoins(ctx, erc20types.ModuleName, coins); err != nil {
 			return err
 		}
 	}

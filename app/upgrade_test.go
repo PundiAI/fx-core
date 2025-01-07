@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"errors"
+	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/pundiai/fx-core/v8/app"
 	nextversion "github.com/pundiai/fx-core/v8/app/upgrades/v8"
+	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
@@ -82,8 +84,8 @@ func Test_UpgradeTestnet(t *testing.T) {
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
 	// 3. check the status after the upgrade
-	checkBridgeToken(t, ctx, myApp)
-	checkErc20Token(t, ctx, myApp)
+	checkPundixPurse(t, ctx, myApp)
+	checkTotalSupply(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -163,6 +165,8 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 
 	checkBridgeToken(t, ctx, myApp)
 	checkErc20Token(t, ctx, myApp)
+	checkPundixPurse(t, ctx, myApp)
+	checkTotalSupply(t, ctx, myApp)
 }
 
 func checkErc20Keys(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -327,6 +331,74 @@ func checkErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	}
 }
 
+func checkPundixPurse(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	erc20ModuleAddr := authtypes.NewModuleAddress(erc20types.ModuleName)
+	erc20Contract := contract.NewERC20TokenKeeper(myApp.EvmKeeper)
+	for _, denom := range []string{"pundix", "purse"} {
+		erc20Token, err := myApp.Erc20Keeper.GetERC20Token(ctx, denom)
+		require.NoError(t, err)
+
+		erc20TokenSupply, err := erc20Contract.TotalSupply(ctx, erc20Token.GetERC20Contract())
+		require.NoError(t, err)
+		if erc20TokenSupply.Cmp(big.NewInt(0)) <= 0 {
+			continue
+		}
+
+		balance := myApp.BankKeeper.GetBalance(ctx, erc20ModuleAddr, denom)
+		require.Equal(t, sdkmath.NewIntFromBigInt(erc20TokenSupply), balance.Amount)
+	}
+}
+
+func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	iter, err := myApp.Erc20Keeper.ERC20Token.Iterate(ctx, nil)
+	require.NoError(t, err)
+	defer iter.Close()
+
+	kvs, err := iter.KeyValues()
+	require.NoError(t, err)
+
+	erc20Tokens := make([]erc20types.ERC20Token, 0, len(kvs))
+	for _, kv := range kvs {
+		erc20Tokens = append(erc20Tokens, kv.Value)
+	}
+
+	for _, et := range erc20Tokens {
+		aliasDenoms := make([]string, 0, 10)
+
+		bridgeTokens, err := getBridgeToken(ctx, myApp, et.GetDenom())
+		require.NoError(t, err)
+		for _, bt := range bridgeTokens {
+			if bt.IsOrigin() || bt.IsNative {
+				continue
+			}
+			aliasDenoms = append(aliasDenoms, bt.BridgeDenom())
+		}
+
+		ibcTokens, err := getIBCTokens(ctx, myApp, et.GetDenom())
+		require.NoError(t, err)
+		for _, ibcToken := range ibcTokens {
+			aliasDenoms = append(aliasDenoms, ibcToken.GetIbcDenom())
+		}
+
+		if len(aliasDenoms) == 0 {
+			continue
+		}
+
+		aliasTotal := sdkmath.ZeroInt()
+		for _, denom := range aliasDenoms {
+			supply := myApp.BankKeeper.GetSupply(ctx, denom)
+			aliasTotal = aliasTotal.Add(supply.Amount)
+		}
+		baseSupply := myApp.BankKeeper.GetSupply(ctx, et.GetDenom())
+		baseSupply = getTestnetTokenAmount(ctx, baseSupply)
+		require.Equal(t, aliasTotal.String(), baseSupply.Amount.String(), baseSupply.Denom)
+	}
+}
+
 func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {
 	accountBalance := make(map[string]sdk.Coins)
 	moduleBalance := make(map[string]sdk.Coins)
@@ -377,4 +449,43 @@ func getIBCTokens(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20typ
 		tokens = append(tokens, kv.Value)
 	}
 	return tokens, nil
+}
+
+func getBridgeToken(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.BridgeToken, error) {
+	bridgeTokens := make([]erc20types.BridgeToken, 0, len(myApp.CrosschainKeepers.ToSlice()))
+	for _, ck := range myApp.CrosschainKeepers.ToSlice() {
+		key := collections.Join(ck.ModuleName(), baseDenom)
+		has, err := myApp.Erc20Keeper.BridgeToken.Has(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		if !has {
+			continue
+		}
+		bridgeToken, _ := myApp.Erc20Keeper.GetBridgeToken(ctx, ck.ModuleName(), baseDenom)
+		bridgeTokens = append(bridgeTokens, bridgeToken)
+	}
+	return bridgeTokens, nil
+}
+
+var fixTestnetTokensAmount = map[string]sdkmath.Int{
+	"atom/osmo":    nextversion.MustParseIntFromString("54386202508063381657"),
+	"stosmo/tosmo": nextversion.MustParseIntFromString("1740010000000000000000000"),
+	"tatom/tosmo":  nextversion.MustParseIntFromString("1700841000000000000000000"),
+	"uosmo":        nextversion.MustParseIntFromString("35005636"),
+	"usdc/tosmo":   nextversion.MustParseIntFromString("1730015000000000000000000"),
+	"wbtc/tosmo":   nextversion.MustParseIntFromString("1740010000000000000000000"),
+	"weth/tosmo":   nextversion.MustParseIntFromString("1700015000000000000000000"),
+}
+
+func getTestnetTokenAmount(ctx sdk.Context, coin sdk.Coin) sdk.Coin {
+	if ctx.ChainID() == fxtypes.MainnetChainId {
+		return coin
+	}
+	amount, ok := fixTestnetTokensAmount[coin.Denom]
+	if !ok {
+		return coin
+	}
+	coin.Amount = coin.Amount.Sub(amount)
+	return coin
 }

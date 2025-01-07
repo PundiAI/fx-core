@@ -13,7 +13,7 @@ import (
 )
 
 var Upgrade = upgrades.Upgrade{
-	UpgradeName:          "v8.1.x",
+	UpgradeName:          "v8.2.x",
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: func() *storetypes.StoreUpgrades {
 		return &storetypes.StoreUpgrades{
@@ -61,6 +61,27 @@ func getContractOwner(ctx sdk.Context) common.Address {
 }
 
 const (
+	pundixBase   = "pundix"
+	purseBase    = "purse"
 	pundixSymbol = "PUNDIX"
 	purseSymbol  = "PURSE"
 )
+
+func getTestnetTokenAmount(ctx sdk.Context) map[string]sdkmath.Int {
+	if ctx.ChainID() == fxtypes.MainnetChainId {
+		panic("invalid network")
+	}
+	return map[string]sdkmath.Int{
+		"pundix": MustParseIntFromString("-1000293000000000000000000"),
+		"usdt":   MustParseIntFromString("11393262155154370"),
+		"weth":   MustParseIntFromString("-420003263000000000"),
+	}
+}
+
+func MustParseIntFromString(s string) sdkmath.Int {
+	res, ok := sdkmath.NewIntFromString(s)
+	if !ok {
+		panic("invalid integer conversion")
+	}
+	return res
+}
