@@ -88,7 +88,7 @@ message MsgToggleTokenConversionResponse {
 
 message MsgRegisterNativeCoin {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name) = "erc20/MsgUpdateParams";
+  option (amino.name) = "erc20/MsgRegisterNativeCoin";
 
   // authority is the address of the governance account.
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
@@ -104,7 +104,7 @@ message MsgRegisterNativeCoinResponse {
 
 message MsgRegisterNativeERC20 {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name) = "erc20/MsgUpdateParams";
+  option (amino.name) = "erc20/MsgRegisterNativeERC20";
 
   // authority is the address of the governance account.
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
@@ -118,7 +118,7 @@ message MsgRegisterNativeERC20Response {
 
 message MsgUpdateBridgeToken {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name) = "erc20/MsgUpdateParams";
+  option (amino.name) = "erc20/MsgUpdateBridgeToken";
 
   // authority is the address of the governance account.
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];

@@ -133,7 +133,7 @@ func (m *MsgUpdateBridgeToken) ValidateBasic() error {
 	}
 
 	if err := fxtypes.ValidateExternalAddr(m.ChainName, m.ContractAddress); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrapf("invad contract address: %s", m.ContractAddress)
+		return sdkerrors.ErrInvalidRequest.Wrapf("invalid contract address: %s", m.ContractAddress)
 	}
 	return nil
 }
