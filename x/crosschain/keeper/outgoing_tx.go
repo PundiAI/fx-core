@@ -34,7 +34,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, rec
 	if err != nil {
 		return 0, err
 	}
-	if err = k.WithdrawBridgeToken(ctx, sender, amount.Amount, bridgeToken); err != nil {
+	if err = k.WithdrawBridgeToken(ctx, sender, amount.Amount.Add(fee.Amount), bridgeToken); err != nil {
 		return 0, err
 	}
 
