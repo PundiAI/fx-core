@@ -345,6 +345,20 @@ func (m *MockErc20Keeper) EXPECT() *MockErc20KeeperMockRecorder {
 	return m.recorder
 }
 
+// AddBridgeToken mocks base method.
+func (m *MockErc20Keeper) AddBridgeToken(ctx context.Context, baseDenom, chainName, contract string, isNative bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddBridgeToken", ctx, baseDenom, chainName, contract, isNative)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddBridgeToken indicates an expected call of AddBridgeToken.
+func (mr *MockErc20KeeperMockRecorder) AddBridgeToken(ctx, baseDenom, chainName, contract, isNative any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddBridgeToken", reflect.TypeOf((*MockErc20Keeper)(nil).AddBridgeToken), ctx, baseDenom, chainName, contract, isNative)
+}
+
 // BaseCoinToEvm mocks base method.
 func (m *MockErc20Keeper) BaseCoinToEvm(ctx context.Context, holder common.Address, coin types.Coin) (string, error) {
 	m.ctrl.T.Helper()
@@ -477,21 +491,6 @@ func (m *MockErc20Keeper) HasCache(ctx context.Context, key string) (bool, error
 func (mr *MockErc20KeeperMockRecorder) HasCache(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasCache", reflect.TypeOf((*MockErc20Keeper)(nil).HasCache), ctx, key)
-}
-
-// HasToken mocks base method.
-func (m *MockErc20Keeper) HasToken(ctx context.Context, token string) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasToken", ctx, token)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HasToken indicates an expected call of HasToken.
-func (mr *MockErc20KeeperMockRecorder) HasToken(ctx, token any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasToken", reflect.TypeOf((*MockErc20Keeper)(nil).HasToken), ctx, token)
 }
 
 // ReSetCache mocks base method.

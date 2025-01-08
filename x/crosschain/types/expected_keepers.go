@@ -53,13 +53,13 @@ type Erc20Keeper interface {
 	GetCache(ctx context.Context, key string) (sdkmath.Int, error)
 	ReSetCache(ctx context.Context, oldKey, newKey string) error
 
-	HasToken(ctx context.Context, token string) (bool, error)
 	GetBaseDenom(ctx context.Context, token string) (string, error)
 
 	GetERC20Token(ctx context.Context, baseDenom string) (erc20types.ERC20Token, error)
 
 	GetBridgeToken(ctx context.Context, chainName, baseDenom string) (erc20types.BridgeToken, error)
 	GetBridgeTokens(ctx context.Context, chainName string) ([]erc20types.BridgeToken, error)
+	AddBridgeToken(ctx context.Context, baseDenom, chainName, contract string, isNative bool) error
 
 	GetIBCToken(ctx context.Context, channel, baseDenom string) (erc20types.IBCToken, error)
 }

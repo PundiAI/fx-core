@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,28 +15,15 @@ import (
 func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTokenClaim) error {
 	k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract)
 
-	// Check if it already exists
-	bridgeDenom := types.NewBridgeDenom(k.moduleName, claim.TokenContract)
-	has, err := k.erc20Keeper.HasToken(ctx, bridgeDenom)
-	if err != nil {
-		return err
-	}
-	if has {
-		return types.ErrInvalid.Wrapf("bridge token is exist %s", bridgeDenom)
+	if claim.Symbol == fxtypes.DefaultDenom {
+		if uint64(fxtypes.DenomUnit) != claim.Decimals {
+			return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d",
+				fxtypes.DefaultDenom, claim.Decimals, fxtypes.DenomUnit)
+		}
+		return k.erc20Keeper.AddBridgeToken(ctx, claim.Symbol, k.moduleName, claim.TokenContract, true)
 	}
 
-	if claim.Symbol == fxtypes.DefaultDenom && uint64(fxtypes.DenomUnit) != claim.Decimals {
-		return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d",
-			fxtypes.DefaultDenom, claim.Decimals, fxtypes.DenomUnit)
-	}
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, claim.Symbol)
-	if err != nil {
-		return err
-	}
-	if bridgeToken.Contract != claim.TokenContract {
-		return types.ErrInvalid.Wrapf("bridge token contract not match %s, expect %s", bridgeToken.Contract, claim.TokenContract)
-	}
-	return nil
+	return k.erc20Keeper.AddBridgeToken(ctx, strings.ToLower(claim.Symbol), k.moduleName, claim.TokenContract, false)
 }
 
 func (k Keeper) BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error) {
