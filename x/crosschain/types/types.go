@@ -16,6 +16,7 @@ import (
 
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func NewDelegateAmount(amount sdkmath.Int) sdk.Coin {
@@ -490,7 +491,7 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 }
 
 func NewBridgeDenom(moduleName, token string) string {
-	return fmt.Sprintf("%s%s", moduleName, token)
+	return erc20types.NewBridgeDenom(moduleName, token)
 }
 
 func (m *MsgBridgeCallClaim) GetERC20Tokens() []ERC20Token {

@@ -384,6 +384,7 @@ func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
 	return m.validate()
 }
 
+//nolint:gocyclo // validate
 func (m *MsgBridgeCallClaim) validate() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
@@ -399,6 +400,9 @@ func (m *MsgBridgeCallClaim) validate() (err error) {
 	}
 	if m.QuoteId.IsNil() || m.QuoteId.IsNegative() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid quote ID")
+	}
+	if m.GasLimit.IsNil() || m.GasLimit.IsNegative() {
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid gas limit")
 	}
 	if len(m.Data) > 0 {
 		if _, err = hex.DecodeString(m.Data); err != nil {

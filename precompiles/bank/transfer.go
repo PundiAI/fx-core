@@ -40,7 +40,7 @@ func (m *TransferFromModuleToAccountMethod) RequiredGas() uint64 {
 
 func (m *TransferFromModuleToAccountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	accessControlKeeper := fxcontract.NewAccessControlKeeper(pretypes.NewVMCall(evm, contract), fxcontract.AccessControlAddress)
-	has, err := accessControlKeeper.HasRole(context.TODO(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
+	has, err := accessControlKeeper.HasRole(context.Background(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (m *TransferFromAccountToModuleMethod) RequiredGas() uint64 {
 
 func (m *TransferFromAccountToModuleMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
 	accessControlKeeper := fxcontract.NewAccessControlKeeper(pretypes.NewVMCall(evm, contract), fxcontract.AccessControlAddress)
-	has, err := accessControlKeeper.HasRole(context.TODO(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
+	has, err := accessControlKeeper.HasRole(context.Background(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
 	if err != nil {
 		return nil, err
 	}
