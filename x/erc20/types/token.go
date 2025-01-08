@@ -26,7 +26,7 @@ func (m *BridgeToken) BridgeDenom() string {
 	if m.IsOrigin() {
 		return m.Denom
 	}
-	return fmt.Sprintf("%s%s", m.ChainName, m.Contract) // TODO: replace with crosschaintypes.NewBridgeToken
+	return NewBridgeDenom(m.ChainName, m.Contract)
 }
 
 func (m *BridgeToken) IsOrigin() bool {
@@ -35,4 +35,8 @@ func (m *BridgeToken) IsOrigin() bool {
 
 func (m *BridgeToken) GetContractAddress() common.Address {
 	return common.HexToAddress(m.Contract)
+}
+
+func NewBridgeDenom(moduleName, token string) string {
+	return fmt.Sprintf("%s%s", moduleName, token)
 }
