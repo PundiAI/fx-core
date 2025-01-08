@@ -31,8 +31,9 @@ type Keeper struct {
 	bridgeFeeQuoteKeeper types.BridgeFeeQuoteKeeper
 	erc20TokenKeeper     types.ERC20TokenKeeper
 
-	authority    string
-	callbackFrom common.Address
+	authority          string
+	callbackFrom       common.Address
+	bridgeFeeCollector sdk.AccAddress
 }
 
 // NewKeeper returns a new instance of the gravity keeper
@@ -61,8 +62,9 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		bridgeFeeQuoteKeeper: bridgeFeeQuoteKeeper,
 		erc20TokenKeeper:     evmErc20Keeper,
 
-		authority:    authority,
-		callbackFrom: common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeCallSender)),
+		authority:          authority,
+		callbackFrom:       common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeCallSender)),
+		bridgeFeeCollector: autytypes.NewModuleAddress(types.BridgeFeeCollectorName),
 	}
 }
 
@@ -72,10 +74,6 @@ func (k Keeper) GetAuthority() string {
 
 func (k Keeper) GetCallbackFrom() common.Address {
 	return k.callbackFrom
-}
-
-func (k Keeper) GetModuleEvmAddress() common.Address {
-	return common.BytesToAddress(k.ak.GetModuleAddress(k.moduleName))
 }
 
 // Logger returns a module-specific logger.

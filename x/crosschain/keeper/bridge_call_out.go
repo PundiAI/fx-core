@@ -121,7 +121,7 @@ func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeC
 		return err
 	}
 
-	if err := k.TransferQuoteFeeToRelayer(ctx, claim.Nonce); err != nil {
+	if err := k.TransferBridgeFeeToRelayer(ctx, claim.Nonce); err != nil {
 		return err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -318,7 +318,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 		}
 		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)
 
-		if err = k.handleBridgeCallOutQuote(ctx, from, nonce, quoteId, gasLimit); err != nil {
+		if err = k.handlerBridgeCallOutFee(ctx, from, nonce, quoteId, gasLimit); err != nil {
 			return 0, err
 		}
 	}
@@ -383,63 +383,36 @@ func (k Keeper) IBCTransfer(
 	return transferResponse.Sequence, nil
 }
 
-func (k Keeper) handleBridgeCallOutQuote(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
-	if quoteId == nil || quoteId.Sign() <= 0 || gasLimit == nil || gasLimit.Sign() <= 0 {
+func (k Keeper) handlerBridgeCallOutFee(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
+	if quoteId == nil || quoteId.Sign() <= 0 {
+		// Users can send submitBridgeCall by themselves without paying
 		return nil
 	}
 
-	contractQuote, err := k.validatorQuoteGasLimit(ctx, quoteId, gasLimit)
+	quote, err := k.ValidateQuote(ctx, quoteId, gasLimit)
 	if err != nil {
 		return err
 	}
 
-	// transfer fee to module
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, contractQuote.TokenName)
-	if err != nil {
+	bridgeFeeAddr := common.BytesToAddress(k.bridgeFeeCollector)
+	if err = k.TransferBridgeFee(ctx, from, bridgeFeeAddr, quote.Fee, quote.TokenName); err != nil {
 		return err
 	}
 
-	if bridgeToken.IsOrigin() {
-		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(contractQuote.Fee)))
-		if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from.Bytes(), k.moduleName, fees); err != nil {
-			return err
-		}
-	} else {
-		if _, err = k.erc20TokenKeeper.Transfer(ctx, bridgeToken.GetContractAddress(), from, k.GetModuleEvmAddress(), contractQuote.Fee); err != nil {
-			return err
-		}
-	}
-
-	k.SetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce, types.NewQuoteInfo(contractQuote))
+	k.SetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce, types.NewQuoteInfo(quote))
 	return nil
 }
 
-func (k Keeper) TransferQuoteFeeToRelayer(ctx sdk.Context, bridgeCallNonce uint64) error {
-	quoteInfo, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
+func (k Keeper) TransferBridgeFeeToRelayer(ctx sdk.Context, bridgeCallNonce uint64) error {
+	quote, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
 	if !found {
 		return nil
 	}
 
 	k.DeleteOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
 
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, quoteInfo.Token)
-	if err != nil {
-		return err
-	}
-
-	quoteOracle := quoteInfo.OracleAddress()
-	if bridgeToken.IsOrigin() {
-		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, quoteInfo.Fee))
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, quoteOracle.Bytes(), fees); err != nil {
-			return err
-		}
-	} else {
-		if _, err = k.erc20TokenKeeper.Transfer(ctx, bridgeToken.GetContractAddress(), k.GetModuleEvmAddress(), quoteOracle, quoteInfo.Fee.BigInt()); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	bridgeFeeAddr := common.BytesToAddress(k.bridgeFeeCollector)
+	return k.TransferBridgeFee(ctx, bridgeFeeAddr, quote.OracleAddress(), quote.Fee.BigInt(), quote.Token)
 }
 
 func (k Keeper) SetOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64, quoteInfo types.QuoteInfo) {
