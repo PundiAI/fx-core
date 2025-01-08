@@ -4661,37 +4661,37 @@ func (x *fastReflection_MsgRegisterNativeERC20Response) ProtoMethods() *protoifa
 }
 
 var (
-	md_MsgUpdateBridgeToken                  protoreflect.MessageDescriptor
-	fd_MsgUpdateBridgeToken_authority        protoreflect.FieldDescriptor
-	fd_MsgUpdateBridgeToken_base_denom       protoreflect.FieldDescriptor
-	fd_MsgUpdateBridgeToken_channel          protoreflect.FieldDescriptor
-	fd_MsgUpdateBridgeToken_ibc_denom        protoreflect.FieldDescriptor
-	fd_MsgUpdateBridgeToken_chain_name       protoreflect.FieldDescriptor
-	fd_MsgUpdateBridgeToken_contract_address protoreflect.FieldDescriptor
-	fd_MsgUpdateBridgeToken_native_token     protoreflect.FieldDescriptor
+	md_MsgRegisterBridgeToken                  protoreflect.MessageDescriptor
+	fd_MsgRegisterBridgeToken_authority        protoreflect.FieldDescriptor
+	fd_MsgRegisterBridgeToken_base_denom       protoreflect.FieldDescriptor
+	fd_MsgRegisterBridgeToken_channel          protoreflect.FieldDescriptor
+	fd_MsgRegisterBridgeToken_ibc_denom        protoreflect.FieldDescriptor
+	fd_MsgRegisterBridgeToken_chain_name       protoreflect.FieldDescriptor
+	fd_MsgRegisterBridgeToken_contract_address protoreflect.FieldDescriptor
+	fd_MsgRegisterBridgeToken_native_token     protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_fx_erc20_v1_tx_proto_init()
-	md_MsgUpdateBridgeToken = File_fx_erc20_v1_tx_proto.Messages().ByName("MsgUpdateBridgeToken")
-	fd_MsgUpdateBridgeToken_authority = md_MsgUpdateBridgeToken.Fields().ByName("authority")
-	fd_MsgUpdateBridgeToken_base_denom = md_MsgUpdateBridgeToken.Fields().ByName("base_denom")
-	fd_MsgUpdateBridgeToken_channel = md_MsgUpdateBridgeToken.Fields().ByName("channel")
-	fd_MsgUpdateBridgeToken_ibc_denom = md_MsgUpdateBridgeToken.Fields().ByName("ibc_denom")
-	fd_MsgUpdateBridgeToken_chain_name = md_MsgUpdateBridgeToken.Fields().ByName("chain_name")
-	fd_MsgUpdateBridgeToken_contract_address = md_MsgUpdateBridgeToken.Fields().ByName("contract_address")
-	fd_MsgUpdateBridgeToken_native_token = md_MsgUpdateBridgeToken.Fields().ByName("native_token")
+	md_MsgRegisterBridgeToken = File_fx_erc20_v1_tx_proto.Messages().ByName("MsgRegisterBridgeToken")
+	fd_MsgRegisterBridgeToken_authority = md_MsgRegisterBridgeToken.Fields().ByName("authority")
+	fd_MsgRegisterBridgeToken_base_denom = md_MsgRegisterBridgeToken.Fields().ByName("base_denom")
+	fd_MsgRegisterBridgeToken_channel = md_MsgRegisterBridgeToken.Fields().ByName("channel")
+	fd_MsgRegisterBridgeToken_ibc_denom = md_MsgRegisterBridgeToken.Fields().ByName("ibc_denom")
+	fd_MsgRegisterBridgeToken_chain_name = md_MsgRegisterBridgeToken.Fields().ByName("chain_name")
+	fd_MsgRegisterBridgeToken_contract_address = md_MsgRegisterBridgeToken.Fields().ByName("contract_address")
+	fd_MsgRegisterBridgeToken_native_token = md_MsgRegisterBridgeToken.Fields().ByName("native_token")
 }
 
-var _ protoreflect.Message = (*fastReflection_MsgUpdateBridgeToken)(nil)
+var _ protoreflect.Message = (*fastReflection_MsgRegisterBridgeToken)(nil)
 
-type fastReflection_MsgUpdateBridgeToken MsgUpdateBridgeToken
+type fastReflection_MsgRegisterBridgeToken MsgRegisterBridgeToken
 
-func (x *MsgUpdateBridgeToken) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_MsgUpdateBridgeToken)(x)
+func (x *MsgRegisterBridgeToken) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_MsgRegisterBridgeToken)(x)
 }
 
-func (x *MsgUpdateBridgeToken) slowProtoReflect() protoreflect.Message {
+func (x *MsgRegisterBridgeToken) slowProtoReflect() protoreflect.Message {
 	mi := &file_fx_erc20_v1_tx_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4703,43 +4703,43 @@ func (x *MsgUpdateBridgeToken) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateBridgeToken_messageType fastReflection_MsgUpdateBridgeToken_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateBridgeToken_messageType{}
+var _fastReflection_MsgRegisterBridgeToken_messageType fastReflection_MsgRegisterBridgeToken_messageType
+var _ protoreflect.MessageType = fastReflection_MsgRegisterBridgeToken_messageType{}
 
-type fastReflection_MsgUpdateBridgeToken_messageType struct{}
+type fastReflection_MsgRegisterBridgeToken_messageType struct{}
 
-func (x fastReflection_MsgUpdateBridgeToken_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_MsgUpdateBridgeToken)(nil)
+func (x fastReflection_MsgRegisterBridgeToken_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_MsgRegisterBridgeToken)(nil)
 }
-func (x fastReflection_MsgUpdateBridgeToken_messageType) New() protoreflect.Message {
-	return new(fastReflection_MsgUpdateBridgeToken)
+func (x fastReflection_MsgRegisterBridgeToken_messageType) New() protoreflect.Message {
+	return new(fastReflection_MsgRegisterBridgeToken)
 }
-func (x fastReflection_MsgUpdateBridgeToken_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgUpdateBridgeToken
+func (x fastReflection_MsgRegisterBridgeToken_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgRegisterBridgeToken
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_MsgUpdateBridgeToken) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgUpdateBridgeToken
+func (x *fastReflection_MsgRegisterBridgeToken) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgRegisterBridgeToken
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_MsgUpdateBridgeToken) Type() protoreflect.MessageType {
-	return _fastReflection_MsgUpdateBridgeToken_messageType
+func (x *fastReflection_MsgRegisterBridgeToken) Type() protoreflect.MessageType {
+	return _fastReflection_MsgRegisterBridgeToken_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_MsgUpdateBridgeToken) New() protoreflect.Message {
-	return new(fastReflection_MsgUpdateBridgeToken)
+func (x *fastReflection_MsgRegisterBridgeToken) New() protoreflect.Message {
+	return new(fastReflection_MsgRegisterBridgeToken)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_MsgUpdateBridgeToken) Interface() protoreflect.ProtoMessage {
-	return (*MsgUpdateBridgeToken)(x)
+func (x *fastReflection_MsgRegisterBridgeToken) Interface() protoreflect.ProtoMessage {
+	return (*MsgRegisterBridgeToken)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -4747,46 +4747,46 @@ func (x *fastReflection_MsgUpdateBridgeToken) Interface() protoreflect.ProtoMess
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_MsgUpdateBridgeToken) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_MsgRegisterBridgeToken) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.Authority != "" {
 		value := protoreflect.ValueOfString(x.Authority)
-		if !f(fd_MsgUpdateBridgeToken_authority, value) {
+		if !f(fd_MsgRegisterBridgeToken_authority, value) {
 			return
 		}
 	}
 	if x.BaseDenom != "" {
 		value := protoreflect.ValueOfString(x.BaseDenom)
-		if !f(fd_MsgUpdateBridgeToken_base_denom, value) {
+		if !f(fd_MsgRegisterBridgeToken_base_denom, value) {
 			return
 		}
 	}
 	if x.Channel != "" {
 		value := protoreflect.ValueOfString(x.Channel)
-		if !f(fd_MsgUpdateBridgeToken_channel, value) {
+		if !f(fd_MsgRegisterBridgeToken_channel, value) {
 			return
 		}
 	}
 	if x.IbcDenom != "" {
 		value := protoreflect.ValueOfString(x.IbcDenom)
-		if !f(fd_MsgUpdateBridgeToken_ibc_denom, value) {
+		if !f(fd_MsgRegisterBridgeToken_ibc_denom, value) {
 			return
 		}
 	}
 	if x.ChainName != "" {
 		value := protoreflect.ValueOfString(x.ChainName)
-		if !f(fd_MsgUpdateBridgeToken_chain_name, value) {
+		if !f(fd_MsgRegisterBridgeToken_chain_name, value) {
 			return
 		}
 	}
 	if x.ContractAddress != "" {
 		value := protoreflect.ValueOfString(x.ContractAddress)
-		if !f(fd_MsgUpdateBridgeToken_contract_address, value) {
+		if !f(fd_MsgRegisterBridgeToken_contract_address, value) {
 			return
 		}
 	}
 	if x.NativeToken != false {
 		value := protoreflect.ValueOfBool(x.NativeToken)
-		if !f(fd_MsgUpdateBridgeToken_native_token, value) {
+		if !f(fd_MsgRegisterBridgeToken_native_token, value) {
 			return
 		}
 	}
@@ -4803,27 +4803,27 @@ func (x *fastReflection_MsgUpdateBridgeToken) Range(f func(protoreflect.FieldDes
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_MsgUpdateBridgeToken) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_MsgRegisterBridgeToken) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fx.erc20.v1.MsgUpdateBridgeToken.authority":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.authority":
 		return x.Authority != ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.base_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.base_denom":
 		return x.BaseDenom != ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.channel":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.channel":
 		return x.Channel != ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.ibc_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.ibc_denom":
 		return x.IbcDenom != ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.chain_name":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.chain_name":
 		return x.ChainName != ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.contract_address":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.contract_address":
 		return x.ContractAddress != ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.native_token":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.native_token":
 		return x.NativeToken != false
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeToken"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeToken"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeToken does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeToken does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4833,27 +4833,27 @@ func (x *fastReflection_MsgUpdateBridgeToken) Has(fd protoreflect.FieldDescripto
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeToken) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_MsgRegisterBridgeToken) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.MsgUpdateBridgeToken.authority":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.authority":
 		x.Authority = ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.base_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.base_denom":
 		x.BaseDenom = ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.channel":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.channel":
 		x.Channel = ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.ibc_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.ibc_denom":
 		x.IbcDenom = ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.chain_name":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.chain_name":
 		x.ChainName = ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.contract_address":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.contract_address":
 		x.ContractAddress = ""
-	case "fx.erc20.v1.MsgUpdateBridgeToken.native_token":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.native_token":
 		x.NativeToken = false
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeToken"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeToken"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeToken does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeToken does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4863,34 +4863,34 @@ func (x *fastReflection_MsgUpdateBridgeToken) Clear(fd protoreflect.FieldDescrip
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_MsgUpdateBridgeToken) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MsgRegisterBridgeToken) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fx.erc20.v1.MsgUpdateBridgeToken.authority":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.authority":
 		value := x.Authority
 		return protoreflect.ValueOfString(value)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.base_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.base_denom":
 		value := x.BaseDenom
 		return protoreflect.ValueOfString(value)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.channel":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.channel":
 		value := x.Channel
 		return protoreflect.ValueOfString(value)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.ibc_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.ibc_denom":
 		value := x.IbcDenom
 		return protoreflect.ValueOfString(value)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.chain_name":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.chain_name":
 		value := x.ChainName
 		return protoreflect.ValueOfString(value)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.contract_address":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.contract_address":
 		value := x.ContractAddress
 		return protoreflect.ValueOfString(value)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.native_token":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.native_token":
 		value := x.NativeToken
 		return protoreflect.ValueOfBool(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeToken"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeToken"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeToken does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeToken does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -4904,27 +4904,27 @@ func (x *fastReflection_MsgUpdateBridgeToken) Get(descriptor protoreflect.FieldD
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeToken) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_MsgRegisterBridgeToken) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.MsgUpdateBridgeToken.authority":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.authority":
 		x.Authority = value.Interface().(string)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.base_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.base_denom":
 		x.BaseDenom = value.Interface().(string)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.channel":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.channel":
 		x.Channel = value.Interface().(string)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.ibc_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.ibc_denom":
 		x.IbcDenom = value.Interface().(string)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.chain_name":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.chain_name":
 		x.ChainName = value.Interface().(string)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.contract_address":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.contract_address":
 		x.ContractAddress = value.Interface().(string)
-	case "fx.erc20.v1.MsgUpdateBridgeToken.native_token":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.native_token":
 		x.NativeToken = value.Bool()
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeToken"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeToken"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeToken does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeToken does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4938,64 +4938,64 @@ func (x *fastReflection_MsgUpdateBridgeToken) Set(fd protoreflect.FieldDescripto
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeToken) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MsgRegisterBridgeToken) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.MsgUpdateBridgeToken.authority":
-		panic(fmt.Errorf("field authority of message fx.erc20.v1.MsgUpdateBridgeToken is not mutable"))
-	case "fx.erc20.v1.MsgUpdateBridgeToken.base_denom":
-		panic(fmt.Errorf("field base_denom of message fx.erc20.v1.MsgUpdateBridgeToken is not mutable"))
-	case "fx.erc20.v1.MsgUpdateBridgeToken.channel":
-		panic(fmt.Errorf("field channel of message fx.erc20.v1.MsgUpdateBridgeToken is not mutable"))
-	case "fx.erc20.v1.MsgUpdateBridgeToken.ibc_denom":
-		panic(fmt.Errorf("field ibc_denom of message fx.erc20.v1.MsgUpdateBridgeToken is not mutable"))
-	case "fx.erc20.v1.MsgUpdateBridgeToken.chain_name":
-		panic(fmt.Errorf("field chain_name of message fx.erc20.v1.MsgUpdateBridgeToken is not mutable"))
-	case "fx.erc20.v1.MsgUpdateBridgeToken.contract_address":
-		panic(fmt.Errorf("field contract_address of message fx.erc20.v1.MsgUpdateBridgeToken is not mutable"))
-	case "fx.erc20.v1.MsgUpdateBridgeToken.native_token":
-		panic(fmt.Errorf("field native_token of message fx.erc20.v1.MsgUpdateBridgeToken is not mutable"))
+	case "fx.erc20.v1.MsgRegisterBridgeToken.authority":
+		panic(fmt.Errorf("field authority of message fx.erc20.v1.MsgRegisterBridgeToken is not mutable"))
+	case "fx.erc20.v1.MsgRegisterBridgeToken.base_denom":
+		panic(fmt.Errorf("field base_denom of message fx.erc20.v1.MsgRegisterBridgeToken is not mutable"))
+	case "fx.erc20.v1.MsgRegisterBridgeToken.channel":
+		panic(fmt.Errorf("field channel of message fx.erc20.v1.MsgRegisterBridgeToken is not mutable"))
+	case "fx.erc20.v1.MsgRegisterBridgeToken.ibc_denom":
+		panic(fmt.Errorf("field ibc_denom of message fx.erc20.v1.MsgRegisterBridgeToken is not mutable"))
+	case "fx.erc20.v1.MsgRegisterBridgeToken.chain_name":
+		panic(fmt.Errorf("field chain_name of message fx.erc20.v1.MsgRegisterBridgeToken is not mutable"))
+	case "fx.erc20.v1.MsgRegisterBridgeToken.contract_address":
+		panic(fmt.Errorf("field contract_address of message fx.erc20.v1.MsgRegisterBridgeToken is not mutable"))
+	case "fx.erc20.v1.MsgRegisterBridgeToken.native_token":
+		panic(fmt.Errorf("field native_token of message fx.erc20.v1.MsgRegisterBridgeToken is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeToken"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeToken"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeToken does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeToken does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_MsgUpdateBridgeToken) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MsgRegisterBridgeToken) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.MsgUpdateBridgeToken.authority":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.authority":
 		return protoreflect.ValueOfString("")
-	case "fx.erc20.v1.MsgUpdateBridgeToken.base_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.base_denom":
 		return protoreflect.ValueOfString("")
-	case "fx.erc20.v1.MsgUpdateBridgeToken.channel":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.channel":
 		return protoreflect.ValueOfString("")
-	case "fx.erc20.v1.MsgUpdateBridgeToken.ibc_denom":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.ibc_denom":
 		return protoreflect.ValueOfString("")
-	case "fx.erc20.v1.MsgUpdateBridgeToken.chain_name":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.chain_name":
 		return protoreflect.ValueOfString("")
-	case "fx.erc20.v1.MsgUpdateBridgeToken.contract_address":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.contract_address":
 		return protoreflect.ValueOfString("")
-	case "fx.erc20.v1.MsgUpdateBridgeToken.native_token":
+	case "fx.erc20.v1.MsgRegisterBridgeToken.native_token":
 		return protoreflect.ValueOfBool(false)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeToken"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeToken"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeToken does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeToken does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_MsgUpdateBridgeToken) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_MsgRegisterBridgeToken) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.MsgUpdateBridgeToken", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.MsgRegisterBridgeToken", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -5003,7 +5003,7 @@ func (x *fastReflection_MsgUpdateBridgeToken) WhichOneof(d protoreflect.OneofDes
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_MsgUpdateBridgeToken) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_MsgRegisterBridgeToken) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -5014,7 +5014,7 @@ func (x *fastReflection_MsgUpdateBridgeToken) GetUnknown() protoreflect.RawField
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeToken) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_MsgRegisterBridgeToken) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -5026,7 +5026,7 @@ func (x *fastReflection_MsgUpdateBridgeToken) SetUnknown(fields protoreflect.Raw
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_MsgUpdateBridgeToken) IsValid() bool {
+func (x *fastReflection_MsgRegisterBridgeToken) IsValid() bool {
 	return x != nil
 }
 
@@ -5036,9 +5036,9 @@ func (x *fastReflection_MsgUpdateBridgeToken) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_MsgUpdateBridgeToken) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_MsgRegisterBridgeToken) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*MsgUpdateBridgeToken)
+		x := input.Message.Interface().(*MsgRegisterBridgeToken)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -5087,7 +5087,7 @@ func (x *fastReflection_MsgUpdateBridgeToken) ProtoMethods() *protoiface.Methods
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*MsgUpdateBridgeToken)
+		x := input.Message.Interface().(*MsgRegisterBridgeToken)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -5169,7 +5169,7 @@ func (x *fastReflection_MsgUpdateBridgeToken) ProtoMethods() *protoiface.Methods
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*MsgUpdateBridgeToken)
+		x := input.Message.Interface().(*MsgRegisterBridgeToken)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -5201,10 +5201,10 @@ func (x *fastReflection_MsgUpdateBridgeToken) ProtoMethods() *protoiface.Methods
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgUpdateBridgeToken: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterBridgeToken: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgUpdateBridgeToken: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterBridgeToken: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -5455,23 +5455,23 @@ func (x *fastReflection_MsgUpdateBridgeToken) ProtoMethods() *protoiface.Methods
 }
 
 var (
-	md_MsgUpdateBridgeTokenResponse protoreflect.MessageDescriptor
+	md_MsgRegisterBridgeTokenResponse protoreflect.MessageDescriptor
 )
 
 func init() {
 	file_fx_erc20_v1_tx_proto_init()
-	md_MsgUpdateBridgeTokenResponse = File_fx_erc20_v1_tx_proto.Messages().ByName("MsgUpdateBridgeTokenResponse")
+	md_MsgRegisterBridgeTokenResponse = File_fx_erc20_v1_tx_proto.Messages().ByName("MsgRegisterBridgeTokenResponse")
 }
 
-var _ protoreflect.Message = (*fastReflection_MsgUpdateBridgeTokenResponse)(nil)
+var _ protoreflect.Message = (*fastReflection_MsgRegisterBridgeTokenResponse)(nil)
 
-type fastReflection_MsgUpdateBridgeTokenResponse MsgUpdateBridgeTokenResponse
+type fastReflection_MsgRegisterBridgeTokenResponse MsgRegisterBridgeTokenResponse
 
-func (x *MsgUpdateBridgeTokenResponse) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_MsgUpdateBridgeTokenResponse)(x)
+func (x *MsgRegisterBridgeTokenResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_MsgRegisterBridgeTokenResponse)(x)
 }
 
-func (x *MsgUpdateBridgeTokenResponse) slowProtoReflect() protoreflect.Message {
+func (x *MsgRegisterBridgeTokenResponse) slowProtoReflect() protoreflect.Message {
 	mi := &file_fx_erc20_v1_tx_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -5483,43 +5483,43 @@ func (x *MsgUpdateBridgeTokenResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateBridgeTokenResponse_messageType fastReflection_MsgUpdateBridgeTokenResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateBridgeTokenResponse_messageType{}
+var _fastReflection_MsgRegisterBridgeTokenResponse_messageType fastReflection_MsgRegisterBridgeTokenResponse_messageType
+var _ protoreflect.MessageType = fastReflection_MsgRegisterBridgeTokenResponse_messageType{}
 
-type fastReflection_MsgUpdateBridgeTokenResponse_messageType struct{}
+type fastReflection_MsgRegisterBridgeTokenResponse_messageType struct{}
 
-func (x fastReflection_MsgUpdateBridgeTokenResponse_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_MsgUpdateBridgeTokenResponse)(nil)
+func (x fastReflection_MsgRegisterBridgeTokenResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_MsgRegisterBridgeTokenResponse)(nil)
 }
-func (x fastReflection_MsgUpdateBridgeTokenResponse_messageType) New() protoreflect.Message {
-	return new(fastReflection_MsgUpdateBridgeTokenResponse)
+func (x fastReflection_MsgRegisterBridgeTokenResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_MsgRegisterBridgeTokenResponse)
 }
-func (x fastReflection_MsgUpdateBridgeTokenResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgUpdateBridgeTokenResponse
+func (x fastReflection_MsgRegisterBridgeTokenResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgRegisterBridgeTokenResponse
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgUpdateBridgeTokenResponse
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_MsgRegisterBridgeTokenResponse
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Type() protoreflect.MessageType {
-	return _fastReflection_MsgUpdateBridgeTokenResponse_messageType
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Type() protoreflect.MessageType {
+	return _fastReflection_MsgRegisterBridgeTokenResponse_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) New() protoreflect.Message {
-	return new(fastReflection_MsgUpdateBridgeTokenResponse)
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) New() protoreflect.Message {
+	return new(fastReflection_MsgRegisterBridgeTokenResponse)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Interface() protoreflect.ProtoMessage {
-	return (*MsgUpdateBridgeTokenResponse)(x)
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Interface() protoreflect.ProtoMessage {
+	return (*MsgRegisterBridgeTokenResponse)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -5527,7 +5527,7 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) Interface() protoreflect.P
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 }
 
 // Has reports whether a field is populated.
@@ -5541,13 +5541,13 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) Range(f func(protoreflect.
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeTokenResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeTokenResponse"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeTokenResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeTokenResponse does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -5557,13 +5557,13 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) Has(fd protoreflect.FieldD
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeTokenResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeTokenResponse"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeTokenResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeTokenResponse does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -5573,13 +5573,13 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) Clear(fd protoreflect.Fiel
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeTokenResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeTokenResponse"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeTokenResponse does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeTokenResponse does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -5593,13 +5593,13 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) Get(descriptor protoreflec
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeTokenResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeTokenResponse"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeTokenResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeTokenResponse does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -5613,36 +5613,36 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) Set(fd protoreflect.FieldD
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeTokenResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeTokenResponse"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeTokenResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeTokenResponse does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgUpdateBridgeTokenResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterBridgeTokenResponse"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgUpdateBridgeTokenResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterBridgeTokenResponse does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.MsgUpdateBridgeTokenResponse", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.MsgRegisterBridgeTokenResponse", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -5650,7 +5650,7 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) WhichOneof(d protoreflect.
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -5661,7 +5661,7 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) GetUnknown() protoreflect.
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -5673,7 +5673,7 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) SetUnknown(fields protoref
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) IsValid() bool {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) IsValid() bool {
 	return x != nil
 }
 
@@ -5683,9 +5683,9 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_MsgUpdateBridgeTokenResponse) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_MsgRegisterBridgeTokenResponse) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*MsgUpdateBridgeTokenResponse)
+		x := input.Message.Interface().(*MsgRegisterBridgeTokenResponse)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -5707,7 +5707,7 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) ProtoMethods() *protoiface
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*MsgUpdateBridgeTokenResponse)
+		x := input.Message.Interface().(*MsgRegisterBridgeTokenResponse)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -5737,7 +5737,7 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) ProtoMethods() *protoiface
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*MsgUpdateBridgeTokenResponse)
+		x := input.Message.Interface().(*MsgRegisterBridgeTokenResponse)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -5769,10 +5769,10 @@ func (x *fastReflection_MsgUpdateBridgeTokenResponse) ProtoMethods() *protoiface
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgUpdateBridgeTokenResponse: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterBridgeTokenResponse: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgUpdateBridgeTokenResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterBridgeTokenResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			default:
@@ -6237,7 +6237,7 @@ func (x *MsgRegisterNativeERC20Response) GetErc20Token() *ERC20Token {
 	return nil
 }
 
-type MsgUpdateBridgeToken struct {
+type MsgRegisterBridgeToken struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -6252,8 +6252,8 @@ type MsgUpdateBridgeToken struct {
 	NativeToken     bool   `protobuf:"varint,7,opt,name=native_token,json=nativeToken,proto3" json:"native_token,omitempty"`
 }
 
-func (x *MsgUpdateBridgeToken) Reset() {
-	*x = MsgUpdateBridgeToken{}
+func (x *MsgRegisterBridgeToken) Reset() {
+	*x = MsgRegisterBridgeToken{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fx_erc20_v1_tx_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6261,74 +6261,74 @@ func (x *MsgUpdateBridgeToken) Reset() {
 	}
 }
 
-func (x *MsgUpdateBridgeToken) String() string {
+func (x *MsgRegisterBridgeToken) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MsgUpdateBridgeToken) ProtoMessage() {}
+func (*MsgRegisterBridgeToken) ProtoMessage() {}
 
-// Deprecated: Use MsgUpdateBridgeToken.ProtoReflect.Descriptor instead.
-func (*MsgUpdateBridgeToken) Descriptor() ([]byte, []int) {
+// Deprecated: Use MsgRegisterBridgeToken.ProtoReflect.Descriptor instead.
+func (*MsgRegisterBridgeToken) Descriptor() ([]byte, []int) {
 	return file_fx_erc20_v1_tx_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *MsgUpdateBridgeToken) GetAuthority() string {
+func (x *MsgRegisterBridgeToken) GetAuthority() string {
 	if x != nil {
 		return x.Authority
 	}
 	return ""
 }
 
-func (x *MsgUpdateBridgeToken) GetBaseDenom() string {
+func (x *MsgRegisterBridgeToken) GetBaseDenom() string {
 	if x != nil {
 		return x.BaseDenom
 	}
 	return ""
 }
 
-func (x *MsgUpdateBridgeToken) GetChannel() string {
+func (x *MsgRegisterBridgeToken) GetChannel() string {
 	if x != nil {
 		return x.Channel
 	}
 	return ""
 }
 
-func (x *MsgUpdateBridgeToken) GetIbcDenom() string {
+func (x *MsgRegisterBridgeToken) GetIbcDenom() string {
 	if x != nil {
 		return x.IbcDenom
 	}
 	return ""
 }
 
-func (x *MsgUpdateBridgeToken) GetChainName() string {
+func (x *MsgRegisterBridgeToken) GetChainName() string {
 	if x != nil {
 		return x.ChainName
 	}
 	return ""
 }
 
-func (x *MsgUpdateBridgeToken) GetContractAddress() string {
+func (x *MsgRegisterBridgeToken) GetContractAddress() string {
 	if x != nil {
 		return x.ContractAddress
 	}
 	return ""
 }
 
-func (x *MsgUpdateBridgeToken) GetNativeToken() bool {
+func (x *MsgRegisterBridgeToken) GetNativeToken() bool {
 	if x != nil {
 		return x.NativeToken
 	}
 	return false
 }
 
-type MsgUpdateBridgeTokenResponse struct {
+type MsgRegisterBridgeTokenResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *MsgUpdateBridgeTokenResponse) Reset() {
-	*x = MsgUpdateBridgeTokenResponse{}
+func (x *MsgRegisterBridgeTokenResponse) Reset() {
+	*x = MsgRegisterBridgeTokenResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fx_erc20_v1_tx_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6336,14 +6336,14 @@ func (x *MsgUpdateBridgeTokenResponse) Reset() {
 	}
 }
 
-func (x *MsgUpdateBridgeTokenResponse) String() string {
+func (x *MsgRegisterBridgeTokenResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MsgUpdateBridgeTokenResponse) ProtoMessage() {}
+func (*MsgRegisterBridgeTokenResponse) ProtoMessage() {}
 
-// Deprecated: Use MsgUpdateBridgeTokenResponse.ProtoReflect.Descriptor instead.
-func (*MsgUpdateBridgeTokenResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use MsgRegisterBridgeTokenResponse.ProtoReflect.Descriptor instead.
+func (*MsgRegisterBridgeTokenResponse) Descriptor() ([]byte, []int) {
 	return file_fx_erc20_v1_tx_proto_rawDescGZIP(), []int{11}
 }
 
@@ -6439,76 +6439,76 @@ var file_fx_erc20_v1_tx_proto_rawDesc = []byte{
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32,
 	0x30, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x52, 0x43, 0x32, 0x30, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x42,
 	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0a, 0x65, 0x72, 0x63, 0x32, 0x30, 0x54, 0x6f, 0x6b, 0x65,
-	0x6e, 0x22, 0xc0, 0x02, 0x0a, 0x14, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x36, 0x0a, 0x09, 0x61, 0x75,
-	0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2,
-	0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
-	0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69,
-	0x74, 0x79, 0x12, 0x1d, 0x0a, 0x0a, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x62, 0x61, 0x73, 0x65, 0x44, 0x65, 0x6e, 0x6f,
-	0x6d, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x1b, 0x0a, 0x09, 0x69,
-	0x62, 0x63, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08,
-	0x69, 0x62, 0x63, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x1d, 0x0a, 0x0a, 0x63, 0x68, 0x61, 0x69,
-	0x6e, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x63, 0x68,
-	0x61, 0x69, 0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x29, 0x0a, 0x10, 0x63, 0x6f, 0x6e, 0x74, 0x72,
-	0x61, 0x63, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x06, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x0f, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65,
-	0x73, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x5f, 0x74, 0x6f, 0x6b,
-	0x65, 0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x6e, 0x61, 0x74, 0x69, 0x76, 0x65,
-	0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x3a, 0x2d, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75, 0x74, 0x68,
-	0x6f, 0x72, 0x69, 0x74, 0x79, 0x8a, 0xe7, 0xb0, 0x2a, 0x1a, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f,
-	0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54,
-	0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x1e, 0x0a, 0x1c, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74,
-	0x65, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x32, 0xd2, 0x04, 0x0a, 0x03, 0x4d, 0x73, 0x67, 0x12, 0x4f, 0x0a, 0x0b,
-	0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x43, 0x6f, 0x69, 0x6e, 0x12, 0x1b, 0x2e, 0x66, 0x78,
-	0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e,
-	0x76, 0x65, 0x72, 0x74, 0x43, 0x6f, 0x69, 0x6e, 0x1a, 0x23, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72,
-	0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72,
-	0x74, 0x43, 0x6f, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x52, 0x0a,
-	0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x1c, 0x2e,
-	0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55,
-	0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a, 0x24, 0x2e, 0x66, 0x78,
-	0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x6d, 0x0a, 0x15, 0x54, 0x6f, 0x67, 0x67, 0x6c, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e,
-	0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x25, 0x2e, 0x66, 0x78, 0x2e,
-	0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x54, 0x6f, 0x67, 0x67,
-	0x6c, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
-	0x6e, 0x1a, 0x2d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e,
-	0x4d, 0x73, 0x67, 0x54, 0x6f, 0x67, 0x67, 0x6c, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f,
-	0x6e, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x64, 0x0a, 0x12, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74, 0x69,
-	0x76, 0x65, 0x43, 0x6f, 0x69, 0x6e, 0x12, 0x22, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32,
-	0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72,
-	0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x43, 0x6f, 0x69, 0x6e, 0x1a, 0x2a, 0x2e, 0x66, 0x78, 0x2e,
-	0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69,
-	0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x43, 0x6f, 0x69, 0x6e, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x67, 0x0a, 0x13, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74,
-	0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x45, 0x52, 0x43, 0x32, 0x30, 0x12, 0x23, 0x2e,
-	0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x52,
-	0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x45, 0x52, 0x43,
-	0x32, 0x30, 0x1a, 0x2b, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31,
-	0x2e, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74, 0x69,
-	0x76, 0x65, 0x45, 0x52, 0x43, 0x32, 0x30, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x61, 0x0a, 0x11, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54,
-	0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x21, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e,
-	0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x72, 0x69, 0x64,
-	0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x1a, 0x29, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63,
-	0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42,
-	0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x1a, 0x05, 0x80, 0xe7, 0xb0, 0x2a, 0x01, 0x42, 0x8e, 0x01, 0x0a, 0x0f, 0x63, 0x6f,
-	0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x42, 0x07, 0x54,
-	0x78, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x24, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
-	0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72,
-	0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02,
-	0x03, 0x46, 0x45, 0x58, 0xaa, 0x02, 0x0b, 0x46, 0x78, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e,
-	0x56, 0x31, 0xca, 0x02, 0x0b, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31,
-	0xe2, 0x02, 0x17, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47,
-	0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x46, 0x78, 0x3a,
-	0x3a, 0x45, 0x72, 0x63, 0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x6e, 0x22, 0xc4, 0x02, 0x0a, 0x16, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65,
+	0x72, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x36, 0x0a, 0x09,
+	0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42,
+	0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72,
+	0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f,
+	0x72, 0x69, 0x74, 0x79, 0x12, 0x1d, 0x0a, 0x0a, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x64, 0x65, 0x6e,
+	0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x62, 0x61, 0x73, 0x65, 0x44, 0x65,
+	0x6e, 0x6f, 0x6d, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x1b, 0x0a,
+	0x09, 0x69, 0x62, 0x63, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x08, 0x69, 0x62, 0x63, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x1d, 0x0a, 0x0a, 0x63, 0x68,
+	0x61, 0x69, 0x6e, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09,
+	0x63, 0x68, 0x61, 0x69, 0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x29, 0x0a, 0x10, 0x63, 0x6f, 0x6e,
+	0x74, 0x72, 0x61, 0x63, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x06, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0f, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x41, 0x64, 0x64,
+	0x72, 0x65, 0x73, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x5f, 0x74,
+	0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x6e, 0x61, 0x74, 0x69,
+	0x76, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x3a, 0x2f, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75,
+	0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x8a, 0xe7, 0xb0, 0x2a, 0x1c, 0x65, 0x72, 0x63, 0x32,
+	0x30, 0x2f, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x42, 0x72, 0x69,
+	0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x20, 0x0a, 0x1e, 0x4d, 0x73, 0x67, 0x52,
+	0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b,
+	0x65, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xd8, 0x04, 0x0a, 0x03, 0x4d,
+	0x73, 0x67, 0x12, 0x4f, 0x0a, 0x0b, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x43, 0x6f, 0x69,
+	0x6e, 0x12, 0x1b, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e,
+	0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x43, 0x6f, 0x69, 0x6e, 0x1a, 0x23,
+	0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67,
+	0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x43, 0x6f, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x52, 0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72,
+	0x61, 0x6d, 0x73, 0x12, 0x1c, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76,
+	0x31, 0x2e, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d,
+	0x73, 0x1a, 0x24, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e,
+	0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x6d, 0x0a, 0x15, 0x54, 0x6f, 0x67, 0x67, 0x6c,
+	0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x12, 0x25, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d,
+	0x73, 0x67, 0x54, 0x6f, 0x67, 0x67, 0x6c, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x6e,
+	0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x1a, 0x2d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63,
+	0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x54, 0x6f, 0x67, 0x67, 0x6c, 0x65, 0x54,
+	0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x64, 0x0a, 0x12, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74,
+	0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x43, 0x6f, 0x69, 0x6e, 0x12, 0x22, 0x2e, 0x66,
+	0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x52, 0x65,
+	0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x43, 0x6f, 0x69, 0x6e,
+	0x1a, 0x2a, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d,
+	0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65,
+	0x43, 0x6f, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x67, 0x0a, 0x13,
+	0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x45, 0x52,
+	0x43, 0x32, 0x30, 0x12, 0x23, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76,
+	0x31, 0x2e, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x74,
+	0x69, 0x76, 0x65, 0x45, 0x52, 0x43, 0x32, 0x30, 0x1a, 0x2b, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72,
+	0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74,
+	0x65, 0x72, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x45, 0x52, 0x43, 0x32, 0x30, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x67, 0x0a, 0x13, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65,
+	0x72, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x23, 0x2e, 0x66,
+	0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x73, 0x67, 0x52, 0x65,
+	0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x42, 0x72, 0x69, 0x64, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65,
+	0x6e, 0x1a, 0x2b, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e,
+	0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x42, 0x72, 0x69, 0x64, 0x67,
+	0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x1a, 0x05,
+	0x80, 0xe7, 0xb0, 0x2a, 0x01, 0x42, 0x8e, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x78,
+	0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x42, 0x07, 0x54, 0x78, 0x50, 0x72, 0x6f,
+	0x74, 0x6f, 0x50, 0x01, 0x5a, 0x24, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e,
+	0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f,
+	0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x46, 0x45, 0x58,
+	0xaa, 0x02, 0x0b, 0x46, 0x78, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31, 0xca, 0x02,
+	0x0b, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17, 0x46,
+	0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65,
+	0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x46, 0x78, 0x3a, 0x3a, 0x45, 0x72, 0x63,
+	0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -6535,8 +6535,8 @@ var file_fx_erc20_v1_tx_proto_goTypes = []interface{}{
 	(*MsgRegisterNativeCoinResponse)(nil),    // 7: fx.erc20.v1.MsgRegisterNativeCoinResponse
 	(*MsgRegisterNativeERC20)(nil),           // 8: fx.erc20.v1.MsgRegisterNativeERC20
 	(*MsgRegisterNativeERC20Response)(nil),   // 9: fx.erc20.v1.MsgRegisterNativeERC20Response
-	(*MsgUpdateBridgeToken)(nil),             // 10: fx.erc20.v1.MsgUpdateBridgeToken
-	(*MsgUpdateBridgeTokenResponse)(nil),     // 11: fx.erc20.v1.MsgUpdateBridgeTokenResponse
+	(*MsgRegisterBridgeToken)(nil),           // 10: fx.erc20.v1.MsgRegisterBridgeToken
+	(*MsgRegisterBridgeTokenResponse)(nil),   // 11: fx.erc20.v1.MsgRegisterBridgeTokenResponse
 	(*v1beta1.Coin)(nil),                     // 12: cosmos.base.v1beta1.Coin
 	(*Params)(nil),                           // 13: fx.erc20.v1.Params
 	(*ERC20Token)(nil),                       // 14: fx.erc20.v1.ERC20Token
@@ -6552,13 +6552,13 @@ var file_fx_erc20_v1_tx_proto_depIdxs = []int32{
 	4,  // 7: fx.erc20.v1.Msg.ToggleTokenConversion:input_type -> fx.erc20.v1.MsgToggleTokenConversion
 	6,  // 8: fx.erc20.v1.Msg.RegisterNativeCoin:input_type -> fx.erc20.v1.MsgRegisterNativeCoin
 	8,  // 9: fx.erc20.v1.Msg.RegisterNativeERC20:input_type -> fx.erc20.v1.MsgRegisterNativeERC20
-	10, // 10: fx.erc20.v1.Msg.UpdateBridgeToken:input_type -> fx.erc20.v1.MsgUpdateBridgeToken
+	10, // 10: fx.erc20.v1.Msg.RegisterBridgeToken:input_type -> fx.erc20.v1.MsgRegisterBridgeToken
 	1,  // 11: fx.erc20.v1.Msg.ConvertCoin:output_type -> fx.erc20.v1.MsgConvertCoinResponse
 	3,  // 12: fx.erc20.v1.Msg.UpdateParams:output_type -> fx.erc20.v1.MsgUpdateParamsResponse
 	5,  // 13: fx.erc20.v1.Msg.ToggleTokenConversion:output_type -> fx.erc20.v1.MsgToggleTokenConversionResponse
 	7,  // 14: fx.erc20.v1.Msg.RegisterNativeCoin:output_type -> fx.erc20.v1.MsgRegisterNativeCoinResponse
 	9,  // 15: fx.erc20.v1.Msg.RegisterNativeERC20:output_type -> fx.erc20.v1.MsgRegisterNativeERC20Response
-	11, // 16: fx.erc20.v1.Msg.UpdateBridgeToken:output_type -> fx.erc20.v1.MsgUpdateBridgeTokenResponse
+	11, // 16: fx.erc20.v1.Msg.RegisterBridgeToken:output_type -> fx.erc20.v1.MsgRegisterBridgeTokenResponse
 	11, // [11:17] is the sub-list for method output_type
 	5,  // [5:11] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
@@ -6695,7 +6695,7 @@ func file_fx_erc20_v1_tx_proto_init() {
 			}
 		}
 		file_fx_erc20_v1_tx_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsgUpdateBridgeToken); i {
+			switch v := v.(*MsgRegisterBridgeToken); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6707,7 +6707,7 @@ func file_fx_erc20_v1_tx_proto_init() {
 			}
 		}
 		file_fx_erc20_v1_tx_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsgUpdateBridgeTokenResponse); i {
+			switch v := v.(*MsgRegisterBridgeTokenResponse); i {
 			case 0:
 				return &v.state
 			case 1:

@@ -25,7 +25,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateDenomAlias{},
 		&MsgRegisterNativeCoin{},
 		&MsgRegisterNativeERC20{},
-		&MsgUpdateBridgeToken{},
+		&MsgRegisterBridgeToken{},
 	)
 	registry.RegisterImplementations(
 		(*govv1betal.Content)(nil),
@@ -49,7 +49,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateDenomAlias{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateDenomAlias"), nil)
 	cdc.RegisterConcrete(&MsgRegisterNativeCoin{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRegisterNativeCoin"), nil)
 	cdc.RegisterConcrete(&MsgRegisterNativeERC20{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRegisterNativeERC20"), nil)
-	cdc.RegisterConcrete(&MsgUpdateBridgeToken{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateBridgeToken"), nil)
+	cdc.RegisterConcrete(&MsgRegisterBridgeToken{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRegisterBridgeToken"), nil)
 
 	cdc.RegisterConcrete(&RegisterCoinProposal{}, fmt.Sprintf("%s/%s", ModuleName, "RegisterCoinProposal"), nil)
 	cdc.RegisterConcrete(&RegisterERC20Proposal{}, fmt.Sprintf("%s/%s", ModuleName, "RegisterERC20Proposal"), nil)
