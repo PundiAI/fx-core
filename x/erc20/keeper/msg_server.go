@@ -76,12 +76,12 @@ func (s msgServer) RegisterNativeERC20(c context.Context, req *types.MsgRegister
 	return &types.MsgRegisterNativeERC20Response{Erc20Token: erc20Token}, nil
 }
 
-func (s msgServer) UpdateBridgeToken(c context.Context, req *types.MsgUpdateBridgeToken) (*types.MsgUpdateBridgeTokenResponse, error) {
+func (s msgServer) RegisterBridgeToken(c context.Context, req *types.MsgRegisterBridgeToken) (*types.MsgRegisterBridgeTokenResponse, error) {
 	if s.k.authority != req.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.k.authority, req.Authority)
 	}
 
-	_, err := s.k.UpdateBridgeToken(c, req.BaseDenom, req.Channel, req.IbcDenom,
+	_, err := s.k.RegisterBridgeToken(c, req.BaseDenom, req.Channel, req.IbcDenom,
 		req.ChainName, req.ContractAddress, req.NativeToken)
-	return &types.MsgUpdateBridgeTokenResponse{}, err
+	return &types.MsgRegisterBridgeTokenResponse{}, err
 }

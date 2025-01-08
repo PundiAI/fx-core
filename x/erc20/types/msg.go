@@ -25,7 +25,7 @@ var (
 	_ sdk.Msg = &MsgUpdateDenomAlias{}
 	_ sdk.Msg = &MsgRegisterNativeCoin{}
 	_ sdk.Msg = &MsgRegisterNativeERC20{}
-	_ sdk.Msg = &MsgUpdateBridgeToken{}
+	_ sdk.Msg = &MsgRegisterBridgeToken{}
 )
 
 func NewMsgConvertCoin(coin sdk.Coin, receiver common.Address, sender sdk.AccAddress) *MsgConvertCoin {
@@ -113,7 +113,7 @@ func (m *MsgRegisterNativeERC20) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgUpdateBridgeToken) ValidateBasic() error {
+func (m *MsgRegisterBridgeToken) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("authority address: %s", err.Error())
 	}
