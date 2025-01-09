@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"math"
 	"math/big"
 	"strconv"
 	"time"
@@ -11,11 +10,9 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	gogotypes "github.com/cosmos/gogoproto/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -101,7 +98,7 @@ func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr comm
 	return outCall, nil
 }
 
-func (k Keeper) BridgeCallResultHandler(ctx sdk.Context, claim *types.MsgBridgeCallResultClaim) error {
+func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, claim *types.MsgBridgeCallResultClaim) error {
 	k.CreateBridgeAccount(ctx, claim.TxOrigin)
 
 	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, claim.Nonce)
@@ -195,101 +192,6 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBr
 	return nil
 }
 
-func (k Keeper) DeleteOutgoingBridgeCallRecord(ctx sdk.Context, bridgeCallNonce uint64) error {
-	// 1. delete bridge call
-	k.DeleteOutgoingBridgeCall(ctx, bridgeCallNonce)
-
-	// 2. delete bridge call confirm
-	k.DeleteBridgeCallConfirm(ctx, bridgeCallNonce)
-
-	// 3. delete cache origin amount
-	return k.erc20Keeper.DeleteCache(ctx, types.NewOriginTokenKey(k.moduleName, bridgeCallNonce))
-}
-
-func (k Keeper) SetOutgoingBridgeCall(ctx sdk.Context, outCall *types.OutgoingBridgeCall) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetOutgoingBridgeCallNonceKey(outCall.Nonce), k.cdc.MustMarshal(outCall))
-	// value is just a placeholder
-	store.Set(
-		types.GetOutgoingBridgeCallAddressAndNonceKey(outCall.Sender, outCall.Nonce),
-		k.cdc.MustMarshal(&gogotypes.BoolValue{Value: true}),
-	)
-}
-
-func (k Keeper) HasOutgoingBridgeCall(ctx sdk.Context, nonce uint64) bool {
-	return ctx.KVStore(k.storeKey).Has(types.GetOutgoingBridgeCallNonceKey(nonce))
-}
-
-func (k Keeper) HasOutgoingBridgeCallAddressAndNonce(ctx sdk.Context, sender string, nonce uint64) bool {
-	return ctx.KVStore(k.storeKey).Has(types.GetOutgoingBridgeCallAddressAndNonceKey(sender, nonce))
-}
-
-func (k Keeper) GetOutgoingBridgeCallByNonce(ctx sdk.Context, nonce uint64) (*types.OutgoingBridgeCall, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetOutgoingBridgeCallNonceKey(nonce))
-	if bz == nil {
-		return nil, false
-	}
-	var outCall types.OutgoingBridgeCall
-	k.cdc.MustUnmarshal(bz, &outCall)
-	return &outCall, true
-}
-
-func (k Keeper) DeleteOutgoingBridgeCall(ctx sdk.Context, nonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	outCall, found := k.GetOutgoingBridgeCallByNonce(ctx, nonce)
-	if !found {
-		return
-	}
-	store.Delete(types.GetOutgoingBridgeCallNonceKey(nonce))
-	store.Delete(types.GetOutgoingBridgeCallAddressAndNonceKey(outCall.Sender, outCall.Nonce))
-}
-
-func (k Keeper) IterateOutgoingBridgeCalls(ctx sdk.Context, cb func(outCall *types.OutgoingBridgeCall) bool) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, types.OutgoingBridgeCallNonceKey)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var outCall types.OutgoingBridgeCall
-		k.cdc.MustUnmarshal(iterator.Value(), &outCall)
-		if cb(&outCall) {
-			break
-		}
-	}
-}
-
-func (k Keeper) IterateOutgoingBridgeCallsByAddress(ctx sdk.Context, senderAddr string, cb func(outCall *types.OutgoingBridgeCall) bool) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, types.GetOutgoingBridgeCallAddressKey(senderAddr))
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		nonce := types.ParseOutgoingBridgeCallNonce(iterator.Key(), senderAddr)
-		outCall, found := k.GetOutgoingBridgeCallByNonce(ctx, nonce)
-		if !found {
-			continue
-		}
-		if cb(outCall) {
-			break
-		}
-	}
-}
-
-func (k Keeper) IterateOutgoingBridgeCallByNonce(ctx sdk.Context, startNonce uint64, cb func(outCall *types.OutgoingBridgeCall) bool) {
-	store := ctx.KVStore(k.storeKey)
-	startKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(startNonce)...)
-	endKey := append(types.OutgoingBridgeCallNonceKey, sdk.Uint64ToBigEndian(math.MaxUint64)...)
-	iter := store.Iterator(startKey, endKey)
-	defer iter.Close()
-
-	for ; iter.Valid(); iter.Next() {
-		outCall := new(types.OutgoingBridgeCall)
-		k.cdc.MustUnmarshal(iter.Value(), outCall)
-		if cb(outCall) {
-			break
-		}
-	}
-}
-
 func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId, gasLimit *big.Int, fxTarget *types.FxTarget, originTokenAmount sdkmath.Int) (uint64, error) {
 	var cacheKey string
 	var nonce uint64
@@ -318,7 +220,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 		}
 		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)
 
-		if err = k.handlerBridgeCallOutFee(ctx, from, nonce, quoteId, gasLimit); err != nil {
+		if err = k.HandlerBridgeCallOutFee(ctx, from, nonce, quoteId, gasLimit); err != nil {
 			return 0, err
 		}
 	}
@@ -331,15 +233,8 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 	return nonce, nil
 }
 
-func (k Keeper) CrosschainBaseCoin(
-	ctx sdk.Context,
-	from sdk.AccAddress,
-	receipt string,
-	amount, fee sdk.Coin,
-	fxTarget *types.FxTarget,
-	memo string,
-	originToken bool,
-) error {
+// Deprecated: precompile crosschain api has been deprecated
+func (k Keeper) CrosschainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *types.FxTarget, memo string, originToken bool) error {
 	if fxTarget.IsIBC() {
 		sequence, err := k.IBCTransfer(ctx, from.Bytes(), receipt, amount, fxTarget.IBCChannel, memo)
 		if err != nil {
@@ -356,14 +251,7 @@ func (k Keeper) CrosschainBaseCoin(
 	return nil
 }
 
-func (k Keeper) IBCTransfer(
-	ctx sdk.Context,
-	from sdk.AccAddress,
-	to string,
-	amount sdk.Coin,
-	channel string,
-	memo string,
-) (uint64, error) {
+func (k Keeper) IBCTransfer(ctx sdk.Context, from sdk.AccAddress, to string, amount sdk.Coin, channel, memo string) (uint64, error) {
 	timeout := 12 * time.Hour
 	transferResponse, err := k.ibcTransferKeeper.Transfer(ctx,
 		transfertypes.NewMsgTransfer(
@@ -381,61 +269,6 @@ func (k Keeper) IBCTransfer(
 		return 0, fmt.Errorf("ibc transfer error: %s", err.Error())
 	}
 	return transferResponse.Sequence, nil
-}
-
-func (k Keeper) handlerBridgeCallOutFee(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
-	if quoteId == nil || quoteId.Sign() <= 0 {
-		// Users can send submitBridgeCall by themselves without paying
-		return nil
-	}
-
-	quote, err := k.ValidateQuote(ctx, quoteId, gasLimit)
-	if err != nil {
-		return err
-	}
-
-	bridgeFeeAddr := common.BytesToAddress(k.bridgeFeeCollector)
-	if err = k.TransferBridgeFee(ctx, from, bridgeFeeAddr, quote.Fee, quote.TokenName); err != nil {
-		return err
-	}
-
-	k.SetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce, types.NewQuoteInfo(quote))
-	return nil
-}
-
-func (k Keeper) TransferBridgeFeeToRelayer(ctx sdk.Context, bridgeCallNonce uint64) error {
-	quote, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
-	if !found {
-		return nil
-	}
-
-	k.DeleteOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
-
-	bridgeFeeAddr := common.BytesToAddress(k.bridgeFeeCollector)
-	return k.TransferBridgeFee(ctx, bridgeFeeAddr, quote.OracleAddress(), quote.Fee.BigInt(), quote.Token)
-}
-
-func (k Keeper) SetOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64, quoteInfo types.QuoteInfo) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetBridgeCallQuoteKey(nonce), k.cdc.MustMarshal(&quoteInfo))
-}
-
-func (k Keeper) GetOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64) (types.QuoteInfo, bool) {
-	store := ctx.KVStore(k.storeKey)
-
-	bz := store.Get(types.GetBridgeCallQuoteKey(nonce))
-	if bz == nil {
-		return types.QuoteInfo{}, false
-	}
-
-	quoteInfo := types.QuoteInfo{}
-	k.cdc.MustUnmarshal(bz, &quoteInfo)
-	return quoteInfo, true
-}
-
-func (k Keeper) DeleteOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetBridgeCallQuoteKey(nonce))
 }
 
 func (k Keeper) ResendBridgeCall(ctx sdk.Context, bridgeCall types.OutgoingBridgeCall, quoteInfo types.QuoteInfo) error {

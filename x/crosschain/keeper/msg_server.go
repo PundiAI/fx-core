@@ -136,6 +136,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	}
 
 	if slashAmount.IsPositive() {
+		// TODO: maybe we can consider transferring the punished coins to a dedicated account instead of directly destroying them
 		if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
 		}
