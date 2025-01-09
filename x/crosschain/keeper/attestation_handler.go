@@ -39,9 +39,9 @@ func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) (preExecuteErr,
 	case *types.MsgSendToFxClaim:
 		executeErr = k.SendToFxExecuted(cacheCtx, claim)
 	case *types.MsgBridgeCallClaim:
-		executeErr = k.BridgeCallHandler(cacheCtx, claim)
+		executeErr = k.BridgeCallExecuted(cacheCtx, claim)
 	case *types.MsgBridgeCallResultClaim:
-		executeErr = k.BridgeCallResultHandler(cacheCtx, claim)
+		executeErr = k.BridgeCallResultExecuted(cacheCtx, claim)
 	default:
 		executeErr = sdkerrors.ErrInvalidRequest.Wrapf("invalid claim type: %s", claim.GetType())
 	}

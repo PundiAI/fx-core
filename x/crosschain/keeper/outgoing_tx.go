@@ -14,6 +14,7 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
+// Deprecated: please use BuildOutgoingBridgeCall
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
 	quoteInfos, err := k.bridgeFeeQuoteKeeper.GetQuotesByToken(ctx, k.moduleName, fee.Denom)
 	if err != nil {

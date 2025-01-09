@@ -15,7 +15,7 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {
+func (k Keeper) BridgeCallExecuted(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {
 	k.CreateBridgeAccount(ctx, msg.TxOrigin)
 	if senderAccount := k.ak.GetAccount(ctx, msg.GetSenderAddr().Bytes()); senderAccount != nil {
 		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
@@ -41,7 +41,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		baseCoins = baseCoins.Add(baseCoin)
 	}
 
-	if err := k.handlerBridgeCallInFee(ctx, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.BigInt()); err != nil {
+	if err := k.HandlerBridgeCallInFee(ctx, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.BigInt()); err != nil {
 		return err
 	}
 
@@ -88,7 +88,7 @@ func (k Keeper) BridgeCallHandler(ctx sdk.Context, msg *types.MsgBridgeCallClaim
 		sdk.NewAttribute(types.AttributeKeyBridgeCallFailedRefundAddr, msg.GetRefundAddr().Hex()),
 	))
 
-	// onRevert bridgecall
+	// onRevert bridgeCall
 	_, err = k.AddOutgoingBridgeCall(ctx, msg.GetToAddr(), common.Address{}, sdk.NewCoins(),
 		msg.GetSenderAddr(), []byte(revertMsg), []byte{}, 0, msg.EventNonce)
 	return err
@@ -137,16 +137,10 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 	return nil
 }
 
-func (k Keeper) handlerBridgeCallInFee(ctx sdk.Context, from common.Address, quoteId, gasLimit *big.Int) error {
-	if quoteId == nil || quoteId.Sign() <= 0 {
-		// Allow free bridgeCall
-		return nil
+func (k Keeper) CreateBridgeAccount(ctx sdk.Context, address string) {
+	accAddress := fxtypes.ExternalAddrToAccAddr(k.moduleName, address)
+	if account := k.ak.GetAccount(ctx, accAddress); account != nil {
+		return
 	}
-
-	quote, err := k.ValidateQuote(ctx, quoteId, gasLimit)
-	if err != nil {
-		return err
-	}
-
-	return k.TransferBridgeFee(ctx, from, quote.Oracle, quote.Fee, quote.TokenName)
+	k.ak.NewAccountWithAddress(ctx, accAddress)
 }
