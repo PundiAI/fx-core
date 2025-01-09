@@ -326,9 +326,6 @@ func deployBridgeFeeContract(
 	crosschainKeeper crosschainkeeper.Keeper,
 	evmModuleAddress common.Address,
 ) error {
-	quoteKeeper := contract.NewBridgeFeeQuoteKeeper(evmKeeper, contract.BridgeFeeAddress)
-	oracleKeeper := contract.NewBridgeFeeOracleKeeper(evmKeeper, contract.BridgeFeeOracleAddress)
-
 	chains := fxtypes.GetSupportChains()
 	bridgeDenoms := make([]contract.BridgeDenoms, len(chains))
 	for index, chain := range chains {
@@ -353,8 +350,6 @@ func deployBridgeFeeContract(
 	return contract.DeployBridgeFeeContract(
 		cacheCtx,
 		evmKeeper,
-		quoteKeeper,
-		oracleKeeper,
 		bridgeDenoms,
 		evmModuleAddress,
 		getContractOwner(cacheCtx),
@@ -367,11 +362,9 @@ func deployAccessControlContract(
 	evmKeeper *fxevmkeeper.Keeper,
 	evmModuleAddress common.Address,
 ) error {
-	accessControl := contract.NewAccessControlKeeper(evmKeeper, contract.AccessControlAddress)
 	return contract.DeployAccessControlContract(
 		cacheCtx,
 		evmKeeper,
-		accessControl,
 		evmModuleAddress,
 		getContractOwner(cacheCtx),
 	)

@@ -11,12 +11,10 @@ import (
 func DeployBridgeFeeContract(
 	ctx sdk.Context,
 	evmKeeper EvmKeeper,
-	bridgeFeeQuoteKeeper BridgeFeeQuoteKeeper,
-	bridgeFeeOracleKeeper BridgeFeeOracleKeeper,
 	bridgeDenoms []BridgeDenoms,
 	evmModuleAddress, owner, defaultOracleAddress common.Address,
 ) error {
-	if err := deployBridgeProxy(
+	if err := DeployProxy(
 		ctx,
 		evmKeeper,
 		GetBridgeFeeQuote().ABI,
@@ -26,7 +24,7 @@ func DeployBridgeFeeContract(
 	); err != nil {
 		return err
 	}
-	if err := deployBridgeProxy(
+	if err := DeployProxy(
 		ctx,
 		evmKeeper,
 		GetBridgeFeeOracle().ABI,
@@ -37,13 +35,15 @@ func DeployBridgeFeeContract(
 		return err
 	}
 
+	bridgeFeeOracleKeeper := NewBridgeFeeOracleKeeper(evmKeeper, BridgeFeeOracleAddress)
 	if err := initBridgeFeeOracle(ctx, bridgeFeeOracleKeeper, owner, defaultOracleAddress); err != nil {
 		return err
 	}
+	bridgeFeeQuoteKeeper := NewBridgeFeeQuoteKeeper(evmKeeper, BridgeFeeAddress)
 	return initBridgeFeeQuote(ctx, bridgeFeeQuoteKeeper, bridgeDenoms, owner)
 }
 
-func deployBridgeProxy(
+func DeployProxy(
 	ctx sdk.Context,
 	evmKeeper EvmKeeper,
 	logicABI abi.ABI,
