@@ -40,7 +40,9 @@ func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, holder sdk.AccAddress
 	if err != nil {
 		return bridgeToken, err
 	}
-
+	if bridgeToken.IsOrigin() {
+		return bridgeToken, nil
+	}
 	baseCoins := sdk.NewCoins(baseCoin)
 	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, types.ModuleName, baseCoins); err != nil {
 		return bridgeToken, err

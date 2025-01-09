@@ -8,12 +8,12 @@ import (
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
-func (k Keeper) HasToken(ctx context.Context, denom string) (bool, error) {
-	return k.DenomIndex.Has(ctx, denom)
+func (k Keeper) HasToken(ctx context.Context, index string) (bool, error) {
+	return k.DenomIndex.Has(ctx, index)
 }
 
-func (k Keeper) GetBaseDenom(ctx context.Context, token string) (string, error) {
-	return k.DenomIndex.Get(ctx, token)
+func (k Keeper) GetBaseDenom(ctx context.Context, index string) (string, error) {
+	return k.DenomIndex.Get(ctx, index)
 }
 
 func (k Keeper) GetBridgeToken(ctx context.Context, chainName, baseDenom string) (types.BridgeToken, error) {
@@ -58,5 +58,5 @@ func (k Keeper) AddBridgeToken(ctx context.Context, baseDenom, chainName, contra
 	if err = k.BridgeToken.Set(ctx, key, bridgeToken); err != nil {
 		return err
 	}
-	return k.DenomIndex.Set(ctx, bridgeToken.BridgeDenom(), baseDenom)
+	return k.DenomIndex.Set(ctx, types.NewBridgeDenom(chainName, contract), baseDenom)
 }
