@@ -341,12 +341,15 @@ func (k Keeper) CrosschainBaseCoin(
 	originToken bool,
 ) error {
 	if fxTarget.IsIBC() {
+		if !fee.IsZero() {
+			return sdkerrors.ErrInvalidRequest.Wrap("ibc transfer fee must be zero")
+		}
 		sequence, err := k.IBCTransfer(ctx, from.Bytes(), receipt, amount, fxTarget.IBCChannel, memo)
 		if err != nil {
 			return err
 		}
 		if originToken {
-			return k.erc20Keeper.SetCache(ctx, types.NewIBCTransferKey(fxTarget.IBCChannel, sequence), amount.Amount.Add(fee.Amount))
+			return k.erc20Keeper.SetCache(ctx, types.NewIBCTransferKey(fxTarget.IBCChannel, sequence), amount.Amount)
 		}
 	} else {
 		if _, err := k.BuildOutgoingTxBatch(ctx, from, receipt, amount, fee); err != nil {
