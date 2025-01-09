@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
@@ -82,7 +83,8 @@ func (m *LegacyCrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 				return err
 			}
 		} else {
-			baseCoin, err = m.EvmTokenToBaseCoin(ctx, evm, crosschainKeeper, sender, args.Token, totalAmount)
+			vmCaller := precompiles.NewVMCall(evm)
+			baseCoin, err = m.EvmTokenToBaseCoin(ctx, vmCaller, crosschainKeeper, sender, args.Token, totalAmount)
 			if err != nil {
 				return err
 			}
