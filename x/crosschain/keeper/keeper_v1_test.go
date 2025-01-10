@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {
 	err := suite.SendClaimReturnErr(externalClaim)
 	suite.Require().NoError(err)
 
-	preErr, executeErr := suite.Keeper().ExecuteClaim(suite.Ctx, externalClaim.GetEventNonce())
+	preErr, executeErr := suite.Keeper().ExecuteClaim(suite.Ctx, suite.App.EvmKeeper, externalClaim.GetEventNonce())
 	suite.Require().NoError(preErr)
 	suite.Require().NoError(executeErr)
 }

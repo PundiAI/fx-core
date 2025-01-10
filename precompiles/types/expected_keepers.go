@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	"github.com/pundiai/fx-core/v8/contract"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
@@ -27,10 +28,10 @@ type BankKeeper interface {
 }
 
 type CrosschainKeeper interface {
-	ExecuteClaim(ctx sdk.Context, eventNonce uint64) (error, error)
+	ExecuteClaim(ctx sdk.Context, caller contract.Caller, eventNonce uint64) (error, error)
 	BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error)
-	CrosschainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *crosschaintypes.FxTarget, memo string, originToken bool) error
-	BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId, gasLimit *big.Int, fxTarget *crosschaintypes.FxTarget, originTokenAmount sdkmath.Int) (uint64, error)
+	CrosschainBaseCoin(ctx sdk.Context, caller contract.Caller, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *crosschaintypes.FxTarget, memo string, originToken bool) error
+	BridgeCallBaseCoin(ctx sdk.Context, caller contract.Caller, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId, gasLimit *big.Int, fxTarget *crosschaintypes.FxTarget, originTokenAmount sdkmath.Int) (uint64, error)
 	GetERC20TokenByAddr(ctx sdk.Context, erc20Addr common.Address) (erc20types.ERC20Token, error)
 
 	HasOracleAddrByExternalAddr(ctx sdk.Context, externalAddress string) bool

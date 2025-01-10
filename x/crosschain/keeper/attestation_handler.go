@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
@@ -27,7 +28,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 	}
 }
 
-func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) (preExecuteErr, executeErr error) {
+func (k Keeper) ExecuteClaim(ctx sdk.Context, caller contract.Caller, eventNonce uint64) (preExecuteErr, executeErr error) {
 	externalClaim, preExecuteErr := k.GetPendingExecuteClaim(ctx, eventNonce)
 	if preExecuteErr != nil {
 		return preExecuteErr, nil
@@ -37,11 +38,11 @@ func (k Keeper) ExecuteClaim(ctx sdk.Context, eventNonce uint64) (preExecuteErr,
 	cacheCtx, commit := ctx.CacheContext()
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToFxClaim:
-		executeErr = k.SendToFxExecuted(cacheCtx, claim)
+		executeErr = k.SendToFxExecuted(cacheCtx, caller, claim)
 	case *types.MsgBridgeCallClaim:
-		executeErr = k.BridgeCallExecuted(cacheCtx, claim)
+		executeErr = k.BridgeCallExecuted(cacheCtx, caller, claim)
 	case *types.MsgBridgeCallResultClaim:
-		executeErr = k.BridgeCallResultExecuted(cacheCtx, claim)
+		executeErr = k.BridgeCallResultExecuted(cacheCtx, caller, claim)
 	default:
 		executeErr = sdkerrors.ErrInvalidRequest.Wrapf("invalid claim type: %s", claim.GetType())
 	}

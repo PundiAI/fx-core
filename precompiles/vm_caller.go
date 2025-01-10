@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -43,6 +44,19 @@ func (v *VMCall) ApplyContract(_ context.Context, from, contract common.Address,
 		return nil, types.ErrABIPack.Wrap(err.Error())
 	}
 	ret, leftoverGas, vmErr := v.evm.Call(vm.AccountRef(from), contract, data, v.maxGas, value)
+	var vmError string
+	if vmErr != nil {
+		vmError = vmErr.Error()
+	}
+	return &evmtypes.MsgEthereumTxResponse{
+		GasUsed: v.maxGas - leftoverGas,
+		VmError: vmError,
+		Ret:     ret,
+	}, nil
+}
+
+func (v *VMCall) ExecuteEVM(_ sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*evmtypes.MsgEthereumTxResponse, error) {
+	ret, leftoverGas, vmErr := v.evm.Call(vm.AccountRef(from), *contract, data, gasLimit, value)
 	var vmError string
 	if vmErr != nil {
 		vmError = vmErr.Error()

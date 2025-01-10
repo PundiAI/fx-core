@@ -354,7 +354,7 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	batchNonce, err := s.BuildOutgoingTxBatch(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
+	batchNonce, err := s.BuildOutgoingTxBatch(ctx, s.evmKeeper, sender, msg.Dest, msg.Amount, msg.BridgeFee)
 	if err != nil {
 		return nil, err
 	}

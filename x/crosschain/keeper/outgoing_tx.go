@@ -15,8 +15,9 @@ import (
 )
 
 // Deprecated: please use BuildOutgoingBridgeCall
-func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
-	quoteInfos, err := k.bridgeFeeQuoteKeeper.GetQuotesByToken(ctx, k.moduleName, fee.Denom)
+func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, caller contract.Caller, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller, contract.BridgeFeeAddress)
+	quoteInfos, err := bridgeFeeQuoteKeeper.GetQuotesByToken(ctx, k.moduleName, fee.Denom)
 	if err != nil {
 		return 0, err
 	}
