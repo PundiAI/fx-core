@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
@@ -75,8 +76,9 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 			return errors.New("invalid router")
 		}
 
+		vmCaller := precompiles.NewVMCall(evm)
 		for i, token := range args.Tokens {
-			baseCoin, err := m.EvmTokenToBaseCoin(ctx, evm, crosschainKeeper, sender, token, args.Amounts[i])
+			baseCoin, err := m.EvmTokenToBaseCoin(ctx, vmCaller, crosschainKeeper, sender, token, args.Amounts[i])
 			if err != nil {
 				return err
 			}

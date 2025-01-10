@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
-	pretypes "github.com/pundiai/fx-core/v8/precompiles/types"
+	"github.com/pundiai/fx-core/v8/precompiles"
 	"github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
@@ -39,7 +39,7 @@ func (m *TransferFromModuleToAccountMethod) RequiredGas() uint64 {
 }
 
 func (m *TransferFromModuleToAccountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
-	accessControlKeeper := fxcontract.NewAccessControlKeeper(pretypes.NewVMCall(evm, contract), fxcontract.AccessControlAddress)
+	accessControlKeeper := fxcontract.NewAccessControlKeeper(precompiles.NewVMCall(evm), fxcontract.AccessControlAddress)
 	has, err := accessControlKeeper.HasRole(context.Background(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (m *TransferFromAccountToModuleMethod) RequiredGas() uint64 {
 }
 
 func (m *TransferFromAccountToModuleMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
-	accessControlKeeper := fxcontract.NewAccessControlKeeper(pretypes.NewVMCall(evm, contract), fxcontract.AccessControlAddress)
+	accessControlKeeper := fxcontract.NewAccessControlKeeper(precompiles.NewVMCall(evm), fxcontract.AccessControlAddress)
 	has, err := accessControlKeeper.HasRole(context.Background(), common.HexToHash(fxcontract.TransferModuleRole), contract.Caller())
 	if err != nil {
 		return nil, err

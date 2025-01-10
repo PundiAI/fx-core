@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/precompiles/types"
@@ -21,7 +20,7 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 }
 
-func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, evm *vm.EVM, crosschainKeeper types.CrosschainKeeper, holder, tokenAddr common.Address, amount *big.Int) (sdk.Coin, error) {
+func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, caller contract.Caller, crosschainKeeper types.CrosschainKeeper, holder, tokenAddr common.Address, amount *big.Int) (sdk.Coin, error) {
 	erc20Token, err := crosschainKeeper.GetERC20TokenByAddr(ctx, tokenAddr)
 	if err != nil {
 		return sdk.Coin{}, err
@@ -29,9 +28,9 @@ func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, evm *vm.EVM, crosschainKeep
 	baseCoin := sdk.NewCoin(erc20Token.Denom, sdkmath.NewIntFromBigInt(amount))
 	erc20ModuleAddress := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
 
-	erc20Call := contract.NewERC20Call(evm, erc20ModuleAddress, tokenAddr, 0)
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(caller)
 	if erc20Token.IsNativeCoin() {
-		if err = erc20Call.Burn(holder, amount); err != nil {
+		if _, err = erc20TokenKeeper.Burn(ctx, tokenAddr, erc20ModuleAddress, holder, amount); err != nil {
 			return sdk.Coin{}, err
 		}
 		if erc20Token.Denom == fxtypes.DefaultDenom {
@@ -39,7 +38,7 @@ func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, evm *vm.EVM, crosschainKeep
 			return baseCoin, err
 		}
 	} else if erc20Token.IsNativeERC20() {
-		if err = erc20Call.TransferFrom(holder, erc20ModuleAddress, amount); err != nil {
+		if _, err = erc20TokenKeeper.TransferFrom(ctx, tokenAddr, erc20ModuleAddress, holder, erc20ModuleAddress, amount); err != nil {
 			return sdk.Coin{}, err
 		}
 		if err = c.bankKeeper.MintCoins(ctx, erc20types.ModuleName, sdk.NewCoins(baseCoin)); err != nil {
