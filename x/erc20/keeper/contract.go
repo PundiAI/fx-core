@@ -12,15 +12,16 @@ import (
 )
 
 func (k Keeper) ERC20BaseInfo(ctx context.Context, contractAddr common.Address) (name, symbol string, decimals uint8, err error) {
-	name, err = k.evmErc20Keeper.Name(ctx, contractAddr)
+	evmErc20Keeper := contract.NewERC20TokenKeeper(k.evmKeeper)
+	name, err = evmErc20Keeper.Name(ctx, contractAddr)
 	if err != nil {
 		return name, symbol, decimals, err
 	}
-	symbol, err = k.evmErc20Keeper.Symbol(ctx, contractAddr)
+	symbol, err = evmErc20Keeper.Symbol(ctx, contractAddr)
 	if err != nil {
 		return name, symbol, decimals, err
 	}
-	decimals, err = k.evmErc20Keeper.Decimals(ctx, contractAddr)
+	decimals, err = evmErc20Keeper.Decimals(ctx, contractAddr)
 	if err != nil {
 		return name, symbol, decimals, err
 	}

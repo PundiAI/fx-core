@@ -19,10 +19,9 @@ import (
 
 // Keeper of this module maintains collections of erc20.
 type Keeper struct {
-	accountKeeper  types.AccountKeeper
-	bankKeeper     types.BankKeeper
-	evmKeeper      types.EVMKeeper
-	evmErc20Keeper types.ERC20TokenKeeper
+	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	evmKeeper     types.EVMKeeper
 
 	contractOwner common.Address
 
@@ -44,7 +43,6 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	evmKeeper types.EVMKeeper,
-	evmErc20Keeper types.ERC20TokenKeeper,
 	authority string,
 ) Keeper {
 	moduleAddress := ak.GetModuleAddress(types.ModuleName)
@@ -54,18 +52,17 @@ func NewKeeper(
 
 	sb := collections.NewSchemaBuilder(storeService)
 	k := Keeper{
-		accountKeeper:  ak,
-		bankKeeper:     bk,
-		evmKeeper:      evmKeeper,
-		evmErc20Keeper: evmErc20Keeper,
-		contractOwner:  common.BytesToAddress(moduleAddress),
-		authority:      authority,
-		Params:         collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
-		ERC20Token:     collections.NewMap(sb, types.ERC20TokenKey, "erc20_token", collections.StringKey, codec.CollValue[types.ERC20Token](cdc)),
-		BridgeToken:    collections.NewMap(sb, types.BridgeTokenKey, "bridge_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.BridgeToken](cdc)),
-		IBCToken:       collections.NewMap(sb, types.IBCTokenKey, "ibc_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.IBCToken](cdc)),
-		DenomIndex:     collections.NewMap(sb, types.DenomIndexKey, "denom_index", collections.StringKey, collections.StringValue),
-		Cache:          collections.NewMap(sb, types.CacheKey, "cache", collections.StringKey, sdk.IntValue),
+		accountKeeper: ak,
+		bankKeeper:    bk,
+		evmKeeper:     evmKeeper,
+		contractOwner: common.BytesToAddress(moduleAddress),
+		authority:     authority,
+		Params:        collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
+		ERC20Token:    collections.NewMap(sb, types.ERC20TokenKey, "erc20_token", collections.StringKey, codec.CollValue[types.ERC20Token](cdc)),
+		BridgeToken:   collections.NewMap(sb, types.BridgeTokenKey, "bridge_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.BridgeToken](cdc)),
+		IBCToken:      collections.NewMap(sb, types.IBCTokenKey, "ibc_token", collections.PairKeyCodec(collections.StringKey, collections.StringKey), codec.CollValue[types.IBCToken](cdc)),
+		DenomIndex:    collections.NewMap(sb, types.DenomIndexKey, "denom_index", collections.StringKey, collections.StringValue),
+		Cache:         collections.NewMap(sb, types.CacheKey, "cache", collections.StringKey, sdk.IntValue),
 	}
 	schema, err := sb.Build()
 	if err != nil {

@@ -13,8 +13,9 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (k Keeper) ValidateQuote(ctx sdk.Context, quoteId, gasLimit *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error) {
-	quote, err := k.bridgeFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
+func (k Keeper) ValidateQuote(ctx sdk.Context, caller contract.Caller, quoteId, gasLimit *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error) {
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller, contract.BridgeFeeAddress)
+	quote, err := bridgeFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
 	if err != nil {
 		return contract.IBridgeFeeQuoteQuoteInfo{}, err
 	}
@@ -27,7 +28,7 @@ func (k Keeper) ValidateQuote(ctx sdk.Context, quoteId, gasLimit *big.Int) (cont
 	return quote, nil
 }
 
-func (k Keeper) TransferBridgeFee(ctx sdk.Context, from, to common.Address, bridgeFee *big.Int, bridgeTokenName string) error {
+func (k Keeper) TransferBridgeFee(ctx sdk.Context, caller contract.Caller, from, to common.Address, bridgeFee *big.Int, bridgeTokenName string) error {
 	if strings.ToUpper(bridgeTokenName) == fxtypes.DefaultDenom {
 		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(bridgeFee)))
 		return k.bankKeeper.SendCoins(ctx, from.Bytes(), to.Bytes(), fees)
@@ -36,37 +37,38 @@ func (k Keeper) TransferBridgeFee(ctx sdk.Context, from, to common.Address, brid
 	if err != nil {
 		return err
 	}
-	_, err = k.erc20TokenKeeper.Transfer(ctx, erc20Token.GetERC20Contract(), from, to, bridgeFee)
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(caller)
+	_, err = erc20TokenKeeper.Transfer(ctx, erc20Token.GetERC20Contract(), from, to, bridgeFee)
 	return err
 }
 
-func (k Keeper) HandlerBridgeCallInFee(ctx sdk.Context, from common.Address, quoteId, gasLimit *big.Int) error {
+func (k Keeper) HandlerBridgeCallInFee(ctx sdk.Context, caller contract.Caller, from common.Address, quoteId, gasLimit *big.Int) error {
 	if quoteId == nil || quoteId.Sign() <= 0 {
 		// Allow free bridgeCall
 		return nil
 	}
 
-	quote, err := k.ValidateQuote(ctx, quoteId, gasLimit)
+	quote, err := k.ValidateQuote(ctx, caller, quoteId, gasLimit)
 	if err != nil {
 		return err
 	}
 
-	return k.TransferBridgeFee(ctx, from, quote.Oracle, quote.Fee, quote.TokenName)
+	return k.TransferBridgeFee(ctx, caller, from, quote.Oracle, quote.Fee, quote.TokenName)
 }
 
-func (k Keeper) HandlerBridgeCallOutFee(ctx sdk.Context, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
+func (k Keeper) HandlerBridgeCallOutFee(ctx sdk.Context, caller contract.Caller, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
 	if quoteId == nil || quoteId.Sign() <= 0 {
 		// Users can send submitBridgeCall by themselves without paying
 		return nil
 	}
 
-	quote, err := k.ValidateQuote(ctx, quoteId, gasLimit)
+	quote, err := k.ValidateQuote(ctx, caller, quoteId, gasLimit)
 	if err != nil {
 		return err
 	}
 
 	bridgeFeeAddr := common.BytesToAddress(k.bridgeFeeCollector)
-	if err = k.TransferBridgeFee(ctx, from, bridgeFeeAddr, quote.Fee, quote.TokenName); err != nil {
+	if err = k.TransferBridgeFee(ctx, caller, from, bridgeFeeAddr, quote.Fee, quote.TokenName); err != nil {
 		return err
 	}
 
@@ -74,7 +76,7 @@ func (k Keeper) HandlerBridgeCallOutFee(ctx sdk.Context, from common.Address, br
 	return nil
 }
 
-func (k Keeper) TransferBridgeFeeToRelayer(ctx sdk.Context, bridgeCallNonce uint64) error {
+func (k Keeper) TransferBridgeFeeToRelayer(ctx sdk.Context, caller contract.Caller, bridgeCallNonce uint64) error {
 	quote, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
 	if !found {
 		return nil
@@ -83,7 +85,7 @@ func (k Keeper) TransferBridgeFeeToRelayer(ctx sdk.Context, bridgeCallNonce uint
 	k.DeleteOutgoingBridgeCallQuoteInfo(ctx, bridgeCallNonce)
 
 	bridgeFeeAddr := common.BytesToAddress(k.bridgeFeeCollector)
-	return k.TransferBridgeFee(ctx, bridgeFeeAddr, quote.OracleAddress(), quote.Fee.BigInt(), quote.Token)
+	return k.TransferBridgeFee(ctx, caller, bridgeFeeAddr, quote.OracleAddress(), quote.Fee.BigInt(), quote.Token)
 }
 
 func (k Keeper) SetOutgoingBridgeCallQuoteInfo(ctx sdk.Context, nonce uint64, quoteInfo types.QuoteInfo) {

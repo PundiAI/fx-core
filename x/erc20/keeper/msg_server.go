@@ -27,7 +27,7 @@ func (s msgServer) ConvertCoin(c context.Context, msg *types.MsgConvertCoin) (*t
 	ctx := sdk.UnwrapSDKContext(c)
 	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 	receiver := common.HexToAddress(msg.Receiver)
-	_, err := s.k.ConvertCoin(ctx, sender, receiver, msg.Coin)
+	_, err := s.k.ConvertCoin(ctx, s.k.evmKeeper, sender, receiver, msg.Coin)
 	return &types.MsgConvertCoinResponse{}, err
 }
 

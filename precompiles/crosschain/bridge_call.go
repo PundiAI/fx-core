@@ -84,7 +84,7 @@ func (m *BridgeCallMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, erro
 			}
 			baseCoins = append(baseCoins, baseCoin)
 		}
-		nonce, err := crosschainKeeper.BridgeCallBaseCoin(ctx, sender, args.Refund, args.To, baseCoins, args.Data, args.Memo, args.QuoteId, args.GasLimit, fxTarget, originTokenAmount)
+		nonce, err := crosschainKeeper.BridgeCallBaseCoin(ctx, vmCaller, sender, args.Refund, args.To, baseCoins, args.Data, args.Memo, args.QuoteId, args.GasLimit, fxTarget, originTokenAmount)
 		if err != nil {
 			return err
 		}

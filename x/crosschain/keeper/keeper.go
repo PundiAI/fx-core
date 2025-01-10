@@ -20,16 +20,14 @@ type Keeper struct {
 	cdc        codec.BinaryCodec   // The wire codec for binary encoding/decoding.
 	storeKey   storetypes.StoreKey // Unexposed key to access store from sdk.Context
 
-	stakingKeeper        types.StakingKeeper
-	stakingMsgServer     types.StakingMsgServer
-	distributionKeeper   types.DistributionMsgServer
-	bankKeeper           types.BankKeeper
-	ak                   types.AccountKeeper
-	ibcTransferKeeper    types.IBCTransferKeeper
-	erc20Keeper          types.Erc20Keeper
-	evmKeeper            types.EVMKeeper
-	bridgeFeeQuoteKeeper types.BridgeFeeQuoteKeeper
-	erc20TokenKeeper     types.ERC20TokenKeeper
+	stakingKeeper      types.StakingKeeper
+	stakingMsgServer   types.StakingMsgServer
+	distributionKeeper types.DistributionMsgServer
+	bankKeeper         types.BankKeeper
+	ak                 types.AccountKeeper
+	ibcTransferKeeper  types.IBCTransferKeeper
+	erc20Keeper        types.Erc20Keeper
+	evmKeeper          types.EVMKeeper
 
 	authority          string
 	callbackFrom       common.Address
@@ -40,7 +38,7 @@ type Keeper struct {
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionMsgServer,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
-	evmKeeper types.EVMKeeper, bridgeFeeQuoteKeeper types.BridgeFeeQuoteKeeper, evmErc20Keeper types.ERC20TokenKeeper, authority string,
+	evmKeeper types.EVMKeeper, authority string,
 ) Keeper {
 	if addr := ak.GetModuleAddress(moduleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", moduleName))
@@ -51,16 +49,14 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		cdc:        cdc,
 		storeKey:   storeKey,
 
-		stakingKeeper:        stakingKeeper,
-		stakingMsgServer:     stakingMsgServer,
-		distributionKeeper:   distributionKeeper,
-		bankKeeper:           bankKeeper,
-		ak:                   ak,
-		ibcTransferKeeper:    ibcTransferKeeper,
-		erc20Keeper:          erc20Keeper,
-		evmKeeper:            evmKeeper,
-		bridgeFeeQuoteKeeper: bridgeFeeQuoteKeeper,
-		erc20TokenKeeper:     evmErc20Keeper,
+		stakingKeeper:      stakingKeeper,
+		stakingMsgServer:   stakingMsgServer,
+		distributionKeeper: distributionKeeper,
+		bankKeeper:         bankKeeper,
+		ak:                 ak,
+		ibcTransferKeeper:  ibcTransferKeeper,
+		erc20Keeper:        erc20Keeper,
+		evmKeeper:          evmKeeper,
 
 		authority:          authority,
 		callbackFrom:       common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeCallSender)),

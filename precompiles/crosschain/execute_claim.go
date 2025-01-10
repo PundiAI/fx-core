@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles"
 	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
@@ -55,7 +56,7 @@ func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, er
 	}
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		preExecuteErr, executeErr := crosschainKeeper.ExecuteClaim(ctx, args.EventNonce.Uint64())
+		preExecuteErr, executeErr := crosschainKeeper.ExecuteClaim(ctx, precompiles.NewVMCall(evm), args.EventNonce.Uint64())
 		if preExecuteErr != nil {
 			return preExecuteErr
 		}

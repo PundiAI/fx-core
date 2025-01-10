@@ -139,7 +139,7 @@ func (k Keeper) IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk
 	if baseDenom == "" {
 		return nil
 	}
-	_, err = k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(holder.Bytes()), sdk.NewCoin(baseDenom, ibcCoin.Amount))
+	_, err = k.erc20Keeper.BaseCoinToEvm(ctx, k.evmKeeper, common.BytesToAddress(holder.Bytes()), sdk.NewCoin(baseDenom, ibcCoin.Amount))
 	return err
 }
 
@@ -159,7 +159,7 @@ func (k Keeper) IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sd
 	if found {
 		return k.erc20Keeper.DeleteCache(ctx, ibcTransferKey)
 	}
-	_, err = k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(holder.Bytes()), sdk.NewCoin(baseDenom, ibcCoin.Amount))
+	_, err = k.erc20Keeper.BaseCoinToEvm(ctx, k.evmKeeper, common.BytesToAddress(holder.Bytes()), sdk.NewCoin(baseDenom, ibcCoin.Amount))
 	return err
 }
 

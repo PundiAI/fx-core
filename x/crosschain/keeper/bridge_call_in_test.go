@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 				erc20Tokens = append(erc20Tokens, erc20Token)
 			}
 
-			err := suite.Keeper().BridgeCallExecuted(suite.Ctx, &tc.Msg)
+			err := suite.Keeper().BridgeCallExecuted(suite.Ctx, suite.App.EvmKeeper, &tc.Msg)
 			if tc.Success {
 				suite.Require().NoError(err)
 				if !tc.CallContract {

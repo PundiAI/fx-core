@@ -98,7 +98,7 @@ func (k Keeper) BuildOutgoingBridgeCall(ctx sdk.Context, sender, refundAddr comm
 	return outCall, nil
 }
 
-func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, claim *types.MsgBridgeCallResultClaim) error {
+func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, caller contract.Caller, claim *types.MsgBridgeCallResultClaim) error {
 	k.CreateBridgeAccount(ctx, claim.TxOrigin)
 
 	outgoingBridgeCall, found := k.GetOutgoingBridgeCallByNonce(ctx, claim.Nonce)
@@ -106,11 +106,11 @@ func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, claim *types.MsgBridge
 		return fmt.Errorf("bridge call not found for nonce %d", claim.Nonce)
 	}
 	if !claim.Success {
-		if err := k.RefundOutgoingBridgeCall(ctx, outgoingBridgeCall); err != nil {
+		if err := k.RefundOutgoingBridgeCall(ctx, caller, outgoingBridgeCall); err != nil {
 			return err
 		}
 
-		if err := k.BridgeCallOnRevert(ctx, claim.Nonce, outgoingBridgeCall.To, claim.Cause); err != nil {
+		if err := k.BridgeCallOnRevert(ctx, caller, claim.Nonce, outgoingBridgeCall.To, claim.Cause); err != nil {
 			return err
 		}
 	}
@@ -118,7 +118,7 @@ func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, claim *types.MsgBridge
 		return err
 	}
 
-	if err := k.TransferBridgeFeeToRelayer(ctx, claim.Nonce); err != nil {
+	if err := k.TransferBridgeFeeToRelayer(ctx, caller, claim.Nonce); err != nil {
 		return err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -130,7 +130,7 @@ func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, claim *types.MsgBridge
 	return nil
 }
 
-func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, nonce uint64, toAddr, cause string) error {
+func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, caller contract.Caller, nonce uint64, toAddr, cause string) error {
 	args, err := contract.PackOnRevert(nonce, []byte(cause))
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, nonce uint64, toAddr, cause 
 	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
 	to := common.HexToAddress(toAddr)
 
-	txResp, err := k.evmKeeper.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
+	txResp, err := caller.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, nonce uint64, toAddr, cause 
 	return nil
 }
 
-func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBridgeCall) error {
+func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, caller contract.Caller, data *types.OutgoingBridgeCall) error {
 	refund := fxtypes.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
 	baseCoins := sdk.NewCoins()
 	for _, token := range data.Tokens {
@@ -184,7 +184,7 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBr
 	baseCoins = baseCoins.Sub(originCoin)
 
 	for _, coin := range baseCoins {
-		_, err = k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(refund.Bytes()), coin)
+		_, err = k.erc20Keeper.BaseCoinToEvm(ctx, caller, common.BytesToAddress(refund.Bytes()), coin)
 		if err != nil {
 			return err
 		}
@@ -192,7 +192,7 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, data *types.OutgoingBr
 	return nil
 }
 
-func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId, gasLimit *big.Int, fxTarget *types.FxTarget, originTokenAmount sdkmath.Int) (uint64, error) {
+func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, caller contract.Caller, from, refund, to common.Address, coins sdk.Coins, data, memo []byte, quoteId, gasLimit *big.Int, fxTarget *types.FxTarget, originTokenAmount sdkmath.Int) (uint64, error) {
 	var cacheKey string
 	var nonce uint64
 	if fxTarget.IsIBC() {
@@ -220,7 +220,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 		}
 		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)
 
-		if err = k.HandlerBridgeCallOutFee(ctx, from, nonce, quoteId, gasLimit); err != nil {
+		if err = k.HandlerBridgeCallOutFee(ctx, caller, from, nonce, quoteId, gasLimit); err != nil {
 			return 0, err
 		}
 	}
@@ -234,7 +234,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, from, refund, to common.Addr
 }
 
 // Deprecated: precompile crosschain api has been deprecated
-func (k Keeper) CrosschainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *types.FxTarget, memo string, originToken bool) error {
+func (k Keeper) CrosschainBaseCoin(ctx sdk.Context, caller contract.Caller, from sdk.AccAddress, receipt string, amount, fee sdk.Coin, fxTarget *types.FxTarget, memo string, originToken bool) error {
 	if fxTarget.IsIBC() {
 		if !fee.IsZero() {
 			return sdkerrors.ErrInvalidRequest.Wrap("ibc transfer fee must be zero")
@@ -247,7 +247,7 @@ func (k Keeper) CrosschainBaseCoin(ctx sdk.Context, from sdk.AccAddress, receipt
 			return k.erc20Keeper.SetCache(ctx, types.NewIBCTransferKey(fxTarget.IBCChannel, sequence), amount.Amount)
 		}
 	} else {
-		if _, err := k.BuildOutgoingTxBatch(ctx, from, receipt, amount, fee); err != nil {
+		if _, err := k.BuildOutgoingTxBatch(ctx, caller, from, receipt, amount, fee); err != nil {
 			return err
 		}
 	}

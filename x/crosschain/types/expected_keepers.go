@@ -10,6 +10,7 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 
@@ -45,7 +46,7 @@ type BankKeeper interface {
 }
 
 type Erc20Keeper interface {
-	BaseCoinToEvm(ctx context.Context, holder common.Address, coin sdk.Coin) (string, error)
+	BaseCoinToEvm(ctx context.Context, caller contract.Caller, holder common.Address, coin sdk.Coin) (string, error)
 
 	HasCache(ctx context.Context, key string) (bool, error)
 	SetCache(ctx context.Context, key string, amount sdkmath.Int) error
@@ -68,10 +69,8 @@ type Erc20Keeper interface {
 type EVMKeeper interface {
 	ExecuteEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*types.MsgEthereumTxResponse, error)
 	IsContract(ctx sdk.Context, account common.Address) bool
-}
-
-type EvmERC20Keeper interface {
-	TotalSupply(context.Context, common.Address) (*big.Int, error)
+	QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error
+	ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*types.MsgEthereumTxResponse, error)
 }
 
 type IBCTransferKeeper interface {
@@ -86,13 +85,4 @@ type AccountKeeper interface {
 	SetAccount(ctx context.Context, acc sdk.AccountI)
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
-}
-
-type BridgeFeeQuoteKeeper interface {
-	GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error)
-	GetQuoteById(ctx context.Context, id *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error)
-}
-
-type ERC20TokenKeeper interface {
-	Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error)
 }
