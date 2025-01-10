@@ -171,7 +171,7 @@ func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) (err error) {
 		quoteInfo, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, data.Nonce)
 		if !found {
 			// 1. handler bridge call refund
-			if err = k.RefundOutgoingBridgeCall(ctx, data); err != nil {
+			if err = k.RefundOutgoingBridgeCall(ctx, k.evmKeeper, data); err != nil {
 				return true
 			}
 		} else {

@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
-	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/testutil"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -97,8 +96,6 @@ func (s *KeeperMockSuite) SetupTest() {
 		s.erc20Keeper,
 		s.accountKeeper,
 		s.evmKeeper,
-		contract.NewBridgeFeeQuoteKeeper(nil, contract.BridgeFeeAddress),
-		contract.NewERC20TokenKeeper(nil),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

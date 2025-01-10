@@ -65,6 +65,7 @@ func (m *LegacyCrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 		if err = fxTarget.ValidateExternalAddr(args.Receipt); err != nil {
 			return err
 		}
+		vmCaller := precompiles.NewVMCall(evm)
 
 		baseCoin := sdk.Coin{}
 		totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
@@ -83,7 +84,6 @@ func (m *LegacyCrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 				return err
 			}
 		} else {
-			vmCaller := precompiles.NewVMCall(evm)
 			baseCoin, err = m.EvmTokenToBaseCoin(ctx, vmCaller, crosschainKeeper, sender, args.Token, totalAmount)
 			if err != nil {
 				return err
@@ -92,7 +92,7 @@ func (m *LegacyCrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 
 		amountCoin := sdk.NewCoin(baseCoin.Denom, sdkmath.NewIntFromBigInt(args.Amount))
 		feeCoin := sdk.NewCoin(baseCoin.Denom, sdkmath.NewIntFromBigInt(args.Fee))
-		if err = crosschainKeeper.CrosschainBaseCoin(ctx, sender.Bytes(), args.Receipt,
+		if err = crosschainKeeper.CrosschainBaseCoin(ctx, vmCaller, sender.Bytes(), args.Receipt,
 			amountCoin, feeCoin, fxTarget, args.Memo, isOriginToken); err != nil {
 			return err
 		}

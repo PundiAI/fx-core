@@ -127,8 +127,8 @@ func (k *Keeper) QueryContract(ctx context.Context, from, contract common.Addres
 }
 
 // ApplyContract apply contract with args
-func (k *Keeper) ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
-	args, err := abi.Pack(method, constructorData...)
+func (k *Keeper) ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
+	data, err := abi.Pack(method, args...)
 	if err != nil {
 		return nil, types.ErrABIPack.Wrap(err.Error())
 	}
@@ -136,7 +136,7 @@ func (k *Keeper) ApplyContract(ctx context.Context, from, contract common.Addres
 	if err != nil {
 		return nil, err
 	}
-	resp, err := k.callEvm(sdk.UnwrapSDKContext(ctx), from, &contract, value, nonce, args, true)
+	resp, err := k.callEvm(sdk.UnwrapSDKContext(ctx), from, &contract, value, nonce, data, true)
 	if err != nil {
 		return nil, err
 	}

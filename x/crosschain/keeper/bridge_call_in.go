@@ -15,7 +15,7 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (k Keeper) BridgeCallExecuted(ctx sdk.Context, msg *types.MsgBridgeCallClaim) error {
+func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg *types.MsgBridgeCallClaim) error {
 	k.CreateBridgeAccount(ctx, msg.TxOrigin)
 	if senderAccount := k.ak.GetAccount(ctx, msg.GetSenderAddr().Bytes()); senderAccount != nil {
 		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
@@ -41,12 +41,12 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, msg *types.MsgBridgeCallClai
 		baseCoins = baseCoins.Add(baseCoin)
 	}
 
-	if err := k.HandlerBridgeCallInFee(ctx, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.BigInt()); err != nil {
+	if err := k.HandlerBridgeCallInFee(ctx, caller, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.BigInt()); err != nil {
 		return err
 	}
 
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
-	err := k.BridgeCallEvm(cacheCtx, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
+	err := k.BridgeCallEvm(cacheCtx, caller, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
 		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), isMemoSendCallTo, msg.GetGasLimit())
 	if !ctx.IsCheckTx() {
 		telemetry.IncrCounterWithLabels(
@@ -76,7 +76,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, msg *types.MsgBridgeCallClai
 			if fxtypes.IsOriginDenom(coin.Denom) {
 				continue
 			}
-			if _, err = k.erc20Keeper.BaseCoinToEvm(ctx, msg.GetRefundAddr(), coin); err != nil {
+			if _, err = k.erc20Keeper.BaseCoinToEvm(ctx, caller, msg.GetRefundAddr(), coin); err != nil {
 				return err
 			}
 		}
@@ -94,11 +94,11 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, msg *types.MsgBridgeCallClai
 	return err
 }
 
-func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, isMemoSendCallTo bool, gasLimit uint64) error {
+func (k Keeper) BridgeCallEvm(ctx sdk.Context, caller contract.Caller, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, isMemoSendCallTo bool, gasLimit uint64) error {
 	tokens := make([]common.Address, 0, baseCoins.Len())
 	amounts := make([]*big.Int, 0, baseCoins.Len())
 	for _, coin := range baseCoins {
-		tokenContract, err := k.erc20Keeper.BaseCoinToEvm(ctx, receiverAddr, coin)
+		tokenContract, err := k.erc20Keeper.BaseCoinToEvm(ctx, caller, receiverAddr, coin)
 		if err != nil {
 			return err
 		}
@@ -127,7 +127,7 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, sender, refundAddr, to, receiverA
 	if gasLimit == 0 {
 		gasLimit = k.GetBridgeCallMaxGasLimit(ctx)
 	}
-	txResp, err := k.evmKeeper.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
+	txResp, err := caller.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
 	if err != nil {
 		return err
 	}

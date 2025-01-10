@@ -20,6 +20,7 @@ import (
 	types0 "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	types1 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	types2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	abi "github.com/ethereum/go-ethereum/accounts/abi"
 	common "github.com/ethereum/go-ethereum/common"
 	types3 "github.com/evmos/ethermint/x/evm/types"
 	contract "github.com/pundiai/fx-core/v8/contract"
@@ -360,18 +361,18 @@ func (mr *MockErc20KeeperMockRecorder) AddBridgeToken(ctx, baseDenom, chainName,
 }
 
 // BaseCoinToEvm mocks base method.
-func (m *MockErc20Keeper) BaseCoinToEvm(ctx context.Context, holder common.Address, coin types.Coin) (string, error) {
+func (m *MockErc20Keeper) BaseCoinToEvm(ctx context.Context, caller contract.Caller, holder common.Address, coin types.Coin) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BaseCoinToEvm", ctx, holder, coin)
+	ret := m.ctrl.Call(m, "BaseCoinToEvm", ctx, caller, holder, coin)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BaseCoinToEvm indicates an expected call of BaseCoinToEvm.
-func (mr *MockErc20KeeperMockRecorder) BaseCoinToEvm(ctx, holder, coin any) *gomock.Call {
+func (mr *MockErc20KeeperMockRecorder) BaseCoinToEvm(ctx, caller, holder, coin any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BaseCoinToEvm", reflect.TypeOf((*MockErc20Keeper)(nil).BaseCoinToEvm), ctx, holder, coin)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BaseCoinToEvm", reflect.TypeOf((*MockErc20Keeper)(nil).BaseCoinToEvm), ctx, caller, holder, coin)
 }
 
 // DeleteCache mocks base method.
@@ -544,6 +545,26 @@ func (m *MockEVMKeeper) EXPECT() *MockEVMKeeperMockRecorder {
 	return m.recorder
 }
 
+// ApplyContract mocks base method.
+func (m *MockEVMKeeper) ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...any) (*types3.MsgEthereumTxResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, from, contract, value, abi, method}
+	for _, a := range constructorData {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ApplyContract", varargs...)
+	ret0, _ := ret[0].(*types3.MsgEthereumTxResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ApplyContract indicates an expected call of ApplyContract.
+func (mr *MockEVMKeeperMockRecorder) ApplyContract(ctx, from, contract, value, abi, method any, constructorData ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, from, contract, value, abi, method}, constructorData...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyContract", reflect.TypeOf((*MockEVMKeeper)(nil).ApplyContract), varargs...)
+}
+
 // ExecuteEVM mocks base method.
 func (m *MockEVMKeeper) ExecuteEVM(ctx types.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*types3.MsgEthereumTxResponse, error) {
 	m.ctrl.T.Helper()
@@ -573,42 +594,23 @@ func (mr *MockEVMKeeperMockRecorder) IsContract(ctx, account any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsContract", reflect.TypeOf((*MockEVMKeeper)(nil).IsContract), ctx, account)
 }
 
-// MockEvmERC20Keeper is a mock of EvmERC20Keeper interface.
-type MockEvmERC20Keeper struct {
-	ctrl     *gomock.Controller
-	recorder *MockEvmERC20KeeperMockRecorder
-}
-
-// MockEvmERC20KeeperMockRecorder is the mock recorder for MockEvmERC20Keeper.
-type MockEvmERC20KeeperMockRecorder struct {
-	mock *MockEvmERC20Keeper
-}
-
-// NewMockEvmERC20Keeper creates a new mock instance.
-func NewMockEvmERC20Keeper(ctrl *gomock.Controller) *MockEvmERC20Keeper {
-	mock := &MockEvmERC20Keeper{ctrl: ctrl}
-	mock.recorder = &MockEvmERC20KeeperMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockEvmERC20Keeper) EXPECT() *MockEvmERC20KeeperMockRecorder {
-	return m.recorder
-}
-
-// TotalSupply mocks base method.
-func (m *MockEvmERC20Keeper) TotalSupply(arg0 context.Context, arg1 common.Address) (*big.Int, error) {
+// QueryContract mocks base method.
+func (m *MockEVMKeeper) QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res any, args ...any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TotalSupply", arg0, arg1)
-	ret0, _ := ret[0].(*big.Int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	varargs := []any{ctx, from, contract, abi, method, res}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "QueryContract", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// TotalSupply indicates an expected call of TotalSupply.
-func (mr *MockEvmERC20KeeperMockRecorder) TotalSupply(arg0, arg1 any) *gomock.Call {
+// QueryContract indicates an expected call of QueryContract.
+func (mr *MockEVMKeeperMockRecorder) QueryContract(ctx, from, contract, abi, method, res any, args ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TotalSupply", reflect.TypeOf((*MockEvmERC20Keeper)(nil).TotalSupply), arg0, arg1)
+	varargs := append([]any{ctx, from, contract, abi, method, res}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryContract", reflect.TypeOf((*MockEVMKeeper)(nil).QueryContract), varargs...)
 }
 
 // MockIBCTransferKeeper is a mock of IBCTransferKeeper interface.
@@ -765,95 +767,4 @@ func (m *MockAccountKeeper) SetAccount(ctx context.Context, acc types.AccountI) 
 func (mr *MockAccountKeeperMockRecorder) SetAccount(ctx, acc any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).SetAccount), ctx, acc)
-}
-
-// MockBridgeFeeQuoteKeeper is a mock of BridgeFeeQuoteKeeper interface.
-type MockBridgeFeeQuoteKeeper struct {
-	ctrl     *gomock.Controller
-	recorder *MockBridgeFeeQuoteKeeperMockRecorder
-}
-
-// MockBridgeFeeQuoteKeeperMockRecorder is the mock recorder for MockBridgeFeeQuoteKeeper.
-type MockBridgeFeeQuoteKeeperMockRecorder struct {
-	mock *MockBridgeFeeQuoteKeeper
-}
-
-// NewMockBridgeFeeQuoteKeeper creates a new mock instance.
-func NewMockBridgeFeeQuoteKeeper(ctrl *gomock.Controller) *MockBridgeFeeQuoteKeeper {
-	mock := &MockBridgeFeeQuoteKeeper{ctrl: ctrl}
-	mock.recorder = &MockBridgeFeeQuoteKeeperMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockBridgeFeeQuoteKeeper) EXPECT() *MockBridgeFeeQuoteKeeperMockRecorder {
-	return m.recorder
-}
-
-// GetQuoteById mocks base method.
-func (m *MockBridgeFeeQuoteKeeper) GetQuoteById(ctx context.Context, id *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetQuoteById", ctx, id)
-	ret0, _ := ret[0].(contract.IBridgeFeeQuoteQuoteInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetQuoteById indicates an expected call of GetQuoteById.
-func (mr *MockBridgeFeeQuoteKeeperMockRecorder) GetQuoteById(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuoteById", reflect.TypeOf((*MockBridgeFeeQuoteKeeper)(nil).GetQuoteById), ctx, id)
-}
-
-// GetQuotesByToken mocks base method.
-func (m *MockBridgeFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainName, denom string) ([]contract.IBridgeFeeQuoteQuoteInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetQuotesByToken", ctx, chainName, denom)
-	ret0, _ := ret[0].([]contract.IBridgeFeeQuoteQuoteInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetQuotesByToken indicates an expected call of GetQuotesByToken.
-func (mr *MockBridgeFeeQuoteKeeperMockRecorder) GetQuotesByToken(ctx, chainName, denom any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuotesByToken", reflect.TypeOf((*MockBridgeFeeQuoteKeeper)(nil).GetQuotesByToken), ctx, chainName, denom)
-}
-
-// MockERC20TokenKeeper is a mock of ERC20TokenKeeper interface.
-type MockERC20TokenKeeper struct {
-	ctrl     *gomock.Controller
-	recorder *MockERC20TokenKeeperMockRecorder
-}
-
-// MockERC20TokenKeeperMockRecorder is the mock recorder for MockERC20TokenKeeper.
-type MockERC20TokenKeeperMockRecorder struct {
-	mock *MockERC20TokenKeeper
-}
-
-// NewMockERC20TokenKeeper creates a new mock instance.
-func NewMockERC20TokenKeeper(ctrl *gomock.Controller) *MockERC20TokenKeeper {
-	mock := &MockERC20TokenKeeper{ctrl: ctrl}
-	mock.recorder = &MockERC20TokenKeeperMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockERC20TokenKeeper) EXPECT() *MockERC20TokenKeeperMockRecorder {
-	return m.recorder
-}
-
-// Transfer mocks base method.
-func (m *MockERC20TokenKeeper) Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types3.MsgEthereumTxResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Transfer", ctx, contractAddr, from, receiver, amount)
-	ret0, _ := ret[0].(*types3.MsgEthereumTxResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Transfer indicates an expected call of Transfer.
-func (mr *MockERC20TokenKeeperMockRecorder) Transfer(ctx, contractAddr, from, receiver, amount any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transfer", reflect.TypeOf((*MockERC20TokenKeeper)(nil).Transfer), ctx, contractAddr, from, receiver, amount)
 }

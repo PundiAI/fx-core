@@ -8,11 +8,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
+	"github.com/pundiai/fx-core/v8/contract"
 	fxtelemetry "github.com/pundiai/fx-core/v8/telemetry"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim) error {
+func (k Keeper) SendToFxExecuted(ctx sdk.Context, caller contract.Caller, claim *types.MsgSendToFxClaim) error {
 	if !ctx.IsCheckTx() {
 		defer func() {
 			telemetry.IncrCounterWithLabels(
@@ -44,7 +45,7 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, claim *types.MsgSendToFxClaim)
 		return err
 	}
 	if !bridgeToken.IsOrigin() {
-		_, err = k.erc20Keeper.BaseCoinToEvm(ctx, common.BytesToAddress(receiveAddr.Bytes()), baseCoin)
+		_, err = k.erc20Keeper.BaseCoinToEvm(ctx, caller, common.BytesToAddress(receiveAddr.Bytes()), baseCoin)
 		if err != nil {
 			return err
 		}
