@@ -78,7 +78,7 @@ contract CrosschainTest {
         uint256 _quoteId,
         uint256 _gasLimit,
         bytes memory _memo
-    ) internal returns (uint256) {
+    ) external returns (uint256) {
         return
             ICrosschain(CROSS_CHAIN_ADDRESS).bridgeCall(
                 _dstChain,

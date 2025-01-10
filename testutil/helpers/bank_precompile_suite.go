@@ -18,8 +18,7 @@ type BankPrecompileSuite struct {
 }
 
 func NewBankPrecompileSuite(require *require.Assertions, signer *Signer, caller contract.Caller, contractAddr common.Address) BankPrecompileSuite {
-	contractBaseSuite := NewContractBaseSuite(require, signer)
-	contractBaseSuite.WithContract(contractAddr)
+	contractBaseSuite := NewContractBaseSuite(require, signer).WithContract(contractAddr)
 	return BankPrecompileSuite{
 		ContractBaseSuite:    contractBaseSuite,
 		BankPrecompileKeeper: contract.NewBankPrecompileKeeper(caller, contractAddr),

@@ -5,6 +5,9 @@ import (
 	"math/big"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,6 +15,7 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func TestContract_BridgeCall_Input(t *testing.T) {
@@ -170,4 +174,35 @@ func TestContract_BridgeCall_NewBridgeCallEvent(t *testing.T) {
 		common.HexToHash("0000000000000000000000000000000000000000000000000000000000000004"),
 	}
 	assert.EqualValues(t, expectTopic, topicNew)
+}
+
+func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall() {
+	tokenAddr := suite.AddBridgeToken("USDT", true)
+
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(suite.App.EvmKeeper)
+	minter := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
+	_, err := erc20TokenKeeper.Mint(suite.Ctx, tokenAddr, minter, suite.GetSender(), big.NewInt(100))
+	suite.Require().NoError(err)
+	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin("usdt", sdkmath.NewInt(100)))
+
+	suite.App.CrosschainKeepers.GetKeeper(suite.chainName).
+		SetLastObservedBlockHeight(suite.Ctx, 100, 100)
+
+	txResponse := suite.BridgeCall(suite.Ctx, suite.signer.Address(), contract.BridgeCallArgs{
+		DstChain: suite.chainName,
+		Refund:   suite.signer.Address(),
+		Tokens:   []common.Address{tokenAddr},
+		Amounts:  []*big.Int{big.NewInt(1)},
+		To:       suite.signer.Address(),
+		Data:     nil,
+		QuoteId:  big.NewInt(0),
+		GasLimit: big.NewInt(0),
+		Memo:     nil,
+	})
+	suite.Require().NotNil(txResponse)
+	suite.Require().Len(txResponse.Logs, 2)
+
+	balance, err := erc20TokenKeeper.BalanceOf(suite.Ctx, tokenAddr, suite.GetSender())
+	suite.Require().NoError(err)
+	suite.Require().Equal(big.NewInt(99), balance)
 }
