@@ -22,32 +22,18 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgEditBridger{},
 		&MsgWithdrawReward{},
 
-		&MsgOracleSetConfirm{},
-
 		&MsgSendToExternal{},
 		&MsgCancelSendToExternal{},
 		&MsgIncreaseBridgeFee{},
 
 		&MsgRequestBatch{},
-		&MsgConfirmBatch{},
-
-		&MsgBridgeCallConfirm{},
 
 		&MsgUpdateParams{},
 		&MsgUpdateChainOracles{},
 
 		&MsgClaim{},
-		&MsgSendToExternalClaim{},
-		&MsgSendToFxClaim{},
-		&MsgBridgeCallClaim{},
-		&MsgBridgeTokenClaim{},
-		&MsgOracleSetUpdatedClaim{},
-		&MsgBridgeCallResultClaim{},
 
 		&MsgConfirm{},
-		&MsgConfirmBatch{},
-		&MsgOracleSetConfirm{},
-		&MsgBridgeCallConfirm{},
 	)
 
 	registry.RegisterImplementations(
