@@ -87,7 +87,7 @@ var (
 
 type Caller interface {
 	QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error
-	ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error)
+	ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error)
 	ExecuteEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*evmtypes.MsgEthereumTxResponse, error)
 }
 
