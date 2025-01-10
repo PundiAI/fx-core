@@ -136,9 +136,5 @@ func (k *Keeper) ApplyContract(ctx context.Context, from, contract common.Addres
 	if err != nil {
 		return nil, err
 	}
-	resp, err := k.callEvm(sdk.UnwrapSDKContext(ctx), from, &contract, value, nonce, data, true)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
+	return k.callEvm(sdk.UnwrapSDKContext(ctx), from, &contract, value, nonce, data, true)
 }
