@@ -14,6 +14,7 @@ type EvmKeeper interface {
 	DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, args ...interface{}) (common.Address, error)
 	CreateContractWithCode(ctx sdk.Context, address common.Address, code []byte) error
 	ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error)
+	QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error
 }
 
 type AccountKeeper interface {

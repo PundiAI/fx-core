@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -56,7 +55,6 @@ import (
 
 	fxante "github.com/pundiai/fx-core/v8/ante"
 	"github.com/pundiai/fx-core/v8/app/keepers"
-	"github.com/pundiai/fx-core/v8/contract"
 	_ "github.com/pundiai/fx-core/v8/docs/statik"
 	fxcfg "github.com/pundiai/fx-core/v8/server/config"
 	fxauth "github.com/pundiai/fx-core/v8/server/grpc/auth"
@@ -66,7 +64,6 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain"
 	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
-	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	fxevmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 	ibcmiddlewaretypes "github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
 )
@@ -351,39 +348,7 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 		panic(err)
 	}
 
-	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(delegations) == 0 {
-		return nil, errors.New("no delegations found")
-	}
-	bridgeDenoms := []contract.BridgeDenoms{
-		{
-			ChainName: ethtypes.ModuleName,
-			Denoms:    []string{fxtypes.DefaultDenom},
-		},
-	}
-
-	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
-	moduleAddress := common.BytesToAddress(acc.Bytes())
-
-	if err = DeployBridgeFeeContract(
-		ctx,
-		app.EvmKeeper,
-		bridgeDenoms,
-		moduleAddress,
-		moduleAddress,
-		common.BytesToAddress(sdk.MustAccAddressFromBech32(delegations[0].DelegatorAddress).Bytes()),
-	); err != nil {
-		return nil, err
-	}
-
-	if err = DeployAccessControlContract(ctx, app.EvmKeeper, moduleAddress, moduleAddress); err != nil {
-		return nil, err
-	}
-
-	return response, nil
+	return response, initChainer(ctx, app.AppKeepers)
 }
 
 // LoadHeight loads a particular height

@@ -45,11 +45,10 @@ func (k AccessControlKeeper) HasRole(ctx context.Context, role common.Hash, acco
 func DeployAccessControlContract(
 	ctx sdk.Context,
 	evmKeeper EvmKeeper,
-	accessControlKeeper AccessControlKeeper,
 	evmModuleAddress,
 	adminAddress common.Address,
 ) error {
-	if err := deployBridgeProxy(
+	if err := DeployProxy(
 		ctx,
 		evmKeeper,
 		GetAccessControl().ABI,
@@ -59,6 +58,7 @@ func DeployAccessControlContract(
 	); err != nil {
 		return err
 	}
+	accessControlKeeper := NewAccessControlKeeper(evmKeeper, AccessControlAddress)
 	_, err := accessControlKeeper.Initialize(ctx, adminAddress)
 	return err
 }
