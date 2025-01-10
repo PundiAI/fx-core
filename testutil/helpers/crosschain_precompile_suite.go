@@ -19,8 +19,7 @@ type CrosschainPrecompileSuite struct {
 }
 
 func NewCrosschainPrecompileSuite(require *require.Assertions, signer *Signer, caller contract.Caller, contractAddr common.Address) CrosschainPrecompileSuite {
-	contractBaseSuite := NewContractBaseSuite(require, signer)
-	contractBaseSuite.WithContract(contractAddr)
+	contractBaseSuite := NewContractBaseSuite(require, signer).WithContract(contractAddr)
 	return CrosschainPrecompileSuite{
 		ContractBaseSuite:          contractBaseSuite,
 		CrosschainPrecompileKeeper: contract.NewCrosschainPrecompileKeeper(caller, contractAddr),

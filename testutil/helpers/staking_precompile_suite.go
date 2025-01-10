@@ -19,8 +19,7 @@ type StakingPrecompileSuite struct {
 }
 
 func NewStakingPrecompileSuite(require *require.Assertions, signer *Signer, caller contract.Caller, contractAddr common.Address) StakingPrecompileSuite {
-	contractBaseSuite := NewContractBaseSuite(require, signer)
-	contractBaseSuite.WithContract(contractAddr)
+	contractBaseSuite := NewContractBaseSuite(require, signer).WithContract(contractAddr)
 	return StakingPrecompileSuite{
 		ContractBaseSuite:       contractBaseSuite,
 		StakingPrecompileKeeper: contract.NewStakingPrecompileKeeper(caller, contractAddr),
