@@ -9,7 +9,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -73,7 +72,10 @@ var (
 	_ sdk.Msg = &MsgConfirm{}
 )
 
-var _ codectypes.UnpackInterfacesMessage = &MsgClaim{}
+var (
+	_ codectypes.UnpackInterfacesMessage = &MsgClaim{}
+	_ codectypes.UnpackInterfacesMessage = &MsgConfirm{}
+)
 
 func (m *MsgBondedOracle) ValidateBasic() (err error) {
 	if !fxtypes.IsSupportChain(m.ChainName) {
@@ -318,7 +320,8 @@ func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (m MsgClaim) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return sdktx.UnpackInterfaces(unpacker, []*codectypes.Any{m.Claim})
+	var externalClaim ExternalClaim
+	return unpacker.UnpackAny(m.Claim, &externalClaim)
 }
 
 func (m *MsgSendToFxClaim) GetType() ClaimType {
@@ -695,5 +698,6 @@ func (m *MsgUpdateChainOracles) ValidateBasic() error {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (m MsgConfirm) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return sdktx.UnpackInterfaces(unpacker, []*codectypes.Any{m.Confirm})
+	var confirm Confirm
+	return unpacker.UnpackAny(m.Confirm, &confirm)
 }
