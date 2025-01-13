@@ -9,48 +9,10 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
-
-func (suite *KeeperTestSuite) TestOnRecvPacket() {
-	testCases := []struct {
-		name          string
-		malleate      func(packet *channeltypes.Packet)
-		expPass       bool
-		errorStr      string
-		checkBalance  bool
-		checkCoinAddr common.Address
-		expCoins      sdk.Coins
-		afterFn       func(packetData transfertypes.FungibleTokenPacketData)
-	}{
-		{
-			name: "pass - normal - ibc transfer packet",
-		},
-		{
-			name: "pass - normal - receive address is 0xAddress, coin is DefaultCoin",
-		},
-		{
-			name: "pass - normal - receive address is 0xAddress",
-		},
-		{
-			name: "error - normal - receive address is 0xAddress but coin not registered",
-		},
-		{
-			name: "pass - any memo",
-		},
-		{
-			name: "pass - ibc call evm",
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-		})
-	}
-}
 
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	coin := sdk.NewCoin("stake", sdkmath.NewInt(tmrand.Int63n(100000000000)))

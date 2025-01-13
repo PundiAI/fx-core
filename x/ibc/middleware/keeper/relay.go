@@ -18,7 +18,7 @@ func (k Keeper) OnRecvPacketWithoutRouter(ctx sdk.Context, ibcModule porttypes.I
 	// parse receive address, compatible with evm addresses
 	receiver, _, err := fxtypes.ParseAddress(data.Receiver)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
 
 	// Only the receiver is replaced with the fx address, which is compatible with the evm address
@@ -34,7 +34,7 @@ func (k Keeper) OnRecvPacketWithoutRouter(ctx sdk.Context, ibcModule porttypes.I
 
 	// Use the original package to handle ibc to evm
 	if err = k.OnRecvPacket(zeroGasConfigCtx(ctx), packet, data.ToIBCPacketData()); err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
 
 	return ack

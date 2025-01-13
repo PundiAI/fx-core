@@ -17,7 +17,7 @@ import (
 func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCModule, packet channeltypes.Packet, data types.FungibleTokenPacketData, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	receiver, transferAmount, feeAmount, err := parseReceiveAndAmountByPacketWithRouter(data)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
 
 	receiveAmount := transferAmount.Add(feeAmount)
@@ -33,7 +33,7 @@ func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCM
 	receiveCoin := sdk.NewCoin(receiveDenom, receiveAmount)
 	baseCoin, err := k.crosschainKeeper.IBCCoinToBaseCoin(ctx, receiver, receiveCoin)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
 
 	ibcAmount := sdk.NewCoin(baseCoin, transferAmount)
@@ -54,7 +54,7 @@ func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCM
 		sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),
 	)
 	if err != nil {
-		routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
+		routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyError, err.Error()))
 		ack = channeltypes.NewErrorAcknowledgement(err)
 	} else {
 		ctx.EventManager().EmitEvents(onRecvPacketCtxWithNewEvent.EventManager().Events())
