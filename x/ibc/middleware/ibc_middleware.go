@@ -33,22 +33,9 @@ func NewIBCMiddleware(k keeper.Keeper, ics porttypes.ICS4Wrapper, ibcModule port
 
 // OnRecvPacket implements the IBCModule interface
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
-	var data types.FungibleTokenPacketData
-	var ackErr error
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return channeltypes.NewErrorAcknowledgement(ackErr)
-	}
-
-	if len(data.GetFee()) == 0 {
-		data.Fee = sdkmath.ZeroInt().String()
-	}
-
-	if fxtypes.IsPundixChannel(packet.GetDestPort(), packet.GetDestChannel()) && data.Denom == fxtypes.GetPundixUnWrapDenom(ctx.ChainID()) {
-		data.Denom = fxtypes.PundixWrapDenom
-	}
-
-	if err := data.ValidateBasic(); err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+	data, err := UnMarshalPacket(ctx.ChainID(), packet)
+	if err != nil {
+		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
 
 	var ack exported.Acknowledgement
@@ -59,6 +46,23 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 
 	return ack
+}
+
+func UnMarshalPacket(chainID string, packet channeltypes.Packet) (types.FungibleTokenPacketData, error) {
+	var data types.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return data, err
+	}
+
+	if len(data.GetFee()) == 0 {
+		data.Fee = sdkmath.ZeroInt().String()
+	}
+
+	if fxtypes.IsPundixChannel(packet.GetDestPort(), packet.GetDestChannel()) && data.Denom == fxtypes.GetPundixUnWrapDenom(chainID) {
+		data.Denom = fxtypes.PundixWrapDenom
+	}
+
+	return data, data.ValidateBasic()
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
