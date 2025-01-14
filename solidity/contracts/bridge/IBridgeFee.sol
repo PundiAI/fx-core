@@ -3,76 +3,91 @@
 pragma solidity ^0.8.0;
 
 interface IBridgeFeeQuote {
-    struct Asset {
-        bool isActive;
-        string[] tokenNames;
+    struct Quote {
+        uint64 expiry;
+        uint64 gasLimit;
+        uint256 amount;
+        bytes32 index;
+    }
+
+    struct QuoteIndex {
+        uint256 id;
+        bytes32 chainName;
+        bytes32 tokenName;
+        address oracle;
+        uint8 cap;
     }
 
     struct QuoteInput {
-        string chainName;
-        string tokenName;
+        uint8 cap;
+        uint64 gasLimit;
+        uint64 expiry;
+        bytes32 chainName;
+        bytes32 tokenName;
         address oracle;
-        uint256 quoteIndex;
-        uint256 fee;
-        uint256 gasLimit;
-        uint256 expiry;
-        bytes signature;
+        uint256 amount;
     }
 
     struct QuoteInfo {
         uint256 id;
-        string chainName;
-        string tokenName;
+        bytes32 chainName;
+        bytes32 tokenName;
         address oracle;
-        uint256 fee;
-        uint256 gasLimit;
-        uint256 expiry;
+        uint256 amount;
+        uint64 gasLimit;
+        uint64 expiry;
     }
 
-    function quote(QuoteInput[] memory _inputs) external returns (bool);
-
-    function getQuoteList(
-        string memory _chainName
-    ) external view returns (QuoteInfo[] memory);
+    function quote(
+        QuoteInput[] calldata _inputs
+    ) external returns (uint256[] memory);
 
     function getQuoteById(uint256 _id) external view returns (QuoteInfo memory);
 
     function getQuotesByToken(
-        string memory _chainName,
-        string memory _tokenName
+        bytes32 _chainName,
+        bytes32 _token
     ) external view returns (QuoteInfo[] memory quotes);
 
-    function getQuote(
-        string memory _chainName,
-        string memory _tokenName,
+    function getQuoteByIndex(
+        bytes32 _chainName,
+        bytes32 _token,
         address _oracle,
-        uint256 _index
+        uint8 _cap
     ) external view returns (QuoteInfo memory);
 
-    function supportChainNames() external view returns (string[] memory);
+    function getDefaultOracleQuote(
+        bytes32 _chainName,
+        bytes32 _token
+    ) external view returns (QuoteInfo[] memory quotes);
 
-    function supportAssets(
-        string memory _chainName
-    ) external view returns (Asset memory);
+    function getChainNames() external view returns (bytes32[] memory);
 
-    function maxQuoteIndex() external view returns (uint256);
+    function getTokens(
+        bytes32 _chainName
+    ) external view returns (bytes32[] memory);
 
-    function makeMessageHash(
-        string memory _chainName,
-        string memory _tokenName,
-        uint256 _fee,
-        uint256 _gasLimit,
-        uint256 _expiry
-    ) external pure returns (bytes32);
+    event NewQuote(
+        uint256 indexed id,
+        bytes32 indexed chainName,
+        bytes32 indexed tokenName,
+        address oracle,
+        uint256 fee,
+        uint256 gasLimit,
+        uint256 expiry,
+        uint8 cap
+    );
 }
 
 interface IBridgeFeeOracle {
     function defaultOracle() external view returns (address);
 
     function isOnline(
-        string memory _chainName,
+        bytes32 _chainName,
         address _oracle
     ) external returns (bool);
 
-    function getOracleList() external view returns (address[] memory);
+    function getOracleList(
+        bytes32 _chainName
+    ) external view returns (address[] memory);
 }
