@@ -41,7 +41,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 		baseCoins = baseCoins.Add(baseCoin)
 	}
 
-	if err := k.HandlerBridgeCallInFee(ctx, caller, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.BigInt()); err != nil {
+	if err := k.HandlerBridgeCallInFee(ctx, caller, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.Uint64()); err != nil {
 		return err
 	}
 

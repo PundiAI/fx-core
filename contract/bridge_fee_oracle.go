@@ -30,6 +30,22 @@ func (k BridgeFeeOracleKeeper) Initialize(ctx context.Context) (*types.MsgEthere
 	return k.Caller.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "initialize", common.HexToAddress(CrosschainAddress))
 }
 
+func (k BridgeFeeOracleKeeper) DefaultOracle(ctx context.Context) (common.Address, error) {
+	var res struct{ DefaultOracle common.Address }
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "defaultOracle", &res); err != nil {
+		return common.Address{}, err
+	}
+	return res.DefaultOracle, nil
+}
+
+func (k BridgeFeeOracleKeeper) GetOracleList(ctx context.Context, chainName common.Hash) ([]common.Address, error) {
+	var res struct{ Oracles []common.Address }
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "getOracleList", &res, chainName); err != nil {
+		return nil, err
+	}
+	return res.Oracles, nil
+}
+
 func (k BridgeFeeOracleKeeper) GetOwnerRole(ctx context.Context) (common.Hash, error) {
 	var res struct{ Role common.Hash }
 	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "OWNER_ROLE", &res); err != nil {

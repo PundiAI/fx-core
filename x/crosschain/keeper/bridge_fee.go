@@ -13,7 +13,7 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (k Keeper) ValidateQuote(ctx sdk.Context, caller contract.Caller, quoteId, gasLimit *big.Int) (contract.IBridgeFeeQuoteQuoteInfo, error) {
+func (k Keeper) ValidateQuote(ctx sdk.Context, caller contract.Caller, quoteId *big.Int, gasLimit uint64) (contract.IBridgeFeeQuoteQuoteInfo, error) {
 	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller, contract.BridgeFeeAddress)
 	quote, err := bridgeFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
 	if err != nil {
@@ -22,7 +22,7 @@ func (k Keeper) ValidateQuote(ctx sdk.Context, caller contract.Caller, quoteId, 
 	if quote.IsTimeout(ctx.BlockTime()) {
 		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote has timed out")
 	}
-	if quote.GasLimit.Cmp(gasLimit) < 0 {
+	if quote.GasLimit < gasLimit {
 		return contract.IBridgeFeeQuoteQuoteInfo{}, types.ErrInvalid.Wrapf("quote gas limit is less than gas limit")
 	}
 	return quote, nil
@@ -42,7 +42,7 @@ func (k Keeper) TransferBridgeFee(ctx sdk.Context, caller contract.Caller, from,
 	return err
 }
 
-func (k Keeper) HandlerBridgeCallInFee(ctx sdk.Context, caller contract.Caller, from common.Address, quoteId, gasLimit *big.Int) error {
+func (k Keeper) HandlerBridgeCallInFee(ctx sdk.Context, caller contract.Caller, from common.Address, quoteId *big.Int, gasLimit uint64) error {
 	if quoteId == nil || quoteId.Sign() <= 0 {
 		// Allow free bridgeCall
 		return nil
@@ -53,10 +53,10 @@ func (k Keeper) HandlerBridgeCallInFee(ctx sdk.Context, caller contract.Caller, 
 		return err
 	}
 
-	return k.TransferBridgeFee(ctx, caller, from, quote.Oracle, quote.Fee, quote.TokenName)
+	return k.TransferBridgeFee(ctx, caller, from, quote.Oracle, quote.Amount, quote.GetTokenName())
 }
 
-func (k Keeper) HandlerBridgeCallOutFee(ctx sdk.Context, caller contract.Caller, from common.Address, bridgeCallNonce uint64, quoteId, gasLimit *big.Int) error {
+func (k Keeper) HandlerBridgeCallOutFee(ctx sdk.Context, caller contract.Caller, from common.Address, bridgeCallNonce uint64, quoteId *big.Int, gasLimit uint64) error {
 	if quoteId == nil || quoteId.Sign() <= 0 {
 		// Users can send submitBridgeCall by themselves without paying
 		return nil
@@ -68,7 +68,7 @@ func (k Keeper) HandlerBridgeCallOutFee(ctx sdk.Context, caller contract.Caller,
 	}
 
 	bridgeFeeAddr := common.BytesToAddress(k.bridgeFeeCollector)
-	if err = k.TransferBridgeFee(ctx, caller, from, bridgeFeeAddr, quote.Fee, quote.TokenName); err != nil {
+	if err = k.TransferBridgeFee(ctx, caller, from, bridgeFeeAddr, quote.Amount, quote.GetTokenName()); err != nil {
 		return err
 	}
 

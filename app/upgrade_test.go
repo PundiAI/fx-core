@@ -23,6 +23,7 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -88,6 +89,9 @@ func Test_UpgradeTestnet(t *testing.T) {
 	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
 	checkPundixPurse(t, ctx, myApp)
 	checkTotalSupply(t, ctx, myApp)
+
+	// check bridge fee contract status
+	checkBridgeFeeContract(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -503,4 +507,61 @@ func getTestnetTokenAmount(ctx sdk.Context, coin sdk.Coin) sdk.Coin {
 	}
 	coin.Amount = coin.Amount.Sub(amount)
 	return coin
+}
+
+func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(myApp.EvmKeeper, contract.BridgeFeeAddress)
+
+	quote, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32("eth"), contract.MustStrToByte32("usdt"))
+	require.NoError(t, err)
+	require.Len(t, quote, 3)
+	for _, q := range quote {
+		require.EqualValues(t, uint64(0), q.Id.Uint64())
+		require.EqualValues(t, contract.MustStrToByte32(""), q.ChainName)
+		require.EqualValues(t, contract.MustStrToByte32(""), q.TokenName)
+		require.EqualValues(t, common.HexToAddress("0x0000000000000000000000000000000000000000"), q.Oracle)
+		require.EqualValues(t, uint64(0), q.Amount.Uint64())
+		require.EqualValues(t, uint64(0), q.GasLimit)
+		require.EqualValues(t, uint64(0), q.Expiry)
+	}
+
+	chainNames, err := bridgeFeeQuoteKeeper.GetChainNames(ctx)
+	require.NoError(t, err)
+
+	chains := fxtypes.GetSupportChains()
+	chainNamesMap := make(map[string]bool)
+	for _, chain := range chains {
+		for _, chainName := range chainNames {
+			if chainName == contract.MustStrToByte32(chain) {
+				chainNamesMap[chain] = true
+			}
+		}
+	}
+	for _, chain := range chains {
+		require.True(t, chainNamesMap[chain])
+	}
+
+	for _, chainName := range chainNames {
+		tokens, err := bridgeFeeQuoteKeeper.GetTokens(ctx, chainName)
+		require.NoError(t, err)
+		chain := contract.Byte32ToString(chainName)
+
+		bridgeTokens, err := myApp.Erc20Keeper.GetBridgeTokens(ctx, chain)
+		require.NoError(t, err)
+
+		require.Len(t, tokens, len(bridgeTokens))
+	}
+
+	bridgeFeeOracleKeeper := contract.NewBridgeFeeOracleKeeper(myApp.EvmKeeper, contract.BridgeFeeOracleAddress)
+	oracle, err := bridgeFeeOracleKeeper.DefaultOracle(ctx)
+	require.NoError(t, err)
+	require.Equal(t, oracle, common.HexToAddress("0x9c079e86be639076809620CBFaa3784649F5ee81"))
+
+	for _, chainName := range chainNames {
+		oracles, err := bridgeFeeOracleKeeper.GetOracleList(ctx, chainName)
+		require.NoError(t, err)
+		require.Empty(t, oracles)
+	}
 }

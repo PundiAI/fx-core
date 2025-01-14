@@ -1,11 +1,11 @@
-package types_test
+package contract_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/pundiai/fx-core/v8/types"
+	fxtypes "github.com/pundiai/fx-core/v8/contract"
 )
 
 func TestStrToByte32(t *testing.T) {

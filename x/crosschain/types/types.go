@@ -205,11 +205,11 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
 	// will panic if gravityId is too long to fit in 32 bytes
-	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
+	gravityID, err := contract.StrToByte32(gravityIDStr)
 	if err != nil {
 		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
-	checkpoint, err := fxtypes.StrToByte32("checkpoint")
+	checkpoint, err := contract.StrToByte32("checkpoint")
 	if err != nil {
 		return nil, err
 	}
@@ -321,13 +321,13 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
 	// will panic if gravityId is too long to fit in 32 bytes
-	gravityID, err := fxtypes.StrToByte32(gravityIDString)
+	gravityID, err := contract.StrToByte32(gravityIDString)
 	if err != nil {
 		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 
 	// Create the methodName argument which salts the signature
-	batchMethodName, err := fxtypes.StrToByte32("transactionBatch")
+	batchMethodName, err := contract.StrToByte32("transactionBatch")
 	if err != nil {
 		return nil, err
 	}
@@ -432,13 +432,13 @@ func (m *OutgoingBridgeCall) GetCheckpoint(gravityIDString string) ([]byte, erro
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
 	// will panic if gravityId is too long to fit in 32 bytes
-	gravityID, err := fxtypes.StrToByte32(gravityIDString)
+	gravityID, err := contract.StrToByte32(gravityIDString)
 	if err != nil {
 		return nil, fmt.Errorf("parse gravity id: %w", err)
 	}
 
 	// Create the methodName argument which salts the signature
-	bridgeCallMethodName, err := fxtypes.StrToByte32("bridgeCall")
+	bridgeCallMethodName, err := contract.StrToByte32("bridgeCall")
 	if err != nil {
 		return nil, err
 	}
@@ -516,11 +516,11 @@ func NewIBCTransferKey(ibcChannel string, ibcSequence uint64) string {
 func NewQuoteInfo(quote contract.IBridgeFeeQuoteQuoteInfo) QuoteInfo {
 	return QuoteInfo{
 		Id:       quote.Id.Uint64(),
-		Token:    quote.TokenName,
-		Fee:      sdkmath.NewIntFromBigInt(quote.Fee),
+		Token:    quote.GetTokenName(),
+		Fee:      sdkmath.NewIntFromBigInt(quote.Amount),
 		Oracle:   quote.Oracle.Hex(),
-		GasLimit: quote.GasLimit.Uint64(),
-		Expiry:   quote.Expiry.Uint64(),
+		GasLimit: quote.GasLimit,
+		Expiry:   quote.Expiry,
 	}
 }
 

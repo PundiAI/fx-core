@@ -18,19 +18,46 @@ type BridgeFeeQuoteKeeper struct {
 	contract common.Address
 }
 
-func NewBridgeFeeQuoteKeeper(caller Caller, contract string) BridgeFeeQuoteKeeper {
+func NewBridgeFeeQuoteKeeper(caller Caller, contract ...string) BridgeFeeQuoteKeeper {
+	if len(contract) == 0 {
+		contract = append(contract, BridgeFeeAddress)
+	}
 	return BridgeFeeQuoteKeeper{
 		Caller: caller,
 		abi:    GetBridgeFeeQuote().ABI,
 		// evm module address
 		from:     common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName).Bytes()),
-		contract: common.HexToAddress(contract),
+		contract: common.HexToAddress(contract[0]),
 	}
 }
 
-func (k BridgeFeeQuoteKeeper) GetQuotesByToken(ctx context.Context, chainName, tokenName string) ([]IBridgeFeeQuoteQuoteInfo, error) {
+func (k BridgeFeeQuoteKeeper) GetQuoteNonce(ctx context.Context) (*big.Int, error) {
+	var res struct{ QuoteNonce *big.Int }
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "quoteNonce", &res); err != nil {
+		return nil, err
+	}
+	return res.QuoteNonce, nil
+}
+
+func (k BridgeFeeQuoteKeeper) GetChainNames(ctx context.Context) ([]common.Hash, error) {
+	var res struct{ ChainNames []common.Hash }
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "getChainNames", &res); err != nil {
+		return nil, err
+	}
+	return res.ChainNames, nil
+}
+
+func (k BridgeFeeQuoteKeeper) GetTokens(ctx context.Context, chainName common.Hash) ([]common.Hash, error) {
+	var res struct{ Tokens []common.Hash }
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "getTokens", &res, chainName); err != nil {
+		return nil, err
+	}
+	return res.Tokens, nil
+}
+
+func (k BridgeFeeQuoteKeeper) GetDefaultOracleQuote(ctx context.Context, chainName, tokenName common.Hash) ([]IBridgeFeeQuoteQuoteInfo, error) {
 	var res struct{ Quotes []IBridgeFeeQuoteQuoteInfo }
-	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "getQuotesByToken", &res, chainName, tokenName); err != nil {
+	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "getDefaultOracleQuote", &res, chainName, tokenName); err != nil {
 		return nil, err
 	}
 	return res.Quotes, nil
@@ -44,8 +71,8 @@ func (k BridgeFeeQuoteKeeper) GetQuoteById(ctx context.Context, id *big.Int) (IB
 	return res.Quote, nil
 }
 
-func (k BridgeFeeQuoteKeeper) Initialize(ctx context.Context, oracle common.Address, maxQuoteIndex *big.Int) (*types.MsgEthereumTxResponse, error) {
-	return k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "initialize", oracle, maxQuoteIndex)
+func (k BridgeFeeQuoteKeeper) Initialize(ctx context.Context, oracle common.Address, maxQuoteCap uint8) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "initialize", oracle, maxQuoteCap)
 }
 
 func (k BridgeFeeQuoteKeeper) GetOwnerRole(ctx context.Context) (common.Hash, error) {
@@ -68,7 +95,7 @@ func (k BridgeFeeQuoteKeeper) GrantRole(ctx context.Context, role common.Hash, a
 	return k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "grantRole", role, account)
 }
 
-func (k BridgeFeeQuoteKeeper) RegisterChain(ctx context.Context, chainName string, tokenNames ...string) (*types.MsgEthereumTxResponse, error) {
+func (k BridgeFeeQuoteKeeper) RegisterChain(ctx context.Context, chainName common.Hash, tokenNames ...common.Hash) (*types.MsgEthereumTxResponse, error) {
 	res, err := k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "registerChain", chainName, tokenNames)
 	if err != nil {
 		return nil, err
@@ -76,10 +103,10 @@ func (k BridgeFeeQuoteKeeper) RegisterChain(ctx context.Context, chainName strin
 	return unpackRetIsOk(k.abi, "registerChain", res)
 }
 
-func (k BridgeFeeQuoteKeeper) RegisterTokenName(ctx context.Context, chainName string, tokenNames []string) (*types.MsgEthereumTxResponse, error) {
-	res, err := k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "registerTokenName", chainName, tokenNames)
+func (k BridgeFeeQuoteKeeper) AddToken(ctx context.Context, chainName common.Hash, tokenNames []common.Hash) (*types.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "addToken", chainName, tokenNames)
 	if err != nil {
 		return nil, err
 	}
-	return unpackRetIsOk(k.abi, "registerTokenName", res)
+	return unpackRetIsOk(k.abi, "addToken", res)
 }

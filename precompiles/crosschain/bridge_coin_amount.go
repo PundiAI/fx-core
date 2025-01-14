@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
-	fxtypes "github.com/pundiai/fx-core/v8/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	evmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
@@ -50,7 +49,7 @@ func (m *BridgeCoinAmountMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 		return nil, errors.New("invalid router")
 	}
 
-	totalSupply, err := crosschainKeeper.BridgeCoinSupply(ctx, args.Token.String(), fxtypes.Byte32ToString(args.Target))
+	totalSupply, err := crosschainKeeper.BridgeCoinSupply(ctx, args.Token.String(), fxcontract.Byte32ToString(args.Target))
 	if err != nil {
 		return nil, err
 	}
