@@ -9,23 +9,27 @@ contract BridgeFeeQuoteTest {
         bool online;
     }
 
-    mapping(address => OracleState) public oracleStatus;
+    mapping(string => mapping(address => OracleState)) public oracleStatus;
 
-    function setOracle(address _oracle, OracleState memory _state) external {
-        oracleStatus[_oracle] = _state;
+    function setOracle(
+        string memory _chainName,
+        address _oracle,
+        OracleState memory _state
+    ) external {
+        oracleStatus[_chainName][_oracle] = _state;
     }
 
     function hasOracle(
-        string memory,
+        string memory _chainName,
         address _externalAddress
     ) external view returns (bool _result) {
-        return oracleStatus[_externalAddress].registered;
+        return oracleStatus[_chainName][_externalAddress].registered;
     }
 
     function isOracleOnline(
-        string memory,
+        string memory _chainName,
         address _externalAddress
     ) external view returns (bool _result) {
-        return oracleStatus[_externalAddress].online;
+        return oracleStatus[_chainName][_externalAddress].online;
     }
 }

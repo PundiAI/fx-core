@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import {IBridgeFeeOracle} from "./IBridgeFee.sol";
+import {IBridgeOracle} from "./IBridgeOracle.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {EnumerableSetUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
-import {IBridgeFeeOracle} from "./IBridgeFee.sol";
-import {IBridgeOracle} from "./IBridgeOracle.sol";
 
 contract BridgeFeeOracle is
     IBridgeFeeOracle,
@@ -26,12 +26,12 @@ contract BridgeFeeOracle is
     address public defaultOracle;
 
     struct State {
-        bool isBlacklisted;
+        bool isBlack;
         bool isActive;
     }
 
-    EnumerableSetUpgradeable.AddressSet private oracles;
-    mapping(address => State) public oracleStatus;
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private oracles;
+    mapping(bytes32 => mapping(address => State)) public oracleStatus;
 
     function initialize(address _crosschain) public initializer {
         crosschainContract = _crosschain;
@@ -52,50 +52,90 @@ contract BridgeFeeOracle is
      * @return bool indicating if the oracle is online.
      */
     function isOnline(
-        string memory _chainName,
+        bytes32 _chainName,
         address _oracle
     ) external onlyRole(QUOTE_ROLE) nonReentrant returns (bool) {
-        if (oracleStatus[_oracle].isActive) return true;
-        if (oracleStatus[_oracle].isBlacklisted) return false;
-        if (!IBridgeOracle(crosschainContract).hasOracle(_chainName, _oracle)) {
+        if (oracleStatus[_chainName][_oracle].isActive) {
+            return true;
+        }
+        if (oracleStatus[_chainName][_oracle].isBlack) {
             return false;
         }
+        if (_oracle == defaultOracle) {
+            oracleStatus[_chainName][_oracle].isActive = true;
+            oracles[_chainName].add(_oracle);
+            return true;
+        }
         if (
-            !IBridgeOracle(crosschainContract).isOracleOnline(
-                _chainName,
+            !IBridgeOracle(crosschainContract).hasOracle(
+                bytes32ToString(_chainName),
                 _oracle
             )
         ) {
             return false;
         }
-        oracleStatus[_oracle] = State(false, true);
-        oracles.add(_oracle);
+        if (
+            !IBridgeOracle(crosschainContract).isOracleOnline(
+                bytes32ToString(_chainName),
+                _oracle
+            )
+        ) {
+            return false;
+        }
+        oracleStatus[_chainName][_oracle].isActive = true;
+        oracles[_chainName].add(_oracle);
         return true;
     }
 
+    function getOracleList(
+        bytes32 _chainName
+    ) external view returns (address[] memory) {
+        return oracles[_chainName].values();
+    }
+
     function blackOracle(
+        bytes32 _chainName,
         address _oracle
-    ) external onlyRole(OWNER_ROLE) nonReentrant {
-        if (oracleStatus[_oracle].isBlacklisted) return;
-        if (oracleStatus[_oracle].isActive) {
-            oracleStatus[_oracle].isActive = false;
-            oracles.remove(_oracle);
+    ) external onlyRole(OWNER_ROLE) {
+        if (oracleStatus[_chainName][_oracle].isBlack) {
+            return;
         }
-        oracleStatus[_oracle].isBlacklisted = true;
+        if (oracleStatus[_chainName][_oracle].isActive) {
+            oracleStatus[_chainName][_oracle].isActive = false;
+            oracles[_chainName].remove(_oracle);
+        }
+        oracleStatus[_chainName][_oracle].isBlack = true;
+    }
+
+    function activeOracle(
+        bytes32 _chainName,
+        address _oracle
+    ) external onlyRole(OWNER_ROLE) {
+        if (oracleStatus[_chainName][_oracle].isActive) {
+            return;
+        }
+        oracleStatus[_chainName][_oracle] = State(false, true);
+        oracles[_chainName].add(_oracle);
     }
 
     function setDefaultOracle(
         address _defaultOracle
     ) external onlyRole(OWNER_ROLE) {
-        if (!oracles.contains(_defaultOracle)) {
-            oracleStatus[_defaultOracle] = State(false, true);
-            oracles.add(_defaultOracle);
-        }
         defaultOracle = _defaultOracle;
     }
 
-    function getOracleList() external view returns (address[] memory) {
-        return oracles.values();
+    function bytes32ToString(
+        bytes32 _bytes32
+    ) public pure returns (string memory) {
+        uint8 i = 0;
+        while (i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
     }
 
     function _authorizeUpgrade(
