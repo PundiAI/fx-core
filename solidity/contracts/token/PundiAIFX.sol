@@ -6,6 +6,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {ERC20PermitUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import {ERC20BurnableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 /* solhint-disable custom-errors */
@@ -14,6 +15,7 @@ contract PundiAIFX is
     Initializable,
     ERC20Upgradeable,
     ERC20PermitUpgradeable,
+    ERC20BurnableUpgradeable,
     AccessControlUpgradeable,
     UUPSUpgradeable
 {
@@ -30,16 +32,6 @@ contract PundiAIFX is
      */
     function mint(address _to, uint256 _amount) external onlyRole(ADMIN_ROLE) {
         _mint(_to, _amount);
-    }
-
-    /**
-     * @notice Burns a specified amount of tokens from the sender's account.
-     * @dev This function can only be called by an account with the ADMIN_ROLE.
-     * @param _to The recipient's account.
-     * @param _amount The amount of tokens to be burned
-     */
-    function burn(address _to, uint256 _amount) external onlyRole(ADMIN_ROLE) {
-        _burn(_to, _amount);
     }
 
     /**
@@ -77,6 +69,7 @@ contract PundiAIFX is
 
         __ERC20_init("Pundi AIFX Token", "PUNDIAI");
         __ERC20Permit_init("Pundi AIFX Token");
+        __ERC20Burnable_init();
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
