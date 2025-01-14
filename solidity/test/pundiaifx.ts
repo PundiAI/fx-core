@@ -69,7 +69,7 @@ describe("pundiaifx tests", function () {
 
     expect(await pundiAIFX.balanceOf(deploy.address)).to.equal(1);
 
-    await pundiAIFX.burn(deploy.address, "1");
+    await pundiAIFX.burn("1");
 
     expect(await pundiAIFX.totalSupply()).to.equal(0);
   });
