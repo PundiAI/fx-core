@@ -74,7 +74,11 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := fixPurseCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
 		return err
 	}
-	return fixTestnetTokenAmount(ctx, app.BankKeeper, app.EvmKeeper, app.Erc20Keeper)
+	if err := fixTestnetTokenAmount(ctx, app.BankKeeper, app.EvmKeeper, app.Erc20Keeper); err != nil {
+		return err
+	}
+
+	return redeployTestnetContract(ctx, app.AccountKeeper, app.EvmKeeper, app.Erc20Keeper, app.EthKeeper)
 }
 
 func upgradeMainnet(
@@ -329,16 +333,16 @@ func deployBridgeFeeContract(
 	chains := fxtypes.GetSupportChains()
 	bridgeDenoms := make([]contract.BridgeDenoms, len(chains))
 	for index, chain := range chains {
-		denoms := make([]string, 0)
+		denoms := make([]common.Hash, 0)
 		bridgeTokens, err := erc20Keeper.GetBridgeTokens(cacheCtx, chain)
 		if err != nil {
 			return err
 		}
 		for _, token := range bridgeTokens {
-			denoms = append(denoms, token.GetDenom())
+			denoms = append(denoms, contract.MustStrToByte32(token.GetDenom()))
 		}
 		bridgeDenoms[index] = contract.BridgeDenoms{
-			ChainName: chain,
+			ChainName: contract.MustStrToByte32(chain),
 			Denoms:    denoms,
 		}
 	}
@@ -357,11 +361,7 @@ func deployBridgeFeeContract(
 	)
 }
 
-func deployAccessControlContract(
-	cacheCtx sdk.Context,
-	evmKeeper *fxevmkeeper.Keeper,
-	evmModuleAddress common.Address,
-) error {
+func deployAccessControlContract(cacheCtx sdk.Context, evmKeeper *fxevmkeeper.Keeper, evmModuleAddress common.Address) error {
 	return contract.DeployAccessControlContract(
 		cacheCtx,
 		evmKeeper,
@@ -486,4 +486,29 @@ func fixTestnetTokenAmount(ctx sdk.Context, bankKeeper bankkeeper.Keeper, evmKee
 		}
 	}
 	return nil
+}
+
+func redeployTestnetContract(
+	ctx sdk.Context,
+	accountKeeper authkeeper.AccountKeeper,
+	evmKeeper *fxevmkeeper.Keeper,
+	erc20Keeper erc20keeper.Keeper,
+	ethKeeper crosschainkeeper.Keeper,
+) error {
+	if err := evmKeeper.DeleteAccount(ctx, common.HexToAddress(contract.BridgeFeeAddress)); err != nil {
+		return err
+	}
+	if err := evmKeeper.DeleteAccount(ctx, common.HexToAddress(contract.BridgeFeeOracleAddress)); err != nil {
+		return err
+	}
+
+	acc := accountKeeper.GetModuleAddress(evmtypes.ModuleName)
+	moduleAddress := common.BytesToAddress(acc.Bytes())
+	return deployBridgeFeeContract(
+		ctx,
+		evmKeeper,
+		erc20Keeper,
+		ethKeeper,
+		moduleAddress,
+	)
 }

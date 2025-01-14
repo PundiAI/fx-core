@@ -507,7 +507,7 @@ func (suite *CrosschainSuite) Crosschain(token common.Address, recipient string,
 
 	beforeBalanceOf := erc20TokenSuite.BalanceOf(suite.signer.Address())
 
-	ethTx, err := suite.crosschain.CrossChain(suite.TransactOpts(suite.signer), token, recipient, amount, fee, fxtypes.MustStrToByte32(target), "")
+	ethTx, err := suite.crosschain.CrossChain(suite.TransactOpts(suite.signer), token, recipient, amount, fee, contract.MustStrToByte32(target), "")
 	suite.Require().NoError(err)
 	suite.WaitMined(ethTx)
 

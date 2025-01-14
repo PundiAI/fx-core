@@ -17,13 +17,13 @@ import (
 // Deprecated: please use BuildOutgoingBridgeCall
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, caller contract.Caller, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
 	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller, contract.BridgeFeeAddress)
-	quoteInfos, err := bridgeFeeQuoteKeeper.GetQuotesByToken(ctx, k.moduleName, fee.Denom)
+	quoteInfos, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32(k.moduleName), contract.MustStrToByte32(fee.Denom))
 	if err != nil {
 		return 0, err
 	}
 	var quoteInfo *contract.IBridgeFeeQuoteQuoteInfo
 	for _, quote := range quoteInfos {
-		if fee.Amount.GTE(sdkmath.NewIntFromBigInt(quote.Fee)) && !quote.IsTimeout(ctx.BlockTime()) {
+		if fee.Amount.GTE(sdkmath.NewIntFromBigInt(quote.Amount)) && !quote.IsTimeout(ctx.BlockTime()) {
 			quoteInfo = &quote
 			break
 		}

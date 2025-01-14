@@ -6,6 +6,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
@@ -51,7 +52,7 @@ func (m *Params) ValidateBasic() error {
 	if len(m.GravityId) == 0 {
 		return fmt.Errorf("gravityId cannpt be empty")
 	}
-	if _, err := fxtypes.StrToByte32(m.GravityId); err != nil {
+	if _, err := contract.StrToByte32(m.GravityId); err != nil {
 		return err
 	}
 	if m.AverageBlockTime < 100 {

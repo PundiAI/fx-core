@@ -24,8 +24,8 @@ func initChainer(ctx sdk.Context, keepers keepers.AppKeepers) error {
 
 	bridgeDenoms := []contract.BridgeDenoms{
 		{
-			ChainName: ethtypes.ModuleName,
-			Denoms:    []string{fxtypes.DefaultDenom},
+			ChainName: contract.MustStrToByte32(ethtypes.ModuleName),
+			Denoms:    []common.Hash{contract.MustStrToByte32(fxtypes.DefaultDenom)},
 		},
 	}
 

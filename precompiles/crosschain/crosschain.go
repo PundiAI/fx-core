@@ -54,7 +54,7 @@ func (m *LegacyCrosschainMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte
 
 	stateDB := evm.StateDB.(evmtypes.ExtStateDB)
 	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
-		fxTarget, err := crosschaintypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
+		fxTarget, err := crosschaintypes.ParseFxTarget(fxcontract.Byte32ToString(args.Target))
 		if err != nil {
 			return err
 		}

@@ -220,7 +220,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, caller contract.Caller, from
 		}
 		cacheKey = types.NewOriginTokenKey(k.moduleName, nonce)
 
-		if err = k.HandlerBridgeCallOutFee(ctx, caller, from, nonce, quoteId, gasLimit); err != nil {
+		if err = k.HandlerBridgeCallOutFee(ctx, caller, from, nonce, quoteId, gasLimit.Uint64()); err != nil {
 			return 0, err
 		}
 	}
