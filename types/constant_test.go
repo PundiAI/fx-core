@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -28,11 +29,15 @@ func Test_NormalizeCoin(t *testing.T) {
 	coin := sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18))
 	assert.Equal(t, coin, sdk.NormalizeCoin(coin))
 
-	myCoin, err := sdk.ParseCoinNormalized("1000000000000000000" + DefaultDenom)
+	myCoin, err := sdk.ParseCoinNormalized("1" + strings.Repeat("0", 18) + DefaultDenom)
 	require.NoError(t, err)
 	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18)))
 
 	myCoin, err = sdk.ParseCoinNormalized("1" + DefaultDenom)
 	require.NoError(t, err)
 	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1)))
+
+	myCoin, err = sdk.ParseCoinNormalized("1" + strings.ToLower(DefaultSymbol))
+	require.NoError(t, err)
+	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18)))
 }

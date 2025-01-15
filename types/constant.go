@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,6 +73,9 @@ func SetConfig(isCosmosCoinType bool) {
 	config.Seal()
 
 	if err := sdk.RegisterDenom(DefaultDenom, sdkmath.LegacyNewDecWithPrec(1, 18)); err != nil {
+		panic(err)
+	}
+	if err := sdk.RegisterDenom(strings.ToLower(DefaultSymbol), sdkmath.LegacyOneDec()); err != nil {
 		panic(err)
 	}
 }
