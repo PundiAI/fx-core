@@ -52,7 +52,7 @@ func init() {
 }
 
 func GetDefGasPrice() sdk.Coin {
-	return sdk.NewCoin(DefaultDenom, sdkmath.NewInt(4_000).MulRaw(1e9))
+	return sdk.NewCoin(DefaultDenom, sdkmath.NewInt(5).MulRaw(1e9))
 }
 
 func GetDefaultNodeHome() string {
