@@ -330,7 +330,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 				sdk.Coins{
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
-						Amount: sdkmath.NewInt(4).MulRaw(1e12),
+						Amount: sdkmath.NewInt(5).MulRaw(1e9),
 					},
 				},
 				nil,
@@ -375,7 +375,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 			wantRes: []interface{}{
 				sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdkmath.NewInt(488999).MulRaw(1e18),
+					Amount: sdkmath.NewInt(48899999875).MulRaw(1e13),
 				},
 				nil,
 			},
@@ -398,7 +398,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 				sdk.Coins{
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
-						Amount: sdkmath.NewInt(488999).MulRaw(1e18),
+						Amount: sdkmath.NewInt(48899999875).MulRaw(1e13),
 					},
 				},
 				nil,

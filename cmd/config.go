@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	fxcfg "github.com/pundiai/fx-core/v8/server/config"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 const (
@@ -52,6 +53,7 @@ func updateConfig(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	appConfig.MinGasPrices = fxtypes.GetDefGasPrice().String()
 	appConfig.EVM.MaxTxGasWanted = 0
 
 	fileName = filepath.Join(rootDir, "config", appFileName)

@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	fxcfg "github.com/pundiai/fx-core/v8/server/config"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 func Test_updateCfgCmd(t *testing.T) {
@@ -98,7 +99,7 @@ func TestPublicAppConfig(t *testing.T) {
 	appConfig.Pruning = pruningtypes.PruningOptionCustom
 	appConfig.PruningKeepRecent = "20000"
 	appConfig.PruningInterval = "10"
-	appConfig.MinGasPrices = "4000000000000FX"
+	appConfig.MinGasPrices = fxtypes.GetDefGasPrice().String()
 	appConfig.IAVLDisableFastNode = true
 	appConfig.Telemetry.EnableServiceLabel = true
 	appConfig.Telemetry.Enabled = true

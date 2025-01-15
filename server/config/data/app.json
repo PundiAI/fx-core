@@ -66,7 +66,7 @@
     "max-txs": -1
   },
   "min-retain-blocks": 0,
-  "minimum-gas-prices": "4000000000000apundiai",
+  "minimum-gas-prices": "5000000000apundiai",
   "pruning": "default",
   "pruning-interval": "0",
   "pruning-keep-recent": "0",
