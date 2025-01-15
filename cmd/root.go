@@ -125,7 +125,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := fxcfg.AppConfig(fxtypes.GetDefGasPrice())
+			customAppTemplate, customAppConfig := fxcfg.AppConfig(fxtypes.GetDefMinGasPrices())
 			return sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, fxcfg.DefaultTendermintConfig())
 		},
 	}

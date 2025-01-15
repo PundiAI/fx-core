@@ -130,8 +130,8 @@ func newDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManag
 			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case feemarkettypes.ModuleName:
 			state := feemarkettypes.DefaultGenesisState()
-			state.Params.BaseFee = sdkmath.NewInt(500_000_000_000)
-			state.Params.MinGasPrice = sdkmath.LegacyNewDec(500_000_000_000)
+			state.Params.BaseFee = sdkmath.NewInt(fxtypes.DefaultGasPrice)
+			state.Params.MinGasPrice = sdkmath.LegacyNewDec(fxtypes.DefaultGasPrice)
 			state.Params.MinGasMultiplier = sdkmath.LegacyZeroDec()
 			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		default:

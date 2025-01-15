@@ -99,7 +99,7 @@ func TestPublicAppConfig(t *testing.T) {
 	appConfig.Pruning = pruningtypes.PruningOptionCustom
 	appConfig.PruningKeepRecent = "20000"
 	appConfig.PruningInterval = "10"
-	appConfig.MinGasPrices = fxtypes.GetDefGasPrice().String()
+	appConfig.MinGasPrices = fxtypes.GetDefMinGasPrices().String()
 	appConfig.IAVLDisableFastNode = true
 	appConfig.Telemetry.EnableServiceLabel = true
 	appConfig.Telemetry.Enabled = true

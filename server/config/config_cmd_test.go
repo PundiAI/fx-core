@@ -59,7 +59,7 @@ func Test_ConfigTomlConfig_Output(t *testing.T) {
 }
 
 func Test_AppTomlConfig_Output(t *testing.T) {
-	_, v := config.AppConfig(fxtypes.GetDefGasPrice())
+	_, v := config.AppConfig(fxtypes.GetDefMinGasPrices())
 	cfg := v.(config.Config)
 	c := config.AppToml{Config: &cfg}
 	buf := new(bytes.Buffer)

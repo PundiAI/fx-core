@@ -24,6 +24,8 @@ const (
 	FXDenom = "FX"
 
 	AddrLen = 20
+
+	DefaultGasPrice = 5 * 1e9
 )
 
 // defaultNodeHome default home directories for the application daemon
@@ -51,8 +53,8 @@ func init() {
 	defaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 }
 
-func GetDefGasPrice() sdk.Coin {
-	return sdk.NewCoin(DefaultDenom, sdkmath.NewInt(5).MulRaw(1e9))
+func GetDefMinGasPrices() sdk.Coin {
+	return sdk.NewCoin(DefaultDenom, sdkmath.NewInt(DefaultGasPrice))
 }
 
 func GetDefaultNodeHome() string {
