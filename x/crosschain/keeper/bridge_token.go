@@ -15,12 +15,12 @@ import (
 func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTokenClaim) error {
 	k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract)
 
-	if claim.Symbol == fxtypes.DefaultDenom {
+	if claim.Symbol == fxtypes.DefaultSymbol {
 		if uint64(fxtypes.DenomUnit) != claim.Decimals {
 			return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d",
 				fxtypes.DefaultDenom, claim.Decimals, fxtypes.DenomUnit)
 		}
-		return k.erc20Keeper.AddBridgeToken(ctx, claim.Symbol, k.moduleName, claim.TokenContract, false)
+		return k.erc20Keeper.AddBridgeToken(ctx, fxtypes.DefaultDenom, k.moduleName, claim.TokenContract, false)
 	}
 
 	return k.erc20Keeper.AddBridgeToken(ctx, strings.ToLower(claim.Symbol), k.moduleName, claim.TokenContract, false)

@@ -12,7 +12,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",
@@ -69,7 +69,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",
@@ -111,7 +111,7 @@
         "address": "cosmos1c602zv38ht8xu8u2qcmymyl55mcyvvjrzq9ur3",
         "coins": [
           {
-            "denom": "FX",
+            "denom": "apundiai",
             "amount": "378600525462891000000000000"
           }
         ]
@@ -119,24 +119,29 @@
     ],
     "supply": [
       {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "378600525462891000000000000"
       }
     ],
     "denom_metadata": [
       {
-        "description": "The native staking token of the Function X",
+        "description": "The native staking token of the Pundi AIFX",
         "denom_units": [
           {
-            "denom": "FX",
+            "denom": "apundiai",
             "exponent": 0,
+            "aliases": []
+          },
+          {
+            "denom": "pundiai",
+            "exponent": 18,
             "aliases": []
           }
         ],
-        "base": "FX",
-        "display": "FX",
-        "name": "Function X",
-        "symbol": "FX",
+        "base": "apundiai",
+        "display": "pundiai",
+        "name": "Pundi AIFX Token",
+        "symbol": "PUNDIAI",
         "uri": "",
         "uri_hash": ""
       }
@@ -155,7 +160,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",
@@ -194,7 +199,7 @@
   "consensus": null,
   "crisis": {
     "constant_fee": {
-      "denom": "FX",
+      "denom": "apundiai",
       "amount": "13333000000000000000000"
     }
   },
@@ -235,7 +240,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",
@@ -273,7 +278,7 @@
   "evm": {
     "accounts": [],
     "params": {
-      "evm_denom": "FX",
+      "evm_denom": "apundiai",
       "enable_create": true,
       "enable_call": true,
       "extra_eips": [],
@@ -332,7 +337,7 @@
     "params": {
       "min_deposit": [
         {
-          "denom": "FX",
+          "denom": "apundiai",
           "amount": "10000000000000000000000"
         }
       ],
@@ -412,7 +417,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",
@@ -451,7 +456,7 @@
       "annual_provisions": "0.000000000000000000"
     },
     "params": {
-      "mint_denom": "FX",
+      "mint_denom": "apundiai",
       "inflation_rate_change": "0.300000000000000000",
       "inflation_max": "0.416762000000000000",
       "inflation_min": "0.170000000000000000",
@@ -471,7 +476,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",
@@ -516,7 +521,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",
@@ -565,7 +570,7 @@
       "max_validators": 20,
       "max_entries": 7,
       "historical_entries": 20000,
-      "bond_denom": "FX",
+      "bond_denom": "apundiai",
       "min_commission_rate": "0.000000000000000000"
     },
     "last_total_power": "0",
@@ -597,7 +602,7 @@
       "ibc_transfer_timeout_height": "20000",
       "oracles": [],
       "delegate_threshold": {
-        "denom": "FX",
+        "denom": "apundiai",
         "amount": "10000000000000000000000"
       },
       "delegate_multiple": "10",

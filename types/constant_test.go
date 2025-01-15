@@ -28,11 +28,11 @@ func Test_NormalizeCoin(t *testing.T) {
 	coin := sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18))
 	assert.Equal(t, coin, sdk.NormalizeCoin(coin))
 
-	myCoin, err := sdk.ParseCoinNormalized("1000000000000000000FX")
+	myCoin, err := sdk.ParseCoinNormalized("1000000000000000000" + DefaultDenom)
 	require.NoError(t, err)
 	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18)))
 
-	myCoin, err = sdk.ParseCoinNormalized("1FX")
+	myCoin, err = sdk.ParseCoinNormalized("1" + DefaultDenom)
 	require.NoError(t, err)
 	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1)))
 }
