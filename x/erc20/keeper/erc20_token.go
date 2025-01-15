@@ -14,8 +14,8 @@ import (
 
 func (k Keeper) AddERC20Token(ctx context.Context, name, symbol string, decimals uint8, erc20Addr common.Address, contractOwner types.Owner) (types.ERC20Token, error) {
 	var metadata banktypes.Metadata
-	if symbol == fxtypes.DefaultDenom {
-		metadata = fxtypes.NewFXMetaData()
+	if symbol == fxtypes.DefaultSymbol {
+		metadata = fxtypes.NewDefaultMetadata()
 	} else {
 		metadata = fxtypes.NewMetadata(name, symbol, uint32(decimals))
 	}

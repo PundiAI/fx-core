@@ -153,11 +153,7 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, caller contract.Caller
 	refund := fxtypes.ExternalAddrToAccAddr(k.moduleName, data.GetRefund())
 	baseCoins := sdk.NewCoins()
 	for _, token := range data.Tokens {
-		bridgeToken, err := k.DepositBridgeToken(ctx, refund.Bytes(), token.Amount, token.Contract)
-		if err != nil {
-			return err
-		}
-		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, refund.Bytes(), token.Amount, bridgeToken)
+		baseCoin, err := k.DepositBridgeTokenToBaseCoin(ctx, refund.Bytes(), token.Amount, token.Contract)
 		if err != nil {
 			return err
 		}

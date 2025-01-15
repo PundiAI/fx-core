@@ -20,7 +20,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) error {
 		return sdkerrors.ErrNotFound.Wrapf("module account %s", types.ModuleName)
 	}
 
-	_, err := k.RegisterNativeCoin(ctx, fxtypes.DefaultDenom, fxtypes.DefaultDenom, fxtypes.DenomUnit)
+	metadata := fxtypes.NewDefaultMetadata()
+	_, err := k.RegisterNativeCoin(ctx, metadata.Name, metadata.Symbol, fxtypes.DenomUnit)
 	if err != nil {
 		return sdkerrors.ErrLogic.Wrapf("failed to register native coin: %s", err.Error())
 	}

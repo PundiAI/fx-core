@@ -6,25 +6,29 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-func NewFXMetaData() banktypes.Metadata {
+func NewDefaultMetadata() banktypes.Metadata {
 	return banktypes.Metadata{
-		Description: "The native staking token of the Function X",
+		Description: "The native staking token of the Pundi AIFX",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    DefaultDenom,
 				Exponent: 0,
 			},
+			{
+				Denom:    strings.ToLower(DefaultSymbol),
+				Exponent: DenomUnit,
+			},
 		},
 		Base:    DefaultDenom,
-		Display: DefaultDenom,
-		Name:    "Function X",
-		Symbol:  DefaultDenom,
+		Display: strings.ToLower(DefaultSymbol),
+		Name:    "Pundi AIFX Token",
+		Symbol:  DefaultSymbol,
 	}
 }
 
 func NewMetadata(name, symbol string, decimals uint32) banktypes.Metadata {
 	return banktypes.Metadata{
-		Description: "The crosschain token of the Function X",
+		Description: "The crosschain token of the Pundi AIFX",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    strings.ToLower(symbol),
@@ -36,7 +40,7 @@ func NewMetadata(name, symbol string, decimals uint32) banktypes.Metadata {
 			},
 		},
 		Base:    strings.ToLower(symbol),
-		Display: strings.ToLower(symbol),
+		Display: symbol,
 		Name:    name,
 		Symbol:  symbol,
 	}

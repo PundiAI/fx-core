@@ -30,11 +30,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 
 	baseCoins := sdk.NewCoins()
 	for i, tokenAddr := range msg.TokenContracts {
-		bridgeToken, err := k.DepositBridgeToken(ctx, receiverAddr.Bytes(), msg.Amounts[i], tokenAddr)
-		if err != nil {
-			return err
-		}
-		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, receiverAddr.Bytes(), msg.Amounts[i], bridgeToken)
+		baseCoin, err := k.DepositBridgeTokenToBaseCoin(ctx, receiverAddr.Bytes(), msg.Amounts[i], tokenAddr)
 		if err != nil {
 			return err
 		}
@@ -73,7 +69,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 		}
 
 		for _, coin := range baseCoins {
-			if fxtypes.IsOriginDenom(coin.Denom) {
+			if coin.Denom == fxtypes.DefaultDenom {
 				continue
 			}
 			if _, err = k.erc20Keeper.BaseCoinToEvm(ctx, caller, msg.GetRefundAddr(), coin); err != nil {
