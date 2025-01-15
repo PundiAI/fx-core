@@ -102,7 +102,7 @@ contract CrosschainTest {
     }
 
     function hasOracle(
-        string memory _chain,
+        bytes32 _chain,
         address _externalAddress
     ) external view returns (bool _result) {
         return
@@ -113,7 +113,7 @@ contract CrosschainTest {
     }
 
     function isOracleOnline(
-        string memory _chain,
+        bytes32 _chain,
         address _externalAddress
     ) external view returns (bool _result) {
         return

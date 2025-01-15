@@ -92,14 +92,11 @@ func (args *ExecuteClaimArgs) Validate() error {
 }
 
 type HasOracleArgs struct {
-	Chain           string         `abi:"_chain"`
+	Chain           common.Hash    `abi:"_chain"`
 	ExternalAddress common.Address `abi:"_externalAddress"`
 }
 
 func (args *HasOracleArgs) Validate() error {
-	if args.Chain == "" {
-		return errors.New("empty chain")
-	}
 	if IsZeroEthAddress(args.ExternalAddress) {
 		return errors.New("invalid external address")
 	}
@@ -107,14 +104,11 @@ func (args *HasOracleArgs) Validate() error {
 }
 
 type IsOracleOnlineArgs struct {
-	Chain           string         `abi:"_chain"`
+	Chain           common.Hash    `abi:"_chain"`
 	ExternalAddress common.Address `abi:"_externalAddress"`
 }
 
 func (args *IsOracleOnlineArgs) Validate() error {
-	if args.Chain == "" {
-		return errors.New("empty chain")
-	}
 	if IsZeroEthAddress(args.ExternalAddress) {
 		return errors.New("invalid external address")
 	}

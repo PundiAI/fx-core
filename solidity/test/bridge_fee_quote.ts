@@ -35,7 +35,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
       online: true,
     };
 
-    await bridgeFeeQuoteTest.setOracle(chainNameStr, owner.getAddress(), state);
+    await bridgeFeeQuoteTest.setOracle(chainName, owner.getAddress(), state);
 
     const BridgeFeeOracle = await ethers.getContractFactory("BridgeFeeOracle");
 

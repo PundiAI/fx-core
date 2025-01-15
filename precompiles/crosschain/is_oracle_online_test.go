@@ -30,7 +30,7 @@ func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
 			malleate: func() (contract.IsOracleOnlineArgs, error) {
 				oracle := suite.SetOracle(true)
 				return contract.IsOracleOnlineArgs{
-					Chain:           suite.chainName,
+					Chain:           contract.MustStrToByte32(suite.chainName),
 					ExternalAddress: types.ExternalAddrToHexAddr(suite.chainName, oracle.ExternalAddress),
 				}, nil
 			},
@@ -41,7 +41,7 @@ func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
 			malleate: func() (contract.IsOracleOnlineArgs, error) {
 				oracle := suite.SetOracle(false)
 				return contract.IsOracleOnlineArgs{
-					Chain:           suite.chainName,
+					Chain:           contract.MustStrToByte32(suite.chainName),
 					ExternalAddress: types.ExternalAddrToHexAddr(suite.chainName, oracle.ExternalAddress),
 				}, nil
 			},
@@ -51,7 +51,7 @@ func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
 			name: "oracle not found",
 			malleate: func() (contract.IsOracleOnlineArgs, error) {
 				return contract.IsOracleOnlineArgs{
-					Chain:           ethtypes.ModuleName,
+					Chain:           contract.MustStrToByte32(ethtypes.ModuleName),
 					ExternalAddress: helpers.GenHexAddress(),
 				}, nil
 			},
@@ -61,7 +61,7 @@ func (suite *CrosschainPrecompileTestSuite) TestIsOracleOnline() {
 			name: "invalid chain",
 			malleate: func() (contract.IsOracleOnlineArgs, error) {
 				return contract.IsOracleOnlineArgs{
-					Chain:           "invalid_chain",
+					Chain:           contract.MustStrToByte32("invalid_chain"),
 					ExternalAddress: helpers.GenHexAddress(),
 				}, fmt.Errorf("invalid module name: %s: evm transaction execution failed", "invalid_chain")
 			},
