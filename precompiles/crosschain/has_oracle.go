@@ -35,18 +35,19 @@ func (m *HasOracleMethod) IsReadonly() bool {
 	return true
 }
 
-func (m *HasOracleMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
-	args, err := m.UnpackInput(contract.Input)
+func (m *HasOracleMethod) Run(evm *vm.EVM, vmContract *vm.Contract) ([]byte, error) {
+	args, err := m.UnpackInput(vmContract.Input)
 	if err != nil {
 		return nil, err
 	}
 	stateDB := evm.StateDB.(types.ExtStateDB)
 
-	router, has := m.Keeper.router.GetRoute(args.Chain)
+	chainName := contract.Byte32ToString(args.Chain)
+	router, has := m.Keeper.router.GetRoute(chainName)
 	if !has {
 		return nil, fmt.Errorf("chain not support: %s", args.Chain)
 	}
-	hasOracle := router.HasOracleAddrByExternalAddr(stateDB.Context(), fxtypes.ExternalAddrToStr(args.Chain, args.ExternalAddress.Bytes()))
+	hasOracle := router.HasOracleAddrByExternalAddr(stateDB.Context(), fxtypes.ExternalAddrToStr(chainName, args.ExternalAddress.Bytes()))
 	return m.PackOutput(hasOracle)
 }
 

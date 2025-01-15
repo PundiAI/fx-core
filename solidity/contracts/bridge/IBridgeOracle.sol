@@ -6,12 +6,12 @@ pragma solidity ^0.8.10;
 // need to use solidity version 0.8.10 and later.
 interface IBridgeOracle {
     function hasOracle(
-        string memory _chain,
+        bytes32 _chain,
         address _externalAddress
     ) external view returns (bool _result);
 
     function isOracleOnline(
-        string memory _chain,
+        bytes32 _chain,
         address _externalAddress
     ) external view returns (bool _result);
 }

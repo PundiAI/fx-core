@@ -30,7 +30,7 @@ func (suite *CrosschainPrecompileTestSuite) TestHasOracle() {
 			malleate: func() (contract.HasOracleArgs, error) {
 				oracle := suite.SetOracle(true)
 				return contract.HasOracleArgs{
-					Chain:           suite.chainName,
+					Chain:           contract.MustStrToByte32(suite.chainName),
 					ExternalAddress: types.ExternalAddrToHexAddr(suite.chainName, oracle.ExternalAddress),
 				}, nil
 			},
@@ -40,7 +40,7 @@ func (suite *CrosschainPrecompileTestSuite) TestHasOracle() {
 			name: "not has oracle",
 			malleate: func() (contract.HasOracleArgs, error) {
 				return contract.HasOracleArgs{
-					Chain:           ethtypes.ModuleName,
+					Chain:           contract.MustStrToByte32(ethtypes.ModuleName),
 					ExternalAddress: helpers.GenHexAddress(),
 				}, nil
 			},
@@ -50,7 +50,7 @@ func (suite *CrosschainPrecompileTestSuite) TestHasOracle() {
 			name: "invalid chain",
 			malleate: func() (contract.HasOracleArgs, error) {
 				return contract.HasOracleArgs{
-					Chain:           "invalid_chain",
+					Chain:           contract.MustStrToByte32("invalid_chain"),
 					ExternalAddress: helpers.GenHexAddress(),
 				}, fmt.Errorf("invalid module name: %s: evm transaction execution failed", "invalid_chain")
 			},
