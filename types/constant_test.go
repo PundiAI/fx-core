@@ -1,6 +1,7 @@
 package types
 
 import (
+	"math"
 	"strings"
 	"testing"
 
@@ -40,4 +41,12 @@ func Test_NormalizeCoin(t *testing.T) {
 	myCoin, err = sdk.ParseCoinNormalized("1" + strings.ToLower(DefaultSymbol))
 	require.NoError(t, err)
 	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18)))
+}
+
+func Test_PowerReduction(t *testing.T) {
+	token := sdkmath.NewInt(math.MaxInt64).MulRaw(1e18)
+	assert.Equal(t, int64(math.MaxInt64), sdk.TokensToConsensusPower(token, sdk.DefaultPowerReduction))
+	assert.Panics(t, func() {
+		sdk.TokensToConsensusPower(token.MulRaw(1e18).MulRaw(2), sdk.DefaultPowerReduction)
+	})
 }

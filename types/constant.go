@@ -2,7 +2,6 @@ package types
 
 import (
 	stdlog "log"
-	"math/big"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,7 +36,7 @@ func init() {
 	})
 
 	// votingPower = delegateToken / sdk.PowerReduction  --  sdk.TokensToConsensusPower(tokens Int)
-	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
+	sdk.DefaultPowerReduction = sdkmath.NewInt(1e18)
 
 	nodeHome := os.ExpandEnv("$FX_HOME")
 	if len(nodeHome) > 0 {
