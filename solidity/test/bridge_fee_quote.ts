@@ -77,7 +77,6 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         expiry: expiry,
         chainName: chainName,
         tokenName: token1,
-        oracle: owner.address,
         amount: amount,
       };
 
@@ -119,7 +118,6 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         expiry: expiry,
         chainName: chainName,
         tokenName: token1,
-        oracle: owner.address,
         amount: amount,
       };
 
@@ -129,7 +127,6 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         expiry: expiry,
         chainName: chainName,
         tokenName: token1,
-        oracle: owner.address,
         amount: amount,
       };
 
@@ -156,7 +153,6 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         expiry: expiry,
         chainName: chainName,
         tokenName: token1,
-        oracle: owner.address,
         amount: amount,
       };
       await bridgeFeeQuote.quote([input]);
@@ -195,7 +191,6 @@ describe("BridgeFeeQuoteUpgradeable", function () {
           expiry: expiry,
           chainName: chainName,
           tokenName: tokens[i],
-          oracle: owner.address,
           amount: amount,
         };
         quoteList.push(input);
@@ -216,7 +211,6 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         expiry: expiry,
         chainName: chainName,
         tokenName: token1,
-        oracle: owner.address,
         amount: amount,
       };
 
@@ -250,7 +244,6 @@ describe("BridgeFeeQuoteUpgradeable", function () {
           expiry: expiry,
           chainName: chainName,
           tokenName: token1,
-          oracle: owner.address,
           amount: amount,
         };
         quoteList.push(input);
