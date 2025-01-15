@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 	suite.True(initCoins.IsAllLT(params.MinDeposit))
 
 	// first deposit
-	firstCoins := helpers.NewStakingCoins(1000, 18)
+	firstCoins := helpers.NewStakingCoins(10, 18)
 	votingStarted, err := suite.App.GovKeeper.AddDeposit(suite.Ctx, proposal.Id, addr, firstCoins)
 	suite.Require().NoError(err)
 	suite.False(votingStarted)
@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 	suite.True(initCoins.Add(firstCoins...).IsAllLT(params.MinDeposit))
 
 	// second deposit
-	secondCoins := helpers.NewStakingCoins(9_000, 18)
+	secondCoins := helpers.NewStakingCoins(90, 18)
 	votingStarted, err = suite.App.GovKeeper.AddDeposit(suite.Ctx, proposal.Id, addr, secondCoins)
 	suite.Require().NoError(err)
 	suite.True(votingStarted)
@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 }
 
 func (suite *KeeperTestSuite) getTextProposal() (sdk.Coins, *govv1.MsgSubmitProposal, error) {
-	initCoins := helpers.NewStakingCoins(1000, 18)
+	initCoins := helpers.NewStakingCoins(10, 18)
 	content := govv1beta1.NewTextProposal("Test", "description")
 	msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAcct)
 	suite.Require().NoError(err)

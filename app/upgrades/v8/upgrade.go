@@ -18,6 +18,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -37,7 +38,7 @@ import (
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	fxevmkeeper "github.com/pundiai/fx-core/v8/x/evm/keeper"
-	"github.com/pundiai/fx-core/v8/x/gov/keeper"
+	fxgovkeeper "github.com/pundiai/fx-core/v8/x/gov/keeper"
 	fxgovv8 "github.com/pundiai/fx-core/v8/x/gov/migrations/v8"
 	layer2types "github.com/pundiai/fx-core/v8/x/layer2/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
@@ -76,6 +77,9 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 		return err
 	}
 	if err := fixTestnetTokenAmount(ctx, app.BankKeeper, app.EvmKeeper, app.Erc20Keeper); err != nil {
+		return err
+	}
+	if err := migrateGovDefaultParams(ctx, app.GovKeeper); err != nil {
 		return err
 	}
 	if err := migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
@@ -171,12 +175,17 @@ func migrateEvmParams(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) error {
 	return evmKeeper.SetParams(ctx, params)
 }
 
-func migrationGovCustomParam(ctx sdk.Context, keeper *keeper.Keeper, storeKey *storetypes.KVStoreKey) error {
+func migrationGovCustomParam(ctx sdk.Context, keeper *fxgovkeeper.Keeper, storeKey *storetypes.KVStoreKey) error {
 	// 1. delete fxParams key
 	store.RemoveStoreKeys(ctx, storeKey, fxgovv8.GetRemovedStoreKeys())
 
 	// 2. init custom params
-	return keeper.InitCustomParams(ctx)
+	if err := keeper.InitCustomParams(ctx); err != nil {
+		return err
+	}
+
+	// 3. set default params
+	return migrateGovDefaultParams(ctx, keeper)
 }
 
 func migrateCrosschainModuleAccount(ctx sdk.Context, ak authkeeper.AccountKeeper) error {
@@ -519,6 +528,22 @@ func redeployTestnetContract(
 		ethKeeper,
 		moduleAddress,
 	)
+}
+
+func migrateGovDefaultParams(ctx sdk.Context, keeper *fxgovkeeper.Keeper) error {
+	params, err := keeper.Params.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	minDepositAmount := sdkmath.NewInt(1e18).MulRaw(30)
+
+	params.MinDeposit = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, minDepositAmount))
+	params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, minDepositAmount.MulRaw(govv1.DefaultMinExpeditedDepositTokensRatio)))
+	params.MinInitialDepositRatio = sdkmath.LegacyMustNewDecFromStr("0.33").String()
+	params.MinDepositRatio = sdkmath.LegacyMustNewDecFromStr("0").String()
+
+	return keeper.Params.Set(ctx, params)
 }
 
 func migrateFeemarketGasPrice(ctx sdk.Context, feemarketKeeper feemarketkeeper.Keeper) error {
