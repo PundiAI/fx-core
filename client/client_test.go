@@ -375,7 +375,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 			wantRes: []interface{}{
 				sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdkmath.NewInt(48899999875).MulRaw(1e13),
+					Amount: sdkmath.NewInt(389999875).MulRaw(1e13),
 				},
 				nil,
 			},
@@ -398,7 +398,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 				sdk.Coins{
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
-						Amount: sdkmath.NewInt(48899999875).MulRaw(1e13),
+						Amount: sdkmath.NewInt(389999875).MulRaw(1e13),
 					},
 				},
 				nil,

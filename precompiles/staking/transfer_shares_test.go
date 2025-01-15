@@ -553,7 +553,7 @@ func (suite *StakingPrecompileTestSuite) TestTransferSharesCompare() {
 		suite.T().Skip()
 	}
 	val := suite.GetFirstValidator()
-	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
+	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).MulRaw(1e16)
 	signer1 := suite.NewSigner()
 	signer2 := suite.NewSigner()
 	signer3 := suite.NewSigner()
@@ -749,7 +749,7 @@ func (suite *StakingPrecompileTestSuite) TestPrecompileStakingSteps() {
 		suite.T().Skip()
 	}
 	val := suite.GetFirstValidator()
-	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
+	delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).MulRaw(1e16)
 	signer1 := suite.NewSigner()
 	signer2 := suite.NewSigner()
 	signer3 := suite.NewSigner()
