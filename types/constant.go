@@ -16,8 +16,11 @@ const (
 	AddressPrefix = "fx"
 	EnvPrefix     = "FX"
 
-	DefaultDenom = "FX"
-	DenomUnit    = 18
+	DefaultDenom  = "apundiai"
+	DefaultSymbol = "PUNDIAI"
+	DenomUnit     = 18
+
+	FXDenom = "FX"
 
 	AddrLen = 20
 )
@@ -33,11 +36,12 @@ func init() {
 	// votingPower = delegateToken / sdk.PowerReduction  --  sdk.TokensToConsensusPower(tokens Int)
 	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
 
-	fxHome := os.ExpandEnv("$FX_HOME")
-	if len(fxHome) > 0 {
-		defaultNodeHome = fxHome
+	nodeHome := os.ExpandEnv("$FX_HOME")
+	if len(nodeHome) > 0 {
+		defaultNodeHome = nodeHome
 		return
 	}
+
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		stdlog.Println("Failed to get home dir %2", err)
@@ -84,6 +88,14 @@ func VerifyAddressFormat(bz []byte) error {
 	return nil
 }
 
-func IsOriginDenom(denom string) bool {
-	return denom == DefaultDenom
+func SwapAmount(amount sdkmath.Int) sdkmath.Int {
+	return amount.QuoRaw(100)
+}
+
+func SwapCoin(coin sdk.Coin) sdk.Coin {
+	if coin.Denom != FXDenom {
+		return coin
+	}
+	coin.Amount = SwapAmount(coin.Amount)
+	return coin
 }

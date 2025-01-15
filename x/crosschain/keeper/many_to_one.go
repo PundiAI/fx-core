@@ -9,11 +9,39 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
+func (k Keeper) SwapBridgeToken(ctx context.Context, bridgeToken erc20types.BridgeToken, amount sdkmath.Int) (erc20types.BridgeToken, sdkmath.Int, error) {
+	if !bridgeToken.IsNative || bridgeToken.Denom != fxtypes.FXDenom {
+		return bridgeToken, amount, nil
+	}
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, fxtypes.DefaultDenom)
+	if err != nil {
+		return erc20types.BridgeToken{}, sdkmath.Int{}, err
+	}
+	return bridgeToken, fxtypes.SwapAmount(amount), nil
+}
+
+func (k Keeper) DepositBridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, tokenAddr string) (sdk.Coin, error) {
+	bridgeToken, err := k.DepositBridgeToken(ctx, holder, amount, tokenAddr)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	bridgeToken, amount, err = k.SwapBridgeToken(ctx, bridgeToken, amount)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, holder, amount, bridgeToken)
+	return baseCoin, err
+}
+
 func (k Keeper) BridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, bridgeToken erc20types.BridgeToken) (baseCoin sdk.Coin, err error) {
+	if !amount.IsPositive() {
+		return sdk.Coin{}, err
+	}
 	baseCoin = sdk.NewCoin(bridgeToken.Denom, amount)
 	if bridgeToken.IsOrigin() {
 		return baseCoin, nil

@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
@@ -64,7 +65,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				msg.DelegateAmount.Denom = "stake"
 			},
 			pass: false,
-			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid", "stake", "FX"),
+			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid", "stake", fxtypes.DefaultDenom),
 		},
 		{
 			name: "error - delegate amount less than threshold amount",
@@ -182,7 +183,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				msg.Amount.Denom = "stake"
 			},
 			pass: false,
-			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid", "stake", "FX"),
+			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid", "stake", fxtypes.DefaultDenom),
 		},
 		{
 			name: "error - not sufficient slash amount",

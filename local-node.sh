@@ -3,6 +3,7 @@
 set -eo pipefail
 
 export FX_HOME=${FX_HOME:-"/tmp/fxcore"}
+readonly default_denom=apundiai
 
 if [[ "$1" == "init" ]]; then
   if [ -d "$FX_HOME" ]; then
@@ -13,7 +14,7 @@ if [[ "$1" == "init" ]]; then
   fi
 
   # Initialize private validator, p2p, genesis, and application configuration files
-  fxcored init local --chain-id fxcore --default-denom FX
+  fxcored init local --chain-id fxcore --default-denom $default_denom
 
   fxcored config config.toml rpc.cors_allowed_origins "*"
   # open prometheus
@@ -39,11 +40,11 @@ if [[ "$1" == "init" ]]; then
 
   echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
   if [ -n "${2:-""}" ]; then
-    fxcored genesis add-genesis-account fx1 10004000000000000000000000FX
+    fxcored genesis add-genesis-account fx1 10004000000000000000000000$default_denom
   else
-    fxcored genesis add-genesis-account fx1 4000000000000000000000FX
+    fxcored genesis add-genesis-account fx1 4000000000000000000000$default_denom
   fi
-  fxcored genesis gentx fx1 100000000000000000000FX --chain-id=fxcore \
+  fxcored genesis gentx fx1 100000000000000000000$default_denom --chain-id=fxcore \
     --gas="200000" \
     --moniker="fx-validator" \
     --commission-max-change-rate="0.01" \

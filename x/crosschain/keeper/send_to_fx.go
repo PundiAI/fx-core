@@ -36,15 +36,20 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, caller contract.Caller, claim 
 		return types.ErrInvalid.Wrapf("receiver address")
 	}
 
-	bridgeToken, err := k.DepositBridgeToken(ctx, receiveAddr, claim.Amount, claim.TokenContract)
+	amount := claim.Amount
+	bridgeToken, err := k.DepositBridgeToken(ctx, receiveAddr, amount, claim.TokenContract)
 	if err != nil {
 		return err
 	}
-	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, receiveAddr, claim.Amount, bridgeToken)
+	bridgeToken, amount, err = k.SwapBridgeToken(ctx, bridgeToken, amount)
 	if err != nil {
 		return err
 	}
-	if !bridgeToken.IsOrigin() {
+	baseCoin, err := k.BridgeTokenToBaseCoin(ctx, receiveAddr, amount, bridgeToken)
+	if err != nil {
+		return err
+	}
+	if !bridgeToken.IsOrigin() && baseCoin.IsPositive() {
 		_, err = k.erc20Keeper.BaseCoinToEvm(ctx, caller, common.BytesToAddress(receiveAddr.Bytes()), baseCoin)
 		if err != nil {
 			return err
