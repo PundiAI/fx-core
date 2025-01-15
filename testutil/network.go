@@ -71,7 +71,7 @@ func DefaultNetworkConfig(opts ...func(config *network.Config)) network.Config {
 		NumValidators:   4,
 		ChainID:         chainID,
 		BondDenom:       fxtypes.DefaultDenom,
-		MinGasPrices:    fxtypes.GetDefGasPrice().String(),
+		MinGasPrices:    fxtypes.GetDefMinGasPrices().String(),
 		PruningStrategy: pruningtypes.PruningOptionNothing,
 		// RPCAddress:      "tcp://localhost:26657",
 		// JSONRPCAddress:  "localhost:8545",

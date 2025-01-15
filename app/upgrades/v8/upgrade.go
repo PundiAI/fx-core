@@ -23,6 +23,7 @@ import (
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 
 	"github.com/pundiai/fx-core/v8/app/keepers"
 	"github.com/pundiai/fx-core/v8/app/upgrades/store"
@@ -75,6 +76,9 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 		return err
 	}
 	if err := fixTestnetTokenAmount(ctx, app.BankKeeper, app.EvmKeeper, app.Erc20Keeper); err != nil {
+		return err
+	}
+	if err := migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
 		return err
 	}
 
@@ -153,6 +157,10 @@ func upgradeMainnet(
 	}
 
 	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
+
+	if err = migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
+		return toVM, err
+	}
 
 	return toVM, nil
 }
@@ -511,4 +519,11 @@ func redeployTestnetContract(
 		ethKeeper,
 		moduleAddress,
 	)
+}
+
+func migrateFeemarketGasPrice(ctx sdk.Context, feemarketKeeper feemarketkeeper.Keeper) error {
+	params := feemarketKeeper.GetParams(ctx)
+	params.BaseFee = sdkmath.NewInt(fxtypes.DefaultGasPrice)
+	params.MinGasPrice = sdkmath.LegacyNewDec(fxtypes.DefaultGasPrice)
+	return feemarketKeeper.SetParams(ctx, params)
 }
