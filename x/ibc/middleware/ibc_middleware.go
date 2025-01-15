@@ -58,8 +58,14 @@ func UnMarshalPacket(chainID string, packet channeltypes.Packet) (types.Fungible
 		data.Fee = sdkmath.ZeroInt().String()
 	}
 
-	if fxtypes.IsPundixChannel(packet.GetDestPort(), packet.GetDestChannel()) && data.Denom == fxtypes.GetPundixUnWrapDenom(chainID) {
-		data.Denom = fxtypes.PundixWrapDenom
+	needWrap, wrapDenom := fxtypes.OnRecvDenomNeedWrap(chainID, packet.GetDestChannel(), data.Denom)
+	if needWrap {
+		data.Denom = wrapDenom
+		newAmount, err := fxtypes.OnRecvAmountCovert(wrapDenom, data.Amount)
+		if err != nil {
+			return data, err
+		}
+		data.Amount = newAmount
 	}
 
 	return data, data.ValidateBasic()

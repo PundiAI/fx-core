@@ -37,8 +37,9 @@ func (k WarpChannelKeeper) SendPacket(
 		return k.Keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	if fxtypes.IsPundixChannel(sourcePort, sourceChannel) && packetData.Denom == fxtypes.PundixWrapDenom {
-		packetData.Denom = fxtypes.GetPundixUnWrapDenom(ctx.ChainID())
+	needWrap, wrapDenom := fxtypes.SendPacketDenomNeedWrap(ctx.ChainID(), sourceChannel, packetData.Denom)
+	if needWrap {
+		packetData.Denom = wrapDenom
 	}
 
 	return k.Keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
