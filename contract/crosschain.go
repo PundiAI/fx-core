@@ -97,6 +97,9 @@ type HasOracleArgs struct {
 }
 
 func (args *HasOracleArgs) Validate() error {
+	if args.Chain == (common.Hash{}) {
+		return errors.New("invalid chain")
+	}
 	if IsZeroEthAddress(args.ExternalAddress) {
 		return errors.New("invalid external address")
 	}
@@ -109,6 +112,9 @@ type IsOracleOnlineArgs struct {
 }
 
 func (args *IsOracleOnlineArgs) Validate() error {
+	if args.Chain == (common.Hash{}) {
+		return errors.New("invalid chain")
+	}
 	if IsZeroEthAddress(args.ExternalAddress) {
 		return errors.New("invalid external address")
 	}
