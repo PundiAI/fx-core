@@ -79,7 +79,7 @@ contract BridgeFeeQuote is
             if (
                 !IBridgeFeeOracle(oracleContract).isOnline(
                     _inputs[i].chainName,
-                    _inputs[i].oracle
+                    msg.sender
                 )
             ) {
                 revert OracleInvalid();
@@ -88,7 +88,7 @@ contract BridgeFeeQuote is
             bytes32 key = quoteIndexKey(
                 _inputs[i].chainName,
                 _inputs[i].tokenName,
-                _inputs[i].oracle,
+                msg.sender,
                 _inputs[i].cap
             );
             uint256 id = quoteIndexes[key].id;
@@ -100,7 +100,7 @@ contract BridgeFeeQuote is
                     quoteNonce,
                     _inputs[i].chainName,
                     _inputs[i].tokenName,
-                    _inputs[i].oracle,
+                    msg.sender,
                     _inputs[i].cap
                 );
             }
@@ -116,7 +116,7 @@ contract BridgeFeeQuote is
                 quoteNonce,
                 _inputs[i].chainName,
                 _inputs[i].tokenName,
-                _inputs[i].oracle,
+                msg.sender,
                 _inputs[i].amount,
                 _inputs[i].gasLimit,
                 _inputs[i].expiry,
@@ -317,9 +317,6 @@ contract BridgeFeeQuote is
         activeToken(_input.chainName, _input.tokenName)
         returns (bool)
     {
-        if (_input.oracle != msg.sender) {
-            revert OracleInvalid();
-        }
         if (_input.cap >= maxQuoteCap) {
             revert QuoteCapInvalid();
         }

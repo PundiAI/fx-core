@@ -24,7 +24,6 @@ interface IBridgeFeeQuote {
         uint64 expiry;
         bytes32 chainName;
         bytes32 tokenName;
-        address oracle;
         uint256 amount;
     }
 
