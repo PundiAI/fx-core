@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>f(x)Core Module Balances</title>
+    <title>Pundi AIFX Module Balances</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
@@ -58,10 +58,10 @@
     let module = getQueryVariable("module")
     let moduleAddress = ""
     if (module === "total") {
-        document.title = "f(x)Core Total Supply"
+        document.title = "Pundi AIFX Total Supply"
     } else {
         moduleAddress = "fx1glht96kr2rseywuvhhay894qw7ekuc4qs5z0yh"
-        document.title = "f(x)Core ERC20 Module Balances"
+        document.title = "Pundi AIFX ERC20 Module Balances"
     }
 
     function getRandomRGBColor() {
@@ -139,7 +139,7 @@
 
     let results = []
     for (let i = 0; i < balances.length; i++) {
-        let blockchain = "fxCore"
+        let blockchain = "Pundi AIFX"
         let bridgeURL = `https://starscan.io/address/${moduleAddress}`
         let balance = balances[i]
         BRIDGES_INFO.forEach(bridge => {
@@ -151,13 +151,6 @@
                 }
             }
         })
-        if (balance.denom.startsWith("ibc")) {
-            if (balance.symbol === "PURSE") {
-                blockchain = "PUNDIX"
-            } else {
-                blockchain = "UNKNOWN"
-            }
-        }
         let exponent = balance.exponent
         let decimal = "1" + ("0".repeat(exponent - 2))
         results = results.concat({

@@ -27,13 +27,13 @@ const groupBy = (arr, property) => {
     }, {});
 };
 
-function getStarscanUrl() {
-    let starscanUrl = "https://starscan.io";
+function getPundiscanUrl() {
+    let url = "https://pundiscan.io";
     const network = getQueryVariable("network")
     if (network === "testnet") {
-        starscanUrl = "https://testnet.starscan.io";
+        url = "https://testnet.pundiscan.io";
     }
-    return starscanUrl
+    return url
 }
 
 function httpGetJson(theUrl) {

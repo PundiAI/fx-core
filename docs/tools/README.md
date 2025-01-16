@@ -1,4 +1,4 @@
-# f(x)Core Develop Tools
+# Pundi AIFX Develop Tools
 
 ## Upgrade Countdown
 

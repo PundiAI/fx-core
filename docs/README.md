@@ -1,4 +1,4 @@
-# f(x)Core API
+# Pundi AIFX API
 
 * [Prorobuf Doc](proto)
 
@@ -8,13 +8,13 @@
 
 * [More Developer Doc](https://pundi.gitbook.io/pundi/readme/pundi-aifx/developers)
 
-# f(x)Core Status
+# Pundi AIFX Status
 
 * [PundiScan](https://pundiscan.io)
 * [Ping.Pub](https://ping.pub/fxcore)
 * [Develop Tools](tools)
 
-# f(x)Core SDK
+# Pundi AIFX SDK
 
 * [Go SDK](https://github.com/pundiai/fx-core)
 * [Node SDK](https://github.com/pundiai/fx-js-sdk)

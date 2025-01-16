@@ -1,6 +1,6 @@
-# fxcore
+# Pundi AIFX
 
-**fxcore** is a blockchain built using Cosmos SDK and Cometbft.
+**Pundi AIFX** is a blockchain built using Cosmos SDK and Cometbft.
 
 [![Version](https://img.shields.io/github/v/release/pundiai/fx-core.svg)](https://github.com/pundiai/fx-core/releases/latest)
 [![License](https://img.shields.io/github/license/pundiai/fx-core.svg)](https://github.com/pundiai/fx-core/blob/main/LICENSE)
