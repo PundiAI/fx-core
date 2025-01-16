@@ -10,6 +10,8 @@ import (
 const (
 	PundixWrapDenom = "pundix"
 	PundixChannel   = "channel-0"
+
+	IBCFXDenom = "FX"
 )
 
 const (
@@ -25,8 +27,8 @@ const (
 var (
 	MainnetOnRecvWrap = map[string]string{
 		OnRecvDenomWrapKey(PundixChannel, MainnetPundixUnWrapDenom): PundixWrapDenom,
-		OnRecvDenomWrapKey(MainnetOsmosisChannel, FXDenom):          DefaultDenom,
-		OnRecvDenomWrapKey(PundixChannel, FXDenom):                  DefaultDenom,
+		OnRecvDenomWrapKey(MainnetOsmosisChannel, IBCFXDenom):       DefaultDenom,
+		OnRecvDenomWrapKey(PundixChannel, IBCFXDenom):               DefaultDenom,
 	}
 
 	MainnetSendPacketWrap = map[string]string{
@@ -37,8 +39,8 @@ var (
 var (
 	TestnetOnRecvWrap = map[string]string{
 		OnRecvDenomWrapKey(PundixChannel, TestnetPundixUnWrapDenom): PundixWrapDenom,
-		OnRecvDenomWrapKey(TestnetOsmosisChannel, FXDenom):          DefaultDenom,
-		OnRecvDenomWrapKey(PundixChannel, FXDenom):                  DefaultDenom,
+		OnRecvDenomWrapKey(TestnetOsmosisChannel, IBCFXDenom):       DefaultDenom,
+		OnRecvDenomWrapKey(PundixChannel, IBCFXDenom):               DefaultDenom,
 	}
 	TestnetSendPacketWrap = map[string]string{
 		SendPacketDenomWrapKey(PundixChannel, PundixWrapDenom): TestnetPundixUnWrapDenom,
