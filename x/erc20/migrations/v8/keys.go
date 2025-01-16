@@ -73,7 +73,7 @@ func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) er
 		if !found {
 			return sdkerrors.ErrKeyNotFound.Wrapf("metadata not found: %s", tokenPair.GetDenom())
 		}
-		if md.Base == fxtypes.DefaultDenom || md.Base == strings.ToLower(md.Symbol) {
+		if md.Base == fxtypes.FXDenom || md.Base == strings.ToLower(md.Symbol) {
 			if err := m.keeper.ERC20Token.Set(ctx, md.Base, tokenPair); err != nil {
 				return err
 			}
