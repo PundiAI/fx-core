@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
-	"strings"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -18,25 +17,25 @@ import (
 	fxevmtypes "github.com/pundiai/fx-core/v8/x/evm/types"
 )
 
-func (suite *IntegrationTest) WFXTest() {
+func (suite *IntegrationTest) WarpTokenTest() {
 	signer := helpers.NewSigner(helpers.NewEthPrivKey())
 	suite.Send(signer.AccAddress(), suite.NewStakingCoin(100, 18))
 
 	tokenAddr := suite.GetErc20TokenAddress(fxtypes.DefaultDenom)
-	wfxTokenSuite := NewERC20TokenSuite(suite.EthSuite, tokenAddr, signer)
+	warpTokenSuite := NewERC20TokenSuite(suite.EthSuite, tokenAddr, signer)
 
-	wfxTokenSuite.Deposit(helpers.NewBigInt(20, 18))
-	wfxTokenSuite.Withdraw(signer.Address(), helpers.NewBigInt(10, 18))
-	wfxTokenSuite.Transfer(helpers.GenHexAddress(), helpers.NewBigInt(5, 18))
+	warpTokenSuite.Deposit(helpers.NewBigInt(20, 18))
+	warpTokenSuite.Withdraw(signer.Address(), helpers.NewBigInt(10, 18))
+	warpTokenSuite.Transfer(helpers.GenHexAddress(), helpers.NewBigInt(5, 18))
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
 	approveAmount := helpers.NewBigInt(5, 18)
-	wfxTokenSuite.Approve(newSigner.Address(), approveAmount)
+	warpTokenSuite.Approve(newSigner.Address(), approveAmount)
 
 	// send tx fee to signer
 	suite.Send(newSigner.AccAddress(), suite.NewStakingCoin(2, 18))
 
-	wfxTokenSuite.WithSigner(newSigner).TransferFrom(signer.Address(), helpers.GenHexAddress(), approveAmount)
+	warpTokenSuite.WithSigner(newSigner).TransferFrom(signer.Address(), helpers.GenHexAddress(), approveAmount)
 }
 
 func (suite *IntegrationTest) ERC20TokenTest() {
@@ -275,26 +274,26 @@ func (suite *IntegrationTest) ERC20CodeTest() {
 	signer := helpers.NewSigner(helpers.NewEthPrivKey())
 	suite.Send(signer.AccAddress(), suite.NewStakingCoin(100, 18))
 
-	erc20 := contract.GetFIP20()
+	erc20 := contract.GetERC20()
 	erc20Addr, _ := suite.DeployContract(signer, erc20.Bin)
 	code, err := suite.EthSuite.ethCli.CodeAt(suite.ctx, erc20Addr, nil)
 	suite.Require().NoError(err)
 	suite.Equal(erc20.Code, code, fmt.Sprintf("erc20 deployed code: %s", common.Bytes2Hex(code)))
 
 	deployedCode := bytes.ReplaceAll(code, erc20.Address.Bytes(), common.Address{}.Bytes())
-	suite.True(strings.HasSuffix(contract.FIP20UpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
+	suite.True(bytes.HasSuffix(contract.GetERC20().Bin, deployedCode))
 }
 
-func (suite *IntegrationTest) WFXCodeTest() {
+func (suite *IntegrationTest) WarpTokenCodeTest() {
 	signer := helpers.NewSigner(helpers.NewEthPrivKey())
 	suite.Send(signer.AccAddress(), suite.NewStakingCoin(100, 18))
 
-	wfx := contract.GetWFX()
-	wfxAddr, _ := suite.DeployContract(signer, wfx.Bin)
-	code, err := suite.EthSuite.ethCli.CodeAt(suite.ctx, wfxAddr, nil)
+	warpToken := contract.GetWPUNDIAI()
+	warpTokenAddr, _ := suite.DeployContract(signer, warpToken.Bin)
+	code, err := suite.EthSuite.ethCli.CodeAt(suite.ctx, warpTokenAddr, nil)
 	suite.Require().NoError(err)
-	suite.Equal(wfx.Code, code, fmt.Sprintf("wfx deployed code: %s", common.Bytes2Hex(code)))
+	suite.Equal(warpToken.Code, code, fmt.Sprintf("warp token deployed code: %s", common.Bytes2Hex(code)))
 
-	deployedCode := bytes.ReplaceAll(code, wfx.Address.Bytes(), common.Address{}.Bytes())
-	suite.True(strings.HasSuffix(contract.WFXUpgradableMetaData.Bin, common.Bytes2Hex(deployedCode)))
+	deployedCode := bytes.ReplaceAll(code, warpToken.Address.Bytes(), common.Address{}.Bytes())
+	suite.True(bytes.HasSuffix(contract.GetWPUNDIAI().Bin, deployedCode))
 }

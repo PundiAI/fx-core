@@ -71,7 +71,7 @@ func (suite *EthSuite) WaitMined(tx *ethtypes.Transaction) *ethtypes.Receipt {
 }
 
 func (suite *EthSuite) DeployERC20(signer *helpers.Signer, symbol string) common.Address {
-	erc20 := contract.GetFIP20()
+	erc20 := contract.GetERC20()
 	tx, err := client.BuildEthTransaction(suite.ctx, suite.ethCli, signer.PrivKey(), nil, nil, erc20.Bin)
 	suite.Require().NoError(err)
 	suite.SendTransaction(tx)

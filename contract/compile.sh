@@ -30,7 +30,7 @@ echo "===> Compiling contracts"
 
 [[ ! -d "$project_dir/contract/artifacts" ]] && mkdir -p "$project_dir/contract/artifacts"
 
-contracts=(WFXUpgradable FIP20Upgradable IError ERC1967Proxy)
+contracts=(WarpTokenUpgradable ERC20Upgradable IError ERC1967Proxy)
 contracts+=(IStaking IBank)
 contracts+=(IFxBridgeLogic IBridgeCallContext ICrosschain)
 contracts+=(BridgeFeeQuote BridgeFeeOracle BridgeProxy AccessControl)

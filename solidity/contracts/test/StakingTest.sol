@@ -3,7 +3,7 @@
 pragma solidity ^0.8.10;
 
 /* solhint-disable no-global-import */
-import "../staking/IStaking.sol";
+import "../interfaces/IStaking.sol";
 
 /* solhint-disable custom-errors */
 

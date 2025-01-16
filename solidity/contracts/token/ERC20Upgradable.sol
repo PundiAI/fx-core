@@ -9,8 +9,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol";
-
-import "./IFIP20Upgradable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
@@ -141,12 +140,12 @@ abstract contract UUPSUpgradeable is
     uint256[50] private __gap;
 }
 
-contract FIP20Upgradable is
+contract ERC20Upgradable is
     Initializable,
     ContextUpgradeable,
     UUPSUpgradeable,
     OwnableUpgradeable,
-    IFIP20Upgradable
+    IERC20Upgradeable
 {
     string private _name;
     string private _symbol;
@@ -157,15 +156,15 @@ contract FIP20Upgradable is
 
     address private _module;
 
-    function name() external view override returns (string memory) {
+    function name() external view returns (string memory) {
         return _name;
     }
 
-    function symbol() external view override returns (string memory) {
+    function symbol() external view returns (string memory) {
         return _symbol;
     }
 
-    function decimals() external view override returns (uint8) {
+    function decimals() external view returns (uint8) {
         return _decimals;
     }
 
@@ -218,17 +217,11 @@ contract FIP20Upgradable is
         return true;
     }
 
-    function mint(
-        address account,
-        uint256 amount
-    ) external virtual override onlyOwner {
+    function mint(address account, uint256 amount) external virtual onlyOwner {
         _mint(account, amount);
     }
 
-    function burn(
-        address account,
-        uint256 amount
-    ) external virtual override onlyOwner {
+    function burn(address account, uint256 amount) external virtual onlyOwner {
         _burn(account, amount);
     }
 

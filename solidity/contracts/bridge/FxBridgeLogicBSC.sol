@@ -11,7 +11,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
+import {IERC20ExtensionsUpgradeable} from "../interfaces/IERC20ExtensionsUpgradeable.sol";
 
 /* solhint-disable custom-errors */
 

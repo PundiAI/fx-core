@@ -17,7 +17,7 @@ type ERC20TokenKeeper struct {
 func NewERC20TokenKeeper(caller Caller) ERC20TokenKeeper {
 	return ERC20TokenKeeper{
 		Caller: caller,
-		abi:    GetWFX().ABI,
+		abi:    GetWPUNDIAI().ABI,
 	}
 }
 

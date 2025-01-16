@@ -16,7 +16,7 @@ func (k *Keeper) InitGenesis(ctx sdk.Context) {
 		panic("the EVM module account has not been set")
 	}
 	// init logic contract
-	initContract := []contract.Contract{contract.GetFIP20(), contract.GetWFX()}
+	initContract := []contract.Contract{contract.GetERC20(), contract.GetWPUNDIAI()}
 	for _, contractAddr := range initContract {
 		if len(contractAddr.Code) == 0 || contract.IsZeroEthAddress(contractAddr.Address) {
 			panic(fmt.Sprintf("invalid contract: %s", contractAddr.Address.String()))

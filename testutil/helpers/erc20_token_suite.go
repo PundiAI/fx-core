@@ -45,7 +45,7 @@ func (s ERC20TokenSuite) Error(err error) {
 }
 
 func (s ERC20TokenSuite) DeployERC20Token(ctx sdk.Context, symbol string) common.Address {
-	erc20Contract := contract.GetFIP20()
+	erc20Contract := contract.GetERC20()
 	erc20ModuleAddress := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
 	initializeArgs := []interface{}{symbol + " Token", symbol, uint8(18), erc20ModuleAddress}
 	newContractAddr, err := s.evmKeeper.DeployUpgradableContract(ctx,
