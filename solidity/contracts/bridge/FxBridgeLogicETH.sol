@@ -11,9 +11,9 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import {IERC20ExtensionsUpgradeable} from "./IERC20ExtensionsUpgradeable.sol";
-import {IBridgeCallContext} from "./IBridgeCallContext.sol";
-import {IFxBridgeLogic} from "./IFxBridgeLogic.sol";
+import {IERC20ExtensionsUpgradeable} from "../interfaces/IERC20ExtensionsUpgradeable.sol";
+import {IBridgeCallContext} from "../interfaces/IBridgeCallContext.sol";
+import {IFxBridgeLogic} from "../interfaces/IFxBridgeLogic.sol";
 
 /* solhint-disable custom-errors */
 

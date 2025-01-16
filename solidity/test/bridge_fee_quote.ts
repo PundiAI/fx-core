@@ -21,7 +21,7 @@ describe("BridgeFeeQuoteUpgradeable", function () {
   beforeEach(async function () {
     [owner] = await ethers.getSigners();
 
-    token1 = ethers.encodeBytes32String("FX");
+    token1 = ethers.encodeBytes32String("TEST");
     token2 = ethers.encodeBytes32String("usdt");
 
     const BridgeFeeQuoteTest = await ethers.getContractFactory(

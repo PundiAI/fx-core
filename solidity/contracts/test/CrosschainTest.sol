@@ -3,8 +3,8 @@
 pragma solidity ^0.8.0;
 
 /* solhint-disable no-global-import */
-import "../bridge/ICrosschain.sol";
-import "../fip20/IFIP20Upgradable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../interfaces/ICrosschain.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
@@ -22,19 +22,16 @@ contract CrosschainTest {
         string memory _memo
     ) external payable returns (bool) {
         if (_token != address(0)) {
-            IFIP20Upgradable(_token).transferFrom(
+            IERC20(_token).transferFrom(
                 msg.sender,
                 address(this),
                 _amount + _fee
             );
-            IFIP20Upgradable(_token).approve(
-                CROSS_CHAIN_ADDRESS,
-                _amount + _fee
-            );
+            IERC20(_token).approve(CROSS_CHAIN_ADDRESS, _amount + _fee);
         }
 
         if (_token != address(0)) {
-            uint256 allowance = IFIP20Upgradable(_token).allowance(
+            uint256 allowance = IERC20(_token).allowance(
                 address(this),
                 CROSS_CHAIN_ADDRESS
             );

@@ -8,8 +8,6 @@ patternLimits=(
   "CrossChain:4"
   "cross chain:0"
   "GetERC1967Proxy:4"
-  "GetWFX:7"
-  "GetFIP20:11"
 )
 
 if ! command -v rg &>/dev/null; then

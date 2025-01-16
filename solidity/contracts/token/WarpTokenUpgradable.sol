@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
@@ -139,11 +140,12 @@ abstract contract UUPSUpgradeable is
     uint256[50] private __gap;
 }
 
-contract WFXUpgradable is
+contract WarpTokenUpgradable is
     Initializable,
     ContextUpgradeable,
     UUPSUpgradeable,
-    OwnableUpgradeable
+    OwnableUpgradeable,
+    IERC20Upgradeable
 {
     string private _name;
     string private _symbol;
@@ -153,24 +155,6 @@ contract WFXUpgradable is
     mapping(address => mapping(address => uint256)) private _allowance;
 
     address private _module;
-
-    /**
-     * @dev Emitted when `value` tokens are moved from one account (`from`) to
-     * another (`to`).
-     *
-     * Note that `value` may be zero.
-     */
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    /**
-     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
-     * a call to {approve}. `value` is the new allowance.
-     */
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
 
     function name() external view returns (string memory) {
         return _name;

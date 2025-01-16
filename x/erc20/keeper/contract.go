@@ -31,11 +31,11 @@ func (k Keeper) ERC20BaseInfo(ctx context.Context, contractAddr common.Address) 
 func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8) (common.Address, error) {
 	var tokenContract contract.Contract
 	if symbol == fxtypes.DefaultSymbol {
-		tokenContract = contract.GetWFX()
+		tokenContract = contract.GetWPUNDIAI()
 		name = fmt.Sprintf("Wrapped %s", name)
 		symbol = fmt.Sprintf("W%s", symbol)
 	} else {
-		tokenContract = contract.GetFIP20()
+		tokenContract = contract.GetERC20()
 	}
 	k.Logger(ctx).Info("deploy token contract", "name", name, "symbol", symbol, "decimals", decimals)
 

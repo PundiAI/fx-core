@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IBridgeCallContext} from "../bridge/IBridgeCallContext.sol";
+import {IBridgeCallContext} from "../interfaces/IBridgeCallContext.sol";
 
 /* solhint-disable custom-errors */
 

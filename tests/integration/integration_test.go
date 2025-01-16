@@ -114,12 +114,12 @@ func (suite *IntegrationTest) TestRun() {
 	suite.MigrateTestUnDelegate()
 
 	suite.EVMWeb3Test()
-	suite.WFXTest()
+	suite.WarpTokenTest()
 	suite.ERC20TokenTest()
 	suite.ERC721Test()
 	suite.CallContractTest()
 	suite.ERC20CodeTest()
-	suite.WFXCodeTest()
+	suite.WarpTokenCodeTest()
 
 	suite.ByPassFeeTest()
 }

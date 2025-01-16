@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {IBridgeCall} from "./IBridgeCall.sol";
-import {FxBridgeBase} from "./FxBridgeBase.sol";
+import {FxBridgeBase} from "../bridge/FxBridgeBase.sol";
 
 interface IFxBridgeLogic is IBridgeCall, FxBridgeBase {
     /* solhint-disable func-name-mixedcase */

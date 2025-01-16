@@ -70,5 +70,5 @@ func NewBigInt(amount, power int64) *big.Int {
 }
 
 func PackERC20Mint(receiver common.Address, amount *big.Int) ([]byte, error) {
-	return contract.GetFIP20().ABI.Pack("mint", receiver, amount)
+	return contract.GetERC20().ABI.Pack("mint", receiver, amount)
 }
