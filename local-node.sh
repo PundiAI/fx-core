@@ -3,7 +3,9 @@
 set -eo pipefail
 
 export FX_HOME=${FX_HOME:-"/tmp/fxcore"}
+export FX_CHAIN_ID=${FX_CHAIN_ID:-"fxcore"}
 readonly default_denom=apundiai
+readonly default_display_denom=pundiai
 
 if [[ "$1" == "init" ]]; then
   if [ -d "$FX_HOME" ]; then
@@ -14,7 +16,7 @@ if [[ "$1" == "init" ]]; then
   fi
 
   # Initialize private validator, p2p, genesis, and application configuration files
-  fxcored init local --chain-id fxcore --default-denom $default_denom
+  fxcored init local --chain-id "$FX_CHAIN_ID" --default-denom $default_denom
 
   fxcored config config.toml rpc.cors_allowed_origins "*"
   # open prometheus
@@ -33,18 +35,14 @@ if [[ "$1" == "init" ]]; then
   fxcored config app.toml json-rpc.api "eth,txpool,personal,net,debug,web3"
 
   # update fxcore client config
-  fxcored config set client chain-id "fxcore"
+  fxcored config set client chain-id "$FX_CHAIN_ID"
   fxcored config set client keyring-backend "test"
   fxcored config set client output "json"
   fxcored config set client broadcast-mode "sync"
 
   echo "test test test test test test test test test test test junk" | fxcored keys add fx1 --recover
-  if [ -n "${2:-""}" ]; then
-    fxcored genesis add-genesis-account fx1 10004000000000000000000000$default_denom
-  else
-    fxcored genesis add-genesis-account fx1 4000000000000000000000$default_denom
-  fi
-  fxcored genesis gentx fx1 100000000000000000000$default_denom --chain-id=fxcore \
+  fxcored genesis add-genesis-account fx1 10000$default_display_denom
+  fxcored genesis gentx fx1 100$default_display_denom --chain-id="$FX_CHAIN_ID" \
     --gas="200000" \
     --moniker="fx-validator" \
     --commission-max-change-rate="0.01" \

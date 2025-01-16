@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -26,10 +25,7 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	fxtypes "github.com/pundiai/fx-core/v8/types"
-	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
-
-const EthModuleInitAmount = "378600525462891000000000000"
 
 // GenesisState The genesis state of the blockchain is represented here as a map of raw json
 // messages key'd by a identifier string.
@@ -45,11 +41,6 @@ type GenesisState map[string]json.RawMessage
 //nolint:gocyclo // a lot of modules need to be modified
 func newDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManager) GenesisState {
 	denom := fxtypes.DefaultDenom
-	ethInitAmount, ok := sdkmath.NewIntFromString(EthModuleInitAmount)
-	if !ok {
-		panic("invalid eth module init amount")
-	}
-
 	genesis := make(map[string]json.RawMessage)
 	for _, m := range moduleBasics {
 		switch m.Name() {
@@ -104,13 +95,6 @@ func newDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManag
 		case banktypes.ModuleName:
 			state := banktypes.DefaultGenesisState()
 			state.DenomMetadata = []banktypes.Metadata{fxtypes.NewDefaultMetadata()}
-
-			ethModuleInitCoins := sdk.NewCoins(sdk.NewCoin(denom, ethInitAmount))
-			state.Balances = append(state.Balances, banktypes.Balance{
-				Address: authtypes.NewModuleAddress(ethtypes.ModuleName).String(),
-				Coins:   ethModuleInitCoins,
-			})
-			state.Supply = ethModuleInitCoins
 			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case paramstypes.ModuleName:
 			if mod, ok := m.(module.HasGenesisBasics); ok {
