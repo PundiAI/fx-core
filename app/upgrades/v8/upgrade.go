@@ -85,13 +85,20 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
 		return err
 	}
+	if err := redeployTestnetContract(ctx, app.AccountKeeper, app.EvmKeeper, app.Erc20Keeper, app.EthKeeper); err != nil {
+		return err
+	}
 	if err := migrateCrosschainParams(ctx, app.CrosschainKeepers); err != nil {
 		return err
 	}
-
-	return redeployTestnetContract(ctx, app.AccountKeeper, app.EvmKeeper, app.Erc20Keeper, app.EthKeeper)
+	migrateMetadataDisplay(ctx, app.BankKeeper)
+	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
+		return err
+	}
+	return migrateMetadataFXToPundiAI(ctx, app.BankKeeper)
 }
 
+//nolint:gocyclo // mainnet
 func upgradeMainnet(
 	ctx sdk.Context,
 	mm *module.Manager,
@@ -171,7 +178,13 @@ func upgradeMainnet(
 	if err = migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
 		return toVM, err
 	}
-
+	migrateMetadataDisplay(ctx, app.BankKeeper)
+	if err = migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
+		return toVM, err
+	}
+	if err = migrateMetadataFXToPundiAI(ctx, app.BankKeeper); err != nil {
+		return toVM, err
+	}
 	return toVM, nil
 }
 
@@ -568,4 +581,46 @@ func migrateCrosschainParams(ctx sdk.Context, keepers keepers.CrosschainKeepers)
 		}
 	}
 	return nil
+}
+
+func migrateMetadataDisplay(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
+	mds := bankKeeper.GetAllDenomMetaData(ctx)
+	for _, md := range mds {
+		if md.Display != md.Base || len(md.DenomUnits) <= 1 {
+			continue
+		}
+		for _, dus := range md.DenomUnits {
+			if dus.Denom != md.Base {
+				md.Display = dus.Denom
+				break
+			}
+		}
+		bankKeeper.SetDenomMetaData(ctx, md)
+	}
+}
+
+func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
+	fxDenom := strings.ToUpper(fxtypes.FXDenom)
+	erc20Token, err := keeper.GetERC20Token(ctx, fxDenom)
+	if err != nil {
+		return err
+	}
+	erc20Token.Denom = fxtypes.DefaultDenom
+	if err = keeper.ERC20Token.Set(ctx, erc20Token.Denom, erc20Token); err != nil {
+		return err
+	}
+	return keeper.ERC20Token.Remove(ctx, fxDenom)
+}
+
+func migrateMetadataFXToPundiAI(ctx sdk.Context, keeper bankkeeper.Keeper) error {
+	// add pundiai metadata
+	metadata := fxtypes.NewDefaultMetadata()
+	keeper.SetDenomMetaData(ctx, metadata)
+
+	// remove FX metadata
+	bk, ok := keeper.(bankkeeper.BaseKeeper)
+	if !ok {
+		return errors.New("bank keeper not implement bank.BaseKeeper")
+	}
+	return bk.BaseViewKeeper.DenomMetadata.Remove(ctx, strings.ToUpper(fxtypes.FXDenom))
 }
