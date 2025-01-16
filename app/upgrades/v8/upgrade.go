@@ -181,7 +181,7 @@ func upgradeMainnet(
 		return toVM, err
 	}
 	if err = migrateMetadataDisplay(ctx, app.BankKeeper); err != nil {
-		return nil, err
+		return toVM, err
 	}
 	if err = migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
 		return toVM, err
