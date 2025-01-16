@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"cosmossdk.io/collections"
@@ -20,6 +21,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -92,6 +94,9 @@ func Test_UpgradeTestnet(t *testing.T) {
 
 	// check bridge fee contract status
 	checkBridgeFeeContract(t, ctx, myApp)
+
+	checkMetadataValidate(t, ctx, myApp)
+	checkPundiAIFXERC20Token(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -174,6 +179,8 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkPundixPurse(t, ctx, myApp)
 	checkTotalSupply(t, ctx, myApp)
 	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
+	checkMetadataValidate(t, ctx, myApp)
+	checkPundiAIFXERC20Token(t, ctx, myApp)
 }
 
 func checkLayer2OracleIsOnline(t *testing.T, ctx sdk.Context, layer2Keeper crosschainkeeper.Keeper) {
@@ -564,4 +571,28 @@ func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
 		require.NoError(t, err)
 		require.Empty(t, oracles)
 	}
+}
+
+func checkMetadataValidate(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	myApp.BankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
+		if len(metadata.DenomUnits) <= 1 {
+			return false
+		}
+		require.NoError(t, metadata.Validate())
+		require.NotEqual(t, metadata.Display, metadata.Base)
+		return false
+	})
+}
+
+func checkPundiAIFXERC20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	has, err := myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.DefaultDenom)
+	require.NoError(t, err)
+	require.True(t, has)
+	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, strings.ToUpper(fxtypes.FXDenom))
+	require.NoError(t, err)
+	require.False(t, has)
 }
