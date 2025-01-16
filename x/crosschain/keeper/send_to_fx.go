@@ -41,7 +41,7 @@ func (k Keeper) SendToFxExecuted(ctx sdk.Context, caller contract.Caller, claim 
 	if err != nil {
 		return err
 	}
-	bridgeToken, amount, err = k.SwapBridgeToken(ctx, bridgeToken, amount)
+	bridgeToken, amount, err = k.SwapBridgeToken(ctx, receiveAddr, bridgeToken, amount)
 	if err != nil {
 		return err
 	}

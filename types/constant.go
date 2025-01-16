@@ -20,7 +20,7 @@ const (
 	DefaultSymbol = "PUNDIAI"
 	DenomUnit     = 18
 
-	FXDenom = "FX"
+	FXDenom = "fx"
 
 	AddrLen = 20
 

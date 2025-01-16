@@ -12,17 +12,30 @@ import (
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
-func (k Keeper) SwapBridgeToken(ctx context.Context, bridgeToken erc20types.BridgeToken, amount sdkmath.Int) (erc20types.BridgeToken, sdkmath.Int, error) {
-	if !bridgeToken.IsNative || bridgeToken.Denom != fxtypes.FXDenom {
+func (k Keeper) SwapBridgeToken(ctx context.Context, holder sdk.AccAddress, bridgeToken erc20types.BridgeToken, amount sdkmath.Int) (erc20types.BridgeToken, sdkmath.Int, error) {
+	if bridgeToken.Denom != fxtypes.FXDenom {
 		return bridgeToken, amount, nil
 	}
-	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, fxtypes.DefaultDenom)
+	defBridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, fxtypes.DefaultDenom)
 	if err != nil {
 		return erc20types.BridgeToken{}, sdkmath.Int{}, err
 	}
-	return bridgeToken, fxtypes.SwapAmount(amount), nil
+	// transfer bridgeDenom from holder to module
+	bridgeDenom := bridgeToken.BridgeDenom()
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, k.moduleName, sdk.NewCoins(sdk.NewCoin(bridgeDenom, amount)))
+	if err != nil {
+		return erc20types.BridgeToken{}, sdkmath.Int{}, err
+	}
+	swapAmount := fxtypes.SwapAmount(amount)
+	if !swapAmount.IsPositive() {
+		return defBridgeToken, swapAmount, nil
+	}
+	// transfer defaultDenom from eth module to holder
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, ethtypes.ModuleName, holder, sdk.NewCoins(sdk.NewCoin(defBridgeToken.Denom, swapAmount)))
+	return defBridgeToken, swapAmount, err
 }
 
 func (k Keeper) DepositBridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, tokenAddr string) (sdk.Coin, error) {
@@ -30,7 +43,7 @@ func (k Keeper) DepositBridgeTokenToBaseCoin(ctx context.Context, holder sdk.Acc
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-	bridgeToken, amount, err = k.SwapBridgeToken(ctx, bridgeToken, amount)
+	bridgeToken, amount, err = k.SwapBridgeToken(ctx, holder, bridgeToken, amount)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -97,7 +110,7 @@ func (k Keeper) DepositBridgeToken(ctx context.Context, holder sdk.AccAddress, a
 
 	bridgeCoins := sdk.NewCoins(sdk.NewCoin(bridgeToken.BridgeDenom(), amount))
 	if bridgeToken.IsOrigin() {
-		return bridgeToken, k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, holder, bridgeCoins)
+		return bridgeToken, k.bankKeeper.SendCoinsFromModuleToAccount(ctx, ethtypes.ModuleName, holder, bridgeCoins)
 	}
 
 	if !bridgeToken.IsNative {
@@ -111,10 +124,13 @@ func (k Keeper) DepositBridgeToken(ctx context.Context, holder sdk.AccAddress, a
 // WithdrawBridgeToken put bridge token to k.moduleName
 func (k Keeper) WithdrawBridgeToken(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, bridgeToken erc20types.BridgeToken) error {
 	bridgeCoins := sdk.NewCoins(sdk.NewCoin(bridgeToken.BridgeDenom(), amount))
+	if bridgeToken.IsOrigin() {
+		return k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, ethtypes.ModuleName, bridgeCoins)
+	}
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, k.moduleName, bridgeCoins); err != nil {
 		return err
 	}
-	if bridgeToken.IsOrigin() || bridgeToken.IsNative {
+	if bridgeToken.IsNative {
 		return nil
 	}
 	return k.bankKeeper.BurnCoins(ctx, k.moduleName, bridgeCoins)
