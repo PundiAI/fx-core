@@ -26,6 +26,7 @@ var (
 	MainnetOnRecvWrap = map[string]string{
 		OnRecvDenomWrapKey(PundixChannel, MainnetPundixUnWrapDenom): PundixWrapDenom,
 		OnRecvDenomWrapKey(MainnetOsmosisChannel, FXDenom):          DefaultDenom,
+		OnRecvDenomWrapKey(PundixChannel, FXDenom):                  DefaultDenom,
 	}
 
 	MainnetSendPacketWrap = map[string]string{
@@ -37,6 +38,7 @@ var (
 	TestnetOnRecvWrap = map[string]string{
 		OnRecvDenomWrapKey(PundixChannel, TestnetPundixUnWrapDenom): PundixWrapDenom,
 		OnRecvDenomWrapKey(TestnetOsmosisChannel, FXDenom):          DefaultDenom,
+		OnRecvDenomWrapKey(PundixChannel, FXDenom):                  DefaultDenom,
 	}
 	TestnetSendPacketWrap = map[string]string{
 		SendPacketDenomWrapKey(PundixChannel, PundixWrapDenom): TestnetPundixUnWrapDenom,
