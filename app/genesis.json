@@ -106,23 +106,8 @@
       "send_enabled": [],
       "default_send_enabled": true
     },
-    "balances": [
-      {
-        "address": "cosmos1c602zv38ht8xu8u2qcmymyl55mcyvvjrzq9ur3",
-        "coins": [
-          {
-            "denom": "apundiai",
-            "amount": "378600525462891000000000000"
-          }
-        ]
-      }
-    ],
-    "supply": [
-      {
-        "denom": "apundiai",
-        "amount": "378600525462891000000000000"
-      }
-    ],
+    "balances": [],
+    "supply": [],
     "denom_metadata": [
       {
         "description": "The native staking token of the Pundi AIFX",
