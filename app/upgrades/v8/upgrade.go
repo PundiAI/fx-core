@@ -91,7 +91,9 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateCrosschainParams(ctx, app.CrosschainKeepers); err != nil {
 		return err
 	}
-	migrateMetadataDisplay(ctx, app.BankKeeper)
+	if err := migrateMetadataDisplay(ctx, app.BankKeeper); err != nil {
+		return err
+	}
 	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
 		return err
 	}
@@ -178,7 +180,9 @@ func upgradeMainnet(
 	if err = migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
 		return toVM, err
 	}
-	migrateMetadataDisplay(ctx, app.BankKeeper)
+	if err = migrateMetadataDisplay(ctx, app.BankKeeper); err != nil {
+		return nil, err
+	}
 	if err = migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
 		return toVM, err
 	}
@@ -583,7 +587,7 @@ func migrateCrosschainParams(ctx sdk.Context, keepers keepers.CrosschainKeepers)
 	return nil
 }
 
-func migrateMetadataDisplay(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
+func migrateMetadataDisplay(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
 	mds := bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
 		if md.Display != md.Base || len(md.DenomUnits) <= 1 {
@@ -595,8 +599,12 @@ func migrateMetadataDisplay(ctx sdk.Context, bankKeeper bankkeeper.Keeper) {
 				break
 			}
 		}
+		if err := md.Validate(); err != nil {
+			return err
+		}
 		bankKeeper.SetDenomMetaData(ctx, md)
 	}
+	return nil
 }
 
 func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
