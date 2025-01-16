@@ -75,11 +75,12 @@ func newDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManag
 			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case govtypes.ModuleName:
 			state := govv1.DefaultGenesisState()
-			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-			for i := 0; i < len(state.Params.MinDeposit); i++ {
-				state.Params.MinDeposit[i].Denom = denom
-				state.Params.MinDeposit[i].Amount = coinOne.Mul(sdkmath.NewInt(10000))
-			}
+			minDepositAmount := sdkmath.NewInt(1e18).MulRaw(30)
+			state.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount))
+			state.Params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin(denom, minDepositAmount.MulRaw(govv1.DefaultMinExpeditedDepositTokensRatio)))
+			state.Params.MinInitialDepositRatio = sdkmath.LegacyMustNewDecFromStr("0.33").String()
+			state.Params.MinDepositRatio = sdkmath.LegacyMustNewDecFromStr("0").String()
+
 			duration := time.Hour * 24 * 14
 			state.Params.MaxDepositPeriod = &duration
 			state.Params.VotingPeriod = &duration
