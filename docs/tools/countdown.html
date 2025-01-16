@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!--    <meta http-equiv="refresh" content="60">-->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>f(x)Core upgrade countdown</title>
+    <title>Pundi AIFX upgrade countdown</title>
     <style>
         .text-center {
             text-align: center;
@@ -116,7 +116,7 @@
             </div>
             <div class="col-sm-4 mb32"></div>
         </div>
-        <h1><strong>f(x)Core</strong><span id="version"></span>
+        <h1><strong>Pundi AIFX</strong><span id="version"></span>
             <span id="block" style="color: rgb(220,5,5)"></span>
         </h1>
     </div>
@@ -163,7 +163,7 @@
         if (leftTime < 0 || intervalBlock < 0) {
             window.clearInterval(myInterval)
             window.alert("The countdown has ended and the page will jump to the block browser.")
-            window.location.replace(getStarscanUrl())
+            window.location.replace(getPundiscanUrl())
             return;
         }
         document.getElementById("block").innerHTML = intervalBlock.toString();

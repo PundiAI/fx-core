@@ -1,4 +1,4 @@
-# Fx Bridge Contract Upgrade Process
+# Pundi Bridge Contract Upgrade Process
 
 ```shell
 # setup env

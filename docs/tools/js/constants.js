@@ -30,6 +30,12 @@ const BRIDGES_INFO = [
         bridge_address: "0xDc3706d164d2D88b85ed702079ab331e2476D475"
     },
     {
+        name: "base",
+        explorer: "https://basescan.com",
+        denom_prefix: "layer2",
+        bridge_address: "0x7a986bA67227acfab86385FF33436a80E2BB4CC5"
+    },
+    {
         name: "Arbitrum",
         explorer: "https://arbiscan.io",
         denom_prefix: "arbitrum",
