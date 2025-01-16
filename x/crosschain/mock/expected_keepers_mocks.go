@@ -494,6 +494,21 @@ func (mr *MockErc20KeeperMockRecorder) HasCache(ctx, key any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasCache", reflect.TypeOf((*MockErc20Keeper)(nil).HasCache), ctx, key)
 }
 
+// HasERC20Token mocks base method.
+func (m *MockErc20Keeper) HasERC20Token(ctx context.Context, baseDenom string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasERC20Token", ctx, baseDenom)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasERC20Token indicates an expected call of HasERC20Token.
+func (mr *MockErc20KeeperMockRecorder) HasERC20Token(ctx, baseDenom any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasERC20Token", reflect.TypeOf((*MockErc20Keeper)(nil).HasERC20Token), ctx, baseDenom)
+}
+
 // ReSetCache mocks base method.
 func (m *MockErc20Keeper) ReSetCache(ctx context.Context, oldKey, newKey string) error {
 	m.ctrl.T.Helper()
@@ -506,6 +521,21 @@ func (m *MockErc20Keeper) ReSetCache(ctx context.Context, oldKey, newKey string)
 func (mr *MockErc20KeeperMockRecorder) ReSetCache(ctx, oldKey, newKey any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReSetCache", reflect.TypeOf((*MockErc20Keeper)(nil).ReSetCache), ctx, oldKey, newKey)
+}
+
+// RegisterNativeCoin mocks base method.
+func (m *MockErc20Keeper) RegisterNativeCoin(ctx context.Context, name, symbol string, decimals uint8) (types4.ERC20Token, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterNativeCoin", ctx, name, symbol, decimals)
+	ret0, _ := ret[0].(types4.ERC20Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RegisterNativeCoin indicates an expected call of RegisterNativeCoin.
+func (mr *MockErc20KeeperMockRecorder) RegisterNativeCoin(ctx, name, symbol, decimals any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNativeCoin", reflect.TypeOf((*MockErc20Keeper)(nil).RegisterNativeCoin), ctx, name, symbol, decimals)
 }
 
 // SetCache mocks base method.

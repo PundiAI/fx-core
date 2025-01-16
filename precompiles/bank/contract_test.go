@@ -47,6 +47,7 @@ func (suite *BankPrecompileTestSuite) SetupSubTest() {
 }
 
 func (suite *BankPrecompileTestSuite) SetErc20Token(name string, token common.Address) {
-	_, err := suite.App.Erc20Keeper.AddERC20Token(suite.Ctx, name, strings.ToUpper(name), 18, token, types.OWNER_EXTERNAL)
+	metadata := fxtypes.NewMetadata(name, strings.ToUpper(name), 18)
+	_, err := suite.App.Erc20Keeper.AddERC20Token(suite.Ctx, metadata, token, types.OWNER_EXTERNAL)
 	suite.Require().NoError(err)
 }

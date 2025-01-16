@@ -57,6 +57,8 @@ type Erc20Keeper interface {
 	GetBaseDenom(ctx context.Context, token string) (string, error)
 
 	GetERC20Token(ctx context.Context, baseDenom string) (erc20types.ERC20Token, error)
+	HasERC20Token(ctx context.Context, baseDenom string) (bool, error)
+	RegisterNativeCoin(ctx context.Context, name, symbol string, decimals uint8) (erc20types.ERC20Token, error)
 
 	GetBridgeToken(ctx context.Context, chainName, baseDenom string) (erc20types.BridgeToken, error)
 	GetBridgeTokens(ctx context.Context, chainName string) ([]erc20types.BridgeToken, error)

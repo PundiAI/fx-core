@@ -15,15 +15,29 @@ import (
 func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTokenClaim) error {
 	k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract)
 
+	baseDenom := strings.ToLower(claim.Symbol)
 	if claim.Symbol == fxtypes.DefaultSymbol {
 		if uint64(fxtypes.DenomUnit) != claim.Decimals {
 			return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d",
-				fxtypes.DefaultDenom, claim.Decimals, fxtypes.DenomUnit)
+				fxtypes.DefaultSymbol, claim.Decimals, fxtypes.DenomUnit)
 		}
-		return k.erc20Keeper.AddBridgeToken(ctx, fxtypes.DefaultDenom, k.moduleName, claim.TokenContract, false)
+		baseDenom = fxtypes.DefaultDenom
 	}
 
-	return k.erc20Keeper.AddBridgeToken(ctx, strings.ToLower(claim.Symbol), k.moduleName, claim.TokenContract, false)
+	err := k.erc20Keeper.AddBridgeToken(ctx, baseDenom, k.moduleName, claim.TokenContract, false)
+	if err != nil {
+		return err
+	}
+
+	hasToken, err := k.erc20Keeper.HasERC20Token(ctx, baseDenom)
+	if err != nil {
+		return err
+	}
+	if hasToken {
+		return nil
+	}
+	_, err = k.erc20Keeper.RegisterNativeCoin(ctx, claim.Name, claim.Symbol, uint8(claim.Decimals))
+	return err
 }
 
 func (k Keeper) BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error) {
