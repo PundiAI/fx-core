@@ -2,13 +2,16 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
@@ -18,13 +21,26 @@ func (k Keeper) RegisterNativeCoin(ctx context.Context, name, symbol string, dec
 		return types.ERC20Token{}, err
 	}
 
+	var tokenContract contract.Contract
+	var metadata banktypes.Metadata
+	if symbol == fxtypes.DefaultSymbol {
+		metadata = fxtypes.NewDefaultMetadata()
+		tokenContract = contract.GetWPUNDIAI()
+		name = fmt.Sprintf("Wrapped %s", name)
+		symbol = fmt.Sprintf("W%s", symbol)
+	} else {
+		metadata = fxtypes.NewMetadata(name, symbol, uint32(decimals))
+		tokenContract = contract.GetERC20()
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	erc20Addr, err := k.DeployUpgradableToken(sdkCtx, k.contractOwner, name, symbol, decimals)
+	erc20TokenAddr, err := k.evmKeeper.DeployUpgradableContract(sdkCtx, k.contractOwner,
+		tokenContract.Address, nil, &tokenContract.ABI, name, symbol, decimals, k.contractOwner)
 	if err != nil {
 		return types.ERC20Token{}, err
 	}
 
-	erc20Token, err := k.AddERC20Token(ctx, name, symbol, decimals, erc20Addr, types.OWNER_MODULE)
+	erc20Token, err := k.AddERC20Token(ctx, metadata, erc20TokenAddr, types.OWNER_MODULE)
 	if err != nil {
 		return types.ERC20Token{}, err
 	}
@@ -47,7 +63,8 @@ func (k Keeper) RegisterNativeERC20(ctx context.Context, erc20Addr common.Addres
 		return types.ERC20Token{}, err
 	}
 
-	erc20Token, err := k.AddERC20Token(ctx, name, symbol, decimals, erc20Addr, types.OWNER_EXTERNAL)
+	metadata := fxtypes.NewMetadata(name, symbol, uint32(decimals))
+	erc20Token, err := k.AddERC20Token(ctx, metadata, erc20Addr, types.OWNER_EXTERNAL)
 	if err != nil {
 		return types.ERC20Token{}, err
 	}

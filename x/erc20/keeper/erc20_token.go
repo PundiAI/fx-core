@@ -8,17 +8,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
-func (k Keeper) AddERC20Token(ctx context.Context, name, symbol string, decimals uint8, erc20Addr common.Address, contractOwner types.Owner) (types.ERC20Token, error) {
-	var metadata banktypes.Metadata
-	if symbol == fxtypes.DefaultSymbol {
-		metadata = fxtypes.NewDefaultMetadata()
-	} else {
-		metadata = fxtypes.NewMetadata(name, symbol, uint32(decimals))
-	}
+func (k Keeper) AddERC20Token(ctx context.Context, metadata banktypes.Metadata, erc20Addr common.Address, contractOwner types.Owner) (types.ERC20Token, error) {
 	if err := metadata.Validate(); err != nil {
 		return types.ERC20Token{}, sdkerrors.ErrInvalidRequest.Wrapf("metadata: %s", err.Error())
 	}
@@ -49,6 +42,10 @@ func (k Keeper) AddERC20Token(ctx context.Context, name, symbol string, decimals
 
 func (k Keeper) GetERC20Token(ctx context.Context, baseDenom string) (types.ERC20Token, error) {
 	return k.ERC20Token.Get(ctx, baseDenom)
+}
+
+func (k Keeper) HasERC20Token(ctx context.Context, baseDenom string) (bool, error) {
+	return k.ERC20Token.Has(ctx, baseDenom)
 }
 
 func (k Keeper) ToggleTokenConvert(ctx context.Context, token string) (types.ERC20Token, error) {
