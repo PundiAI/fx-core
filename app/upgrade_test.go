@@ -97,6 +97,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 
 	checkMetadataValidate(t, ctx, myApp)
 	checkPundiAIFXERC20Token(t, ctx, myApp)
+	checkWrapToken(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -164,6 +165,9 @@ func beforeUpgrade(ctx sdk.Context, myApp *app.App) BeforeUpgradeData {
 
 func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
 	t.Helper()
+
+	checkWrapToken(t, ctx, myApp)
+
 	checkStakingMigrationDelete(t, ctx, myApp)
 
 	checkGovCustomParams(t, ctx, myApp)
@@ -181,6 +185,27 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
 	checkMetadataValidate(t, ctx, myApp)
 	checkPundiAIFXERC20Token(t, ctx, myApp)
+}
+
+func checkWrapToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(myApp.EvmKeeper)
+	wrapTokenAddress := nextversion.GetWFXAddress(ctx.ChainID())
+	name, err := erc20TokenKeeper.Name(ctx, wrapTokenAddress)
+	require.NoError(t, err)
+	assert.EqualValues(t, nextversion.WrapTokenName, name)
+	symbol, err := erc20TokenKeeper.Symbol(ctx, wrapTokenAddress)
+	require.NoError(t, err)
+	assert.EqualValues(t, nextversion.WrapTokenSymbol, symbol)
+	decimals, err := erc20TokenKeeper.Decimals(ctx, wrapTokenAddress)
+	require.NoError(t, err)
+	assert.EqualValues(t, 18, decimals)
+	owner, err := erc20TokenKeeper.Owner(ctx, wrapTokenAddress)
+	require.NoError(t, err)
+	assert.EqualValues(t, common.BytesToAddress(myApp.AccountKeeper.GetModuleAddress(erc20types.ModuleName).Bytes()), owner)
+	supply, err := erc20TokenKeeper.TotalSupply(ctx, wrapTokenAddress)
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, supply.Cmp(big.NewInt(0)))
 }
 
 func checkLayer2OracleIsOnline(t *testing.T, ctx sdk.Context, layer2Keeper crosschainkeeper.Keeper) {
