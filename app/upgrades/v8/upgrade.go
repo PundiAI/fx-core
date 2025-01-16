@@ -97,6 +97,9 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
 		return err
 	}
+
+	migrationWFXToWPUNDIAI(ctx, app.EvmKeeper)
+
 	return migrateMetadataFXToPundiAI(ctx, app.BankKeeper)
 }
 
@@ -121,6 +124,8 @@ func upgradeMainnet(
 	if err != nil {
 		return fromVM, err
 	}
+
+	migrationWFXToWPUNDIAI(ctx, app.EvmKeeper)
 
 	if err = migrateEvmParams(ctx, app.EvmKeeper); err != nil {
 		return fromVM, err
