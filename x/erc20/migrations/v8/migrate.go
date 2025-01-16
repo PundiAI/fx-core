@@ -17,14 +17,14 @@ import (
 
 func (m Migrator) MigrateToken(ctx sdk.Context) error {
 	// add FX bridge token
-	if err := m.addToken(ctx, fxtypes.DefaultDenom, ""); err != nil {
+	if err := m.addToken(ctx, fxtypes.FXDenom, ""); err != nil {
 		return err
 	}
 
 	mds := m.bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
 		// exclude FX and alias empty, except PUNDIX
-		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
+		if md.Base == fxtypes.FXDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != "PUNDIX" {
 			continue
 		}
 
@@ -77,7 +77,7 @@ func (m Migrator) addBridgeToken(ctx sdk.Context, base, alias string) error {
 		return nil
 	}
 	for _, ck := range m.crosschainKeepers {
-		canAddFxBridgeToken := base == fxtypes.DefaultDenom && ck.ModuleName() == ethtypes.ModuleName
+		canAddFxBridgeToken := base == fxtypes.FXDenom && ck.ModuleName() == ethtypes.ModuleName
 
 		canAddBridgeToken := strings.HasPrefix(alias, ck.ModuleName())
 		excludeModule := ck.ModuleName() != arbitrumtypes.ModuleName && ck.ModuleName() != optimismtypes.ModuleName

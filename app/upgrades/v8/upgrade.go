@@ -85,6 +85,9 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
 		return err
 	}
+	if err := migrateCrosschainParams(ctx, app.CrosschainKeepers); err != nil {
+		return err
+	}
 
 	return redeployTestnetContract(ctx, app.AccountKeeper, app.EvmKeeper, app.Erc20Keeper, app.EthKeeper)
 }
@@ -98,6 +101,9 @@ func upgradeMainnet(
 	plan upgradetypes.Plan,
 ) (module.VersionMap, error) {
 	if err := migrateCrosschainModuleAccount(ctx, app.AccountKeeper); err != nil {
+		return fromVM, err
+	}
+	if err := migrateCrosschainParams(ctx, app.CrosschainKeepers); err != nil {
 		return fromVM, err
 	}
 
@@ -551,4 +557,15 @@ func migrateFeemarketGasPrice(ctx sdk.Context, feemarketKeeper feemarketkeeper.K
 	params.BaseFee = sdkmath.NewInt(fxtypes.DefaultGasPrice)
 	params.MinGasPrice = sdkmath.LegacyNewDec(fxtypes.DefaultGasPrice)
 	return feemarketKeeper.SetParams(ctx, params)
+}
+
+func migrateCrosschainParams(ctx sdk.Context, keepers keepers.CrosschainKeepers) error {
+	for _, k := range keepers.ToSlice() {
+		params := k.GetParams(ctx)
+		params.DelegateThreshold.Denom = fxtypes.DefaultDenom
+		if err := k.SetParams(ctx, &params); err != nil {
+			return err
+		}
+	}
+	return nil
 }
