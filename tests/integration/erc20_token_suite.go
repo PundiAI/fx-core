@@ -13,12 +13,12 @@ import (
 type ERC20TokenSuite struct {
 	*EthSuite
 
-	erc20Token *contract.WFXUpgradable
+	erc20Token *contract.WarpTokenUpgradable
 	signer     *helpers.Signer
 }
 
 func NewERC20TokenSuite(suite *EthSuite, token common.Address, signer *helpers.Signer) *ERC20TokenSuite {
-	erc20Token, err := contract.NewWFXUpgradable(token, suite.ethCli)
+	erc20Token, err := contract.NewWarpTokenUpgradable(token, suite.ethCli)
 	suite.Require().NoError(err)
 	return &ERC20TokenSuite{
 		EthSuite:   suite,
