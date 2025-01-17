@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
 				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[oracleIndex].PublicKey),
 				ValidatorAddress: suite.ValAddr[oracleIndex].String(),
-				DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(3) + 1) * 10_000).MulRaw(1e18)),
+				DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(3) + 1) * 100).MulRaw(1e18)),
 				ChainName:        suite.chainName,
 			}
 
@@ -259,11 +259,11 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 
 				slashFraction := suite.Keeper().GetSlashFraction(suite.Ctx)
 				slashAmount := sdkmath.LegacyNewDecFromInt(initDelegateAmount).Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
-				msg.Amount.Amount = slashAmount.Add(sdkmath.NewInt(1000).MulRaw(1e18))
+				msg.Amount.Amount = slashAmount.Add(sdkmath.NewInt(10).MulRaw(1e18))
 			},
 			pass: true,
 			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdkmath.Int {
-				return initDelegateAmount.Add(sdkmath.NewInt(1000).MulRaw(1e18))
+				return initDelegateAmount.Add(sdkmath.NewInt(10).MulRaw(1e18))
 			},
 		},
 	}
@@ -337,7 +337,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 }
 
 func (suite *KeeperTestSuite) TestMsgEditBridger() {
-	delegateAmount := sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)
+	delegateAmount := sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)
 	for i := range suite.oracleAddrs {
 		bondedMsg := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracleAddrs[i].String(),
@@ -378,7 +378,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.ValAddr[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(suite.Ctx, normalMsg)
@@ -500,7 +500,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.ValAddr[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(suite.Ctx, normalMsg)
@@ -704,7 +704,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					BridgerAddress:   suite.bridgerAddrs[i].String(),
 					ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 					ValidatorAddress: suite.ValAddr[0].String(),
-					DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+					DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 					ChainName:        suite.chainName,
 				}
 				_, err := suite.MsgServer().BondedOracle(suite.Ctx, msg)
@@ -725,7 +725,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.ValAddr[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(suite.Ctx, normalMsg)
@@ -875,7 +875,7 @@ func (suite *KeeperTestSuite) BondedOracle() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.ValAddr[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)),
+		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	})
 	suite.Require().NoError(err)
