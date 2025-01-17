@@ -99,10 +99,10 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 		return err
 	}
 
-	migrationWFXToWPUNDIAI(ctx, app.EvmKeeper)
+	migrateWFXToWPUNDIAI(ctx, app.EvmKeeper)
 	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
 
-	if err := migrationModulesData(ctx, app); err != nil {
+	if err := migrateModulesData(ctx, app); err != nil {
 		return err
 	}
 
@@ -131,9 +131,9 @@ func upgradeMainnet(
 		return fromVM, err
 	}
 
-	migrationWFXToWPUNDIAI(ctx, app.EvmKeeper)
+	migrateWFXToWPUNDIAI(ctx, app.EvmKeeper)
 
-	if err = migrationModulesData(ctx, app); err != nil {
+	if err = migrateModulesData(ctx, app); err != nil {
 		return fromVM, err
 	}
 
@@ -143,7 +143,7 @@ func upgradeMainnet(
 
 	store.RemoveStoreKeys(ctx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
 
-	if err = migrationGovCustomParam(ctx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
+	if err = migrateGovCustomParam(ctx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
 		return fromVM, err
 	}
 
@@ -208,11 +208,11 @@ func upgradeMainnet(
 	return toVM, nil
 }
 
-func migrationModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
-	return migrationCrisisModule(ctx, app.CrisisKeeper)
+func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
+	return migrateCrisisModule(ctx, app.CrisisKeeper)
 }
 
-func migrationCrisisModule(ctx sdk.Context, crisisKeeper *crisiskeeper.Keeper) error {
+func migrateCrisisModule(ctx sdk.Context, crisisKeeper *crisiskeeper.Keeper) error {
 	constantFee, err := crisisKeeper.ConstantFee.Get(ctx)
 	if err != nil {
 		return err
@@ -228,7 +228,7 @@ func migrateEvmParams(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) error {
 	return evmKeeper.SetParams(ctx, params)
 }
 
-func migrationGovCustomParam(ctx sdk.Context, keeper *fxgovkeeper.Keeper, storeKey *storetypes.KVStoreKey) error {
+func migrateGovCustomParam(ctx sdk.Context, keeper *fxgovkeeper.Keeper, storeKey *storetypes.KVStoreKey) error {
 	// 1. delete fxParams key
 	store.RemoveStoreKeys(ctx, storeKey, fxgovv8.GetRemovedStoreKeys())
 
