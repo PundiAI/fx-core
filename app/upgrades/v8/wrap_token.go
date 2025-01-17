@@ -39,7 +39,7 @@ var (
 	testnetWFXAddress = common.HexToAddress("0x3452e23F9c4cC62c70B7ADAd699B264AF3549C19")
 )
 
-func migrationWFXToWPUNDIAI(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) {
+func migrateWFXToWPUNDIAI(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) {
 	wfxAddr := GetWFXAddress(ctx.ChainID())
 
 	totalUpdateState := 0
