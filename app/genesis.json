@@ -185,7 +185,7 @@
   "crisis": {
     "constant_fee": {
       "denom": "apundiai",
-      "amount": "13333000000000000000000"
+      "amount": "133000000000000000000"
     }
   },
   "distribution": {

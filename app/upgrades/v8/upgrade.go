@@ -17,6 +17,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -101,6 +102,10 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	migrationWFXToWPUNDIAI(ctx, app.EvmKeeper)
 	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
 
+	if err := migrationModulesData(ctx, app); err != nil {
+		return err
+	}
+
 	return migrateMetadataFXToPundiAI(ctx, app.BankKeeper)
 }
 
@@ -127,6 +132,10 @@ func upgradeMainnet(
 	}
 
 	migrationWFXToWPUNDIAI(ctx, app.EvmKeeper)
+
+	if err = migrationModulesData(ctx, app); err != nil {
+		return fromVM, err
+	}
 
 	if err = migrateEvmParams(ctx, app.EvmKeeper); err != nil {
 		return fromVM, err
@@ -197,6 +206,20 @@ func upgradeMainnet(
 		return toVM, err
 	}
 	return toVM, nil
+}
+
+func migrationModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
+	return migrationCrisisModule(ctx, app.CrisisKeeper)
+}
+
+func migrationCrisisModule(ctx sdk.Context, crisisKeeper *crisiskeeper.Keeper) error {
+	constantFee, err := crisisKeeper.ConstantFee.Get(ctx)
+	if err != nil {
+		return err
+	}
+	constantFee.Denom = fxtypes.DefaultDenom
+	constantFee.Amount = sdkmath.NewInt(133).MulRaw(1e18)
+	return crisisKeeper.ConstantFee.Set(ctx, constantFee)
 }
 
 func migrateEvmParams(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) error {
