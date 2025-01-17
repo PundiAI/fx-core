@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.ValAddr[i].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())
@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		suite.Require().EqualValues(i+1, len(oracleSets))
 
 		power := suite.Keeper().GetLastTotalPower(suite.Ctx)
-		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
+		expectPower := sdkmath.NewInt(100).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		suite.Require().True(expectPower.Equal(power))
 	}
 
@@ -102,13 +102,13 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 
 	suite.Require().ErrorIs(types.ErrInvalid, err)
 
-	expectTotalPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(10)).Quo(sdk.DefaultPowerReduction)
+	expectTotalPower := sdkmath.NewInt(100).MulRaw(1e18).Mul(sdkmath.NewInt(10)).Quo(sdk.DefaultPowerReduction)
 	actualTotalPower := suite.Keeper().GetLastTotalPower(suite.Ctx)
 	suite.Require().True(expectTotalPower.Equal(actualTotalPower))
 
 	expectMaxChangePower := types.AttestationProposalOracleChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(100))
 
-	expectDeletePower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(3)).Quo(sdk.DefaultPowerReduction)
+	expectDeletePower := sdkmath.NewInt(100).MulRaw(1e18).Mul(sdkmath.NewInt(3)).Quo(sdk.DefaultPowerReduction)
 	suite.Require().EqualValues(fmt.Sprintf("max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
 
 	var newOracleList2 []string
@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.ValAddr[i].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
 		_, err := suite.MsgServer().BondedOracle(suite.Ctx, msgBondedOracle)
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		suite.Require().EqualValues(i+1, len(oracleSets))
 
 		power := suite.Keeper().GetLastTotalPower(suite.Ctx)
-		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
+		expectPower := sdkmath.NewInt(100).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		suite.Require().True(expectPower.Equal(power))
 	}
 
@@ -324,7 +324,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.ValAddr[i].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())
@@ -356,7 +356,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 	suite.Require().EqualValues(bridger.String(), oracleData.BridgerAddress)
 	suite.Require().EqualValues(externalAddress, oracleData.ExternalAddress)
 
-	suite.Require().True(sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
+	suite.Require().True(sdkmath.NewInt(100).MulRaw(1e18).Equal(oracleData.DelegateAmount))
 
 	newOracleAddressList := make([]string, 0, len(suite.oracleAddrs)-1)
 	for _, address := range suite.oracleAddrs[1:] {
@@ -391,7 +391,7 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.ValAddr[i].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())
@@ -449,7 +449,7 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.ValAddr[i].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
 		suite.Require().NoError(msgBondedOracle.ValidateBasic())

@@ -37,7 +37,7 @@ func DefaultParams() Params {
 		SlashFraction:                     sdkmath.LegacyNewDecWithPrec(8, 1), // 80%
 		OracleSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
 		IbcTransferTimeoutHeight:          20_000,
-		DelegateThreshold:                 NewDelegateAmount(sdkmath.NewInt(10_000).MulRaw(1e18)),
+		DelegateThreshold:                 NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 		DelegateMultiple:                  DefaultOracleDelegateThreshold,
 		BridgeCallTimeout:                 DefBridgeCallTimeout,
 		BridgeCallMaxGasLimit:             MaxGasLimit,

@@ -13,7 +13,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",
@@ -70,7 +70,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",
@@ -146,7 +146,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",
@@ -226,7 +226,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",
@@ -403,7 +403,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",
@@ -462,7 +462,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",
@@ -507,7 +507,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",
@@ -588,7 +588,7 @@
       "oracles": [],
       "delegate_threshold": {
         "denom": "apundiai",
-        "amount": "10000000000000000000000"
+        "amount": "100000000000000000000"
       },
       "delegate_multiple": "10",
       "bridge_call_timeout": "604800000",

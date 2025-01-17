@@ -99,6 +99,7 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	}
 
 	migrationWFXToWPUNDIAI(ctx, app.EvmKeeper)
+	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
 
 	return migrateMetadataFXToPundiAI(ctx, app.BankKeeper)
 }
@@ -181,6 +182,7 @@ func upgradeMainnet(
 	}
 
 	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
+	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
 
 	if err = migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
 		return toVM, err
@@ -585,11 +587,26 @@ func migrateCrosschainParams(ctx sdk.Context, keepers keepers.CrosschainKeepers)
 	for _, k := range keepers.ToSlice() {
 		params := k.GetParams(ctx)
 		params.DelegateThreshold.Denom = fxtypes.DefaultDenom
+		params.DelegateThreshold.Amount = fxtypes.SwapAmount(params.DelegateThreshold.Amount)
+		if !params.DelegateThreshold.IsPositive() {
+			return sdkerrors.ErrInvalidCoins.Wrapf("module %s invalid delegate threshold: %s",
+				k.ModuleName(), params.DelegateThreshold.String())
+		}
 		if err := k.SetParams(ctx, &params); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func migrateOracleDelegateAmount(ctx sdk.Context, keepers keepers.CrosschainKeepers) {
+	for _, k := range keepers.ToSlice() {
+		k.IterateOracle(ctx, func(oracle crosschaintypes.Oracle) bool {
+			oracle.DelegateAmount = fxtypes.SwapAmount(oracle.DelegateAmount)
+			k.SetOracle(ctx, oracle)
+			return false
+		})
+	}
 }
 
 func migrateMetadataDisplay(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
