@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -79,9 +78,8 @@ func newDefAppGenesisByDenom(cdc codec.JSONCodec, moduleBasics module.BasicManag
 			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case crisistypes.ModuleName:
 			state := crisistypes.DefaultGenesisState()
-			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 			state.ConstantFee.Denom = denom
-			state.ConstantFee.Amount = sdkmath.NewInt(13333).Mul(coinOne)
+			state.ConstantFee.Amount = sdkmath.NewInt(133).MulRaw(1e18)
 			genesis[m.Name()] = cdc.MustMarshalJSON(state)
 		case minttypes.ModuleName:
 			state := minttypes.DefaultGenesisState()

@@ -185,6 +185,15 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
 	checkMetadataValidate(t, ctx, myApp)
 	checkPundiAIFXERC20Token(t, ctx, myApp)
+
+	checkCrisisModule(t, ctx, myApp)
+}
+
+func checkCrisisModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+	constantFee, err := myApp.CrisisKeeper.ConstantFee.Get(ctx)
+	require.NoError(t, err)
+	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(133).MulRaw(1e18)).String(), constantFee.String())
 }
 
 func checkWrapToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
