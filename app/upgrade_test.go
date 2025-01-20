@@ -26,6 +26,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -98,6 +99,8 @@ func Test_UpgradeTestnet(t *testing.T) {
 	checkMetadataValidate(t, ctx, myApp)
 	checkPundiAIFXERC20Token(t, ctx, myApp)
 	checkWrapToken(t, ctx, myApp)
+
+	checkModulesData(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -186,7 +189,7 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkMetadataValidate(t, ctx, myApp)
 	checkPundiAIFXERC20Token(t, ctx, myApp)
 
-	checkCrisisModule(t, ctx, myApp)
+	checkModulesData(t, ctx, myApp)
 }
 
 func checkCrisisModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -629,4 +632,19 @@ func checkPundiAIFXERC20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, strings.ToUpper(fxtypes.FXDenom))
 	require.NoError(t, err)
 	require.False(t, has)
+}
+
+func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	checkCrisisModule(t, ctx, myApp)
+	checkEvmParams(t, ctx, myApp)
+}
+
+func checkEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	params := myApp.EvmKeeper.GetParams(ctx)
+	require.Equal(t, fxtypes.DefaultDenom, params.EvmDenom)
+	require.Equal(t, evmtypes.DefaultHeaderHashNum, params.HeaderHashNum)
 }
