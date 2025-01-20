@@ -22,6 +22,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -212,7 +213,25 @@ func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateEvmParams(ctx, app.EvmKeeper); err != nil {
 		return err
 	}
+
+	migrateTransferTokenInEscrow(ctx, app.IBCTransferKeeper)
+
 	return migrateCrisisModule(ctx, app.CrisisKeeper)
+}
+
+func migrateTransferTokenInEscrow(ctx sdk.Context, transferKeeper ibctransferkeeper.Keeper) {
+	escrowDenoms := GetMigrateEscrowDenoms(ctx.ChainID())
+	for oldDenom, newDenom := range escrowDenoms {
+		totalEscrow := transferKeeper.GetTotalEscrowForDenom(ctx, oldDenom)
+		newAmount := totalEscrow.Amount
+		if oldDenom == fxtypes.IBCFXDenom {
+			newAmount = fxtypes.SwapAmount(newAmount)
+		}
+		// first remove old denom
+		transferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(oldDenom, sdkmath.ZeroInt()))
+		// then add new denom
+		transferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(newDenom, newAmount))
+	}
 }
 
 func migrateCrisisModule(ctx sdk.Context, crisisKeeper *crisiskeeper.Keeper) error {
@@ -728,4 +747,16 @@ func migrateBankModule(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
 		return err
 	}
 	return bk.Supply.Set(ctx, fxtypes.DefaultDenom, apundiaiSupply)
+}
+
+func GetMigrateEscrowDenoms(chainID string) map[string]string {
+	result := make(map[string]string, 2)
+	result[fxtypes.IBCFXDenom] = fxtypes.DefaultDenom
+
+	pundixDenom := fxtypes.MainnetPundixUnWrapDenom
+	if chainID == fxtypes.TestnetChainId {
+		pundixDenom = fxtypes.TestnetPundixUnWrapDenom
+	}
+	result[pundixDenom] = fxtypes.PundixWrapDenom
+	return result
 }

@@ -84,25 +84,20 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, ibcModule porttypes.IBC
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.ErrUnknownRequest.Wrapf("cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
-	var data types.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.ErrUnknownRequest.Wrapf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
-	}
 
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
-		amount, fee, err := parseAmountAndFeeByPacket(data)
+		ibcPacketData, isZeroAmount, err := UnmarshalAckPacketData(packet.Data)
 		if err != nil {
 			return err
 		}
-		ibcPacketData := data.ToIBCPacketData()
-		ibcPacketData.Amount = amount.Add(fee).String()
+		if isZeroAmount {
+			return k.crosschainKeeper.AfterIBCAckSuccess(zeroGasConfigCtx(ctx), packet.SourceChannel, packet.Sequence)
+		}
 		packet.Data = ibcPacketData.GetBytes()
-
 		if err = ibcModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer); err != nil {
 			return err
 		}
-
 		return k.refundPacketTokenHook(ctx, packet, ibcPacketData)
 	default:
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -114,23 +109,42 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, ibcModule porttypes.IBC
 // OnTimeoutPacket refunds the sender since the original packet sent was
 // never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, ibcModule porttypes.IBCModule, relayer sdk.AccAddress) error {
-	var data types.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.ErrUnknownRequest.Wrapf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
-	}
-
-	amount, fee, err := parseAmountAndFeeByPacket(data)
+	ibcPacketData, isZeroAmount, err := UnmarshalAckPacketData(packet.Data)
 	if err != nil {
 		return err
 	}
-	ibcPacketData := data.ToIBCPacketData()
-	ibcPacketData.Amount = amount.Add(fee).String()
+	if isZeroAmount {
+		return k.crosschainKeeper.AfterIBCAckSuccess(zeroGasConfigCtx(ctx), packet.SourceChannel, packet.Sequence)
+	}
 	packet.Data = ibcPacketData.GetBytes()
-
 	if err = ibcModule.OnTimeoutPacket(ctx, packet, relayer); err != nil {
 		return err
 	}
 	return k.refundPacketTokenHook(ctx, packet, ibcPacketData)
+}
+
+// UnmarshalAckPacketData unmarshal ack packet data
+// @param packetData []byte
+// @return transfertypes.FungibleTokenPacketData
+// @return bool isZeroAmount
+// @return error
+func UnmarshalAckPacketData(packetData []byte) (transfertypes.FungibleTokenPacketData, bool, error) {
+	var data types.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packetData, &data); err != nil {
+		return transfertypes.FungibleTokenPacketData{}, false, sdkerrors.ErrUnknownRequest.Wrapf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+	}
+	amount, fee, err := parseAmountAndFeeByPacket(data)
+	if err != nil {
+		return transfertypes.FungibleTokenPacketData{}, false, err
+	}
+	ibcPacketData := data.ToIBCPacketData()
+	totalAmount := amount.Add(fee)
+	if ibcPacketData.Denom == fxtypes.IBCFXDenom {
+		ibcPacketData.Denom = fxtypes.DefaultDenom
+		totalAmount = fxtypes.SwapAmount(totalAmount)
+	}
+	ibcPacketData.Amount = totalAmount.String()
+	return ibcPacketData, !totalAmount.IsPositive(), nil
 }
 
 func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData) error {
