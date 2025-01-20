@@ -16,7 +16,7 @@ import (
 
 // Deprecated: please use BuildOutgoingBridgeCall
 func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, caller contract.Caller, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
-	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller, contract.BridgeFeeAddress)
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller)
 	quoteInfos, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32(k.moduleName), contract.MustStrToByte32(fee.Denom))
 	if err != nil {
 		return 0, err

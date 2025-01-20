@@ -14,7 +14,7 @@ import (
 )
 
 func (k Keeper) ValidateQuote(ctx sdk.Context, caller contract.Caller, quoteId *big.Int, gasLimit uint64) (contract.IBridgeFeeQuoteQuoteInfo, error) {
-	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller, contract.BridgeFeeAddress)
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller)
 	quote, err := bridgeFeeQuoteKeeper.GetQuoteById(ctx, quoteId)
 	if err != nil {
 		return contract.IBridgeFeeQuoteQuoteInfo{}, err

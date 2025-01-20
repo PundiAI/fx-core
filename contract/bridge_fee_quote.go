@@ -2,9 +2,11 @@ package contract
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -91,6 +93,21 @@ func (k BridgeFeeQuoteKeeper) GetUpgradeRole(ctx context.Context) (common.Hash, 
 	return res.Role, nil
 }
 
+func (k BridgeFeeQuoteKeeper) Quote(ctx context.Context, from common.Address, inputs []IBridgeFeeQuoteQuoteInput) (*types.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, from, k.contract, nil, k.abi, "quote", inputs)
+	if err != nil {
+		return k.unpackError(res, err)
+	}
+	var ret struct{ QuoteIds []*big.Int }
+	if err = k.abi.UnpackIntoInterface(&ret, "quote", res.Ret); err != nil {
+		return res, sdkerrors.ErrInvalidType.Wrapf("failed to unpack %s: %s", "quote", err.Error())
+	}
+	if len(ret.QuoteIds) == 0 {
+		return res, sdkerrors.ErrInvalidRequest.Wrapf("quote ids not found")
+	}
+	return res, nil
+}
+
 func (k BridgeFeeQuoteKeeper) GrantRole(ctx context.Context, role common.Hash, account common.Address) (*types.MsgEthereumTxResponse, error) {
 	return k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "grantRole", role, account)
 }
@@ -98,7 +115,7 @@ func (k BridgeFeeQuoteKeeper) GrantRole(ctx context.Context, role common.Hash, a
 func (k BridgeFeeQuoteKeeper) RegisterChain(ctx context.Context, chainName common.Hash, tokenNames ...common.Hash) (*types.MsgEthereumTxResponse, error) {
 	res, err := k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "registerChain", chainName, tokenNames)
 	if err != nil {
-		return nil, err
+		return k.unpackError(res, err)
 	}
 	return unpackRetIsOk(k.abi, "registerChain", res)
 }
@@ -106,7 +123,18 @@ func (k BridgeFeeQuoteKeeper) RegisterChain(ctx context.Context, chainName commo
 func (k BridgeFeeQuoteKeeper) AddToken(ctx context.Context, chainName common.Hash, tokenNames []common.Hash) (*types.MsgEthereumTxResponse, error) {
 	res, err := k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "addToken", chainName, tokenNames)
 	if err != nil {
-		return nil, err
+		return k.unpackError(res, err)
 	}
 	return unpackRetIsOk(k.abi, "addToken", res)
+}
+
+func (k BridgeFeeQuoteKeeper) unpackError(res *types.MsgEthereumTxResponse, err error) (*types.MsgEthereumTxResponse, error) {
+	if err == nil {
+		return res, nil
+	}
+	revertInfo, unpackErr := UnpackRevertError(k.abi, res.Ret)
+	if unpackErr != nil {
+		return res, err
+	}
+	return res, fmt.Errorf("reverted: %s, vmErr: %s", revertInfo, err.Error())
 }

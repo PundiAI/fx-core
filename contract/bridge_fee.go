@@ -6,6 +6,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const DefaultMaxQuoteCap = 3
+
 func DeployBridgeFeeContract(
 	ctx sdk.Context,
 	evmKeeper EvmKeeper,
@@ -33,11 +35,11 @@ func DeployBridgeFeeContract(
 		return err
 	}
 
-	bridgeFeeOracleKeeper := NewBridgeFeeOracleKeeper(evmKeeper, BridgeFeeOracleAddress)
+	bridgeFeeOracleKeeper := NewBridgeFeeOracleKeeper(evmKeeper)
 	if err := initBridgeFeeOracle(ctx, bridgeFeeOracleKeeper, owner, defaultOracleAddress); err != nil {
 		return err
 	}
-	bridgeFeeQuoteKeeper := NewBridgeFeeQuoteKeeper(evmKeeper, BridgeFeeAddress)
+	bridgeFeeQuoteKeeper := NewBridgeFeeQuoteKeeper(evmKeeper)
 	return initBridgeFeeQuote(ctx, bridgeFeeQuoteKeeper, bridgeDenoms, owner)
 }
 

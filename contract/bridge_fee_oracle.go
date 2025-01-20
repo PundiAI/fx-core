@@ -17,12 +17,15 @@ type BridgeFeeOracleKeeper struct {
 	contract common.Address
 }
 
-func NewBridgeFeeOracleKeeper(caller Caller, contract string) BridgeFeeOracleKeeper {
+func NewBridgeFeeOracleKeeper(caller Caller, contract ...string) BridgeFeeOracleKeeper {
+	if len(contract) == 0 {
+		contract = append(contract, BridgeFeeOracleAddress)
+	}
 	return BridgeFeeOracleKeeper{
 		Caller:   caller,
 		abi:      GetBridgeFeeOracle().ABI,
 		from:     common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName).Bytes()),
-		contract: common.HexToAddress(contract),
+		contract: common.HexToAddress(contract[0]),
 	}
 }
 

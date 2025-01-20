@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				OracleAddress:    suite.oracleAddrs[oracleIndex].String(),
 				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
 				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[oracleIndex].PublicKey),
-				ValidatorAddress: suite.ValAddr[oracleIndex].String(),
+				ValidatorAddress: suite.ValPrivs[oracleIndex].ValAddress().String(),
 				DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(3) + 1) * 100).MulRaw(1e18)),
 				ChainName:        suite.chainName,
 			}
@@ -144,13 +144,13 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 
 			// check delegate
 			oracleDelegateAddr := oracle.GetDelegateAddress(suite.chainName)
-			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, oracleDelegateAddr, suite.ValAddr[oracleIndex])
+			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, oracleDelegateAddr, suite.ValPrivs[oracleIndex].ValAddress())
 			suite.Require().NoError(err)
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(msg.ValidatorAddress, delegation.ValidatorAddress)
 			suite.Truef(msg.DelegateAmount.Amount.Equal(delegation.GetShares().TruncateInt()), "expect:%s,actual:%s", msg.DelegateAmount.Amount.String(), delegation.GetShares().TruncateInt().String())
 
-			startingInfo, err := suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, suite.ValAddr[oracleIndex], oracleDelegateAddr)
+			startingInfo, err := suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, suite.ValPrivs[oracleIndex].ValAddress(), oracleDelegateAddr)
 			suite.Require().NoError(err)
 			suite.NotNil(startingInfo)
 			suite.EqualValues(uint64(suite.Ctx.BlockHeight()), startingInfo.Height)
@@ -276,7 +276,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				OracleAddress:    suite.oracleAddrs[oracleIndex].String(),
 				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
 				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[oracleIndex].PublicKey),
-				ValidatorAddress: suite.ValAddr[oracleIndex].String(),
+				ValidatorAddress: suite.ValPrivs[oracleIndex].ValAddress().String(),
 				DelegateAmount:   types.NewDelegateAmount(initDelegateAmount),
 				ChainName:        suite.chainName,
 			})
@@ -321,12 +321,12 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 
 			// check delegate
 			oracleDelegateAddr := oracle.GetDelegateAddress(suite.chainName)
-			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, oracleDelegateAddr, suite.ValAddr[oracleIndex])
+			delegation, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, oracleDelegateAddr, suite.ValPrivs[oracleIndex].ValAddress())
 			suite.Require().NoError(err)
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(oracle.DelegateValidator, delegation.ValidatorAddress)
 			suite.Truef(expectDelegateAmount.Equal(delegation.GetShares().TruncateInt()), "expect:%s,actual:%s", expectDelegateAmount.String(), delegation.GetShares().TruncateInt().String())
-			startingInfo, err := suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, suite.ValAddr[oracleIndex], oracleDelegateAddr)
+			startingInfo, err := suite.App.DistrKeeper.GetDelegatorStartingInfo(suite.Ctx, suite.ValPrivs[oracleIndex].ValAddress(), oracleDelegateAddr)
 			suite.Require().NoError(err)
 			suite.NotNil(startingInfo)
 			suite.EqualValues(uint64(suite.Ctx.BlockHeight()), startingInfo.Height)
@@ -343,7 +343,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 			OracleAddress:    suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValAddr[i].String(),
+			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
 			DelegateAmount:   types.NewDelegateAmount(delegateAmount),
 			ChainName:        suite.chainName,
 		}
@@ -362,7 +362,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		_, err = suite.MsgServer().EditBridger(suite.Ctx, &types.MsgEditBridger{
 			ChainName:      suite.chainName,
 			OracleAddress:  suite.oracleAddrs[i].String(),
-			BridgerAddress: sdk.AccAddress(suite.ValAddr[i]).String(),
+			BridgerAddress: suite.ValPrivs[i].AccAddress().String(),
 		})
 		suite.Require().NoError(err)
 	}
@@ -377,7 +377,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		OracleAddress:    suite.oracleAddrs[0].String(),
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		ValidatorAddress: suite.ValAddr[0].String(),
+		ValidatorAddress: suite.ValPrivs[0].ValAddress().String(),
 		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	}
@@ -499,7 +499,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		OracleAddress:    suite.oracleAddrs[0].String(),
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		ValidatorAddress: suite.ValAddr[0].String(),
+		ValidatorAddress: suite.ValPrivs[0].ValAddress().String(),
 		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	}
@@ -703,7 +703,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					OracleAddress:    oracle.String(),
 					BridgerAddress:   suite.bridgerAddrs[i].String(),
 					ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-					ValidatorAddress: suite.ValAddr[0].String(),
+					ValidatorAddress: suite.ValPrivs[0].ValAddress().String(),
 					DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 					ChainName:        suite.chainName,
 				}
@@ -724,7 +724,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		OracleAddress:    suite.oracleAddrs[0].String(),
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		ValidatorAddress: suite.ValAddr[0].String(),
+		ValidatorAddress: suite.ValPrivs[0].ValAddress().String(),
 		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	}
@@ -874,7 +874,7 @@ func (suite *KeeperTestSuite) BondedOracle() {
 		OracleAddress:    suite.oracleAddrs[0].String(),
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		ValidatorAddress: suite.ValAddr[0].String(),
+		ValidatorAddress: suite.ValPrivs[0].ValAddress().String(),
 		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt((tmrand.Int63n(5) + 1) * 100).MulRaw(1e18)),
 		ChainName:        suite.chainName,
 	})

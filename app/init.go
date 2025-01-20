@@ -14,12 +14,16 @@ import (
 )
 
 func initChainer(ctx sdk.Context, keepers keepers.AppKeepers) error {
-	delegations, err := keepers.StakingKeeper.GetAllDelegations(ctx)
+	validators, err := keepers.StakingKeeper.GetValidators(ctx, 1)
 	if err != nil {
 		return err
 	}
-	if len(delegations) == 0 {
-		return errors.New("no delegations found")
+	if len(validators) == 0 {
+		return errors.New("no validators found")
+	}
+	defValAddress, err := sdk.ValAddressFromBech32(validators[0].OperatorAddress)
+	if err != nil {
+		return err
 	}
 
 	bridgeDenoms := []contract.BridgeDenoms{
@@ -38,7 +42,7 @@ func initChainer(ctx sdk.Context, keepers keepers.AppKeepers) error {
 		bridgeDenoms,
 		moduleAddress,
 		moduleAddress,
-		common.BytesToAddress(sdk.MustAccAddressFromBech32(delegations[0].DelegatorAddress).Bytes()),
+		common.BytesToAddress(defValAddress.Bytes()),
 	); err != nil {
 		return err
 	}
