@@ -655,6 +655,7 @@ func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkEvmParams(t, ctx, myApp)
 	checkIBCTransferModule(t, ctx, myApp)
 	checkMintModule(t, ctx, myApp)
+	nextversion.CheckDistributionModule(t, ctx, myApp.DistrKeeper)
 }
 
 func checkEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {

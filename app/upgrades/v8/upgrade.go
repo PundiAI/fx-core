@@ -47,7 +47,7 @@ import (
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
 )
 
-func CreateUpgradeHandler(cdc codec.Codec, mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+func CreateUpgradeHandler(_ codec.Codec, mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 
@@ -218,6 +218,10 @@ func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
 	}
 
 	migrateTransferTokenInEscrow(ctx, app.IBCTransferKeeper)
+
+	if err := migrateDistribution(ctx, app.DistrKeeper); err != nil {
+		return err
+	}
 
 	return migrateCrisisModule(ctx, app.CrisisKeeper)
 }
