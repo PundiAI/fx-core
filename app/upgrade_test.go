@@ -191,6 +191,20 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkModulesData(t, ctx, myApp)
 }
 
+func checkIBCTransferModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+	escrowDenomsMap := nextversion.GetMigrateEscrowDenoms(ctx.ChainID())
+	require.NotEmpty(t, escrowDenomsMap)
+
+	for oldDenom, newDenom := range escrowDenomsMap {
+		coin := myApp.IBCTransferKeeper.GetTotalEscrowForDenom(ctx, oldDenom)
+		require.True(t, coin.IsZero())
+
+		coin = myApp.IBCTransferKeeper.GetTotalEscrowForDenom(ctx, newDenom)
+		require.False(t, coin.IsZero())
+	}
+}
+
 func checkCrisisModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 	constantFee, err := myApp.CrisisKeeper.ConstantFee.Get(ctx)
@@ -639,6 +653,7 @@ func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkCrisisModule(t, ctx, myApp)
 	checkBankModule(t, ctx, myApp)
 	checkEvmParams(t, ctx, myApp)
+	checkIBCTransferModule(t, ctx, myApp)
 }
 
 func checkEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
