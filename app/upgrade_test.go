@@ -654,6 +654,7 @@ func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkBankModule(t, ctx, myApp)
 	checkEvmParams(t, ctx, myApp)
 	checkIBCTransferModule(t, ctx, myApp)
+	checkMintModule(t, ctx, myApp)
 }
 
 func checkEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -684,4 +685,12 @@ func checkBankModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 		require.NotEqual(t, fxDenom, denom)
 		return false
 	})
+}
+
+func checkMintModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	params, err := myApp.MintKeeper.Params.Get(ctx)
+	require.NoError(t, err)
+	require.Equal(t, fxtypes.DefaultDenom, params.MintDenom)
 }

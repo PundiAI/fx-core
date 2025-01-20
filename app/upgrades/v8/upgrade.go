@@ -213,6 +213,9 @@ func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateEvmParams(ctx, app.EvmKeeper); err != nil {
 		return err
 	}
+	if err := migrateMintParams(ctx, app.MintKeeper); err != nil {
+		return err
+	}
 
 	migrateTransferTokenInEscrow(ctx, app.IBCTransferKeeper)
 
