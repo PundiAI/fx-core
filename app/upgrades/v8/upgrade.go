@@ -137,10 +137,6 @@ func upgradeMainnet(
 		return fromVM, err
 	}
 
-	if err = migrateEvmParams(ctx, app.EvmKeeper); err != nil {
-		return fromVM, err
-	}
-
 	store.RemoveStoreKeys(ctx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
 
 	if err = migrateGovCustomParam(ctx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
@@ -209,6 +205,9 @@ func upgradeMainnet(
 }
 
 func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
+	if err := migrateEvmParams(ctx, app.EvmKeeper); err != nil {
+		return err
+	}
 	return migrateCrisisModule(ctx, app.CrisisKeeper)
 }
 
@@ -224,6 +223,7 @@ func migrateCrisisModule(ctx sdk.Context, crisisKeeper *crisiskeeper.Keeper) err
 
 func migrateEvmParams(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) error {
 	params := evmKeeper.GetParams(ctx)
+	params.EvmDenom = fxtypes.DefaultDenom
 	params.HeaderHashNum = evmtypes.DefaultHeaderHashNum
 	return evmKeeper.SetParams(ctx, params)
 }
