@@ -642,7 +642,7 @@ func checkPundiAIFXERC20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	has, err := myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.DefaultDenom)
 	require.NoError(t, err)
 	require.True(t, has)
-	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.OriginalFXDenom())
+	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.LegacyFXDenom)
 	require.NoError(t, err)
 	require.False(t, has)
 }
@@ -667,10 +667,9 @@ func checkEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
 func checkBankModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
-	fxDenom := fxtypes.OriginalFXDenom()
 	totalSupply := sdkmath.ZeroInt()
 	myApp.BankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, balance sdk.Coin) bool {
-		require.NotEqual(t, fxDenom, balance.Denom)
+		require.NotEqual(t, fxtypes.LegacyFXDenom, balance.Denom)
 		if balance.Denom == fxtypes.DefaultDenom {
 			totalSupply = totalSupply.Add(balance.Amount)
 		}
@@ -681,7 +680,7 @@ func checkBankModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.Equal(t, totalSupply, supply.Amount)
 
 	myApp.BankKeeper.IterateSendEnabledEntries(ctx, func(denom string, sendEnabled bool) (stop bool) {
-		require.NotEqual(t, fxDenom, denom)
+		require.NotEqual(t, fxtypes.LegacyFXDenom, denom)
 		return false
 	})
 }

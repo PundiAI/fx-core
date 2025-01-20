@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) mintCoin(address sdk.AccAddress, coins ...sdk.Coin
 
 func TestUnmarshalAckPacketData(t *testing.T) {
 	normalData := types.FungibleTokenPacketData{
-		Denom:  fxtypes.IBCFXDenom,
+		Denom:  fxtypes.LegacyFXDenom,
 		Amount: "1000",
 	}
 	normalExpected := transfertypes.FungibleTokenPacketData{

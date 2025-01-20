@@ -224,7 +224,7 @@ func migrateTransferTokenInEscrow(ctx sdk.Context, transferKeeper ibctransferkee
 	for oldDenom, newDenom := range escrowDenoms {
 		totalEscrow := transferKeeper.GetTotalEscrowForDenom(ctx, oldDenom)
 		newAmount := totalEscrow.Amount
-		if oldDenom == fxtypes.IBCFXDenom {
+		if oldDenom == fxtypes.LegacyFXDenom {
 			newAmount = fxtypes.SwapAmount(newAmount)
 		}
 		// first remove old denom
@@ -283,10 +283,9 @@ func migrateCrosschainModuleAccount(ctx sdk.Context, ak authkeeper.AccountKeeper
 }
 
 func migrateBridgeBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accountKeeper authkeeper.AccountKeeper) error {
-	fxDenom := fxtypes.OriginalFXDenom()
 	mds := bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
-		if md.Base == fxDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
+		if md.Base == fxtypes.LegacyFXDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
 			continue
 		}
 		dstBase := md.Base
@@ -359,12 +358,11 @@ func migrateERC20TokenToCrosschain(ctx sdk.Context, bankKeeper bankkeeper.Keeper
 }
 
 func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
-	fxDenom := fxtypes.OriginalFXDenom()
 	mds := bankKeeper.GetAllDenomMetaData(ctx)
 
 	removeMetadata := make([]string, 0, 2)
 	for _, md := range mds {
-		if md.Base == fxDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
+		if md.Base == fxtypes.LegacyFXDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
 			continue
 		}
 		// remove alias
@@ -678,8 +676,7 @@ func migrateMetadataDisplay(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error
 }
 
 func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
-	fxDenom := fxtypes.OriginalFXDenom()
-	erc20Token, err := keeper.GetERC20Token(ctx, fxDenom)
+	erc20Token, err := keeper.GetERC20Token(ctx, fxtypes.LegacyFXDenom)
 	if err != nil {
 		return err
 	}
@@ -687,7 +684,7 @@ func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
 	if err = keeper.ERC20Token.Set(ctx, erc20Token.Denom, erc20Token); err != nil {
 		return err
 	}
-	return keeper.ERC20Token.Remove(ctx, fxDenom)
+	return keeper.ERC20Token.Remove(ctx, fxtypes.LegacyFXDenom)
 }
 
 func migrateMetadataFXToPundiAI(ctx sdk.Context, keeper bankkeeper.Keeper) error {
@@ -700,20 +697,18 @@ func migrateMetadataFXToPundiAI(ctx sdk.Context, keeper bankkeeper.Keeper) error
 	if !ok {
 		return errors.New("bank keeper not implement bank.BaseKeeper")
 	}
-	return bk.BaseViewKeeper.DenomMetadata.Remove(ctx, fxtypes.OriginalFXDenom())
+	return bk.BaseViewKeeper.DenomMetadata.Remove(ctx, fxtypes.LegacyFXDenom)
 }
 
 func migrateBankModule(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
-	fxDenom := fxtypes.OriginalFXDenom()
-
-	sendEnabledEntry, found := bankKeeper.GetSendEnabledEntry(ctx, fxDenom)
+	sendEnabledEntry, found := bankKeeper.GetSendEnabledEntry(ctx, fxtypes.LegacyFXDenom)
 	if found {
-		bankKeeper.DeleteSendEnabled(ctx, fxDenom)
+		bankKeeper.DeleteSendEnabled(ctx, fxtypes.LegacyFXDenom)
 		bankKeeper.SetSendEnabled(ctx, fxtypes.DefaultDenom, sendEnabledEntry.Enabled)
 	}
 
 	var err error
-	fxSupply := bankKeeper.GetSupply(ctx, fxDenom)
+	fxSupply := bankKeeper.GetSupply(ctx, fxtypes.LegacyFXDenom)
 	apundiaiSupply := sdkmath.ZeroInt()
 
 	bk, ok := bankKeeper.(bankkeeper.BaseKeeper)
@@ -721,7 +716,7 @@ func migrateBankModule(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
 		return errors.New("bank keeper not implement bank.BaseKeeper")
 	}
 	bk.IterateAllBalances(ctx, func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
-		if coin.Denom != fxDenom {
+		if coin.Denom != fxtypes.LegacyFXDenom {
 			return false
 		}
 		if err = bk.Balances.Remove(ctx, collections.Join(address, coin.Denom)); err != nil {
@@ -743,7 +738,7 @@ func migrateBankModule(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
 	}
 
 	ctx.Logger().Info("migrate fx to apundiai", "FX supply", fxSupply.Amount.String(), "apundiai supply", apundiaiSupply.String())
-	if err = bk.Supply.Remove(ctx, fxDenom); err != nil {
+	if err = bk.Supply.Remove(ctx, fxtypes.LegacyFXDenom); err != nil {
 		return err
 	}
 	return bk.Supply.Set(ctx, fxtypes.DefaultDenom, apundiaiSupply)
@@ -751,7 +746,7 @@ func migrateBankModule(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
 
 func GetMigrateEscrowDenoms(chainID string) map[string]string {
 	result := make(map[string]string, 2)
-	result[fxtypes.IBCFXDenom] = fxtypes.DefaultDenom
+	result[fxtypes.LegacyFXDenom] = fxtypes.DefaultDenom
 
 	pundixDenom := fxtypes.MainnetPundixUnWrapDenom
 	if chainID == fxtypes.TestnetChainId {
