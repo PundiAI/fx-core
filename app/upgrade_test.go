@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"cosmossdk.io/collections"
@@ -629,7 +628,7 @@ func checkPundiAIFXERC20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	has, err := myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.DefaultDenom)
 	require.NoError(t, err)
 	require.True(t, has)
-	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, strings.ToUpper(fxtypes.FXDenom))
+	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.OriginalFXDenom())
 	require.NoError(t, err)
 	require.False(t, has)
 }
@@ -638,6 +637,7 @@ func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
 	checkCrisisModule(t, ctx, myApp)
+	checkBankModule(t, ctx, myApp)
 	checkEvmParams(t, ctx, myApp)
 }
 
@@ -647,4 +647,26 @@ func checkEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	params := myApp.EvmKeeper.GetParams(ctx)
 	require.Equal(t, fxtypes.DefaultDenom, params.EvmDenom)
 	require.Equal(t, evmtypes.DefaultHeaderHashNum, params.HeaderHashNum)
+}
+
+func checkBankModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	fxDenom := fxtypes.OriginalFXDenom()
+	totalSupply := sdkmath.ZeroInt()
+	myApp.BankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, balance sdk.Coin) bool {
+		require.NotEqual(t, fxDenom, balance.Denom)
+		if balance.Denom == fxtypes.DefaultDenom {
+			totalSupply = totalSupply.Add(balance.Amount)
+		}
+		return false
+	})
+
+	supply := myApp.BankKeeper.GetSupply(ctx, fxtypes.DefaultDenom)
+	require.Equal(t, totalSupply, supply.Amount)
+
+	myApp.BankKeeper.IterateSendEnabledEntries(ctx, func(denom string, sendEnabled bool) (stop bool) {
+		require.NotEqual(t, fxDenom, denom)
+		return false
+	})
 }

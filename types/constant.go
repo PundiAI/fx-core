@@ -104,3 +104,7 @@ func SwapCoin(coin sdk.Coin) sdk.Coin {
 	coin.Amount = SwapAmount(coin.Amount)
 	return coin
 }
+
+func OriginalFXDenom() string {
+	return strings.ToUpper(FXDenom)
+}
