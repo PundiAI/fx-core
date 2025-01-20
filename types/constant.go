@@ -20,7 +20,8 @@ const (
 	DefaultSymbol = "PUNDIAI"
 	DenomUnit     = 18
 
-	FXDenom = "fx"
+	LegacyFXDenom = "FX"
+	FXDenom       = "fx"
 
 	AddrLen = 20
 
@@ -103,8 +104,4 @@ func SwapCoin(coin sdk.Coin) sdk.Coin {
 	}
 	coin.Amount = SwapAmount(coin.Amount)
 	return coin
-}
-
-func OriginalFXDenom() string {
-	return strings.ToUpper(FXDenom)
 }

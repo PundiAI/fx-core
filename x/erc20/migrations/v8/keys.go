@@ -64,7 +64,6 @@ func (m Migrator) migrateParams(ctx sdk.Context, store storetypes.KVStore) error
 }
 
 func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) error {
-	fxDenom := fxtypes.OriginalFXDenom()
 	iterator := storetypes.KVStorePrefixIterator(store, KeyPrefixTokenPair)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -74,7 +73,7 @@ func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) er
 		if !found {
 			return sdkerrors.ErrKeyNotFound.Wrapf("metadata not found: %s", tokenPair.GetDenom())
 		}
-		if md.Base == fxDenom || md.Base == strings.ToLower(md.Symbol) {
+		if md.Base == fxtypes.LegacyFXDenom || md.Base == strings.ToLower(md.Symbol) {
 			if err := m.keeper.ERC20Token.Set(ctx, md.Base, tokenPair); err != nil {
 				return err
 			}

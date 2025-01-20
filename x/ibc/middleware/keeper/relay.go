@@ -139,7 +139,7 @@ func UnmarshalAckPacketData(packetData []byte) (transfertypes.FungibleTokenPacke
 	}
 	ibcPacketData := data.ToIBCPacketData()
 	totalAmount := amount.Add(fee)
-	if ibcPacketData.Denom == fxtypes.IBCFXDenom {
+	if ibcPacketData.Denom == fxtypes.LegacyFXDenom {
 		ibcPacketData.Denom = fxtypes.DefaultDenom
 		totalAmount = fxtypes.SwapAmount(totalAmount)
 	}
