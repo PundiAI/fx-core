@@ -98,6 +98,10 @@ func SwapAmount(amount sdkmath.Int) sdkmath.Int {
 	return amount.QuoRaw(100)
 }
 
+func SwapDecAmount(amount sdkmath.LegacyDec) sdkmath.LegacyDec {
+	return amount.QuoInt64(100)
+}
+
 func SwapCoin(coin sdk.Coin) sdk.Coin {
 	if coin.Denom != FXDenom {
 		return coin
