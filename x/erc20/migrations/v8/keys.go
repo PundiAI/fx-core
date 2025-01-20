@@ -64,7 +64,7 @@ func (m Migrator) migrateParams(ctx sdk.Context, store storetypes.KVStore) error
 }
 
 func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) error {
-	fxDenom := strings.ToUpper(fxtypes.FXDenom)
+	fxDenom := fxtypes.OriginalFXDenom()
 	iterator := storetypes.KVStorePrefixIterator(store, KeyPrefixTokenPair)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

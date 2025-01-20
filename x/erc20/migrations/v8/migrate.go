@@ -16,7 +16,7 @@ import (
 )
 
 func (m Migrator) MigrateToken(ctx sdk.Context) error {
-	fxDenom := strings.ToUpper(fxtypes.FXDenom)
+	fxDenom := fxtypes.OriginalFXDenom()
 	// add FX bridge token
 	if err := m.addToken(ctx, fxDenom, ""); err != nil {
 		return err
@@ -74,7 +74,7 @@ func (m Migrator) addIBCToken(ctx sdk.Context, base, alias string) error {
 }
 
 func (m Migrator) addBridgeToken(ctx sdk.Context, base, alias string) error {
-	fxDenom := strings.ToUpper(fxtypes.FXDenom)
+	fxDenom := fxtypes.OriginalFXDenom()
 	if getExcludeBridgeToken(ctx, alias) {
 		return nil
 	}

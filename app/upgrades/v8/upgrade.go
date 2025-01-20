@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strings"
 
+	"cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -205,6 +206,9 @@ func upgradeMainnet(
 }
 
 func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
+	if err := migrateBankModule(ctx, app.BankKeeper); err != nil {
+		return err
+	}
 	if err := migrateEvmParams(ctx, app.EvmKeeper); err != nil {
 		return err
 	}
@@ -260,9 +264,10 @@ func migrateCrosschainModuleAccount(ctx sdk.Context, ak authkeeper.AccountKeeper
 }
 
 func migrateBridgeBalance(ctx sdk.Context, bankKeeper bankkeeper.Keeper, accountKeeper authkeeper.AccountKeeper) error {
+	fxDenom := fxtypes.OriginalFXDenom()
 	mds := bankKeeper.GetAllDenomMetaData(ctx)
 	for _, md := range mds {
-		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
+		if md.Base == fxDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
 			continue
 		}
 		dstBase := md.Base
@@ -335,11 +340,12 @@ func migrateERC20TokenToCrosschain(ctx sdk.Context, bankKeeper bankkeeper.Keeper
 }
 
 func updateMetadata(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
+	fxDenom := fxtypes.OriginalFXDenom()
 	mds := bankKeeper.GetAllDenomMetaData(ctx)
 
 	removeMetadata := make([]string, 0, 2)
 	for _, md := range mds {
-		if md.Base == fxtypes.DefaultDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
+		if md.Base == fxDenom || (len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0) && md.Symbol != pundixSymbol {
 			continue
 		}
 		// remove alias
@@ -653,7 +659,7 @@ func migrateMetadataDisplay(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error
 }
 
 func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
-	fxDenom := strings.ToUpper(fxtypes.FXDenom)
+	fxDenom := fxtypes.OriginalFXDenom()
 	erc20Token, err := keeper.GetERC20Token(ctx, fxDenom)
 	if err != nil {
 		return err
@@ -675,5 +681,51 @@ func migrateMetadataFXToPundiAI(ctx sdk.Context, keeper bankkeeper.Keeper) error
 	if !ok {
 		return errors.New("bank keeper not implement bank.BaseKeeper")
 	}
-	return bk.BaseViewKeeper.DenomMetadata.Remove(ctx, strings.ToUpper(fxtypes.FXDenom))
+	return bk.BaseViewKeeper.DenomMetadata.Remove(ctx, fxtypes.OriginalFXDenom())
+}
+
+func migrateBankModule(ctx sdk.Context, bankKeeper bankkeeper.Keeper) error {
+	fxDenom := fxtypes.OriginalFXDenom()
+
+	sendEnabledEntry, found := bankKeeper.GetSendEnabledEntry(ctx, fxDenom)
+	if found {
+		bankKeeper.DeleteSendEnabled(ctx, fxDenom)
+		bankKeeper.SetSendEnabled(ctx, fxtypes.DefaultDenom, sendEnabledEntry.Enabled)
+	}
+
+	var err error
+	fxSupply := bankKeeper.GetSupply(ctx, fxDenom)
+	apundiaiSupply := sdkmath.ZeroInt()
+
+	bk, ok := bankKeeper.(bankkeeper.BaseKeeper)
+	if !ok {
+		return errors.New("bank keeper not implement bank.BaseKeeper")
+	}
+	bk.IterateAllBalances(ctx, func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
+		if coin.Denom != fxDenom {
+			return false
+		}
+		if err = bk.Balances.Remove(ctx, collections.Join(address, coin.Denom)); err != nil {
+			return true
+		}
+		coin.Denom = fxtypes.DefaultDenom
+		coin.Amount = fxtypes.SwapAmount(coin.Amount)
+		if !coin.IsPositive() {
+			return false
+		}
+		apundiaiSupply = apundiaiSupply.Add(coin.Amount)
+		if err = bk.Balances.Set(ctx, collections.Join(address, coin.Denom), coin.Amount); err != nil {
+			return true
+		}
+		return false
+	})
+	if err != nil {
+		return err
+	}
+
+	ctx.Logger().Info("migrate fx to apundiai", "FX supply", fxSupply.Amount.String(), "apundiai supply", apundiaiSupply.String())
+	if err = bk.Supply.Remove(ctx, fxDenom); err != nil {
+		return err
+	}
+	return bk.Supply.Set(ctx, fxtypes.DefaultDenom, apundiaiSupply)
 }
