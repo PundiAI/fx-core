@@ -101,3 +101,14 @@ func replayCodeAddress(codeBase64, addr, addrNew string) (code, codeNew []byte) 
 
 	return bzZero, bzNew
 }
+
+func TestUnpackRevertError(t *testing.T) {
+	bridgeFeeQuoteABI := contract.GetBridgeFeeQuote().ABI
+
+	errSigs := make([]string, 0, len(bridgeFeeQuoteABI.Errors))
+	for _, e := range bridgeFeeQuoteABI.Errors {
+		errSig := hex.EncodeToString(e.ID[:4])
+		require.NotContains(t, errSigs, errSig)
+		errSigs = append(errSigs, errSig)
+	}
+}
