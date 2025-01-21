@@ -28,11 +28,19 @@ func (s Signer) PrivKey() cryptotypes.PrivKey {
 	return s.privKey
 }
 
+func (s Signer) PubKey() cryptotypes.PubKey {
+	return s.privKey.PubKey()
+}
+
 func (s Signer) Address() common.Address {
 	return common.BytesToAddress(s.privKey.PubKey().Address())
 }
 
 func (s Signer) AccAddress() sdk.AccAddress {
+	return s.privKey.PubKey().Address().Bytes()
+}
+
+func (s Signer) ValAddress() sdk.ValAddress {
 	return s.privKey.PubKey().Address().Bytes()
 }
 

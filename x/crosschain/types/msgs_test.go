@@ -8,7 +8,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -599,7 +598,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenExternalAddr(moduleName)
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	addressBytes := helpers.GenAccAddress()
 	normalFxAddress := addressBytes.String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))

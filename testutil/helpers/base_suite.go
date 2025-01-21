@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -34,7 +35,7 @@ type BaseSuite struct {
 	suite.Suite
 	MintValNumber int
 	ValSet        *tmtypes.ValidatorSet
-	ValAddr       []sdk.ValAddress
+	ValPrivs      []*Signer
 	App           *app.App
 	Ctx           sdk.Context
 }
@@ -44,16 +45,19 @@ func (s *BaseSuite) SetupTest() {
 	if valNumber <= 0 {
 		valNumber = tmrand.Intn(10) + 1
 	}
-	valSet, valAccounts, valBalances := generateGenesisValidator(valNumber, sdk.Coins{})
-	s.ValSet = valSet
-	s.ValAddr = make([]sdk.ValAddress, valNumber)
-	for i := 0; i < valNumber; i++ {
-		s.ValAddr[i] = valAccounts[i].GetAddress().Bytes()
-	}
-
-	s.App = setupWithGenesisValSet(s.T(), valSet, valAccounts, valBalances...)
+	s.ValSet, s.ValPrivs = generateGenesisValidator(valNumber)
+	s.App = setupWithGenesisValSet(s.T(), s.ValSet, s.ValPrivs)
 	s.Ctx = s.App.GetContextForFinalizeBlock(nil)
 	s.Ctx = s.Ctx.WithProposer(s.ValSet.Proposer.Address.Bytes())
+}
+
+func (s *BaseSuite) HasValAddr(address []byte) bool {
+	for i := 0; i < len(s.ValPrivs); i++ {
+		if bytes.Equal(s.ValPrivs[i].Address().Bytes(), address) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *BaseSuite) AddTestSigner(amount ...int64) *Signer {

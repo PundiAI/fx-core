@@ -569,7 +569,7 @@ func getTestnetTokenAmount(ctx sdk.Context, coin sdk.Coin) sdk.Coin {
 func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
-	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(myApp.EvmKeeper, contract.BridgeFeeAddress)
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(myApp.EvmKeeper)
 
 	quote, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32("eth"), contract.MustStrToByte32("usdt"))
 	require.NoError(t, err)
@@ -611,7 +611,7 @@ func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
 		require.Len(t, tokens, len(bridgeTokens))
 	}
 
-	bridgeFeeOracleKeeper := contract.NewBridgeFeeOracleKeeper(myApp.EvmKeeper, contract.BridgeFeeOracleAddress)
+	bridgeFeeOracleKeeper := contract.NewBridgeFeeOracleKeeper(myApp.EvmKeeper)
 	oracle, err := bridgeFeeOracleKeeper.DefaultOracle(ctx)
 	require.NoError(t, err)
 	require.Equal(t, oracle, common.HexToAddress("0x9c079e86be639076809620CBFaa3784649F5ee81"))

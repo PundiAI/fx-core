@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 			OracleAddress:    suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValAddr[i].String(),
+			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
@@ -132,7 +132,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			OracleAddress:    suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValAddr[i].String(),
+			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
@@ -323,7 +323,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 			OracleAddress:    suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValAddr[i].String(),
+			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
@@ -390,7 +390,7 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			OracleAddress:    suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValAddr[i].String(),
+			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
@@ -448,7 +448,7 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 			OracleAddress:    suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValAddr[i].String(),
+			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}

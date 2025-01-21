@@ -1,7 +1,10 @@
 package contract
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -27,6 +30,9 @@ const (
 )
 
 const DefaultGasCap uint64 = 30000000
+
+// TransferModuleRole is keccak256("TRANSFER_MODULE_ROLE")
+const TransferModuleRole = "0x4845f2571489e4ee59e15b11b74598e4330ef896ebb57513ebdbdb3b260a4671"
 
 var (
 	erc20Init = Contract{
@@ -89,6 +95,11 @@ type Caller interface {
 	QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error
 	ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error)
 	ExecuteEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*evmtypes.MsgEthereumTxResponse, error)
+}
+
+type BridgeDenoms struct {
+	ChainName common.Hash
+	Denoms    []common.Hash
 }
 
 type Contract struct {
@@ -211,4 +222,23 @@ func unpackRetIsOk(abi abi.ABI, method string, res *evmtypes.MsgEthereumTxRespon
 		return res, sdkerrors.ErrLogic.Wrapf("failed to execute %s", method)
 	}
 	return res, nil
+}
+
+func UnpackRevertError(abi abi.ABI, ret []byte) (string, error) {
+	if len(ret) < 4 {
+		return "", errors.New("invalid data for unpacking")
+	}
+	for _, e := range abi.Errors {
+		if bytes.Equal(e.ID[:4], ret[:4]) {
+			if len(ret) == 4 {
+				return e.Name, nil
+			}
+			unpack, err := e.Unpack(ret[4:])
+			if err != nil {
+				return "", err
+			}
+			return fmt.Sprintf("%s: %v", e.Name, unpack), nil
+		}
+	}
+	return "", errors.New("invalid data for unpacking")
 }
