@@ -654,6 +654,7 @@ func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkBankModule(t, ctx, myApp)
 	checkEvmParams(t, ctx, myApp)
 	checkIBCTransferModule(t, ctx, myApp)
+	nextversion.CheckStakingModule(t, ctx, myApp.StakingKeeper.Keeper)
 	checkMintModule(t, ctx, myApp)
 	nextversion.CheckDistributionModule(t, ctx, myApp.DistrKeeper)
 }

@@ -210,6 +210,9 @@ func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateBankModule(ctx, app.BankKeeper); err != nil {
 		return err
 	}
+	if err := migrateStakingModule(ctx, app.StakingKeeper.Keeper); err != nil {
+		return err
+	}
 	if err := migrateEvmParams(ctx, app.EvmKeeper); err != nil {
 		return err
 	}
