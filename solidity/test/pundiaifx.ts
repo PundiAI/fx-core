@@ -1,25 +1,18 @@
 import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
-import { ERC20TokenTest, PundiAIFX } from "../typechain-types";
+import { PundiAIFX } from "../typechain-types";
 import { it } from "mocha";
 
 describe("pundiaifx tests", function () {
   let deploy: HardhatEthersSigner;
   let user1: HardhatEthersSigner;
-  let fxToken: ERC20TokenTest;
   let pundiAIFX: PundiAIFX;
-  let totalSupply = "100000000";
 
   beforeEach(async function () {
     const signers = await ethers.getSigners();
     deploy = signers[0];
     user1 = signers[1];
-
-    const erc20TokenFactory = await ethers.getContractFactory("ERC20TokenTest");
-    fxToken = await erc20TokenFactory
-      .connect(deploy)
-      .deploy("FX Token", "FX", "18", ethers.parseEther(totalSupply));
 
     const pundiAIFXFactory = await ethers.getContractFactory("PundiAIFX");
     const pundiAIFXDeploy = await pundiAIFXFactory.deploy();
@@ -33,17 +26,10 @@ describe("pundiaifx tests", function () {
       "PundiAIFX",
       await erc1967Proxy.getAddress()
     );
-    await pundiAIFX.connect(deploy).initialize(await fxToken.getAddress());
-
-    await fxToken
-      .connect(deploy)
-      .transfer(user1.address, ethers.parseEther(totalSupply));
-    await fxToken
-      .connect(user1)
-      .approve(await pundiAIFX.getAddress(), ethers.parseEther(totalSupply));
+    await pundiAIFX.connect(deploy).initialize();
   });
 
-  it("Pundi AIFX", async function () {
+  it("token info", async function () {
     expect(await pundiAIFX.name()).to.equal("Pundi AIFX Token");
     expect(await pundiAIFX.symbol()).to.equal("PUNDIAI");
     expect(await pundiAIFX.decimals()).to.equal(18);
@@ -109,25 +95,12 @@ describe("pundiaifx tests", function () {
     ).to.equal(false);
   });
 
-  it("swap FX", async function () {
-    expect(await fxToken.balanceOf(user1.address)).to.equal(
-      ethers.parseEther(totalSupply)
-    );
-    expect(await pundiAIFX.balanceOf(user1.address)).to.equal(0);
-    expect(await fxToken.balanceOf(await pundiAIFX.getAddress())).to.equal(0);
-    expect(await pundiAIFX.totalSupply()).to.equal(0);
+  it("upgrade contract", async function () {
+    const newPundiAIFXFactory = await ethers.getContractFactory("PundiAIFX");
+    const newPundiAIFXDeploy = await newPundiAIFXFactory.deploy();
 
-    await pundiAIFX.connect(user1).swap(ethers.parseEther("100"));
-
-    expect(await fxToken.balanceOf(user1.address)).to.equal(
-      ethers.parseEther((Number(totalSupply) - 100).toString())
-    );
-    expect(await pundiAIFX.balanceOf(user1.address)).to.equal(
-      ethers.parseEther("1")
-    );
-    expect(await fxToken.balanceOf(await pundiAIFX.getAddress())).to.equal(
-      ethers.parseEther("100")
-    );
-    expect(await pundiAIFX.totalSupply()).to.equal(ethers.parseEther("1"));
+    await pundiAIFX
+      .connect(deploy)
+      .upgradeTo(await newPundiAIFXDeploy.getAddress());
   });
 });
