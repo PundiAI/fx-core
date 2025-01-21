@@ -19,7 +19,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, caller contract.Caller, se
 	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(caller)
 	quoteInfos, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32(k.moduleName), contract.MustStrToByte32(fee.Denom))
 	if err != nil {
-		return 0, err
+		return 0, types.ErrInvalid.Wrapf("failed to get bridge fee quote: %s", err.Error())
 	}
 	var quoteInfo *contract.IBridgeFeeQuoteQuoteInfo
 	for _, quote := range quoteInfos {

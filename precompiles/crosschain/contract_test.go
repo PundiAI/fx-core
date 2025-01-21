@@ -92,17 +92,20 @@ func (suite *CrosschainPrecompileTestSuite) SetOracle(online bool) crosschaintyp
 	return oracle
 }
 
-func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNative bool) common.Address {
+func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeOrOrigin bool) common.Address {
 	keeper := suite.App.Erc20Keeper
 	var erc20Token erc20types.ERC20Token
 	var err error
-	if isNative {
+	if isNativeOrOrigin {
 		erc20Token, err = keeper.RegisterNativeCoin(suite.Ctx, symbolOrAddr, symbolOrAddr, 18)
 	} else {
 		erc20Token, err = keeper.RegisterNativeERC20(suite.Ctx, common.HexToAddress(symbolOrAddr))
 	}
 	suite.Require().NoError(err)
-	err = keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, erc20Token.Erc20Address, isNative)
+	if symbolOrAddr == fxtypes.DefaultSymbol {
+		isNativeOrOrigin = false
+	}
+	err = keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNativeOrOrigin)
 	suite.Require().NoError(err)
 	return common.HexToAddress(erc20Token.Erc20Address)
 }

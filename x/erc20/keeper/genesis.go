@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
@@ -18,12 +17,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) error {
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		// NOTE: shouldn't occur
 		return sdkerrors.ErrNotFound.Wrapf("module account %s", types.ModuleName)
-	}
-
-	metadata := fxtypes.NewDefaultMetadata()
-	_, err := k.RegisterNativeCoin(ctx, metadata.Name, metadata.Symbol, fxtypes.DenomUnit)
-	if err != nil {
-		return sdkerrors.ErrLogic.Wrapf("failed to register native coin: %s", err.Error())
 	}
 	return nil
 }

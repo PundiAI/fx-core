@@ -69,3 +69,9 @@ func (s CrosschainPrecompileSuite) ExecuteClaim(ctx context.Context, from common
 	s.requireError(err)
 	return res
 }
+
+func (s CrosschainPrecompileSuite) Crosschain(ctx context.Context, value *big.Int, from common.Address, args contract.CrosschainArgs) *evmtypes.MsgEthereumTxResponse {
+	res, err := s.CrosschainPrecompileKeeper.Crosschain(ctx, value, from, args)
+	s.requireError(err)
+	return res
+}
