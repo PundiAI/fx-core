@@ -74,7 +74,7 @@ contract BridgeFeeQuote is
     ) external nonReentrant returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](_inputs.length);
         for (uint256 i = 0; i < _inputs.length; i++) {
-            verifyInput(_inputs[i]);
+            _verifyInput(_inputs[i]);
 
             if (
                 !IBridgeFeeOracle(oracleContract).isOnline(
@@ -85,7 +85,7 @@ contract BridgeFeeQuote is
                 revert OracleInvalid();
             }
 
-            bytes32 key = quoteIndexKey(
+            bytes32 key = _quoteIndexKey(
                 _inputs[i].chainName,
                 _inputs[i].tokenName,
                 msg.sender,
@@ -264,9 +264,9 @@ contract BridgeFeeQuote is
 
         QuoteInfo[] memory quotesList = new QuoteInfo[](maxQuoteCap);
         for (uint8 i = 0; i < maxQuoteCap; i++) {
-            quotesList[i] = getQuoteByIndex(_chainName, _token, oracle, i);
+            bytes32 key = _quoteIndexKey(_chainName, _token, oracle, i);
+            quotesList[i] = _getQuoteByKey(key);
         }
-
         return quotesList;
     }
 
@@ -284,7 +284,13 @@ contract BridgeFeeQuote is
         address _oracle,
         uint8 _cap
     ) public view activeToken(_chainName, _token) returns (QuoteInfo memory) {
-        bytes32 key = quoteIndexKey(_chainName, _token, _oracle, _cap);
+        bytes32 key = _quoteIndexKey(_chainName, _token, _oracle, _cap);
+        return _getQuoteByKey(key);
+    }
+
+    function _getQuoteByKey(
+        bytes32 key
+    ) internal view returns (QuoteInfo memory) {
         QuoteIndex memory index = quoteIndexes[key];
         Quote memory quoteInfo = quotes[index.id];
         return
@@ -309,7 +315,7 @@ contract BridgeFeeQuote is
         return tokens[_chainName].values();
     }
 
-    function verifyInput(
+    function _verifyInput(
         QuoteInput calldata _input
     )
         internal
@@ -333,7 +339,7 @@ contract BridgeFeeQuote is
         _;
     }
 
-    function quoteIndexKey(
+    function _quoteIndexKey(
         bytes32 _chainName,
         bytes32 _token,
         address _oracle,
