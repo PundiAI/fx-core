@@ -102,5 +102,9 @@ describe("pundiaifx tests", function () {
     await pundiAIFX
       .connect(deploy)
       .upgradeTo(await newPundiAIFXDeploy.getAddress());
+
+    // Verify state preservation
+    expect(await pundiAIFX.name()).to.equal("Pundi AIFX Token");
+    expect(await pundiAIFX.symbol()).to.equal("PUNDIAI");
   });
 });
