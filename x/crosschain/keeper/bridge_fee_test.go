@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) MockQuote() contract.IBridgeFeeQuoteQuoteInfo {
 
 	oracleList, err := oracleKeeper.GetOracleList(suite.Ctx, contract.MustStrToByte32(ethtypes.ModuleName))
 	suite.Require().NoError(err)
-	suite.Len(oracleList, 1, suite.chainName)
+	suite.Len(oracleList, 1)
 	suite.Equal(defOracle.String(), oracleList[0].String())
 	return quote
 }
