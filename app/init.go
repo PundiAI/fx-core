@@ -10,7 +10,6 @@ import (
 	"github.com/pundiai/fx-core/v8/app/keepers"
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
-	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
 func initChainer(ctx sdk.Context, keepers keepers.AppKeepers) error {
@@ -26,11 +25,12 @@ func initChainer(ctx sdk.Context, keepers keepers.AppKeepers) error {
 		return err
 	}
 
-	bridgeDenoms := []contract.BridgeDenoms{
-		{
-			ChainName: contract.MustStrToByte32(ethtypes.ModuleName),
+	bridgeDenoms := make([]contract.BridgeDenoms, 0)
+	for _, chainName := range fxtypes.GetSupportChains() {
+		bridgeDenoms = append(bridgeDenoms, contract.BridgeDenoms{
+			ChainName: contract.MustStrToByte32(chainName),
 			Denoms:    []common.Hash{contract.MustStrToByte32(fxtypes.DefaultDenom)},
-		},
+		})
 	}
 
 	acc := keepers.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)

@@ -180,7 +180,7 @@ func (s *BaseSuite) Balance(acc sdk.AccAddress) sdk.Coins {
 func (s *BaseSuite) AssertBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
 	for _, bal := range expBal {
-		s.Equal(bal.Amount, balances.AmountOf(bal.Denom), bal.Denom)
+		s.Equal(bal.Amount.String(), balances.AmountOf(bal.Denom).String(), bal.Denom)
 	}
 }
 

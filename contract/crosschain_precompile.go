@@ -75,3 +75,12 @@ func (k CrosschainPrecompileKeeper) ExecuteClaim(ctx context.Context, from commo
 	}
 	return unpackRetIsOk(k.abi, "executeClaim", res)
 }
+
+func (k CrosschainPrecompileKeeper) Crosschain(ctx context.Context, value *big.Int, from common.Address, args CrosschainArgs) (*evmtypes.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, from, k.contractAddr, value, k.abi, "crossChain",
+		args.Token, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo)
+	if err != nil {
+		return nil, err
+	}
+	return unpackRetIsOk(k.abi, "crossChain", res)
+}

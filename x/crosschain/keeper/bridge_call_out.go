@@ -242,12 +242,10 @@ func (k Keeper) CrosschainBaseCoin(ctx sdk.Context, caller contract.Caller, from
 		if originToken {
 			return k.erc20Keeper.SetCache(ctx, types.NewIBCTransferKey(fxTarget.IBCChannel, sequence), amount.Amount)
 		}
-	} else {
-		if _, err := k.BuildOutgoingTxBatch(ctx, caller, from, receipt, amount, fee); err != nil {
-			return err
-		}
+		return nil
 	}
-	return nil
+	_, err := k.BuildOutgoingTxBatch(ctx, caller, from, receipt, amount, fee)
+	return err
 }
 
 func (k Keeper) IBCTransfer(ctx sdk.Context, from sdk.AccAddress, to string, amount sdk.Coin, channel, memo string) (uint64, error) {
