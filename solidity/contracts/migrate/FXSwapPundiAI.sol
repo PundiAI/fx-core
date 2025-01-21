@@ -5,12 +5,20 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IPundiAIFX} from "../interfaces/IPundiAIFX.sol";
 import {IERC20Burn} from "../interfaces/IERC20Burn.sol";
 
 /* solhint-disable custom-errors */
 
-contract FXSwapPundiAI is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract FXSwapPundiAI is
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    ReentrancyGuardUpgradeable
+{
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     IERC20Upgradeable public fxToken;
     IPundiAIFX public pundiAIToken;
 
@@ -22,14 +30,11 @@ contract FXSwapPundiAI is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @param _amount The amount of tokens to be swapped.
      * @return bool Returns true if the swap is successful.
      */
-    function swap(uint256 _amount) external returns (bool) {
+    function swap(uint256 _amount) external nonReentrant returns (bool) {
         uint256 _swapAmount = _amount / 100;
         require(_swapAmount > 0, "swap amount is too small");
 
-        require(
-            fxToken.transferFrom(_msgSender(), address(this), _amount),
-            "transferFrom FX failed"
-        );
+        fxToken.safeTransferFrom(_msgSender(), address(this), _amount);
         pundiAIToken.mint(_msgSender(), _swapAmount);
 
         emit Swap(_msgSender(), _amount, _swapAmount);
@@ -54,5 +59,6 @@ contract FXSwapPundiAI is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         __Ownable_init();
         __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
     }
 }

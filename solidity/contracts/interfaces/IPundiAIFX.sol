@@ -12,5 +12,9 @@ interface IPundiAIFX is
     IAccessControlUpgradeable,
     IERC20Burn
 {
+    /// @notice Mints new tokens
+    /// @param _to The address that will receive the minted tokens
+    /// @param _amount The amount of tokens to mint
+    /// @dev Caller must have ADMIN_ROLE
     function mint(address _to, uint256 _amount) external;
 }
