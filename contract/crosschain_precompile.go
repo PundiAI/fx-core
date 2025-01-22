@@ -54,8 +54,8 @@ func (k CrosschainPrecompileKeeper) IsOracleOnline(ctx context.Context, args IsO
 	return res.Online, nil
 }
 
-func (k CrosschainPrecompileKeeper) BridgeCall(ctx context.Context, from common.Address, args BridgeCallArgs) (*evmtypes.MsgEthereumTxResponse, *big.Int, error) {
-	res, err := k.ApplyContract(ctx, from, k.contractAddr, nil, k.abi, "bridgeCall",
+func (k CrosschainPrecompileKeeper) BridgeCall(ctx context.Context, value *big.Int, from common.Address, args BridgeCallArgs) (*evmtypes.MsgEthereumTxResponse, *big.Int, error) {
+	res, err := k.ApplyContract(ctx, from, k.contractAddr, value, k.abi, "bridgeCall",
 		args.DstChain, args.Refund, args.Tokens, args.Amounts, args.To, args.Data, args.QuoteId, args.GasLimit, args.Memo)
 	if err != nil {
 		return nil, nil, err

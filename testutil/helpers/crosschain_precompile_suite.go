@@ -58,8 +58,8 @@ func (s CrosschainPrecompileSuite) IsOracleOnline(ctx context.Context, args cont
 	return isOracleOnline
 }
 
-func (s CrosschainPrecompileSuite) BridgeCall(ctx context.Context, from common.Address, args contract.BridgeCallArgs) *evmtypes.MsgEthereumTxResponse {
-	res, _, err := s.CrosschainPrecompileKeeper.BridgeCall(ctx, from, args)
+func (s CrosschainPrecompileSuite) BridgeCall(ctx context.Context, value *big.Int, from common.Address, args contract.BridgeCallArgs) *evmtypes.MsgEthereumTxResponse {
+	res, _, err := s.CrosschainPrecompileKeeper.BridgeCall(ctx, value, from, args)
 	s.requireError(err)
 	return res
 }
