@@ -28,17 +28,6 @@ contract CrosschainTest {
                 _amount + _fee
             );
             IERC20(_token).approve(CROSS_CHAIN_ADDRESS, _amount + _fee);
-        }
-
-        if (_token != address(0)) {
-            uint256 allowance = IERC20(_token).allowance(
-                address(this),
-                CROSS_CHAIN_ADDRESS
-            );
-            require(
-                allowance == _amount + _fee,
-                "allowance not equal amount + fee"
-            );
         } else {
             require(
                 msg.value == _amount + _fee,
@@ -76,6 +65,18 @@ contract CrosschainTest {
         uint256 _gasLimit,
         bytes memory _memo
     ) external returns (uint256) {
+        require(
+            _tokens.length == _amounts.length,
+            "token and amount length not equal"
+        );
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20(_tokens[i]).transferFrom(
+                msg.sender,
+                address(this),
+                _amounts[i]
+            );
+            IERC20(_tokens[i]).approve(CROSS_CHAIN_ADDRESS, _amounts[i]);
+        }
         return
             ICrosschain(CROSS_CHAIN_ADDRESS).bridgeCall(
                 _dstChain,

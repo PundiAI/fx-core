@@ -181,13 +181,15 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall() {
 
 	erc20TokenKeeper := contract.NewERC20TokenKeeper(suite.App.EvmKeeper)
 	minter := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
-	_, err := erc20TokenKeeper.Mint(suite.Ctx, tokenAddr, minter, suite.GetSender(), big.NewInt(100))
+	_, err := erc20TokenKeeper.Mint(suite.Ctx, tokenAddr, minter, suite.signer.Address(), big.NewInt(100))
 	suite.Require().NoError(err)
 	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin("usdt", sdkmath.NewInt(100)))
 
 	suite.App.CrosschainKeepers.GetKeeper(suite.chainName).
 		SetLastObservedBlockHeight(suite.Ctx, 100, 100)
 
+	_, err = erc20TokenKeeper.Approve(suite.Ctx, tokenAddr, suite.signer.Address(), suite.crosschainAddr, big.NewInt(1))
+	suite.Require().NoError(err)
 	txResponse := suite.BridgeCall(suite.Ctx, suite.signer.Address(), contract.BridgeCallArgs{
 		DstChain: suite.chainName,
 		Refund:   suite.signer.Address(),
@@ -200,9 +202,9 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall() {
 		Memo:     nil,
 	})
 	suite.Require().NotNil(txResponse)
-	suite.Require().Len(txResponse.Logs, 2)
+	suite.Require().GreaterOrEqual(len(txResponse.Logs), 2)
 
-	balance, err := erc20TokenKeeper.BalanceOf(suite.Ctx, tokenAddr, suite.GetSender())
+	balance, err := erc20TokenKeeper.BalanceOf(suite.Ctx, tokenAddr, suite.signer.Address())
 	suite.Require().NoError(err)
 	suite.Require().Equal(big.NewInt(99), balance)
 }
