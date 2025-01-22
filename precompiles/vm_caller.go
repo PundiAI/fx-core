@@ -62,5 +62,5 @@ func (v *VMCall) ExecuteEVM(_ sdk.Context, from common.Address, contract *common
 		GasUsed: gasLimit - leftoverGas,
 		VmError: vmError,
 		Ret:     ret,
-	}, nil
+	}, vmErr
 }

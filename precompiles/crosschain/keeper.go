@@ -32,7 +32,7 @@ func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, caller contract.Caller, cro
 		return sdk.Coin{}, err
 	}
 	if erc20Token.IsNativeCoin() {
-		if _, err = erc20TokenKeeper.Burn(ctx, tokenAddr, erc20ModuleAddress, erc20ModuleAddress, amount); err != nil {
+		if _, err = erc20TokenKeeper.Burn(ctx, tokenAddr, erc20ModuleAddress, amount); err != nil {
 			return sdk.Coin{}, err
 		}
 		if erc20Token.Denom == fxtypes.DefaultDenom {

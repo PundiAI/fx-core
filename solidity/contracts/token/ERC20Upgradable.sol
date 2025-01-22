@@ -207,12 +207,8 @@ contract ERC20Upgradable is
         address recipient,
         uint256 amount
     ) external override returns (bool) {
-        uint256 currentAllowance = _allowance[sender][_msgSender()];
-        require(
-            currentAllowance >= amount,
-            "transfer amount exceeds allowance"
-        );
-        _approve(sender, _msgSender(), currentAllowance - amount);
+        address spender = _msgSender();
+        _spendAllowance(sender, spender, amount);
         _transfer(sender, recipient, amount);
         return true;
     }
@@ -221,7 +217,19 @@ contract ERC20Upgradable is
         _mint(account, amount);
     }
 
+    /*
+     * @notice Only governance can call
+     */
     function burn(address account, uint256 amount) external virtual onlyOwner {
+        _burn(account, amount);
+    }
+
+    function burn(uint256 amount) external virtual {
+        _burn(_msgSender(), amount);
+    }
+
+    function burnFrom(address account, uint256 amount) external virtual {
+        _spendAllowance(account, _msgSender(), amount);
         _burn(account, amount);
     }
 
@@ -279,6 +287,23 @@ contract ERC20Upgradable is
     ) internal {
         require(sender != address(0), "approve from the zero address");
         _allowance[sender][spender] = amount;
+    }
+
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal {
+        uint256 currentAllowance = _allowance[owner][spender];
+        if (currentAllowance != type(uint256).max) {
+            require(
+                currentAllowance >= amount,
+                "ERC20: insufficient allowance"
+            );
+            unchecked {
+                _approve(owner, spender, currentAllowance - amount);
+            }
+        }
     }
 
     // solhint-disable-next-line no-empty-blocks
