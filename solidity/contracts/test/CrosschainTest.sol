@@ -64,7 +64,7 @@ contract CrosschainTest {
         uint256 _quoteId,
         uint256 _gasLimit,
         bytes memory _memo
-    ) external returns (uint256) {
+    ) external payable returns (uint256) {
         require(
             _tokens.length == _amounts.length,
             "token and amount length not equal"
@@ -78,7 +78,7 @@ contract CrosschainTest {
             IERC20(_tokens[i]).approve(CROSS_CHAIN_ADDRESS, _amounts[i]);
         }
         return
-            ICrosschain(CROSS_CHAIN_ADDRESS).bridgeCall(
+            ICrosschain(CROSS_CHAIN_ADDRESS).bridgeCall{value: msg.value}(
                 _dstChain,
                 _receiver,
                 _tokens,

@@ -3,6 +3,7 @@ package crosschain_test
 import (
 	"encoding/hex"
 	"math/big"
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -15,7 +16,9 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
 func TestContract_BridgeCall_Input(t *testing.T) {
@@ -177,34 +180,70 @@ func TestContract_BridgeCall_NewBridgeCallEvent(t *testing.T) {
 }
 
 func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall() {
-	tokenAddr := suite.AddBridgeToken("USDT", true)
-
-	erc20TokenKeeper := contract.NewERC20TokenKeeper(suite.App.EvmKeeper)
-	minter := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
-	_, err := erc20TokenKeeper.Mint(suite.Ctx, tokenAddr, minter, suite.signer.Address(), big.NewInt(100))
+	symbol := "USDT"
+	suite.AddBridgeToken(symbol, true)
+	baseDenom := strings.ToLower(symbol)
+	erc20token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, baseDenom)
 	suite.Require().NoError(err)
-	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin("usdt", sdkmath.NewInt(100)))
 
-	suite.App.CrosschainKeepers.GetKeeper(suite.chainName).
-		SetLastObservedBlockHeight(suite.Ctx, 100, 100)
+	amount := sdkmath.NewInt(100)
+	suite.DepositBridgeToken(erc20token, amount)
 
-	_, err = erc20TokenKeeper.Approve(suite.Ctx, tokenAddr, suite.signer.Address(), suite.crosschainAddr, big.NewInt(1))
+	_, err = suite.GetERC20TokenKeeper().Approve(
+		suite.Ctx, erc20token.GetERC20Contract(), suite.signer.Address(), suite.crosschainAddr, big.NewInt(2))
 	suite.Require().NoError(err)
-	txResponse := suite.BridgeCall(suite.Ctx, suite.signer.Address(), contract.BridgeCallArgs{
-		DstChain: suite.chainName,
-		Refund:   suite.signer.Address(),
-		Tokens:   []common.Address{tokenAddr},
-		Amounts:  []*big.Int{big.NewInt(1)},
-		To:       suite.signer.Address(),
-		Data:     nil,
-		QuoteId:  big.NewInt(0),
-		GasLimit: big.NewInt(0),
-		Memo:     nil,
-	})
-	suite.Require().NotNil(txResponse)
-	suite.Require().GreaterOrEqual(len(txResponse.Logs), 2)
 
-	balance, err := erc20TokenKeeper.BalanceOf(suite.Ctx, tokenAddr, suite.signer.Address())
+	txResponse := suite.BridgeCall(suite.Ctx, nil, suite.signer.Address(),
+		contract.BridgeCallArgs{
+			DstChain: suite.chainName,
+			Refund:   suite.signer.Address(),
+			Tokens:   []common.Address{erc20token.GetERC20Contract()},
+			Amounts:  []*big.Int{big.NewInt(2)},
+			To:       suite.signer.Address(),
+			Data:     nil,
+			QuoteId:  big.NewInt(0),
+			GasLimit: big.NewInt(0),
+			Memo:     nil,
+		})
+	suite.NotNil(txResponse)
+	suite.GreaterOrEqual(len(txResponse.Logs), 3)
+
+	balance, err := suite.GetERC20TokenKeeper().
+		BalanceOf(suite.Ctx, erc20token.GetERC20Contract(), suite.signer.Address())
 	suite.Require().NoError(err)
-	suite.Require().Equal(big.NewInt(99), balance)
+	suite.Equal(big.NewInt(98), balance)
+
+	baseCoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(98))
+	suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
+
+	bridgeToken, err := suite.App.Erc20Keeper.GetBridgeToken(suite.Ctx, suite.chainName, baseDenom)
+	suite.Require().NoError(err)
+	bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(2))
+	suite.AssertBalance(authtypes.NewModuleAddress(suite.chainName), bridgeCoin)
+}
+
+func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall_OriginToken() {
+	suite.AddBridgeToken(fxtypes.DefaultSymbol, true)
+
+	balance := suite.Balance(suite.signer.AccAddress())
+
+	value := big.NewInt(2)
+	txResponse := suite.BridgeCall(suite.Ctx, value, suite.signer.Address(),
+		contract.BridgeCallArgs{
+			DstChain: suite.chainName,
+			Refund:   suite.signer.Address(),
+			Tokens:   []common.Address{},
+			Amounts:  []*big.Int{},
+			To:       suite.signer.Address(),
+			Data:     nil,
+			QuoteId:  big.NewInt(0),
+			GasLimit: big.NewInt(0),
+			Memo:     nil,
+		})
+	suite.NotNil(txResponse)
+	suite.Len(txResponse.Logs, 1)
+
+	transferCoin := helpers.NewStakingCoin(2, 0)
+	suite.AssertBalance(suite.signer.AccAddress(), balance.Sub(transferCoin)...)
+	suite.AssertBalance(authtypes.NewModuleAddress(ethtypes.ModuleName), transferCoin)
 }

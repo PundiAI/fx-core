@@ -1,12 +1,15 @@
 package crosschain_test
 
 import (
+	"math/big"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
@@ -59,6 +62,9 @@ func (suite *CrosschainPrecompileTestSuite) SetupTest() {
 
 	chainNames := fxtypes.GetSupportChains()
 	suite.chainName = chainNames[tmrand.Intn(len(chainNames))]
+
+	suite.App.CrosschainKeepers.GetKeeper(suite.chainName).
+		SetLastObservedBlockHeight(suite.Ctx, 100, 10)
 }
 
 func (suite *CrosschainPrecompileTestSuite) SetupSubTest() {
@@ -74,6 +80,10 @@ func (suite *CrosschainPrecompileTestSuite) GetSender() common.Address {
 
 func (suite *CrosschainPrecompileTestSuite) IsCallPrecompile() bool {
 	return suite.crosschainAddr.String() == contract.CrosschainAddress
+}
+
+func (suite *CrosschainPrecompileTestSuite) GetERC20TokenKeeper() contract.ERC20TokenKeeper {
+	return contract.NewERC20TokenKeeper(suite.App.EvmKeeper)
 }
 
 func (suite *CrosschainPrecompileTestSuite) SetOracle(online bool) crosschaintypes.Oracle {
@@ -94,7 +104,7 @@ func (suite *CrosschainPrecompileTestSuite) SetOracle(online bool) crosschaintyp
 	return oracle
 }
 
-func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeOrOrigin bool) common.Address {
+func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeOrOrigin bool) {
 	keeper := suite.App.Erc20Keeper
 	var erc20Token erc20types.ERC20Token
 	var err error
@@ -109,5 +119,38 @@ func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, 
 	}
 	err = keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNativeOrOrigin)
 	suite.Require().NoError(err)
-	return common.HexToAddress(erc20Token.Erc20Address)
+}
+
+func (suite *CrosschainPrecompileTestSuite) DepositBridgeToken(erc20token erc20types.ERC20Token, amount sdkmath.Int) {
+	minter := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
+	_, err := suite.GetERC20TokenKeeper().Mint(suite.Ctx, erc20token.GetERC20Contract(), minter, suite.signer.Address(), big.NewInt(100))
+	suite.Require().NoError(err)
+	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin(erc20token.Denom, amount))
+}
+
+func (suite *CrosschainPrecompileTestSuite) Quote(denom string) {
+	quoteQuoteInput := contract.IBridgeFeeQuoteQuoteInput{
+		Cap:       0,
+		GasLimit:  21000,
+		Expiry:    uint64(time.Now().Add(time.Hour).Unix()),
+		ChainName: contract.MustStrToByte32(suite.chainName),
+		TokenName: contract.MustStrToByte32(denom),
+		Amount:    big.NewInt(1),
+	}
+
+	// add token if not exist
+	tokens, err := suite.bridgeFeeSuite.GetTokens(suite.Ctx, quoteQuoteInput.ChainName)
+	suite.Require().NoError(err)
+	found := false
+	for _, token := range tokens {
+		if token == quoteQuoteInput.TokenName {
+			found = true
+		}
+	}
+	if !found {
+		_, err = suite.bridgeFeeSuite.AddToken(suite.Ctx, quoteQuoteInput.ChainName, []common.Hash{quoteQuoteInput.TokenName})
+		suite.Require().NoError(err)
+	}
+
+	suite.bridgeFeeSuite.Quote(suite.Ctx, quoteQuoteInput)
 }
