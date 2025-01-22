@@ -27,10 +27,12 @@ func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, caller contract.Caller, cro
 	}
 	baseCoin := sdk.NewCoin(erc20Token.Denom, sdkmath.NewIntFromBigInt(amount))
 	erc20ModuleAddress := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
-
 	erc20TokenKeeper := contract.NewERC20TokenKeeper(caller)
+	if _, err = erc20TokenKeeper.TransferFrom(ctx, tokenAddr, crosschainAddress, holder, erc20ModuleAddress, amount); err != nil {
+		return sdk.Coin{}, err
+	}
 	if erc20Token.IsNativeCoin() {
-		if _, err = erc20TokenKeeper.Burn(ctx, tokenAddr, erc20ModuleAddress, holder, amount); err != nil {
+		if _, err = erc20TokenKeeper.Burn(ctx, tokenAddr, erc20ModuleAddress, erc20ModuleAddress, amount); err != nil {
 			return sdk.Coin{}, err
 		}
 		if erc20Token.Denom == fxtypes.DefaultDenom {
@@ -38,9 +40,6 @@ func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, caller contract.Caller, cro
 			return baseCoin, err
 		}
 	} else if erc20Token.IsNativeERC20() {
-		if _, err = erc20TokenKeeper.TransferFrom(ctx, tokenAddr, erc20ModuleAddress, holder, erc20ModuleAddress, amount); err != nil {
-			return sdk.Coin{}, err
-		}
 		if err = c.bankKeeper.MintCoins(ctx, erc20types.ModuleName, sdk.NewCoins(baseCoin)); err != nil {
 			return sdk.Coin{}, err
 		}
