@@ -10,8 +10,10 @@ import (
 	"cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -47,19 +49,19 @@ import (
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
 )
 
-func CreateUpgradeHandler(_ codec.Codec, mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 
 		var err error
 		var toVM module.VersionMap
 		if cacheCtx.ChainID() == fxtypes.TestnetChainId {
-			if err = upgradeTestnet(cacheCtx, app); err != nil {
+			if err = upgradeTestnet(cacheCtx, codec, app); err != nil {
 				return fromVM, err
 			}
 			toVM = fromVM
 		} else {
-			toVM, err = upgradeMainnet(cacheCtx, mm, configurator, app, fromVM, plan)
+			toVM, err = upgradeMainnet(cacheCtx, codec, mm, configurator, app, fromVM, plan)
 			if err != nil {
 				return fromVM, err
 			}
@@ -70,7 +72,7 @@ func CreateUpgradeHandler(_ codec.Codec, mm *module.Manager, configurator module
 	}
 }
 
-func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
+func upgradeTestnet(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeepers) error {
 	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
 
 	if err := fixPundixCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
@@ -104,7 +106,7 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 	migrateWFXToWPUNDIAI(ctx, app.EvmKeeper)
 	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
 
-	if err := migrateModulesData(ctx, app); err != nil {
+	if err := migrateModulesData(ctx, codec, app); err != nil {
 		return err
 	}
 
@@ -114,6 +116,7 @@ func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
 //nolint:gocyclo // mainnet
 func upgradeMainnet(
 	ctx sdk.Context,
+	codec codec.Codec,
 	mm *module.Manager,
 	configurator module.Configurator,
 	app *keepers.AppKeepers,
@@ -135,7 +138,7 @@ func upgradeMainnet(
 
 	migrateWFXToWPUNDIAI(ctx, app.EvmKeeper)
 
-	if err = migrateModulesData(ctx, app); err != nil {
+	if err = migrateModulesData(ctx, codec, app); err != nil {
 		return fromVM, err
 	}
 
@@ -206,7 +209,7 @@ func upgradeMainnet(
 	return toVM, nil
 }
 
-func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
+func migrateModulesData(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeepers) error {
 	if err := migrateBankModule(ctx, app.BankKeeper); err != nil {
 		return err
 	}
@@ -217,6 +220,9 @@ func migrateModulesData(ctx sdk.Context, app *keepers.AppKeepers) error {
 		return err
 	}
 	if err := migrateMintParams(ctx, app.MintKeeper); err != nil {
+		return err
+	}
+	if err := MigrateFeegrant(ctx, codec, runtime.NewKVStoreService(app.GetKey(feegrant.StoreKey)), app.AccountKeeper); err != nil {
 		return err
 	}
 
