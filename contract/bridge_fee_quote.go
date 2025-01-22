@@ -62,6 +62,12 @@ func (k BridgeFeeQuoteKeeper) GetDefaultOracleQuote(ctx context.Context, chainNa
 	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "getDefaultOracleQuote", &res, chainName, tokenName); err != nil {
 		return nil, err
 	}
+	for i := 0; i < len(res.Quotes); i++ {
+		if res.Quotes[i].Id.Sign() <= 0 {
+			res.Quotes = append(res.Quotes[:i], res.Quotes[i+1:]...)
+			i--
+		}
+	}
 	return res.Quotes, nil
 }
 

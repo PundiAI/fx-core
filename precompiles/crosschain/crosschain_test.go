@@ -3,6 +3,7 @@ package crosschain_test
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,6 +30,15 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain() {
 
 	suite.App.CrosschainKeepers.GetKeeper(suite.chainName).
 		SetLastObservedBlockHeight(suite.Ctx, 100, 100)
+
+	suite.bridgeFeeSuite.Quote(suite.Ctx, contract.IBridgeFeeQuoteQuoteInput{
+		Cap:       0,
+		GasLimit:  21000,
+		Expiry:    uint64(time.Now().Add(time.Hour).Unix()),
+		ChainName: contract.MustStrToByte32(suite.chainName),
+		TokenName: contract.MustStrToByte32(fxtypes.DefaultDenom),
+		Amount:    big.NewInt(1),
+	})
 
 	balance := suite.Balance(suite.signer.AccAddress())
 

@@ -26,6 +26,7 @@ type CrosschainPrecompileTestSuite struct {
 	chainName      string
 
 	helpers.CrosschainPrecompileSuite
+	bridgeFeeSuite helpers.BridgeFeeSuite
 }
 
 func TestCrosschainPrecompileTestSuite(t *testing.T) {
@@ -54,6 +55,7 @@ func (suite *CrosschainPrecompileTestSuite) SetupTest() {
 	}
 
 	suite.CrosschainPrecompileSuite = helpers.NewCrosschainPrecompileSuite(suite.Require(), suite.signer, suite.App.EvmKeeper, suite.crosschainAddr)
+	suite.bridgeFeeSuite = helpers.NewBridgeFeeSuite(suite.Require(), suite.App.EvmKeeper)
 
 	chainNames := fxtypes.GetSupportChains()
 	suite.chainName = chainNames[tmrand.Intn(len(chainNames))]
