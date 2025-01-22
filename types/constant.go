@@ -109,3 +109,11 @@ func SwapCoin(coin sdk.Coin) sdk.Coin {
 	coin.Amount = SwapAmount(coin.Amount)
 	return coin
 }
+
+func SwapCoins(coins sdk.Coins) sdk.Coins {
+	swapCoins := sdk.Coins{}
+	for _, coin := range coins {
+		swapCoins.Add(SwapCoin(coin))
+	}
+	return swapCoins
+}

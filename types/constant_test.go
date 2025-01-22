@@ -50,3 +50,15 @@ func Test_PowerReduction(t *testing.T) {
 		sdk.TokensToConsensusPower(token.MulRaw(1e18).MulRaw(2), sdk.DefaultPowerReduction)
 	})
 }
+
+func TestSwapCoin(t *testing.T) {
+	coin := sdk.NewCoin(FXDenom, sdkmath.NewInt(100))
+	swapCoin := SwapCoin(coin)
+	assert.NotEqual(t, swapCoin.String(), coin.String())
+}
+
+func TestSwapCoins(t *testing.T) {
+	coins := sdk.NewCoins(sdk.NewCoin(FXDenom, sdkmath.NewInt(100)))
+	swapCoins := SwapCoins(coins)
+	assert.NotEqual(t, swapCoins.String(), coins.String())
+}
