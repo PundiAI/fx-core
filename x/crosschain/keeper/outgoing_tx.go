@@ -23,12 +23,15 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, caller contract.Caller, se
 	}
 	var quoteInfo *contract.IBridgeFeeQuoteQuoteInfo
 	for _, quote := range quoteInfos {
+		if quote.Id.Sign() <= 0 {
+			continue
+		}
 		if fee.Amount.GTE(sdkmath.NewIntFromBigInt(quote.Amount)) && !quote.IsTimeout(ctx.BlockTime()) {
 			quoteInfo = &quote
 			break
 		}
 	}
-	if quoteInfo == nil {
+	if quoteInfo == nil || quoteInfo.Id.Sign() <= 0 {
 		return 0, types.ErrInvalid.Wrapf("bridge fee is too small or expired")
 	}
 
