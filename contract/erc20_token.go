@@ -91,8 +91,12 @@ func (k ERC20TokenKeeper) Mint(ctx context.Context, contractAddr, from, receiver
 	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "mint", receiver, amount)
 }
 
-func (k ERC20TokenKeeper) Burn(ctx context.Context, contractAddr, from, account common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
-	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "burn", account, amount)
+func (k ERC20TokenKeeper) Burn(ctx context.Context, contractAddr, from common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "burn", amount)
+}
+
+func (k ERC20TokenKeeper) BurnFrom(ctx context.Context, contractAddr, from, account common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {
+	return k.ApplyContract(ctx, from, contractAddr, nil, k.abi, "burnFrom", account, amount)
 }
 
 func (k ERC20TokenKeeper) Transfer(ctx context.Context, contractAddr, from, receiver common.Address, amount *big.Int) (*types.MsgEthereumTxResponse, error) {

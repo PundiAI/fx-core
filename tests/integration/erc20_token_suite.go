@@ -167,13 +167,14 @@ func (suite *ERC20TokenSuite) Mint(account common.Address, value *big.Int) *etht
 	return ethTx
 }
 
-func (suite *ERC20TokenSuite) Burn(account common.Address, value *big.Int) *ethtypes.Transaction {
+func (suite *ERC20TokenSuite) Burn(value *big.Int) *ethtypes.Transaction {
+	account := suite.signer.Address()
 	beforeBalance := suite.BalanceOf(account)
 	suite.Require().True(beforeBalance.Cmp(value) >= 0)
 	beforeTotalSupply := suite.TotalSupply()
 	suite.Require().True(beforeTotalSupply.Cmp(value) >= 0)
 
-	ethTx, err := suite.erc20Token.Burn(suite.TransactOpts(suite.signer), account, value)
+	ethTx, err := suite.erc20Token.Burn(suite.TransactOpts(suite.signer), value)
 	suite.Require().NoError(err)
 	suite.WaitMined(ethTx)
 

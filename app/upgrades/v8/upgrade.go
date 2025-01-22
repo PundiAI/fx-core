@@ -585,9 +585,7 @@ func fixTestnetTokenAmount(ctx sdk.Context, bankKeeper bankkeeper.Keeper, evmKee
 			return fmt.Errorf("token %s is not native coin", denom)
 		}
 		tokenKeeper := contract.NewERC20TokenKeeper(evmKeeper)
-		erc20ModuleAddress := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
-		if _, err = tokenKeeper.Burn(ctx, erc20Token.GetERC20Contract(), erc20ModuleAddress,
-			common.BytesToAddress(fixAddress.Bytes()), amount.BigInt()); err != nil {
+		if _, err = tokenKeeper.Burn(ctx, erc20Token.GetERC20Contract(), common.BytesToAddress(fixAddress.Bytes()), amount.BigInt()); err != nil {
 			return err
 		}
 		if err = bankKeeper.BurnCoins(ctx, erc20types.ModuleName, coins); err != nil {
