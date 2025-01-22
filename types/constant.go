@@ -103,17 +103,18 @@ func SwapDecAmount(amount sdkmath.LegacyDec) sdkmath.LegacyDec {
 }
 
 func SwapCoin(coin sdk.Coin) sdk.Coin {
-	if coin.Denom != FXDenom {
+	if coin.Denom != LegacyFXDenom {
 		return coin
 	}
 	coin.Amount = SwapAmount(coin.Amount)
+	coin.Denom = DefaultDenom
 	return coin
 }
 
 func SwapCoins(coins sdk.Coins) sdk.Coins {
 	swapCoins := sdk.Coins{}
 	for _, coin := range coins {
-		swapCoins.Add(SwapCoin(coin))
+		swapCoins = swapCoins.Add(SwapCoin(coin))
 	}
 	return swapCoins
 }
