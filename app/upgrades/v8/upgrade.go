@@ -74,6 +74,8 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 
 func upgradeTestnet(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeepers) error {
 	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
+	updateWPUNDIAILogicCode(ctx, app.EvmKeeper)
+	updateERC20LogicCode(ctx, app.EvmKeeper)
 
 	if err := fixPundixCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
 		return err
@@ -87,33 +89,16 @@ func upgradeTestnet(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeepers)
 	if err := migrateGovDefaultParams(ctx, app.GovKeeper); err != nil {
 		return err
 	}
-	if err := migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
-		return err
-	}
 	if err := redeployTestnetContract(ctx, app.AccountKeeper, app.EvmKeeper, app.Erc20Keeper, app.EthKeeper); err != nil {
 		return err
 	}
 	if err := migrateCrosschainParams(ctx, app.CrosschainKeepers); err != nil {
 		return err
 	}
-	if err := migrateMetadataDisplay(ctx, app.BankKeeper); err != nil {
-		return err
-	}
-	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
-		return err
-	}
 
-	migrateWFXToWPUNDIAI(ctx, app.EvmKeeper)
-	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
-
-	if err := migrateModulesData(ctx, codec, app); err != nil {
-		return err
-	}
-
-	return migrateMetadataFXToPundiAI(ctx, app.BankKeeper)
+	return migrateModulesData(ctx, codec, app)
 }
 
-//nolint:gocyclo // mainnet
 func upgradeMainnet(
 	ctx sdk.Context,
 	codec codec.Codec,
@@ -133,12 +118,6 @@ func upgradeMainnet(
 	ctx.Logger().Info("start to run migrations...", "module", "upgrade", "plan", plan.Name)
 	toVM, err := mm.RunMigrations(ctx, configurator, fromVM)
 	if err != nil {
-		return fromVM, err
-	}
-
-	migrateWFXToWPUNDIAI(ctx, app.EvmKeeper)
-
-	if err = migrateModulesData(ctx, codec, app); err != nil {
 		return fromVM, err
 	}
 
@@ -192,25 +171,30 @@ func upgradeMainnet(
 	}
 
 	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
-	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
+	updateWPUNDIAILogicCode(ctx, app.EvmKeeper)
+	updateERC20LogicCode(ctx, app.EvmKeeper)
 
-	if err = migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
-		return toVM, err
-	}
-	if err = migrateMetadataDisplay(ctx, app.BankKeeper); err != nil {
-		return toVM, err
-	}
-	if err = migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
-		return toVM, err
-	}
-	if err = migrateMetadataFXToPundiAI(ctx, app.BankKeeper); err != nil {
-		return toVM, err
+	if err = migrateModulesData(ctx, codec, app); err != nil {
+		return fromVM, err
 	}
 	return toVM, nil
 }
 
 func migrateModulesData(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeepers) error {
-	if err := migrateBankModule(ctx, app.BankKeeper); err != nil {
+	migrateWFXToWPUNDIAI(ctx, app.EvmKeeper)
+	migrateTransferTokenInEscrow(ctx, app.IBCTransferKeeper)
+	migrateOracleDelegateAmount(ctx, app.CrosschainKeepers)
+
+	if err := migrateFeemarketGasPrice(ctx, app.FeeMarketKeeper); err != nil {
+		return err
+	}
+	if err := migrateMetadataDisplay(ctx, app.BankKeeper); err != nil {
+		return err
+	}
+	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
+		return err
+	}
+	if err := migrateMetadataFXToPundiAI(ctx, app.BankKeeper); err != nil {
 		return err
 	}
 	if err := migrateStakingModule(ctx, app.StakingKeeper.Keeper); err != nil {
@@ -225,13 +209,12 @@ func migrateModulesData(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeep
 	if err := MigrateFeegrant(ctx, codec, runtime.NewKVStoreService(app.GetKey(feegrant.StoreKey)), app.AccountKeeper); err != nil {
 		return err
 	}
-
-	migrateTransferTokenInEscrow(ctx, app.IBCTransferKeeper)
-
 	if err := migrateDistribution(ctx, app.StakingKeeper, app.DistrKeeper); err != nil {
 		return err
 	}
-
+	if err := migrateBankModule(ctx, app.BankKeeper); err != nil {
+		return err
+	}
 	return migrateCrisisModule(ctx, app.CrisisKeeper)
 }
 
@@ -768,4 +751,22 @@ func GetMigrateEscrowDenoms(chainID string) map[string]string {
 	}
 	result[pundixDenom] = fxtypes.PundixWrapDenom
 	return result
+}
+
+func updateWPUNDIAILogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
+	wpundiai := contract.GetWPUNDIAI()
+	if err := keeper.UpdateContractCode(ctx, wpundiai.Address, wpundiai.Code); err != nil {
+		ctx.Logger().Error("update WPUNDIAI contract", "module", "upgrade", "err", err.Error())
+	} else {
+		ctx.Logger().Info("update WPUNDIAI contract", "module", "upgrade", "codeHash", wpundiai.CodeHash())
+	}
+}
+
+func updateERC20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
+	erc20 := contract.GetERC20()
+	if err := keeper.UpdateContractCode(ctx, erc20.Address, erc20.Code); err != nil {
+		ctx.Logger().Error("update ERC20 contract", "module", "upgrade", "err", err.Error())
+	} else {
+		ctx.Logger().Info("update ERC20 contract", "module", "upgrade", "codeHash", erc20.CodeHash())
+	}
 }

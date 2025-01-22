@@ -374,6 +374,11 @@ func checkMigrateBalance(t *testing.T, ctx sdk.Context, myApp *app.App, bdd Befo
 				require.True(t, found, coin.Denom)
 			}
 		}
+		if moduleName == ethtypes.ModuleName {
+			balance := myApp.BankKeeper.GetBalance(ctx, myApp.AccountKeeper.GetModuleAddress(moduleName), fxtypes.DefaultDenom)
+			oldCoins := bdd.ModuleBalances[ethtypes.ModuleName]
+			require.Equal(t, balance.Amount.String(), fxtypes.SwapAmount(oldCoins.AmountOf(fxtypes.LegacyFXDenom)).String())
+		}
 	}
 }
 
@@ -388,6 +393,7 @@ func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountB
 			continue
 		}
 		addr := sdk.MustAccAddressFromBech32(addrStr)
+		coins = fxtypes.SwapCoins(coins)
 		for _, coin := range coins {
 			foundMD := myApp.BankKeeper.HasDenomMetaData(ctx, coin.Denom)
 			foundToken, err := myApp.Erc20Keeper.HasToken(ctx, coin.Denom)
@@ -636,16 +642,7 @@ func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
 
 	quote, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32("eth"), contract.MustStrToByte32("usdt"))
 	require.NoError(t, err)
-	require.Len(t, quote, 3)
-	for _, q := range quote {
-		require.EqualValues(t, uint64(0), q.Id.Uint64())
-		require.EqualValues(t, contract.MustStrToByte32(""), q.ChainName)
-		require.EqualValues(t, contract.MustStrToByte32(""), q.TokenName)
-		require.EqualValues(t, common.HexToAddress("0x0000000000000000000000000000000000000000"), q.Oracle)
-		require.EqualValues(t, uint64(0), q.Amount.Uint64())
-		require.EqualValues(t, uint64(0), q.GasLimit)
-		require.EqualValues(t, uint64(0), q.Expiry)
-	}
+	require.Empty(t, quote)
 
 	chainNames, err := bridgeFeeQuoteKeeper.GetChainNames(ctx)
 	require.NoError(t, err)
