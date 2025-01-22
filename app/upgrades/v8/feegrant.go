@@ -33,8 +33,8 @@ func MigrateFeegrant(ctx sdk.Context, cdc codec.BinaryCodec, storeService store.
 	return err
 }
 
-func swapAllowance(any *types1.Any) (*types1.Any, error) {
-	switch allowance := any.GetCachedValue().(type) {
+func swapAllowance(allowanceAny *types1.Any) (*types1.Any, error) {
+	switch allowance := allowanceAny.GetCachedValue().(type) {
 	case *feegrant.BasicAllowance:
 		allowance.SpendLimit = fxtypes.SwapCoins(allowance.SpendLimit)
 		return types1.NewAnyWithValue(allowance)

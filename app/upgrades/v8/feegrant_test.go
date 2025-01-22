@@ -39,15 +39,18 @@ func Test_migrateFeegrant(t *testing.T) {
 		},
 	}
 
-	for _, allowance := range allowanceList {
-		msg, ok := allowance.(proto.Message)
+	allowanceListLen := len(allowanceList)
+	for i := 0; i < allowanceListLen; i++ {
+		msg, ok := allowanceList[i].(proto.Message)
 		require.True(t, ok)
 		value, err := codectypes.NewAnyWithValue(msg)
 		require.NoError(t, err)
 		allowanceList = append(allowanceList,
 			&feegrant.AllowedMsgAllowance{
-				Allowance:       value,
-				AllowedMessages: []string{codectypes.MsgTypeURL(msg)},
+				Allowance: value,
+				AllowedMessages: []string{
+					codectypes.MsgTypeURL(msg),
+				},
 			},
 		)
 	}
