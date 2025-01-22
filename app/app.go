@@ -282,7 +282,7 @@ func (app *App) setAnteHandler(appOpts servertypes.AppOptions) {
 		SignModeHandler: app.txConfig.SignModeHandler(),
 		SigGasConsumer:  fxante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  maxGasWanted,
-		TxFeeChecker:    fxante.NewCheckTxFeees(bypassMinFeeMsgTypes, maxBypassMinFeeMsgGasUsage).Check,
+		TxFeeChecker:    fxante.NewCheckTxFees(bypassMinFeeMsgTypes, maxBypassMinFeeMsgGasUsage).Check,
 		DisabledAuthzMsgs: []string{
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
