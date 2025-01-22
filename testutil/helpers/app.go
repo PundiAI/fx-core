@@ -1,8 +1,11 @@
 package helpers
 
 import (
+	"testing"
+
 	"cosmossdk.io/log"
 	dbm "github.com/cosmos/cosmos-db"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/viper"
 
 	"github.com/pundiai/fx-core/v8/app"
@@ -33,4 +36,14 @@ func NewApp(opts ...func(*AppOpts)) *app.App {
 		defOpts.Home,
 		viper.New(),
 	)
+}
+
+func NewAppWithValNumber(t *testing.T, valNumber int) (*app.App, sdk.Context) {
+	t.Helper()
+
+	valSet, valPrivs := generateGenesisValidator(valNumber)
+	myApp := setupWithGenesisValSet(t, valSet, valPrivs)
+	ctx := myApp.GetContextForFinalizeBlock(nil)
+	ctx = ctx.WithProposer(valSet.Proposer.Address.Bytes())
+	return myApp, ctx
 }
