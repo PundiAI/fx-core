@@ -8,31 +8,31 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-type CheckTxFeees struct {
+type CheckTxFees struct {
 	bypassMsgTypesMap    map[string]bool
 	maxBypassMsgGasUsage uint64
 }
 
-func NewCheckTxFeees(bypassMinFeeMsgTypes []string, maxBypassMinFeeMsgGasUsage uint64) CheckTxFeees {
+func NewCheckTxFees(bypassMinFeeMsgTypes []string, maxBypassMinFeeMsgGasUsage uint64) CheckTxFees {
 	bypassMinFeeMsgTypesMap := make(map[string]bool, len(bypassMinFeeMsgTypes))
 	for _, msgType := range bypassMinFeeMsgTypes {
 		bypassMinFeeMsgTypesMap[msgType] = true
 	}
-	return CheckTxFeees{
+	return CheckTxFees{
 		bypassMsgTypesMap:    bypassMinFeeMsgTypesMap,
 		maxBypassMsgGasUsage: maxBypassMinFeeMsgGasUsage,
 	}
 }
 
-func (ctf CheckTxFeees) Check(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
+func (ctf CheckTxFees) Check(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 	return ctf.checkTxFeeWithValidatorMinGasPrices(ctx, tx)
 }
 
-func (ctf CheckTxFeees) isByPassMinFee(msgs []sdk.Msg, gas uint64) bool {
+func (ctf CheckTxFees) isByPassMinFee(msgs []sdk.Msg, gas uint64) bool {
 	return ctf.bypassMinFeeMsgs(msgs) && ctf.isBypassMinFeeMsgGasUsage(msgs, gas)
 }
 
-func (ctf CheckTxFeees) bypassMinFeeMsgs(msgs []sdk.Msg) bool {
+func (ctf CheckTxFees) bypassMinFeeMsgs(msgs []sdk.Msg) bool {
 	result := false
 	for _, msg := range msgs {
 		result = true
@@ -44,13 +44,13 @@ func (ctf CheckTxFeees) bypassMinFeeMsgs(msgs []sdk.Msg) bool {
 	return result
 }
 
-func (ctf CheckTxFeees) isBypassMinFeeMsgGasUsage(msgs []sdk.Msg, gas uint64) bool {
+func (ctf CheckTxFees) isBypassMinFeeMsgGasUsage(msgs []sdk.Msg, gas uint64) bool {
 	return uint64(len(msgs))*ctf.maxBypassMsgGasUsage >= gas
 }
 
 // checkTxFeeWithValidatorMinGasPrices implements the default fee logic, where the minimum price per
 // unit of gas is fixed and set by each validator, can the tx priority is computed from the gas price.
-func (ctf CheckTxFeees) checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
+func (ctf CheckTxFees) checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
 		return nil, 0, sdkerrors.ErrTxDecode.Wrap("Tx must be a FeeTx")
