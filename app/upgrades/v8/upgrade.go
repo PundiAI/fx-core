@@ -228,7 +228,7 @@ func migrateModulesData(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeep
 
 	migrateTransferTokenInEscrow(ctx, app.IBCTransferKeeper)
 
-	if err := migrateDistribution(ctx, app.DistrKeeper); err != nil {
+	if err := migrateDistribution(ctx, app.StakingKeeper, app.DistrKeeper); err != nil {
 		return err
 	}
 

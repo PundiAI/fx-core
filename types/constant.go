@@ -118,3 +118,21 @@ func SwapCoins(coins sdk.Coins) sdk.Coins {
 	}
 	return swapCoins
 }
+
+func SwapDecCoins(decCoins sdk.DecCoins) sdk.DecCoins {
+	result := sdk.NewDecCoins()
+	if len(decCoins) == 0 {
+		return result
+	}
+	for _, decCoin := range decCoins {
+		if decCoin.Denom == LegacyFXDenom {
+			decCoin.Denom = DefaultDenom
+			decCoin.Amount = SwapDecAmount(decCoin.Amount)
+			if !decCoin.IsPositive() {
+				continue
+			}
+		}
+		result = result.Add(decCoin)
+	}
+	return result
+}
