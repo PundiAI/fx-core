@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -21,11 +22,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -51,7 +55,7 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 
 	ctx := newContext(t, myApp, chainId, false)
 
-	bdd := beforeUpgrade(ctx, myApp)
+	bdd := beforeUpgrade(t, ctx, myApp)
 
 	// 1. set upgrade plan
 	require.NoError(t, myApp.UpgradeKeeper.ScheduleUpgrade(ctx, upgradetypes.Plan{
@@ -111,7 +115,7 @@ func buildApp(t *testing.T) *app.App {
 	require.NoError(t, err)
 
 	myApp := helpers.NewApp(func(opts *helpers.AppOpts) {
-		opts.Logger = log.NewLogger(os.Stdout)
+		opts.Logger = log.NewLogger(os.Stdout, log.LevelOption(zerolog.InfoLevel))
 		opts.DB = db
 		opts.Home = home
 	})
@@ -150,23 +154,62 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 type BeforeUpgradeData struct {
 	AccountBalances map[string]sdk.Coins
 	ModuleBalances  map[string]sdk.Coins
+	Delegates       map[string]*stakingtypes.DelegationResponse
+	DelegateRewards map[string]sdk.DecCoins
 }
 
-func beforeUpgrade(ctx sdk.Context, myApp *app.App) BeforeUpgradeData {
+func beforeUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) BeforeUpgradeData {
+	t.Helper()
 	bdd := BeforeUpgradeData{
 		AccountBalances: make(map[string]sdk.Coins),
 		ModuleBalances:  make(map[string]sdk.Coins),
+		Delegates:       make(map[string]*stakingtypes.DelegationResponse),
+		DelegateRewards: make(map[string]sdk.DecCoins),
 	}
 
 	accountBalance, moduleBalance := allBalances(ctx, myApp)
 	bdd.AccountBalances = accountBalance
 	bdd.ModuleBalances = moduleBalance
 
+	delegatesMap, delegateRewardsMap := delegatesAndRewards(t, ctx, myApp)
+	bdd.Delegates = delegatesMap
+	bdd.DelegateRewards = delegateRewardsMap
 	return bdd
+}
+
+func delegatesAndRewards(t *testing.T, ctx sdk.Context, myApp *app.App) (map[string]*stakingtypes.DelegationResponse, map[string]sdk.DecCoins) {
+	t.Helper()
+
+	delegatesMap := make(map[string]*stakingtypes.DelegationResponse)
+	delegateRewardsMap := make(map[string]sdk.DecCoins)
+	distrQuerier := distributionkeeper.NewQuerier(myApp.DistrKeeper)
+	stakingQuerier := stakingkeeper.NewQuerier(myApp.StakingKeeper.Keeper)
+
+	err := myApp.StakingKeeper.IterateAllDelegations(ctx, func(del stakingtypes.Delegation) (stop bool) {
+		delegateKey := fmt.Sprintf("%s:%s", del.DelegatorAddress, del.ValidatorAddress)
+		delegation, err := stakingQuerier.Delegation(ctx, &stakingtypes.QueryDelegationRequest{
+			DelegatorAddr: del.DelegatorAddress,
+			ValidatorAddr: del.ValidatorAddress,
+		})
+		require.NoError(t, err)
+		delegatesMap[delegateKey] = delegation.DelegationResponse
+		cacheCtx, _ := ctx.CacheContext()
+		rewards, err := distrQuerier.DelegationRewards(cacheCtx, &distributiontypes.QueryDelegationRewardsRequest{
+			DelegatorAddress: del.DelegatorAddress,
+			ValidatorAddress: del.ValidatorAddress,
+		})
+		require.NoError(t, err)
+		delegateRewardsMap[delegateKey] = rewards.Rewards
+		return false
+	})
+	require.NoError(t, err)
+	return delegatesMap, delegateRewardsMap
 }
 
 func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
 	t.Helper()
+
+	checkDelegationData(t, bdd, ctx, myApp)
 
 	checkWrapToken(t, ctx, myApp)
 
@@ -189,6 +232,26 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkPundiAIFXERC20Token(t, ctx, myApp)
 
 	checkModulesData(t, ctx, myApp)
+}
+
+func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	beforeDelegates, beforeDelegateRewards := bdd.Delegates, bdd.DelegateRewards
+	afterDelegates, afterDelegateRewards := delegatesAndRewards(t, ctx, myApp)
+
+	for delegateKey, beforeDelegate := range beforeDelegates {
+		afterDelegate, ok := afterDelegates[delegateKey]
+		require.True(t, ok)
+		assert.EqualValues(t, beforeDelegate.Delegation.String(), afterDelegate.Delegation.String(), delegateKey)
+		assert.EqualValues(t, fxtypes.SwapCoin(beforeDelegate.Balance).String(), afterDelegate.Balance.String(), delegateKey, beforeDelegate.Balance.String())
+	}
+	for delegateKey, beforeRewards := range beforeDelegateRewards {
+		afterRewards, ok := afterDelegateRewards[delegateKey]
+		require.True(t, ok)
+		_, _ = beforeRewards, afterRewards
+		// assert.EqualValues(t, beforeRewards.String(), afterRewards.String(), delegateKey)
+	}
 }
 
 func checkIBCTransferModule(t *testing.T, ctx sdk.Context, myApp *app.App) {

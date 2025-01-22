@@ -7,12 +7,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	fxstakingkeeper "github.com/pundiai/fx-core/v8/x/staking/keeper"
 )
 
-func migrateDistribution(ctx sdk.Context, distrKeeper distributionkeeper.Keeper) error {
+func migrateDistribution(ctx sdk.Context, stakingKeeper *fxstakingkeeper.Keeper, distrKeeper distributionkeeper.Keeper) error {
 	if err := migrateValidatorAccumulatedCommission(ctx, distrKeeper); err != nil {
 		return err
 	}
@@ -22,7 +24,7 @@ func migrateDistribution(ctx sdk.Context, distrKeeper distributionkeeper.Keeper)
 	if err := migrateValidatorCurrentRewards(ctx, distrKeeper); err != nil {
 		return err
 	}
-	if err := migrateDelegatorStartingInfos(ctx, distrKeeper); err != nil {
+	if err := migrateDelegatorStartingInfos(ctx, stakingKeeper, distrKeeper); err != nil {
 		return err
 	}
 	if err := migrateValidatorHistoricalRewards(ctx, distrKeeper); err != nil {
@@ -34,7 +36,14 @@ func migrateDistribution(ctx sdk.Context, distrKeeper distributionkeeper.Keeper)
 func migrateValidatorHistoricalRewards(ctx sdk.Context, keeper distributionkeeper.Keeper) error {
 	var err error
 	keeper.IterateValidatorHistoricalRewards(ctx, func(valAddr sdk.ValAddress, period uint64, rewards types.ValidatorHistoricalRewards) bool {
-		newRewards := swapFXDecCoinsToDefaultCoin(rewards.CumulativeRewardRatio)
+		newRewards := make(sdk.DecCoins, 0, len(rewards.CumulativeRewardRatio))
+		for _, coin := range rewards.CumulativeRewardRatio {
+			newDenom := coin.Denom
+			if newDenom == fxtypes.LegacyFXDenom {
+				newDenom = fxtypes.DefaultDenom
+			}
+			newRewards = append(newRewards, sdk.NewDecCoinFromDec(newDenom, coin.Amount))
+		}
 		rewards.CumulativeRewardRatio = newRewards
 		err = keeper.SetValidatorHistoricalRewards(ctx, valAddr, period, rewards)
 		return err != nil
@@ -42,10 +51,24 @@ func migrateValidatorHistoricalRewards(ctx sdk.Context, keeper distributionkeepe
 	return err
 }
 
-func migrateDelegatorStartingInfos(ctx sdk.Context, distrKeeper distributionkeeper.Keeper) error {
+func migrateDelegatorStartingInfos(ctx sdk.Context, stakingKeeper *fxstakingkeeper.Keeper, distrKeeper distributionkeeper.Keeper) error {
 	var err error
+	validatorMap := make(map[string]stakingtypes.Validator)
 	distrKeeper.IterateDelegatorStartingInfos(ctx, func(valAddr sdk.ValAddress, addr sdk.AccAddress, info types.DelegatorStartingInfo) bool {
-		info.Stake = fxtypes.SwapDecAmount(info.Stake)
+		var delegation stakingtypes.Delegation
+		delegation, err = stakingKeeper.GetDelegation(ctx, addr, valAddr)
+		if err != nil {
+			return true
+		}
+		validator, ok := validatorMap[delegation.ValidatorAddress]
+		if !ok {
+			validator, err = stakingKeeper.GetValidator(ctx, valAddr)
+			if err != nil {
+				return true
+			}
+			validatorMap[delegation.ValidatorAddress] = validator
+		}
+		info.Stake = validator.TokensFromSharesTruncated(delegation.Shares)
 		err = distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, addr, info)
 		return err != nil
 	})
@@ -58,14 +81,14 @@ func migrateFeePool(ctx sdk.Context, distrKeeper distributionkeeper.Keeper) erro
 		return err
 	}
 
-	feePool.CommunityPool = swapFXDecCoinsToDefaultCoin(feePool.CommunityPool)
+	feePool.CommunityPool = fxtypes.SwapDecCoins(feePool.CommunityPool)
 	return distrKeeper.FeePool.Set(ctx, feePool)
 }
 
 func migrateValidatorAccumulatedCommission(ctx sdk.Context, distrKeeper distributionkeeper.Keeper) error {
 	var err error
 	distrKeeper.IterateValidatorAccumulatedCommissions(ctx, func(addr sdk.ValAddress, commission types.ValidatorAccumulatedCommission) bool {
-		newCommission := swapFXDecCoinsToDefaultCoin(commission.Commission)
+		newCommission := fxtypes.SwapDecCoins(commission.Commission)
 		commission.Commission = newCommission
 		err = distrKeeper.SetValidatorAccumulatedCommission(ctx, addr, commission)
 		return err != nil
@@ -77,7 +100,7 @@ func migrateValidatorAccumulatedCommission(ctx sdk.Context, distrKeeper distribu
 func migrateValidatorCurrentRewards(ctx sdk.Context, distrKeeper distributionkeeper.Keeper) error {
 	var err error
 	distrKeeper.IterateValidatorCurrentRewards(ctx, func(addr sdk.ValAddress, rewards types.ValidatorCurrentRewards) bool {
-		newRewards := swapFXDecCoinsToDefaultCoin(rewards.Rewards)
+		newRewards := fxtypes.SwapDecCoins(rewards.Rewards)
 		rewards.Rewards = newRewards
 		err = distrKeeper.SetValidatorCurrentRewards(ctx, addr, rewards)
 		return err != nil
@@ -88,30 +111,13 @@ func migrateValidatorCurrentRewards(ctx sdk.Context, distrKeeper distributionkee
 func migrateValidatorOutstandingRewards(ctx sdk.Context, distrKeeper distributionkeeper.Keeper) error {
 	var err error
 	distrKeeper.IterateValidatorOutstandingRewards(ctx, func(addr sdk.ValAddress, rewards types.ValidatorOutstandingRewards) bool {
-		newRewards := swapFXDecCoinsToDefaultCoin(rewards.Rewards)
+		newRewards := fxtypes.SwapDecCoins(rewards.Rewards)
 		rewards.Rewards = newRewards
 		err = distrKeeper.SetValidatorOutstandingRewards(ctx, addr, rewards)
 		return err != nil
 	})
 
 	return err
-}
-
-func swapFXDecCoinsToDefaultCoin(decCoins sdk.DecCoins) sdk.DecCoins {
-	oldDenom := fxtypes.LegacyFXDenom
-	newDenom := fxtypes.DefaultDenom
-	newDecCoins := sdk.NewDecCoins()
-	for _, decCoin := range decCoins {
-		if decCoin.Denom == oldDenom {
-			decCoin.Denom = newDenom
-			decCoin.Amount = fxtypes.SwapDecAmount(decCoin.Amount)
-			if !decCoin.IsPositive() {
-				continue
-			}
-		}
-		newDecCoins = newDecCoins.Add(decCoin)
-	}
-	return newDecCoins
 }
 
 func CheckDistributionModule(t *testing.T, ctx sdk.Context, distrKeeper distributionkeeper.Keeper) {
