@@ -65,7 +65,7 @@ interface FxBridgeBase {
         string _symbol,
         uint8 _decimals,
         uint256 _eventNonce,
-        bytes32 _channelIBC
+        bytes32 _memo
     );
     event OracleSetUpdatedEvent(
         uint256 indexed _newOracleSetNonce,

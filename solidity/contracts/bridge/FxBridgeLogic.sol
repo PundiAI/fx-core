@@ -93,7 +93,7 @@ contract FxBridgeLogic is
 
     function addBridgeToken(
         address _tokenAddr,
-        bytes32 _channelIBC,
+        bytes32 _memo,
         bool _isOriginated
     ) public onlyOwner returns (bool) {
         require(_tokenAddr != address(0), "Invalid token address.");
@@ -110,7 +110,7 @@ contract FxBridgeLogic is
             IERC20MetadataUpgradeable(_tokenAddr).symbol(),
             IERC20MetadataUpgradeable(_tokenAddr).decimals(),
             state_lastEventNonce,
-            _channelIBC
+            _memo
         );
         return true;
     }

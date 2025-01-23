@@ -53,15 +53,6 @@ contract FxBridgeLogicETH is
     mapping(uint256 => bool) public state_lastBridgeCallNonces;
     /* solhint-enable var-name-mixedcase */
 
-    /* FxOriginatedTokenEvent Deprecated: after fxcore upgrade v3 */
-    event FxOriginatedTokenEvent(
-        address indexed _tokenContract,
-        string _name,
-        string _symbol,
-        uint8 _decimals,
-        uint256 _eventNonce
-    );
-
     /* =============== INIT =============== */
 
     function init(
@@ -113,7 +104,7 @@ contract FxBridgeLogicETH is
 
     function addBridgeToken(
         address _tokenAddr,
-        bytes32 _channelIBC,
+        bytes32 _memo,
         bool _isOriginated
     ) public onlyOwner returns (bool) {
         require(_tokenAddr != address(0), "Invalid token address.");
@@ -130,7 +121,7 @@ contract FxBridgeLogicETH is
             IERC20MetadataUpgradeable(_tokenAddr).symbol(),
             IERC20MetadataUpgradeable(_tokenAddr).decimals(),
             state_lastEventNonce,
-            _channelIBC
+            _memo
         );
         return true;
     }
