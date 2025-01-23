@@ -39,7 +39,7 @@ interface IFxBridgeLogic is IBridgeCall, FxBridgeBase {
 
     function addBridgeToken(
         address _tokenAddr,
-        bytes32 _channelIBC,
+        bytes32 _memo,
         bool _isOriginated
     ) external returns (bool);
 
