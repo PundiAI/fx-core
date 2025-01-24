@@ -16,8 +16,9 @@ import (
 )
 
 type Keeper struct {
-	router     *Router
-	bankKeeper types.BankKeeper
+	router      *Router
+	bankKeeper  types.BankKeeper
+	erc20Keeper types.Erc20Keeper
 }
 
 func (c *Keeper) EvmTokenToBaseCoin(ctx sdk.Context, caller contract.Caller, crosschainKeeper types.CrosschainKeeper, holder, tokenAddr common.Address, amount *big.Int) (sdk.Coin, error) {

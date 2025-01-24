@@ -25,11 +25,13 @@ type Contract struct {
 func NewPrecompiledContract(
 	bankKeeper types.BankKeeper,
 	govKeeper types.GovKeeper,
+	erc20Keeper types.Erc20Keeper,
 	router *Router,
 ) *Contract {
 	keeper := &Keeper{
-		bankKeeper: bankKeeper,
-		router:     router,
+		bankKeeper:  bankKeeper,
+		erc20Keeper: erc20Keeper,
+		router:      router,
 	}
 	return &Contract{
 		govKeeper: govKeeper,
@@ -37,6 +39,7 @@ func NewPrecompiledContract(
 			NewBridgeCoinAmountMethod(keeper),
 			NewHasOracleMethod(keeper),
 			NewIsOracleOnlineMethod(keeper),
+			NewGetERC20TokenMethod(keeper),
 
 			NewCrosschainMethod(keeper),
 			NewBridgeCallMethod(keeper),

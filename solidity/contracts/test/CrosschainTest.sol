@@ -120,4 +120,10 @@ contract CrosschainTest {
                 _externalAddress
             );
     }
+
+    function getERC20Token(
+        bytes32 _denom
+    ) external view returns (address _token, bool _enable) {
+        return ICrosschain(CROSS_CHAIN_ADDRESS).getERC20Token(_denom);
+    }
 }

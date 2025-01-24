@@ -54,6 +54,18 @@ func (k CrosschainPrecompileKeeper) IsOracleOnline(ctx context.Context, args IsO
 	return res.Online, nil
 }
 
+func (k CrosschainPrecompileKeeper) GetERC20Token(ctx context.Context, args GetERC20TokenArgs) (common.Address, bool, error) {
+	res := struct {
+		Token  common.Address
+		Enable bool
+	}{}
+	err := k.QueryContract(ctx, common.Address{}, k.contractAddr, k.abi, "getERC20Token", &res, args.Denom)
+	if err != nil {
+		return common.Address{}, false, err
+	}
+	return res.Token, res.Enable, nil
+}
+
 func (k CrosschainPrecompileKeeper) BridgeCall(ctx context.Context, value *big.Int, from common.Address, args BridgeCallArgs) (*evmtypes.MsgEthereumTxResponse, *big.Int, error) {
 	res, err := k.ApplyContract(ctx, from, k.contractAddr, value, k.abi, "bridgeCall",
 		args.DstChain, args.Refund, args.Tokens, args.Amounts, args.To, args.Data, args.QuoteId, args.GasLimit, args.Memo)
