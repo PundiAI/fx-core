@@ -61,10 +61,9 @@ func getContractOwner(ctx sdk.Context) common.Address {
 }
 
 const (
-	pundixBase   = "pundix"
-	purseBase    = "purse"
-	pundixSymbol = "PUNDIX"
-	purseSymbol  = "PURSE"
+	pundixBaseDenom = "pundix"
+	purseBaseDenom  = "purse"
+	pundixSymbol    = "PUNDIX"
 )
 
 func getTestnetTokenAmount(ctx sdk.Context) map[string]sdkmath.Int {
@@ -84,4 +83,16 @@ func MustParseIntFromString(s string) sdkmath.Int {
 		panic("invalid integer conversion")
 	}
 	return res
+}
+
+func GetMigrateEscrowDenoms(chainID string) map[string]string {
+	result := make(map[string]string, 2)
+	result[fxtypes.LegacyFXDenom] = fxtypes.DefaultDenom
+
+	pundixDenom := fxtypes.MainnetPundixUnWrapDenom
+	if chainID == fxtypes.TestnetChainId {
+		pundixDenom = fxtypes.TestnetPundixUnWrapDenom
+	}
+	result[pundixDenom] = fxtypes.PundixWrapDenom
+	return result
 }

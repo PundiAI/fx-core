@@ -67,10 +67,7 @@ func migrateStakingModule(ctx sdk.Context, keeper *stakingkeeper.Keeper) error {
 	if iterErr != nil {
 		return iterErr
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func CheckStakingModule(t *testing.T, ctx sdk.Context, keeper *stakingkeeper.Keeper) {

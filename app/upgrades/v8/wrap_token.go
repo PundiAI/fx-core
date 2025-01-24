@@ -53,7 +53,7 @@ func migrateWFXToWPUNDIAI(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) {
 		return true
 	})
 
-	ctx.Logger().Info("total update state", "total", totalUpdateState)
+	ctx.Logger().Info("total update state", "module", "upgrade", "total", totalUpdateState)
 
 	// set totalSupply
 	totalSupplyByte := evmKeeper.GetState(ctx, wfxAddr, slotToHashByte(totalSupplySlot))
@@ -65,7 +65,7 @@ func migrateWFXToWPUNDIAI(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper) {
 
 	symbolBytes := encodeShortStringWithoutPrefix(WrapTokenSymbol)
 	evmKeeper.SetState(ctx, wfxAddr, slotToHashByte(symbolSlot), symbolBytes)
-	ctx.Logger().Info("migration WFX to WPUNDIAI done")
+	ctx.Logger().Info("migration WFX to WPUNDIAI done", "module", "upgrade")
 }
 
 func GetWFXAddress(chainID string) common.Address {

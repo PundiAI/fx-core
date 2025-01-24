@@ -27,9 +27,6 @@ func MigrateFeegrant(ctx sdk.Context, cdc codec.BinaryCodec, storeService store.
 	if iterErr != nil {
 		return iterErr
 	}
-	if err != nil {
-		return err
-	}
 	return err
 }
 
