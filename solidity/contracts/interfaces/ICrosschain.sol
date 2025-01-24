@@ -28,6 +28,10 @@ interface ICrosschain is IBridgeCall, IBridgeOracle {
         uint256 _eventNonce
     ) external returns (bool _result);
 
+    function getERC20Token(
+        bytes32 _denom
+    ) external view returns (address _token, bool _enable);
+
     // Deprecated
     event CrossChain(
         address indexed sender,

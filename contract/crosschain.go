@@ -120,3 +120,14 @@ func (args *IsOracleOnlineArgs) Validate() error {
 	}
 	return nil
 }
+
+type GetERC20TokenArgs struct {
+	Denom common.Hash `abi:"_denom"`
+}
+
+func (args *GetERC20TokenArgs) Validate() error {
+	if args.Denom == (common.Hash{}) {
+		return errors.New("invalid denom")
+	}
+	return nil
+}

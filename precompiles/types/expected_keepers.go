@@ -92,4 +92,5 @@ type SlashingKeeper interface {
 
 type Erc20Keeper interface {
 	GetBaseDenom(ctx context.Context, token string) (string, error)
+	GetERC20Token(ctx context.Context, baseDenom string) (erc20types.ERC20Token, error)
 }

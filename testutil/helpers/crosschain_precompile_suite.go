@@ -58,6 +58,12 @@ func (s CrosschainPrecompileSuite) IsOracleOnline(ctx context.Context, args cont
 	return isOracleOnline
 }
 
+func (s CrosschainPrecompileSuite) GetERC20Token(ctx context.Context, args contract.GetERC20TokenArgs) (common.Address, bool) {
+	token, enable, err := s.CrosschainPrecompileKeeper.GetERC20Token(ctx, args)
+	s.requireError(err)
+	return token, enable
+}
+
 func (s CrosschainPrecompileSuite) BridgeCall(ctx context.Context, value *big.Int, from common.Address, args contract.BridgeCallArgs) *evmtypes.MsgEthereumTxResponse {
 	res, _, err := s.CrosschainPrecompileKeeper.BridgeCall(ctx, value, from, args)
 	s.requireError(err)

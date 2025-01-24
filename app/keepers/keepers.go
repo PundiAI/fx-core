@@ -370,7 +370,7 @@ func NewAppKeeper(
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return crosschain.NewPrecompiledContract(
-					appKeepers.BankKeeper, appKeepers.GovKeeper, crosschainPrecompileRouter)
+					appKeepers.BankKeeper, appKeepers.GovKeeper, appKeepers.Erc20Keeper, crosschainPrecompileRouter)
 			},
 			func(_ sdk.Context, _ ethparams.Rules) vm.PrecompiledContract {
 				return stakingprecompile.NewPrecompiledContract(
