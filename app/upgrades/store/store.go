@@ -17,7 +17,7 @@ func RemoveStoreKeys(ctx sdk.Context, storeKey storetypes.StoreKey, prefixKeys [
 			deleteCount++
 		}
 		if deleteCount > 0 {
-			ctx.Logger().Info("remove store key", "kvStore", storeKey.Name(),
+			ctx.Logger().Info("remove store key", "kvStore", "module", "upgrade", storeKey.Name(),
 				"prefix", prefixKey[0], "deleteKeyCount", deleteCount)
 		}
 	}
