@@ -29,7 +29,8 @@ type CrosschainPrecompileTestSuite struct {
 	chainName      string
 
 	helpers.CrosschainPrecompileSuite
-	bridgeFeeSuite helpers.BridgeFeeSuite
+	bridgeFeeSuite  helpers.BridgeFeeSuite
+	erc20TokenSuite helpers.ERC20TokenSuite
 }
 
 func TestCrosschainPrecompileTestSuite(t *testing.T) {
@@ -59,6 +60,7 @@ func (suite *CrosschainPrecompileTestSuite) SetupTest() {
 
 	suite.CrosschainPrecompileSuite = helpers.NewCrosschainPrecompileSuite(suite.Require(), suite.signer, suite.App.EvmKeeper, suite.crosschainAddr)
 	suite.bridgeFeeSuite = helpers.NewBridgeFeeSuite(suite.Require(), suite.App.EvmKeeper)
+	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.signer, suite.App.EvmKeeper)
 
 	chainNames := fxtypes.GetSupportChains()
 	suite.chainName = chainNames[tmrand.Intn(len(chainNames))]
@@ -82,10 +84,6 @@ func (suite *CrosschainPrecompileTestSuite) IsCallPrecompile() bool {
 	return suite.crosschainAddr.String() == contract.CrosschainAddress
 }
 
-func (suite *CrosschainPrecompileTestSuite) GetERC20TokenKeeper() contract.ERC20TokenKeeper {
-	return contract.NewERC20TokenKeeper(suite.App.EvmKeeper)
-}
-
 func (suite *CrosschainPrecompileTestSuite) SetOracle(online bool) crosschaintypes.Oracle {
 	oracle := crosschaintypes.Oracle{
 		OracleAddress:     helpers.GenAccAddress().String(),
@@ -104,28 +102,78 @@ func (suite *CrosschainPrecompileTestSuite) SetOracle(online bool) crosschaintyp
 	return oracle
 }
 
-func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeOrOrigin bool) {
+func (suite *CrosschainPrecompileTestSuite) GetERC20Token(baseDenom string) *erc20types.ERC20Token {
+	erc20token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, baseDenom)
+	suite.Require().NoError(err)
+	return &erc20token
+}
+
+func (suite *CrosschainPrecompileTestSuite) GetBridgeToken(baseDenom string) erc20types.BridgeToken {
+	bridgeToken, err := suite.App.Erc20Keeper.GetBridgeToken(suite.Ctx, suite.chainName, baseDenom)
+	suite.Require().NoError(err)
+	return bridgeToken
+}
+
+func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeCoin bool, isIBC ...bool) {
 	keeper := suite.App.Erc20Keeper
 	var erc20Token erc20types.ERC20Token
 	var err error
-	if isNativeOrOrigin {
+	isNative := false
+	if isNativeCoin || symbolOrAddr == fxtypes.DefaultSymbol {
 		erc20Token, err = keeper.RegisterNativeCoin(suite.Ctx, symbolOrAddr, symbolOrAddr, 18)
 	} else {
+		isNative = true
 		erc20Token, err = keeper.RegisterNativeERC20(suite.Ctx, common.HexToAddress(symbolOrAddr))
 	}
-	suite.Require().NoError(err)
-	if symbolOrAddr == fxtypes.DefaultSymbol {
-		isNativeOrOrigin = false
+	if len(isIBC) > 0 && isIBC[0] {
+		isNative = true
 	}
-	err = keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNativeOrOrigin)
+	suite.Require().NoError(err)
+	err = keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNative)
 	suite.Require().NoError(err)
 }
 
-func (suite *CrosschainPrecompileTestSuite) DepositBridgeToken(erc20token erc20types.ERC20Token, amount sdkmath.Int) {
+func (suite *CrosschainPrecompileTestSuite) AddNativeERC20ToEVM(baseDenom string, amount sdkmath.Int) {
 	minter := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
-	_, err := suite.GetERC20TokenKeeper().Mint(suite.Ctx, erc20token.GetERC20Contract(), minter, suite.signer.Address(), big.NewInt(100))
-	suite.Require().NoError(err)
-	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin(erc20token.Denom, amount))
+	erc20token := suite.GetERC20Token(baseDenom)
+	if erc20token.IsNativeERC20() {
+		minter = suite.signer.Address()
+	}
+	suite.erc20TokenSuite.Mint(suite.Ctx, minter, suite.signer.Address(), amount.BigInt())
+	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
+	suite.Equal(balance.String(), amount.BigInt().String())
+}
+
+func (suite *CrosschainPrecompileTestSuite) AddNativeCoinToEVM(baseDenom string, amount sdkmath.Int, isIBC ...bool) {
+	suite.AddNativeERC20ToEVM(baseDenom, amount)
+
+	suite.MintTokenToModule(erc20types.ModuleName, sdk.NewCoin(baseDenom, amount))
+
+	if len(isIBC) == 0 || !isIBC[0] {
+		bridgeToken := suite.GetBridgeToken(baseDenom)
+		suite.MintTokenToModule(crosschaintypes.ModuleName, sdk.NewCoin(bridgeToken.BridgeDenom(), amount))
+	}
+}
+
+func (suite *CrosschainPrecompileTestSuite) NewBridgeCallArgs(erc20Contract common.Address, amount *big.Int) contract.BridgeCallArgs {
+	args := contract.BridgeCallArgs{
+		DstChain: suite.chainName,
+		Refund:   suite.signer.Address(),
+		Tokens:   []common.Address{erc20Contract},
+		Amounts:  []*big.Int{amount},
+		To:       suite.signer.Address(),
+		Data:     nil,
+		QuoteId:  big.NewInt(1),
+		GasLimit: big.NewInt(0),
+		Memo:     nil,
+	}
+	if contract.IsZeroEthAddress(erc20Contract) {
+		args.Tokens = []common.Address{}
+	}
+	if amount == nil {
+		args.Amounts = []*big.Int{}
+	}
+	return args
 }
 
 func (suite *CrosschainPrecompileTestSuite) Quote(denom string) {

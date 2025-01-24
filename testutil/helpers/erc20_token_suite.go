@@ -115,8 +115,8 @@ func (s ERC20TokenSuite) TransferFrom(ctx context.Context, sender, recipient com
 	return res
 }
 
-func (s ERC20TokenSuite) Mint(ctx context.Context, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
-	res, err := s.ERC20TokenKeeper.Mint(ctx, s.contract, s.HexAddress(), to, amount)
+func (s ERC20TokenSuite) Mint(ctx context.Context, from, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
+	res, err := s.ERC20TokenKeeper.Mint(ctx, s.contract, from, to, amount)
 	s.Error(err)
 	return res
 }
@@ -161,7 +161,7 @@ func (s ERC20TokenSuite) OnTest(ctx context.Context, name, symbol string, decima
 	s.require.Equal("0", s.Allowance(ctx, s.HexAddress(), s.HexAddress()).String())
 	s.Approve(ctx, s.HexAddress(), big.NewInt(100))
 	s.require.Equal("100", s.Allowance(ctx, s.HexAddress(), s.HexAddress()).String())
-	s.Mint(ctx, s.signer.Address(), big.NewInt(200))
+	s.Mint(ctx, s.signer.Address(), s.signer.Address(), big.NewInt(200))
 	s.TransferFrom(ctx, s.HexAddress(), s.HexAddress(), big.NewInt(100))
 	s.Burn(ctx, big.NewInt(200))
 }
