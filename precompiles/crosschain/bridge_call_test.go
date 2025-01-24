@@ -17,6 +17,7 @@ import (
 	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
@@ -179,71 +180,151 @@ func TestContract_BridgeCall_NewBridgeCallEvent(t *testing.T) {
 	assert.EqualValues(t, expectTopic, topicNew)
 }
 
-func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall() {
-	symbol := "USDT"
+func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall_NativeCoin() {
+	symbol := helpers.NewRandSymbol()
 	suite.AddBridgeToken(symbol, true)
+
 	baseDenom := strings.ToLower(symbol)
-	erc20token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, baseDenom)
-	suite.Require().NoError(err)
+	suite.Quote(baseDenom)
+
+	erc20Contract := suite.GetERC20Token(baseDenom).GetERC20Contract()
+	suite.erc20TokenSuite.WithContract(erc20Contract)
 
 	amount := sdkmath.NewInt(100)
-	suite.DepositBridgeToken(erc20token, amount)
+	suite.AddNativeCoinToEVM(baseDenom, amount)
 
-	_, err = suite.GetERC20TokenKeeper().Approve(
-		suite.Ctx, erc20token.GetERC20Contract(), suite.signer.Address(), suite.crosschainAddr, big.NewInt(2))
-	suite.Require().NoError(err)
+	feeAmount := big.NewInt(1)
+	transferAmount := big.NewInt(2)
 
-	txResponse := suite.BridgeCall(suite.Ctx, nil, suite.signer.Address(),
-		contract.BridgeCallArgs{
-			DstChain: suite.chainName,
-			Refund:   suite.signer.Address(),
-			Tokens:   []common.Address{erc20token.GetERC20Contract()},
-			Amounts:  []*big.Int{big.NewInt(2)},
-			To:       suite.signer.Address(),
-			Data:     nil,
-			QuoteId:  big.NewInt(0),
-			GasLimit: big.NewInt(0),
-			Memo:     nil,
-		})
+	approveAmount := transferAmount
+	if !suite.IsCallPrecompile() {
+		approveAmount = big.NewInt(0).Add(transferAmount, feeAmount)
+	}
+	suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, approveAmount)
+
+	txResponse := suite.BridgeCall(suite.Ctx, nil,
+		suite.signer.Address(), suite.NewBridgeCallArgs(erc20Contract, transferAmount))
 	suite.NotNil(txResponse)
 	suite.GreaterOrEqual(len(txResponse.Logs), 3)
 
-	balance, err := suite.GetERC20TokenKeeper().
-		BalanceOf(suite.Ctx, erc20token.GetERC20Contract(), suite.signer.Address())
-	suite.Require().NoError(err)
-	suite.Equal(big.NewInt(98), balance)
+	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
+	suite.Equal(big.NewInt(97), balance)
 
 	baseCoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(98))
 	suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
 
-	bridgeToken, err := suite.App.Erc20Keeper.GetBridgeToken(suite.Ctx, suite.chainName, baseDenom)
-	suite.Require().NoError(err)
+	bridgeFeeColBalance := suite.erc20TokenSuite.BalanceOf(suite.Ctx,
+		common.BytesToAddress(authtypes.NewModuleAddress(crosschaintypes.BridgeFeeCollectorName)))
+	suite.Equal(feeAmount, bridgeFeeColBalance)
+
+	bridgeToken := suite.GetBridgeToken(baseDenom)
+	bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(98))
+	suite.AssertBalance(authtypes.NewModuleAddress(crosschaintypes.ModuleName), bridgeCoin)
+}
+
+func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall_NativeERC20() {
+	symbol := helpers.NewRandSymbol()
+
+	erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, symbol)
+	suite.AddBridgeToken(erc20TokenAddr.String(), false)
+
+	baseDenom := strings.ToLower(symbol)
+	suite.Quote(baseDenom)
+
+	amount := sdkmath.NewInt(100)
+	suite.AddNativeERC20ToEVM(baseDenom, amount)
+
+	feeAmount := big.NewInt(1)
+	transferAmount := big.NewInt(2)
+
+	approveAmount := transferAmount
+	if !suite.IsCallPrecompile() {
+		approveAmount = big.NewInt(0).Add(transferAmount, feeAmount)
+	}
+	suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, approveAmount)
+
+	txResponse := suite.BridgeCall(suite.Ctx, nil,
+		suite.signer.Address(), suite.NewBridgeCallArgs(erc20TokenAddr, transferAmount),
+	)
+	suite.NotNil(txResponse)
+	suite.GreaterOrEqual(len(txResponse.Logs), 3)
+
+	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
+	suite.Equal(big.NewInt(97), balance)
+
+	baseCoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(0))
+	suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
+
+	bridgeFeeColBalance := suite.erc20TokenSuite.BalanceOf(suite.Ctx,
+		common.BytesToAddress(authtypes.NewModuleAddress(crosschaintypes.BridgeFeeCollectorName)))
+	suite.Equal(feeAmount, bridgeFeeColBalance)
+
+	bridgeToken := suite.GetBridgeToken(baseDenom)
+	bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(2))
+	suite.AssertBalance(authtypes.NewModuleAddress(suite.chainName), bridgeCoin)
+}
+
+func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall_IBCToken() {
+	symbol := helpers.NewRandSymbol()
+
+	suite.AddBridgeToken(symbol, true, true)
+
+	baseDenom := strings.ToLower(symbol)
+	suite.Quote(baseDenom)
+
+	erc20Contract := suite.GetERC20Token(baseDenom).GetERC20Contract()
+	suite.erc20TokenSuite.WithContract(erc20Contract)
+
+	amount := sdkmath.NewInt(100)
+	suite.AddNativeCoinToEVM(baseDenom, amount, true)
+
+	feeAmount := big.NewInt(1)
+	transferAmount := big.NewInt(2)
+
+	approveAmount := transferAmount
+	if !suite.IsCallPrecompile() {
+		approveAmount = big.NewInt(0).Add(transferAmount, feeAmount)
+	}
+	suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, approveAmount)
+
+	txResponse := suite.BridgeCall(suite.Ctx, nil,
+		suite.signer.Address(), suite.NewBridgeCallArgs(erc20Contract, transferAmount),
+	)
+	suite.NotNil(txResponse)
+	suite.GreaterOrEqual(len(txResponse.Logs), 3)
+
+	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
+	suite.Equal(big.NewInt(97), balance)
+
+	baseCoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(98))
+	suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
+
+	bridgeFeeColBalance := suite.erc20TokenSuite.BalanceOf(suite.Ctx,
+		common.BytesToAddress(authtypes.NewModuleAddress(crosschaintypes.BridgeFeeCollectorName)))
+	suite.Equal(feeAmount, bridgeFeeColBalance)
+
+	bridgeToken := suite.GetBridgeToken(baseDenom)
 	bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(2))
 	suite.AssertBalance(authtypes.NewModuleAddress(suite.chainName), bridgeCoin)
 }
 
 func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall_OriginToken() {
-	suite.AddBridgeToken(fxtypes.DefaultSymbol, true)
+	suite.AddBridgeToken(fxtypes.DefaultSymbol, false)
+
+	suite.Quote(fxtypes.DefaultDenom)
 
 	balance := suite.Balance(suite.signer.AccAddress())
 
 	value := big.NewInt(2)
-	txResponse := suite.BridgeCall(suite.Ctx, value, suite.signer.Address(),
-		contract.BridgeCallArgs{
-			DstChain: suite.chainName,
-			Refund:   suite.signer.Address(),
-			Tokens:   []common.Address{},
-			Amounts:  []*big.Int{},
-			To:       suite.signer.Address(),
-			Data:     nil,
-			QuoteId:  big.NewInt(0),
-			GasLimit: big.NewInt(0),
-			Memo:     nil,
-		})
+	if !suite.IsCallPrecompile() {
+		value = big.NewInt(3) // add fee
+	}
+	txResponse := suite.BridgeCall(suite.Ctx, value,
+		suite.signer.Address(), suite.NewBridgeCallArgs(common.Address{}, nil))
 	suite.NotNil(txResponse)
 	suite.Len(txResponse.Logs, 1)
 
-	transferCoin := helpers.NewStakingCoin(2, 0)
-	suite.AssertBalance(suite.signer.AccAddress(), balance.Sub(transferCoin)...)
-	suite.AssertBalance(authtypes.NewModuleAddress(ethtypes.ModuleName), transferCoin)
+	suite.AssertBalance(suite.signer.AccAddress(), balance.Sub(helpers.NewStakingCoin(3, 0))...)
+	suite.AssertBalance(authtypes.NewModuleAddress(crosschaintypes.BridgeFeeCollectorName), helpers.NewStakingCoin(1, 0))
+	suite.AssertBalance(authtypes.NewModuleAddress(ethtypes.ModuleName), helpers.NewStakingCoin(2, 0))
 }

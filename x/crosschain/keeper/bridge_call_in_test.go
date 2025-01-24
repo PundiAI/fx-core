@@ -53,10 +53,14 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 			erc20Tokens := make([]erc20types.ERC20Token, 0, len(tc.Msg.TokenContracts))
 			for _, tokenContract := range tc.Msg.TokenContracts {
 				denom := helpers.NewRandDenom()
-				err := suite.App.Erc20Keeper.AddBridgeToken(suite.Ctx, denom, suite.chainName, tokenContract, false)
+				err := suite.Keeper().AddBridgeTokenExecuted(suite.Ctx, &types.MsgBridgeTokenClaim{
+					TokenContract: tokenContract,
+					Name:          denom,
+					Symbol:        strings.ToUpper(denom),
+					Decimals:      18,
+				})
 				suite.Require().NoError(err)
-
-				erc20Token, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, denom, strings.ToUpper(denom), 18)
+				erc20Token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, denom)
 				suite.Require().NoError(err)
 				erc20Tokens = append(erc20Tokens, erc20Token)
 			}

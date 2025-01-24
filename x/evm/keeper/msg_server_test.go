@@ -48,7 +48,7 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
 	erc20Suite.WithSigner(signer)
 
 	contractAddr := erc20Suite.DeployERC20Token(s.Ctx, "TEST")
-	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), big.NewInt(100))
+	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), erc20Suite.HexAddress(), big.NewInt(100))
 
 	gasLimit := uint64(71000)
 

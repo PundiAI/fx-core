@@ -65,7 +65,7 @@ func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_ERC20() {
 	erc20Suite.DeployERC20Token(s.Ctx, "USD")
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
-	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), big.NewInt(100))
+	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), erc20Suite.HexAddress(), big.NewInt(100))
 	erc20Suite.Transfer(s.Ctx, newSigner.Address(), big.NewInt(100))
 
 	err = s.App.EvmKeeper.UpdateContractCode(s.Ctx, erc20.Address, erc20.Code)

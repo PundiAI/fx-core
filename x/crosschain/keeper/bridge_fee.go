@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"math/big"
-	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,7 +28,7 @@ func (k Keeper) ValidateQuote(ctx sdk.Context, caller contract.Caller, quoteId *
 }
 
 func (k Keeper) TransferBridgeFee(ctx sdk.Context, caller contract.Caller, from, to common.Address, bridgeFee *big.Int, bridgeTokenName string) error {
-	if strings.ToUpper(bridgeTokenName) == fxtypes.DefaultDenom {
+	if bridgeTokenName == fxtypes.DefaultDenom {
 		fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(bridgeFee)))
 		return k.bankKeeper.SendCoins(ctx, from.Bytes(), to.Bytes(), fees)
 	}
