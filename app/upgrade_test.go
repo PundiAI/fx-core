@@ -92,18 +92,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
 	// 3. check the status after the upgrade
-	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
-	checkPundixPurse(t, ctx, myApp)
-	checkTotalSupply(t, ctx, myApp)
-
-	// check bridge fee contract status
-	checkBridgeFeeContract(t, ctx, myApp)
-
-	checkMetadataValidate(t, ctx, myApp)
-	checkPundiAIFXERC20Token(t, ctx, myApp)
-	checkWrapToken(t, ctx, myApp)
-
-	checkModulesData(t, ctx, myApp)
+	checkTestnetFXBridgeDenom(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -535,7 +524,6 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			aliasTotal = aliasTotal.Add(supply.Amount)
 		}
 		baseSupply := myApp.BankKeeper.GetSupply(ctx, et.GetDenom())
-		baseSupply = getTestnetTokenAmount(ctx, baseSupply)
 		// NOTE: after sendToExternal fixed, fix bridge token amount
 		if !aliasTotal.Equal(baseSupply.Amount) {
 			t.Log("not equal", "denom", et.GetDenom())
@@ -613,76 +601,6 @@ func getBridgeToken(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20t
 	return bridgeTokens, nil
 }
 
-var fixTestnetTokensAmount = map[string]sdkmath.Int{
-	"atom/osmo":    nextversion.MustParseIntFromString("54386202508063381657"),
-	"stosmo/tosmo": nextversion.MustParseIntFromString("1740010000000000000000000"),
-	"tatom/tosmo":  nextversion.MustParseIntFromString("1700841000000000000000000"),
-	"uosmo":        nextversion.MustParseIntFromString("35005636"),
-	"usdc/tosmo":   nextversion.MustParseIntFromString("1730015000000000000000000"),
-	"wbtc/tosmo":   nextversion.MustParseIntFromString("1740010000000000000000000"),
-	"weth/tosmo":   nextversion.MustParseIntFromString("1700015000000000000000000"),
-}
-
-func getTestnetTokenAmount(ctx sdk.Context, coin sdk.Coin) sdk.Coin {
-	if ctx.ChainID() == fxtypes.MainnetChainId {
-		return coin
-	}
-	amount, ok := fixTestnetTokensAmount[coin.Denom]
-	if !ok {
-		return coin
-	}
-	coin.Amount = coin.Amount.Sub(amount)
-	return coin
-}
-
-func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	t.Helper()
-
-	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(myApp.EvmKeeper)
-
-	quote, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32("eth"), contract.MustStrToByte32("usdt"))
-	require.NoError(t, err)
-	require.Empty(t, quote)
-
-	chainNames, err := bridgeFeeQuoteKeeper.GetChainNames(ctx)
-	require.NoError(t, err)
-
-	chains := fxtypes.GetSupportChains()
-	chainNamesMap := make(map[string]bool)
-	for _, chain := range chains {
-		for _, chainName := range chainNames {
-			if chainName == contract.MustStrToByte32(chain) {
-				chainNamesMap[chain] = true
-			}
-		}
-	}
-	for _, chain := range chains {
-		require.True(t, chainNamesMap[chain])
-	}
-
-	for _, chainName := range chainNames {
-		tokens, err := bridgeFeeQuoteKeeper.GetTokens(ctx, chainName)
-		require.NoError(t, err)
-		chain := contract.Byte32ToString(chainName)
-
-		bridgeTokens, err := myApp.Erc20Keeper.GetBridgeTokens(ctx, chain)
-		require.NoError(t, err)
-
-		require.Len(t, tokens, len(bridgeTokens))
-	}
-
-	bridgeFeeOracleKeeper := contract.NewBridgeFeeOracleKeeper(myApp.EvmKeeper)
-	oracle, err := bridgeFeeOracleKeeper.DefaultOracle(ctx)
-	require.NoError(t, err)
-	require.Equal(t, oracle, common.HexToAddress("0x9c079e86be639076809620CBFaa3784649F5ee81"))
-
-	for _, chainName := range chainNames {
-		oracles, err := bridgeFeeOracleKeeper.GetOracleList(ctx, chainName)
-		require.NoError(t, err)
-		require.Empty(t, oracles)
-	}
-}
-
 func checkMetadataValidate(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
@@ -754,4 +672,22 @@ func checkMintModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	params, err := myApp.MintKeeper.Params.Get(ctx)
 	require.NoError(t, err)
 	require.Equal(t, fxtypes.DefaultDenom, params.MintDenom)
+}
+
+func checkTestnetFXBridgeDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.FXDenom)
+	require.NoError(t, err)
+	has, err := myApp.Erc20Keeper.BridgeToken.Has(ctx, collections.Join(ethtypes.ModuleName, fxtypes.LegacyFXDenom))
+	require.NoError(t, err)
+	require.False(t, has)
+
+	denom, err := myApp.Erc20Keeper.DenomIndex.Get(ctx, erc20types.NewBridgeDenom(ethtypes.ModuleName, bridgeToken.Contract))
+	require.NoError(t, err)
+	require.Equal(t, fxtypes.FXDenom, denom)
+
+	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.LegacyFXDenom)
+	require.NoError(t, err)
+	require.False(t, has)
 }

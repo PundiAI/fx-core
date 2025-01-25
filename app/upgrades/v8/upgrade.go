@@ -2,7 +2,6 @@ package v8
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -42,7 +41,7 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 		var err error
 		var toVM module.VersionMap
 		if cacheCtx.ChainID() == fxtypes.TestnetChainId {
-			if err = upgradeTestnet(cacheCtx, codec, app); err != nil {
+			if err = upgradeTestnet(cacheCtx, app); err != nil {
 				return fromVM, err
 			}
 			toVM = fromVM
@@ -56,33 +55,6 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
-}
-
-func upgradeTestnet(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeepers) error {
-	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
-	updateWPUNDIAILogicCode(ctx, app.EvmKeeper)
-	updateERC20LogicCode(ctx, app.EvmKeeper)
-
-	if err := fixPundixCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
-		return err
-	}
-	if err := fixPurseCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
-		return err
-	}
-	if err := fixTestnetTokenAmount(ctx, app.BankKeeper, app.EvmKeeper, app.Erc20Keeper); err != nil {
-		return err
-	}
-	if err := migrateGovDefaultParams(ctx, app.GovKeeper); err != nil {
-		return err
-	}
-	if err := redeployTestnetContract(ctx, app.AccountKeeper, app.EvmKeeper, app.Erc20Keeper, app.EthKeeper); err != nil {
-		return err
-	}
-	if err := migrateCrosschainParams(ctx, app.CrosschainKeepers); err != nil {
-		return err
-	}
-
-	return migrateModulesData(ctx, codec, app)
 }
 
 func upgradeMainnet(
@@ -282,38 +254,4 @@ func fixPurseCoin(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper er
 
 	needIBCPurseSupply := sdk.NewCoin(ibcPurseToken.GetIbcDenom(), basePurseSupply.Amount.Sub(ibcPurseSupply.Amount))
 	return bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(needIBCPurseSupply))
-}
-
-func fixTestnetTokenAmount(ctx sdk.Context, bankKeeper bankkeeper.Keeper, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper) error {
-	// fx1ntaua8eyzefqwva6evmsx9wn9d4jcs7klnvvzn 0x9afbcE9F2416520733BAcb370315D32B6B2c43d6
-	fixAddress := authtypes.NewModuleAddress("testnet")
-	fixTokens := getTestnetTokenAmount(ctx)
-	for denom, amount := range fixTokens {
-		coins := sdk.NewCoins(sdk.NewCoin(denom, amount.Abs()))
-		if amount.IsNegative() {
-			if err := bankKeeper.MintCoins(ctx, erc20types.ModuleName, coins); err != nil {
-				return err
-			}
-			if err := bankKeeper.SendCoinsFromModuleToAccount(ctx, erc20types.ModuleName, fixAddress, coins); err != nil {
-				return err
-			}
-			continue
-		}
-
-		erc20Token, err := erc20Keeper.GetERC20Token(ctx, denom)
-		if err != nil {
-			return err
-		}
-		if !erc20Token.IsNativeCoin() {
-			return fmt.Errorf("token %s is not native coin", denom)
-		}
-		tokenKeeper := contract.NewERC20TokenKeeper(evmKeeper)
-		if _, err = tokenKeeper.Burn(ctx, erc20Token.GetERC20Contract(), common.BytesToAddress(fixAddress.Bytes()), amount.BigInt()); err != nil {
-			return err
-		}
-		if err = bankKeeper.BurnCoins(ctx, erc20types.ModuleName, coins); err != nil {
-			return err
-		}
-	}
-	return nil
 }

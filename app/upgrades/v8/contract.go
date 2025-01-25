@@ -4,9 +4,7 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -39,19 +37,6 @@ func deployBridgeFeeContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc
 	}
 	defaultOracleAddress := common.HexToAddress(oracles[0].ExternalAddress)
 	return contract.DeployBridgeFeeContract(ctx, evmKeeper, bridgeDenoms, evmModuleAddress, getContractOwner(ctx), defaultOracleAddress)
-}
-
-func redeployTestnetContract(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper, ethKeeper crosschainkeeper.Keeper) error {
-	if err := evmKeeper.DeleteAccount(ctx, common.HexToAddress(contract.BridgeFeeAddress)); err != nil {
-		return err
-	}
-	if err := evmKeeper.DeleteAccount(ctx, common.HexToAddress(contract.BridgeFeeOracleAddress)); err != nil {
-		return err
-	}
-
-	acc := accountKeeper.GetModuleAddress(evmtypes.ModuleName)
-	moduleAddress := common.BytesToAddress(acc.Bytes())
-	return deployBridgeFeeContract(ctx, evmKeeper, erc20Keeper, ethKeeper, moduleAddress)
 }
 
 func updateWPUNDIAILogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
