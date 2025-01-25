@@ -5,13 +5,39 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	"github.com/pundiai/fx-core/v8/app/keepers"
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
 	fxevmkeeper "github.com/pundiai/fx-core/v8/x/evm/keeper"
 )
+
+func updateContract(ctx sdk.Context, app *keepers.AppKeepers) error {
+	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
+	moduleAddress := common.BytesToAddress(acc.Bytes())
+
+	if err := deployBridgeFeeContract(
+		ctx,
+		app.EvmKeeper,
+		app.Erc20Keeper,
+		app.CrosschainKeepers.EthKeeper,
+		moduleAddress,
+	); err != nil {
+		return err
+	}
+
+	if err := deployAccessControlContract(ctx, app.EvmKeeper, moduleAddress); err != nil {
+		return err
+	}
+
+	updateWPUNDIAILogicCode(ctx, app.EvmKeeper)
+	updateERC20LogicCode(ctx, app.EvmKeeper)
+
+	return nil
+}
 
 func deployBridgeFeeContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper, crosschainKeeper crosschainkeeper.Keeper, evmModuleAddress common.Address) error {
 	chains := fxtypes.GetSupportChains()

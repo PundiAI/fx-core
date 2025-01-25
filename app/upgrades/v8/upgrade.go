@@ -15,8 +15,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/pundiai/fx-core/v8/app/keepers"
 	"github.com/pundiai/fx-core/v8/app/upgrades/store"
@@ -55,6 +53,10 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")
 		return toVM, nil
 	}
+}
+
+func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
+	return updateFXBridgeDenom(ctx, app.Erc20Keeper)
 }
 
 func upgradeMainnet(
@@ -108,29 +110,16 @@ func upgradeMainnet(
 	if err = mintPurseBridgeToken(ctx, app.Erc20Keeper, app.BankKeeper); err != nil {
 		return fromVM, err
 	}
-
-	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
-	moduleAddress := common.BytesToAddress(acc.Bytes())
-
-	if err = deployBridgeFeeContract(
-		ctx,
-		app.EvmKeeper,
-		app.Erc20Keeper,
-		app.CrosschainKeepers.EthKeeper,
-		moduleAddress,
-	); err != nil {
-		return fromVM, err
-	}
-
-	if err = deployAccessControlContract(ctx, app.EvmKeeper, moduleAddress); err != nil {
+	if err = updateContract(ctx, app); err != nil {
 		return fromVM, err
 	}
 
 	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
-	updateWPUNDIAILogicCode(ctx, app.EvmKeeper)
-	updateERC20LogicCode(ctx, app.EvmKeeper)
 
 	if err = migrateModulesData(ctx, codec, app); err != nil {
+		return fromVM, err
+	}
+	if err = updateFXBridgeDenom(ctx, app.Erc20Keeper); err != nil {
 		return fromVM, err
 	}
 	return toVM, nil
