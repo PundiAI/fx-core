@@ -92,7 +92,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
 	// 3. check the status after the upgrade
-	checkTestnetFXBridgeDenom(t, ctx, myApp)
+	checkFXBridgeDenom(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -221,6 +221,7 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkPundiAIFXERC20Token(t, ctx, myApp)
 
 	checkModulesData(t, ctx, myApp)
+	checkFXBridgeDenom(t, ctx, myApp)
 }
 
 func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, myApp *app.App) {
@@ -674,7 +675,7 @@ func checkMintModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.Equal(t, fxtypes.DefaultDenom, params.MintDenom)
 }
 
-func checkTestnetFXBridgeDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
+func checkFXBridgeDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
 	bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.FXDenom)
@@ -690,4 +691,10 @@ func checkTestnetFXBridgeDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.LegacyFXDenom)
 	require.NoError(t, err)
 	require.False(t, has)
+
+	pundiaiERC20Token, err := myApp.Erc20Keeper.ERC20Token.Get(ctx, fxtypes.DefaultDenom)
+	require.NoError(t, err)
+	denom, err = myApp.Erc20Keeper.DenomIndex.Get(ctx, pundiaiERC20Token.Erc20Address)
+	require.NoError(t, err)
+	require.Equal(t, fxtypes.DefaultDenom, denom)
 }

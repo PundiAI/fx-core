@@ -1,10 +1,13 @@
 package v8
 
 import (
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
 func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
@@ -17,4 +20,30 @@ func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
 		return err
 	}
 	return keeper.ERC20Token.Remove(ctx, fxtypes.LegacyFXDenom)
+}
+
+func updateFXBridgeDenom(ctx sdk.Context, keeper erc20keeper.Keeper) error {
+	pundiaiERC20Token, err := keeper.GetERC20Token(ctx, fxtypes.DefaultDenom)
+	if err != nil {
+		return err
+	}
+	if err = keeper.DenomIndex.Set(ctx, pundiaiERC20Token.Erc20Address, fxtypes.DefaultDenom); err != nil {
+		return err
+	}
+	bridgeToken, err := keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.LegacyFXDenom)
+	if err != nil {
+		return err
+	}
+	if err = keeper.BridgeToken.Remove(ctx, collections.Join(ethtypes.ModuleName, fxtypes.LegacyFXDenom)); err != nil {
+		return err
+	}
+	if err = keeper.DenomIndex.Remove(ctx, fxtypes.LegacyFXDenom); err != nil {
+		return err
+	}
+	bridgeToken.Denom = fxtypes.FXDenom
+	if err = keeper.BridgeToken.Set(ctx, collections.Join(ethtypes.ModuleName, fxtypes.FXDenom), bridgeToken); err != nil {
+		return err
+	}
+	bridgeDenom := erc20types.NewBridgeDenom(ethtypes.ModuleName, bridgeToken.Contract)
+	return keeper.DenomIndex.Set(ctx, bridgeDenom, fxtypes.FXDenom)
 }
