@@ -39,6 +39,7 @@ const (
 	TestnetBlockHeightV8  = 18_005_000 // v8
 	TestnetBlockHeightV81 = 18_019_000 // v8.1
 	TestnetBlockHeightV82 = 18_332_000 // v8.2
+	TestnetBlockHeightV83 = 18_382_000 // v8.3
 )
 
 func EIP155ChainID(chainId string) *big.Int {
