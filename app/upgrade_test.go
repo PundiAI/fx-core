@@ -293,7 +293,7 @@ func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, m
 			t.Logf("reward not apundiai:%s", swapRewards.String())
 			continue
 		}
-		diff := sdk.NewDecCoins()
+		var diff sdk.DecCoins
 		if !swapRewards.IsZero() && swapRewards[0].IsLT(afterRewards[0]) {
 			diff = afterRewards.Sub(swapRewards)
 			diffGtBeforeCount++
@@ -308,7 +308,7 @@ func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, m
 		} else {
 			rewardNotMatchCount++
 			rewardDiffGt1Count++
-			//t.Logf("diff grate 1key:%s, diff:%s, swapRewards:%s, afterRewards:%s", delegateKey, diff, swapRewards.String(), afterRewards.String())
+			// t.Logf("diff grate 1key:%s, diff:%s, swapRewards:%s, afterRewards:%s", delegateKey, diff, swapRewards.String(), afterRewards.String())
 		}
 		rewardDiff1Count++
 		totalDiff = totalDiff.Add(diff[0].Amount)
