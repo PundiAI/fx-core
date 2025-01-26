@@ -24,7 +24,8 @@ const (
 	AttributeKeyOutgoingBatchNonce   = "batch_nonce"
 	AttributeKeyOutgoingBatchTimeout = "outgoing_batch_timeout"
 
-	EventTypeEvmTransfer = "evm_transfer"
+	EventTypeEvmTransfer    = "evm_transfer"
+	AttributeKeyIBCSequence = "ibc_sequence"
 
 	EventTypeBridgeCallEvent = "bridge_call_event"
 

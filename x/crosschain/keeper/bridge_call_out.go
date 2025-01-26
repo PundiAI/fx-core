@@ -200,11 +200,7 @@ func (k Keeper) BridgeCallBaseCoin(ctx sdk.Context, caller contract.Caller, from
 		if err != nil {
 			return 0, err
 		}
-		ibcCoin, err := k.BaseCoinToIBCCoin(ctx, from.Bytes(), baseCoin, fxTarget.IBCChannel)
-		if err != nil {
-			return 0, err
-		}
-		nonce, err = k.IBCTransfer(ctx, from.Bytes(), toAddr, ibcCoin, fxTarget.IBCChannel, string(memo))
+		nonce, err = k.IBCTransfer(ctx, from.Bytes(), toAddr, baseCoin, fxTarget.IBCChannel, string(memo))
 		if err != nil {
 			return 0, err
 		}
@@ -249,12 +245,16 @@ func (k Keeper) CrosschainBaseCoin(ctx sdk.Context, caller contract.Caller, from
 }
 
 func (k Keeper) IBCTransfer(ctx sdk.Context, from sdk.AccAddress, to string, amount sdk.Coin, channel, memo string) (uint64, error) {
+	ibcCoin, err := k.BaseCoinToIBCCoin(ctx, from.Bytes(), amount, channel)
+	if err != nil {
+		return 0, err
+	}
 	timeout := 12 * time.Hour
 	transferResponse, err := k.ibcTransferKeeper.Transfer(ctx,
 		transfertypes.NewMsgTransfer(
 			transfertypes.ModuleName,
 			channel,
-			amount,
+			ibcCoin,
 			from.String(),
 			to,
 			ibcclienttypes.ZeroHeight(),
