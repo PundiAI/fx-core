@@ -1,4 +1,4 @@
-package types
+package legacy
 
 import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -32,7 +32,7 @@ func init() {
 }
 
 // ProposalRoute returns router key for this proposal
-func (*RegisterCoinProposal) ProposalRoute() string { return ModuleName }
+func (*RegisterCoinProposal) ProposalRoute() string { return "erc20" }
 
 // ProposalType returns proposal type for this proposal
 func (*RegisterCoinProposal) ProposalType() string {
@@ -45,7 +45,7 @@ func (m *RegisterCoinProposal) ValidateBasic() error {
 }
 
 // ProposalRoute returns router key for this proposal
-func (*RegisterERC20Proposal) ProposalRoute() string { return ModuleName }
+func (*RegisterERC20Proposal) ProposalRoute() string { return "erc20" }
 
 // ProposalType returns proposal type for this proposal
 func (*RegisterERC20Proposal) ProposalType() string {
@@ -58,7 +58,7 @@ func (m *RegisterERC20Proposal) ValidateBasic() error {
 }
 
 // ProposalRoute returns router key for this proposal
-func (*ToggleTokenConversionProposal) ProposalRoute() string { return ModuleName }
+func (*ToggleTokenConversionProposal) ProposalRoute() string { return "erc20" }
 
 // ProposalType returns proposal type for this proposal
 func (*ToggleTokenConversionProposal) ProposalType() string {
@@ -71,7 +71,7 @@ func (m *ToggleTokenConversionProposal) ValidateBasic() error {
 }
 
 // ProposalRoute returns router key for this proposal
-func (*UpdateDenomAliasProposal) ProposalRoute() string { return ModuleName }
+func (*UpdateDenomAliasProposal) ProposalRoute() string { return "erc20" }
 
 // ProposalType returns proposal type for this proposal
 func (*UpdateDenomAliasProposal) ProposalType() string {

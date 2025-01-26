@@ -9,6 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	legacytypes "github.com/pundiai/fx-core/v8/types/legacy"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
@@ -56,7 +57,7 @@ func (m Migrator) migrateParams(ctx sdk.Context, store storetypes.KVStore) error
 	if len(bz) == 0 {
 		return nil
 	}
-	var legacyParams types.LegacyParams
+	var legacyParams legacytypes.LegacyERC20Params
 	m.cdc.MustUnmarshal(bz, &legacyParams)
 
 	store.Delete(ParamsKey)

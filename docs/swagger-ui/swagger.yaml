@@ -7904,9 +7904,6 @@ paths:
                       type: string
                     denom:
                       type: string
-                    channel_ibc:
-                      type: string
-                      title: 'Deprecated: after upgrade v3'
         default:
           description: An unexpected error response.
           schema:
@@ -42167,9 +42164,6 @@ definitions:
         type: string
       denom:
         type: string
-      channel_ibc:
-        type: string
-        title: 'Deprecated: after upgrade v3'
   fx.gravity.crosschain.v1.BridgeValidator:
     type: object
     properties:
@@ -42794,9 +42788,6 @@ definitions:
               type: string
             denom:
               type: string
-            channel_ibc:
-              type: string
-              title: 'Deprecated: after upgrade v3'
   fx.gravity.crosschain.v1.QueryCurrentOracleSetResponse:
     type: object
     properties:

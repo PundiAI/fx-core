@@ -66,10 +66,10 @@ func newOtherCustomParams() []InitGenesisCustomParams {
 	defaultParams := NewCustomParams(DefaultCustomParamDepositRatio.String(), DefaultCustomParamVotingPeriod, DefaultCustomParamQuorum25.String())
 	customMsgTypes := []string{
 		// erc20 proposal
-		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
-		sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}),
+		sdk.MsgTypeURL(&erc20types.MsgRegisterNativeCoin{}),
+		sdk.MsgTypeURL(&erc20types.MsgRegisterNativeERC20{}),
+		sdk.MsgTypeURL(&erc20types.MsgRegisterBridgeToken{}),
 		sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{}),
-		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
 
 		// evm proposal
 		sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),

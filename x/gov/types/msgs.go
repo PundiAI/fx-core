@@ -10,12 +10,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var (
-	_ sdk.Msg = &MsgUpdateStore{}
-	_ sdk.Msg = &MsgUpdateSwitchParams{}
-	_ sdk.Msg = &MsgUpdateCustomParams{}
-)
-
 func NewMsgUpdateStore(authority string, updateStores []UpdateStore) *MsgUpdateStore {
 	return &MsgUpdateStore{Authority: authority, UpdateStores: updateStores}
 }

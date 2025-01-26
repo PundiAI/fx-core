@@ -35,16 +35,16 @@ func (suite *KeeperTestSuite) TestGRPCQueryCustomParams() {
 			},
 		},
 		{
-			name:   "erc20 MsgRegisterCoin",
-			msgUrl: sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+			name:   "erc20 MsgRegisterNativeCoin",
+			msgUrl: sdk.MsgTypeURL(&erc20types.MsgRegisterNativeCoin{}),
 			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
 				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
 				return expect
 			},
 		},
 		{
-			name:   "erc20 MsgRegisterERC20",
-			msgUrl: sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}),
+			name:   "erc20 MsgRegisterNativeERC20",
+			msgUrl: sdk.MsgTypeURL(&erc20types.MsgRegisterNativeERC20{}),
 			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
 				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
 				return expect
@@ -59,8 +59,8 @@ func (suite *KeeperTestSuite) TestGRPCQueryCustomParams() {
 			},
 		},
 		{
-			name:   "erc20 MsgUpdateDenomAlias",
-			msgUrl: sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
+			name:   "erc20 MsgRegisterBridgeToken",
+			msgUrl: sdk.MsgTypeURL(&erc20types.MsgRegisterBridgeToken{}),
 			malleate: func(expect govtypes.CustomParams) govtypes.CustomParams {
 				expect.Quorum = govtypes.DefaultCustomParamQuorum25.String()
 				return expect

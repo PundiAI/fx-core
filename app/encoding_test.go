@@ -44,7 +44,7 @@ func TestRegisterInterfaces(t *testing.T) {
 	for implInterfaces.Next() {
 		count2++
 	}
-	assert.Equal(t, 299, count2)
+	assert.Equal(t, 312, count2) // This number can only increase, not decrease.
 
 	typeURLMap := interfaceRegistry.FieldByName("typeURLMap").MapRange()
 	for typeURLMap.Next() {

@@ -23,21 +23,6 @@ message MsgSendToEth {
 }
 
 // Deprecated: after upgrade v3
-message MsgRequestBatch {
-  string sender = 1;
-  string denom = 2;
-  string minimum_fee = 3 [
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-  string fee_receive = 4;
-  string base_fee = 5 [
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-}
-
-// Deprecated: after upgrade v3
 message MsgConfirmBatch {
   uint64 nonce = 1;
   string token_contract = 2;
@@ -89,13 +74,6 @@ message MsgValsetUpdatedClaim {
 message BridgeValidator {
   uint64 power = 1;
   string eth_address = 2;
-}
-
-// Deprecated: after upgrade v3
-message MsgSetOrchestratorAddress {
-  string validator = 1;
-  string orchestrator = 2;
-  string eth_address = 3;
 }
 
 // Deprecated: after upgrade v3

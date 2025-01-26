@@ -7,15 +7,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // RegisterInterfaces registers the interfaces for the proto stuff
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgSetOrchestratorAddress{},
-		&MsgAddOracleDeposit{},
-
 		&MsgBondedOracle{},
 		&MsgAddDelegate{},
 		&MsgReDelegate{},
@@ -23,10 +19,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgWithdrawReward{},
 
 		&MsgSendToExternal{},
-		&MsgCancelSendToExternal{},
-		&MsgIncreaseBridgeFee{},
-
-		&MsgRequestBatch{},
 
 		&MsgUpdateParams{},
 		&MsgUpdateChainOracles{},
@@ -34,12 +26,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgClaim{},
 
 		&MsgConfirm{},
-	)
-
-	registry.RegisterImplementations(
-		(*govv1betal.Content)(nil),
-		&InitCrossChainParamsProposal{},
-		&UpdateChainOraclesProposal{},
 	)
 
 	registry.RegisterInterface(
@@ -83,20 +69,13 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSendToFxClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToFxClaim"), nil)
 
 	cdc.RegisterConcrete(&MsgSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToExternal"), nil)
-	cdc.RegisterConcrete(&MsgCancelSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCancelSendToExternal"), nil)
-	cdc.RegisterConcrete(&MsgIncreaseBridgeFee{}, fmt.Sprintf("%s/%s", ModuleName, "MsgIncreaseBridgeFee"), nil)
 	cdc.RegisterConcrete(&MsgSendToExternalClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToExternalClaim"), nil)
-
-	cdc.RegisterConcrete(&MsgRequestBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRequestBatch"), nil)
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
 
 	cdc.RegisterConcrete(&MsgBridgeCallClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallClaim"), nil)
 	cdc.RegisterConcrete(&MsgBridgeCallConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallConfirm"), nil)
 	cdc.RegisterConcrete(&MsgBridgeCallResultClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallResultClaim"), nil)
 
-	// register Proposal
-	cdc.RegisterConcrete(&UpdateChainOraclesProposal{}, fmt.Sprintf("%s/%s", ModuleName, "UpdateChainOraclesProposal"), nil)
-	cdc.RegisterConcrete(&InitCrossChainParamsProposal{}, fmt.Sprintf("%s/%s", ModuleName, "InitCrossChainParamsProposal"), nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateParams"), nil)
 	cdc.RegisterConcrete(&MsgUpdateChainOracles{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateChainOracles"), nil)
 }

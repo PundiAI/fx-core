@@ -8,7 +8,7 @@
     }
   },
   {
-    "MsgType": "/fx.erc20.v1.MsgRegisterCoin",
+    "MsgType": "/fx.erc20.v1.MsgRegisterNativeCoin",
     "Params": {
       "deposit_ratio": "0.000000000000000000",
       "voting_period": 604800000000000,
@@ -16,7 +16,15 @@
     }
   },
   {
-    "MsgType": "/fx.erc20.v1.MsgRegisterERC20",
+    "MsgType": "/fx.erc20.v1.MsgRegisterNativeERC20",
+    "Params": {
+      "deposit_ratio": "0.000000000000000000",
+      "voting_period": 604800000000000,
+      "quorum": "0.250000000000000000"
+    }
+  },
+  {
+    "MsgType": "/fx.erc20.v1.MsgRegisterBridgeToken",
     "Params": {
       "deposit_ratio": "0.000000000000000000",
       "voting_period": 604800000000000,
@@ -25,14 +33,6 @@
   },
   {
     "MsgType": "/fx.erc20.v1.MsgToggleTokenConversion",
-    "Params": {
-      "deposit_ratio": "0.000000000000000000",
-      "voting_period": 604800000000000,
-      "quorum": "0.250000000000000000"
-    }
-  },
-  {
-    "MsgType": "/fx.erc20.v1.MsgUpdateDenomAlias",
     "Params": {
       "deposit_ratio": "0.000000000000000000",
       "voting_period": 604800000000000,

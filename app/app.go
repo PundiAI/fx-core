@@ -61,6 +61,7 @@ import (
 	gaspricev1 "github.com/pundiai/fx-core/v8/server/grpc/gasprice/v1"
 	gaspricev2 "github.com/pundiai/fx-core/v8/server/grpc/gasprice/v2"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	legacytypes "github.com/pundiai/fx-core/v8/types/legacy"
 	"github.com/pundiai/fx-core/v8/x/crosschain"
 	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
@@ -117,6 +118,9 @@ func New(
 
 	ibcmiddlewaretypes.RegisterLegacyAminoCodec(legacyAmino)
 	ibcmiddlewaretypes.RegisterInterfaces(interfaceRegistry)
+
+	legacytypes.RegisterInterfaces(interfaceRegistry)
+	legacytypes.RegisterLegacyAminoCodec(legacyAmino)
 
 	legacy.Cdc = legacyAmino
 

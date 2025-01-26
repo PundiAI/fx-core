@@ -7,6 +7,7 @@ import "google/protobuf/any.proto";
 option go_package = "github.com/pundiai/fx-core/types/legacy";
 
 message MsgGrantPrivilege {
+  option deprecated = true;
   string validator_address = 1; // validator address
   string from_address = 2;      // from address
   google.protobuf.Any to_pubkey = 3
@@ -16,6 +17,7 @@ message MsgGrantPrivilege {
 }
 
 message MsgEditConsensusPubKey {
+  option deprecated = true;
   string validator_address = 1;
   string from = 2;
   google.protobuf.Any pubkey = 3
