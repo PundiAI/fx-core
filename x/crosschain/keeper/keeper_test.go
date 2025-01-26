@@ -31,7 +31,6 @@ type KeeperMockSuite struct {
 	chainName string
 
 	queryClient types.QueryClient
-	// msgServer   types.MsgServer
 
 	crosschainKeeper  crosschainkeeper.Keeper
 	stakingKeeper     *mock.MockStakingKeeper
@@ -106,7 +105,6 @@ func (s *KeeperMockSuite) SetupTest() {
 	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, myApp.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
 	s.queryClient = types.NewQueryClient(queryHelper)
-	// s.msgServer = crosschainkeeper.NewMsgServerRouterImpl(crosschainRouterKeeper)
 }
 
 func (s *KeeperMockSuite) SetupSubTest() {

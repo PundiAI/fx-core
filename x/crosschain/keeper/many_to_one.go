@@ -34,7 +34,7 @@ func (k Keeper) SwapBridgeToken(ctx context.Context, holder sdk.AccAddress, brid
 		return defBridgeToken, swapAmount, nil
 	}
 	// transfer defaultDenom from eth module to holder
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, ethtypes.ModuleName, holder, sdk.NewCoins(sdk.NewCoin(defBridgeToken.Denom, swapAmount)))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, ethtypes.ModuleName, holder, sdk.NewCoins(sdk.NewCoin(defBridgeToken.BridgeDenom(), swapAmount)))
 	return defBridgeToken, swapAmount, err
 }
 

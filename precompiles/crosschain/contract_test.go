@@ -116,20 +116,24 @@ func (suite *CrosschainPrecompileTestSuite) GetBridgeToken(baseDenom string) erc
 
 func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeCoin bool, isIBC ...bool) {
 	keeper := suite.App.Erc20Keeper
-	var erc20Token erc20types.ERC20Token
-	var err error
+	var baseDenom string
 	isNative := false
-	if isNativeCoin || symbolOrAddr == fxtypes.DefaultSymbol {
-		erc20Token, err = keeper.RegisterNativeCoin(suite.Ctx, symbolOrAddr, symbolOrAddr, 18)
+	if symbolOrAddr == fxtypes.LegacyFXDenom {
+		baseDenom = fxtypes.FXDenom
+	} else if isNativeCoin || symbolOrAddr == fxtypes.DefaultSymbol {
+		erc20Token, err := keeper.RegisterNativeCoin(suite.Ctx, symbolOrAddr, symbolOrAddr, 18)
+		suite.Require().NoError(err)
+		baseDenom = erc20Token.Denom
 	} else {
 		isNative = true
-		erc20Token, err = keeper.RegisterNativeERC20(suite.Ctx, common.HexToAddress(symbolOrAddr))
+		erc20Token, err := keeper.RegisterNativeERC20(suite.Ctx, common.HexToAddress(symbolOrAddr))
+		suite.Require().NoError(err)
+		baseDenom = erc20Token.Denom
 	}
 	if len(isIBC) > 0 && isIBC[0] {
 		isNative = true
 	}
-	suite.Require().NoError(err)
-	err = keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNative)
+	err := keeper.AddBridgeToken(suite.Ctx, baseDenom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNative)
 	suite.Require().NoError(err)
 }
 
