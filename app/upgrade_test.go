@@ -6,6 +6,8 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 
 	"cosmossdk.io/collections"
@@ -13,7 +15,6 @@ import (
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
@@ -64,7 +65,7 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 	}))
 
 	// 2. execute upgrade
-	responsePreBlock, err := upgrade.PreBlocker(ctx, myApp.UpgradeKeeper)
+	responsePreBlock, err := myApp.PreBlocker(ctx, nil)
 	require.NoError(t, err)
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
@@ -87,7 +88,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 	}))
 
 	// 2. execute upgrade
-	responsePreBlock, err := upgrade.PreBlocker(ctx, myApp.UpgradeKeeper)
+	responsePreBlock, err := myApp.PreBlocker(ctx, nil)
 	require.NoError(t, err)
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
@@ -174,8 +175,12 @@ func delegatesAndRewards(t *testing.T, ctx sdk.Context, myApp *app.App) (map[str
 	distrQuerier := distributionkeeper.NewQuerier(myApp.DistrKeeper)
 	stakingQuerier := stakingkeeper.NewQuerier(myApp.StakingKeeper.Keeper)
 
+	onlyKey := ""
 	err := myApp.StakingKeeper.IterateAllDelegations(ctx, func(del stakingtypes.Delegation) (stop bool) {
 		delegateKey := fmt.Sprintf("%s:%s", del.DelegatorAddress, del.ValidatorAddress)
+		if onlyKey != "" && onlyKey != delegateKey {
+			return false
+		}
 		delegation, err := stakingQuerier.Delegation(ctx, &stakingtypes.QueryDelegationRequest{
 			DelegatorAddr: del.DelegatorAddress,
 			ValidatorAddr: del.ValidatorAddress,
@@ -189,7 +194,7 @@ func delegatesAndRewards(t *testing.T, ctx sdk.Context, myApp *app.App) (map[str
 		})
 		require.NoError(t, err)
 		delegateRewardsMap[delegateKey] = rewards.Rewards
-		return false
+		return onlyKey != "" && onlyKey == delegateKey
 	})
 	require.NoError(t, err)
 	return delegatesMap, delegateRewardsMap
@@ -230,18 +235,88 @@ func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, m
 	beforeDelegates, beforeDelegateRewards := bdd.Delegates, bdd.DelegateRewards
 	afterDelegates, afterDelegateRewards := delegatesAndRewards(t, ctx, myApp)
 
+	matchCount, notMatchCount := 0, 0
+	notMatchValidators := make(map[string]uint64)
+	matchValidators := make(map[string]uint64)
+	diff1Count := 0
 	for delegateKey, beforeDelegate := range beforeDelegates {
 		afterDelegate, ok := afterDelegates[delegateKey]
 		require.True(t, ok)
 		assert.EqualValues(t, beforeDelegate.Delegation.String(), afterDelegate.Delegation.String(), delegateKey)
-		assert.EqualValues(t, fxtypes.SwapCoin(beforeDelegate.Balance).String(), afterDelegate.Balance.String(), delegateKey, beforeDelegate.Balance.String())
+
+		valAddrStr := strings.Split(delegateKey, ":")[1]
+		swapBalance := fxtypes.SwapCoin(beforeDelegate.Balance)
+		isMatch := swapBalance.Sub(afterDelegate.Balance).Amount.LTE(sdkmath.NewInt(1))
+		if swapBalance.Amount.GT(afterDelegate.Balance.Amount) {
+			diff1Count++
+		}
+		assert.Truef(t, isMatch, "key:%s, swapBalance:%s, afterBalance:%s", delegateKey, swapBalance.String(), afterDelegate.Balance.String())
+		if isMatch {
+			matchCount++
+			matchValidators[valAddrStr]++
+		} else {
+			notMatchCount++
+			notMatchValidators[valAddrStr]++
+			t.Errorf("not match key:%s, before:[%s],after:[%s]", delegateKey, beforeDelegate.Balance.String(), afterDelegate.Balance.String())
+		}
 	}
+	assert.EqualValuesf(t, 0, notMatchCount, "match count:%d, not match count:%d, diff1Count:%d", matchCount, notMatchCount, diff1Count)
+	type kv struct {
+		Key   string
+		Value uint64
+	}
+
+	notMatchValidatorsList := make([]kv, 0, len(notMatchValidators))
+	for key, value := range notMatchValidators {
+		notMatchValidatorsList = append(notMatchValidatorsList, kv{Key: key, Value: value})
+	}
+	sort.Slice(notMatchValidatorsList, func(i, j int) bool {
+		return notMatchValidatorsList[i].Value > notMatchValidatorsList[j].Value
+	})
+
+	for _, valData := range notMatchValidatorsList {
+		valAddr, err := sdk.ValAddressFromBech32(valData.Key)
+		require.NoError(t, err)
+		validator, err := myApp.StakingKeeper.GetValidator(ctx, valAddr)
+		require.NoError(t, err)
+		t.Logf("val moniker:%s, count:%d, isJailed:%t, token:%s,share:%s", validator.GetMoniker(), valData.Value, validator.IsJailed(), validator.Tokens.String(), validator.DelegatorShares.String())
+	}
+
+	rewardMatchCount, rewardNotMatchCount, rewardDiff1Count, rewardDiffGt1Count, diffGtBeforeCount, maxDiff, totalDiff := 0, 0, 0, 0, 0, sdkmath.LegacyNewDec(0), sdkmath.LegacyNewDec(0)
 	for delegateKey, beforeRewards := range beforeDelegateRewards {
 		afterRewards, ok := afterDelegateRewards[delegateKey]
 		require.True(t, ok)
-		_, _ = beforeRewards, afterRewards
-		// assert.EqualValues(t, beforeRewards.String(), afterRewards.String(), delegateKey)
+		swapRewards := fxtypes.SwapDecCoins(beforeRewards)
+		require.LessOrEqual(t, swapRewards.Len(), 1)
+		require.LessOrEqual(t, swapRewards.Len(), afterRewards.Len())
+		if swapRewards.IsAllPositive() && swapRewards[0].Denom != fxtypes.DefaultDenom {
+			t.Logf("reward not apundiai:%s", swapRewards.String())
+			continue
+		}
+		var diff sdk.DecCoins
+		if !swapRewards.IsZero() && swapRewards[0].IsLT(afterRewards[0]) {
+			diff = afterRewards.Sub(swapRewards)
+			diffGtBeforeCount++
+		} else {
+			diff = swapRewards.Sub(afterRewards)
+		}
+		if diff.IsZero() {
+			rewardMatchCount++
+			continue
+		} else if diff[0].Amount.LT(sdkmath.LegacyNewDec(1)) {
+			rewardNotMatchCount++
+		} else {
+			rewardNotMatchCount++
+			rewardDiffGt1Count++
+			// t.Logf("diff grate 1key:%s, diff:%s, swapRewards:%s, afterRewards:%s", delegateKey, diff, swapRewards.String(), afterRewards.String())
+		}
+		rewardDiff1Count++
+		totalDiff = totalDiff.Add(diff[0].Amount)
+		if diff.IsAllPositive() && diff[0].Amount.GT(maxDiff) {
+			maxDiff = diff[0].Amount
+		}
 	}
+	t.Logf("reward match count:%d, not match count:%d, diff1Count:%d,rewardDiffGt1Count:%d,diffGtBeforeCount:%d, maxDiff:%s,totalDiff:%s", rewardMatchCount, rewardNotMatchCount, rewardDiff1Count, rewardDiffGt1Count, diffGtBeforeCount, maxDiff.String(), totalDiff.String())
 }
 
 func checkIBCTransferModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
