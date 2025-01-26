@@ -586,8 +586,8 @@ func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if err = fxtypes.ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
-	if _, err = hex.DecodeString(m.ChannelIbc); len(m.ChannelIbc) > 0 && err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap("could not decode hex channelIbc string")
+	if _, err = hex.DecodeString(m.Memo); len(m.Memo) > 0 && err != nil {
+		return sdkerrors.ErrInvalidRequest.Wrap("could not decode hex memo string")
 	}
 	if len(m.Name) == 0 {
 		return sdkerrors.ErrInvalidRequest.Wrap("empty token name")
@@ -613,7 +613,7 @@ func (m *MsgBridgeTokenClaim) GetType() ClaimType {
 }
 
 func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/%s/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals, m.ChannelIbc)
+	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/%s/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals, m.Memo)
 	return tmhash.Sum([]byte(path))
 }
 

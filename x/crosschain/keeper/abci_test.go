@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 			Symbol:         "TEST",
 			Decimals:       18,
 			BridgerAddress: suite.bridgerAddrs[i].String(),
-			ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+			Memo:           hex.EncodeToString([]byte("transfer/channel-0")),
 			ChainName:      suite.chainName,
 		}
 		err := suite.SendClaimReturnErr(addBridgeTokenClaim)
@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		Symbol:         "TEST",
 		Decimals:       18,
 		BridgerAddress: suite.bridgerAddrs[6].String(),
-		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+		Memo:           hex.EncodeToString([]byte("transfer/channel-0")),
 		ChainName:      suite.chainName,
 	}
 	err := suite.SendClaimReturnErr(addBridgeTokenClaim)
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			Symbol:         "TEST",
 			Decimals:       18,
 			BridgerAddress: "",
-			ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+			Memo:           hex.EncodeToString([]byte("transfer/channel-0")),
 			ChainName:      suite.chainName,
 		}
 
@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			Symbol:         "TEST2",
 			Decimals:       18,
 			BridgerAddress: "",
-			ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+			Memo:           hex.EncodeToString([]byte("transfer/channel-0")),
 			ChainName:      suite.chainName,
 		}
 
