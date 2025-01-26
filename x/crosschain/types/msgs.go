@@ -34,42 +34,13 @@ var (
 	_ CrosschainMsg = &MsgBridgeTokenClaim{}
 	_ CrosschainMsg = &MsgSendToFxClaim{}
 	_ CrosschainMsg = &MsgSendToExternal{}
-	_ CrosschainMsg = &MsgCancelSendToExternal{}
-	_ CrosschainMsg = &MsgIncreaseBridgeFee{}
 	_ CrosschainMsg = &MsgSendToExternalClaim{}
-	_ CrosschainMsg = &MsgRequestBatch{}
 	_ CrosschainMsg = &MsgConfirmBatch{}
 	_ CrosschainMsg = &MsgBridgeCallClaim{}
 	_ CrosschainMsg = &MsgBridgeCallConfirm{}
 	_ CrosschainMsg = &MsgBridgeCallResultClaim{}
 	_ CrosschainMsg = &MsgUpdateParams{}
 	_ CrosschainMsg = &MsgUpdateChainOracles{}
-)
-
-var (
-	_ sdk.Msg = &MsgBondedOracle{}
-	_ sdk.Msg = &MsgAddDelegate{}
-	_ sdk.Msg = &MsgReDelegate{}
-	_ sdk.Msg = &MsgEditBridger{}
-	_ sdk.Msg = &MsgWithdrawReward{}
-	_ sdk.Msg = &MsgUnbondedOracle{}
-	_ sdk.Msg = &MsgOracleSetConfirm{}
-	_ sdk.Msg = &MsgOracleSetUpdatedClaim{}
-	_ sdk.Msg = &MsgBridgeTokenClaim{}
-	_ sdk.Msg = &MsgSendToFxClaim{}
-	_ sdk.Msg = &MsgSendToExternal{}
-	_ sdk.Msg = &MsgCancelSendToExternal{}
-	_ sdk.Msg = &MsgIncreaseBridgeFee{}
-	_ sdk.Msg = &MsgSendToExternalClaim{}
-	_ sdk.Msg = &MsgRequestBatch{}
-	_ sdk.Msg = &MsgConfirmBatch{}
-	_ sdk.Msg = &MsgBridgeCallClaim{}
-	_ sdk.Msg = &MsgBridgeCallConfirm{}
-	_ sdk.Msg = &MsgBridgeCallResultClaim{}
-	_ sdk.Msg = &MsgUpdateParams{}
-	_ sdk.Msg = &MsgUpdateChainOracles{}
-	_ sdk.Msg = &MsgClaim{}
-	_ sdk.Msg = &MsgConfirm{}
 )
 
 var (

@@ -14,20 +14,6 @@ import (
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
-var (
-	_ sdk.Msg = &MsgConvertCoin{}
-	_ sdk.Msg = &MsgConvertERC20{}
-
-	_ sdk.Msg = &MsgUpdateParams{}
-	_ sdk.Msg = &MsgRegisterCoin{}
-	_ sdk.Msg = &MsgRegisterERC20{}
-	_ sdk.Msg = &MsgToggleTokenConversion{}
-	_ sdk.Msg = &MsgUpdateDenomAlias{}
-	_ sdk.Msg = &MsgRegisterNativeCoin{}
-	_ sdk.Msg = &MsgRegisterNativeERC20{}
-	_ sdk.Msg = &MsgRegisterBridgeToken{}
-)
-
 func NewMsgConvertCoin(coin sdk.Coin, receiver common.Address, sender sdk.AccAddress) *MsgConvertCoin {
 	return &MsgConvertCoin{
 		Coin:     coin,
@@ -60,14 +46,6 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	if err := m.Params.Validate(); err != nil {
 		return sdkerrors.ErrInvalidRequest.Wrapf("params: %s", err.Error())
 	}
-	return nil
-}
-
-func (m *MsgRegisterCoin) ValidateBasic() error {
-	return nil
-}
-
-func (m *MsgRegisterERC20) ValidateBasic() error {
 	return nil
 }
 

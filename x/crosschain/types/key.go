@@ -10,9 +10,6 @@ const (
 	// ModuleName is the name of the module
 	ModuleName = "crosschain"
 
-	// RouterKey is the module name router key
-	RouterKey = ModuleName
-
 	BridgeCallSender = "bridge_call"
 
 	BridgeFeeCollectorName = "bridge_fee_collector"

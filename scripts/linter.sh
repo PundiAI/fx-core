@@ -4,8 +4,8 @@ set -eo pipefail
 
 patternLimits=(
   "nolint:22"
-  "#nosec:6"
-  "CrossChain:4"
+  "#nosec:5"
+  "CrossChain:2"
   "cross chain:0"
   "GetERC1967Proxy:4"
 )
@@ -22,7 +22,7 @@ check_pattern_count() {
   # Default values if not provided
   file_type=${file_type:-go}
 
-  rg_args=(--type go --glob '!*.pb.go' --glob '!*.pulsar.go' --glob '!*.sol.go' --glob '!legacy.go')
+  rg_args=(--type go --glob '!*.pb.go' --glob '!*.pulsar.go' --glob '!*.sol.go' --glob '!types/legacy/*.go')
 
   if [[ "$allowed_count" -eq 0 ]]; then
     if rg "${rg_args[@]}" "$pattern" ./ >/dev/null; then

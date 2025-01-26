@@ -10,6 +10,7 @@ option go_package = "github.com/pundiai/fx-core/types/legacy";
 // ICS20 enabled chains. See ICS Spec here:
 // https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
 message MsgTransfer {
+  option deprecated = true;
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -53,6 +54,7 @@ message MsgTransfer {
 // height continues to be monitonically increasing even as the RevisionHeight
 // gets reset
 message Height {
+  option deprecated = true;
   option (gogoproto.goproto_getters) = true;
   option (gogoproto.goproto_stringer) = true;
 

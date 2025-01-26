@@ -1,4 +1,4 @@
-package types
+package legacy
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 const (
 	// Deprecated: ProposalTypeInitCrossChainParams
 	ProposalTypeInitCrossChainParams = "InitCrossChainParams"
-	// ProposalTypeUpdateChainOracles defines the type for a UpdateChainOraclesProposal
+	// Deprecated: ProposalTypeUpdateChainOracles defines the type for a UpdateChainOraclesProposal
 	ProposalTypeUpdateChainOracles = "UpdateChainOracles"
 )
 
@@ -32,7 +32,7 @@ func (m *InitCrossChainParamsProposal) GetTitle() string { return m.Title }
 
 func (m *InitCrossChainParamsProposal) GetDescription() string { return m.Description }
 
-func (m *InitCrossChainParamsProposal) ProposalRoute() string { return RouterKey }
+func (m *InitCrossChainParamsProposal) ProposalRoute() string { return "crosschain" }
 
 func (m *InitCrossChainParamsProposal) ProposalType() string { return ProposalTypeInitCrossChainParams }
 
@@ -53,7 +53,7 @@ func (m *UpdateChainOraclesProposal) GetTitle() string { return m.Title }
 
 func (m *UpdateChainOraclesProposal) GetDescription() string { return m.Description }
 
-func (m *UpdateChainOraclesProposal) ProposalRoute() string { return RouterKey }
+func (m *UpdateChainOraclesProposal) ProposalRoute() string { return "crosschain" }
 
 func (m *UpdateChainOraclesProposal) ProposalType() string {
 	return ProposalTypeUpdateChainOracles

@@ -43,10 +43,10 @@ message MsgUpdateParams {
 
   option (cosmos.msg.v1.signer) = "authority";
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  LegacyParams params = 2 [ (gogoproto.nullable) = false ];
+  LegacyGovParams params = 2 [ (gogoproto.nullable) = false ];
 }
 
-message LegacyParams {
+message LegacyGovParams {
   option deprecated = true;
 
   string msg_type = 1;

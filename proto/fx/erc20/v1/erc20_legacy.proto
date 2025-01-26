@@ -5,12 +5,11 @@ import "cosmos/bank/v1beta1/bank.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
-import "fx/erc20/v1/types.proto";
 import "gogoproto/gogo.proto";
 import "amino/amino.proto";
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/erc20/types";
+option go_package = "github.com/pundiai/fx-core/types/legacy";
 
 message MsgConvertERC20 {
   option deprecated = true;
@@ -91,11 +90,6 @@ message MsgRegisterCoin {
   cosmos.bank.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
 }
 
-message MsgRegisterCoinResponse {
-  option deprecated = true;
-  ERC20Token pair = 1 [ (gogoproto.nullable) = false ];
-}
-
 message MsgRegisterERC20 {
   option deprecated = true;
   option (cosmos.msg.v1.signer) = "authority";
@@ -106,12 +100,8 @@ message MsgRegisterERC20 {
   repeated string aliases = 3;
 }
 
-message MsgRegisterERC20Response {
+message LegacyERC20Params {
   option deprecated = true;
-  ERC20Token pair = 1 [ (gogoproto.nullable) = false ];
-}
-
-message LegacyParams {
   bool enable_erc20 = 1 [ (gogoproto.moretags) = "yaml:\"enable_erc20\"" ];
   bool enable_evm_hook = 2 [
     (gogoproto.customname) = "EnableEVMHook",

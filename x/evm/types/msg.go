@@ -7,8 +7,6 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 )
 
-var _ sdk.Msg = &MsgCallContract{}
-
 func (m *MsgCallContract) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrap("authority")

@@ -28,8 +28,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_MsgConvertERC20 = File_fx_erc20_v1_legacy_proto.Messages().ByName("MsgConvertERC20")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_MsgConvertERC20 = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("MsgConvertERC20")
 	fd_MsgConvertERC20_contract_address = md_MsgConvertERC20.Fields().ByName("contract_address")
 	fd_MsgConvertERC20_amount = md_MsgConvertERC20.Fields().ByName("amount")
 	fd_MsgConvertERC20_receiver = md_MsgConvertERC20.Fields().ByName("receiver")
@@ -45,7 +45,7 @@ func (x *MsgConvertERC20) ProtoReflect() protoreflect.Message {
 }
 
 func (x *MsgConvertERC20) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[0]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,8 +640,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_MsgConvertDenom = File_fx_erc20_v1_legacy_proto.Messages().ByName("MsgConvertDenom")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_MsgConvertDenom = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("MsgConvertDenom")
 	fd_MsgConvertDenom_sender = md_MsgConvertDenom.Fields().ByName("sender")
 	fd_MsgConvertDenom_receiver = md_MsgConvertDenom.Fields().ByName("receiver")
 	fd_MsgConvertDenom_coin = md_MsgConvertDenom.Fields().ByName("coin")
@@ -657,7 +657,7 @@ func (x *MsgConvertDenom) ProtoReflect() protoreflect.Message {
 }
 
 func (x *MsgConvertDenom) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[1]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1266,8 +1266,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_MsgUpdateDenomAlias = File_fx_erc20_v1_legacy_proto.Messages().ByName("MsgUpdateDenomAlias")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_MsgUpdateDenomAlias = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("MsgUpdateDenomAlias")
 	fd_MsgUpdateDenomAlias_authority = md_MsgUpdateDenomAlias.Fields().ByName("authority")
 	fd_MsgUpdateDenomAlias_denom = md_MsgUpdateDenomAlias.Fields().ByName("denom")
 	fd_MsgUpdateDenomAlias_alias = md_MsgUpdateDenomAlias.Fields().ByName("alias")
@@ -1282,7 +1282,7 @@ func (x *MsgUpdateDenomAlias) ProtoReflect() protoreflect.Message {
 }
 
 func (x *MsgUpdateDenomAlias) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[2]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1814,8 +1814,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_RegisterCoinProposal = File_fx_erc20_v1_legacy_proto.Messages().ByName("RegisterCoinProposal")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_RegisterCoinProposal = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("RegisterCoinProposal")
 	fd_RegisterCoinProposal_title = md_RegisterCoinProposal.Fields().ByName("title")
 	fd_RegisterCoinProposal_description = md_RegisterCoinProposal.Fields().ByName("description")
 	fd_RegisterCoinProposal_metadata = md_RegisterCoinProposal.Fields().ByName("metadata")
@@ -1830,7 +1830,7 @@ func (x *RegisterCoinProposal) ProtoReflect() protoreflect.Message {
 }
 
 func (x *RegisterCoinProposal) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[3]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2424,8 +2424,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_RegisterERC20Proposal = File_fx_erc20_v1_legacy_proto.Messages().ByName("RegisterERC20Proposal")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_RegisterERC20Proposal = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("RegisterERC20Proposal")
 	fd_RegisterERC20Proposal_title = md_RegisterERC20Proposal.Fields().ByName("title")
 	fd_RegisterERC20Proposal_description = md_RegisterERC20Proposal.Fields().ByName("description")
 	fd_RegisterERC20Proposal_erc20address = md_RegisterERC20Proposal.Fields().ByName("erc20address")
@@ -2441,7 +2441,7 @@ func (x *RegisterERC20Proposal) ProtoReflect() protoreflect.Message {
 }
 
 func (x *RegisterERC20Proposal) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[4]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3049,8 +3049,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_ToggleTokenConversionProposal = File_fx_erc20_v1_legacy_proto.Messages().ByName("ToggleTokenConversionProposal")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_ToggleTokenConversionProposal = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("ToggleTokenConversionProposal")
 	fd_ToggleTokenConversionProposal_title = md_ToggleTokenConversionProposal.Fields().ByName("title")
 	fd_ToggleTokenConversionProposal_description = md_ToggleTokenConversionProposal.Fields().ByName("description")
 	fd_ToggleTokenConversionProposal_token = md_ToggleTokenConversionProposal.Fields().ByName("token")
@@ -3065,7 +3065,7 @@ func (x *ToggleTokenConversionProposal) ProtoReflect() protoreflect.Message {
 }
 
 func (x *ToggleTokenConversionProposal) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[5]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3598,8 +3598,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_UpdateDenomAliasProposal = File_fx_erc20_v1_legacy_proto.Messages().ByName("UpdateDenomAliasProposal")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_UpdateDenomAliasProposal = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("UpdateDenomAliasProposal")
 	fd_UpdateDenomAliasProposal_title = md_UpdateDenomAliasProposal.Fields().ByName("title")
 	fd_UpdateDenomAliasProposal_description = md_UpdateDenomAliasProposal.Fields().ByName("description")
 	fd_UpdateDenomAliasProposal_denom = md_UpdateDenomAliasProposal.Fields().ByName("denom")
@@ -3615,7 +3615,7 @@ func (x *UpdateDenomAliasProposal) ProtoReflect() protoreflect.Message {
 }
 
 func (x *UpdateDenomAliasProposal) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[6]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4208,8 +4208,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_MsgRegisterCoin = File_fx_erc20_v1_legacy_proto.Messages().ByName("MsgRegisterCoin")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_MsgRegisterCoin = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("MsgRegisterCoin")
 	fd_MsgRegisterCoin_authority = md_MsgRegisterCoin.Fields().ByName("authority")
 	fd_MsgRegisterCoin_metadata = md_MsgRegisterCoin.Fields().ByName("metadata")
 }
@@ -4223,7 +4223,7 @@ func (x *MsgRegisterCoin) ProtoReflect() protoreflect.Message {
 }
 
 func (x *MsgRegisterCoin) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[7]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4700,441 +4700,6 @@ func (x *fastReflection_MsgRegisterCoin) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgRegisterCoinResponse      protoreflect.MessageDescriptor
-	fd_MsgRegisterCoinResponse_pair protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_MsgRegisterCoinResponse = File_fx_erc20_v1_legacy_proto.Messages().ByName("MsgRegisterCoinResponse")
-	fd_MsgRegisterCoinResponse_pair = md_MsgRegisterCoinResponse.Fields().ByName("pair")
-}
-
-var _ protoreflect.Message = (*fastReflection_MsgRegisterCoinResponse)(nil)
-
-type fastReflection_MsgRegisterCoinResponse MsgRegisterCoinResponse
-
-func (x *MsgRegisterCoinResponse) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_MsgRegisterCoinResponse)(x)
-}
-
-func (x *MsgRegisterCoinResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[8]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_MsgRegisterCoinResponse_messageType fastReflection_MsgRegisterCoinResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgRegisterCoinResponse_messageType{}
-
-type fastReflection_MsgRegisterCoinResponse_messageType struct{}
-
-func (x fastReflection_MsgRegisterCoinResponse_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_MsgRegisterCoinResponse)(nil)
-}
-func (x fastReflection_MsgRegisterCoinResponse_messageType) New() protoreflect.Message {
-	return new(fastReflection_MsgRegisterCoinResponse)
-}
-func (x fastReflection_MsgRegisterCoinResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgRegisterCoinResponse
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_MsgRegisterCoinResponse) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgRegisterCoinResponse
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_MsgRegisterCoinResponse) Type() protoreflect.MessageType {
-	return _fastReflection_MsgRegisterCoinResponse_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_MsgRegisterCoinResponse) New() protoreflect.Message {
-	return new(fastReflection_MsgRegisterCoinResponse)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_MsgRegisterCoinResponse) Interface() protoreflect.ProtoMessage {
-	return (*MsgRegisterCoinResponse)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_MsgRegisterCoinResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Pair != nil {
-		value := protoreflect.ValueOfMessage(x.Pair.ProtoReflect())
-		if !f(fd_MsgRegisterCoinResponse_pair, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_MsgRegisterCoinResponse) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterCoinResponse.pair":
-		return x.Pair != nil
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterCoinResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterCoinResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterCoinResponse) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterCoinResponse.pair":
-		x.Pair = nil
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterCoinResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterCoinResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_MsgRegisterCoinResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "fx.erc20.v1.MsgRegisterCoinResponse.pair":
-		value := x.Pair
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterCoinResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterCoinResponse does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterCoinResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterCoinResponse.pair":
-		x.Pair = value.Message().Interface().(*ERC20Token)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterCoinResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterCoinResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterCoinResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterCoinResponse.pair":
-		if x.Pair == nil {
-			x.Pair = new(ERC20Token)
-		}
-		return protoreflect.ValueOfMessage(x.Pair.ProtoReflect())
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterCoinResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterCoinResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_MsgRegisterCoinResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterCoinResponse.pair":
-		m := new(ERC20Token)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterCoinResponse"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterCoinResponse does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_MsgRegisterCoinResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.MsgRegisterCoinResponse", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_MsgRegisterCoinResponse) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterCoinResponse) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_MsgRegisterCoinResponse) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_MsgRegisterCoinResponse) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*MsgRegisterCoinResponse)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		if x.Pair != nil {
-			l = options.Size(x.Pair)
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*MsgRegisterCoinResponse)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.Pair != nil {
-			encoded, err := options.Marshal(x.Pair)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-			i--
-			dAtA[i] = 0xa
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*MsgRegisterCoinResponse)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterCoinResponse: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterCoinResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pair", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if x.Pair == nil {
-					x.Pair = &ERC20Token{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pair); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
 var _ protoreflect.List = (*_MsgRegisterERC20_3_list)(nil)
 
 type _MsgRegisterERC20_3_list struct {
@@ -5189,8 +4754,8 @@ var (
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_MsgRegisterERC20 = File_fx_erc20_v1_legacy_proto.Messages().ByName("MsgRegisterERC20")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_MsgRegisterERC20 = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("MsgRegisterERC20")
 	fd_MsgRegisterERC20_authority = md_MsgRegisterERC20.Fields().ByName("authority")
 	fd_MsgRegisterERC20_erc20address = md_MsgRegisterERC20.Fields().ByName("erc20address")
 	fd_MsgRegisterERC20_aliases = md_MsgRegisterERC20.Fields().ByName("aliases")
@@ -5205,7 +4770,7 @@ func (x *MsgRegisterERC20) ProtoReflect() protoreflect.Message {
 }
 
 func (x *MsgRegisterERC20) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[9]
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5744,26 +5309,30 @@ func (x *fastReflection_MsgRegisterERC20) ProtoMethods() *protoiface.Methods {
 }
 
 var (
-	md_MsgRegisterERC20Response      protoreflect.MessageDescriptor
-	fd_MsgRegisterERC20Response_pair protoreflect.FieldDescriptor
+	md_LegacyERC20Params                 protoreflect.MessageDescriptor
+	fd_LegacyERC20Params_enable_erc20    protoreflect.FieldDescriptor
+	fd_LegacyERC20Params_enable_evm_hook protoreflect.FieldDescriptor
+	fd_LegacyERC20Params_ibc_timeout     protoreflect.FieldDescriptor
 )
 
 func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_MsgRegisterERC20Response = File_fx_erc20_v1_legacy_proto.Messages().ByName("MsgRegisterERC20Response")
-	fd_MsgRegisterERC20Response_pair = md_MsgRegisterERC20Response.Fields().ByName("pair")
+	file_fx_erc20_v1_erc20_legacy_proto_init()
+	md_LegacyERC20Params = File_fx_erc20_v1_erc20_legacy_proto.Messages().ByName("LegacyERC20Params")
+	fd_LegacyERC20Params_enable_erc20 = md_LegacyERC20Params.Fields().ByName("enable_erc20")
+	fd_LegacyERC20Params_enable_evm_hook = md_LegacyERC20Params.Fields().ByName("enable_evm_hook")
+	fd_LegacyERC20Params_ibc_timeout = md_LegacyERC20Params.Fields().ByName("ibc_timeout")
 }
 
-var _ protoreflect.Message = (*fastReflection_MsgRegisterERC20Response)(nil)
+var _ protoreflect.Message = (*fastReflection_LegacyERC20Params)(nil)
 
-type fastReflection_MsgRegisterERC20Response MsgRegisterERC20Response
+type fastReflection_LegacyERC20Params LegacyERC20Params
 
-func (x *MsgRegisterERC20Response) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_MsgRegisterERC20Response)(x)
+func (x *LegacyERC20Params) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_LegacyERC20Params)(x)
 }
 
-func (x *MsgRegisterERC20Response) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[10]
+func (x *LegacyERC20Params) slowProtoReflect() protoreflect.Message {
+	mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5774,43 +5343,43 @@ func (x *MsgRegisterERC20Response) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgRegisterERC20Response_messageType fastReflection_MsgRegisterERC20Response_messageType
-var _ protoreflect.MessageType = fastReflection_MsgRegisterERC20Response_messageType{}
+var _fastReflection_LegacyERC20Params_messageType fastReflection_LegacyERC20Params_messageType
+var _ protoreflect.MessageType = fastReflection_LegacyERC20Params_messageType{}
 
-type fastReflection_MsgRegisterERC20Response_messageType struct{}
+type fastReflection_LegacyERC20Params_messageType struct{}
 
-func (x fastReflection_MsgRegisterERC20Response_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_MsgRegisterERC20Response)(nil)
+func (x fastReflection_LegacyERC20Params_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_LegacyERC20Params)(nil)
 }
-func (x fastReflection_MsgRegisterERC20Response_messageType) New() protoreflect.Message {
-	return new(fastReflection_MsgRegisterERC20Response)
+func (x fastReflection_LegacyERC20Params_messageType) New() protoreflect.Message {
+	return new(fastReflection_LegacyERC20Params)
 }
-func (x fastReflection_MsgRegisterERC20Response_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgRegisterERC20Response
+func (x fastReflection_LegacyERC20Params_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_LegacyERC20Params
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_MsgRegisterERC20Response) Descriptor() protoreflect.MessageDescriptor {
-	return md_MsgRegisterERC20Response
+func (x *fastReflection_LegacyERC20Params) Descriptor() protoreflect.MessageDescriptor {
+	return md_LegacyERC20Params
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_MsgRegisterERC20Response) Type() protoreflect.MessageType {
-	return _fastReflection_MsgRegisterERC20Response_messageType
+func (x *fastReflection_LegacyERC20Params) Type() protoreflect.MessageType {
+	return _fastReflection_LegacyERC20Params_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_MsgRegisterERC20Response) New() protoreflect.Message {
-	return new(fastReflection_MsgRegisterERC20Response)
+func (x *fastReflection_LegacyERC20Params) New() protoreflect.Message {
+	return new(fastReflection_LegacyERC20Params)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_MsgRegisterERC20Response) Interface() protoreflect.ProtoMessage {
-	return (*MsgRegisterERC20Response)(x)
+func (x *fastReflection_LegacyERC20Params) Interface() protoreflect.ProtoMessage {
+	return (*LegacyERC20Params)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -5818,461 +5387,22 @@ func (x *fastReflection_MsgRegisterERC20Response) Interface() protoreflect.Proto
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_MsgRegisterERC20Response) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Pair != nil {
-		value := protoreflect.ValueOfMessage(x.Pair.ProtoReflect())
-		if !f(fd_MsgRegisterERC20Response_pair, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_MsgRegisterERC20Response) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterERC20Response.pair":
-		return x.Pair != nil
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterERC20Response"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterERC20Response does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterERC20Response) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterERC20Response.pair":
-		x.Pair = nil
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterERC20Response"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterERC20Response does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_MsgRegisterERC20Response) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "fx.erc20.v1.MsgRegisterERC20Response.pair":
-		value := x.Pair
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterERC20Response"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterERC20Response does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterERC20Response) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterERC20Response.pair":
-		x.Pair = value.Message().Interface().(*ERC20Token)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterERC20Response"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterERC20Response does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterERC20Response) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterERC20Response.pair":
-		if x.Pair == nil {
-			x.Pair = new(ERC20Token)
-		}
-		return protoreflect.ValueOfMessage(x.Pair.ProtoReflect())
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterERC20Response"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterERC20Response does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_MsgRegisterERC20Response) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "fx.erc20.v1.MsgRegisterERC20Response.pair":
-		m := new(ERC20Token)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.MsgRegisterERC20Response"))
-		}
-		panic(fmt.Errorf("message fx.erc20.v1.MsgRegisterERC20Response does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_MsgRegisterERC20Response) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.MsgRegisterERC20Response", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_MsgRegisterERC20Response) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_MsgRegisterERC20Response) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_MsgRegisterERC20Response) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_MsgRegisterERC20Response) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*MsgRegisterERC20Response)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		if x.Pair != nil {
-			l = options.Size(x.Pair)
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*MsgRegisterERC20Response)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.Pair != nil {
-			encoded, err := options.Marshal(x.Pair)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-			i--
-			dAtA[i] = 0xa
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*MsgRegisterERC20Response)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterERC20Response: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MsgRegisterERC20Response: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pair", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if x.Pair == nil {
-					x.Pair = &ERC20Token{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pair); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				iNdEx = postIndex
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
-var (
-	md_LegacyParams                 protoreflect.MessageDescriptor
-	fd_LegacyParams_enable_erc20    protoreflect.FieldDescriptor
-	fd_LegacyParams_enable_evm_hook protoreflect.FieldDescriptor
-	fd_LegacyParams_ibc_timeout     protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_fx_erc20_v1_legacy_proto_init()
-	md_LegacyParams = File_fx_erc20_v1_legacy_proto.Messages().ByName("LegacyParams")
-	fd_LegacyParams_enable_erc20 = md_LegacyParams.Fields().ByName("enable_erc20")
-	fd_LegacyParams_enable_evm_hook = md_LegacyParams.Fields().ByName("enable_evm_hook")
-	fd_LegacyParams_ibc_timeout = md_LegacyParams.Fields().ByName("ibc_timeout")
-}
-
-var _ protoreflect.Message = (*fastReflection_LegacyParams)(nil)
-
-type fastReflection_LegacyParams LegacyParams
-
-func (x *LegacyParams) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_LegacyParams)(x)
-}
-
-func (x *LegacyParams) slowProtoReflect() protoreflect.Message {
-	mi := &file_fx_erc20_v1_legacy_proto_msgTypes[11]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_LegacyParams_messageType fastReflection_LegacyParams_messageType
-var _ protoreflect.MessageType = fastReflection_LegacyParams_messageType{}
-
-type fastReflection_LegacyParams_messageType struct{}
-
-func (x fastReflection_LegacyParams_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_LegacyParams)(nil)
-}
-func (x fastReflection_LegacyParams_messageType) New() protoreflect.Message {
-	return new(fastReflection_LegacyParams)
-}
-func (x fastReflection_LegacyParams_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_LegacyParams
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_LegacyParams) Descriptor() protoreflect.MessageDescriptor {
-	return md_LegacyParams
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_LegacyParams) Type() protoreflect.MessageType {
-	return _fastReflection_LegacyParams_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_LegacyParams) New() protoreflect.Message {
-	return new(fastReflection_LegacyParams)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_LegacyParams) Interface() protoreflect.ProtoMessage {
-	return (*LegacyParams)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_LegacyParams) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_LegacyERC20Params) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.EnableErc20 != false {
 		value := protoreflect.ValueOfBool(x.EnableErc20)
-		if !f(fd_LegacyParams_enable_erc20, value) {
+		if !f(fd_LegacyERC20Params_enable_erc20, value) {
 			return
 		}
 	}
 	if x.EnableEvmHook != false {
 		value := protoreflect.ValueOfBool(x.EnableEvmHook)
-		if !f(fd_LegacyParams_enable_evm_hook, value) {
+		if !f(fd_LegacyERC20Params_enable_evm_hook, value) {
 			return
 		}
 	}
 	if x.IbcTimeout != nil {
 		value := protoreflect.ValueOfMessage(x.IbcTimeout.ProtoReflect())
-		if !f(fd_LegacyParams_ibc_timeout, value) {
+		if !f(fd_LegacyERC20Params_ibc_timeout, value) {
 			return
 		}
 	}
@@ -6289,19 +5419,19 @@ func (x *fastReflection_LegacyParams) Range(f func(protoreflect.FieldDescriptor,
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_LegacyParams) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_LegacyERC20Params) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "fx.erc20.v1.LegacyParams.enable_erc20":
+	case "fx.erc20.v1.LegacyERC20Params.enable_erc20":
 		return x.EnableErc20 != false
-	case "fx.erc20.v1.LegacyParams.enable_evm_hook":
+	case "fx.erc20.v1.LegacyERC20Params.enable_evm_hook":
 		return x.EnableEvmHook != false
-	case "fx.erc20.v1.LegacyParams.ibc_timeout":
+	case "fx.erc20.v1.LegacyERC20Params.ibc_timeout":
 		return x.IbcTimeout != nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyParams"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyERC20Params"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.LegacyParams does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.LegacyERC20Params does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -6311,19 +5441,19 @@ func (x *fastReflection_LegacyParams) Has(fd protoreflect.FieldDescriptor) bool 
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_LegacyParams) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_LegacyERC20Params) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.LegacyParams.enable_erc20":
+	case "fx.erc20.v1.LegacyERC20Params.enable_erc20":
 		x.EnableErc20 = false
-	case "fx.erc20.v1.LegacyParams.enable_evm_hook":
+	case "fx.erc20.v1.LegacyERC20Params.enable_evm_hook":
 		x.EnableEvmHook = false
-	case "fx.erc20.v1.LegacyParams.ibc_timeout":
+	case "fx.erc20.v1.LegacyERC20Params.ibc_timeout":
 		x.IbcTimeout = nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyParams"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyERC20Params"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.LegacyParams does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.LegacyERC20Params does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -6333,22 +5463,22 @@ func (x *fastReflection_LegacyParams) Clear(fd protoreflect.FieldDescriptor) {
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_LegacyParams) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_LegacyERC20Params) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "fx.erc20.v1.LegacyParams.enable_erc20":
+	case "fx.erc20.v1.LegacyERC20Params.enable_erc20":
 		value := x.EnableErc20
 		return protoreflect.ValueOfBool(value)
-	case "fx.erc20.v1.LegacyParams.enable_evm_hook":
+	case "fx.erc20.v1.LegacyERC20Params.enable_evm_hook":
 		value := x.EnableEvmHook
 		return protoreflect.ValueOfBool(value)
-	case "fx.erc20.v1.LegacyParams.ibc_timeout":
+	case "fx.erc20.v1.LegacyERC20Params.ibc_timeout":
 		value := x.IbcTimeout
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyParams"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyERC20Params"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.LegacyParams does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.LegacyERC20Params does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -6362,19 +5492,19 @@ func (x *fastReflection_LegacyParams) Get(descriptor protoreflect.FieldDescripto
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_LegacyParams) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_LegacyERC20Params) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "fx.erc20.v1.LegacyParams.enable_erc20":
+	case "fx.erc20.v1.LegacyERC20Params.enable_erc20":
 		x.EnableErc20 = value.Bool()
-	case "fx.erc20.v1.LegacyParams.enable_evm_hook":
+	case "fx.erc20.v1.LegacyERC20Params.enable_evm_hook":
 		x.EnableEvmHook = value.Bool()
-	case "fx.erc20.v1.LegacyParams.ibc_timeout":
+	case "fx.erc20.v1.LegacyERC20Params.ibc_timeout":
 		x.IbcTimeout = value.Message().Interface().(*durationpb.Duration)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyParams"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyERC20Params"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.LegacyParams does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.LegacyERC20Params does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -6388,52 +5518,52 @@ func (x *fastReflection_LegacyParams) Set(fd protoreflect.FieldDescriptor, value
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_LegacyParams) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_LegacyERC20Params) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.LegacyParams.ibc_timeout":
+	case "fx.erc20.v1.LegacyERC20Params.ibc_timeout":
 		if x.IbcTimeout == nil {
 			x.IbcTimeout = new(durationpb.Duration)
 		}
 		return protoreflect.ValueOfMessage(x.IbcTimeout.ProtoReflect())
-	case "fx.erc20.v1.LegacyParams.enable_erc20":
-		panic(fmt.Errorf("field enable_erc20 of message fx.erc20.v1.LegacyParams is not mutable"))
-	case "fx.erc20.v1.LegacyParams.enable_evm_hook":
-		panic(fmt.Errorf("field enable_evm_hook of message fx.erc20.v1.LegacyParams is not mutable"))
+	case "fx.erc20.v1.LegacyERC20Params.enable_erc20":
+		panic(fmt.Errorf("field enable_erc20 of message fx.erc20.v1.LegacyERC20Params is not mutable"))
+	case "fx.erc20.v1.LegacyERC20Params.enable_evm_hook":
+		panic(fmt.Errorf("field enable_evm_hook of message fx.erc20.v1.LegacyERC20Params is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyParams"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyERC20Params"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.LegacyParams does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.LegacyERC20Params does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_LegacyParams) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_LegacyERC20Params) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "fx.erc20.v1.LegacyParams.enable_erc20":
+	case "fx.erc20.v1.LegacyERC20Params.enable_erc20":
 		return protoreflect.ValueOfBool(false)
-	case "fx.erc20.v1.LegacyParams.enable_evm_hook":
+	case "fx.erc20.v1.LegacyERC20Params.enable_evm_hook":
 		return protoreflect.ValueOfBool(false)
-	case "fx.erc20.v1.LegacyParams.ibc_timeout":
+	case "fx.erc20.v1.LegacyERC20Params.ibc_timeout":
 		m := new(durationpb.Duration)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyParams"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: fx.erc20.v1.LegacyERC20Params"))
 		}
-		panic(fmt.Errorf("message fx.erc20.v1.LegacyParams does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message fx.erc20.v1.LegacyERC20Params does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_LegacyParams) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_LegacyERC20Params) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.LegacyParams", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in fx.erc20.v1.LegacyERC20Params", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -6441,7 +5571,7 @@ func (x *fastReflection_LegacyParams) WhichOneof(d protoreflect.OneofDescriptor)
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_LegacyParams) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_LegacyERC20Params) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -6452,7 +5582,7 @@ func (x *fastReflection_LegacyParams) GetUnknown() protoreflect.RawFields {
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_LegacyParams) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_LegacyERC20Params) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -6464,7 +5594,7 @@ func (x *fastReflection_LegacyParams) SetUnknown(fields protoreflect.RawFields) 
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_LegacyParams) IsValid() bool {
+func (x *fastReflection_LegacyERC20Params) IsValid() bool {
 	return x != nil
 }
 
@@ -6474,9 +5604,9 @@ func (x *fastReflection_LegacyParams) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_LegacyParams) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_LegacyERC20Params) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*LegacyParams)
+		x := input.Message.Interface().(*LegacyERC20Params)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -6508,7 +5638,7 @@ func (x *fastReflection_LegacyParams) ProtoMethods() *protoiface.Methods {
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*LegacyParams)
+		x := input.Message.Interface().(*LegacyERC20Params)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -6572,7 +5702,7 @@ func (x *fastReflection_LegacyParams) ProtoMethods() *protoiface.Methods {
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*LegacyParams)
+		x := input.Message.Interface().(*LegacyERC20Params)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -6604,10 +5734,10 @@ func (x *fastReflection_LegacyParams) ProtoMethods() *protoiface.Methods {
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: LegacyParams: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: LegacyERC20Params: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: LegacyParams: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: LegacyERC20Params: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -6725,7 +5855,7 @@ func (x *fastReflection_LegacyParams) ProtoMethods() *protoiface.Methods {
 // versions:
 // 	protoc-gen-go v1.27.0
 // 	protoc        (unknown)
-// source: fx/erc20/v1/legacy.proto
+// source: fx/erc20/v1/erc20_legacy.proto
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.
@@ -6749,7 +5879,7 @@ type MsgConvertERC20 struct {
 func (x *MsgConvertERC20) Reset() {
 	*x = MsgConvertERC20{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[0]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6763,7 +5893,7 @@ func (*MsgConvertERC20) ProtoMessage() {}
 
 // Deprecated: Use MsgConvertERC20.ProtoReflect.Descriptor instead.
 func (*MsgConvertERC20) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{0}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *MsgConvertERC20) GetContractAddress() string {
@@ -6809,7 +5939,7 @@ type MsgConvertDenom struct {
 func (x *MsgConvertDenom) Reset() {
 	*x = MsgConvertDenom{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[1]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6823,7 +5953,7 @@ func (*MsgConvertDenom) ProtoMessage() {}
 
 // Deprecated: Use MsgConvertDenom.ProtoReflect.Descriptor instead.
 func (*MsgConvertDenom) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{1}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *MsgConvertDenom) GetSender() string {
@@ -6868,7 +5998,7 @@ type MsgUpdateDenomAlias struct {
 func (x *MsgUpdateDenomAlias) Reset() {
 	*x = MsgUpdateDenomAlias{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[2]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6882,7 +6012,7 @@ func (*MsgUpdateDenomAlias) ProtoMessage() {}
 
 // Deprecated: Use MsgUpdateDenomAlias.ProtoReflect.Descriptor instead.
 func (*MsgUpdateDenomAlias) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{2}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *MsgUpdateDenomAlias) GetAuthority() string {
@@ -6920,7 +6050,7 @@ type RegisterCoinProposal struct {
 func (x *RegisterCoinProposal) Reset() {
 	*x = RegisterCoinProposal{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[3]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6934,7 +6064,7 @@ func (*RegisterCoinProposal) ProtoMessage() {}
 
 // Deprecated: Use RegisterCoinProposal.ProtoReflect.Descriptor instead.
 func (*RegisterCoinProposal) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{3}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RegisterCoinProposal) GetTitle() string {
@@ -6973,7 +6103,7 @@ type RegisterERC20Proposal struct {
 func (x *RegisterERC20Proposal) Reset() {
 	*x = RegisterERC20Proposal{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[4]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6987,7 +6117,7 @@ func (*RegisterERC20Proposal) ProtoMessage() {}
 
 // Deprecated: Use RegisterERC20Proposal.ProtoReflect.Descriptor instead.
 func (*RegisterERC20Proposal) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{4}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RegisterERC20Proposal) GetTitle() string {
@@ -7032,7 +6162,7 @@ type ToggleTokenConversionProposal struct {
 func (x *ToggleTokenConversionProposal) Reset() {
 	*x = ToggleTokenConversionProposal{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[5]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7046,7 +6176,7 @@ func (*ToggleTokenConversionProposal) ProtoMessage() {}
 
 // Deprecated: Use ToggleTokenConversionProposal.ProtoReflect.Descriptor instead.
 func (*ToggleTokenConversionProposal) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{5}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ToggleTokenConversionProposal) GetTitle() string {
@@ -7085,7 +6215,7 @@ type UpdateDenomAliasProposal struct {
 func (x *UpdateDenomAliasProposal) Reset() {
 	*x = UpdateDenomAliasProposal{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[6]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7099,7 +6229,7 @@ func (*UpdateDenomAliasProposal) ProtoMessage() {}
 
 // Deprecated: Use UpdateDenomAliasProposal.ProtoReflect.Descriptor instead.
 func (*UpdateDenomAliasProposal) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{6}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateDenomAliasProposal) GetTitle() string {
@@ -7143,7 +6273,7 @@ type MsgRegisterCoin struct {
 func (x *MsgRegisterCoin) Reset() {
 	*x = MsgRegisterCoin{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[7]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7157,7 +6287,7 @@ func (*MsgRegisterCoin) ProtoMessage() {}
 
 // Deprecated: Use MsgRegisterCoin.ProtoReflect.Descriptor instead.
 func (*MsgRegisterCoin) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{7}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *MsgRegisterCoin) GetAuthority() string {
@@ -7170,42 +6300,6 @@ func (x *MsgRegisterCoin) GetAuthority() string {
 func (x *MsgRegisterCoin) GetMetadata() *v1beta11.Metadata {
 	if x != nil {
 		return x.Metadata
-	}
-	return nil
-}
-
-// Deprecated: Do not use.
-type MsgRegisterCoinResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Pair *ERC20Token `protobuf:"bytes,1,opt,name=pair,proto3" json:"pair,omitempty"`
-}
-
-func (x *MsgRegisterCoinResponse) Reset() {
-	*x = MsgRegisterCoinResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[8]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *MsgRegisterCoinResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*MsgRegisterCoinResponse) ProtoMessage() {}
-
-// Deprecated: Use MsgRegisterCoinResponse.ProtoReflect.Descriptor instead.
-func (*MsgRegisterCoinResponse) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *MsgRegisterCoinResponse) GetPair() *ERC20Token {
-	if x != nil {
-		return x.Pair
 	}
 	return nil
 }
@@ -7224,7 +6318,7 @@ type MsgRegisterERC20 struct {
 func (x *MsgRegisterERC20) Reset() {
 	*x = MsgRegisterERC20{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[9]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7238,7 +6332,7 @@ func (*MsgRegisterERC20) ProtoMessage() {}
 
 // Deprecated: Use MsgRegisterERC20.ProtoReflect.Descriptor instead.
 func (*MsgRegisterERC20) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{9}
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *MsgRegisterERC20) GetAuthority() string {
@@ -7263,42 +6357,7 @@ func (x *MsgRegisterERC20) GetAliases() []string {
 }
 
 // Deprecated: Do not use.
-type MsgRegisterERC20Response struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Pair *ERC20Token `protobuf:"bytes,1,opt,name=pair,proto3" json:"pair,omitempty"`
-}
-
-func (x *MsgRegisterERC20Response) Reset() {
-	*x = MsgRegisterERC20Response{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[10]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *MsgRegisterERC20Response) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*MsgRegisterERC20Response) ProtoMessage() {}
-
-// Deprecated: Use MsgRegisterERC20Response.ProtoReflect.Descriptor instead.
-func (*MsgRegisterERC20Response) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *MsgRegisterERC20Response) GetPair() *ERC20Token {
-	if x != nil {
-		return x.Pair
-	}
-	return nil
-}
-
-type LegacyParams struct {
+type LegacyERC20Params struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -7308,213 +6367,203 @@ type LegacyParams struct {
 	IbcTimeout    *durationpb.Duration `protobuf:"bytes,3,opt,name=ibc_timeout,json=ibcTimeout,proto3" json:"ibc_timeout,omitempty"`
 }
 
-func (x *LegacyParams) Reset() {
-	*x = LegacyParams{}
+func (x *LegacyERC20Params) Reset() {
+	*x = LegacyERC20Params{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fx_erc20_v1_legacy_proto_msgTypes[11]
+		mi := &file_fx_erc20_v1_erc20_legacy_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *LegacyParams) String() string {
+func (x *LegacyERC20Params) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LegacyParams) ProtoMessage() {}
+func (*LegacyERC20Params) ProtoMessage() {}
 
-// Deprecated: Use LegacyParams.ProtoReflect.Descriptor instead.
-func (*LegacyParams) Descriptor() ([]byte, []int) {
-	return file_fx_erc20_v1_legacy_proto_rawDescGZIP(), []int{11}
+// Deprecated: Use LegacyERC20Params.ProtoReflect.Descriptor instead.
+func (*LegacyERC20Params) Descriptor() ([]byte, []int) {
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *LegacyParams) GetEnableErc20() bool {
+func (x *LegacyERC20Params) GetEnableErc20() bool {
 	if x != nil {
 		return x.EnableErc20
 	}
 	return false
 }
 
-func (x *LegacyParams) GetEnableEvmHook() bool {
+func (x *LegacyERC20Params) GetEnableEvmHook() bool {
 	if x != nil {
 		return x.EnableEvmHook
 	}
 	return false
 }
 
-func (x *LegacyParams) GetIbcTimeout() *durationpb.Duration {
+func (x *LegacyERC20Params) GetIbcTimeout() *durationpb.Duration {
 	if x != nil {
 		return x.IbcTimeout
 	}
 	return nil
 }
 
-var File_fx_erc20_v1_legacy_proto protoreflect.FileDescriptor
+var File_fx_erc20_v1_erc20_legacy_proto protoreflect.FileDescriptor
 
-var file_fx_erc20_v1_legacy_proto_rawDesc = []byte{
-	0x0a, 0x18, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x6c, 0x65,
-	0x67, 0x61, 0x63, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0b, 0x66, 0x78, 0x2e, 0x65,
-	0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x1a, 0x1e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f,
-	0x62, 0x61, 0x6e, 0x6b, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x62, 0x61, 0x6e,
-	0x6b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f,
-	0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x63, 0x6f, 0x69,
-	0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x17, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f,
-	0x6d, 0x73, 0x67, 0x2f, 0x76, 0x31, 0x2f, 0x6d, 0x73, 0x67, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x1a, 0x19, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63,
-	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x17, 0x66, 0x78, 0x2f,
-	0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f,
-	0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x11, 0x61, 0x6d, 0x69, 0x6e,
-	0x6f, 0x2f, 0x61, 0x6d, 0x69, 0x6e, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x64,
-	0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xde, 0x01,
-	0x0a, 0x0f, 0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x45, 0x52, 0x43, 0x32,
-	0x30, 0x12, 0x29, 0x0a, 0x10, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x5f, 0x61, 0x64,
-	0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x63, 0x6f, 0x6e,
-	0x74, 0x72, 0x61, 0x63, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x43, 0x0a, 0x06,
-	0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x2b, 0xc8, 0xde,
-	0x1f, 0x00, 0xda, 0xde, 0x1f, 0x15, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e,
-	0x69, 0x6f, 0x2f, 0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e, 0x74, 0xd2, 0xb4, 0x2d, 0x0a, 0x63,
-	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e,
-	0x74, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x12, 0x16, 0x0a,
-	0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73,
-	0x65, 0x6e, 0x64, 0x65, 0x72, 0x3a, 0x27, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x06, 0x73, 0x65,
-	0x6e, 0x64, 0x65, 0x72, 0x8a, 0xe7, 0xb0, 0x2a, 0x15, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x4d,
-	0x73, 0x67, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x45, 0x52, 0x43, 0x32, 0x30, 0x22, 0xbb,
-	0x01, 0x0a, 0x0f, 0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x44, 0x65, 0x6e,
-	0x6f, 0x6d, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65,
-	0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x72, 0x65,
-	0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x12, 0x33, 0x0a, 0x04, 0x63, 0x6f, 0x69, 0x6e, 0x18, 0x03,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61,
-	0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42,
-	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x04, 0x63, 0x6f, 0x69, 0x6e, 0x12, 0x16, 0x0a, 0x06, 0x74,
-	0x61, 0x72, 0x67, 0x65, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x74, 0x61, 0x72,
-	0x67, 0x65, 0x74, 0x3a, 0x27, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x06, 0x73, 0x65, 0x6e, 0x64,
-	0x65, 0x72, 0x8a, 0xe7, 0xb0, 0x2a, 0x15, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x4d, 0x73, 0x67,
-	0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0xa9, 0x01, 0x0a,
-	0x13, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x41,
-	0x6c, 0x69, 0x61, 0x73, 0x12, 0x36, 0x0a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74,
-	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73,
-	0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x52, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x12, 0x14, 0x0a, 0x05,
-	0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e,
-	0x6f, 0x6d, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x3a, 0x2e, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a,
-	0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x8a, 0xe7, 0xb0, 0x2a, 0x19, 0x65,
-	0x72, 0x63, 0x32, 0x30, 0x2f, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65,
-	0x6e, 0x6f, 0x6d, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x22, 0x97, 0x01, 0x0a, 0x14, 0x52, 0x65, 0x67,
-	0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x6f, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61,
-	0x6c, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72,
-	0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65,
-	0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3f, 0x0a, 0x08, 0x6d, 0x65, 0x74,
-	0x61, 0x64, 0x61, 0x74, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x63, 0x6f,
-	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x6e, 0x6b, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00,
-	0x52, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x3a, 0x06, 0x18, 0x01, 0xe8, 0xa0,
-	0x1f, 0x00, 0x22, 0x95, 0x01, 0x0a, 0x15, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x45,
-	0x52, 0x43, 0x32, 0x30, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x12, 0x14, 0x0a, 0x05,
-	0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74,
-	0x6c, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f,
-	0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70,
-	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x22, 0x0a, 0x0c, 0x65, 0x72, 0x63, 0x32, 0x30, 0x61, 0x64, 0x64,
-	0x72, 0x65, 0x73, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x65, 0x72, 0x63, 0x32,
-	0x30, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x6c, 0x69, 0x61,
-	0x73, 0x65, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73,
-	0x65, 0x73, 0x3a, 0x06, 0x18, 0x01, 0xe8, 0xa0, 0x1f, 0x00, 0x22, 0x75, 0x0a, 0x1d, 0x54, 0x6f,
-	0x67, 0x67, 0x6c, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73,
-	0x69, 0x6f, 0x6e, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x74,
-	0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c,
-	0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74,
-	0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x3a, 0x06, 0x18, 0x01, 0xe8, 0xa0, 0x1f,
-	0x01, 0x22, 0x86, 0x01, 0x0a, 0x18, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6e, 0x6f,
-	0x6d, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x12, 0x14,
+var file_fx_erc20_v1_erc20_legacy_proto_rawDesc = []byte{
+	0x0a, 0x1e, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x2f, 0x65, 0x72,
+	0x63, 0x32, 0x30, 0x5f, 0x6c, 0x65, 0x67, 0x61, 0x63, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x12, 0x0b, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x1a, 0x1e, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x62, 0x61, 0x6e, 0x6b, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x31, 0x2f, 0x62, 0x61, 0x6e, 0x6b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x31, 0x2f, 0x63, 0x6f, 0x69, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x17, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x6d, 0x73, 0x67, 0x2f, 0x76, 0x31, 0x2f, 0x6d, 0x73, 0x67,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x19, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5f, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67,
+	0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x11, 0x61, 0x6d, 0x69, 0x6e, 0x6f, 0x2f, 0x61,
+	0x6d, 0x69, 0x6e, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x64, 0x75, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xde, 0x01, 0x0a, 0x0f, 0x4d,
+	0x73, 0x67, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x45, 0x52, 0x43, 0x32, 0x30, 0x12, 0x29,
+	0x0a, 0x10, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61,
+	0x63, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x43, 0x0a, 0x06, 0x61, 0x6d, 0x6f,
+	0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x2b, 0xc8, 0xde, 0x1f, 0x00, 0xda,
+	0xde, 0x1f, 0x15, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f,
+	0x6d, 0x61, 0x74, 0x68, 0x2e, 0x49, 0x6e, 0x74, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x1a,
+	0x0a, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65,
+	0x6e, 0x64, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x6e, 0x64,
+	0x65, 0x72, 0x3a, 0x27, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65,
+	0x72, 0x8a, 0xe7, 0xb0, 0x2a, 0x15, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x4d, 0x73, 0x67, 0x43,
+	0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x45, 0x52, 0x43, 0x32, 0x30, 0x22, 0xbb, 0x01, 0x0a, 0x0f,
+	0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x74, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x12,
+	0x16, 0x0a, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69,
+	0x76, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69,
+	0x76, 0x65, 0x72, 0x12, 0x33, 0x0a, 0x04, 0x63, 0x6f, 0x69, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x04, 0xc8, 0xde,
+	0x1f, 0x00, 0x52, 0x04, 0x63, 0x6f, 0x69, 0x6e, 0x12, 0x16, 0x0a, 0x06, 0x74, 0x61, 0x72, 0x67,
+	0x65, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74,
+	0x3a, 0x27, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x8a,
+	0xe7, 0xb0, 0x2a, 0x15, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x4d, 0x73, 0x67, 0x43, 0x6f, 0x6e,
+	0x76, 0x65, 0x72, 0x74, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x22, 0xa9, 0x01, 0x0a, 0x13, 0x4d, 0x73,
+	0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x41, 0x6c, 0x69, 0x61,
+	0x73, 0x12, 0x36, 0x0a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
+	0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x09,
+	0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6e,
+	0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x12,
+	0x14, 0x0a, 0x05, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x61, 0x6c, 0x69, 0x61, 0x73, 0x3a, 0x2e, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75,
+	0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x8a, 0xe7, 0xb0, 0x2a, 0x19, 0x65, 0x72, 0x63, 0x32,
+	0x30, 0x2f, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d,
+	0x41, 0x6c, 0x69, 0x61, 0x73, 0x22, 0x97, 0x01, 0x0a, 0x14, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74,
+	0x65, 0x72, 0x43, 0x6f, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x12, 0x14,
 	0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74,
 	0x69, 0x74, 0x6c, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74,
 	0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72,
-	0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18,
-	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x14, 0x0a, 0x05,
-	0x61, 0x6c, 0x69, 0x61, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x61, 0x6c, 0x69,
-	0x61, 0x73, 0x3a, 0x06, 0x18, 0x01, 0xe8, 0xa0, 0x1f, 0x00, 0x22, 0xb6, 0x01, 0x0a, 0x0f, 0x4d,
-	0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x6f, 0x69, 0x6e, 0x12, 0x36,
-	0x0a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64,
-	0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x09, 0x61, 0x75, 0x74,
-	0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x12, 0x3f, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61,
-	0x74, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
+	0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3f, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61,
+	0x74, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
 	0x73, 0x2e, 0x62, 0x61, 0x6e, 0x6b, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4d,
 	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x08, 0x6d,
-	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x3a, 0x2a, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x09,
-	0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x8a, 0xe7, 0xb0, 0x2a, 0x15, 0x65, 0x72,
-	0x63, 0x32, 0x30, 0x2f, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x43,
-	0x6f, 0x69, 0x6e, 0x22, 0x50, 0x0a, 0x17, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74,
-	0x65, 0x72, 0x43, 0x6f, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x31,
-	0x0a, 0x04, 0x70, 0x61, 0x69, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x66,
-	0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x52, 0x43, 0x32, 0x30,
-	0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x04, 0x70, 0x61, 0x69,
-	0x72, 0x3a, 0x02, 0x18, 0x01, 0x22, 0xb5, 0x01, 0x0a, 0x10, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67,
-	0x69, 0x73, 0x74, 0x65, 0x72, 0x45, 0x52, 0x43, 0x32, 0x30, 0x12, 0x36, 0x0a, 0x09, 0x61, 0x75,
-	0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2,
-	0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
-	0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69,
-	0x74, 0x79, 0x12, 0x22, 0x0a, 0x0c, 0x65, 0x72, 0x63, 0x32, 0x30, 0x61, 0x64, 0x64, 0x72, 0x65,
-	0x73, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x65, 0x72, 0x63, 0x32, 0x30, 0x61,
-	0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65,
-	0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73,
-	0x3a, 0x2b, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69,
-	0x74, 0x79, 0x8a, 0xe7, 0xb0, 0x2a, 0x16, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x4d, 0x73, 0x67,
-	0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x45, 0x52, 0x43, 0x32, 0x30, 0x22, 0x51, 0x0a,
-	0x18, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x45, 0x52, 0x43, 0x32,
-	0x30, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x31, 0x0a, 0x04, 0x70, 0x61, 0x69,
-	0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63,
-	0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x52, 0x43, 0x32, 0x30, 0x54, 0x6f, 0x6b, 0x65, 0x6e,
-	0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x04, 0x70, 0x61, 0x69, 0x72, 0x3a, 0x02, 0x18, 0x01,
-	0x22, 0xfb, 0x01, 0x0a, 0x0c, 0x4c, 0x65, 0x67, 0x61, 0x63, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d,
-	0x73, 0x12, 0x3a, 0x0a, 0x0c, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x72, 0x63, 0x32,
-	0x30, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x42, 0x17, 0xf2, 0xde, 0x1f, 0x13, 0x79, 0x61, 0x6d,
-	0x6c, 0x3a, 0x22, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x22,
-	0x52, 0x0b, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45, 0x72, 0x63, 0x32, 0x30, 0x12, 0x53, 0x0a,
-	0x0f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x76, 0x6d, 0x5f, 0x68, 0x6f, 0x6f, 0x6b,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x42, 0x2b, 0xe2, 0xde, 0x1f, 0x0d, 0x45, 0x6e, 0x61, 0x62,
-	0x6c, 0x65, 0x45, 0x56, 0x4d, 0x48, 0x6f, 0x6f, 0x6b, 0xf2, 0xde, 0x1f, 0x16, 0x79, 0x61, 0x6d,
-	0x6c, 0x3a, 0x22, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x76, 0x6d, 0x5f, 0x68, 0x6f,
-	0x6f, 0x6b, 0x22, 0x52, 0x0d, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45, 0x76, 0x6d, 0x48, 0x6f,
-	0x6f, 0x6b, 0x12, 0x5a, 0x0a, 0x0b, 0x69, 0x62, 0x63, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75,
-	0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x42, 0x1e, 0xc8, 0xde, 0x1f, 0x00, 0xf2, 0xde, 0x1f, 0x12, 0x79, 0x61, 0x6d, 0x6c,
-	0x3a, 0x22, 0x69, 0x62, 0x63, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x22, 0x98, 0xdf,
-	0x1f, 0x01, 0x52, 0x0a, 0x69, 0x62, 0x63, 0x54, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x42, 0x92,
-	0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e,
-	0x76, 0x31, 0x42, 0x0b, 0x4c, 0x65, 0x67, 0x61, 0x63, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
-	0x01, 0x5a, 0x24, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x3b,
-	0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x46, 0x45, 0x58, 0xaa, 0x02, 0x0b,
-	0x46, 0x78, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0b, 0x46, 0x78,
-	0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17, 0x46, 0x78, 0x5c, 0x45,
-	0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
-	0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x46, 0x78, 0x3a, 0x3a, 0x45, 0x72, 0x63, 0x32, 0x30, 0x3a,
-	0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x3a, 0x06, 0x18, 0x01, 0xe8, 0xa0, 0x1f, 0x00, 0x22,
+	0x95, 0x01, 0x0a, 0x15, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x45, 0x52, 0x43, 0x32,
+	0x30, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74,
+	0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12,
+	0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x12, 0x22, 0x0a, 0x0c, 0x65, 0x72, 0x63, 0x32, 0x30, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73,
+	0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x65, 0x72, 0x63, 0x32, 0x30, 0x61, 0x64,
+	0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73,
+	0x18, 0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73, 0x3a,
+	0x06, 0x18, 0x01, 0xe8, 0xa0, 0x1f, 0x00, 0x22, 0x75, 0x0a, 0x1d, 0x54, 0x6f, 0x67, 0x67, 0x6c,
+	0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x20,
+	0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x3a, 0x06, 0x18, 0x01, 0xe8, 0xa0, 0x1f, 0x01, 0x22, 0x86,
+	0x01, 0x0a, 0x18, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x44, 0x65, 0x6e, 0x6f, 0x6d, 0x41, 0x6c,
+	0x69, 0x61, 0x73, 0x50, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x74,
+	0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c,
+	0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74,
+	0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x6c, 0x69,
+	0x61, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x3a,
+	0x06, 0x18, 0x01, 0xe8, 0xa0, 0x1f, 0x00, 0x22, 0xb6, 0x01, 0x0a, 0x0f, 0x4d, 0x73, 0x67, 0x52,
+	0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x6f, 0x69, 0x6e, 0x12, 0x36, 0x0a, 0x09, 0x61,
+	0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18,
+	0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72,
+	0x69, 0x74, 0x79, 0x12, 0x3f, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62,
+	0x61, 0x6e, 0x6b, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61,
+	0x64, 0x61, 0x74, 0x61, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x08, 0x6d, 0x65, 0x74, 0x61,
+	0x64, 0x61, 0x74, 0x61, 0x3a, 0x2a, 0x18, 0x01, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75, 0x74,
+	0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x8a, 0xe7, 0xb0, 0x2a, 0x15, 0x65, 0x72, 0x63, 0x32, 0x30,
+	0x2f, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x6f, 0x69, 0x6e,
+	0x22, 0xb5, 0x01, 0x0a, 0x10, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72,
+	0x45, 0x52, 0x43, 0x32, 0x30, 0x12, 0x36, 0x0a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69,
+	0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f,
+	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69,
+	0x6e, 0x67, 0x52, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x12, 0x22, 0x0a,
+	0x0c, 0x65, 0x72, 0x63, 0x32, 0x30, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0c, 0x65, 0x72, 0x63, 0x32, 0x30, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73,
+	0x73, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03,
+	0x28, 0x09, 0x52, 0x07, 0x61, 0x6c, 0x69, 0x61, 0x73, 0x65, 0x73, 0x3a, 0x2b, 0x18, 0x01, 0x82,
+	0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x8a, 0xe7, 0xb0,
+	0x2a, 0x16, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x67, 0x69, 0x73,
+	0x74, 0x65, 0x72, 0x45, 0x52, 0x43, 0x32, 0x30, 0x22, 0x84, 0x02, 0x0a, 0x11, 0x4c, 0x65, 0x67,
+	0x61, 0x63, 0x79, 0x45, 0x52, 0x43, 0x32, 0x30, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x3a,
+	0x0a, 0x0c, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x08, 0x42, 0x17, 0xf2, 0xde, 0x1f, 0x13, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22,
+	0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x22, 0x52, 0x0b, 0x65,
+	0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45, 0x72, 0x63, 0x32, 0x30, 0x12, 0x53, 0x0a, 0x0f, 0x65, 0x6e,
+	0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x76, 0x6d, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x08, 0x42, 0x2b, 0xe2, 0xde, 0x1f, 0x0d, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45,
+	0x56, 0x4d, 0x48, 0x6f, 0x6f, 0x6b, 0xf2, 0xde, 0x1f, 0x16, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22,
+	0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x65, 0x76, 0x6d, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x22,
+	0x52, 0x0d, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45, 0x76, 0x6d, 0x48, 0x6f, 0x6f, 0x6b, 0x12,
+	0x5a, 0x0a, 0x0b, 0x69, 0x62, 0x63, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42,
+	0x1e, 0xc8, 0xde, 0x1f, 0x00, 0xf2, 0xde, 0x1f, 0x12, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x69,
+	0x62, 0x63, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x22, 0x98, 0xdf, 0x1f, 0x01, 0x52,
+	0x0a, 0x69, 0x62, 0x63, 0x54, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x3a, 0x02, 0x18, 0x01, 0x42,
+	0x97, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x66, 0x78, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30,
+	0x2e, 0x76, 0x31, 0x42, 0x10, 0x45, 0x72, 0x63, 0x32, 0x30, 0x4c, 0x65, 0x67, 0x61, 0x63, 0x79,
+	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x24, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73,
+	0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x78, 0x2f, 0x65, 0x72, 0x63,
+	0x32, 0x30, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02, 0x03,
+	0x46, 0x45, 0x58, 0xaa, 0x02, 0x0b, 0x46, 0x78, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56,
+	0x31, 0xca, 0x02, 0x0b, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2,
+	0x02, 0x17, 0x46, 0x78, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50,
+	0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x46, 0x78, 0x3a, 0x3a,
+	0x45, 0x72, 0x63, 0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
-	file_fx_erc20_v1_legacy_proto_rawDescOnce sync.Once
-	file_fx_erc20_v1_legacy_proto_rawDescData = file_fx_erc20_v1_legacy_proto_rawDesc
+	file_fx_erc20_v1_erc20_legacy_proto_rawDescOnce sync.Once
+	file_fx_erc20_v1_erc20_legacy_proto_rawDescData = file_fx_erc20_v1_erc20_legacy_proto_rawDesc
 )
 
-func file_fx_erc20_v1_legacy_proto_rawDescGZIP() []byte {
-	file_fx_erc20_v1_legacy_proto_rawDescOnce.Do(func() {
-		file_fx_erc20_v1_legacy_proto_rawDescData = protoimpl.X.CompressGZIP(file_fx_erc20_v1_legacy_proto_rawDescData)
+func file_fx_erc20_v1_erc20_legacy_proto_rawDescGZIP() []byte {
+	file_fx_erc20_v1_erc20_legacy_proto_rawDescOnce.Do(func() {
+		file_fx_erc20_v1_erc20_legacy_proto_rawDescData = protoimpl.X.CompressGZIP(file_fx_erc20_v1_erc20_legacy_proto_rawDescData)
 	})
-	return file_fx_erc20_v1_legacy_proto_rawDescData
+	return file_fx_erc20_v1_erc20_legacy_proto_rawDescData
 }
 
-var file_fx_erc20_v1_legacy_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_fx_erc20_v1_legacy_proto_goTypes = []interface{}{
+var file_fx_erc20_v1_erc20_legacy_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_fx_erc20_v1_erc20_legacy_proto_goTypes = []interface{}{
 	(*MsgConvertERC20)(nil),               // 0: fx.erc20.v1.MsgConvertERC20
 	(*MsgConvertDenom)(nil),               // 1: fx.erc20.v1.MsgConvertDenom
 	(*MsgUpdateDenomAlias)(nil),           // 2: fx.erc20.v1.MsgUpdateDenomAlias
@@ -7523,37 +6572,31 @@ var file_fx_erc20_v1_legacy_proto_goTypes = []interface{}{
 	(*ToggleTokenConversionProposal)(nil), // 5: fx.erc20.v1.ToggleTokenConversionProposal
 	(*UpdateDenomAliasProposal)(nil),      // 6: fx.erc20.v1.UpdateDenomAliasProposal
 	(*MsgRegisterCoin)(nil),               // 7: fx.erc20.v1.MsgRegisterCoin
-	(*MsgRegisterCoinResponse)(nil),       // 8: fx.erc20.v1.MsgRegisterCoinResponse
-	(*MsgRegisterERC20)(nil),              // 9: fx.erc20.v1.MsgRegisterERC20
-	(*MsgRegisterERC20Response)(nil),      // 10: fx.erc20.v1.MsgRegisterERC20Response
-	(*LegacyParams)(nil),                  // 11: fx.erc20.v1.LegacyParams
-	(*v1beta1.Coin)(nil),                  // 12: cosmos.base.v1beta1.Coin
-	(*v1beta11.Metadata)(nil),             // 13: cosmos.bank.v1beta1.Metadata
-	(*ERC20Token)(nil),                    // 14: fx.erc20.v1.ERC20Token
-	(*durationpb.Duration)(nil),           // 15: google.protobuf.Duration
+	(*MsgRegisterERC20)(nil),              // 8: fx.erc20.v1.MsgRegisterERC20
+	(*LegacyERC20Params)(nil),             // 9: fx.erc20.v1.LegacyERC20Params
+	(*v1beta1.Coin)(nil),                  // 10: cosmos.base.v1beta1.Coin
+	(*v1beta11.Metadata)(nil),             // 11: cosmos.bank.v1beta1.Metadata
+	(*durationpb.Duration)(nil),           // 12: google.protobuf.Duration
 }
-var file_fx_erc20_v1_legacy_proto_depIdxs = []int32{
-	12, // 0: fx.erc20.v1.MsgConvertDenom.coin:type_name -> cosmos.base.v1beta1.Coin
-	13, // 1: fx.erc20.v1.RegisterCoinProposal.metadata:type_name -> cosmos.bank.v1beta1.Metadata
-	13, // 2: fx.erc20.v1.MsgRegisterCoin.metadata:type_name -> cosmos.bank.v1beta1.Metadata
-	14, // 3: fx.erc20.v1.MsgRegisterCoinResponse.pair:type_name -> fx.erc20.v1.ERC20Token
-	14, // 4: fx.erc20.v1.MsgRegisterERC20Response.pair:type_name -> fx.erc20.v1.ERC20Token
-	15, // 5: fx.erc20.v1.LegacyParams.ibc_timeout:type_name -> google.protobuf.Duration
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+var file_fx_erc20_v1_erc20_legacy_proto_depIdxs = []int32{
+	10, // 0: fx.erc20.v1.MsgConvertDenom.coin:type_name -> cosmos.base.v1beta1.Coin
+	11, // 1: fx.erc20.v1.RegisterCoinProposal.metadata:type_name -> cosmos.bank.v1beta1.Metadata
+	11, // 2: fx.erc20.v1.MsgRegisterCoin.metadata:type_name -> cosmos.bank.v1beta1.Metadata
+	12, // 3: fx.erc20.v1.LegacyERC20Params.ibc_timeout:type_name -> google.protobuf.Duration
+	4,  // [4:4] is the sub-list for method output_type
+	4,  // [4:4] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_fx_erc20_v1_legacy_proto_init() }
-func file_fx_erc20_v1_legacy_proto_init() {
-	if File_fx_erc20_v1_legacy_proto != nil {
+func init() { file_fx_erc20_v1_erc20_legacy_proto_init() }
+func file_fx_erc20_v1_erc20_legacy_proto_init() {
+	if File_fx_erc20_v1_erc20_legacy_proto != nil {
 		return
 	}
-	file_fx_erc20_v1_types_proto_init()
 	if !protoimpl.UnsafeEnabled {
-		file_fx_erc20_v1_legacy_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MsgConvertERC20); i {
 			case 0:
 				return &v.state
@@ -7565,7 +6608,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MsgConvertDenom); i {
 			case 0:
 				return &v.state
@@ -7577,7 +6620,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MsgUpdateDenomAlias); i {
 			case 0:
 				return &v.state
@@ -7589,7 +6632,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RegisterCoinProposal); i {
 			case 0:
 				return &v.state
@@ -7601,7 +6644,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RegisterERC20Proposal); i {
 			case 0:
 				return &v.state
@@ -7613,7 +6656,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ToggleTokenConversionProposal); i {
 			case 0:
 				return &v.state
@@ -7625,7 +6668,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateDenomAliasProposal); i {
 			case 0:
 				return &v.state
@@ -7637,7 +6680,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MsgRegisterCoin); i {
 			case 0:
 				return &v.state
@@ -7649,19 +6692,7 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsgRegisterCoinResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MsgRegisterERC20); i {
 			case 0:
 				return &v.state
@@ -7673,20 +6704,8 @@ func file_fx_erc20_v1_legacy_proto_init() {
 				return nil
 			}
 		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsgRegisterERC20Response); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_fx_erc20_v1_legacy_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LegacyParams); i {
+		file_fx_erc20_v1_erc20_legacy_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LegacyERC20Params); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7702,18 +6721,18 @@ func file_fx_erc20_v1_legacy_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_fx_erc20_v1_legacy_proto_rawDesc,
+			RawDescriptor: file_fx_erc20_v1_erc20_legacy_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_fx_erc20_v1_legacy_proto_goTypes,
-		DependencyIndexes: file_fx_erc20_v1_legacy_proto_depIdxs,
-		MessageInfos:      file_fx_erc20_v1_legacy_proto_msgTypes,
+		GoTypes:           file_fx_erc20_v1_erc20_legacy_proto_goTypes,
+		DependencyIndexes: file_fx_erc20_v1_erc20_legacy_proto_depIdxs,
+		MessageInfos:      file_fx_erc20_v1_erc20_legacy_proto_msgTypes,
 	}.Build()
-	File_fx_erc20_v1_legacy_proto = out.File
-	file_fx_erc20_v1_legacy_proto_rawDesc = nil
-	file_fx_erc20_v1_legacy_proto_goTypes = nil
-	file_fx_erc20_v1_legacy_proto_depIdxs = nil
+	File_fx_erc20_v1_erc20_legacy_proto = out.File
+	file_fx_erc20_v1_erc20_legacy_proto_rawDesc = nil
+	file_fx_erc20_v1_erc20_legacy_proto_goTypes = nil
+	file_fx_erc20_v1_erc20_legacy_proto_depIdxs = nil
 }

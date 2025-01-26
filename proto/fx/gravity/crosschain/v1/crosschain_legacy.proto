@@ -1,14 +1,13 @@
 syntax = "proto3";
 package fx.gravity.crosschain.v1;
 
-import "fx/gravity/crosschain/v1/types.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/crosschain/types";
+option go_package = "github.com/pundiai/fx-core/types/legacy";
 
 // Deprecated: after block 5713000
 message InitCrossChainParamsProposal {
@@ -18,12 +17,43 @@ message InitCrossChainParamsProposal {
 
   string title = 1;
   string description = 2;
-  Params params = 3;
+  ForkParams params = 3;
   string chain_name = 4;
 }
 
-// Deprecated: Do not use.
+message ForkParams {
+  option (gogoproto.stringer) = false;
+  string gravity_id = 1;
+  uint64 average_block_time = 2;
+  uint64 external_batch_timeout = 3;
+  uint64 average_external_block_time = 4;
+  uint64 signed_window = 5;
+  bytes slash_fraction = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  bytes oracle_set_update_power_change_percent = 7 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  uint64 ibc_transfer_timeout_height = 8;
+  // Deprecated: after block 5713000
+  repeated string oracles = 9 [ (gogoproto.nullable) = true ];
+  cosmos.base.v1beta1.Coin delegate_threshold = 10
+      [ (gogoproto.nullable) = false ];
+  int64 delegate_multiple = 11;
+  uint64 bridge_call_timeout = 12;
+  uint64 bridge_call_max_gas_limit = 13;
+  // Deprecated: do not use
+  bool enable_send_to_external_pending = 14;
+  // Deprecated: do not use
+  bool enable_bridge_call_pending = 15;
+}
+
 message UpdateChainOraclesProposal {
+  option deprecated = true;
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
@@ -59,23 +89,8 @@ message MsgAddOracleDeposit {
   string chain_name = 3;
 }
 
-// Deprecated: Please use precompile BridgeCall
-message MsgSendToExternal {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "crosschain/MsgSendToExternal";
-
-  string sender = 1;
-  string dest = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
-  cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
-  string chain_name = 5;
-}
-
-// Deprecated: do not use
-message MsgSendToExternalResponse { uint64 batch_nonce = 1; }
-
-// Deprecated: do not use
 message MsgCancelSendToExternal {
+  option deprecated = true;
   option (cosmos.msg.v1.signer) = "sender";
   option (amino.name) = "crosschain/MsgCancelSendToExternal";
 
@@ -84,8 +99,8 @@ message MsgCancelSendToExternal {
   string chain_name = 3;
 }
 
-// Deprecated: do not use
 message MsgRequestBatch {
+  option deprecated = true;
   option (cosmos.msg.v1.signer) = "sender";
   option (amino.name) = "crosschain/MsgRequestBatch";
 
@@ -105,9 +120,6 @@ message MsgRequestBatch {
   ];
 }
 
-// Deprecated: do not use
-message MsgRequestBatchResponse { uint64 batch_nonce = 1; }
-
 message MsgIncreaseBridgeFee {
   option deprecated = true;
   option (cosmos.msg.v1.signer) = "sender";
@@ -117,55 +129,4 @@ message MsgIncreaseBridgeFee {
   uint64 transaction_id = 2;
   string sender = 3;
   cosmos.base.v1beta1.Coin add_bridge_fee = 4 [ (gogoproto.nullable) = false ];
-}
-
-message MsgOracleSetConfirmResponse { option deprecated = true; }
-
-message MsgConfirmBatchResponse { option deprecated = true; }
-
-message MsgBridgeCallConfirmResponse { option deprecated = true; }
-
-message BridgeToken {
-  option deprecated = true;
-  string token = 1;
-  string denom = 2;
-  // Deprecated: after upgrade v3
-  string channel_ibc = 3;
-}
-
-message BatchFees {
-  option deprecated = true;
-  string token_contract = 1;
-  string total_fees = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-  uint64 total_txs = 3;
-  string total_amount = 4 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-}
-
-message MinBatchFee {
-  option deprecated = true;
-  string token_contract = 1;
-  string base_fee = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-}
-
-message QueryBatchFeeRequest {
-  option deprecated = true;
-  string chain_name = 1;
-  repeated MinBatchFee min_batch_fees = 2 [ (gogoproto.nullable) = false ];
-}
-
-message QueryBatchFeeResponse {
-  option deprecated = true;
-  repeated BatchFees batch_fees = 1;
 }

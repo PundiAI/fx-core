@@ -8,8 +8,8 @@ import (
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	"github.com/pundiai/fx-core/v8/types/legacy"
+	"github.com/pundiai/fx-core/v8/types/legacy/gravity"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
-	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 func Test_MsgServiceRouter(t *testing.T) {
@@ -17,19 +17,37 @@ func Test_MsgServiceRouter(t *testing.T) {
 
 	msgServiceRouter := myApp.MsgServiceRouter()
 	deprecated := map[string]struct{}{
-		sdk.MsgTypeURL(&crosschaintypes.MsgSetOrchestratorAddress{}): {},
-		sdk.MsgTypeURL(&crosschaintypes.MsgAddOracleDeposit{}):       {},
-		sdk.MsgTypeURL(&legacy.MsgUpdateParams{}):                    {},
-		sdk.MsgTypeURL(&legacy.MsgUpdateFXParams{}):                  {},
-		sdk.MsgTypeURL(&legacy.MsgUpdateEGFParams{}):                 {},
-		sdk.MsgTypeURL(&crosschaintypes.MsgCancelSendToExternal{}):   {},
-		sdk.MsgTypeURL(&crosschaintypes.MsgIncreaseBridgeFee{}):      {},
-		sdk.MsgTypeURL(&crosschaintypes.MsgRequestBatch{}):           {},
-		sdk.MsgTypeURL(&erc20types.MsgConvertDenom{}):                {},
-		sdk.MsgTypeURL(&erc20types.MsgConvertERC20{}):                {},
-		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}):            {},
-		sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}):               {},
-		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}):                {},
+		sdk.MsgTypeURL(&legacy.MsgUpdateParams{}):    {},
+		sdk.MsgTypeURL(&legacy.MsgUpdateFXParams{}):  {},
+		sdk.MsgTypeURL(&legacy.MsgUpdateEGFParams{}): {},
+
+		sdk.MsgTypeURL(&legacy.MsgConvertDenom{}):     {},
+		sdk.MsgTypeURL(&legacy.MsgConvertERC20{}):     {},
+		sdk.MsgTypeURL(&legacy.MsgUpdateDenomAlias{}): {},
+		sdk.MsgTypeURL(&legacy.MsgRegisterERC20{}):    {},
+		sdk.MsgTypeURL(&legacy.MsgRegisterCoin{}):     {},
+
+		sdk.MsgTypeURL(&legacy.MsgValsetConfirm{}):           {},
+		sdk.MsgTypeURL(&legacy.MsgConfirmBatch{}):            {},
+		sdk.MsgTypeURL(&gravity.MsgSetOrchestratorAddress{}): {},
+		sdk.MsgTypeURL(&legacy.MsgFxOriginatedTokenClaim{}):  {},
+		sdk.MsgTypeURL(&gravity.MsgRequestBatch{}):           {},
+		sdk.MsgTypeURL(&legacy.MsgWithdrawClaim{}):           {},
+		sdk.MsgTypeURL(&legacy.MsgSendToEth{}):               {},
+		sdk.MsgTypeURL(&legacy.MsgCancelSendToEth{}):         {},
+		sdk.MsgTypeURL(&legacy.MsgValsetUpdatedClaim{}):      {},
+		sdk.MsgTypeURL(&legacy.MsgDepositClaim{}):            {},
+
+		sdk.MsgTypeURL(&legacy.MsgGrantPrivilege{}):      {},
+		sdk.MsgTypeURL(&legacy.MsgEditConsensusPubKey{}): {},
+
+		sdk.MsgTypeURL(&legacy.MsgSetOrchestratorAddress{}): {},
+		sdk.MsgTypeURL(&legacy.MsgAddOracleDeposit{}):       {},
+		sdk.MsgTypeURL(&legacy.MsgCancelSendToExternal{}):   {},
+		sdk.MsgTypeURL(&legacy.MsgIncreaseBridgeFee{}):      {},
+		sdk.MsgTypeURL(&legacy.MsgRequestBatch{}):           {},
+
+		sdk.MsgTypeURL(&legacy.MsgTransfer{}): {},
 
 		// MsgClaim
 		sdk.MsgTypeURL(&crosschaintypes.MsgSendToExternalClaim{}):   {},

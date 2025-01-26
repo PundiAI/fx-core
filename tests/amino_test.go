@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	legacytypes "github.com/pundiai/fx-core/v8/types/legacy"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
@@ -69,7 +70,7 @@ func TestAminoEncode(t *testing.T) {
 			name:     "erc20-RegisterCoinProposal",
 			expected: `{"type":"cosmos-sdk/MsgSubmitProposal","value":{"content":{"type":"erc20/RegisterCoinProposal","value":{"description":"foo","metadata":{"base":"test","denom_units":[{"aliases":["ethtest"],"denom":"test"},{"denom":"TEST","exponent":18}],"description":"test","display":"test","name":"test name","symbol":"TEST"},"title":"v2"}},"initial_deposit":[]}}`,
 			msg: govv1betal.MsgSubmitProposal{
-				Content: mustNewAnyWithValue(&erc20types.RegisterCoinProposal{
+				Content: mustNewAnyWithValue(&legacytypes.RegisterCoinProposal{
 					Title:       "v2",
 					Description: "foo",
 					Metadata: types.Metadata{

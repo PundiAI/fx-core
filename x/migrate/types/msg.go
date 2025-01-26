@@ -12,8 +12,6 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 )
 
-var _ sdk.Msg = &MsgMigrateAccount{}
-
 func NewMsgMigrateAccount(from sdk.AccAddress, to common.Address, signature string) *MsgMigrateAccount {
 	return &MsgMigrateAccount{
 		From:      from.String(),

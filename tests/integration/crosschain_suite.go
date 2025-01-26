@@ -336,18 +336,8 @@ func (suite *CrosschainSuite) SendToExternalAndCancel(coin sdk.Coin) {
 	_, txId := suite.SendToExternal(1, coin)
 	suite.Greater(txId, uint64(0))
 
-	suite.SendCancelSendToExternal(txId)
-
 	balAfter := suite.GetAllBalances(suite.signer.AccAddress())
 	suite.Equal(balBefore.AmountOf(coin.Denom), balAfter.AmountOf(coin.Denom))
-}
-
-func (suite *CrosschainSuite) SendCancelSendToExternal(txId uint64) {
-	suite.BroadcastTx(suite.signer, &crosschaintypes.MsgCancelSendToExternal{
-		TransactionId: txId,
-		Sender:        suite.signer.AccAddress().String(),
-		ChainName:     suite.chainName,
-	})
 }
 
 func (suite *CrosschainSuite) SendConfirmBatch() {

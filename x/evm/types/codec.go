@@ -5,10 +5,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-
-	"github.com/pundiai/fx-core/v8/types/legacy"
 )
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
@@ -18,10 +15,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgCallContract{},
 	)
 
-	registry.RegisterImplementations(
-		(*govv1betal.Content)(nil),
-		&legacy.InitEvmParamsProposal{},
-	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
