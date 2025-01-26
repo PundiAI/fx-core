@@ -10,7 +10,7 @@ RUN make build
 
 FROM alpine:3.19
 
-WORKDIR root
+WORKDIR /root
 
 COPY --from=builder /app/build/bin/fxcored /usr/bin/fxcored
 
