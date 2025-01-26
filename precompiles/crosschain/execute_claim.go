@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
@@ -91,6 +92,17 @@ func (m ExecuteClaimABI) NewExecuteClaimEvent(sender common.Address, eventNonce 
 		errReason = executeErr.Error()
 	}
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash()}, eventNonce, dstChain, errReason)
+}
+
+func (m ExecuteClaimABI) UnpackEvent(log *ethtypes.Log) (*fxcontract.ICrosschainExecuteClaimEvent, error) {
+	if log == nil {
+		return nil, errors.New("log is nil")
+	}
+	filterer, err := fxcontract.NewICrosschainFilterer(common.Address{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return filterer.ParseExecuteClaimEvent(*log)
 }
 
 func (m ExecuteClaimABI) PackInput(args fxcontract.ExecuteClaimArgs) ([]byte, error) {
