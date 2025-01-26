@@ -76,6 +76,9 @@ func (k BridgeFeeQuoteKeeper) GetQuoteById(ctx context.Context, id *big.Int) (IB
 	if err := k.QueryContract(sdk.UnwrapSDKContext(ctx), k.from, k.contract, k.abi, "getQuoteById", &res, id); err != nil {
 		return IBridgeFeeQuoteQuoteInfo{}, err
 	}
+	if res.Quote.Id.Sign() <= 0 {
+		return IBridgeFeeQuoteQuoteInfo{}, sdkerrors.ErrInvalidRequest.Wrapf("quote not found")
+	}
 	return res.Quote, nil
 }
 
