@@ -110,6 +110,9 @@ func upgradeMainnet(
 	if err = mintPurseBridgeToken(ctx, app.Erc20Keeper, app.BankKeeper); err != nil {
 		return fromVM, err
 	}
+	if err = updateMainnetPundiAI(ctx, app); err != nil {
+		return fromVM, err
+	}
 	if err = updateContract(ctx, app); err != nil {
 		return fromVM, err
 	}
@@ -117,9 +120,6 @@ func upgradeMainnet(
 	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
 
 	if err = migrateModulesData(ctx, codec, app); err != nil {
-		return fromVM, err
-	}
-	if err = updateFXBridgeDenom(ctx, app.Erc20Keeper); err != nil {
 		return fromVM, err
 	}
 	return toVM, nil
@@ -134,9 +134,6 @@ func migrateModulesData(ctx sdk.Context, codec codec.Codec, app *keepers.AppKeep
 		return err
 	}
 	if err := migrateMetadataDisplay(ctx, app.BankKeeper); err != nil {
-		return err
-	}
-	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
 		return err
 	}
 	if err := migrateMetadataFXToPundiAI(ctx, app.BankKeeper); err != nil {
@@ -243,4 +240,14 @@ func fixPurseCoin(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper er
 
 	needIBCPurseSupply := sdk.NewCoin(ibcPurseToken.GetIbcDenom(), basePurseSupply.Amount.Sub(ibcPurseSupply.Amount))
 	return bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(needIBCPurseSupply))
+}
+
+func updateMainnetPundiAI(ctx sdk.Context, app *keepers.AppKeepers) error {
+	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
+		return err
+	}
+	if err := updateFXBridgeDenom(ctx, app.Erc20Keeper); err != nil {
+		return err
+	}
+	return addMainnetPundiAIBridgeToken(ctx, app.Erc20Keeper)
 }
