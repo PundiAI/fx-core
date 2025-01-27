@@ -47,3 +47,8 @@ func updateFXBridgeDenom(ctx sdk.Context, keeper erc20keeper.Keeper) error {
 	bridgeDenom := erc20types.NewBridgeDenom(ethtypes.ModuleName, bridgeToken.Contract)
 	return keeper.DenomIndex.Set(ctx, bridgeDenom, fxtypes.FXDenom)
 }
+
+func addMainnetPundiAIBridgeToken(ctx sdk.Context, keeper erc20keeper.Keeper) error {
+	pundiaiToken := getMainnetBridgeToken(ctx)
+	return keeper.AddBridgeToken(ctx, fxtypes.DefaultDenom, ethtypes.ModuleName, pundiaiToken.String(), false)
+}
