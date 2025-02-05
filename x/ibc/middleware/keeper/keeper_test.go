@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
@@ -17,7 +16,7 @@ import (
 type KeeperTestSuite struct {
 	helpers.BaseSuite
 
-	ibcMiddleware porttypes.Middleware
+	ibcMiddleware ibcmiddleware.IBCMiddleware
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -26,7 +25,6 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.BaseSuite.SetupTest()
-	suite.App.IBCMiddlewareKeeper = suite.App.IBCMiddlewareKeeper.SetCrosschainKeeper(mockCrosschainKeeper{})
 	suite.ibcMiddleware = ibcmiddleware.NewIBCMiddleware(suite.App.IBCMiddlewareKeeper, suite.App.IBCKeeper.ChannelKeeper, transfer.NewIBCModule(suite.App.IBCTransferKeeper))
 }
 
