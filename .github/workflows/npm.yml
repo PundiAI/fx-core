@@ -28,7 +28,9 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           chmod +x ./solidity/release.sh
-          ./solidity/release.sh 
+          ./solidity/release.sh
+        env:
+          NODE_AUTH_TOKEN: ""
 
       - name: Release
         if: github.event_name != 'pull_request'
