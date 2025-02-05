@@ -84,6 +84,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			suite.ibcMiddleware.Keeper = suite.App.IBCMiddlewareKeeper.SetCrosschainKeeper(mockCrosschainKeeper{})
 			receiveAddr, destCahnnel, packet := suite.mockOnRecvPacket(tc.coin, tc.isOurCoin)
 			if tc.malleate != nil {
 				suite.Ctx = tc.malleate(suite.Ctx)
