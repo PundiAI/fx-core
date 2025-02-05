@@ -177,11 +177,7 @@ test-nightly:
 	@TEST_INTEGRATION=true go test -mod=readonly -timeout 20m -cpu 4 -v -run TestIntegrationTest ./tests
 	@TEST_CROSSCHAIN=true go test -mod=readonly -cpu 4 -v -run TestCrosschainKeeperTestSuite ./x/crosschain/...
 
-mocks:
-	@go install go.uber.org/mock/mockgen@v0.4.0
-	mockgen -source=x/crosschain/types/expected_keepers.go -package mock -destination x/crosschain/mock/expected_keepers_mocks.go
-
-.PHONY: test test-count test-nightly mocks
+.PHONY: test test-count test-nightly
 
 ###############################################################################
 ###                                Protobuf                                 ###

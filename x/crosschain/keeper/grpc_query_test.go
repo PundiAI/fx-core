@@ -8,7 +8,7 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (s *KeeperMockSuite) TestQueryServer_BridgeCalls() {
+func (suite *KeeperTestSuite) TestQueryServer_BridgeCalls() {
 	data1 := types.OutgoingBridgeCall{
 		Nonce:  tmrand.Uint64(),
 		Sender: helpers.GenAccAddress().String(),
@@ -18,32 +18,32 @@ func (s *KeeperMockSuite) TestQueryServer_BridgeCalls() {
 		Sender: helpers.GenAccAddress().String(),
 	}
 
-	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data1)
-	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data2)
-	actual, err := s.queryClient.BridgeCalls(s.ctx, &types.QueryBridgeCallsRequest{
-		ChainName: s.chainName,
+	suite.Keeper().SetOutgoingBridgeCall(suite.Ctx, &data1)
+	suite.Keeper().SetOutgoingBridgeCall(suite.Ctx, &data2)
+	actual, err := suite.QueryClient().BridgeCalls(suite.Ctx, &types.QueryBridgeCallsRequest{
+		ChainName: suite.chainName,
 		Pagination: &query.PageRequest{
 			Offset:     0,
 			Limit:      1,
 			CountTotal: false,
 		},
 	})
-	s.NoError(err)
-	s.Equal(len(actual.BridgeCalls), 1)
+	suite.NoError(err)
+	suite.Equal(len(actual.BridgeCalls), 1)
 
-	actual, err = s.queryClient.BridgeCalls(s.ctx, &types.QueryBridgeCallsRequest{
-		ChainName: s.chainName,
+	actual, err = suite.QueryClient().BridgeCalls(suite.Ctx, &types.QueryBridgeCallsRequest{
+		ChainName: suite.chainName,
 		Pagination: &query.PageRequest{
 			Offset:     0,
 			Limit:      2,
 			CountTotal: false,
 		},
 	})
-	s.NoError(err)
-	s.Equal(len(actual.BridgeCalls), 2)
+	suite.NoError(err)
+	suite.Equal(len(actual.BridgeCalls), 2)
 }
 
-func (s *KeeperMockSuite) TestQueryServer_BridgeCallsByFeeReceiver() {
+func (suite *KeeperTestSuite) TestQueryServer_BridgeCallsByFeeReceiver() {
 	data1 := types.OutgoingBridgeCall{
 		Nonce:  tmrand.Uint64(),
 		Sender: helpers.GenAccAddress().String(),
@@ -56,13 +56,13 @@ func (s *KeeperMockSuite) TestQueryServer_BridgeCallsByFeeReceiver() {
 	quote := types.QuoteInfo{
 		Oracle: helpers.GenHexAddress().Hex(),
 	}
-	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data1)
-	s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &data2)
-	s.crosschainKeeper.SetOutgoingBridgeCallQuoteInfo(s.ctx, data1.Nonce, quote)
-	s.crosschainKeeper.SetOutgoingBridgeCallQuoteInfo(s.ctx, data2.Nonce, quote)
+	suite.Keeper().SetOutgoingBridgeCall(suite.Ctx, &data1)
+	suite.Keeper().SetOutgoingBridgeCall(suite.Ctx, &data2)
+	suite.Keeper().SetOutgoingBridgeCallQuoteInfo(suite.Ctx, data1.Nonce, quote)
+	suite.Keeper().SetOutgoingBridgeCallQuoteInfo(suite.Ctx, data2.Nonce, quote)
 
-	actual, err := s.queryClient.BridgeCallsByFeeReceiver(s.ctx, &types.QueryBridgeCallsByFeeReceiverRequest{
-		ChainName:   s.chainName,
+	actual, err := suite.QueryClient().BridgeCallsByFeeReceiver(suite.Ctx, &types.QueryBridgeCallsByFeeReceiverRequest{
+		ChainName:   suite.chainName,
 		FeeReceiver: quote.Oracle,
 		Pagination: &query.PageRequest{
 			Offset:     0,
@@ -70,11 +70,11 @@ func (s *KeeperMockSuite) TestQueryServer_BridgeCallsByFeeReceiver() {
 			CountTotal: false,
 		},
 	})
-	s.NoError(err)
-	s.Equal(len(actual.BridgeCalls), 1)
+	suite.NoError(err)
+	suite.Equal(len(actual.BridgeCalls), 1)
 
-	actual, err = s.queryClient.BridgeCallsByFeeReceiver(s.ctx, &types.QueryBridgeCallsByFeeReceiverRequest{
-		ChainName:   s.chainName,
+	actual, err = suite.QueryClient().BridgeCallsByFeeReceiver(suite.Ctx, &types.QueryBridgeCallsByFeeReceiverRequest{
+		ChainName:   suite.chainName,
 		FeeReceiver: quote.Oracle,
 		Pagination: &query.PageRequest{
 			Offset:     0,
@@ -82,6 +82,6 @@ func (s *KeeperMockSuite) TestQueryServer_BridgeCallsByFeeReceiver() {
 			CountTotal: false,
 		},
 	})
-	s.NoError(err)
-	s.Equal(len(actual.BridgeCalls), 2)
+	suite.NoError(err)
+	suite.Equal(len(actual.BridgeCalls), 2)
 }

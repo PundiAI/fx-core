@@ -70,14 +70,3 @@ jobs:
         with:
           go-version: '1.23'
       - run: make test
-
-  mock:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-      - run: |
-          make mocks
-          git diff --exit-code
