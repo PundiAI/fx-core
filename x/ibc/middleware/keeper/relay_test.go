@@ -30,7 +30,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		name         string
 		malleate     func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement, packetData transfertypes.FungibleTokenPacketData)
 		expPass      bool
-		errorStr     string
 		checkBalance bool
 		expCoins     sdk.Coins
 	}{
@@ -42,7 +41,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		},
 		{
 			name: "pass - error ack - ibc transfer packet",
-			malleate: func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement, packetData transfertypes.FungibleTokenPacketData) {
+			malleate: func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement, _ transfertypes.FungibleTokenPacketData) {
 				*ack = ackWithErr()
 
 				suite.mintCoinEscrowAddr(packet.SourceChannel, coin)
@@ -84,7 +83,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().NoError(err, "packet: %s", string(packet.GetData()))
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equalf(tc.errorStr, err.Error(), "packet: %s", string(packet.GetData()))
 			}
 			if tc.checkBalance {
 				senderAddrCoins := suite.App.BankKeeper.GetAllBalances(suite.Ctx, senderAddr)
@@ -106,48 +104,61 @@ func (suite *KeeperTestSuite) mockPacket(coin sdk.Coin, memo string) (sdk.AccAdd
 	return senderAddr, packet, packetData
 }
 
-// func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
-//	coin := sdk.NewCoin("stake", sdkmath.NewInt(tmrand.Int63n(100000000000)))
-//	testCases := []struct {
-//		name         string
-//		malleate     func(packet *channeltypes.Packet)
-//		expPass      bool
-//		errorStr     string
-//		checkBalance bool
-//		expCoins     sdk.Coins
-//	}{
-//		{
-//			name: "pass - normal - ibc transfer packet",
-//			malleate: func(packet *channeltypes.Packet) {
-//			},
-//			expPass:      true,
-//			checkBalance: true,
-//			expCoins:     sdk.Coins{},
-//		},
-//		{
-//			name: "pass - normal - ibc mint token - router is empty",
-//			malleate: func(packet *channeltypes.Packet) {
-//			},
-//			expPass:      true,
-//			checkBalance: true,
-//			expCoins:     sdk.Coins{},
-//		},
-//		{
-//			name: "error - escrow address insufficient 10coin",
-//			malleate: func(packet *channeltypes.Packet) {
-//			},
-//			errorStr:     fmt.Sprintf("unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module: spendable balance %d%s is smaller than %d%s: insufficient funds", coin.Amount.Sub(sdkmath.NewInt(10)).Uint64(), coin.Denom, coin.Amount.Uint64(), coin.Denom),
-//			checkBalance: true,
-//			expCoins:     sdk.Coins{},
-//		},
-//	}
-//
-//	for _, tc := range testCases {
-//		suite.Run(tc.name, func() {
-//
-//		})
-//	}
-//}
+func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
+	coin := sdk.NewCoin("stake", sdkmath.NewInt(tmrand.Int63n(100000000000)))
+	testCases := []struct {
+		name         string
+		malleate     func(packet *channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData)
+		expPass      bool
+		checkBalance bool
+		expCoins     sdk.Coins
+	}{
+		{
+			name: "pass - normal - ibc transfer packet",
+			malleate: func(packet *channeltypes.Packet, _ transfertypes.FungibleTokenPacketData) {
+				suite.mintCoinEscrowAddr(packet.SourceChannel, coin)
+				suite.Require().NoError(suite.App.Erc20Keeper.SetCache(suite.Ctx, crosschaintypes.NewIBCTransferKey(packet.SourceChannel, packet.Sequence), coin.Amount))
+			},
+			expPass:      true,
+			checkBalance: true,
+			expCoins:     sdk.NewCoins(coin),
+		},
+		{
+			name: "pass - normal - denom is FX",
+			malleate: func(packet *channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData) {
+				packetData.Denom = fxtypes.LegacyFXDenom
+				packet.Data = packetData.GetBytes()
+				swapCoin := fxtypes.SwapCoin(sdk.NewCoin(packetData.Denom, coin.Amount))
+
+				suite.mintCoinEscrowAddr(packet.SourceChannel, swapCoin)
+				suite.Require().NoError(suite.App.Erc20Keeper.SetCache(suite.Ctx, crosschaintypes.NewIBCTransferKey(packet.SourceChannel, packet.Sequence), swapCoin.Amount))
+			},
+			expPass:      true,
+			checkBalance: true,
+			expCoins:     sdk.NewCoins(fxtypes.SwapCoin(sdk.NewCoin(fxtypes.LegacyFXDenom, coin.Amount))),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			senderAddr, packet, packetData := suite.mockPacket(coin, "")
+
+			if tc.malleate != nil {
+				tc.malleate(&packet, packetData)
+			}
+			err := suite.ibcMiddleware.OnTimeoutPacket(suite.Ctx, packet, nil)
+			if tc.expPass {
+				suite.Require().NoError(err, "packet: %s", string(packet.GetData()))
+			} else {
+				suite.Require().Error(err)
+			}
+			if tc.checkBalance {
+				senderAddrCoins := suite.App.BankKeeper.GetAllBalances(suite.Ctx, senderAddr)
+				suite.Require().Equal(tc.expCoins.String(), senderAddrCoins.String())
+			}
+		})
+	}
+}
 
 func (suite *KeeperTestSuite) mintCoinEscrowAddr(channel string, coin sdk.Coin) {
 	suite.MintToken(transfertypes.GetEscrowAddress(transfertypes.PortID, channel), sdk.NewCoins(coin)...)
