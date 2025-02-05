@@ -7,7 +7,7 @@ import (
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
-func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
+func (suite *KeeperTestSuite) TestKeeper_SavePendingExecuteClaim() {
 	tests := []struct {
 		name  string
 		claim types.ExternalClaim
@@ -15,15 +15,15 @@ func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
 		{
 			name: "msg bridge call claim",
 			claim: &types.MsgBridgeCallClaim{
-				ChainName:      s.chainName,
+				ChainName:      suite.chainName,
 				BridgerAddress: helpers.GenAccAddress().String(),
 				EventNonce:     1,
 				BlockHeight:    100,
-				Sender:         helpers.GenExternalAddr(s.chainName),
-				Refund:         helpers.GenExternalAddr(s.chainName),
-				TokenContracts: []string{helpers.GenExternalAddr(s.chainName)},
+				Sender:         helpers.GenExternalAddr(suite.chainName),
+				Refund:         helpers.GenExternalAddr(suite.chainName),
+				TokenContracts: []string{helpers.GenExternalAddr(suite.chainName)},
 				Amounts:        []sdkmath.Int{sdkmath.NewInt(1)},
-				To:             helpers.GenExternalAddr(s.chainName),
+				To:             helpers.GenExternalAddr(suite.chainName),
 				Data:           "",
 				QuoteId:        sdkmath.NewInt(0),
 				Memo:           "",
@@ -35,24 +35,24 @@ func (s *KeeperMockSuite) TestKeeper_SavePendingExecuteClaim() {
 			claim: &types.MsgSendToFxClaim{
 				EventNonce:     1,
 				BlockHeight:    100,
-				TokenContract:  helpers.GenExternalAddr(s.chainName),
+				TokenContract:  helpers.GenExternalAddr(suite.chainName),
 				Amount:         sdkmath.NewInt(1),
-				Sender:         helpers.GenExternalAddr(s.chainName),
-				Receiver:       helpers.GenExternalAddr(s.chainName),
+				Sender:         helpers.GenExternalAddr(suite.chainName),
+				Receiver:       helpers.GenExternalAddr(suite.chainName),
 				TargetIbc:      "",
 				BridgerAddress: helpers.GenAccAddress().String(),
-				ChainName:      s.chainName,
+				ChainName:      suite.chainName,
 			},
 		},
 	}
 	for _, tt := range tests {
-		s.Run(tt.name, func() {
-			err := s.crosschainKeeper.SavePendingExecuteClaim(s.ctx, tt.claim)
-			s.Require().NoError(err)
+		suite.Run(tt.name, func() {
+			err := suite.App.GetKeeper(suite.chainName).SavePendingExecuteClaim(suite.Ctx, tt.claim)
+			suite.Require().NoError(err)
 
-			claim, err := s.crosschainKeeper.GetPendingExecuteClaim(s.ctx, tt.claim.GetEventNonce())
-			s.Require().NoError(err)
-			s.Require().Equal(claim, tt.claim)
+			claim, err := suite.App.GetKeeper(suite.chainName).GetPendingExecuteClaim(suite.Ctx, tt.claim.GetEventNonce())
+			suite.Require().NoError(err)
+			suite.Require().Equal(claim, tt.claim)
 		})
 	}
 }

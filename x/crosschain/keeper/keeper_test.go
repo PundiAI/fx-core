@@ -1,49 +1,39 @@
 package keeper_test
 
 import (
+	"crypto/ecdsa"
 	"os"
 	"testing"
 
-	storetypes "cosmossdk.io/store/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtime "github.com/cometbft/cometbft/types/time"
+	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/suite"
-	"go.uber.org/mock/gomock"
 
-	"github.com/pundiai/fx-core/v8/testutil"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
-	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
-	"github.com/pundiai/fx-core/v8/x/crosschain/mock"
+	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
-type KeeperMockSuite struct {
-	suite.Suite
+type KeeperTestSuite struct {
+	helpers.BaseSuite
 
-	ctx       sdk.Context
-	chainName string
-
-	queryClient types.QueryClient
-
-	crosschainKeeper  crosschainkeeper.Keeper
-	stakingKeeper     *mock.MockStakingKeeper
-	stakingMsgServer  *mock.MockStakingMsgServer
-	distMsgServer     *mock.MockDistributionMsgServer
-	bankKeeper        *mock.MockBankKeeper
-	ibcTransferKeeper *mock.MockIBCTransferKeeper
-	erc20Keeper       *mock.MockErc20Keeper
-	accountKeeper     *mock.MockAccountKeeper
-	evmKeeper         *mock.MockEVMKeeper
+	oracleAddrs  []sdk.AccAddress
+	bridgerAddrs []sdk.AccAddress
+	externalPris []*ecdsa.PrivateKey
+	chainName    string
 }
 
-func TestKeeperTestSuite(t *testing.T) {
+func TestCrosschainKeeperTestSuite(t *testing.T) {
 	modules := []string{
 		trontypes.ModuleName,
 		ethtypes.ModuleName,
@@ -52,61 +42,97 @@ func TestKeeperTestSuite(t *testing.T) {
 		modules = fxtypes.GetSupportChains()
 	}
 	for _, moduleName := range modules {
-		suite.Run(t, &KeeperMockSuite{chainName: moduleName})
+		suite.Run(t, &KeeperTestSuite{chainName: moduleName})
 	}
 }
 
-func (s *KeeperMockSuite) SetupTest() {
-	key := storetypes.NewKVStoreKey(s.chainName)
-
-	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
-	s.ctx = testCtx.Ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
-	s.ctx = testCtx.Ctx.WithConsensusParams(
-		tmproto.ConsensusParams{
-			Block: &tmproto.BlockParams{
-				MaxGas: types.MaxGasLimit,
-			},
-		},
-	)
-
-	myApp := helpers.NewApp()
-
-	ctrl := gomock.NewController(s.T())
-	s.stakingKeeper = mock.NewMockStakingKeeper(ctrl)
-	s.stakingMsgServer = mock.NewMockStakingMsgServer(ctrl)
-	s.distMsgServer = mock.NewMockDistributionMsgServer(ctrl)
-	s.bankKeeper = mock.NewMockBankKeeper(ctrl)
-	s.ibcTransferKeeper = mock.NewMockIBCTransferKeeper(ctrl)
-	s.erc20Keeper = mock.NewMockErc20Keeper(ctrl)
-	s.accountKeeper = mock.NewMockAccountKeeper(ctrl)
-	s.evmKeeper = mock.NewMockEVMKeeper(ctrl)
-
-	s.accountKeeper.EXPECT().GetModuleAddress(s.chainName).Return(authtypes.NewEmptyModuleAccount(s.chainName).GetAddress()).Times(1)
-
-	s.crosschainKeeper = crosschainkeeper.NewKeeper(
-		myApp.AppCodec(),
-		s.chainName,
-		key,
-		s.stakingKeeper,
-		s.stakingMsgServer,
-		s.distMsgServer,
-		s.bankKeeper,
-		s.ibcTransferKeeper,
-		s.erc20Keeper,
-		s.accountKeeper,
-		s.evmKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
-	crosschainRouter := crosschainkeeper.NewRouter()
-	crosschainRouter.AddRoute(s.chainName, crosschainkeeper.NewModuleHandler(s.crosschainKeeper))
-	crosschainRouterKeeper := crosschainkeeper.NewRouterKeeper(crosschainRouter)
-
-	queryHelper := baseapp.NewQueryServerTestHelper(s.ctx, myApp.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, crosschainRouterKeeper)
-	s.queryClient = types.NewQueryClient(queryHelper)
+func (suite *KeeperTestSuite) MsgServer() types.MsgServer {
+	return keeper.NewMsgServerImpl(suite.Keeper())
 }
 
-func (s *KeeperMockSuite) SetupSubTest() {
-	s.SetupTest()
+func (suite *KeeperTestSuite) QueryClient() types.QueryClient {
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.Keeper()))
+	return types.NewQueryClient(queryHelper)
+}
+
+func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
+	return suite.App.CrosschainKeepers.GetKeeper(suite.chainName)
+}
+
+func (suite *KeeperTestSuite) SetupTest() {
+	valNumber := tmrand.Intn(types.MaxOracleSize-4) + 4
+	suite.MintValNumber = valNumber
+	suite.BaseSuite.SetupTest()
+
+	suite.oracleAddrs = suite.AddTestAddress(valNumber, types.NewDelegateAmount(sdkmath.NewInt(300*1e3).MulRaw(1e18)))
+	suite.bridgerAddrs = suite.AddTestAddress(valNumber, sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18)))
+	suite.externalPris = helpers.CreateMultiECDSA(valNumber)
+
+	proposalOracle := &types.ProposalOracle{}
+	for _, oracle := range suite.oracleAddrs {
+		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
+	}
+	suite.Keeper().SetProposalOracle(suite.Ctx, proposalOracle)
+}
+
+func (suite *KeeperTestSuite) SetupSubTest() {
+	suite.SetupTest()
+}
+
+func (suite *KeeperTestSuite) ModuleAddress() sdk.AccAddress {
+	return authtypes.NewModuleAddress(suite.chainName)
+}
+
+func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
+	address := crypto.PubkeyToAddress(publicKey)
+	return fxtypes.ExternalAddrToStr(suite.chainName, address.Bytes())
+}
+
+func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, oracleSet *types.OracleSet) (string, []byte) {
+	externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
+	gravityId := suite.Keeper().GetGravityID(suite.Ctx)
+	checkpoint, err := oracleSet.GetCheckpoint(gravityId)
+	suite.Require().NoError(err)
+	signature, err := ethtypes.NewEthereumSignature(checkpoint, external)
+	suite.Require().NoError(err)
+	if trontypes.ModuleName == suite.chainName {
+		externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
+
+		signature, err = trontypes.NewTronSignature(checkpoint, external)
+		suite.Require().NoError(err)
+	}
+	return externalAddress, signature
+}
+
+func (suite *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {
+	err := suite.SendClaimReturnErr(externalClaim)
+	suite.Require().NoError(err)
+
+	preErr, executeErr := suite.Keeper().ExecuteClaim(suite.Ctx, suite.App.EvmKeeper, externalClaim.GetEventNonce())
+	suite.Require().NoError(preErr)
+	suite.Require().NoError(executeErr)
+}
+
+func (suite *KeeperTestSuite) SendClaimReturnErr(externalClaim types.ExternalClaim) error {
+	value, err := codectypes.NewAnyWithValue(externalClaim)
+	suite.Require().NoError(err)
+	_, err = suite.MsgServer().Claim(suite.Ctx, &types.MsgClaim{Claim: value})
+	return err
+}
+
+func (suite *KeeperTestSuite) EndBlocker() {
+	_, err := suite.App.EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) SetIBCDenom(portID, channelID, denom string) ibctransfertypes.DenomTrace {
+	sourcePrefix := ibctransfertypes.GetDenomPrefix(portID, channelID)
+	prefixedDenom := sourcePrefix + denom
+	denomTrace := ibctransfertypes.ParseDenomTrace(prefixedDenom)
+	traceHash := denomTrace.Hash()
+	if !suite.App.IBCTransferKeeper.HasDenomTrace(suite.Ctx, traceHash) {
+		suite.App.IBCTransferKeeper.SetDenomTrace(suite.Ctx, denomTrace)
+	}
+	return denomTrace
 }
