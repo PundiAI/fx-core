@@ -16,6 +16,7 @@ error ChainNameInvalid();
 error TokenNameInvalid();
 error OracleInvalid();
 error QuoteCapInvalid();
+error QuoteIdInvalid();
 error ChainNameAlreadyExists();
 error TokenNameAlreadyExists();
 
@@ -196,6 +197,9 @@ contract BridgeFeeQuote is
     ) external view returns (QuoteInfo memory) {
         Quote memory quoteInfo = quotes[_id];
         QuoteIndex memory index = quoteIndexes[quoteInfo.index];
+        if (_id == 0 || _id != index.id) {
+            revert QuoteIdInvalid();
+        }
         return
             QuoteInfo(
                 _id,

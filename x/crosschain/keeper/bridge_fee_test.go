@@ -35,6 +35,11 @@ func (suite *KeeperTestSuite) MockQuote() contract.IBridgeFeeQuoteQuoteInfo {
 	suite.Equal(input.GasLimit, quote.GasLimit)
 	suite.Equal(input.Expiry, quote.Expiry)
 
+	_, err = keeper.GetQuoteById(suite.Ctx, big.NewInt(0))
+	suite.Require().Error(err)
+	_, err = keeper.GetQuoteById(suite.Ctx, big.NewInt(2))
+	suite.Require().Error(err)
+
 	oracleList, err := oracleKeeper.GetOracleList(suite.Ctx, contract.MustStrToByte32(ethtypes.ModuleName))
 	suite.Require().NoError(err)
 	suite.Len(oracleList, 1)

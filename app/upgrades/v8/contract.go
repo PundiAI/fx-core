@@ -33,10 +33,10 @@ func updateContract(ctx sdk.Context, app *keepers.AppKeepers) error {
 		return err
 	}
 
-	updateWPUNDIAILogicCode(ctx, app.EvmKeeper)
-	updateERC20LogicCode(ctx, app.EvmKeeper)
-
-	return nil
+	if err := updateWPUNDIAILogicCode(ctx, app.EvmKeeper); err != nil {
+		return err
+	}
+	return updateERC20LogicCode(ctx, app.EvmKeeper)
 }
 
 func deployBridgeFeeContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper, crosschainKeeper crosschainkeeper.Keeper, evmModuleAddress common.Address) error {
@@ -65,24 +65,30 @@ func deployBridgeFeeContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc
 	return contract.DeployBridgeFeeContract(ctx, evmKeeper, bridgeDenoms, evmModuleAddress, getContractOwner(ctx), defaultOracleAddress)
 }
 
-func updateWPUNDIAILogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
+func updateWPUNDIAILogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) error {
 	wpundiai := contract.GetWPUNDIAI()
-	if err := keeper.UpdateContractCode(ctx, wpundiai.Address, wpundiai.Code); err != nil {
-		ctx.Logger().Error("update WPUNDIAI contract", "module", "upgrade", "err", err.Error())
-	} else {
-		ctx.Logger().Info("update WPUNDIAI contract", "module", "upgrade", "codeHash", wpundiai.CodeHash())
-	}
+	return keeper.UpdateContractCode(ctx, wpundiai.Address, wpundiai.Code)
 }
 
-func updateERC20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) {
+func updateERC20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) error {
 	erc20 := contract.GetERC20()
-	if err := keeper.UpdateContractCode(ctx, erc20.Address, erc20.Code); err != nil {
-		ctx.Logger().Error("update ERC20 contract", "module", "upgrade", "err", err.Error())
-	} else {
-		ctx.Logger().Info("update ERC20 contract", "module", "upgrade", "codeHash", erc20.CodeHash())
-	}
+	return keeper.UpdateContractCode(ctx, erc20.Address, erc20.Code)
 }
 
 func deployAccessControlContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, evmModuleAddress common.Address) error {
 	return contract.DeployAccessControlContract(ctx, evmKeeper, evmModuleAddress, getContractOwner(ctx))
+}
+
+func upgradeBridgeFeeContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, evmModuleAddress common.Address) error {
+	logicContract, err := evmKeeper.DeployContract(ctx, evmModuleAddress, contract.GetBridgeFeeQuote().ABI, contract.GetBridgeFeeQuote().Bin)
+	if err != nil {
+		return err
+	}
+
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(evmKeeper)
+	_, err = bridgeFeeQuoteKeeper.UpgradeTo(ctx, logicContract)
+	if err != nil {
+		return err
+	}
+	return nil
 }

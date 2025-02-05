@@ -15,6 +15,8 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/pundiai/fx-core/v8/app/keepers"
 	"github.com/pundiai/fx-core/v8/app/upgrades/store"
@@ -56,7 +58,9 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 }
 
 func upgradeTestnet(ctx sdk.Context, app *keepers.AppKeepers) error {
-	return updateFXBridgeDenom(ctx, app.Erc20Keeper)
+	acc := app.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
+	moduleAddress := common.BytesToAddress(acc.Bytes())
+	return upgradeBridgeFeeContract(ctx, app.EvmKeeper, moduleAddress)
 }
 
 func upgradeMainnet(
