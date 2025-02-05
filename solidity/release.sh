@@ -50,6 +50,7 @@ done
 (
   cd "$solidity_dir/contracts"
   if [ -z "$NODE_AUTH_TOKEN" ]; then
+    echo "WARN: NODE_AUTH_TOKEN is required to publish the package."
     npm publish --dry-run
   else
     npm publish --access public
