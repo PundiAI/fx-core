@@ -92,8 +92,8 @@ func Test_UpgradeTestnet(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
-	// 3. check the status after the upgrade
-	checkFXBridgeDenom(t, ctx, myApp)
+	// 3. check contract status
+	checkBridgeFeeContract(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -772,4 +772,41 @@ func checkFXBridgeDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	denom, err = myApp.Erc20Keeper.DenomIndex.Get(ctx, pundiaiERC20Token.Erc20Address)
 	require.NoError(t, err)
 	require.Equal(t, fxtypes.DefaultDenom, denom)
+}
+
+func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(myApp.EvmKeeper)
+
+	quote, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32(ethtypes.ModuleName), contract.MustStrToByte32(fxtypes.DefaultDenom))
+	require.NoError(t, err)
+	require.Len(t, quote, 2)
+
+	chainNames, err := bridgeFeeQuoteKeeper.GetChainNames(ctx)
+	require.NoError(t, err)
+
+	chains := fxtypes.GetSupportChains()
+	chainNamesMap := make(map[string]bool)
+	for _, chain := range chains {
+		for _, chainName := range chainNames {
+			if chainName == contract.MustStrToByte32(chain) {
+				chainNamesMap[chain] = true
+			}
+		}
+	}
+	for _, chain := range chains {
+		require.True(t, chainNamesMap[chain])
+	}
+
+	for _, chainName := range chainNames {
+		tokens, err := bridgeFeeQuoteKeeper.GetTokens(ctx, chainName)
+		require.NoError(t, err)
+		chain := contract.Byte32ToString(chainName)
+
+		bridgeTokens, err := myApp.Erc20Keeper.GetBridgeTokens(ctx, chain)
+		require.NoError(t, err)
+
+		require.Len(t, tokens, len(bridgeTokens))
+	}
 }

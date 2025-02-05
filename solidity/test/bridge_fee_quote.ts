@@ -269,6 +269,32 @@ describe("BridgeFeeQuoteUpgradeable", function () {
         }
       }
     });
+
+    it("get quote by id", async function () {
+      const amount = 1;
+      const gasLimit = 0;
+      const expiry = (await currentTime()) + 3600;
+
+      const input: IBridgeFeeQuote.QuoteInputStruct = {
+        cap: 0,
+        gasLimit: gasLimit,
+        expiry: expiry,
+        chainName: chainName,
+        tokenName: token1,
+        amount: amount,
+      };
+
+      await bridgeFeeQuote.quote([input]);
+      expect((await bridgeFeeQuote.getQuoteById(1)).id).to.equal(1);
+      await expect(bridgeFeeQuote.getQuoteById(2)).to.revertedWithCustomError(
+        bridgeFeeQuote,
+        "QuoteIdInvalid()"
+      );
+      await expect(bridgeFeeQuote.getQuoteById(0)).to.revertedWithCustomError(
+        bridgeFeeQuote,
+        "QuoteIdInvalid()"
+      );
+    });
   });
 });
 

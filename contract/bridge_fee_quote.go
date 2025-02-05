@@ -137,6 +137,22 @@ func (k BridgeFeeQuoteKeeper) AddToken(ctx context.Context, chainName common.Has
 	return unpackRetIsOk(k.abi, "addToken", res)
 }
 
+func (k BridgeFeeQuoteKeeper) UpgradeTo(ctx context.Context, newLogic common.Address) (*types.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "upgradeTo", newLogic)
+	if err != nil {
+		return k.unpackError(res, err)
+	}
+	return res, nil
+}
+
+func (k BridgeFeeQuoteKeeper) UpgradeToAndCall(ctx context.Context, newLogic common.Address, data []byte) (*types.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, k.from, k.contract, nil, k.abi, "upgradeToAndCall", newLogic, data)
+	if err != nil {
+		return k.unpackError(res, err)
+	}
+	return unpackRetIsOk(k.abi, "upgradeToAndCall", res)
+}
+
 func (k BridgeFeeQuoteKeeper) unpackError(res *types.MsgEthereumTxResponse, err error) (*types.MsgEthereumTxResponse, error) {
 	if err == nil {
 		return res, nil
