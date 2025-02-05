@@ -131,7 +131,7 @@ func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, caller contract.Caller
 }
 
 func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, caller contract.Caller, nonce uint64, toAddr, cause string) error {
-	args, err := contract.PackOnRevert(nonce, []byte(cause))
+	args, err := contract.PackOnRevert(big.NewInt(int64(nonce)), []byte(cause))
 	if err != nil {
 		return err
 	}

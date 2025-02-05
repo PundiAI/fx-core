@@ -173,7 +173,7 @@ func PackOnBridgeCall(sender, receiver common.Address, tokens []common.Address, 
 	)
 }
 
-func PackOnRevert(nonce uint64, cause []byte) ([]byte, error) {
+func PackOnRevert(nonce *big.Int, cause []byte) ([]byte, error) {
 	return bridgeCallContextABI.Pack("onRevert",
 		nonce,
 		cause,

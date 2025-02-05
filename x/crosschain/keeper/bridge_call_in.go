@@ -22,11 +22,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 			return types.ErrInvalid.Wrap("sender is module account")
 		}
 	}
-	isMemoSendCallTo := msg.IsMemoSendCallTo()
-	receiverAddr := msg.GetToAddr()
-	if isMemoSendCallTo {
-		receiverAddr = msg.GetSenderAddr()
-	}
+	receiverAddr := msg.GetReceiverAddr()
 
 	baseCoins := sdk.NewCoins()
 	for i, tokenAddr := range msg.TokenContracts {
@@ -43,7 +39,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
 	err := k.BridgeCallEvm(cacheCtx, caller, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
-		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), isMemoSendCallTo, msg.GetGasLimit())
+		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), msg.IsMemoSendCallTo(), msg.GetGasLimit())
 	if !ctx.IsCheckTx() {
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "bridge_call_in"},
@@ -135,8 +131,8 @@ func (k Keeper) BridgeCallEvm(ctx sdk.Context, caller contract.Caller, sender, r
 
 func (k Keeper) CreateBridgeAccount(ctx sdk.Context, address string) {
 	accAddress := fxtypes.ExternalAddrToAccAddr(k.moduleName, address)
-	if account := k.ak.GetAccount(ctx, accAddress); account != nil {
+	if k.ak.HasAccount(ctx, accAddress) {
 		return
 	}
-	k.ak.NewAccountWithAddress(ctx, accAddress)
+	k.ak.SetAccount(ctx, k.ak.NewAccountWithAddress(ctx, accAddress))
 }

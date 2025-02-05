@@ -1,8 +1,8 @@
 package crosschain_test
 
 import (
+	"fmt"
 	"math/big"
-	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -29,121 +29,118 @@ func TestCrosschainABI(t *testing.T) {
 	require.Len(t, crosschainABI.Event.Inputs, 8)
 }
 
-func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain_NativeCoin() {
-	symbol := helpers.NewRandSymbol()
-	suite.AddBridgeToken(symbol, true)
+func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain() {
+	testCases := []struct {
+		name                       string
+		malleate                   func() *erc20types.ERC20Token
+		transferAmount             *big.Int
+		erc20ModuleAmount          sdkmath.Int // default base denom amount
+		crosschainModuleAmount     sdkmath.Int // default bridge denom amount
+		crosschainModuleBaseAmount sdkmath.Int
+		chainNameAmount            sdkmath.Int // default bridge denom amount
+	}{
+		{
+			name: "native coin",
+			malleate: func() *erc20types.ERC20Token {
+				bridgeToken := suite.AddBridgeToken(helpers.NewRandSymbol(), true)
 
-	baseDenom := strings.ToLower(symbol)
-	suite.Quote(baseDenom)
+				suite.Quote(bridgeToken.Denom)
 
-	erc20Contract := suite.GetERC20Token(baseDenom).GetERC20Contract()
-	suite.erc20TokenSuite.WithContract(erc20Contract)
+				erc20Token := suite.GetERC20Token(bridgeToken.Denom)
+				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
 
-	amount := sdkmath.NewInt(100)
-	suite.AddNativeCoinToEVM(baseDenom, amount)
+				suite.AddNativeCoinToEVM(bridgeToken.Denom, sdkmath.NewInt(100))
 
-	suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, big.NewInt(2))
-
-	txResponse := suite.Crosschain(suite.Ctx, nil, suite.signer.Address(),
-		contract.CrosschainArgs{
-			Token:   erc20Contract,
-			Receipt: helpers.GenExternalAddr(suite.chainName),
-			Amount:  big.NewInt(1),
-			Fee:     big.NewInt(1),
-			Target:  contract.MustStrToByte32(suite.chainName),
-			Memo:    "",
+				return erc20Token
+			},
+			transferAmount:             big.NewInt(2),
+			erc20ModuleAmount:          sdkmath.NewInt(98),
+			crosschainModuleAmount:     sdkmath.NewInt(98),
+			crosschainModuleBaseAmount: sdkmath.NewInt(0),
+			chainNameAmount:            sdkmath.NewInt(0),
 		},
-	)
-	suite.NotNil(txResponse)
-	suite.GreaterOrEqual(len(txResponse.Logs), 2)
+		{
+			name: "native erc20",
+			malleate: func() *erc20types.ERC20Token {
+				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, helpers.NewRandSymbol())
+				bridgeToken := suite.AddBridgeToken(erc20TokenAddr.String(), false)
 
-	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
-	suite.Equal(big.NewInt(98), balance)
+				suite.Quote(bridgeToken.Denom)
 
-	baseCoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(98))
-	suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
+				suite.AddNativeERC20ToEVM(bridgeToken.Denom, sdkmath.NewInt(100))
 
-	bridgeToken := suite.GetBridgeToken(baseDenom)
-	bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(98))
-	suite.AssertBalance(authtypes.NewModuleAddress(crosschaintypes.ModuleName), bridgeCoin)
-}
-
-func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain_NativeERC20() {
-	symbol := helpers.NewRandSymbol()
-
-	erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, symbol)
-	suite.AddBridgeToken(erc20TokenAddr.String(), false)
-
-	baseDenom := strings.ToLower(symbol)
-	suite.Quote(baseDenom)
-
-	amount := sdkmath.NewInt(100)
-	suite.AddNativeERC20ToEVM(baseDenom, amount)
-
-	suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, big.NewInt(2))
-
-	txResponse := suite.Crosschain(suite.Ctx, nil, suite.signer.Address(),
-		contract.CrosschainArgs{
-			Token:   erc20TokenAddr,
-			Receipt: helpers.GenExternalAddr(suite.chainName),
-			Amount:  big.NewInt(1),
-			Fee:     big.NewInt(1),
-			Target:  contract.MustStrToByte32(suite.chainName),
-			Memo:    "",
+				return suite.GetERC20Token(bridgeToken.Denom)
+			},
+			transferAmount:             big.NewInt(2),
+			erc20ModuleAmount:          sdkmath.NewInt(0),
+			crosschainModuleAmount:     sdkmath.NewInt(0),
+			crosschainModuleBaseAmount: sdkmath.NewInt(2),
+			chainNameAmount:            sdkmath.NewInt(2),
 		},
-	)
-	suite.NotNil(txResponse)
-	suite.GreaterOrEqual(len(txResponse.Logs), 2)
+		{
+			name: "IBC Token",
+			malleate: func() *erc20types.ERC20Token {
+				bridgeToken := suite.AddBridgeToken(helpers.NewRandSymbol(), true, true)
 
-	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
-	suite.Equal(big.NewInt(98), balance)
+				suite.Quote(bridgeToken.Denom)
 
-	baseCoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(0))
-	suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
+				erc20Contract := suite.GetERC20Token(bridgeToken.Denom).GetERC20Contract()
+				suite.erc20TokenSuite.WithContract(erc20Contract)
 
-	bridgeToken := suite.GetBridgeToken(baseDenom)
-	bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(2))
-	suite.AssertBalance(authtypes.NewModuleAddress(suite.chainName), bridgeCoin)
-}
+				suite.AddNativeCoinToEVM(bridgeToken.Denom, sdkmath.NewInt(100), true)
 
-func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain_IBCToken() {
-	symbol := helpers.NewRandSymbol()
-
-	suite.AddBridgeToken(symbol, true, true)
-
-	baseDenom := strings.ToLower(symbol)
-	suite.Quote(baseDenom)
-
-	erc20Contract := suite.GetERC20Token(baseDenom).GetERC20Contract()
-	suite.erc20TokenSuite.WithContract(erc20Contract)
-
-	amount := sdkmath.NewInt(100)
-	suite.AddNativeCoinToEVM(baseDenom, amount, true)
-
-	suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, big.NewInt(2))
-
-	txResponse := suite.Crosschain(suite.Ctx, nil, suite.signer.Address(),
-		contract.CrosschainArgs{
-			Token:   erc20Contract,
-			Receipt: helpers.GenExternalAddr(suite.chainName),
-			Amount:  big.NewInt(1),
-			Fee:     big.NewInt(1),
-			Target:  contract.MustStrToByte32(suite.chainName),
-			Memo:    "",
+				return suite.GetERC20Token(bridgeToken.Denom)
+			},
+			transferAmount:             big.NewInt(2),
+			erc20ModuleAmount:          sdkmath.NewInt(98),
+			crosschainModuleAmount:     sdkmath.NewInt(0),
+			crosschainModuleBaseAmount: sdkmath.NewInt(2),
+			chainNameAmount:            sdkmath.NewInt(2),
 		},
-	)
-	suite.NotNil(txResponse)
-	suite.GreaterOrEqual(len(txResponse.Logs), 2)
+	}
 
-	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
-	suite.Equal(big.NewInt(98), balance)
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			erc20Token := tc.malleate()
 
-	baseCoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(98))
-	suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
+			suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, big.NewInt(2))
 
-	bridgeToken := suite.GetBridgeToken(baseDenom)
-	bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(2))
-	suite.AssertBalance(authtypes.NewModuleAddress(suite.chainName), bridgeCoin)
+			txResponse := suite.Crosschain(suite.Ctx, nil, suite.signer.Address(),
+				contract.CrosschainArgs{
+					Token:   erc20Token.GetERC20Contract(),
+					Receipt: helpers.GenExternalAddr(suite.chainName),
+					Amount:  big.NewInt(1),
+					Fee:     big.NewInt(1),
+					Target:  contract.MustStrToByte32(suite.chainName),
+					Memo:    "",
+				},
+			)
+			suite.NotNil(txResponse)
+			suite.GreaterOrEqual(len(txResponse.Logs), 2)
+
+			balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
+			suite.Equal(big.NewInt(98), balance)
+
+			bridgeToken := suite.GetBridgeToken(erc20Token.Denom)
+			bridgeCoin := sdk.NewCoin(bridgeToken.BridgeDenom(), tc.crosschainModuleAmount)
+			suite.AssertBalance(authtypes.NewModuleAddress(crosschaintypes.ModuleName), bridgeCoin)
+
+			baseCoin := sdk.NewCoin(bridgeToken.Denom, tc.crosschainModuleBaseAmount)
+			suite.AssertBalance(authtypes.NewModuleAddress(crosschaintypes.ModuleName), baseCoin)
+
+			bridgeCoin = sdk.NewCoin(bridgeToken.BridgeDenom(), tc.chainNameAmount)
+			suite.AssertBalance(authtypes.NewModuleAddress(suite.chainName), bridgeCoin)
+
+			baseCoin = sdk.NewCoin(erc20Token.Denom, sdkmath.NewInt(0))
+			suite.AssertBalance(authtypes.NewModuleAddress(suite.chainName), baseCoin)
+
+			bridgeCoin = sdk.NewCoin(bridgeToken.BridgeDenom(), sdkmath.NewInt(0))
+			suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), bridgeCoin)
+
+			baseCoin = sdk.NewCoin(erc20Token.Denom, tc.erc20ModuleAmount)
+			suite.AssertBalance(authtypes.NewModuleAddress(erc20types.ModuleName), baseCoin)
+		})
+	}
 }
 
 func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain_OriginToken() {
