@@ -11,9 +11,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/precompiles/crosschain"
 	testscontract "github.com/pundiai/fx-core/v8/tests/contract"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -114,7 +116,7 @@ func (suite *CrosschainPrecompileTestSuite) GetBridgeToken(baseDenom string) erc
 	return bridgeToken
 }
 
-func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeCoin bool, isIBC ...bool) {
+func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeCoin bool, isIBC ...bool) erc20types.BridgeToken {
 	keeper := suite.App.Erc20Keeper
 	var baseDenom string
 	isNative := false
@@ -135,6 +137,7 @@ func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, 
 	}
 	err := keeper.AddBridgeToken(suite.Ctx, baseDenom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNative)
 	suite.Require().NoError(err)
+	return suite.GetBridgeToken(baseDenom)
 }
 
 func (suite *CrosschainPrecompileTestSuite) AddNativeERC20ToEVM(baseDenom string, amount sdkmath.Int) {
@@ -166,10 +169,10 @@ func (suite *CrosschainPrecompileTestSuite) NewBridgeCallArgs(erc20Contract comm
 		Tokens:   []common.Address{erc20Contract},
 		Amounts:  []*big.Int{amount},
 		To:       suite.signer.Address(),
-		Data:     nil,
+		Data:     []byte{},
 		QuoteId:  big.NewInt(1),
 		GasLimit: big.NewInt(0),
-		Memo:     nil,
+		Memo:     []byte{},
 	}
 	if contract.IsZeroEthAddress(erc20Contract) {
 		args.Tokens = []common.Address{}
@@ -205,4 +208,25 @@ func (suite *CrosschainPrecompileTestSuite) Quote(denom string) {
 	}
 
 	suite.bridgeFeeSuite.Quote(suite.Ctx, quoteQuoteInput)
+}
+
+func (suite *CrosschainPrecompileTestSuite) executeClaim(claim crosschaintypes.ExternalClaim) *evmtypes.MsgEthereumTxResponse {
+	keeper := suite.App.CrosschainKeepers.GetKeeper(suite.chainName)
+	err := keeper.SavePendingExecuteClaim(suite.Ctx, claim)
+	suite.Require().NoError(err)
+
+	txResponse := suite.ExecuteClaim(suite.Ctx, suite.signer.Address(),
+		contract.ExecuteClaimArgs{Chain: suite.chainName, EventNonce: big.NewInt(int64(claim.GetEventNonce()))},
+	)
+	suite.NotNil(txResponse)
+	suite.Empty(txResponse.VmError)
+
+	event, err := crosschain.NewExecuteClaimABI().
+		UnpackEvent(txResponse.Logs[len(txResponse.Logs)-1].ToEthereum())
+	suite.Require().NoError(err)
+	suite.Equal(suite.GetSender(), event.Sender)
+	suite.Equal(claim.GetEventNonce(), event.EventNonce.Uint64())
+	suite.Equal(claim.GetChainName(), event.Chain)
+	suite.Empty(event.ErrReason)
+	return txResponse
 }

@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
@@ -115,6 +116,17 @@ func NewBridgeCallABI() BridgeCallABI {
 
 func (m BridgeCallABI) NewBridgeCallEvent(args *fxcontract.BridgeCallArgs, sender, origin common.Address, eventNonce *big.Int) (data []byte, topic []common.Hash, err error) {
 	return evmtypes.PackTopicData(m.Event, []common.Hash{sender.Hash(), args.Refund.Hash(), args.To.Hash()}, origin, eventNonce, args.DstChain, args.Tokens, args.Amounts, args.Data, args.QuoteId, args.GasLimit, args.Memo)
+}
+
+func (m BridgeCallABI) UnpackEvent(log *ethtypes.Log) (*fxcontract.ICrosschainBridgeCallEvent, error) {
+	if log == nil {
+		return nil, errors.New("log is nil")
+	}
+	filterer, err := fxcontract.NewICrosschainFilterer(common.Address{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return filterer.ParseBridgeCallEvent(*log)
 }
 
 func (m BridgeCallABI) UnpackInput(data []byte) (*fxcontract.BridgeCallArgs, error) {

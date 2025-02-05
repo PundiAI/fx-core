@@ -9,6 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 var _ keyring.Signer = &Signer{}
@@ -42,6 +44,10 @@ func (s Signer) AccAddress() sdk.AccAddress {
 
 func (s Signer) ValAddress() sdk.ValAddress {
 	return s.privKey.PubKey().Address().Bytes()
+}
+
+func (s Signer) ExternalAddr(module string) string {
+	return fxtypes.ExternalAddrToStr(module, s.AccAddress())
 }
 
 // Sign signs the message using the underlying private key

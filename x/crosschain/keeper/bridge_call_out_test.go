@@ -34,8 +34,9 @@ func (s *KeeperMockSuite) TestKeeper_BridgeCallResultHandler() {
 			}
 			s.NoError(msg.ValidateBasic())
 
-			s.accountKeeper.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			s.accountKeeper.EXPECT().HasAccount(gomock.Any(), gomock.Any()).Return(false).Times(1)
 			s.accountKeeper.EXPECT().NewAccountWithAddress(gomock.Any(), gomock.Any()).Times(1)
+			s.accountKeeper.EXPECT().SetAccount(gomock.Any(), gomock.Any()).Times(1)
 			s.erc20Keeper.EXPECT().DeleteCache(gomock.Any(), gomock.Any()).Times(1)
 
 			s.crosschainKeeper.SetOutgoingBridgeCall(s.ctx, &types.OutgoingBridgeCall{
