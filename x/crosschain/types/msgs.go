@@ -248,6 +248,7 @@ type ExternalClaim interface {
 	GetType() ClaimType
 	ValidateBasic() error
 	ClaimHash() []byte
+	GetChainName() string
 }
 
 var (
@@ -466,6 +467,13 @@ func (m *MsgBridgeCallClaim) GetAmounts() []*big.Int {
 
 func (m *MsgBridgeCallClaim) GetGasLimit() uint64 {
 	return m.GasLimit.Uint64()
+}
+
+func (m *MsgBridgeCallClaim) GetReceiverAddr() common.Address {
+	if m.IsMemoSendCallTo() {
+		return m.GetSenderAddr()
+	}
+	return m.GetToAddr()
 }
 
 func (m *MsgBridgeCallResultClaim) GetType() ClaimType {

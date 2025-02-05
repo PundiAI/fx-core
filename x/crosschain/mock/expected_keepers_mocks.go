@@ -773,6 +773,20 @@ func (mr *MockAccountKeeperMockRecorder) GetModuleAddress(name any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetModuleAddress", reflect.TypeOf((*MockAccountKeeper)(nil).GetModuleAddress), name)
 }
 
+// HasAccount mocks base method.
+func (m *MockAccountKeeper) HasAccount(ctx context.Context, addr types.AccAddress) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasAccount", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// HasAccount indicates an expected call of HasAccount.
+func (mr *MockAccountKeeperMockRecorder) HasAccount(ctx, addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasAccount", reflect.TypeOf((*MockAccountKeeper)(nil).HasAccount), ctx, addr)
+}
+
 // NewAccountWithAddress mocks base method.
 func (m *MockAccountKeeper) NewAccountWithAddress(ctx context.Context, addr types.AccAddress) types.AccountI {
 	m.ctrl.T.Helper()

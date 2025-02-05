@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/pundiai/fx-core/v8/contract"
+	"github.com/pundiai/fx-core/v8/testutil/helpers"
 )
 
 func TestPackBridgeCallback(t *testing.T) {
@@ -111,4 +112,46 @@ func TestUnpackRevertError(t *testing.T) {
 		require.NotContains(t, errSigs, errSig)
 		errSigs = append(errSigs, errSig)
 	}
+}
+
+// PackOnRevert(nonce *big.Int, cause []byte) ([]byte, error)
+func TestPackOnRevert(t *testing.T) {
+	_, err := contract.PackOnRevert(big.NewInt(1), []byte("cause"))
+	require.NoError(t, err)
+}
+
+// PackOnBridgeCall(sender, receiver common.Address, tokens []common.Address, amounts []*big.Int, data, memo []byte) ([]byte, error)
+func TestPackOnBridgeCall(t *testing.T) {
+	_, err := contract.PackOnBridgeCall(helpers.GenHexAddress(), helpers.GenHexAddress(), []common.Address{helpers.GenHexAddress()}, []*big.Int{big.NewInt(1)}, []byte("data"), []byte("memo"))
+	require.NoError(t, err)
+}
+
+// PackOracleSetCheckpoint(gravityID, methodName [32]byte, nonce *big.Int, memberAddresses []common.Address, convertedPowers []*big.Int) ([]byte, error)
+func TestPackOracleSetCheckpoint(t *testing.T) {
+	_, err := contract.PackOracleSetCheckpoint(contract.MustStrToByte32("gravityID"), contract.MustStrToByte32("methodName"), big.NewInt(1), []common.Address{helpers.GenHexAddress()}, []*big.Int{big.NewInt(1)})
+	require.NoError(t, err)
+}
+
+// PackSubmitBatchCheckpoint(gravityID, methodName [32]byte, amounts []*big.Int, destinations []common.Address, fees []*big.Int, batchNonce *big.Int, tokenContract common.Address, batchTimeout *big.Int, feeReceive common.Address) ([]byte, error)
+func TestPackSubmitBatchCheckpoint(t *testing.T) {
+	_, err := contract.PackSubmitBatchCheckpoint(contract.MustStrToByte32("gravityID"), contract.MustStrToByte32("methodName"), []*big.Int{big.NewInt(1)}, []common.Address{helpers.GenHexAddress()}, []*big.Int{big.NewInt(1)}, big.NewInt(1), helpers.GenHexAddress(), big.NewInt(1), helpers.GenHexAddress())
+	require.NoError(t, err)
+}
+
+// PackBridgeCallCheckpoint(gravityID, methodName [32]byte, nonce *big.Int, input *FxBridgeBaseBridgeCallData) ([]byte, error)
+func TestPackBridgeCallCheckpoint(t *testing.T) {
+	_, err := contract.PackBridgeCallCheckpoint(contract.MustStrToByte32("gravityID"), contract.MustStrToByte32("methodName"), big.NewInt(1),
+		&contract.FxBridgeBaseBridgeCallData{
+			Sender:     helpers.GenHexAddress(),
+			Refund:     helpers.GenHexAddress(),
+			Tokens:     []common.Address{helpers.GenHexAddress()},
+			Amounts:    []*big.Int{big.NewInt(1)},
+			To:         helpers.GenHexAddress(),
+			Data:       []byte("data"),
+			Memo:       []byte("memo"),
+			Timeout:    big.NewInt(1),
+			GasLimit:   big.NewInt(2),
+			EventNonce: big.NewInt(3),
+		})
+	require.NoError(t, err)
 }

@@ -84,6 +84,7 @@ type IBCTransferKeeper interface {
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	HasAccount(ctx context.Context, addr sdk.AccAddress) bool
 	SetAccount(ctx context.Context, acc sdk.AccountI)
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
