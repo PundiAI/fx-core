@@ -14,6 +14,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
@@ -22,6 +23,83 @@ import (
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/keeper"
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
 )
+
+func (suite *KeeperTestSuite) TestOnRecvPacket() {
+	testCases := []struct {
+		name         string
+		coin         sdk.Coin
+		isOurCoin    bool
+		malleate     func(ctx sdk.Context) sdk.Context
+		expPass      bool
+		checkBalance bool
+		expCoins     sdk.Coins
+	}{
+		{
+			name:         "pass - send FX to ours",
+			coin:         sdk.NewCoin(fxtypes.LegacyFXDenom, sdkmath.NewInt(1000)),
+			isOurCoin:    true,
+			expPass:      true,
+			checkBalance: true,
+			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10))),
+		},
+		{
+			name:      "pass - mainnet pundix chain send pundix to ours",
+			coin:      sdk.NewCoin(fxtypes.MainnetPundixUnWrapDenom, sdkmath.NewInt(1000)),
+			isOurCoin: true,
+			malleate: func(ctx sdk.Context) sdk.Context {
+				ctx = ctx.WithChainID(fxtypes.MainnetChainId)
+				return ctx
+			},
+			expPass:      true,
+			checkBalance: true,
+			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.PundixWrapDenom, sdkmath.NewInt(1000))),
+		},
+		{
+			name:      "pass - testnet pundix chain send pundix to ours",
+			coin:      sdk.NewCoin(fxtypes.TestnetPundixUnWrapDenom, sdkmath.NewInt(1000)),
+			isOurCoin: true,
+			malleate: func(ctx sdk.Context) sdk.Context {
+				ctx = ctx.WithChainID(fxtypes.TestnetChainId)
+				return ctx
+			},
+			expPass:      true,
+			checkBalance: true,
+			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.PundixWrapDenom, sdkmath.NewInt(1000))),
+		},
+		{
+			name:         "pass - send defaultDenom to ours",
+			coin:         sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+			isOurCoin:    true,
+			expPass:      true,
+			checkBalance: true,
+			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+		},
+		{
+			name:         "pass - send dest chain coin to ours",
+			coin:         sdk.NewCoin("stake", sdkmath.NewInt(1000)),
+			isOurCoin:    false,
+			expPass:      true,
+			checkBalance: false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			receiveAddr, destCahnnel, packet := suite.mockOnRecvPacket(tc.coin, tc.isOurCoin)
+			if tc.malleate != nil {
+				suite.Ctx = tc.malleate(suite.Ctx)
+			}
+			if tc.isOurCoin {
+				suite.mintCoinEscrowAddr(destCahnnel, tc.expCoins[0])
+			}
+			acknowledgement := suite.ibcMiddleware.OnRecvPacket(suite.Ctx, packet, sdk.AccAddress{})
+			suite.Require().True(acknowledgement.Success(), suite.Ctx.EventManager().Events())
+			if tc.checkBalance {
+				receiveAddrCoins := suite.App.BankKeeper.GetAllBalances(suite.Ctx, receiveAddr.Bytes())
+				suite.Require().Equal(tc.expCoins.String(), receiveAddrCoins.String())
+			}
+		})
+	}
+}
 
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	coin := sdk.NewCoin("stake", sdkmath.NewInt(tmrand.Int63n(100000000000)))
@@ -90,6 +168,23 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) mockOnRecvPacket(coin sdk.Coin, ibcCoin bool) (common.Address, string, channeltypes.Packet) {
+	senderAddr := helpers.GenAccAddress()
+	receiveAddr := helpers.GenHexAddress()
+	destChannel := fmt.Sprintf("channel-%d", tmrand.Int63n(10000))
+	sourceChannel := fmt.Sprintf("channel-%d", tmrand.Int63n(10000))
+	denom := coin.Denom
+	if ibcCoin {
+		denom = transfertypes.GetPrefixedDenom(transfertypes.PortID, sourceChannel, denom)
+	}
+
+	packetData := transfertypes.NewFungibleTokenPacketData(denom, coin.Amount.String(), senderAddr.String(), receiveAddr.String(), "")
+	packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(tmrand.Int63n(1000000)), transfertypes.PortID, sourceChannel, transfertypes.PortID, destChannel,
+		clienttypes.Height{RevisionNumber: 100, RevisionHeight: 100000}, 0,
+	)
+	return receiveAddr, destChannel, packet
 }
 
 func (suite *KeeperTestSuite) mockPacket(coin sdk.Coin, memo string) (sdk.AccAddress, channeltypes.Packet, transfertypes.FungibleTokenPacketData) {

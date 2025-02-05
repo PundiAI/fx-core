@@ -25,6 +25,12 @@ func NewKeeper(cdc codec.Codec, evmKeeper types.EvmKeeper, crosschainKeeper type
 	}
 }
 
+//nolint:revive // SetCrosschainKeeper only for testing
+func (k Keeper) SetCrosschainKeeper(crosschainKeeper types.CrosschainKeeper) Keeper {
+	k.crosschainKeeper = crosschainKeeper
+	return k
+}
+
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+"middleware")
 }
