@@ -14,19 +14,16 @@ const (
 
 const (
 	MainnetPundixUnWrapDenom = "eth0x0FD10b9899882a6f2fcb5c371E17e70FdEe00C38"
-	MainnetOsmosisChannel    = "channel-19"
 )
 
 const (
 	TestnetPundixUnWrapDenom = "eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B"
-	TestnetOsmosisChannel    = "channel-119"
 )
 
 var (
 	MainnetOnRecvWrap = map[string]string{
-		OnRecvDenomWrapKey(PundixChannel, MainnetPundixUnWrapDenom): PundixWrapDenom,
-		OnRecvDenomWrapKey(MainnetOsmosisChannel, LegacyFXDenom):    DefaultDenom,
-		OnRecvDenomWrapKey(PundixChannel, LegacyFXDenom):            DefaultDenom,
+		MainnetPundixUnWrapDenom: PundixWrapDenom,
+		LegacyFXDenom:            DefaultDenom,
 	}
 
 	MainnetSendPacketWrap = map[string]string{
@@ -36,25 +33,31 @@ var (
 
 var (
 	TestnetOnRecvWrap = map[string]string{
-		OnRecvDenomWrapKey(PundixChannel, TestnetPundixUnWrapDenom): PundixWrapDenom,
-		OnRecvDenomWrapKey(TestnetOsmosisChannel, LegacyFXDenom):    DefaultDenom,
-		OnRecvDenomWrapKey(PundixChannel, LegacyFXDenom):            DefaultDenom,
+		TestnetPundixUnWrapDenom: PundixWrapDenom,
+		LegacyFXDenom:            DefaultDenom,
 	}
 	TestnetSendPacketWrap = map[string]string{
 		SendPacketDenomWrapKey(PundixChannel, PundixWrapDenom): TestnetPundixUnWrapDenom,
 	}
 )
 
-func OnRecvDenomNeedWrap(chainId, channel, denom string) (bool, string) {
-	var needWrap bool
-	var wrapDenom string
-	denomWrapKey := OnRecvDenomWrapKey(channel, denom)
-	if chainId == MainnetChainId {
-		wrapDenom, needWrap = MainnetOnRecvWrap[denomWrapKey]
-	} else {
-		wrapDenom, needWrap = TestnetOnRecvWrap[denomWrapKey]
+func OnRecvDenomNeedWrap(chainId, sourcePort, sourceChannel, denom string) (needWrap bool, wrapDenom, packetDenom string) {
+	if !transfertypes.ReceiverChainIsSource(sourcePort, sourceChannel, denom) {
+		return false, "", ""
 	}
-	return needWrap, wrapDenom
+
+	voucherPrefix := transfertypes.GetDenomPrefix(sourcePort, sourceChannel)
+	unprefixedDenom := denom[len(voucherPrefix):]
+
+	if chainId == MainnetChainId {
+		wrapDenom, needWrap = MainnetOnRecvWrap[unprefixedDenom]
+	} else {
+		wrapDenom, needWrap = TestnetOnRecvWrap[unprefixedDenom]
+	}
+	if needWrap {
+		packetDenom = fmt.Sprintf("%s%s", voucherPrefix, wrapDenom)
+	}
+	return needWrap, wrapDenom, packetDenom
 }
 
 func SendPacketDenomNeedWrap(chainId, channel, denom string) (bool, string) {
@@ -71,10 +74,6 @@ func SendPacketDenomNeedWrap(chainId, channel, denom string) (bool, string) {
 
 func SendPacketDenomWrapKey(sourceChannel, denonm string) string {
 	return fmt.Sprintf("%s:%s", sourceChannel, denonm)
-}
-
-func OnRecvDenomWrapKey(destChannel, denonm string) string {
-	return fmt.Sprintf("%s:%s", destChannel, denonm)
 }
 
 func OnRecvAmountCovert(wrapDenom, amountStr string) (string, error) {
