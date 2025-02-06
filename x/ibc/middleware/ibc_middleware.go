@@ -58,9 +58,9 @@ func UnMarshalPacket(chainID string, packet channeltypes.Packet) (types.Fungible
 		data.Fee = sdkmath.ZeroInt().String()
 	}
 
-	needWrap, wrapDenom, packetenom := fxtypes.OnRecvDenomNeedWrap(chainID, packet.SourcePort, packet.SourceChannel, data.Denom)
+	needWrap, wrapDenom, packetDenom := fxtypes.OnRecvDenomNeedWrap(chainID, packet.SourcePort, packet.SourceChannel, data.Denom)
 	if needWrap {
-		data.Denom = packetenom
+		data.Denom = packetDenom
 		newAmount, err := fxtypes.OnRecvAmountCovert(wrapDenom, data.Amount)
 		if err != nil {
 			return data, err
