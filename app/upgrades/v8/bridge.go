@@ -115,7 +115,7 @@ func migrateERC20ModulePundix(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, er
 	}
 	erc20ModuleBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), bridgeToken.BridgeDenom())
 	if !erc20ModuleBalance.Amount.Equal(sdkmath.NewIntFromBigInt(erc20Supply)) {
-		return fmt.Errorf("erc20 module pundix supply not equal erc20 balance, moduel %s, erc20 %s",
+		return fmt.Errorf("erc20 module pundix supply not equal erc20 balance, module %s, erc20 %s",
 			erc20ModuleBalance.Amount.String(), erc20Supply.String())
 	}
 
@@ -143,7 +143,7 @@ func migrateERC20ModulePurse(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc
 	}
 	erc20ModuleBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), ibcToken.GetIbcDenom())
 	if erc20ModuleBalance.Amount.LT(sdkmath.NewIntFromBigInt(erc20Supply)) {
-		return fmt.Errorf("erc20 module ibc purse supply small than contract balance, moduel %s, erc20 %s",
+		return fmt.Errorf("erc20 module ibc purse supply smaller than contract balance, module %s, erc20 %s",
 			erc20ModuleBalance.Amount.String(), erc20Supply.String())
 	}
 
@@ -169,7 +169,7 @@ func migrateEthModulePurse(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bank
 	}
 	erc20ModuleBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), ibcToken.GetIbcDenom())
 	if erc20ModuleBalance.Amount.LT(ethTokenSupply.Amount) {
-		return fmt.Errorf("erc20 module ibc purse supply small than eth purse supply, erc20 %s, eth %s",
+		return fmt.Errorf("erc20 module ibc purse supply smaller than eth purse supply, erc20 %s, eth %s",
 			erc20ModuleBalance.String(), ethTokenSupply.String())
 	}
 
@@ -199,7 +199,7 @@ func migrateBscModulePurse(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bank
 	ibcDenomSupply := bankKeeper.GetSupply(ctx, ibcToken.GetIbcDenom())
 	baseDenomSupply := bankKeeper.GetSupply(ctx, purseBaseDenom)
 	if !ibcDenomSupply.Amount.Equal(baseDenomSupply.Amount) {
-		return fmt.Errorf("ibc purse supply not eqaul base supply %s != %s", ibcDenomSupply.String(), baseDenomSupply.String())
+		return fmt.Errorf("ibc purse supply not equal base supply %s != %s", ibcDenomSupply.String(), baseDenomSupply.String())
 	}
 
 	pxEscrowPurse, err := getPundixEscrowPurseAmount()
