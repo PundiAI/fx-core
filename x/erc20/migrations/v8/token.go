@@ -68,7 +68,7 @@ var (
 	}
 )
 
-func getIBCDenomTrace(ctx sdk.Context, denom string) (trace string, ok bool) {
+func GetIBCDenomTrace(ctx sdk.Context, denom string) (trace string, ok bool) {
 	if ctx.ChainID() == fxtypes.TestnetChainId {
 		trace, ok = testnetIBCDenomTrace[denom]
 	} else {
