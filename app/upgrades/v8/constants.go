@@ -29,19 +29,11 @@ const (
 	// Since the IBC cross-chain is always running, this number will keep changing.
 	// Therefore, we set a relatively large value here to ensure the normal operation of the BSC module cross-chain,
 	// and we will fix this number in the next version.
-
-	testnetPundixEscrowPurseAmount = "64000000000000000000000000000"
-	mainnetPundixEscrowPurseAmount = "64000000000000000000000000000"
+	pundixEscrowPurseAmount = "64000000000000000000000000000"
 )
 
-func getPundixEscrowPurseAmount(ctx sdk.Context) (sdkmath.Int, error) {
-	var purseAmount sdkmath.Int
-	var ok bool
-	if ctx.ChainID() == fxtypes.TestnetChainId {
-		purseAmount, ok = sdkmath.NewIntFromString(testnetPundixEscrowPurseAmount)
-	} else {
-		purseAmount, ok = sdkmath.NewIntFromString(mainnetPundixEscrowPurseAmount)
-	}
+func getPundixEscrowPurseAmount() (sdkmath.Int, error) {
+	purseAmount, ok := sdkmath.NewIntFromString(pundixEscrowPurseAmount)
 	if !ok {
 		return sdkmath.ZeroInt(), fmt.Errorf("pundix escrow purse amount is invalid")
 	}

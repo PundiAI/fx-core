@@ -4,11 +4,22 @@ import (
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/pundiai/fx-core/v8/app/keepers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
+
+func updateMainnetPundiAI(ctx sdk.Context, app *keepers.AppKeepers) error {
+	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
+		return err
+	}
+	if err := updateFXBridgeDenom(ctx, app.Erc20Keeper); err != nil {
+		return err
+	}
+	return addMainnetPundiAIBridgeToken(ctx, app.Erc20Keeper)
+}
 
 func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
 	erc20Token, err := keeper.GetERC20Token(ctx, fxtypes.LegacyFXDenom)

@@ -14,20 +14,24 @@ import (
 	coreheader "cosmossdk.io/core/header"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	dbm "github.com/cosmos/cosmos-db"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankv2 "github.com/cosmos/cosmos-sdk/x/bank/migrations/v2"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/rs/zerolog"
@@ -39,12 +43,15 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
+	arbitrumtypes "github.com/pundiai/fx-core/v8/x/arbitrum/types"
 	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20v8 "github.com/pundiai/fx-core/v8/x/erc20/migrations/v8"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	fxgovv8 "github.com/pundiai/fx-core/v8/x/gov/migrations/v8"
 	fxgovtypes "github.com/pundiai/fx-core/v8/x/gov/types"
+	optimismtypes "github.com/pundiai/fx-core/v8/x/optimism/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
 )
 
@@ -92,7 +99,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
-	// 3. check contract status
+	// 3. check the status after the upgrade
 	checkBridgeFeeContract(t, ctx, myApp)
 }
 
@@ -146,6 +153,9 @@ type BeforeUpgradeData struct {
 	ModuleBalances  map[string]sdk.Coins
 	Delegates       map[string]*stakingtypes.DelegationResponse
 	DelegateRewards map[string]sdk.DecCoins
+	ERC20Token      map[string]erc20types.ERC20Token
+	Metadata        map[string]banktypes.Metadata
+	EvmBalances     map[string]map[string]*big.Int
 }
 
 func beforeUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) BeforeUpgradeData {
@@ -164,6 +174,15 @@ func beforeUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) BeforeUpgradeD
 	delegatesMap, delegateRewardsMap := delegatesAndRewards(t, ctx, myApp)
 	bdd.Delegates = delegatesMap
 	bdd.DelegateRewards = delegateRewardsMap
+
+	erc20Token, metadata := allOldDenom(ctx, myApp)
+	bdd.ERC20Token = erc20Token
+	bdd.Metadata = metadata
+
+	evmBalance, err := allEvmBalance(ctx, myApp)
+	require.NoError(t, err)
+	bdd.EvmBalances = evmBalance
+
 	return bdd
 }
 
@@ -203,30 +222,26 @@ func delegatesAndRewards(t *testing.T, ctx sdk.Context, myApp *app.App) (map[str
 func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
 	t.Helper()
 
-	checkDelegationData(t, bdd, ctx, myApp)
-
 	checkWrapToken(t, ctx, myApp)
-
+	checkDelegationData(t, bdd, ctx, myApp)
 	checkStakingMigrationDelete(t, ctx, myApp)
-
 	checkGovCustomParams(t, ctx, myApp)
-
 	checkErc20Keys(t, ctx, myApp)
-
 	checkOutgoingBatch(t, ctx, myApp)
 
-	checkMigrateBalance(t, ctx, myApp, bdd)
-
-	checkBridgeToken(t, ctx, myApp)
-	checkErc20Token(t, ctx, myApp)
-	checkPundixPurse(t, ctx, myApp)
-	checkTotalSupply(t, ctx, myApp)
 	checkLayer2OracleIsOnline(t, ctx, myApp.Layer2Keeper)
-	checkMetadataValidate(t, ctx, myApp)
-	checkPundiAIFXERC20Token(t, ctx, myApp)
+
+	checkMigrateBalance(t, ctx, myApp, bdd)
+	checkTotalSupply(t, ctx, myApp)
+	checkEvmSupply(t, ctx, myApp)
+	checkEvmBalance(t, ctx, myApp, bdd)
+
+	checkErc20Token(t, ctx, myApp, bdd)
+	checkNewErc20Token(t, ctx, myApp)
+	checkDefaultDenom(t, ctx, myApp)
+	checkMetadata(t, ctx, myApp, bdd)
 
 	checkModulesData(t, ctx, myApp)
-	checkFXBridgeDenom(t, ctx, myApp)
 }
 
 func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, myApp *app.App) {
@@ -504,73 +519,48 @@ func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountB
 	require.Empty(t, newAccountBalance)
 }
 
-func checkBridgeToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
+func checkEvmSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
-	ethTokens, err := myApp.Erc20Keeper.GetBridgeTokens(ctx, ethtypes.ModuleName)
+	erc20Tokens, err := allErc20Token(ctx, myApp)
 	require.NoError(t, err)
-	require.NotEmpty(t, ethTokens)
-	for _, token := range ethTokens {
-		require.Equal(t, ethtypes.ModuleName, token.ChainName)
-	}
-}
-
-func checkErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	t.Helper()
-
-	iter, err := myApp.Erc20Keeper.ERC20Token.Iterate(ctx, nil)
-	require.NoError(t, err)
-	defer iter.Close()
-
-	kvs, err := iter.KeyValues()
-	require.NoError(t, err)
-
-	erc20Tokens := make([]erc20types.ERC20Token, 0, len(kvs))
-	for _, kv := range kvs {
-		erc20Tokens = append(erc20Tokens, kv.Value)
-	}
-
-	for _, et := range erc20Tokens {
-		has, err := myApp.Erc20Keeper.DenomIndex.Has(ctx, et.Erc20Address)
-		require.NoError(t, err)
-		require.True(t, has)
-	}
-}
-
-func checkPundixPurse(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	t.Helper()
 
 	erc20ModuleAddr := authtypes.NewModuleAddress(erc20types.ModuleName)
-	erc20Contract := contract.NewERC20TokenKeeper(myApp.EvmKeeper)
-	for _, denom := range []string{"pundix", "purse"} {
-		erc20Token, err := myApp.Erc20Keeper.GetERC20Token(ctx, denom)
-		require.NoError(t, err)
-
-		erc20TokenSupply, err := erc20Contract.TotalSupply(ctx, erc20Token.GetERC20Contract())
-		require.NoError(t, err)
-		if erc20TokenSupply.Cmp(big.NewInt(0)) <= 0 {
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(myApp.EvmKeeper)
+	for _, et := range erc20Tokens {
+		if et.GetDenom() == fxtypes.DefaultDenom {
+			balance := myApp.BankKeeper.GetBalance(ctx, et.GetERC20Contract().Bytes(), et.GetDenom())
+			totalSupply, err := erc20TokenKeeper.TotalSupply(ctx, et.GetERC20Contract())
+			require.NoError(t, err)
+			require.GreaterOrEqual(t, balance.Amount.String(), totalSupply.String(), et.GetDenom())
 			continue
 		}
 
-		balance := myApp.BankKeeper.GetBalance(ctx, erc20ModuleAddr, denom)
-		require.Equal(t, sdkmath.NewIntFromBigInt(erc20TokenSupply), balance.Amount)
+		if et.ContractOwner == erc20types.OWNER_MODULE {
+			balance := myApp.BankKeeper.GetBalance(ctx, erc20ModuleAddr, et.GetDenom())
+			totalSupply, err := erc20TokenKeeper.TotalSupply(ctx, et.GetERC20Contract())
+			require.NoError(t, err)
+			require.Equal(t, sdkmath.NewIntFromBigInt(totalSupply).String(), balance.Amount.String(), et.GetDenom())
+			continue
+		}
+
+		if et.ContractOwner == erc20types.OWNER_EXTERNAL {
+			totalSupply := myApp.BankKeeper.GetSupply(ctx, et.GetDenom())
+			balanceOf, err := erc20TokenKeeper.BalanceOf(ctx, et.GetERC20Contract(), common.BytesToAddress(erc20ModuleAddr.Bytes()))
+			require.NoError(t, err)
+			require.Equal(t, sdkmath.NewIntFromBigInt(balanceOf).String(), totalSupply.Amount.String(), et.GetDenom())
+			continue
+		}
+
+		t.Log("skip check", et.GetDenom())
 	}
 }
 
 func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
-	iter, err := myApp.Erc20Keeper.ERC20Token.Iterate(ctx, nil)
+	erc20Tokens, err := allErc20Token(ctx, myApp)
 	require.NoError(t, err)
-	defer iter.Close()
-
-	kvs, err := iter.KeyValues()
-	require.NoError(t, err)
-
-	erc20Tokens := make([]erc20types.ERC20Token, 0, len(kvs))
-	for _, kv := range kvs {
-		erc20Tokens = append(erc20Tokens, kv.Value)
-	}
 
 	for _, et := range erc20Tokens {
 		aliasDenoms := make([]string, 0, 10)
@@ -601,83 +591,67 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 		}
 		baseSupply := myApp.BankKeeper.GetSupply(ctx, et.GetDenom())
 		// NOTE: after sendToExternal fixed, fix bridge token amount
-		if !aliasTotal.Equal(baseSupply.Amount) {
-			t.Log("not equal", "denom", et.GetDenom())
-			continue
-		}
+		require.Equal(t, aliasTotal, baseSupply.Amount)
 	}
 }
 
-func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {
-	accountBalance := make(map[string]sdk.Coins)
-	moduleBalance := make(map[string]sdk.Coins)
-	myApp.BankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, balance sdk.Coin) bool {
-		account := myApp.AccountKeeper.GetAccount(ctx, addr)
-		if ma, ok := account.(*authtypes.ModuleAccount); ok {
-			if ma.Name == stakingtypes.BondedPoolName ||
-				ma.Name == stakingtypes.NotBondedPoolName ||
-				ma.Name == distributiontypes.ModuleName {
-				return false
-			}
+func checkEvmBalance(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
+	t.Helper()
 
-			coins, ok := moduleBalance[ma.Name]
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(myApp.EvmKeeper)
+	for erc20Addr, bals := range bdd.EvmBalances {
+		baseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, erc20Addr)
+		require.NoError(t, err)
+		myApp.AccountKeeper.IterateAccounts(ctx, func(account sdk.AccountI) (stop bool) {
+			addr := common.BytesToAddress(account.GetAddress())
+			bal, ok := bals[addr.String()]
 			if !ok {
-				coins = sdk.NewCoins()
+				bal = big.NewInt(0)
 			}
-			coins = coins.Add(balance)
-			moduleBalance[ma.Name] = coins
+			if baseDenom == fxtypes.DefaultDenom {
+				bal = fxtypes.SwapAmount(sdkmath.NewIntFromBigInt(bal)).BigInt()
+			}
+			newBal, err := erc20TokenKeeper.BalanceOf(ctx, common.HexToAddress(erc20Addr), addr)
+			require.NoError(t, err)
+			require.Equalf(t, bal.String(), newBal.String(), "address: %s", addr.String())
 			return false
-		}
-		if addr.Equals(authtypes.NewModuleAddress(crosschaintypes.ModuleName)) {
-			return false
-		}
-		coins, ok := accountBalance[addr.String()]
-		if !ok {
-			coins = sdk.NewCoins()
-		}
-		coins = coins.Add(balance)
-		accountBalance[addr.String()] = coins
-		return false
-	})
-	return accountBalance, moduleBalance
+		})
+	}
 }
 
-func getIBCTokens(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.IBCToken, error) {
-	rng := collections.NewPrefixedPairRange[string, string](baseDenom)
-	iter, err := myApp.Erc20Keeper.IBCToken.Iterate(ctx, rng)
-	if err != nil {
-		return nil, err
-	}
-	kvs, err := iter.KeyValues()
-	if err != nil {
-		return nil, err
-	}
+func checkErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
+	t.Helper()
 
-	tokens := make([]erc20types.IBCToken, 0, len(kvs))
-	for _, kv := range kvs {
-		tokens = append(tokens, kv.Value)
-	}
-	return tokens, nil
-}
+	for addr, et := range bdd.ERC20Token {
+		baseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, addr)
+		require.NoError(t, err)
 
-func getBridgeToken(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.BridgeToken, error) {
-	bridgeTokens := make([]erc20types.BridgeToken, 0, len(myApp.CrosschainKeepers.ToSlice()))
-	for _, ck := range myApp.CrosschainKeepers.ToSlice() {
-		key := collections.Join(ck.ModuleName(), baseDenom)
-		has, err := myApp.Erc20Keeper.BridgeToken.Has(ctx, key)
-		if err != nil {
-			return nil, err
-		}
-		if !has {
+		if baseDenom == fxtypes.DefaultDenom {
+			require.Equal(t, fxtypes.LegacyFXDenom, et.Denom)
 			continue
 		}
-		bridgeToken, _ := myApp.Erc20Keeper.GetBridgeToken(ctx, ck.ModuleName(), baseDenom)
-		bridgeTokens = append(bridgeTokens, bridgeToken)
+
+		erc20Token, err := myApp.Erc20Keeper.GetERC20Token(ctx, baseDenom)
+		require.NoError(t, err, baseDenom)
+		require.Equal(t, et.GetErc20Address(), erc20Token.GetErc20Address())
+
+		if baseDenom == "pundix" {
+			bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, baseDenom)
+			require.NoError(t, err)
+			require.Equal(t, bridgeToken.BridgeDenom(), et.Denom)
+			continue
+		}
+		if baseDenom == "purse" {
+			ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, fxtypes.PundixChannel, baseDenom)
+			require.NoError(t, err)
+			require.Equal(t, ibcToken.GetIbcDenom(), et.Denom)
+			continue
+		}
+		require.Equal(t, baseDenom, et.Denom)
 	}
-	return bridgeTokens, nil
 }
 
-func checkMetadataValidate(t *testing.T, ctx sdk.Context, myApp *app.App) {
+func checkMetadata(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgradeData) {
 	t.Helper()
 
 	myApp.BankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
@@ -686,19 +660,131 @@ func checkMetadataValidate(t *testing.T, ctx sdk.Context, myApp *app.App) {
 		}
 		require.NoError(t, metadata.Validate())
 		require.NotEqual(t, metadata.Display, metadata.Base)
+		if metadata.Base == fxtypes.DefaultDenom {
+			require.Equal(t, metadata, fxtypes.NewDefaultMetadata())
+		}
 		return false
 	})
+
+	for denom, md := range bdd.Metadata {
+		// one to one
+		if len(md.DenomUnits) == 0 || len(md.DenomUnits[0].Aliases) == 0 {
+			require.False(t, myApp.BankKeeper.HasDenomMetaData(ctx, denom))
+			if md.Base != fxtypes.LegacyFXDenom {
+				baseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, md.Base)
+				require.NoError(t, err)
+				if strings.HasPrefix(md.Base, "ibc/") {
+					ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, fxtypes.PundixChannel, baseDenom)
+					require.NoError(t, err)
+					require.Equal(t, ibcToken.GetIbcDenom(), md.Base)
+				} else {
+					bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, baseDenom)
+					require.NoError(t, err)
+					require.Equal(t, bridgeToken.BridgeDenom(), md.Base)
+				}
+			}
+			continue
+		}
+
+		// many to one
+		for _, alias := range md.DenomUnits[0].Aliases {
+			if strings.HasPrefix(alias, arbitrumtypes.ModuleName) ||
+				strings.HasPrefix(alias, optimismtypes.ModuleName) {
+				continue
+			}
+			baseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, alias)
+			require.NoError(t, err)
+
+			// ibc token
+			if strings.HasPrefix(alias, ibctransfertypes.DenomPrefix) {
+				channelID, ok := erc20v8.GetIBCDenomTrace(ctx, alias)
+				require.True(t, ok)
+
+				ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, channelID, baseDenom)
+				require.NoError(t, err, baseDenom)
+				require.Equal(t, ibcToken.GetIbcDenom(), alias)
+				continue
+			}
+
+			// bridge token
+			matched := false
+			for _, k := range myApp.CrosschainKeepers.ToSlice() {
+				if !strings.HasPrefix(alias, k.ModuleName()) {
+					continue
+				}
+				bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, k.ModuleName(), baseDenom)
+				require.NoError(t, err, baseDenom)
+				require.Equal(t, bridgeToken.BridgeDenom(), alias)
+				matched = true
+			}
+			require.Truef(t, matched, "skip %s alias %s", baseDenom, alias)
+		}
+	}
 }
 
-func checkPundiAIFXERC20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
+func checkNewErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
-	has, err := myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.DefaultDenom)
+	erc20Token, err := allErc20Token(ctx, myApp)
 	require.NoError(t, err)
-	require.True(t, has)
-	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.LegacyFXDenom)
+	for _, et := range erc20Token {
+		baseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, et.Erc20Address)
+		require.NoError(t, err)
+
+		bridgeTokens, err := getBridgeToken(ctx, myApp, baseDenom)
+		require.NoError(t, err)
+		for _, token := range bridgeTokens {
+			bridgeBaseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, erc20types.NewBridgeDenom(token.ChainName, token.Contract))
+			require.NoError(t, err)
+			require.Equal(t, baseDenom, bridgeBaseDenom)
+		}
+
+		ibcTokens, err := getIBCTokens(ctx, myApp, baseDenom)
+		require.NoError(t, err)
+		for _, token := range ibcTokens {
+			ibcBaseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, token.GetIbcDenom())
+			require.NoError(t, err)
+			require.Equal(t, baseDenom, ibcBaseDenom)
+		}
+	}
+
+	// check index to base
+	iter, err := myApp.Erc20Keeper.DenomIndex.Iterate(ctx, nil)
 	require.NoError(t, err)
-	require.False(t, has)
+	defer iter.Close()
+	kvs, err := iter.KeyValues()
+	require.NoError(t, err)
+	for _, kv := range kvs {
+		if common.IsHexAddress(kv.Key) {
+			et, err := myApp.Erc20Keeper.GetERC20Token(ctx, kv.Value)
+			require.NoError(t, err)
+			require.Equal(t, kv.Key, et.GetErc20Address())
+			continue
+		}
+		if strings.HasPrefix(kv.Key, "ibc/") {
+			ibcTokens, err := getIBCTokens(ctx, myApp, kv.Value)
+			require.NoError(t, err)
+			has := false
+			for _, it := range ibcTokens {
+				if kv.Key == it.GetIbcDenom() {
+					has = true
+					break
+				}
+			}
+			require.True(t, has)
+			continue
+		}
+		bridgeTokens, err := getBridgeToken(ctx, myApp, kv.Value)
+		require.NoError(t, err)
+		has := false
+		for _, bt := range bridgeTokens {
+			if kv.Key == erc20types.NewBridgeDenom(bt.ChainName, bt.Contract) {
+				has = true
+				break
+			}
+		}
+		require.Truef(t, has, "key %s value %s", kv.Key, kv.Value)
+	}
 }
 
 func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -750,20 +836,22 @@ func checkMintModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.Equal(t, fxtypes.DefaultDenom, params.MintDenom)
 }
 
-func checkFXBridgeDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
+func checkDefaultDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
-	bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.FXDenom)
-	require.NoError(t, err)
 	has, err := myApp.Erc20Keeper.BridgeToken.Has(ctx, collections.Join(ethtypes.ModuleName, fxtypes.LegacyFXDenom))
 	require.NoError(t, err)
 	require.False(t, has)
+	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.LegacyFXDenom)
+	require.NoError(t, err)
+	require.False(t, has)
 
+	bridgeToken, err := myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.FXDenom)
+	require.NoError(t, err)
 	denom, err := myApp.Erc20Keeper.DenomIndex.Get(ctx, erc20types.NewBridgeDenom(ethtypes.ModuleName, bridgeToken.Contract))
 	require.NoError(t, err)
 	require.Equal(t, fxtypes.FXDenom, denom)
-
-	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.LegacyFXDenom)
+	has, err = myApp.Erc20Keeper.ERC20Token.Has(ctx, fxtypes.FXDenom)
 	require.NoError(t, err)
 	require.False(t, has)
 
@@ -772,6 +860,149 @@ func checkFXBridgeDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	denom, err = myApp.Erc20Keeper.DenomIndex.Get(ctx, pundiaiERC20Token.Erc20Address)
 	require.NoError(t, err)
 	require.Equal(t, fxtypes.DefaultDenom, denom)
+	_, err = myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.DefaultDenom)
+	require.NoError(t, err)
+}
+
+func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {
+	accountBalance := make(map[string]sdk.Coins)
+	moduleBalance := make(map[string]sdk.Coins)
+	myApp.BankKeeper.IterateAllBalances(ctx, func(addr sdk.AccAddress, balance sdk.Coin) bool {
+		account := myApp.AccountKeeper.GetAccount(ctx, addr)
+		if ma, ok := account.(*authtypes.ModuleAccount); ok {
+			if ma.Name == stakingtypes.BondedPoolName ||
+				ma.Name == stakingtypes.NotBondedPoolName ||
+				ma.Name == distributiontypes.ModuleName {
+				return false
+			}
+
+			coins, ok := moduleBalance[ma.Name]
+			if !ok {
+				coins = sdk.NewCoins()
+			}
+			coins = coins.Add(balance)
+			moduleBalance[ma.Name] = coins
+			return false
+		}
+		if addr.Equals(authtypes.NewModuleAddress(crosschaintypes.ModuleName)) {
+			return false
+		}
+		coins, ok := accountBalance[addr.String()]
+		if !ok {
+			coins = sdk.NewCoins()
+		}
+		coins = coins.Add(balance)
+		accountBalance[addr.String()] = coins
+		return false
+	})
+	return accountBalance, moduleBalance
+}
+
+func allOldDenom(ctx sdk.Context, myApp *app.App) (map[string]erc20types.ERC20Token, map[string]banktypes.Metadata) {
+	erc20Token := make(map[string]erc20types.ERC20Token)
+	erc20Store := ctx.KVStore(myApp.GetKey(erc20types.StoreKey))
+	iterator := storetypes.KVStorePrefixIterator(erc20Store, erc20v8.KeyPrefixTokenPair)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var tokenPair erc20types.ERC20Token
+		myApp.AppCodec().MustUnmarshal(iterator.Value(), &tokenPair)
+		erc20Token[tokenPair.GetErc20Address()] = tokenPair
+	}
+
+	metadata := make(map[string]banktypes.Metadata)
+	storeService := runtime.NewKVStoreService(myApp.GetKey(banktypes.StoreKey))
+	bankStore := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
+	oldDenomMetaDataStore := prefix.NewStore(bankStore, bankv2.DenomMetadataPrefix)
+	oldDenomMetaDataIter := oldDenomMetaDataStore.Iterator(nil, nil)
+	for ; oldDenomMetaDataIter.Valid(); oldDenomMetaDataIter.Next() {
+		var md banktypes.Metadata
+		myApp.AppCodec().MustUnmarshal(oldDenomMetaDataIter.Value(), &md)
+		metadata[md.Base] = md
+	}
+	return erc20Token, metadata
+}
+
+func getIBCTokens(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.IBCToken, error) {
+	rng := collections.NewPrefixedPairRange[string, string](baseDenom)
+	iter, err := myApp.Erc20Keeper.IBCToken.Iterate(ctx, rng)
+	if err != nil {
+		return nil, err
+	}
+	kvs, err := iter.KeyValues()
+	if err != nil {
+		return nil, err
+	}
+
+	tokens := make([]erc20types.IBCToken, 0, len(kvs))
+	for _, kv := range kvs {
+		tokens = append(tokens, kv.Value)
+	}
+	return tokens, nil
+}
+
+func getBridgeToken(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.BridgeToken, error) {
+	bridgeTokens := make([]erc20types.BridgeToken, 0, len(myApp.CrosschainKeepers.ToSlice()))
+	for _, ck := range myApp.CrosschainKeepers.ToSlice() {
+		key := collections.Join(ck.ModuleName(), baseDenom)
+		has, err := myApp.Erc20Keeper.BridgeToken.Has(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		if !has {
+			continue
+		}
+		bridgeToken, _ := myApp.Erc20Keeper.GetBridgeToken(ctx, ck.ModuleName(), baseDenom)
+		bridgeTokens = append(bridgeTokens, bridgeToken)
+	}
+	return bridgeTokens, nil
+}
+
+func allErc20Token(ctx sdk.Context, myApp *app.App) ([]erc20types.ERC20Token, error) {
+	iter, err := myApp.Erc20Keeper.ERC20Token.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close()
+
+	kvs, err := iter.KeyValues()
+	if err != nil {
+		return nil, err
+	}
+
+	erc20Tokens := make([]erc20types.ERC20Token, 0, len(kvs))
+	for _, kv := range kvs {
+		erc20Tokens = append(erc20Tokens, kv.Value)
+	}
+	return erc20Tokens, nil
+}
+
+func allEvmBalance(ctx sdk.Context, myApp *app.App) (map[string]map[string]*big.Int, error) {
+	erc20Tokens, _ := allOldDenom(ctx, myApp)
+	accs := make([]sdk.AccAddress, 0, 100)
+	myApp.AccountKeeper.IterateAccounts(ctx, func(account sdk.AccountI) (stop bool) {
+		accs = append(accs, account.GetAddress())
+		return false
+	})
+	evmBalance := make(map[string]map[string]*big.Int)
+	for _, et := range erc20Tokens {
+		if et.GetDenom() != fxtypes.LegacyFXDenom {
+			continue
+		}
+		erc20Balances := make(map[string]*big.Int)
+		erc20TokenKeeper := contract.NewERC20TokenKeeper(myApp.EvmKeeper)
+		for _, acc := range accs {
+			addr := common.BytesToAddress(acc.Bytes())
+			balanceOf, err := erc20TokenKeeper.BalanceOf(ctx, et.GetERC20Contract(), addr)
+			if err != nil {
+				return nil, err
+			}
+			if balanceOf.Cmp(big.NewInt(0)) != 0 {
+				erc20Balances[addr.String()] = balanceOf
+			}
+		}
+		evmBalance[et.GetErc20Address()] = erc20Balances
+	}
+	return evmBalance, nil
 }
 
 func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {

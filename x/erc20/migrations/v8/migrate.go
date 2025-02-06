@@ -64,7 +64,7 @@ func (m Migrator) addToken(ctx sdk.Context, base, alias string) error {
 }
 
 func (m Migrator) addIBCToken(ctx sdk.Context, base, alias string) error {
-	channel, found := getIBCDenomTrace(ctx, alias)
+	channel, found := GetIBCDenomTrace(ctx, alias)
 	if !found {
 		return sdkerrors.ErrInvalidCoins.Wrapf("ibc denom hash not found: %s %s", base, alias)
 	}

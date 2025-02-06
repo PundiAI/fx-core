@@ -2,17 +2,13 @@ package v8
 
 import (
 	"context"
-	"math/big"
 
-	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -20,16 +16,10 @@ import (
 
 	"github.com/pundiai/fx-core/v8/app/keepers"
 	"github.com/pundiai/fx-core/v8/app/upgrades/store"
-	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
-	bsctypes "github.com/pundiai/fx-core/v8/x/bsc/types"
 	crosschainkeeper "github.com/pundiai/fx-core/v8/x/crosschain/keeper"
-	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
-	erc20keeper "github.com/pundiai/fx-core/v8/x/erc20/keeper"
 	erc20v8 "github.com/pundiai/fx-core/v8/x/erc20/migrations/v8"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
-	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
-	fxevmkeeper "github.com/pundiai/fx-core/v8/x/evm/keeper"
 	layer2types "github.com/pundiai/fx-core/v8/x/layer2/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
 )
@@ -86,6 +76,8 @@ func upgradeMainnet(
 	}
 
 	store.RemoveStoreKeys(ctx, app.GetKey(stakingtypes.StoreKey), fxstakingv8.GetRemovedStoreKeys())
+	store.RemoveStoreKeys(ctx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
+	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
 
 	if err = migrateGovCustomParam(ctx, app.GovKeeper, app.GetKey(govtypes.StoreKey)); err != nil {
 		return fromVM, err
@@ -93,25 +85,10 @@ func upgradeMainnet(
 	if err = migrateGovDefaultParams(ctx, app.GovKeeper); err != nil {
 		return fromVM, err
 	}
-	if err = migrateBridgeBalance(ctx, app.BankKeeper, app.AccountKeeper); err != nil {
-		return fromVM, err
-	}
-	if err = migrateERC20TokenToCrosschain(ctx, app.BankKeeper, app.Erc20Keeper); err != nil {
-		return fromVM, err
-	}
-	if err = fixPundixCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
-		return fromVM, err
-	}
-	if err = fixPurseCoin(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper); err != nil {
+	if err = migrateBridgeToken(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper, app.AccountKeeper); err != nil {
 		return fromVM, err
 	}
 	if err = updateMetadata(ctx, app.BankKeeper); err != nil {
-		return fromVM, err
-	}
-
-	store.RemoveStoreKeys(ctx, app.GetKey(erc20types.StoreKey), erc20v8.GetRemovedStoreKeys())
-
-	if err = mintPurseBridgeToken(ctx, app.Erc20Keeper, app.BankKeeper); err != nil {
 		return fromVM, err
 	}
 	if err = updateMainnetPundiAI(ctx, app); err != nil {
@@ -120,9 +97,6 @@ func upgradeMainnet(
 	if err = updateContract(ctx, app); err != nil {
 		return fromVM, err
 	}
-
-	fixBaseOracleStatus(ctx, app.CrosschainKeepers.Layer2Keeper)
-
 	if err = migrateModulesData(ctx, codec, app); err != nil {
 		return fromVM, err
 	}
@@ -176,82 +150,4 @@ func fixBaseOracleStatus(ctx sdk.Context, crosschainKeeper crosschainkeeper.Keep
 		crosschainKeeper.SetOracle(ctx, oracle)
 	}
 	crosschainKeeper.SetLastTotalPower(ctx)
-}
-
-func fixPundixCoin(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper, bankKeeper bankkeeper.Keeper) error {
-	erc20Contract := contract.NewERC20TokenKeeper(evmKeeper)
-	erc20Token, err := erc20Keeper.GetERC20Token(ctx, pundixBaseDenom)
-	if err != nil {
-		return err
-	}
-	erc20PundixSupply, err := erc20Contract.TotalSupply(ctx, erc20Token.GetERC20Contract())
-	if err != nil {
-		return err
-	}
-	erc20ModulePurseBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), pundixBaseDenom)
-	if !erc20ModulePurseBalance.IsZero() {
-		erc20PundixSupply = big.NewInt(0).Sub(erc20PundixSupply, erc20ModulePurseBalance.Amount.BigInt())
-	}
-
-	fixCoins := sdk.NewCoins(sdk.NewCoin(pundixBaseDenom, sdkmath.NewIntFromBigInt(erc20PundixSupply)))
-	return bankKeeper.MintCoins(ctx, erc20types.ModuleName, fixCoins)
-}
-
-func fixPurseCoin(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc20Keeper erc20keeper.Keeper, bankKeeper bankkeeper.Keeper) error {
-	erc20Contract := contract.NewERC20TokenKeeper(evmKeeper)
-	purseToken, err := erc20Keeper.GetERC20Token(ctx, purseBaseDenom)
-	if err != nil {
-		return err
-	}
-	contractPurseSupply, err := erc20Contract.TotalSupply(ctx, purseToken.GetERC20Contract())
-	if err != nil {
-		return err
-	}
-	erc20ModulePurseBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), purseBaseDenom)
-	if !erc20ModulePurseBalance.IsZero() {
-		contractPurseSupply = big.NewInt(0).Sub(contractPurseSupply, erc20ModulePurseBalance.Amount.BigInt())
-	}
-
-	ethPurseToken, err := erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, purseBaseDenom)
-	if err != nil {
-		return err
-	}
-	ethPurseTokenSupply := bankKeeper.GetSupply(ctx, ethPurseToken.BridgeDenom())
-
-	bscPurseToken, err := erc20Keeper.GetBridgeToken(ctx, bsctypes.ModuleName, purseBaseDenom)
-	if err != nil {
-		return err
-	}
-	bscPurseTokenSupply := bankKeeper.GetSupply(ctx, bscPurseToken.BridgeDenom())
-
-	ibcPurseToken, err := erc20Keeper.GetIBCToken(ctx, "channel-0", purseBaseDenom)
-	if err != nil {
-		return err
-	}
-
-	erc20PurseSupply := sdk.NewCoin(purseBaseDenom, sdkmath.NewIntFromBigInt(contractPurseSupply))
-	if err = bankKeeper.MintCoins(ctx, erc20types.ModuleName, sdk.NewCoins(erc20PurseSupply)); err != nil {
-		return err
-	}
-
-	crosschainPurseSupply := sdk.NewCoin(purseBaseDenom, bscPurseTokenSupply.Amount.Add(ethPurseTokenSupply.Amount))
-	if err = bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(crosschainPurseSupply)); err != nil {
-		return err
-	}
-
-	basePurseSupply := bankKeeper.GetSupply(ctx, purseBaseDenom)
-	ibcPurseSupply := bankKeeper.GetSupply(ctx, ibcPurseToken.GetIbcDenom())
-
-	needIBCPurseSupply := sdk.NewCoin(ibcPurseToken.GetIbcDenom(), basePurseSupply.Amount.Sub(ibcPurseSupply.Amount))
-	return bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.NewCoins(needIBCPurseSupply))
-}
-
-func updateMainnetPundiAI(ctx sdk.Context, app *keepers.AppKeepers) error {
-	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
-		return err
-	}
-	if err := updateFXBridgeDenom(ctx, app.Erc20Keeper); err != nil {
-		return err
-	}
-	return addMainnetPundiAIBridgeToken(ctx, app.Erc20Keeper)
 }
