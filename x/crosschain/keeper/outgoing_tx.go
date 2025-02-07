@@ -11,6 +11,7 @@ import (
 
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtelemetry "github.com/pundiai/fx-core/v8/telemetry"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
@@ -60,7 +61,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, caller contract.Caller, se
 			},
 		},
 		TokenContract: bridgeToken.Contract,
-		FeeReceive:    quoteInfo.Oracle.String(),
+		FeeReceive:    fxtypes.ExternalAddrToStr(k.moduleName, quoteInfo.Oracle.Bytes()),
 		Block:         uint64(ctx.BlockHeight()), // set the current block height when storing the batch
 	}
 	if err = k.StoreBatch(ctx, batch); err != nil {
