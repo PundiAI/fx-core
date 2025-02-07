@@ -31,13 +31,16 @@ func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCM
 
 	receiveDenom := parseIBCCoinDenom(packet, data.GetDenom())
 	receiveCoin := sdk.NewCoin(receiveDenom, receiveAmount)
-	baseCoin, err := k.crosschainKeeper.IBCCoinToBaseCoin(ctx, receiver, receiveCoin)
+	found, baseDenom, err := k.crosschainKeeper.IBCCoinToBaseCoin(ctx, receiver, receiveCoin)
 	if err != nil {
 		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
+	if !found {
+		return types.NewAckErrorWithErrorEvent(ctx, fmt.Errorf("token not support"))
+	}
 
-	ibcAmount := sdk.NewCoin(baseCoin, transferAmount)
-	ibcFee := sdk.NewCoin(baseCoin, feeAmount)
+	ibcAmount := sdk.NewCoin(baseDenom, transferAmount)
+	ibcFee := sdk.NewCoin(baseDenom, feeAmount)
 
 	routerCtxWithNewEvent := ctx.WithEventManager(sdk.NewEventManager())
 	ctx = ctx.WithKVGasConfig(storetypes.GasConfig{}).WithTransientKVGasConfig(storetypes.GasConfig{})

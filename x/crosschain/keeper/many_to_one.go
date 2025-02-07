@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"strings"
 
+	"cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -136,25 +138,28 @@ func (k Keeper) WithdrawBridgeToken(ctx context.Context, holder sdk.AccAddress, 
 	return k.bankKeeper.BurnCoins(ctx, k.moduleName, bridgeCoins)
 }
 
-func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) (string, error) {
+func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) (foundBase bool, baseDenom string, err error) {
 	isNative := !strings.HasPrefix(ibcCoin.Denom, ibctransfertypes.DenomPrefix+"/")
 	if isNative {
-		return ibcCoin.Denom, nil
+		return true, ibcCoin.Denom, nil
 	}
-	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, ibcCoin.Denom)
+	baseDenom, err = k.erc20Keeper.GetBaseDenom(ctx, ibcCoin.Denom)
 	if err != nil {
 		// NOTE: if not found in IBCToken
-		return "", nil
+		if errors.Is(err, collections.ErrNotFound) {
+			return false, "", nil
+		}
+		return false, "", err
 	}
 	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, holder, types.ModuleName, sdk.NewCoins(ibcCoin)); err != nil {
-		return "", err
+		return false, "", err
 	}
 	baseCoins := sdk.NewCoins(sdk.NewCoin(baseDenom, ibcCoin.Amount))
 	if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, baseCoins); err != nil {
-		return "", err
+		return false, "", err
 	}
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, holder, baseCoins)
-	return baseDenom, err
+	return true, baseDenom, err
 }
 
 func (k Keeper) BaseCoinToIBCCoin(ctx context.Context, holder sdk.AccAddress, baseCoin sdk.Coin, channel string) (sdk.Coin, error) {
@@ -176,11 +181,11 @@ func (k Keeper) BaseCoinToIBCCoin(ctx context.Context, holder sdk.AccAddress, ba
 }
 
 func (k Keeper) IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) error {
-	baseDenom, err := k.IBCCoinToBaseCoin(ctx, holder, ibcCoin)
+	found, baseDenom, err := k.IBCCoinToBaseCoin(ctx, holder, ibcCoin)
 	if err != nil {
 		return err
 	}
-	if baseDenom == "" {
+	if !found {
 		return nil
 	}
 	_, err = k.erc20Keeper.BaseCoinToEvm(ctx, k.evmKeeper, common.BytesToAddress(holder.Bytes()), sdk.NewCoin(baseDenom, ibcCoin.Amount))
@@ -188,15 +193,15 @@ func (k Keeper) IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk
 }
 
 func (k Keeper) IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin, ibcChannel string, ibcSequence uint64) error {
-	baseDenom, err := k.IBCCoinToBaseCoin(ctx, holder, ibcCoin)
+	found, baseDenom, err := k.IBCCoinToBaseCoin(ctx, holder, ibcCoin)
 	if err != nil {
 		return err
 	}
-	if baseDenom == "" {
+	if !found {
 		return nil
 	}
 	ibcTransferKey := types.NewIBCTransferKey(ibcChannel, ibcSequence)
-	found, err := k.erc20Keeper.HasCache(ctx, ibcTransferKey)
+	found, err = k.erc20Keeper.HasCache(ctx, ibcTransferKey)
 	if err != nil {
 		return err
 	}
