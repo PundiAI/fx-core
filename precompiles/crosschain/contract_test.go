@@ -3,7 +3,6 @@ package crosschain_test
 import (
 	"math/big"
 	"testing"
-	"time"
 
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
@@ -67,6 +66,7 @@ func (suite *CrosschainPrecompileTestSuite) SetupTest() {
 	chainNames := fxtypes.GetSupportChains()
 	suite.chainName = chainNames[tmrand.Intn(len(chainNames))]
 
+	// todo: need refactor
 	suite.App.CrosschainKeepers.GetKeeper(suite.chainName).
 		SetLastObservedBlockHeight(suite.Ctx, 100, 10)
 }
@@ -87,57 +87,19 @@ func (suite *CrosschainPrecompileTestSuite) IsCallPrecompile() bool {
 }
 
 func (suite *CrosschainPrecompileTestSuite) SetOracle(online bool) crosschaintypes.Oracle {
-	oracle := crosschaintypes.Oracle{
-		OracleAddress:     helpers.GenAccAddress().String(),
-		BridgerAddress:    helpers.GenAccAddress().String(),
-		ExternalAddress:   helpers.GenExternalAddr(suite.chainName),
-		DelegateAmount:    sdkmath.NewInt(1e18).MulRaw(1000),
-		StartHeight:       1,
-		Online:            online,
-		DelegateValidator: sdk.ValAddress(helpers.GenAccAddress()).String(),
-		SlashTimes:        0,
-	}
-	keeper := suite.App.CrosschainKeepers.GetKeeper(suite.chainName)
-	keeper.SetOracle(suite.Ctx, oracle)
-	keeper.SetOracleAddrByExternalAddr(suite.Ctx, oracle.ExternalAddress, oracle.GetOracle())
-	keeper.SetOracleAddrByBridgerAddr(suite.Ctx, oracle.GetBridger(), oracle.GetOracle())
-	return oracle
+	return suite.BaseSuite.SetOracle(suite.chainName, online)
 }
 
 func (suite *CrosschainPrecompileTestSuite) GetERC20Token(baseDenom string) *erc20types.ERC20Token {
-	erc20token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, baseDenom)
-	suite.Require().NoError(err)
-	return &erc20token
+	return suite.BaseSuite.GetERC20Token(baseDenom)
 }
 
 func (suite *CrosschainPrecompileTestSuite) GetBridgeToken(baseDenom string) erc20types.BridgeToken {
-	bridgeToken, err := suite.App.Erc20Keeper.GetBridgeToken(suite.Ctx, suite.chainName, baseDenom)
-	suite.Require().NoError(err)
-	return bridgeToken
+	return suite.BaseSuite.GetBridgeToken(suite.chainName, baseDenom)
 }
 
 func (suite *CrosschainPrecompileTestSuite) AddBridgeToken(symbolOrAddr string, isNativeCoin bool, isIBC ...bool) erc20types.BridgeToken {
-	keeper := suite.App.Erc20Keeper
-	var baseDenom string
-	isNative := false
-	if symbolOrAddr == fxtypes.LegacyFXDenom {
-		baseDenom = fxtypes.FXDenom
-	} else if isNativeCoin || symbolOrAddr == fxtypes.DefaultSymbol {
-		erc20Token, err := keeper.RegisterNativeCoin(suite.Ctx, symbolOrAddr, symbolOrAddr, 18)
-		suite.Require().NoError(err)
-		baseDenom = erc20Token.Denom
-	} else {
-		isNative = true
-		erc20Token, err := keeper.RegisterNativeERC20(suite.Ctx, common.HexToAddress(symbolOrAddr))
-		suite.Require().NoError(err)
-		baseDenom = erc20Token.Denom
-	}
-	if len(isIBC) > 0 && isIBC[0] {
-		isNative = true
-	}
-	err := keeper.AddBridgeToken(suite.Ctx, baseDenom, suite.chainName, helpers.GenExternalAddr(suite.chainName), isNative)
-	suite.Require().NoError(err)
-	return suite.GetBridgeToken(baseDenom)
+	return suite.BaseSuite.AddBridgeToken(suite.chainName, symbolOrAddr, isNativeCoin, isIBC...)
 }
 
 func (suite *CrosschainPrecompileTestSuite) AddNativeERC20ToEVM(baseDenom string, amount sdkmath.Int) {
@@ -184,30 +146,7 @@ func (suite *CrosschainPrecompileTestSuite) NewBridgeCallArgs(erc20Contract comm
 }
 
 func (suite *CrosschainPrecompileTestSuite) Quote(denom string) {
-	quoteQuoteInput := contract.IBridgeFeeQuoteQuoteInput{
-		Cap:       0,
-		GasLimit:  21000,
-		Expiry:    uint64(time.Now().Add(time.Hour).Unix()),
-		ChainName: contract.MustStrToByte32(suite.chainName),
-		TokenName: contract.MustStrToByte32(denom),
-		Amount:    big.NewInt(1),
-	}
-
-	// add token if not exist
-	tokens, err := suite.bridgeFeeSuite.GetTokens(suite.Ctx, quoteQuoteInput.ChainName)
-	suite.Require().NoError(err)
-	found := false
-	for _, token := range tokens {
-		if token == quoteQuoteInput.TokenName {
-			found = true
-		}
-	}
-	if !found {
-		_, err = suite.bridgeFeeSuite.AddToken(suite.Ctx, quoteQuoteInput.ChainName, []common.Hash{quoteQuoteInput.TokenName})
-		suite.Require().NoError(err)
-	}
-
-	suite.bridgeFeeSuite.Quote(suite.Ctx, quoteQuoteInput)
+	suite.bridgeFeeSuite.MockQuote(suite.Ctx, suite.chainName, denom)
 }
 
 func (suite *CrosschainPrecompileTestSuite) executeClaim(claim crosschaintypes.ExternalClaim) *evmtypes.MsgEthereumTxResponse {
