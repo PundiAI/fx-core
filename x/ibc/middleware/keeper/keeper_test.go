@@ -40,7 +40,7 @@ func (m mockCrosschainKeeper) IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddres
 	return nil
 }
 
-func (m mockCrosschainKeeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) (string, error) {
+func (m mockCrosschainKeeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) (bool, string, error) {
 	panic("implement me")
 }
 
