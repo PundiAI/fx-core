@@ -21,7 +21,7 @@ func (suite *IntegrationTest) WarpTokenTest() {
 	signer := helpers.NewSigner(helpers.NewEthPrivKey())
 	suite.Send(signer.AccAddress(), suite.NewStakingCoin(100, 18))
 
-	tokenAddr := suite.GetErc20TokenAddress(fxtypes.DefaultDenom)
+	tokenAddr := suite.DeployERC20(signer, fxtypes.DefaultSymbol)
 	warpTokenSuite := NewERC20TokenSuite(suite.EthSuite, tokenAddr, signer)
 
 	warpTokenSuite.Deposit(helpers.NewBigInt(20, 18))
@@ -206,13 +206,13 @@ func (suite *IntegrationTest) EVMWeb3Test() {
 			name:     "eth_gasPrice",
 			funcName: "SuggestGasPrice",
 			params:   []interface{}{},
-			wantRes:  []interface{}{big.NewInt(562500000000), nil},
+			wantRes:  []interface{}{big.NewInt(5625000000), nil},
 		},
 		{
 			name:     "eth_maxPriorityFeePerGas",
 			funcName: "SuggestGasTipCap",
 			params:   []interface{}{},
-			wantRes:  []interface{}{big.NewInt(62500000000), nil},
+			wantRes:  []interface{}{big.NewInt(625000000), nil},
 		},
 	}
 	ethClient := suite.EthSuite.ethCli

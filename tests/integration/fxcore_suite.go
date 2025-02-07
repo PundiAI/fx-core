@@ -183,7 +183,7 @@ func (suite *FxCoreSuite) WithProposalStatus(status govv1.ProposalStatus) *FxCor
 func (suite *FxCoreSuite) BroadcastProposalTxV1(msgs ...sdk.Msg) (*sdk.TxResponse, uint64) {
 	proposalMsg, err := govv1.NewMsgSubmitProposal(
 		msgs,
-		sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(10_000).MulRaw(1e18))),
+		sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18))),
 		suite.GetValSigner().AccAddress().String(),
 		"",
 		sdk.MsgTypeURL(msgs[0]),

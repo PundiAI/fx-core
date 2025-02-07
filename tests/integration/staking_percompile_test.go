@@ -18,9 +18,9 @@ func (suite *IntegrationTest) StakingTest() {
 
 	var (
 		valAddr    = suite.GetValAddr()
-		delBalance = sdkmath.NewInt(1000).MulRaw(1e18)
+		delBalance = sdkmath.NewInt(10).MulRaw(1e18)
 	)
-	suite.Send(signer.AccAddress(), suite.NewStakingCoin(2000, 18))
+	suite.Send(signer.AccAddress(), suite.NewStakingCoin(20, 18))
 
 	stakingSuite := NewStakingSuite(suite.EthSuite, common.HexToAddress(contract.StakingAddress), signer)
 	stakingSuite.DelegateV2(valAddr.String(), delBalance.BigInt())
@@ -56,8 +56,8 @@ func (suite *IntegrationTest) StakingContractTest() {
 	var (
 		delSigner   = helpers.NewSigner(helpers.NewEthPrivKey())
 		valAddr     = suite.GetValAddr()
-		initBalance = sdkmath.NewInt(2000).MulRaw(1e18)
-		delBalance  = sdkmath.NewInt(1000).MulRaw(1e18)
+		initBalance = sdkmath.NewInt(20).MulRaw(1e18)
+		delBalance  = sdkmath.NewInt(10).MulRaw(1e18)
 	)
 
 	suite.Send(delSigner.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
@@ -69,7 +69,7 @@ func (suite *IntegrationTest) StakingContractTest() {
 	stakingSuite := NewStakingSuite(suite.EthSuite, contractAddr, delSigner)
 
 	// delegate by contract
-	receipt := stakingSuite.DelegateV2(valAddr.String(), delBalance.BigInt())
+	receipt := stakingSuite.DelegateV2(valAddr.String(), delBalance.BigInt(), delBalance.BigInt())
 	txFee2 := suite.TxFee(receipt.TxHash)
 
 	delBal := suite.GetAllBalances(delSigner.AccAddress())
@@ -118,9 +118,9 @@ func (suite *IntegrationTest) StakingSharesTest() {
 		delSigner          = helpers.NewSigner(helpers.NewEthPrivKey())
 		receiptSigner      = helpers.NewSigner(helpers.NewEthPrivKey())
 		valAddr            = suite.GetValAddr()
-		initBalance        = sdkmath.NewInt(2000).MulRaw(1e18)
-		delBalance         = sdkmath.NewInt(1000).MulRaw(1e18)
-		receiptInitBalance = sdkmath.NewInt(100).MulRaw(1e18)
+		initBalance        = sdkmath.NewInt(20).MulRaw(1e18)
+		delBalance         = sdkmath.NewInt(10).MulRaw(1e18)
+		receiptInitBalance = sdkmath.NewInt(10).MulRaw(1e18)
 	)
 
 	stakingSuite := NewStakingSuite(suite.EthSuite, common.HexToAddress(contract.StakingAddress), delSigner)
@@ -263,22 +263,24 @@ func (suite *IntegrationTest) StakingSharesTest() {
 
 func (suite *IntegrationTest) StakingSharesContractTest() {
 	var (
-		delSigner   = helpers.NewSigner(helpers.NewEthPrivKey())
-		valAddr     = suite.GetValAddr()
-		initBalance = sdkmath.NewInt(2000).MulRaw(1e18)
-		delBalance  = sdkmath.NewInt(1000).MulRaw(1e18)
+		delSigner        = helpers.NewSigner(helpers.NewEthPrivKey())
+		receiveDelSigner = helpers.NewSigner(helpers.NewEthPrivKey())
+		valAddr          = suite.GetValAddr()
+		initBalance      = sdkmath.NewInt(20).MulRaw(1e18)
+		delBalance       = sdkmath.NewInt(10).MulRaw(1e18)
 	)
 
 	suite.Send(delSigner.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
+	stakingSuite := NewStakingSuite(suite.EthSuite, common.HexToAddress(contract.StakingAddress), delSigner)
 
 	// deploy contract to staking
 	contractAddr, txHash := suite.DeployStaking(delSigner)
 	txFee1 := suite.TxFee(txHash)
 
-	stakingSuite := NewStakingSuite(suite.EthSuite, contractAddr, delSigner)
+	stakingSuiteContract := NewStakingSuite(suite.EthSuite, contractAddr, delSigner)
 
 	// delegate
-	receipt := stakingSuite.DelegateV2(valAddr.String(), delBalance.BigInt())
+	receipt := stakingSuiteContract.DelegateV2(valAddr.String(), delBalance.BigInt(), delBalance.BigInt())
 	txFee2 := suite.TxFee(receipt.TxHash)
 
 	// check del balance
@@ -287,131 +289,128 @@ func (suite *IntegrationTest) StakingSharesContractTest() {
 	total := delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom))
 	suite.Require().Equal(initBalance.String(), total.String())
 
-	// check contract delegate
-	_, amount := stakingSuite.Delegation(valAddr.String(), contractAddr)
+	// check del delegate
+	_, amount := stakingSuite.Delegation(valAddr.String(), delSigner.Address())
 	suite.Require().Equal(big.NewInt(0).String(), amount.String())
 
-	// check del delegate
-	shares, amount := stakingSuite.Delegation(valAddr.String(), delSigner.Address())
+	// check contract delegate
+	shares, amount := stakingSuite.Delegation(valAddr.String(), contractAddr)
 	suite.Require().Equal(delBalance.BigInt().String(), amount.String())
 
-	halfShares := big.NewInt(0).Div(shares, big.NewInt(2))
+	halfHalfShares := big.NewInt(0).Div(shares, big.NewInt(4))
 
 	// approve
-	receipt = stakingSuite.ApproveShares(valAddr.String(), contractAddr, big.NewInt(0).Mul(big.NewInt(3), halfShares))
+	receipt = stakingSuiteContract.ApproveShares(valAddr.String(), delSigner.Address(), big.NewInt(0).Mul(big.NewInt(3), halfHalfShares))
 	txFee3 := suite.TxFee(receipt.TxHash)
 
 	// check approve
-	allowance := stakingSuite.AllowanceShares(valAddr.String(), delSigner.Address(), contractAddr)
-	suite.Require().Equal(big.NewInt(0).Mul(big.NewInt(3), halfShares).String(), allowance.String())
+	allowance := stakingSuite.AllowanceShares(valAddr.String(), contractAddr, delSigner.Address())
+	suite.Require().Equal(big.NewInt(0).Mul(big.NewInt(3), halfHalfShares).String(), allowance.String())
 
 	// transferFromShares
-	receipt = stakingSuite.TransferFromShares(valAddr.String(), delSigner.Address(), contractAddr, halfShares)
+	receipt = stakingSuite.TransferFromShares(valAddr.String(), contractAddr, receiveDelSigner.Address(), halfHalfShares)
 	txFee4 := suite.TxFee(receipt.TxHash)
 
-	reward1 := stakingSuite.LogReward(receipt.Logs, valAddr.String(), delSigner.Address())
+	reward1 := stakingSuiteContract.LogReward(receipt.Logs, valAddr.String(), contractAddr)
 
 	// check del delegate
-	shares, _ = stakingSuite.Delegation(valAddr.String(), delSigner.Address())
-	suite.Require().Equal(shares.String(), halfShares.String())
+	shares, _ = stakingSuite.Delegation(valAddr.String(), receiveDelSigner.Address())
+	suite.Require().Equal(shares.String(), halfHalfShares.String())
 
 	// check contract delegate
-	shares, _ = stakingSuite.Delegation(valAddr.String(), contractAddr)
-	suite.Require().Equal(shares.String(), halfShares.String())
+	shares, _ = stakingSuiteContract.Delegation(valAddr.String(), contractAddr)
+	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(3), halfHalfShares).String())
 
 	// check del balance
 	delBal = suite.GetAllBalances(delSigner.AccAddress())
 	txFee = sdkmath.NewIntFromBigInt(txFee1).Add(sdkmath.NewIntFromBigInt(txFee2).Add(sdkmath.NewIntFromBigInt(txFee3).Add(sdkmath.NewIntFromBigInt(txFee4))))
-	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(sdkmath.NewIntFromBigInt(reward1))
+	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom))
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check contract balance
 	contractBal := suite.GetAllBalances(contractAddr.Bytes())
-	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), big.NewInt(0).String())
+	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), reward1.String())
 
 	// check approve
-	allowance = stakingSuite.AllowanceShares(valAddr.String(), delSigner.Address(), contractAddr)
-	suite.Require().Equal(big.NewInt(0).Mul(big.NewInt(2), halfShares).String(), allowance.String())
+	allowance = stakingSuite.AllowanceShares(valAddr.String(), contractAddr, delSigner.Address())
+	suite.Require().Equal(big.NewInt(0).Mul(big.NewInt(2), halfHalfShares).String(), allowance.String())
 
 	// transferFromShares
-	receipt = stakingSuite.TransferFromShares(valAddr.String(), delSigner.Address(), contractAddr, halfShares)
+	receipt = stakingSuite.TransferFromShares(valAddr.String(), contractAddr, receiveDelSigner.Address(), halfHalfShares)
 	txFee5 := suite.TxFee(receipt.TxHash)
-	reward2 := stakingSuite.LogReward(receipt.Logs, valAddr.String(), delSigner.Address())
 	reward3 := stakingSuite.LogReward(receipt.Logs, valAddr.String(), contractAddr)
 
 	// check del delegate
-	shares, _ = stakingSuite.Delegation(valAddr.String(), delSigner.Address())
-	suite.Require().Equal(shares.String(), big.NewInt(0).String())
+	shares, _ = stakingSuite.Delegation(valAddr.String(), contractAddr)
+	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(2), halfHalfShares).String())
 
 	// check contract delegate
-	shares, _ = stakingSuite.Delegation(valAddr.String(), contractAddr)
-	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(2), halfShares).String())
+	shares, _ = stakingSuite.Delegation(valAddr.String(), receiveDelSigner.Address())
+	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(2), halfHalfShares).String())
 
 	// check del balance
 	delBal = suite.GetAllBalances(delSigner.AccAddress())
 	txFee = sdkmath.NewIntFromBigInt(txFee1).Add(sdkmath.NewIntFromBigInt(txFee2).Add(sdkmath.NewIntFromBigInt(txFee3).Add(sdkmath.NewIntFromBigInt(txFee4).Add(sdkmath.NewIntFromBigInt(txFee5)))))
-	totalReward := sdkmath.NewIntFromBigInt(reward1).Add(sdkmath.NewIntFromBigInt(reward2))
-	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(totalReward)
+	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom))
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check contract balance
+	totalReward := sdkmath.NewIntFromBigInt(reward1).Add(sdkmath.NewIntFromBigInt(reward3))
 	contractBal = suite.GetAllBalances(contractAddr.Bytes())
-	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), reward3.String())
+	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), totalReward.String())
 
 	// check approve
-	allowance = stakingSuite.AllowanceShares(valAddr.String(), delSigner.Address(), contractAddr)
-	suite.Require().Equal(halfShares.String(), allowance.String())
+	allowance = stakingSuite.AllowanceShares(valAddr.String(), contractAddr, delSigner.Address())
+	suite.Require().Equal(halfHalfShares.String(), allowance.String())
 
 	// contract transfer
-	receipt = stakingSuite.TransferShares(valAddr.String(), delSigner.Address(), halfShares)
+	receipt = stakingSuiteContract.TransferShares(valAddr.String(), receiveDelSigner.Address(), halfHalfShares)
 	txFee6 := suite.TxFee(receipt.TxHash)
-	reward4 := stakingSuite.LogReward(receipt.Logs, valAddr.String(), contractAddr)
+	reward4 := stakingSuiteContract.LogReward(receipt.Logs, valAddr.String(), contractAddr)
 
 	// check del delegate
-	shares, _ = stakingSuite.Delegation(valAddr.String(), delSigner.Address())
-	suite.Require().Equal(shares.String(), halfShares.String())
+	shares, _ = stakingSuite.Delegation(valAddr.String(), receiveDelSigner.Address())
+	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(3), halfHalfShares).String())
 
 	// check contract delegate
 	shares, _ = stakingSuite.Delegation(valAddr.String(), contractAddr)
-	suite.Require().Equal(shares.String(), halfShares.String())
+	suite.Require().Equal(shares.String(), halfHalfShares.String())
 
 	// check del balance
 	delBal = suite.GetAllBalances(delSigner.AccAddress())
 	txFee = sdkmath.NewIntFromBigInt(txFee1).Add(sdkmath.NewIntFromBigInt(txFee2).Add(sdkmath.NewIntFromBigInt(txFee3).
 		Add(sdkmath.NewIntFromBigInt(txFee4).Add(sdkmath.NewIntFromBigInt(txFee5).Add(sdkmath.NewIntFromBigInt(txFee6))))))
-	totalReward = sdkmath.NewIntFromBigInt(reward1).Add(sdkmath.NewIntFromBigInt(reward2))
-	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(totalReward)
+	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom))
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check contract balance
+	totalReward = totalReward.Add(sdkmath.NewIntFromBigInt(reward4))
 	contractBal = suite.GetAllBalances(contractAddr.Bytes())
-	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), big.NewInt(0).Add(reward3, reward4).String())
+	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), totalReward.String())
 
 	// contract transfer
-	receipt = stakingSuite.TransferShares(valAddr.String(), delSigner.Address(), halfShares)
+	receipt = stakingSuiteContract.TransferShares(valAddr.String(), receiveDelSigner.Address(), halfHalfShares)
 	txFee7 := suite.TxFee(receipt.TxHash)
-	reward5 := stakingSuite.LogReward(receipt.Logs, valAddr.String(), delSigner.Address())
-	reward6 := stakingSuite.LogReward(receipt.Logs, valAddr.String(), contractAddr)
+	reward5 := stakingSuiteContract.LogReward(receipt.Logs, valAddr.String(), contractAddr)
 
 	// check del delegate
-	shares, _ = stakingSuite.Delegation(valAddr.String(), delSigner.Address())
-	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(2), halfShares).String())
+	shares, _ = stakingSuiteContract.Delegation(valAddr.String(), receiveDelSigner.Address())
+	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(4), halfHalfShares).String())
 
 	// check contract delegate
-	shares, _ = stakingSuite.Delegation(valAddr.String(), contractAddr)
+	shares, _ = stakingSuiteContract.Delegation(valAddr.String(), contractAddr)
 	suite.Require().Equal(shares.String(), big.NewInt(0).String())
 
 	// check del balance
 	delBal = suite.GetAllBalances(delSigner.AccAddress())
 	txFee = sdkmath.NewIntFromBigInt(txFee1).Add(sdkmath.NewIntFromBigInt(txFee2).Add(sdkmath.NewIntFromBigInt(txFee3).
 		Add(sdkmath.NewIntFromBigInt(txFee4).Add(sdkmath.NewIntFromBigInt(txFee5).Add(sdkmath.NewIntFromBigInt(txFee6).Add(sdkmath.NewIntFromBigInt(txFee7)))))))
-	totalReward = sdkmath.NewIntFromBigInt(reward1).Add(sdkmath.NewIntFromBigInt(reward2).Add(sdkmath.NewIntFromBigInt(reward5)))
-	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom)).Sub(totalReward)
+	total = delBalance.Add(txFee).Add(delBal.AmountOf(fxtypes.DefaultDenom))
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check contract balance
+	totalReward = totalReward.Add(sdkmath.NewIntFromBigInt(reward5))
 	contractBal = suite.GetAllBalances(contractAddr.Bytes())
-	totalReward = sdkmath.NewIntFromBigInt(reward3).Add(sdkmath.NewIntFromBigInt(reward4).Add(sdkmath.NewIntFromBigInt(reward6)))
 	suite.Require().Equal(contractBal.AmountOf(fxtypes.DefaultDenom).String(), totalReward.String())
 }
 
@@ -420,8 +419,8 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateTest() {
 		delSigner    = helpers.NewSigner(helpers.NewEthPrivKey())
 		valAddr      = suite.GetValAddr()
 		valNewSigner = helpers.NewSigner(helpers.NewEthPrivKey())
-		initBalance  = sdkmath.NewInt(2000).MulRaw(1e18)
-		delBalance   = sdkmath.NewInt(1000).MulRaw(1e18)
+		initBalance  = sdkmath.NewInt(20).MulRaw(1e18)
+		delBalance   = sdkmath.NewInt(10).MulRaw(1e18)
 	)
 
 	stakingSuite := NewStakingSuite(suite.EthSuite, common.HexToAddress(contract.StakingAddress), delSigner)
@@ -473,8 +472,8 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 		delSigner   = helpers.NewSigner(helpers.NewEthPrivKey())
 		valAddr     = suite.GetValAddr()
 		valNew      = helpers.NewSigner(helpers.NewEthPrivKey())
-		initBalance = sdkmath.NewInt(2000).MulRaw(1e18)
-		delBalance  = sdkmath.NewInt(1000).MulRaw(1e18)
+		initBalance = sdkmath.NewInt(20).MulRaw(1e18)
+		delBalance  = sdkmath.NewInt(10).MulRaw(1e18)
 	)
 
 	suite.Send(delSigner.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
@@ -487,7 +486,7 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 	stakingSuite := NewStakingSuite(suite.EthSuite, contractAddr, delSigner)
 
 	// delegate by contract
-	receipt := stakingSuite.DelegateV2(valAddr.String(), delBalance.BigInt())
+	receipt := stakingSuite.DelegateV2(valAddr.String(), delBalance.BigInt(), delBalance.BigInt())
 	txFee2 := suite.TxFee(receipt.TxHash)
 
 	delBal := suite.GetAllBalances(delSigner.AccAddress())
@@ -520,14 +519,14 @@ func (suite *IntegrationTest) StakingPrecompileRedelegateByContractTest() {
 func (suite *IntegrationTest) StakingPrecompileV2() {
 	// 1. create a new account, send some balance to it
 	delSigner := helpers.NewSigner(helpers.NewEthPrivKey())
-	initBalance := sdkmath.NewInt(2000).MulRaw(1e18)
+	initBalance := sdkmath.NewInt(20).MulRaw(1e18)
 	suite.Send(delSigner.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
 
 	stakingSuite := NewStakingSuite(suite.EthSuite, common.HexToAddress(contract.StakingAddress), delSigner)
 
 	// 2. delegate to first validator
 	valAddr := suite.GetValAddr()
-	delBalance := sdkmath.NewInt(1000)
+	delBalance := sdkmath.NewInt(10)
 	receipt := stakingSuite.DelegateV2(valAddr.String(), delBalance.BigInt())
 	txFee1 := suite.TxFee(receipt.TxHash)
 

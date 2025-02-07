@@ -39,13 +39,13 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 	valAddress := suite.GetValSortByToken()
 	delegateAmount := suite.NewCoin(sdkmath.NewInt(1).MulRaw(1e18))
 	suite.Delegate(fromSigner, valAddress, delegateAmount)
-	amount = amount.Sub(sdkmath.NewInt(3).MulRaw(1e18))
+	amount = amount.Sub(delegateAmount.Amount).Sub(sdkmath.NewInt(25).MulRaw(1e14))
 	suite.EqualBalance(fromAccAddress, suite.NewCoin(amount))
 	suite.EqualDelegate(fromAccAddress, valAddress, delegateAmount)
 
 	withdrawAddr := sdk.AccAddress(helpers.NewPriKey().PubKey().Address().Bytes())
 	suite.SetWithdrawAddress(fromSigner, withdrawAddr)
-	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
+	amount = amount.Sub(sdkmath.NewInt(25).MulRaw(1e14))
 	suite.EqualBalance(fromAccAddress, suite.NewCoin(amount))
 
 	// ===> migration
@@ -55,7 +55,7 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 	suite.EqualBalance(toAccAddress, suite.NewCoin(sdkmath.ZeroInt()))
 
 	suite.migrateAccount(fromSigner, toSigner)
-	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
+	amount = amount.Sub(sdkmath.NewInt(25).MulRaw(1e14))
 
 	suite.EqualBalance(fromAccAddress, suite.NewCoin(sdkmath.ZeroInt()))
 	suite.EqualDelegate(fromAccAddress, valAddress, suite.NewCoin(sdkmath.ZeroInt()))
@@ -65,7 +65,7 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 	suite.EqualWithdrawAddr(toAccAddress, toAccAddress)
 
 	suite.Delegate(toSigner, valAddress, suite.NewCoin(sdkmath.NewInt(1).MulRaw(1e18)))
-	amount = amount.Sub(sdkmath.NewInt(3).MulRaw(1e18))
+	amount = amount.Sub(sdkmath.NewInt(1).MulRaw(1e18)).Sub(sdkmath.NewInt(25).MulRaw(1e14))
 	balances := suite.GetAllBalances(toAccAddress)
 	suite.True(balances.AmountOf(fxtypes.DefaultDenom).GT(amount))
 
@@ -73,7 +73,7 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 	suite.EqualDelegate(toAccAddress, valAddress, delegateAmount)
 
 	suite.WithdrawReward(toSigner, valAddress)
-	amount = amount.Sub(sdkmath.NewInt(2).MulRaw(1e18))
+	amount = amount.Sub(sdkmath.NewInt(25).MulRaw(1e14))
 	balances2 := suite.GetAllBalances(toAccAddress)
 	suite.True(balances2.AmountOf(fxtypes.DefaultDenom).GT(amount))
 }
