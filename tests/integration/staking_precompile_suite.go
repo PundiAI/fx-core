@@ -36,8 +36,12 @@ func (suite *StakingPrecompileSuite) WithSigner(signer *helpers.Signer) *Staking
 	}
 }
 
-func (suite *StakingPrecompileSuite) DelegateV2(valAddr string, delAmount *big.Int) *ethtypes.Receipt {
-	ethTx, err := suite.staking.DelegateV2(suite.TransactOpts(suite.signer), valAddr, delAmount)
+func (suite *StakingPrecompileSuite) DelegateV2(valAddr string, delAmount *big.Int, value ...*big.Int) *ethtypes.Receipt {
+	opts := suite.TransactOpts(suite.signer)
+	if len(value) > 0 && value[0] != nil {
+		opts.Value = value[0]
+	}
+	ethTx, err := suite.staking.DelegateV2(opts, valAddr, delAmount)
 	suite.Require().NoError(err)
 	return suite.WaitMined(ethTx)
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	testscontract "github.com/pundiai/fx-core/v8/tests/contract"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
 
 type EthSuite struct {
@@ -72,6 +73,9 @@ func (suite *EthSuite) WaitMined(tx *ethtypes.Transaction) *ethtypes.Receipt {
 
 func (suite *EthSuite) DeployERC20(signer *helpers.Signer, symbol string) common.Address {
 	erc20 := contract.GetERC20()
+	if symbol == fxtypes.DefaultSymbol {
+		erc20 = contract.GetWPUNDIAI()
+	}
 	tx, err := client.BuildEthTransaction(suite.ctx, suite.ethCli, signer.PrivKey(), nil, nil, erc20.Bin)
 	suite.Require().NoError(err)
 	suite.SendTransaction(tx)
