@@ -538,3 +538,7 @@ func toHexAddr(gravityId, addr string) gethcommon.Address {
 	}
 	return gethcommon.HexToAddress(addr)
 }
+
+func (m *OutgoingBridgeCall) IsBridgeCallInRevert() bool {
+	return m.EventNonce > 0
+}
