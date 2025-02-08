@@ -108,12 +108,12 @@ func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, caller contract.Caller
 	if !found {
 		return fmt.Errorf("bridge call not found for nonce %d", claim.Nonce)
 	}
-	if !claim.Success {
+	if !claim.Success && !outgoingBridgeCall.IsBridgeCallInRevert() {
 		if err := k.RefundOutgoingBridgeCall(ctx, caller, outgoingBridgeCall); err != nil {
 			return err
 		}
 
-		if err := k.BridgeCallOnRevert(ctx, caller, claim.Nonce, outgoingBridgeCall.To, claim.Cause); err != nil {
+		if err := k.BridgeCallOnRevert(ctx, caller, claim.Nonce, outgoingBridgeCall.Sender, claim.Cause); err != nil {
 			return err
 		}
 	}
@@ -133,15 +133,15 @@ func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, caller contract.Caller
 	return nil
 }
 
-func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, caller contract.Caller, nonce uint64, toAddr, cause string) error {
+func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, caller contract.Caller, nonce uint64, contractAddr, cause string) error {
 	args, err := contract.PackOnRevert(big.NewInt(int64(nonce)), []byte(cause))
 	if err != nil {
 		return err
 	}
 	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
-	to := fxtypes.ExternalAddrToHexAddr(k.moduleName, toAddr)
+	toAddr := fxtypes.ExternalAddrToHexAddr(k.moduleName, contractAddr)
 
-	txResp, err := caller.ExecuteEVM(ctx, k.GetCallbackFrom(), &to, nil, gasLimit, args)
+	txResp, err := caller.ExecuteEVM(ctx, k.GetCallbackFrom(), &toAddr, nil, gasLimit, args)
 	if err != nil {
 		return err
 	}

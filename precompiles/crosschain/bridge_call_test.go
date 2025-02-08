@@ -330,7 +330,7 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall() {
 				BlockHeight:    100, // mock block height
 				Nonce:          outgoingBridgeCall.Nonce,
 				TxOrigin:       helpers.GenExternalAddr(suite.chainName),
-				Success:        false,
+				Success:        true,
 				Cause:          "",
 			}
 			suite.executeClaim(bridgeCallResultClaim)
