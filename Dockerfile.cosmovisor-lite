@@ -3,6 +3,7 @@ FROM ghcr.io/pundiai/fx-core:8.0.0-rc0 AS fxv8
 FROM ghcr.io/pundiai/fx-core:8.1.0-rc1 AS fxv8_1
 FROM ghcr.io/pundiai/fx-core:8.2.0-rc2 AS fxv8_2
 FROM ghcr.io/pundiai/fx-core:8.3.0-rc3 AS fxv8_3
+FROM ghcr.io/pundiai/fx-core:8.4.0-rc4 AS fxv8_4
 FROM --platform=$BUILDPLATFORM alpine:3.19 AS downloader
 
 ARG TARGETPLATFORM
@@ -37,6 +38,7 @@ COPY --from=fxv8 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.0.x/bin/f
 COPY --from=fxv8_1 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.1.x/bin/fxcored
 COPY --from=fxv8_2 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.2.x/bin/fxcored
 COPY --from=fxv8_3 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.3.x/bin/fxcored
+COPY --from=fxv8_4 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.4.x/bin/fxcored
 
 COPY --from=downloader /cosmovisor /usr/bin/cosmovisor
 
