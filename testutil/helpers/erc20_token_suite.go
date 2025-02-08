@@ -121,6 +121,13 @@ func (s ERC20TokenSuite) Mint(ctx context.Context, from, to common.Address, amou
 	return res
 }
 
+func (s ERC20TokenSuite) MintFromERC20Module(ctx context.Context, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
+	minter := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
+	res, err := s.ERC20TokenKeeper.Mint(ctx, s.contract, minter, to, amount)
+	s.Error(err)
+	return res
+}
+
 func (s ERC20TokenSuite) Burn(ctx context.Context, amount *big.Int) *evmtypes.MsgEthereumTxResponse {
 	res, err := s.ERC20TokenKeeper.Burn(ctx, s.contract, s.HexAddress(), amount)
 	s.Error(err)

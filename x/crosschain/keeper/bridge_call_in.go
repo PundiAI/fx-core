@@ -7,7 +7,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/vm"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/hashicorp/go-metrics"
 
 	"github.com/pundiai/fx-core/v8/contract"
@@ -33,13 +36,40 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 		baseCoins = baseCoins.Add(baseCoin)
 	}
 
-	if err := k.HandlerBridgeCallInFee(ctx, caller, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.Uint64()); err != nil {
+	tokens := make([]common.Address, 0, baseCoins.Len())
+	amounts := make([]*big.Int, 0, baseCoins.Len())
+	for _, coin := range baseCoins {
+		tokenContract, err := k.erc20Keeper.BaseCoinToEvm(ctx, caller, receiverAddr, coin)
+		if err != nil {
+			return err
+		}
+		tokens = append(tokens, common.HexToAddress(tokenContract))
+		amounts = append(amounts, coin.Amount.BigInt())
+	}
+	err := k.HandlerBridgeCallInFee(ctx, caller, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.Uint64())
+	if err != nil {
 		return err
 	}
 
+	if !k.evmKeeper.IsContract(ctx, msg.GetToAddr()) {
+		return nil
+	}
+
+	var callEvmSender common.Address
+	var args []byte
+	if msg.IsMemoSendCallTo() {
+		args = msg.MustData()
+		callEvmSender = msg.GetSenderAddr()
+	} else {
+		args, err = contract.PackOnBridgeCall(msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, amounts, msg.MustData(), msg.MustMemo())
+		if err != nil {
+			return err
+		}
+		callEvmSender = k.GetCallbackFrom()
+	}
+
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
-	err := k.BridgeCallEvm(cacheCtx, caller, msg.GetSenderAddr(), msg.GetRefundAddr(), msg.GetToAddr(),
-		receiverAddr, baseCoins, msg.MustData(), msg.MustMemo(), msg.IsMemoSendCallTo(), msg.GetGasLimit())
+	err = k.BridgeCallEvm(cacheCtx, caller, callEvmSender, msg.GetToAddr(), args, msg.GetGasLimit())
 	if !ctx.IsCheckTx() {
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "bridge_call_in"},
@@ -57,20 +87,16 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 	revertMsg := err.Error()
 
 	// refund bridge-call case of error
-	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeBridgeCallEvent, sdk.NewAttribute(types.AttributeKeyErrCause, err.Error())))
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeBridgeCallEvent,
+		sdk.NewAttribute(types.AttributeKeyErrCause, err.Error()),
+	))
 
-	if !baseCoins.Empty() {
-		if err = k.bankKeeper.SendCoins(ctx, receiverAddr.Bytes(), msg.GetRefundAddr().Bytes(), baseCoins); err != nil {
+	erc20TokenKeeper := contract.NewERC20TokenKeeper(caller)
+	for i, tokenAddr := range tokens {
+		_, err = erc20TokenKeeper.Transfer(ctx, tokenAddr, receiverAddr, msg.GetRefundAddr(), amounts[i])
+		if err != nil {
 			return err
-		}
-
-		for _, coin := range baseCoins {
-			if coin.Denom == fxtypes.DefaultDenom {
-				continue
-			}
-			if _, err = k.erc20Keeper.BaseCoinToEvm(ctx, caller, msg.GetRefundAddr(), coin); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -81,50 +107,27 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 	))
 
 	// onRevert bridgeCall
-	_, err = k.AddOutgoingBridgeCall(ctx, msg.GetToAddr(), common.Address{}, sdk.NewCoins(),
+	_, err = k.AddOutgoingBridgeCall(ctx, k.GetCallbackFrom(), common.Address{}, sdk.Coins{},
 		msg.GetSenderAddr(), []byte(revertMsg), []byte{}, 0, msg.EventNonce)
 	return err
 }
 
-func (k Keeper) BridgeCallEvm(ctx sdk.Context, caller contract.Caller, sender, refundAddr, to, receiverAddr common.Address, baseCoins sdk.Coins, data, memo []byte, isMemoSendCallTo bool, gasLimit uint64) error {
-	tokens := make([]common.Address, 0, baseCoins.Len())
-	amounts := make([]*big.Int, 0, baseCoins.Len())
-	for _, coin := range baseCoins {
-		tokenContract, err := k.erc20Keeper.BaseCoinToEvm(ctx, caller, receiverAddr, coin)
-		if err != nil {
-			return err
-		}
-		tokens = append(tokens, common.HexToAddress(tokenContract))
-		amounts = append(amounts, coin.Amount.BigInt())
-	}
-
-	if !k.evmKeeper.IsContract(ctx, to) {
-		return nil
-	}
-	var callEvmSender common.Address
-	var args []byte
-
-	if isMemoSendCallTo {
-		args = data
-		callEvmSender = sender
-	} else {
-		var err error
-		args, err = contract.PackOnBridgeCall(sender, refundAddr, tokens, amounts, data, memo)
-		if err != nil {
-			return err
-		}
-		callEvmSender = k.GetCallbackFrom()
-	}
-
+func (k Keeper) BridgeCallEvm(ctx sdk.Context, caller contract.Caller, sender, to common.Address, args []byte, gasLimit uint64) error {
 	if gasLimit == 0 {
 		gasLimit = k.GetBridgeCallMaxGasLimit(ctx)
 	}
-	txResp, err := caller.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
+	txResp, err := caller.ExecuteEVM(ctx, sender, &to, nil, gasLimit, args)
 	if err != nil {
 		return err
 	}
 	if txResp.Failed() {
-		return types.ErrInvalid.Wrap(txResp.VmError)
+		errStr := txResp.VmError
+		if txResp.VmError == vm.ErrExecutionReverted.Error() {
+			if cause, unpackErr := abi.UnpackRevert(common.CopyBytes(txResp.Ret)); unpackErr == nil {
+				errStr = cause
+			}
+		}
+		return evmtypes.ErrVMExecution.Wrap(errStr)
 	}
 	return nil
 }

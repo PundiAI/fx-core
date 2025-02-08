@@ -20,6 +20,7 @@ import (
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
@@ -31,6 +32,9 @@ type KeeperTestSuite struct {
 	bridgerAddrs []sdk.AccAddress
 	externalPris []*ecdsa.PrivateKey
 	chainName    string
+
+	bridgeFeeSuite  helpers.BridgeFeeSuite
+	erc20TokenSuite helpers.ERC20TokenSuite
 }
 
 func TestCrosschainKeeperTestSuite(t *testing.T) {
@@ -74,6 +78,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
 	}
 	suite.Keeper().SetProposalOracle(suite.Ctx, proposalOracle)
+
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 100, 10)
+
+	suite.bridgeFeeSuite = helpers.NewBridgeFeeSuite(suite.Require(), suite.App.EvmKeeper)
+	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), nil, suite.App.EvmKeeper)
 }
 
 func (suite *KeeperTestSuite) SetupSubTest() {
@@ -135,4 +144,12 @@ func (suite *KeeperTestSuite) SetIBCDenom(portID, channelID, denom string) ibctr
 		suite.App.IBCTransferKeeper.SetDenomTrace(suite.Ctx, denomTrace)
 	}
 	return denomTrace
+}
+
+func (suite *KeeperTestSuite) GetERC20TokenByBridgeContract(bridgeContract string) *erc20types.ERC20Token {
+	bridgeToken, err := suite.Keeper().GetBridgeToken(suite.Ctx, bridgeContract)
+	suite.Require().NoError(err)
+	erc20Token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, bridgeToken.Denom)
+	suite.Require().NoError(err)
+	return &erc20Token
 }
