@@ -10,6 +10,7 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/pundiai/fx-core/v8/contract"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 )
@@ -52,4 +53,9 @@ func (s *KeeperTestSuite) AssertContractAddr(sender, newContractAddr common.Addr
 
 	contractAddr := crypto.CreateAddress(sender, nonce-1)
 	s.Equal(contractAddr, newContractAddr)
+}
+
+func (s *KeeperTestSuite) TestIsContract() {
+	isContract := s.App.EvmKeeper.IsContract(s.Ctx, common.HexToAddress(contract.StakingAddress))
+	s.False(isContract)
 }

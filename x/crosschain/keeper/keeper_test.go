@@ -33,6 +33,8 @@ type KeeperTestSuite struct {
 	externalPris []*ecdsa.PrivateKey
 	chainName    string
 
+	signer *helpers.Signer
+
 	bridgeFeeSuite  helpers.BridgeFeeSuite
 	erc20TokenSuite helpers.ERC20TokenSuite
 }
@@ -73,6 +75,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.bridgerAddrs = suite.AddTestAddress(valNumber, sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18)))
 	suite.externalPris = helpers.CreateMultiECDSA(valNumber)
 
+	suite.signer = suite.AddTestSigner(10_000)
+
 	proposalOracle := &types.ProposalOracle{}
 	for _, oracle := range suite.oracleAddrs {
 		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
@@ -82,7 +86,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 100, 10)
 
 	suite.bridgeFeeSuite = helpers.NewBridgeFeeSuite(suite.Require(), suite.App.EvmKeeper)
-	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), nil, suite.App.EvmKeeper)
+	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.signer, suite.App.EvmKeeper)
 }
 
 func (suite *KeeperTestSuite) SetupSubTest() {

@@ -15,7 +15,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/vm"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/hashicorp/go-metrics"
 
 	"github.com/pundiai/fx-core/v8/contract"
@@ -135,16 +138,21 @@ func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, caller contract.Caller, nonc
 	if err != nil {
 		return err
 	}
-	callEvmSender := k.GetCallbackFrom()
 	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
-	to := common.HexToAddress(toAddr)
+	to := fxtypes.ExternalAddrToHexAddr(k.moduleName, toAddr)
 
-	txResp, err := caller.ExecuteEVM(ctx, callEvmSender, &to, nil, gasLimit, args)
+	txResp, err := caller.ExecuteEVM(ctx, k.GetCallbackFrom(), &to, nil, gasLimit, args)
 	if err != nil {
 		return err
 	}
 	if txResp.Failed() {
-		return types.ErrInvalid.Wrap(txResp.VmError)
+		errStr := txResp.VmError
+		if txResp.VmError == vm.ErrExecutionReverted.Error() {
+			if vmCause, unpackErr := abi.UnpackRevert(common.CopyBytes(txResp.Ret)); unpackErr == nil {
+				errStr = vmCause
+			}
+		}
+		return evmtypes.ErrVMExecution.Wrap(errStr)
 	}
 	return nil
 }
