@@ -53,6 +53,7 @@ import (
 	fxgovtypes "github.com/pundiai/fx-core/v8/x/gov/types"
 	optimismtypes "github.com/pundiai/fx-core/v8/x/optimism/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 func Test_UpgradeAndMigrate(t *testing.T) {
@@ -101,6 +102,8 @@ func Test_UpgradeTestnet(t *testing.T) {
 
 	// 3. check the status after the upgrade
 	checkBridgeFeeContract(t, ctx, myApp)
+	checkTronOracleIsOnline(t, ctx, myApp)
+	checkTronOutgoingBatch(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -862,6 +865,26 @@ func checkDefaultDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.Equal(t, fxtypes.DefaultDenom, denom)
 	_, err = myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.DefaultDenom)
 	require.NoError(t, err)
+}
+
+func checkTronOracleIsOnline(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+	oracles := myApp.TronKeeper.GetAllOracles(ctx, false)
+	for _, oracle := range oracles {
+		assert.True(t, oracle.Online, oracle.OracleAddress)
+	}
+}
+
+func checkTronOutgoingBatch(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	gravityID := myApp.TronKeeper.GetGravityID(ctx)
+	myApp.TronKeeper.IterateOutgoingTxBatches(ctx, func(batch *crosschaintypes.OutgoingTxBatch) bool {
+		require.NoError(t, fxtypes.ValidateExternalAddr(trontypes.ModuleName, batch.FeeReceive))
+		_, err := batch.GetCheckpoint(gravityID)
+		require.NoError(t, err)
+		return false
+	})
 }
 
 func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {
