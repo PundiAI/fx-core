@@ -46,14 +46,6 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 		tokens = append(tokens, common.HexToAddress(tokenContract))
 		amounts = append(amounts, coin.Amount.BigInt())
 	}
-	err := k.HandlerBridgeCallInFee(ctx, caller, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GasLimit.Uint64())
-	if err != nil {
-		return err
-	}
-
-	if !k.evmKeeper.IsContract(ctx, msg.GetToAddr()) {
-		return nil
-	}
 
 	var callEvmSender common.Address
 	var args []byte
@@ -61,6 +53,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 		args = msg.MustData()
 		callEvmSender = msg.GetSenderAddr()
 	} else {
+		var err error
 		args, err = contract.PackOnBridgeCall(msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, amounts, msg.MustData(), msg.MustMemo())
 		if err != nil {
 			return err
@@ -69,16 +62,19 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 	}
 
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
-	err = k.BridgeCallEvm(cacheCtx, caller, callEvmSender, msg.GetToAddr(), args, msg.GetGasLimit())
-	if !ctx.IsCheckTx() {
-		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, "bridge_call_in"},
-			float32(1),
-			[]metrics.Label{
-				telemetry.NewLabel("module", k.moduleName),
-				telemetry.NewLabel("success", strconv.FormatBool(err == nil)),
-			},
-		)
+	err := k.HandlerBridgeCallInFee(ctx, caller, msg.GetSenderAddr(), msg.QuoteId.BigInt(), msg.GetGasLimit())
+	if err == nil {
+		err = k.BridgeCallEvm(cacheCtx, caller, callEvmSender, msg.GetToAddr(), args, msg.GetGasLimit())
+		if !ctx.IsCheckTx() {
+			telemetry.IncrCounterWithLabels(
+				[]string{types.ModuleName, "bridge_call_in"},
+				float32(1),
+				[]metrics.Label{
+					telemetry.NewLabel("module", k.moduleName),
+					telemetry.NewLabel("success", strconv.FormatBool(err == nil)),
+				},
+			)
+		}
 	}
 	if err == nil {
 		commit()
@@ -89,7 +85,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 	// refund bridge-call case of error
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCallEvent,
-		sdk.NewAttribute(types.AttributeKeyErrCause, err.Error()),
+		sdk.NewAttribute(types.AttributeKeyErrCause, revertMsg),
 	))
 
 	erc20TokenKeeper := contract.NewERC20TokenKeeper(caller)
