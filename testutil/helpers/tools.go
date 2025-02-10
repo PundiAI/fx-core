@@ -69,7 +69,18 @@ func NewBigInt(amount, power int64) *big.Int {
 	return new(big.Int).Mul(big.NewInt(amount), powerBig)
 }
 
-func PackERC20Mint(receiver common.Address, amount *big.Int) ([]byte, error) {
-	// todo no need to return error
-	return contract.GetERC20().ABI.Pack("mint", receiver, amount)
+func PackERC20Mint(receiver common.Address, amount *big.Int) []byte {
+	pack, err := contract.GetERC20().ABI.Pack("mint", receiver, amount)
+	if err != nil {
+		panic(err)
+	}
+	return pack
+}
+
+func PackERC20Transfer(receiver common.Address, amount *big.Int) []byte {
+	pack, err := contract.GetERC20().ABI.Pack("transfer", receiver, amount)
+	if err != nil {
+		panic(err)
+	}
+	return pack
 }

@@ -25,3 +25,9 @@ type CrosschainKeeper interface {
 type CrosschainRouterMsgServer interface {
 	SendToExternal(ctx context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error)
 }
+
+type AccountKeeper interface {
+	HasAccount(ctx context.Context, addr sdk.AccAddress) bool
+	SetAccount(ctx context.Context, acc sdk.AccountI)
+	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+}

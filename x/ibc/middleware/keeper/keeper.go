@@ -12,14 +12,16 @@ import (
 type Keeper struct {
 	cdc                       codec.Codec
 	evmKeeper                 types.EvmKeeper
+	accountKeeper             types.AccountKeeper
 	crosschainKeeper          types.CrosschainKeeper
 	crosschaniRouterMsgServer types.CrosschainRouterMsgServer
 }
 
-func NewKeeper(cdc codec.Codec, evmKeeper types.EvmKeeper, crosschainKeeper types.CrosschainKeeper, crosschaniRouterMsgServer types.CrosschainRouterMsgServer) Keeper {
+func NewKeeper(cdc codec.Codec, evmKeeper types.EvmKeeper, accountKeeper types.AccountKeeper, crosschainKeeper types.CrosschainKeeper, crosschaniRouterMsgServer types.CrosschainRouterMsgServer) Keeper {
 	return Keeper{
 		cdc:                       cdc,
 		evmKeeper:                 evmKeeper,
+		accountKeeper:             accountKeeper,
 		crosschainKeeper:          crosschainKeeper,
 		crosschaniRouterMsgServer: crosschaniRouterMsgServer,
 	}

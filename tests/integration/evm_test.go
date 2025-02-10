@@ -256,9 +256,7 @@ func (suite *IntegrationTest) CallContractTest() {
 	evmModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(evmtypes.ModuleName))
 	erc20TokenSuite.TransferOwnership(evmModuleAddr)
 
-	args, err := helpers.PackERC20Mint(signer.Address(), helpers.NewBigInt(100, 18))
-	suite.Require().NoError(err)
-
+	args := helpers.PackERC20Mint(signer.Address(), helpers.NewBigInt(100, 18))
 	response, proposalId := suite.BroadcastProposalTxV1(
 		&fxevmtypes.MsgCallContract{
 			Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
