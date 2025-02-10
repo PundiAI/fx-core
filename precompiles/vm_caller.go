@@ -78,3 +78,7 @@ func (v *VMCall) ExecuteEVM(_ sdk.Context, from common.Address, contract *common
 		Ret:     ret,
 	}, nil
 }
+
+func (v *VMCall) Precompile(_ sdk.Context, addr common.Address) (vm.PrecompiledContract, bool) {
+	return v.evm.Precompile(addr)
+}
