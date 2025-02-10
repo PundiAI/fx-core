@@ -6,15 +6,18 @@ pragma solidity ^0.8.0;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/ICrosschain.sol";
 import {IBridgeFeeQuote} from "../interfaces/IBridgeFee.sol";
+import {IBridgeCallContext} from "../interfaces/IBridgeCallContext.sol";
 
 /* solhint-enable no-global-import */
 /* solhint-disable custom-errors */
 
-contract CrosschainTest {
+contract CrosschainTest is IBridgeCallContext {
     address public constant CROSS_CHAIN_ADDRESS =
         address(0x0000000000000000000000000000000000001004);
     address public constant BRIDGE_FEE_ADDRESS =
         address(0x0000000000000000000000000000000000001005);
+    address public constant BRIDGE_CALLBACK_ADDRESS =
+        address(0x8D5C3128408b212F7F0Dc206a981fC16c079DE19); // bridge_call
 
     function crossChain(
         address _token,
@@ -125,6 +128,21 @@ contract CrosschainTest {
     ) external returns (bool _result) {
         return
             ICrosschain(CROSS_CHAIN_ADDRESS).executeClaim(_chain, _eventNonce);
+    }
+
+    function onBridgeCall(
+        address,
+        address,
+        address[] memory,
+        uint256[] memory,
+        bytes memory,
+        bytes memory
+    ) external view override {
+        require(msg.sender == BRIDGE_CALLBACK_ADDRESS, "only bridge callback");
+    }
+
+    function onRevert(uint256, bytes memory) external view override {
+        require(msg.sender == BRIDGE_CALLBACK_ADDRESS, "only bridge callback");
     }
 
     function hasOracle(
