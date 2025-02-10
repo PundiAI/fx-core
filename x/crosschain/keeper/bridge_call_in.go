@@ -20,10 +20,8 @@ import (
 
 func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg *types.MsgBridgeCallClaim) error {
 	k.CreateBridgeAccount(ctx, msg.TxOrigin)
-	if senderAccount := k.ak.GetAccount(ctx, msg.GetSenderAddr().Bytes()); senderAccount != nil {
-		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
-			return types.ErrInvalid.Wrap("sender is module account")
-		}
+	if err := k.validateBridgeCallInSender(ctx, caller, msg.GetSenderAddr()); err != nil {
+		return err
 	}
 	receiverAddr := msg.GetReceiverAddr()
 
@@ -52,6 +50,9 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 	if msg.IsMemoSendCallTo() {
 		args = msg.MustData()
 		callEvmSender = msg.GetSenderAddr()
+		if k.evmKeeper.IsContract(ctx, callEvmSender) {
+			return types.ErrInvalid.Wrap("sender is contract")
+		}
 	} else {
 		var err error
 		args, err = contract.PackOnBridgeCall(msg.GetSenderAddr(), msg.GetRefundAddr(), tokens, amounts, msg.MustData(), msg.MustMemo())
@@ -134,4 +135,16 @@ func (k Keeper) CreateBridgeAccount(ctx sdk.Context, address string) {
 		return
 	}
 	k.ak.SetAccount(ctx, k.ak.NewAccountWithAddress(ctx, accAddress))
+}
+
+func (k Keeper) validateBridgeCallInSender(ctx sdk.Context, caller contract.Caller, sender common.Address) error {
+	if senderAccount := k.ak.GetAccount(ctx, sender.Bytes()); senderAccount != nil {
+		if _, ok := senderAccount.(sdk.ModuleAccountI); ok {
+			return types.ErrInvalid.Wrap("sender is module account")
+		}
+	}
+	if _, isPrecompile := caller.Precompile(ctx, sender); isPrecompile {
+		return types.ErrInvalid.Wrap("sender is precompile contract address")
+	}
+	return nil
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
@@ -95,6 +96,7 @@ type Caller interface {
 	QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error
 	ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error)
 	ExecuteEVM(ctx sdk.Context, from common.Address, contract *common.Address, value *big.Int, gasLimit uint64, data []byte) (*evmtypes.MsgEthereumTxResponse, error)
+	Precompile(ctx sdk.Context, addr common.Address) (vm.PrecompiledContract, bool)
 }
 
 type BridgeDenoms struct {

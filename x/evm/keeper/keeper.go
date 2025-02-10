@@ -17,6 +17,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/evmos/ethermint/x/evm/types"
 
 	fxcontract "github.com/pundiai/fx-core/v8/contract"
@@ -192,4 +193,16 @@ func (k *Keeper) ExecuteEVM(
 func (k *Keeper) IsContract(ctx sdk.Context, account common.Address) bool {
 	acc := k.GetAccount(ctx, account)
 	return acc != nil && acc.IsContract()
+}
+
+func (k *Keeper) Precompile(ctx sdk.Context, addr common.Address) (vm.PrecompiledContract, bool) {
+	cfg, err := k.EVMConfig(ctx, k.ChainID(), common.Hash{})
+	if err != nil {
+		return nil, false
+	}
+	ethCfg := k.GetParams(ctx).ChainConfig.EthereumConfig(k.ChainID())
+	stateDB := statedb.NewWithParams(ctx, k, cfg.TxConfig, cfg.Params.EvmDenom)
+	msg := core.Message{To: &common.Address{}, GasPrice: k.GetBaseFee(ctx, ethCfg)}
+	evm := k.NewEVM(ctx, &msg, cfg, stateDB)
+	return evm.Precompile(addr)
 }

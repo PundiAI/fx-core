@@ -12,6 +12,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/pundiai/fx-core/v8/contract"
@@ -73,6 +74,7 @@ type EVMKeeper interface {
 	IsContract(ctx sdk.Context, account common.Address) bool
 	QueryContract(ctx context.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, args ...interface{}) error
 	ApplyContract(ctx context.Context, from, contract common.Address, value *big.Int, abi abi.ABI, method string, constructorData ...interface{}) (*types.MsgEthereumTxResponse, error)
+	Precompile(ctx sdk.Context, addr common.Address) (vm.PrecompiledContract, bool)
 }
 
 type IBCTransferKeeper interface {
