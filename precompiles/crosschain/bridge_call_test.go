@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -330,7 +331,7 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_BridgeCall() {
 				BlockHeight:    100, // mock block height
 				Nonce:          outgoingBridgeCall.Nonce,
 				TxOrigin:       helpers.GenExternalAddr(suite.chainName),
-				Success:        true,
+				Success:        rand.Bool(),
 				Cause:          "",
 			}
 			suite.executeClaim(bridgeCallResultClaim)
