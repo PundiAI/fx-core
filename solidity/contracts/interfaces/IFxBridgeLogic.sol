@@ -18,6 +18,9 @@ interface IFxBridgeLogic is IBridgeCall, FxBridgeBase {
     ) external view returns (uint256);
 
     function bridgeTokens(uint256 _index) external view returns (address);
+    function tokenStatus(
+        address _tokenAddr
+    ) external view returns (bool isOriginated, bool isActive, bool isExist);
     function getTokenStatus(
         address _tokenAddr
     ) external view returns (TokenStatus memory);
