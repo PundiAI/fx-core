@@ -78,17 +78,3 @@ func updateERC20LogicCode(ctx sdk.Context, keeper *fxevmkeeper.Keeper) error {
 func deployAccessControlContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, evmModuleAddress common.Address) error {
 	return contract.DeployAccessControlContract(ctx, evmKeeper, evmModuleAddress, getContractOwner(ctx))
 }
-
-func upgradeBridgeFeeContract(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, evmModuleAddress common.Address) error {
-	logicContract, err := evmKeeper.DeployContract(ctx, evmModuleAddress, contract.GetBridgeFeeQuote().ABI, contract.GetBridgeFeeQuote().Bin)
-	if err != nil {
-		return err
-	}
-
-	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(evmKeeper)
-	_, err = bridgeFeeQuoteKeeper.UpgradeTo(ctx, logicContract)
-	if err != nil {
-		return err
-	}
-	return nil
-}
