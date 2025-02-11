@@ -60,6 +60,6 @@ func updateFXBridgeDenom(ctx sdk.Context, keeper erc20keeper.Keeper) error {
 }
 
 func addMainnetPundiAIBridgeToken(ctx sdk.Context, keeper erc20keeper.Keeper) error {
-	pundiaiToken := getMainnetBridgeToken(ctx)
+	pundiaiToken := GetMainnetBridgeToken(ctx)
 	return keeper.AddBridgeToken(ctx, fxtypes.DefaultDenom, ethtypes.ModuleName, pundiaiToken.String(), false)
 }

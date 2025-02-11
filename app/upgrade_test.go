@@ -863,8 +863,9 @@ func checkDefaultDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	denom, err = myApp.Erc20Keeper.DenomIndex.Get(ctx, pundiaiERC20Token.Erc20Address)
 	require.NoError(t, err)
 	require.Equal(t, fxtypes.DefaultDenom, denom)
-	_, err = myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.DefaultDenom)
+	bridgeToken, err = myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.DefaultDenom)
 	require.NoError(t, err)
+	require.Equal(t, nextversion.GetMainnetBridgeToken(ctx).String(), bridgeToken.Contract)
 }
 
 func checkTronOracleIsOnline(t *testing.T, ctx sdk.Context, myApp *app.App) {

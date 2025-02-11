@@ -70,11 +70,11 @@ func GetMigrateEscrowDenoms(chainID string) map[string]string {
 	return result
 }
 
-const mainnetPundiAIToken = "0x0000000000000000000000000000000000000000" // TODO update address
+const mainnetPundiAIAddr = "0x075F23b9CdfCE2cC0cA466F4eE6cb4bD29d83bef"
 
-func getMainnetBridgeToken(ctx sdk.Context) common.Address {
+func GetMainnetBridgeToken(ctx sdk.Context) common.Address {
 	if ctx.ChainID() == fxtypes.MainnetChainId {
-		return common.HexToAddress(mainnetPundiAIToken)
+		return common.HexToAddress(mainnetPundiAIAddr)
 	}
 	panic("invalid chain id")
 }
