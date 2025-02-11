@@ -77,8 +77,6 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 				feeTokenAddr := suite.GetERC20Token(bridgeToken.Denom)
 				suite.erc20TokenSuite.WithContract(common.HexToAddress(feeTokenAddr.Erc20Address))
 				suite.erc20TokenSuite.MintFromERC20Module(suite.Ctx, common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeFeeCollectorName)), info.Fee.BigInt())
-				// initialize BridgeFeeCollector address
-				suite.MintToken(autytypes.NewModuleAddress(types.BridgeFeeCollectorName), helpers.NewStakingCoin(1, 0))
 				suite.Keeper().SetOutgoingBridgeCallQuoteInfo(suite.Ctx, outCall.Nonce, info)
 			},
 		},

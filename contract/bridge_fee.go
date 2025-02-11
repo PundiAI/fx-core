@@ -128,3 +128,14 @@ func initBridgeFeeQuote(
 	}
 	return nil
 }
+
+func UpgradeBridgeFeeContract(ctx sdk.Context, evmKeeper EvmKeeper, evmModuleAddress common.Address) error {
+	logicContract, err := evmKeeper.DeployContract(ctx, evmModuleAddress, GetBridgeFeeQuote().ABI, GetBridgeFeeQuote().Bin)
+	if err != nil {
+		return err
+	}
+
+	bridgeFeeQuoteKeeper := NewBridgeFeeQuoteKeeper(evmKeeper)
+	_, err = bridgeFeeQuoteKeeper.UpgradeTo(ctx, logicContract)
+	return err
+}

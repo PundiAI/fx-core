@@ -188,8 +188,8 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 		// acconts is
 		// 0. initAccount
 		// 1.fee_collector + 2.distribution + 3.bonded_tokens_pool + 4.not_bonded_tokens_pool + 5.gov + 6.mint + 7.autytypes.NewModuleAddress(crosschain)
-		// 8.evm 9.0x..1001 10.0x..1002 11.erc20 12.warp-token-contract
-		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(20+i), 0), account)
+		// 8.evm 9.0x..1001 10.0x..1002 11.erc20 12.warp-token-contract, bridge-fee-collector
+		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(21+i), 0), account)
 	}
 
 	ethPrivKey := suite.GetPrivKeyByIndex(hd2.EthSecp256k1Type, 0)
@@ -224,7 +224,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		account, err := cli.QueryAccount(ethAddress.String())
 		suite.Require().NoError(err)
-		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(23), 0), account)
+		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(24), 0), account)
 	}
 
 	for i := 0; i < len(clients); i++ {

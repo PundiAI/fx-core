@@ -54,3 +54,14 @@ func migrateOracleDelegateAmount(ctx sdk.Context, keepers keepers.CrosschainKeep
 		})
 	}
 }
+
+func initBridgeAccount(ctx sdk.Context, ak authkeeper.AccountKeeper) {
+	bridgeFeeCollector := authtypes.NewModuleAddress(crosschaintypes.BridgeFeeCollectorName)
+	if account := ak.GetAccount(ctx, bridgeFeeCollector); account == nil {
+		ak.SetAccount(ctx, ak.NewAccountWithAddress(ctx, bridgeFeeCollector))
+	}
+	bridgeCallFrom := authtypes.NewModuleAddress(crosschaintypes.BridgeCallSender)
+	if account := ak.GetAccount(ctx, bridgeCallFrom); account == nil {
+		ak.SetAccount(ctx, ak.NewAccountWithAddress(ctx, bridgeCallFrom))
+	}
+}
