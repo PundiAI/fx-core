@@ -4,7 +4,10 @@ import (
 	"encoding/hex"
 	"errors"
 
+	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
+	autytypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
@@ -47,6 +50,37 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 				outCall.Sender = fxtypes.ExternalAddrToStr(suite.chainName, tokenAddr.Bytes())
 			},
 			err: errors.New("execution reverted: evm transaction execution failed"),
+		},
+		{
+			name: "has quoteId - token is defaultDenom",
+			initData: func(msg *types.MsgBridgeCallResultClaim, outCall *types.OutgoingBridgeCall) {
+				msg.Success = true
+				info := types.QuoteInfo{
+					Token:  fxtypes.DefaultDenom,
+					Fee:    sdkmath.NewInt(tmrand.Int63()),
+					Oracle: helpers.GenHexAddress().String(),
+				}
+				suite.Keeper().SetOutgoingBridgeCallQuoteInfo(suite.Ctx, outCall.Nonce, info)
+				suite.MintToken(autytypes.NewModuleAddress(types.BridgeFeeCollectorName), helpers.NewStakingCoin(info.Fee.Int64(), 0))
+			},
+		},
+		{
+			name: "has quoteId - token is bridge token",
+			initData: func(msg *types.MsgBridgeCallResultClaim, outCall *types.OutgoingBridgeCall) {
+				msg.Success = true
+				bridgeToken := suite.AddBridgeToken(suite.chainName, helpers.NewRandSymbol(), true)
+				info := types.QuoteInfo{
+					Token:  bridgeToken.Denom,
+					Fee:    sdkmath.NewInt(1),
+					Oracle: helpers.GenHexAddress().String(),
+				}
+				feeTokenAddr := suite.GetERC20Token(bridgeToken.Denom)
+				suite.erc20TokenSuite.WithContract(common.HexToAddress(feeTokenAddr.Erc20Address))
+				suite.erc20TokenSuite.MintFromERC20Module(suite.Ctx, common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeFeeCollectorName)), info.Fee.BigInt())
+				// initialize BridgeFeeCollector address
+				suite.MintToken(autytypes.NewModuleAddress(types.BridgeFeeCollectorName), helpers.NewStakingCoin(1, 0))
+				suite.Keeper().SetOutgoingBridgeCallQuoteInfo(suite.Ctx, outCall.Nonce, info)
+			},
 		},
 	}
 	for _, tt := range tests {
