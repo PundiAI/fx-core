@@ -29,8 +29,8 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 				for i, tokenContract := range msg.TokenContracts {
 					erc20Token := suite.GetERC20TokenByBridgeContract(tokenContract)
 
-					suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
-					balanceOf := suite.erc20TokenSuite.BalanceOf(suite.Ctx, msg.GetReceiverAddr())
+					balanceOf := suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
+						BalanceOf(suite.Ctx, msg.GetReceiverAddr())
 					suite.Equal(msg.Amounts[i].BigInt().String(), balanceOf.String())
 				}
 			},
@@ -58,8 +58,8 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 
 				for i, tokenContract := range msg.TokenContracts {
 					erc20Token := suite.GetERC20TokenByBridgeContract(tokenContract)
-					suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
-					balanceOf := suite.erc20TokenSuite.BalanceOf(suite.Ctx, msg.GetRefundAddr())
+					balanceOf := suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
+						BalanceOf(suite.Ctx, msg.GetRefundAddr())
 					suite.Equal(msg.Amounts[i].BigInt().String(), balanceOf.String())
 				}
 			},
@@ -105,8 +105,8 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 
 				erc20Token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, denom)
 				suite.Require().NoError(err)
-				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
-				suite.erc20TokenSuite.MintFromERC20Module(suite.Ctx, msg.GetSenderAddr(), big.NewInt(1))
+				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
+					MintFromERC20Module(suite.Ctx, msg.GetSenderAddr(), big.NewInt(1))
 			}
 			tc.initMsg(&msg)
 			err := suite.Keeper().BridgeCallExecuted(suite.Ctx, suite.App.EvmKeeper, &msg)

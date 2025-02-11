@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 				msg.Success = false
 				msg.Cause = hex.EncodeToString([]byte("revert"))
 
-				tokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, helpers.NewRandSymbol())
+				tokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, suite.signer.Address(), helpers.NewRandSymbol())
 				outCall.Sender = fxtypes.ExternalAddrToStr(suite.chainName, tokenAddr.Bytes())
 			},
 			err: errors.New("execution reverted: evm transaction execution failed"),
@@ -75,8 +75,8 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeCallResultHandler() {
 					Oracle: helpers.GenHexAddress().String(),
 				}
 				feeTokenAddr := suite.GetERC20Token(bridgeToken.Denom)
-				suite.erc20TokenSuite.WithContract(common.HexToAddress(feeTokenAddr.Erc20Address))
-				suite.erc20TokenSuite.MintFromERC20Module(suite.Ctx, common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeFeeCollectorName)), info.Fee.BigInt())
+				suite.erc20TokenSuite.WithContract(common.HexToAddress(feeTokenAddr.Erc20Address)).
+					MintFromERC20Module(suite.Ctx, common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeFeeCollectorName)), info.Fee.BigInt())
 				suite.Keeper().SetOutgoingBridgeCallQuoteInfo(suite.Ctx, outCall.Nonce, info)
 			},
 		},

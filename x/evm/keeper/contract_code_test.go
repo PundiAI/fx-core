@@ -50,9 +50,10 @@ func (s *KeeperTestSuite) TestKeeper_DeployContract() {
 
 func (s *KeeperTestSuite) TestKeeper_DeployUpgradableContract() {
 	erc20Suite := s.NewERC20TokenSuite()
-	newContractAddr := erc20Suite.DeployERC20Token(s.Ctx, "USD")
+	signer := s.AddTestSigner()
+	newContractAddr := erc20Suite.DeployERC20Token(s.Ctx, signer.Address(), "USD")
 
-	s.AssertContractAddr(erc20Suite.HexAddress(), newContractAddr)
+	s.AssertContractAddr(signer.Address(), newContractAddr)
 }
 
 func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_ERC20() {
@@ -61,18 +62,20 @@ func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_ERC20() {
 	err := s.App.EvmKeeper.CreateContractWithCode(s.Ctx, erc20.Address, erc20Code)
 	s.Require().NoError(err)
 
+	signer := s.AddTestSigner()
 	erc20Suite := s.NewERC20TokenSuite()
-	erc20Suite.DeployERC20Token(s.Ctx, "USD")
+	contractAddr := erc20Suite.DeployERC20Token(s.Ctx, signer.Address(), "USD")
+	erc20Suite = erc20Suite.WithContract(contractAddr)
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
-	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), erc20Suite.HexAddress(), big.NewInt(100))
-	erc20Suite.Transfer(s.Ctx, newSigner.Address(), big.NewInt(100))
+	erc20Suite.Mint(s.Ctx, signer.Address(), signer.Address(), big.NewInt(100))
+	erc20Suite.Transfer(s.Ctx, signer.Address(), newSigner.Address(), big.NewInt(100))
 
 	err = s.App.EvmKeeper.UpdateContractCode(s.Ctx, erc20.Address, erc20.Code)
 	s.Require().NoError(err)
 
-	erc20Suite.OnTest(s.Ctx, "USD Token", "USD", uint8(18), big.NewInt(100), erc20Suite.HexAddress())
-	erc20Suite.TransferOwnership(s.Ctx, newSigner.Address())
+	erc20Suite.OnTest(s.Ctx, signer.Address(), "USD Token", "USD", uint8(18), big.NewInt(100), signer.Address())
+	erc20Suite.TransferOwnership(s.Ctx, signer.Address(), newSigner.Address())
 }
 
 // TestCodeCheck is a test for checking the code of the deployed contract
@@ -99,31 +102,32 @@ func (s *KeeperTestSuite) TestKeeper_UpdateContractCode_WarpToken() {
 	s.Require().NoError(err)
 
 	erc20Suite := s.NewERC20TokenSuite()
+	signer := s.AddTestSigner()
 	initializeArgs := []interface{}{"Wrapped Token", "WARP", uint8(18), common.BytesToAddress(s.App.AccountKeeper.GetModuleAddress(evmtypes.ModuleName))}
-	warpTokenAddress, err := s.App.EvmKeeper.DeployUpgradableContract(s.Ctx, erc20Suite.HexAddress(), warpToken.Address, nil, &warpToken.ABI, initializeArgs...)
+	warpTokenAddress, err := s.App.EvmKeeper.DeployUpgradableContract(s.Ctx, signer.Address(), warpToken.Address, nil, &warpToken.ABI, initializeArgs...)
 	s.Require().NoError(err)
-	erc20Suite.WithContract(warpTokenAddress)
+	erc20Suite = erc20Suite.WithContract(warpTokenAddress)
 
-	erc20Suite.Deposit(s.Ctx, big.NewInt(100))
+	erc20Suite.Deposit(s.Ctx, signer.Address(), big.NewInt(100))
 
-	s.Require().True(erc20Suite.BalanceOf(s.Ctx, erc20Suite.HexAddress()).Cmp(big.NewInt(100)) == 0)
+	s.Require().True(erc20Suite.BalanceOf(s.Ctx, signer.Address()).Cmp(big.NewInt(100)) == 0)
 
 	newSigner := helpers.NewSigner(helpers.NewEthPrivKey())
 	s.MintToken(newSigner.AccAddress(), helpers.NewStakingCoin(100, 18))
-	erc20Suite.Transfer(s.Ctx, newSigner.Address(), big.NewInt(100))
+	erc20Suite.Transfer(s.Ctx, signer.Address(), newSigner.Address(), big.NewInt(100))
 
-	erc20Suite.Approve(s.Ctx, newSigner.Address(), big.NewInt(100))
+	erc20Suite.Approve(s.Ctx, signer.Address(), newSigner.Address(), big.NewInt(100))
 
 	err = s.App.EvmKeeper.UpdateContractCode(s.Ctx, warpToken.Address, warpToken.Code)
 	s.Require().NoError(err)
 
-	erc20Suite.Deposit(s.Ctx, big.NewInt(100))
-	erc20Suite.Transfer(s.Ctx, newSigner.Address(), big.NewInt(100))
+	erc20Suite.Deposit(s.Ctx, signer.Address(), big.NewInt(100))
+	erc20Suite.Transfer(s.Ctx, signer.Address(), newSigner.Address(), big.NewInt(100))
 	s.Require().True(erc20Suite.BalanceOf(s.Ctx, newSigner.Address()).Cmp(big.NewInt(200)) == 0)
 
-	erc20Suite.Deposit(s.Ctx, big.NewInt(100))
-	erc20Suite.WithdrawSelf(s.Ctx, big.NewInt(50))
-	erc20Suite.Withdraw(s.Ctx, newSigner.Address(), big.NewInt(50))
+	erc20Suite.Deposit(s.Ctx, signer.Address(), big.NewInt(100))
+	erc20Suite.WithdrawSelf(s.Ctx, signer.Address(), big.NewInt(50))
+	erc20Suite.Withdraw(s.Ctx, signer.Address(), newSigner.Address(), big.NewInt(50))
 
-	erc20Suite.OnTest(s.Ctx, "Wrapped Token", "WARP", uint8(18), big.NewInt(200), erc20Suite.HexAddress())
+	erc20Suite.OnTest(s.Ctx, signer.Address(), "Wrapped Token", "WARP", uint8(18), big.NewInt(200), signer.Address())
 }

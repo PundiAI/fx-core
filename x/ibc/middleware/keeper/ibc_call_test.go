@@ -41,15 +41,15 @@ func (suite *KeeperTestSuite) TestHandlerIbcCall() {
 				return &types.IbcCallEvmPacket{To: helpers.GenHexAddress().String(), Data: "", Value: amt}
 			},
 			expPass: true,
-			expCheck: func(ibcPacket transfertypes.FungibleTokenPacketData) {
+			expCheck: func(packet transfertypes.FungibleTokenPacketData) {
 				var mp types.MemoPacket
-				err := suite.App.AppCodec().UnmarshalInterfaceJSON([]byte(ibcPacket.Memo), &mp)
+				err := suite.App.AppCodec().UnmarshalInterfaceJSON([]byte(packet.Memo), &mp)
 				suite.Require().NoError(err)
-				packet := mp.(*types.IbcCallEvmPacket)
+				callEvmPacket := mp.(*types.IbcCallEvmPacket)
 
-				toAddr := common.HexToAddress(packet.To)
-				amt, _ := sdkmath.NewIntFromString(ibcPacket.Amount)
-				suite.AssertBalance(toAddr.Bytes(), sdk.NewCoin(ibcPacket.Denom, amt))
+				toAddr := common.HexToAddress(callEvmPacket.To)
+				amt, _ := sdkmath.NewIntFromString(packet.Amount)
+				suite.AssertBalance(toAddr.Bytes(), sdk.NewCoin(packet.Denom, amt))
 			},
 		},
 		{
@@ -64,19 +64,21 @@ func (suite *KeeperTestSuite) TestHandlerIbcCall() {
 
 				receiver := sdk.MustAccAddressFromBech32(packet.Receiver)
 				erc20Token := suite.GetERC20Token(packet.Denom)
-				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
-				suite.erc20TokenSuite.MintFromERC20Module(suite.Ctx, common.BytesToAddress(receiver.Bytes()), amt.BigInt())
+				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
+					MintFromERC20Module(suite.Ctx, common.BytesToAddress(receiver.Bytes()), amt.BigInt())
 
 				sender := sdk.MustAccAddressFromBech32(packet.Sender)
 				data := helpers.PackERC20Transfer(common.BytesToAddress(sender.Bytes()), amt.BigInt())
 				return &types.IbcCallEvmPacket{To: erc20Token.GetErc20Address(), Data: hex.EncodeToString(data), Value: sdkmath.ZeroInt()}
 			},
 			expPass: true,
-			expCheck: func(ibcPacket transfertypes.FungibleTokenPacketData) {
-				senderAddr := sdk.MustAccAddressFromBech32(ibcPacket.Sender)
+			expCheck: func(packet transfertypes.FungibleTokenPacketData) {
+				senderAddr := sdk.MustAccAddressFromBech32(packet.Sender)
 
-				amt := suite.erc20TokenSuite.BalanceOf(suite.Ctx, common.BytesToAddress(senderAddr.Bytes()))
-				suite.Require().Equal(ibcPacket.Amount, amt.String())
+				erc20Token := suite.GetERC20Token(packet.Denom)
+				amt := suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
+					BalanceOf(suite.Ctx, common.BytesToAddress(senderAddr.Bytes()))
+				suite.Require().Equal(packet.Amount, amt.String())
 			},
 		},
 		{

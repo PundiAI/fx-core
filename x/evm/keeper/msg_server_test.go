@@ -45,10 +45,10 @@ func (s *KeeperTestSuite) ethereumTx(signer *helpers.Signer, to *common.Address,
 func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
 	signer := s.NewSigner()
 	erc20Suite := s.NewERC20TokenSuite()
-	erc20Suite.WithSigner(signer)
 
-	contractAddr := erc20Suite.DeployERC20Token(s.Ctx, "TEST")
-	erc20Suite.Mint(s.Ctx, erc20Suite.HexAddress(), erc20Suite.HexAddress(), big.NewInt(100))
+	contractAddr := erc20Suite.DeployERC20Token(s.Ctx, signer.Address(), "TEST")
+	erc20Suite = erc20Suite.WithContract(contractAddr)
+	erc20Suite.Mint(s.Ctx, signer.Address(), signer.Address(), big.NewInt(100))
 
 	gasLimit := uint64(71000)
 
@@ -70,7 +70,7 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
 	s.Commit()
 
 	refundAmount := gasPrice * int64(gasLimit-res.GasUsed)
-	s.BurnEvmRefundFee(erc20Suite.AccAddress(), helpers.NewStakingCoins(refundAmount, 0))
+	s.BurnEvmRefundFee(signer.AccAddress(), helpers.NewStakingCoins(refundAmount, 0))
 
 	totalSupplyAfter := s.App.BankKeeper.GetSupply(s.Ctx, fxtypes.DefaultDenom)
 	s.Require().Equal(totalSupplyBefore.String(), totalSupplyAfter.String())
@@ -112,10 +112,11 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Value() {
 
 func (s *KeeperTestSuite) TestKeeper_CallContract() {
 	erc20Suite := s.NewERC20TokenSuite()
-	contract := erc20Suite.DeployERC20Token(s.Ctx, "USD")
+	signer := s.AddTestSigner()
+	contract := erc20Suite.DeployERC20Token(s.Ctx, signer.Address(), "USD")
 
 	amount := big.NewInt(100)
-	recipient := erc20Suite.HexAddress()
+	recipient := signer.Address()
 	data := helpers.PackERC20Mint(recipient, amount)
 
 	// failed: not authorized
@@ -128,7 +129,8 @@ func (s *KeeperTestSuite) TestKeeper_CallContract() {
 
 	// transfer erc20 token owner to evm module
 	evmModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName))
-	erc20Suite.TransferOwnership(s.Ctx, evmModuleAddr)
+	erc20Suite = erc20Suite.WithContract(contract)
+	erc20Suite.TransferOwnership(s.Ctx, signer.Address(), evmModuleAddr)
 
 	// success
 	_, err = s.App.EvmKeeper.CallContract(s.Ctx, &fxevmtypes.MsgCallContract{

@@ -12,27 +12,33 @@ import (
 )
 
 type StakingPrecompileSuite struct {
-	*ContractBaseSuite
-	err error
+	require *require.Assertions
+	err     error
 
-	contract.StakingPrecompileKeeper
+	keeper contract.StakingPrecompileKeeper
 }
 
-func NewStakingPrecompileSuite(require *require.Assertions, signer *Signer, caller contract.Caller, contractAddr common.Address) StakingPrecompileSuite {
-	contractBaseSuite := NewContractBaseSuite(require, signer).WithContract(contractAddr)
+func NewStakingPrecompileSuite(require *require.Assertions, caller contract.Caller) StakingPrecompileSuite {
+	address := common.HexToAddress(contract.StakingAddress)
 	return StakingPrecompileSuite{
-		ContractBaseSuite:       contractBaseSuite,
-		StakingPrecompileKeeper: contract.NewStakingPrecompileKeeper(caller, contractAddr),
+		require: require,
+		keeper:  contract.NewStakingPrecompileKeeper(caller, address),
 	}
 }
 
-func (s StakingPrecompileSuite) WithError(err error) StakingPrecompileSuite {
-	stakingPrecompileKeeper := s
-	stakingPrecompileKeeper.err = err
-	return stakingPrecompileKeeper
+func (s StakingPrecompileSuite) WithContract(addr common.Address) StakingPrecompileSuite {
+	suite := s
+	suite.keeper = suite.keeper.WithContract(addr)
+	return suite
 }
 
-func (s StakingPrecompileSuite) Error(err error) {
+func (s StakingPrecompileSuite) WithError(err error) StakingPrecompileSuite {
+	suite := s
+	suite.err = err
+	return suite
+}
+
+func (s StakingPrecompileSuite) requireError(err error) {
 	if s.err != nil {
 		s.require.ErrorIs(err, evmtypes.ErrVMExecution.Wrap(s.err.Error()))
 		return
@@ -41,73 +47,73 @@ func (s StakingPrecompileSuite) Error(err error) {
 }
 
 func (s StakingPrecompileSuite) AllowanceShares(ctx context.Context, args contract.AllowanceSharesArgs) *big.Int {
-	shares, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).AllowanceShares(ctx, args)
-	s.Error(err)
+	shares, err := s.keeper.AllowanceShares(ctx, args)
+	s.requireError(err)
 	return shares
 }
 
 func (s StakingPrecompileSuite) Delegation(ctx context.Context, args contract.DelegationArgs) (*big.Int, *big.Int) {
-	amount, shares, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).Delegation(ctx, args)
-	s.Error(err)
+	amount, shares, err := s.keeper.Delegation(ctx, args)
+	s.requireError(err)
 	return amount, shares
 }
 
 func (s StakingPrecompileSuite) DelegationRewards(ctx context.Context, args contract.DelegationRewardsArgs) *big.Int {
-	rewards, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).DelegationRewards(ctx, args)
-	s.Error(err)
+	rewards, err := s.keeper.DelegationRewards(ctx, args)
+	s.requireError(err)
 	return rewards
 }
 
 func (s StakingPrecompileSuite) ValidatorList(ctx context.Context, args contract.ValidatorListArgs) []string {
-	rewards, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).ValidatorList(ctx, args)
-	s.Error(err)
+	rewards, err := s.keeper.ValidatorList(ctx, args)
+	s.requireError(err)
 	return rewards
 }
 
 func (s StakingPrecompileSuite) SlashingInfo(ctx context.Context, args contract.SlashingInfoArgs) (bool, *big.Int) {
-	jailed, missed, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).SlashingInfo(ctx, args)
-	s.Error(err)
+	jailed, missed, err := s.keeper.SlashingInfo(ctx, args)
+	s.requireError(err)
 	return jailed, missed
 }
 
-func (s StakingPrecompileSuite) ApproveShares(ctx context.Context, args contract.ApproveSharesArgs) *evmtypes.MsgEthereumTxResponse {
-	res, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).ApproveShares(ctx, s.HexAddress(), args)
-	s.Error(err)
+func (s StakingPrecompileSuite) ApproveShares(ctx context.Context, from common.Address, args contract.ApproveSharesArgs) *evmtypes.MsgEthereumTxResponse {
+	res, err := s.keeper.ApproveShares(ctx, from, args)
+	s.requireError(err)
 	return res
 }
 
-func (s StakingPrecompileSuite) TransferShares(ctx context.Context, args contract.TransferSharesArgs) (*evmtypes.MsgEthereumTxResponse, *contract.TransferSharesRet) {
-	res, ret, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).TransferShares(ctx, s.HexAddress(), args)
-	s.Error(err)
+func (s StakingPrecompileSuite) TransferShares(ctx context.Context, from common.Address, args contract.TransferSharesArgs) (*evmtypes.MsgEthereumTxResponse, *contract.TransferSharesRet) {
+	res, ret, err := s.keeper.TransferShares(ctx, from, args)
+	s.requireError(err)
 	return res, ret
 }
 
-func (s StakingPrecompileSuite) TransferFromShares(ctx context.Context, args contract.TransferFromSharesArgs) (*evmtypes.MsgEthereumTxResponse, *contract.TransferFromSharesRet) {
-	res, ret, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).TransferFromShares(ctx, s.HexAddress(), args)
-	s.Error(err)
+func (s StakingPrecompileSuite) TransferFromShares(ctx context.Context, from common.Address, args contract.TransferFromSharesArgs) (*evmtypes.MsgEthereumTxResponse, *contract.TransferFromSharesRet) {
+	res, ret, err := s.keeper.TransferFromShares(ctx, from, args)
+	s.requireError(err)
 	return res, ret
 }
 
-func (s StakingPrecompileSuite) Withdraw(ctx context.Context, args contract.WithdrawArgs) (*evmtypes.MsgEthereumTxResponse, *big.Int) {
-	res, reward, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).Withdraw(ctx, s.HexAddress(), args)
-	s.Error(err)
+func (s StakingPrecompileSuite) Withdraw(ctx context.Context, from common.Address, args contract.WithdrawArgs) (*evmtypes.MsgEthereumTxResponse, *big.Int) {
+	res, reward, err := s.keeper.Withdraw(ctx, from, args)
+	s.requireError(err)
 	return res, reward
 }
 
-func (s StakingPrecompileSuite) DelegateV2(ctx context.Context, args contract.DelegateV2Args) *evmtypes.MsgEthereumTxResponse {
-	res, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).DelegateV2(ctx, s.HexAddress(), args)
-	s.Error(err)
+func (s StakingPrecompileSuite) DelegateV2(ctx context.Context, from common.Address, args contract.DelegateV2Args) *evmtypes.MsgEthereumTxResponse {
+	res, err := s.keeper.DelegateV2(ctx, from, args)
+	s.requireError(err)
 	return res
 }
 
-func (s StakingPrecompileSuite) RedelegateV2(ctx context.Context, args contract.RedelegateV2Args) *evmtypes.MsgEthereumTxResponse {
-	res, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).RedelegateV2(ctx, s.HexAddress(), args)
-	s.Error(err)
+func (s StakingPrecompileSuite) RedelegateV2(ctx context.Context, from common.Address, args contract.RedelegateV2Args) *evmtypes.MsgEthereumTxResponse {
+	res, err := s.keeper.RedelegateV2(ctx, from, args)
+	s.requireError(err)
 	return res
 }
 
-func (s StakingPrecompileSuite) UndelegateV2(ctx context.Context, args contract.UndelegateV2Args) *evmtypes.MsgEthereumTxResponse {
-	res, err := s.StakingPrecompileKeeper.WithContractAddr(s.contract).UndelegateV2(ctx, s.HexAddress(), args)
-	s.Error(err)
+func (s StakingPrecompileSuite) UndelegateV2(ctx context.Context, from common.Address, args contract.UndelegateV2Args) *evmtypes.MsgEthereumTxResponse {
+	res, err := s.keeper.UndelegateV2(ctx, from, args)
+	s.requireError(err)
 	return res
 }

@@ -11,24 +11,30 @@ import (
 )
 
 type BankPrecompileSuite struct {
-	*ContractBaseSuite
-	err error
+	require *require.Assertions
+	err     error
 
-	contract.BankPrecompileKeeper
+	keeper contract.BankPrecompileKeeper
 }
 
-func NewBankPrecompileSuite(require *require.Assertions, signer *Signer, caller contract.Caller, contractAddr common.Address) BankPrecompileSuite {
-	contractBaseSuite := NewContractBaseSuite(require, signer).WithContract(contractAddr)
+func NewBankPrecompileSuite(require *require.Assertions, caller contract.Caller) BankPrecompileSuite {
+	address := common.HexToAddress(contract.BankAddress)
 	return BankPrecompileSuite{
-		ContractBaseSuite:    contractBaseSuite,
-		BankPrecompileKeeper: contract.NewBankPrecompileKeeper(caller, contractAddr),
+		require: require,
+		keeper:  contract.NewBankPrecompileKeeper(caller, address),
 	}
 }
 
+func (s BankPrecompileSuite) WithContract(addr common.Address) BankPrecompileSuite {
+	suite := s
+	suite.keeper = suite.keeper.WithContract(addr)
+	return suite
+}
+
 func (s BankPrecompileSuite) WithError(err error) BankPrecompileSuite {
-	bankPrecompileKeeper := s
-	bankPrecompileKeeper.err = err
-	return bankPrecompileKeeper
+	suite := s
+	suite.err = err
+	return suite
 }
 
 func (s BankPrecompileSuite) requireError(err error) {
@@ -40,13 +46,13 @@ func (s BankPrecompileSuite) requireError(err error) {
 }
 
 func (s BankPrecompileSuite) TransferFromModuleToAccount(ctx context.Context, from common.Address, args contract.TransferFromModuleToAccountArgs) *evmtypes.MsgEthereumTxResponse {
-	transferModuleToAccount, err := s.BankPrecompileKeeper.TransferFromModuleToAccount(ctx, from, args)
+	transferModuleToAccount, err := s.keeper.TransferFromModuleToAccount(ctx, from, args)
 	s.requireError(err)
 	return transferModuleToAccount
 }
 
 func (s BankPrecompileSuite) TransferFromAccountToModule(ctx context.Context, from common.Address, args contract.TransferFromAccountToModuleArgs) *evmtypes.MsgEthereumTxResponse {
-	transferAccountToModule, err := s.BankPrecompileKeeper.TransferFromAccountToModule(ctx, from, args)
+	transferAccountToModule, err := s.keeper.TransferFromAccountToModule(ctx, from, args)
 	s.requireError(err)
 	return transferAccountToModule
 }

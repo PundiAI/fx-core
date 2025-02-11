@@ -69,7 +69,7 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_ExecuteClaim_SendToFx()
 		{
 			name: "native erc20",
 			malleate: func() erc20types.BridgeToken {
-				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, helpers.NewRandSymbol())
+				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, suite.signer.Address(), helpers.NewRandSymbol())
 				bridgeToken := suite.AddBridgeToken(erc20TokenAddr.String(), false)
 
 				// eth module lock some tokens
@@ -79,7 +79,8 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_ExecuteClaim_SendToFx()
 				suite.MintTokenToModule(crosschaintypes.ModuleName, sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(100)))
 
 				erc20ModuelAddr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
-				suite.erc20TokenSuite.Mint(suite.Ctx, suite.signer.Address(), erc20ModuelAddr, big.NewInt(100))
+				suite.erc20TokenSuite.WithContract(erc20TokenAddr).
+					Mint(suite.Ctx, suite.signer.Address(), erc20ModuelAddr, big.NewInt(100))
 				return bridgeToken
 			},
 			amount:                 sdkmath.NewInt(100),
@@ -167,9 +168,8 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_ExecuteClaim_SendToFx()
 			suite.AssertBalance(receiver, baseDenomBalance)
 
 			erc20Contract := suite.GetERC20Token(baseDenom).GetERC20Contract()
-			suite.erc20TokenSuite.WithContract(erc20Contract)
-
-			balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, common.BytesToAddress(receiver))
+			balance := suite.erc20TokenSuite.WithContract(erc20Contract).
+				BalanceOf(suite.Ctx, common.BytesToAddress(receiver))
 			suite.Equal(tc.erc20TokenAmount.String(), balance.String())
 		})
 	}
@@ -199,7 +199,7 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_ExecuteClaim_BridgeCall
 		{
 			name: "native erc20",
 			malleate: func() erc20types.BridgeToken {
-				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, helpers.NewRandSymbol())
+				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, suite.signer.Address(), helpers.NewRandSymbol())
 				bridgeToken := suite.AddBridgeToken(erc20TokenAddr.String(), false)
 
 				// eth module lock some tokens
@@ -209,7 +209,8 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_ExecuteClaim_BridgeCall
 				suite.MintTokenToModule(crosschaintypes.ModuleName, sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(100)))
 
 				erc20ModuelAddr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName))
-				suite.erc20TokenSuite.Mint(suite.Ctx, suite.signer.Address(), erc20ModuelAddr, big.NewInt(100))
+				suite.erc20TokenSuite.WithContract(erc20TokenAddr).
+					Mint(suite.Ctx, suite.signer.Address(), erc20ModuelAddr, big.NewInt(100))
 				return bridgeToken
 			},
 			amount:          sdkmath.NewInt(100),
@@ -298,9 +299,8 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_ExecuteClaim_BridgeCall
 			suite.AssertBalance(bridgeCallClaim.GetReceiverAddr().Bytes(), baseDenomBalance)
 
 			erc20Contract := suite.GetERC20Token(baseDenom).GetERC20Contract()
-			suite.erc20TokenSuite.WithContract(erc20Contract)
-
-			balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, bridgeCallClaim.GetReceiverAddr())
+			balance := suite.erc20TokenSuite.WithContract(erc20Contract).
+				BalanceOf(suite.Ctx, bridgeCallClaim.GetReceiverAddr())
 			suite.Equal(tc.erc20Balance.String(), balance.String())
 		})
 	}
