@@ -349,31 +349,32 @@ func (suite *CrosschainSuite) SendConfirmBatch() {
 		},
 	)
 	suite.Require().NoError(err)
-	suite.NotNil(response.Batch)
+	suite.NotNil(response.GetBatchs())
 
-	outgoingTxBatch := response.Batch
-	checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
-	suite.Require().NoError(err)
-	signatureBytes := suite.SignatureCheckpoint(checkpoint)
+	for _, outgoingTxBatch := range response.GetBatchs() {
+		checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
+		suite.Require().NoError(err)
+		signatureBytes := suite.SignatureCheckpoint(checkpoint)
 
-	suite.BroadcastTx(suite.bridger,
-		&crosschaintypes.MsgConfirmBatch{
-			Nonce:           outgoingTxBatch.BatchNonce,
-			TokenContract:   outgoingTxBatch.TokenContract,
-			BridgerAddress:  suite.BridgerAddr().String(),
-			ExternalAddress: suite.ExternalAddr(),
-			Signature:       hex.EncodeToString(signatureBytes),
-			ChainName:       suite.chainName,
-		},
-		&crosschaintypes.MsgSendToExternalClaim{
-			EventNonce:     suite.queryFxLastEventNonce(),
-			BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
-			BatchNonce:     outgoingTxBatch.BatchNonce,
-			TokenContract:  outgoingTxBatch.TokenContract,
-			BridgerAddress: suite.BridgerAddr().String(),
-			ChainName:      suite.chainName,
-		},
-	)
+		suite.BroadcastTx(suite.bridger,
+			&crosschaintypes.MsgConfirmBatch{
+				Nonce:           outgoingTxBatch.BatchNonce,
+				TokenContract:   outgoingTxBatch.TokenContract,
+				BridgerAddress:  suite.BridgerAddr().String(),
+				ExternalAddress: suite.ExternalAddr(),
+				Signature:       hex.EncodeToString(signatureBytes),
+				ChainName:       suite.chainName,
+			},
+			&crosschaintypes.MsgSendToExternalClaim{
+				EventNonce:     suite.queryFxLastEventNonce(),
+				BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
+				BatchNonce:     outgoingTxBatch.BatchNonce,
+				TokenContract:  outgoingTxBatch.TokenContract,
+				BridgerAddress: suite.BridgerAddr().String(),
+				ChainName:      suite.chainName,
+			},
+		)
+	}
 }
 
 func (suite *CrosschainSuite) SendToExternalAndConfirm(coin sdk.Coin) {

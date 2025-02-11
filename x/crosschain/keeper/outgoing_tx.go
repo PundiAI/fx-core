@@ -190,7 +190,7 @@ func (k Keeper) ResendTimeoutOutgoingTxBatch(ctx sdk.Context, batch *types.Outgo
 // IterateOutgoingTxBatches iterates through all outgoing batches
 func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(batch *types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := storetypes.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.OutgoingTxBatchKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		batch := new(types.OutgoingTxBatch)
