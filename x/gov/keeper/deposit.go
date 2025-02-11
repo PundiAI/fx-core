@@ -152,7 +152,7 @@ func (keeper Keeper) GetMinDepositAmountFromProposalMsgs(ctx context.Context, de
 	totalCommunityPoolSpendAmount := sdk.NewCoins()
 	egfMsgTypeURL := sdk.MsgTypeURL(&distributiontypes.MsgCommunityPoolSpend{})
 	for _, msg := range message {
-		if !strings.EqualFold(sdk.MsgTypeURL(msg), egfMsgTypeURL) {
+		if !strings.EqualFold(msg.TypeUrl, egfMsgTypeURL) {
 			return defaultMinDeposit, nil
 		}
 
