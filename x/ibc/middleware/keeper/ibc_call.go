@@ -6,7 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
@@ -32,6 +34,7 @@ func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string
 }
 
 func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPacket *types.IbcCallEvmPacket) error {
+	k.CreateIbcCallAccount(ctx, sender.Bytes())
 	limit := ctx.ConsensusParams().Block.GetMaxGas()
 	evmErrCause, evmSuccess := "", false
 	defer func() {
@@ -54,7 +57,20 @@ func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPac
 	evmSuccess = !txResp.Failed()
 	evmErrCause = txResp.VmError
 	if txResp.Failed() {
-		return evmtypes.ErrVMExecution.Wrap(txResp.VmError)
+		errStr := txResp.VmError
+		if txResp.VmError == vm.ErrExecutionReverted.Error() {
+			if vmCause, unpackErr := abi.UnpackRevert(common.CopyBytes(txResp.Ret)); unpackErr == nil {
+				errStr = vmCause
+			}
+		}
+		return evmtypes.ErrVMExecution.Wrap(errStr)
 	}
 	return nil
+}
+
+func (k Keeper) CreateIbcCallAccount(ctx sdk.Context, addr sdk.AccAddress) {
+	if k.accountKeeper.HasAccount(ctx, addr) {
+		return
+	}
+	k.accountKeeper.SetAccount(ctx, k.accountKeeper.NewAccountWithAddress(ctx, addr))
 }

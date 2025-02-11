@@ -60,8 +60,7 @@ func (s *KeeperTestSuite) TestKeeper_EthereumTx_Data() {
 
 	recipient := helpers.GenHexAddress()
 	amount := big.NewInt(10)
-	data, err := helpers.PackERC20Mint(recipient, amount)
-	s.Require().NoError(err)
+	data := helpers.PackERC20Mint(recipient, amount)
 
 	res, err := s.ethereumTx(signer, &contractAddr, data, nil, gasLimit)
 	s.Require().NoError(err)
@@ -117,11 +116,10 @@ func (s *KeeperTestSuite) TestKeeper_CallContract() {
 
 	amount := big.NewInt(100)
 	recipient := erc20Suite.HexAddress()
-	data, err := helpers.PackERC20Mint(recipient, amount)
-	s.Require().NoError(err)
+	data := helpers.PackERC20Mint(recipient, amount)
 
 	// failed: not authorized
-	_, err = s.App.EvmKeeper.CallContract(s.Ctx, &fxevmtypes.MsgCallContract{
+	_, err := s.App.EvmKeeper.CallContract(s.Ctx, &fxevmtypes.MsgCallContract{
 		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ContractAddress: contract.String(),
 		Data:            common.Bytes2Hex(data),

@@ -40,8 +40,7 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 			initMsg: func(msg *types.MsgBridgeCallClaim) {
 				erc20Token := suite.GetERC20TokenByBridgeContract(msg.TokenContracts[0])
 				msg.To = fxtypes.ExternalAddrToStr(suite.chainName, erc20Token.GetERC20Contract().Bytes())
-				data, err := helpers.PackERC20Mint(helpers.GenHexAddress(), big.NewInt(100))
-				suite.Require().NoError(err)
+				data := helpers.PackERC20Mint(helpers.GenHexAddress(), big.NewInt(100))
 				msg.Data = hex.EncodeToString(data)
 				msg.Memo = types.MemoSendCallTo
 			},
