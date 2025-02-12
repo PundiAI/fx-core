@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -22,7 +24,7 @@ func (k Keeper) AddERC20Token(ctx context.Context, metadata banktypes.Metadata, 
 	if has, err := k.ERC20Token.Has(ctx, metadata.Base); err != nil {
 		return types.ERC20Token{}, err
 	} else if has {
-		return types.ERC20Token{}, types.ErrExists.Wrapf("denom %s is already registered", metadata.Base)
+		return types.ERC20Token{}, sdkerrors.ErrInvalidRequest.Wrapf("denom %s is already registered", metadata.Base)
 	}
 
 	erc20Token := types.ERC20Token{
@@ -51,11 +53,14 @@ func (k Keeper) HasERC20Token(ctx context.Context, baseDenom string) (bool, erro
 func (k Keeper) ToggleTokenConvert(ctx context.Context, token string) (types.ERC20Token, error) {
 	baseDenom, err := k.DenomIndex.Get(ctx, token)
 	if err != nil {
+		if !errors.IsOf(err, collections.ErrNotFound) {
+			return types.ERC20Token{}, err
+		}
 		baseDenom = token
 	}
 	erc20Token, err := k.ERC20Token.Get(ctx, baseDenom)
 	if err != nil {
-		return types.ERC20Token{}, sdkerrors.ErrNotFound.Wrapf("token %s not found", token)
+		return types.ERC20Token{}, err
 	}
 	erc20Token.Enabled = !erc20Token.Enabled
 

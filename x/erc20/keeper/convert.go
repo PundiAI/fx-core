@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/go-metrics"
 
@@ -14,11 +15,7 @@ import (
 )
 
 func (k Keeper) BaseCoinToEvm(ctx context.Context, caller contract.Caller, holder common.Address, coin sdk.Coin) (string, error) {
-	erc20Address, err := k.ConvertCoin(ctx, caller, holder.Bytes(), holder, coin)
-	if err != nil {
-		return "", err
-	}
-	return erc20Address, nil
+	return k.ConvertCoin(ctx, caller, holder.Bytes(), holder, coin)
 }
 
 func (k Keeper) ConvertCoin(ctx context.Context, caller contract.Caller, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) (erc20Addr string, err error) {
@@ -34,7 +31,7 @@ func (k Keeper) ConvertCoin(ctx context.Context, caller contract.Caller, sender 
 	case erc20Token.IsNativeERC20():
 		err = k.ConvertCoinNativeERC20(ctx, caller, erc20Token, sender, receiver, coin)
 	default:
-		return erc20Addr, types.ErrUndefinedOwner
+		return erc20Addr, sdkerrors.ErrInvalidRequest.Wrapf("unsupported token type: %s", erc20Token.ContractOwner)
 	}
 	if err != nil {
 		return erc20Addr, err

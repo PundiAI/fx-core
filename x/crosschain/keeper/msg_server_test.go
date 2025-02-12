@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				suite.Keeper().SetOracle(suite.Ctx, types.Oracle{OracleAddress: msg.OracleAddress})
 			},
 			pass: false,
-			err:  "oracle existed bridger address: invalid",
+			err:  "oracle existed bridger address: invalid request",
 		},
 		{
 			name: "error - bridger address is bound",
@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				suite.Keeper().SetOracleAddrByBridgerAddr(suite.Ctx, sdk.MustAccAddressFromBech32(msg.BridgerAddress), sdk.MustAccAddressFromBech32(msg.OracleAddress))
 			},
 			pass: false,
-			err:  "bridger address is bound to oracle: invalid",
+			err:  "bridger address is bound to oracle: invalid request",
 		},
 		{
 			name: "error - external address is bound",
@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				suite.Keeper().SetOracleAddrByExternalAddr(suite.Ctx, msg.ExternalAddress, sdk.MustAccAddressFromBech32(msg.OracleAddress))
 			},
 			pass: false,
-			err:  "external address is bound to oracle: invalid",
+			err:  "external address is bound to oracle: invalid request",
 		},
 		{
 			name: "error - stake denom not match chain params stake denom",
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				msg.DelegateAmount.Denom = "stake"
 			},
 			pass: false,
-			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid", "stake", fxtypes.DefaultDenom),
+			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid request", "stake", fxtypes.DefaultDenom),
 		},
 		{
 			name: "error - delegate amount less than threshold amount",
@@ -183,7 +183,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				msg.Amount.Denom = "stake"
 			},
 			pass: false,
-			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid", "stake", fxtypes.DefaultDenom),
+			err:  fmt.Sprintf("delegate denom got %s, expected %s: invalid request", "stake", fxtypes.DefaultDenom),
 		},
 		{
 			name: "error - not sufficient slash amount",
@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				msg.Amount.Amount = sdkmath.NewInt(randomAmount).MulRaw(1e18).Sub(sdkmath.NewInt(1))
 			},
 			pass: false,
-			err:  "not sufficient slash amount: invalid",
+			err:  "not sufficient slash amount: invalid request",
 		},
 		{
 			name: "error - delegate amount less than threshold amount",

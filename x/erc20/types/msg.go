@@ -31,10 +31,10 @@ func (m *MsgConvertCoin) ValidateBasic() error {
 		return sdkerrors.ErrInvalidAddress.Wrapf("receiver address: %s", err.Error())
 	}
 	if err = ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
-		return sdkerrors.ErrInvalidCoins.Wrapf("coin denom: %s", err.Error())
+		return sdkerrors.ErrInvalidCoins.Wrapf("denom: %s", err.Error())
 	}
 	if m.Coin.Amount.IsNil() || !m.Coin.Amount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrap("amount")
+		return sdkerrors.ErrInvalidCoins.Wrap("amount: must be positive")
 	}
 	return nil
 }
@@ -55,7 +55,7 @@ func (m *MsgToggleTokenConversion) ValidateBasic() error {
 	}
 	if err := contract.ValidateEthereumAddress(m.Token); err != nil {
 		if err = sdk.ValidateDenom(m.Token); err != nil {
-			return sdkerrors.ErrInvalidCoins.Wrapf("token denom: %s", err.Error())
+			return sdkerrors.ErrInvalidRequest.Wrap("token must be a valid denom or erc20 address")
 		}
 	}
 	return nil
@@ -67,15 +67,15 @@ func (m *MsgRegisterNativeCoin) ValidateBasic() error {
 	}
 
 	if strings.TrimSpace(m.Name) == "" {
-		return sdkerrors.ErrInvalidRequest.Wrapf("name field cannot be blank")
+		return sdkerrors.ErrInvalidRequest.Wrap("name: cannot be blank")
 	}
 
 	if err := sdk.ValidateDenom(strings.ToLower(m.Symbol)); err != nil {
-		return sdkerrors.ErrInvalidCoins.Wrapf("symbol: %s", err.Error())
+		return sdkerrors.ErrInvalidRequest.Wrapf("symbol: %s", err.Error())
 	}
 
 	if m.Decimals > math.MaxUint8 {
-		return sdkerrors.ErrNotSupported.Wrapf("overflow decimals: %d", m.Decimals)
+		return sdkerrors.ErrInvalidRequest.Wrapf("overflow decimals: %d", m.Decimals)
 	}
 
 	return nil
@@ -102,16 +102,16 @@ func (m *MsgRegisterBridgeToken) ValidateBasic() error {
 
 	if len(m.Channel) > 0 || len(m.IbcDenom) > 0 {
 		if !ibcchanneltypes.IsValidChannelID(m.Channel) {
-			return sdkerrors.ErrInvalidRequest.Wrapf("invalid channel id")
+			return sdkerrors.ErrInvalidRequest.Wrap("channel id")
 		}
 		if err := sdk.ValidateDenom(m.IbcDenom); err != nil {
-			return sdkerrors.ErrInvalidCoins.Wrapf("ibc denom: %s", err.Error())
+			return sdkerrors.ErrInvalidRequest.Wrapf("ibc denom: %s", err.Error())
 		}
 		return nil
 	}
 
 	if err := fxtypes.ValidateExternalAddr(m.ChainName, m.ContractAddress); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrapf("invalid contract address: %s", m.ContractAddress)
+		return sdkerrors.ErrInvalidRequest.Wrapf("contract address: %s", m.ContractAddress)
 	}
 	return nil
 }

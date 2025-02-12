@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/pundiai/fx-core/v8/x/erc20/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 func (k Keeper) CheckEnableErc20(ctx context.Context) error {
@@ -12,7 +12,7 @@ func (k Keeper) CheckEnableErc20(ctx context.Context) error {
 		return err
 	}
 	if !params.EnableErc20 {
-		return types.ErrDisabled.Wrap("erc20 module is disabled")
+		return sdkerrors.ErrInvalidRequest.Wrapf("ERC20 is not enabled")
 	}
 	return nil
 }

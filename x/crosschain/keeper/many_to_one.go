@@ -163,7 +163,7 @@ func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ib
 }
 
 func (k Keeper) BaseCoinToIBCCoin(ctx context.Context, holder sdk.AccAddress, baseCoin sdk.Coin, channel string) (sdk.Coin, error) {
-	ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, channel, baseCoin.Denom)
+	ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, baseCoin.Denom, channel)
 	if err != nil {
 		// NOTE: if not found in IBCToken
 		return baseCoin, nil

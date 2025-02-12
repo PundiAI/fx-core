@@ -43,7 +43,6 @@ linters:
     - unused
     - thelper
     - copyloopvar
-    - wastedassign
     - testifylint
 
 linters-settings:

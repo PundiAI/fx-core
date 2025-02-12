@@ -69,7 +69,7 @@ func (m Migrator) addIBCToken(ctx sdk.Context, base, alias string) error {
 		return sdkerrors.ErrInvalidCoins.Wrapf("ibc denom hash not found: %s %s", base, alias)
 	}
 	ctx.Logger().Info("add ibc token", "base-denom", base, "alias", alias, "channel", channel)
-	return m.keeper.AddIBCToken(ctx, channel, base, alias)
+	return m.keeper.AddIBCToken(ctx, base, channel, alias)
 }
 
 func (m Migrator) addBridgeToken(ctx sdk.Context, base, alias string) error {
