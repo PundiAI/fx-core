@@ -39,12 +39,12 @@ func (k Keeper) HandlerIbcCallEvm(ctx sdk.Context, sender common.Address, evmPac
 	evmErrCause, evmSuccess := "", false
 	defer func() {
 		attrs := []sdk.Attribute{
-			sdk.NewAttribute(types.AttributeKeyIBCCallType, types.IbcCallType_name[int32(evmPacket.GetType())]),
+			sdk.NewAttribute(types.AttributeKeyType, types.IbcCallType_name[int32(evmPacket.GetType())]),
 			sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
-			sdk.NewAttribute(types.AttributeKeyIBCCallSuccess, strconv.FormatBool(evmSuccess)),
+			sdk.NewAttribute(types.AttributeKeySuccess, strconv.FormatBool(evmSuccess)),
 		}
 		if len(evmErrCause) > 0 {
-			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyIBCCallErrCause, evmErrCause))
+			attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyErrCause, evmErrCause))
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeIBCCall, attrs...))
 	}()

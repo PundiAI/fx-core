@@ -100,7 +100,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCallFailed,
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", msg.EventNonce)),
-		sdk.NewAttribute(types.AttributeKeyBridgeCallFailedRefundAddr, msg.GetRefundAddr().Hex()),
+		sdk.NewAttribute(types.AttributeKeyRefundAddr, msg.GetRefundAddr().Hex()),
 	))
 
 	// onRevert bridgeCall
