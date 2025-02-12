@@ -69,7 +69,7 @@ func (suite *StakingPrecompileTestSuite) TestWithdraw() {
 			delAddr := suite.GetDelAddr()
 			delAmt := suite.GetStakingBalance(delAddr.Bytes())
 
-			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
+			res := suite.DelegateV2(suite.Ctx, suite.signer.Address(), contract.DelegateV2Args{
 				Validator: operator.String(),
 				Amount:    delAmt.BigInt(),
 			})
@@ -86,7 +86,7 @@ func (suite *StakingPrecompileTestSuite) TestWithdraw() {
 
 			args, expectErr := tc.malleate(operator, delegation.Shares)
 
-			res, _ = suite.WithError(expectErr).Withdraw(suite.Ctx, args)
+			res, _ = suite.WithError(expectErr).Withdraw(suite.Ctx, suite.signer.Address(), args)
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
 

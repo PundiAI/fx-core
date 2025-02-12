@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 100, 10)
 
 	suite.bridgeFeeSuite = helpers.NewBridgeFeeSuite(suite.Require(), suite.App.EvmKeeper)
-	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.signer, suite.App.EvmKeeper)
+	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.App.EvmKeeper)
 }
 
 func (suite *KeeperTestSuite) SetupSubTest() {

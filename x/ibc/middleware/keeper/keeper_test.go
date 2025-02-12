@@ -15,9 +15,9 @@ import (
 
 type KeeperTestSuite struct {
 	helpers.BaseSuite
-	erc20TokenSuite helpers.ERC20TokenSuite
 
-	ibcMiddleware ibcmiddleware.IBCMiddleware
+	erc20TokenSuite helpers.ERC20TokenSuite
+	ibcMiddleware   ibcmiddleware.IBCMiddleware
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -26,7 +26,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.BaseSuite.SetupTest()
-	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.AddTestSigner(), suite.App.EvmKeeper)
+	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.App.EvmKeeper)
 	suite.ibcMiddleware = ibcmiddleware.NewIBCMiddleware(suite.App.IBCMiddlewareKeeper, suite.App.IBCKeeper.ChannelKeeper, transfer.NewIBCModule(suite.App.IBCTransferKeeper))
 }
 

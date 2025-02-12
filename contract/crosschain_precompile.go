@@ -27,6 +27,12 @@ func NewCrosschainPrecompileKeeper(caller Caller, contractAddr common.Address) C
 	}
 }
 
+func (k CrosschainPrecompileKeeper) WithContract(addr common.Address) CrosschainPrecompileKeeper {
+	keeper := k
+	keeper.contractAddr = addr
+	return keeper
+}
+
 func (k CrosschainPrecompileKeeper) BridgeCoinAmount(ctx context.Context, args BridgeCoinAmountArgs) (*big.Int, error) {
 	res := struct{ Amount *big.Int }{}
 	err := k.QueryContract(ctx, common.Address{}, k.contractAddr, k.abi, "bridgeCoinAmount", &res, args.Token, args.Target)

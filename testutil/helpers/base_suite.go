@@ -28,7 +28,6 @@ import (
 
 	"github.com/pundiai/fx-core/v8/app"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
-	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 )
 
 type BaseSuite struct {
@@ -194,25 +193,6 @@ func (s *BaseSuite) AssertAllBalance(addr sdk.AccAddress, expBal ...sdk.Coin) {
 func (s *BaseSuite) GetStakingBalance(addr sdk.AccAddress) sdkmath.Int {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, addr)
 	return balances.AmountOf(fxtypes.DefaultDenom)
-}
-
-func (s *BaseSuite) NewCoin(amounts ...sdkmath.Int) sdk.Coin {
-	amount := NewRandAmount()
-	if len(amounts) > 0 && amounts[0].IsPositive() {
-		amount = amounts[0]
-	}
-	denom := NewRandDenom()
-	return sdk.NewCoin(denom, amount)
-}
-
-func (s *BaseSuite) NewBridgeCoin(module string, amounts ...sdkmath.Int) (sdk.Coin, string) {
-	amount := NewRandAmount()
-	if len(amounts) > 0 && amounts[0].IsPositive() {
-		amount = amounts[0]
-	}
-	tokenAddr := GenExternalAddr(module)
-	bridgeDenom := crosschaintypes.NewBridgeDenom(module, tokenAddr)
-	return sdk.NewCoin(bridgeDenom, amount), tokenAddr
 }
 
 func (s *BaseSuite) GenIBCTransferChannel() (portID, channelID string) {

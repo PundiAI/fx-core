@@ -55,7 +55,7 @@ func (suite *StakingPrecompileTestSuite) SetupTest() {
 		suite.MintToken(suite.stakingAddr.Bytes(), helpers.NewStakingCoin(10000, 18))
 	}
 
-	suite.StakingPrecompileSuite = helpers.NewStakingPrecompileSuite(suite.Require(), suite.signer, suite.App.EvmKeeper, suite.stakingAddr)
+	suite.StakingPrecompileSuite = helpers.NewStakingPrecompileSuite(suite.Require(), suite.App.EvmKeeper).WithContract(suite.stakingAddr)
 }
 
 func (suite *StakingPrecompileTestSuite) GetDelAddr() common.Address {
@@ -83,8 +83,7 @@ func (suite *StakingPrecompileTestSuite) PrecompileStakingDelegateV2(signer *hel
 		Delegator: signer.Address(),
 	})
 
-	suite.WithSigner(signer)
-	res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
+	res := suite.DelegateV2(suite.Ctx, signer.Address(), contract.DelegateV2Args{
 		Validator: val.String(),
 		Amount:    amt,
 	})
@@ -102,8 +101,7 @@ func (suite *StakingPrecompileTestSuite) PrecompileStakingDelegateV2(signer *hel
 func (suite *StakingPrecompileTestSuite) PrecompileStakingWithdraw(signer *helpers.Signer, val sdk.ValAddress) sdk.Coins {
 	balanceBefore := suite.App.BankKeeper.GetAllBalances(suite.Ctx, signer.AccAddress())
 
-	suite.WithSigner(signer)
-	res, _ := suite.Withdraw(suite.Ctx, contract.WithdrawArgs{
+	res, _ := suite.Withdraw(suite.Ctx, signer.Address(), contract.WithdrawArgs{
 		Validator: val.String(),
 	})
 	suite.Require().False(res.Failed(), res.VmError)

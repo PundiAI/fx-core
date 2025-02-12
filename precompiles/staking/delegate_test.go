@@ -85,7 +85,7 @@ func (suite *StakingPrecompileTestSuite) TestDelegateV2() {
 		{
 			name: "ok - delegate - multiple",
 			malleate: func(val sdk.ValAddress, delAmount sdkmath.Int) (contract.DelegateV2Args, error) {
-				res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
+				res := suite.DelegateV2(suite.Ctx, suite.signer.Address(), contract.DelegateV2Args{
 					Validator: val.String(),
 					Amount:    delAmount.BigInt(),
 				})
@@ -129,7 +129,7 @@ func (suite *StakingPrecompileTestSuite) TestDelegateV2() {
 
 			valBefore := suite.GetValidator(operator)
 
-			res := suite.WithError(expectErr).DelegateV2(suite.Ctx, args)
+			res := suite.WithError(expectErr).DelegateV2(suite.Ctx, suite.signer.Address(), args)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)

@@ -19,12 +19,12 @@ type KeeperTestSuite struct {
 	helpers.BaseSuite
 }
 
-func TestKeeperTestSuite(t *testing.T) {
+func TestEvmKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
 func (s *KeeperTestSuite) NewERC20TokenSuite() helpers.ERC20TokenSuite {
-	return helpers.NewERC20Suite(s.Require(), s.AddTestSigner(), s.App.EvmKeeper)
+	return helpers.NewERC20Suite(s.Require(), s.App.EvmKeeper)
 }
 
 func (s *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {

@@ -46,12 +46,9 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain() {
 
 				suite.Quote(bridgeToken.Denom)
 
-				erc20Token := suite.GetERC20Token(bridgeToken.Denom)
-				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
-
 				suite.AddNativeCoinToEVM(bridgeToken.Denom, sdkmath.NewInt(100))
 
-				return erc20Token
+				return suite.GetERC20Token(bridgeToken.Denom)
 			},
 			transferAmount:             big.NewInt(2),
 			erc20ModuleAmount:          sdkmath.NewInt(98),
@@ -62,7 +59,7 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain() {
 		{
 			name: "native erc20",
 			malleate: func() *erc20types.ERC20Token {
-				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, helpers.NewRandSymbol())
+				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, suite.signer.Address(), helpers.NewRandSymbol())
 				bridgeToken := suite.AddBridgeToken(erc20TokenAddr.String(), false)
 
 				suite.Quote(bridgeToken.Denom)
@@ -84,9 +81,6 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain() {
 
 				suite.Quote(bridgeToken.Denom)
 
-				erc20Contract := suite.GetERC20Token(bridgeToken.Denom).GetERC20Contract()
-				suite.erc20TokenSuite.WithContract(erc20Contract)
-
 				suite.AddNativeCoinToEVM(bridgeToken.Denom, sdkmath.NewInt(100), true)
 
 				return suite.GetERC20Token(bridgeToken.Denom)
@@ -103,7 +97,8 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			erc20Token := tc.malleate()
 
-			suite.erc20TokenSuite.Approve(suite.Ctx, suite.crosschainAddr, big.NewInt(2))
+			erc20TokenSuite := suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
+			erc20TokenSuite.Approve(suite.Ctx, suite.signer.Address(), suite.crosschainAddr, big.NewInt(2))
 
 			txResponse := suite.Crosschain(suite.Ctx, nil, suite.signer.Address(),
 				contract.CrosschainArgs{
@@ -118,7 +113,7 @@ func (suite *CrosschainPrecompileTestSuite) TestContract_Crosschain() {
 			suite.NotNil(txResponse)
 			suite.GreaterOrEqual(len(txResponse.Logs), 2)
 
-			balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
+			balance := erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
 			suite.Equal(big.NewInt(98), balance)
 
 			bridgeToken := suite.GetBridgeToken(erc20Token.Denom)

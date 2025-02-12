@@ -208,8 +208,7 @@ func (suite *StakingPrecompileTestSuite) TestTransferShares() {
 			suite.Require().NoError(err)
 
 			args, shares, _ := tc.malleate(operator, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
-			suite.WithSigner(suite.signer)
-			res, _ := suite.TransferShares(suite.Ctx, args)
+			res, _ := suite.TransferShares(suite.Ctx, suite.signer.Address(), args)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
@@ -472,8 +471,7 @@ func (suite *StakingPrecompileTestSuite) TestTransferFromShares() {
 			// NOTE: if contract test, spender is staking test contract
 			args, shares, _ := tc.malleate(operator, spender, delAddr, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
 
-			suite.WithSigner(suite.signer)
-			res, _ := suite.TransferFromShares(suite.Ctx, args)
+			res, _ := suite.TransferFromShares(suite.Ctx, suite.signer.Address(), args)
 
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
@@ -863,9 +861,9 @@ func (suite *StakingPrecompileTestSuite) TestTransferSharesRedelegate() {
 	suite.Require().Equal(delegationTmp.Shares, delegation.Shares)
 
 	// transfer shares
-	suite.WithSigner(signer1).WithContract(suite.stakingAddr)
 	_, _ = suite.WithError(errors.New("from has receiving redelegation")).
-		TransferShares(suite.Ctx, fxcontract.TransferSharesArgs{
+		WithContract(suite.stakingAddr).
+		TransferShares(suite.Ctx, signer1.Address(), fxcontract.TransferSharesArgs{
 			Validator: val.GetOperator(),
 			To:        signer2.Address(),
 			Shares:    delegation.Shares.TruncateInt().BigInt(),
@@ -962,8 +960,7 @@ func (suite *StakingPrecompileTestSuite) PrecompileStakingDelegation(val sdk.Val
 
 func (suite *StakingPrecompileTestSuite) PrecompileStakingTransferShares(signer *helpers.Signer, val sdk.ValAddress, receipt common.Address, shares *big.Int) (*big.Int, *big.Int) {
 	balanceBefore := suite.GetStakingBalance(signer.AccAddress())
-	suite.WithSigner(signer)
-	res, _ := suite.TransferShares(suite.Ctx, fxcontract.TransferSharesArgs{
+	res, _ := suite.TransferShares(suite.Ctx, signer.Address(), fxcontract.TransferSharesArgs{
 		Validator: val.String(),
 		To:        receipt,
 		Shares:    shares,
@@ -979,8 +976,7 @@ func (suite *StakingPrecompileTestSuite) PrecompileStakingTransferShares(signer 
 
 func (suite *StakingPrecompileTestSuite) PrecompileStakingUndelegateV2(signer *helpers.Signer, val sdk.ValAddress, shares *big.Int) *big.Int {
 	balanceBefore := suite.GetStakingBalance(signer.AccAddress())
-	suite.WithSigner(signer)
-	res := suite.UndelegateV2(suite.Ctx, fxcontract.UndelegateV2Args{
+	res := suite.UndelegateV2(suite.Ctx, signer.Address(), fxcontract.UndelegateV2Args{
 		Validator: val.String(),
 		Amount:    shares,
 	})
@@ -992,8 +988,7 @@ func (suite *StakingPrecompileTestSuite) PrecompileStakingUndelegateV2(signer *h
 }
 
 func (suite *StakingPrecompileTestSuite) PrecompileStakingApproveShares(signer *helpers.Signer, val sdk.ValAddress, spender common.Address, shares *big.Int) {
-	suite.WithSigner(signer)
-	suite.ApproveShares(suite.Ctx, fxcontract.ApproveSharesArgs{
+	suite.ApproveShares(suite.Ctx, signer.Address(), fxcontract.ApproveSharesArgs{
 		Validator: val.String(),
 		Spender:   spender,
 		Shares:    shares,
@@ -1001,8 +996,7 @@ func (suite *StakingPrecompileTestSuite) PrecompileStakingApproveShares(signer *
 }
 
 func (suite *StakingPrecompileTestSuite) PrecompileStakingTransferFromShares(signer *helpers.Signer, val sdk.ValAddress, from, receipt common.Address, shares *big.Int) {
-	suite.WithSigner(signer)
-	suite.TransferFromShares(suite.Ctx, fxcontract.TransferFromSharesArgs{
+	suite.TransferFromShares(suite.Ctx, signer.Address(), fxcontract.TransferFromSharesArgs{
 		Validator: val.String(),
 		From:      from,
 		To:        receipt,
