@@ -4,13 +4,11 @@ package types
 const (
 	EventTypeReceive      = "ibc_receive"
 	EventTypeReceiveRoute = "ibc_receive_route"
+	EventTypeIBCCall      = "ibc_call"
 
-	AttributeKeyRouteSuccess = "success"
-	AttributeKeyRoute        = "route"
-	AttributeKeyError        = "error"
-
-	EventTypeIBCCall            = "ibc_call"
-	AttributeKeyIBCCallType     = "ibc_call_type"
-	AttributeKeyIBCCallErrCause = "ibc_call_err_cause"
-	AttributeKeyIBCCallSuccess  = "ibc_call_success"
+	AttributeKeyRoute    = "route"
+	AttributeKeyError    = "error"
+	AttributeKeySuccess  = "success"
+	AttributeKeyType     = "type"
+	AttributeKeyErrCause = "err_cause"
 )

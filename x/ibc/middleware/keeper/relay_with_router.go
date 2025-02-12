@@ -54,7 +54,7 @@ func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCM
 
 	routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
 		sdk.NewAttribute(types.AttributeKeyRoute, data.Router),
-		sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),
+		sdk.NewAttribute(types.AttributeKeySuccess, fmt.Sprintf("%t", err == nil)),
 	)
 	if err != nil {
 		routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyError, err.Error()))

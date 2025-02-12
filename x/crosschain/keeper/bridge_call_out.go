@@ -126,7 +126,8 @@ func (k Keeper) BridgeCallResultExecuted(ctx sdk.Context, caller contract.Caller
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCallResult,
-		sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatInt(int64(claim.Nonce), 10)),
+		sdk.NewAttribute(types.AttributeKeyEventNonce, strconv.FormatInt(int64(claim.EventNonce), 10)),
+		sdk.NewAttribute(types.AttributeKeyBridgeCallResultNonce, strconv.FormatInt(int64(claim.Nonce), 10)),
 		sdk.NewAttribute(types.AttributeKeyStateSuccess, strconv.FormatBool(claim.Success)),
 		sdk.NewAttribute(types.AttributeKeyErrCause, claim.Cause),
 	))
@@ -170,7 +171,7 @@ func (k Keeper) RefundOutgoingBridgeCall(ctx sdk.Context, caller contract.Caller
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBridgeCallRefund,
-		sdk.NewAttribute(types.AttributeKeyRefund, refund.String()),
+		sdk.NewAttribute(types.AttributeKeyRefundAddr, refund.String()),
 	))
 
 	originAmount, err := k.erc20Keeper.GetCache(ctx, types.NewOriginTokenKey(k.moduleName, data.Nonce))
