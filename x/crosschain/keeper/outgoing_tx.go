@@ -172,6 +172,7 @@ func (k Keeper) ResendTimeoutOutgoingTxBatch(ctx sdk.Context, batch *types.Outgo
 		return types.ErrInvalid.Wrapf("batch timeout height")
 	}
 	batch.BatchTimeout = batchTimeout
+	batch.Block = uint64(ctx.BlockHeight())
 	batch.BatchNonce = k.autoIncrementID(ctx, types.KeyLastOutgoingBatchID)
 	if err := k.StoreBatch(ctx, batch); err != nil {
 		return err
@@ -200,29 +201,6 @@ func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(batch *types.O
 			break
 		}
 	}
-}
-
-// GetOutgoingTxBatches used in testing
-func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBatch) {
-	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		out = append(out, batch)
-		return false
-	})
-	return
-}
-
-// GetLastOutgoingBatchByToken gets the latest outgoing tx batch by token type
-func (k Keeper) GetLastOutgoingBatchByToken(ctx sdk.Context, token string) *types.OutgoingTxBatch {
-	var lastBatch *types.OutgoingTxBatch
-	lastNonce := uint64(0)
-	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		if batch.TokenContract == token && batch.BatchNonce > lastNonce {
-			lastBatch = batch
-			lastNonce = batch.BatchNonce
-		}
-		return false
-	})
-	return lastBatch
 }
 
 // IterateBatchByBlockHeight iterates through all Batch by block in the half-open interval [start,end)
