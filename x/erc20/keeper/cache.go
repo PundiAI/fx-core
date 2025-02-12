@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 func (k Keeper) HasCache(ctx context.Context, key string) (bool, error) {
@@ -13,6 +14,13 @@ func (k Keeper) HasCache(ctx context.Context, key string) (bool, error) {
 }
 
 func (k Keeper) SetCache(ctx context.Context, key string, amount sdkmath.Int) error {
+	found, err := k.HasCache(ctx, key)
+	if err != nil {
+		return err
+	}
+	if found {
+		return sdkerrors.ErrInvalidRequest.Wrapf("cache %s already exists", key)
+	}
 	return k.Cache.Set(ctx, key, amount)
 }
 
