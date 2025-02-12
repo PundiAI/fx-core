@@ -2,10 +2,11 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var (
-	ErrInvalid                 = errorsmod.Register(ModuleName, 2, "invalid")
+	ErrInvalid                 = sdkerrors.ErrInvalidRequest
 	ErrNonContiguousEventNonce = errorsmod.Register(ModuleName, 6, "non contiguous event nonce")
 
 	ErrNoFoundOracle   = errorsmod.Register(ModuleName, 7, "no found oracle")

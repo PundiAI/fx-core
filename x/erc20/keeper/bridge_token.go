@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cosmossdk.io/collections"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
@@ -47,7 +48,7 @@ func (k Keeper) AddBridgeToken(ctx context.Context, baseDenom, chainName, contra
 		return err
 	}
 	if has {
-		return types.ErrExists.Wrapf("%s base denom: %s", chainName, baseDenom)
+		return sdkerrors.ErrInvalidRequest.Wrapf("bridge token %s already exists", contract)
 	}
 	bridgeToken := types.BridgeToken{
 		IsNative:  isNative,

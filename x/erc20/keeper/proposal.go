@@ -82,13 +82,13 @@ func (k Keeper) RegisterNativeERC20(ctx context.Context, erc20Addr common.Addres
 func (k Keeper) RegisterBridgeToken(ctx context.Context, baseDenom, channel, ibcDenom, chainName, contractAddr string, isNative bool) (types.ERC20Token, error) {
 	erc20Token, err := k.ERC20Token.Get(ctx, baseDenom)
 	if err != nil {
-		return types.ERC20Token{}, sdkerrors.ErrNotFound.Wrapf("token %s not found", baseDenom)
+		return types.ERC20Token{}, err
 	}
 
 	// add ibc token
 	isIBCDenom := strings.HasPrefix(ibcDenom, ibctransfertypes.DenomPrefix+"/")
 	if isIBCDenom {
-		return erc20Token, k.AddIBCToken(ctx, channel, baseDenom, ibcDenom)
+		return erc20Token, k.AddIBCToken(ctx, baseDenom, channel, ibcDenom)
 	}
 
 	// add bridge token

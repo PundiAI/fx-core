@@ -645,7 +645,7 @@ func checkErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 			continue
 		}
 		if baseDenom == "purse" {
-			ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, fxtypes.PundixChannel, baseDenom)
+			ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, baseDenom, fxtypes.PundixChannel)
 			require.NoError(t, err)
 			require.Equal(t, ibcToken.GetIbcDenom(), et.Denom)
 			continue
@@ -677,7 +677,7 @@ func checkMetadata(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgr
 				baseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, md.Base)
 				require.NoError(t, err)
 				if strings.HasPrefix(md.Base, "ibc/") {
-					ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, fxtypes.PundixChannel, baseDenom)
+					ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, baseDenom, fxtypes.PundixChannel)
 					require.NoError(t, err)
 					require.Equal(t, ibcToken.GetIbcDenom(), md.Base)
 				} else {
@@ -703,7 +703,7 @@ func checkMetadata(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUpgr
 				channelID, ok := erc20v8.GetIBCDenomTrace(ctx, alias)
 				require.True(t, ok)
 
-				ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, channelID, baseDenom)
+				ibcToken, err := myApp.Erc20Keeper.GetIBCToken(ctx, baseDenom, channelID)
 				require.NoError(t, err, baseDenom)
 				require.Equal(t, ibcToken.GetIbcDenom(), alias)
 				continue

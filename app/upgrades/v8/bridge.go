@@ -137,7 +137,7 @@ func migrateERC20ModulePurse(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, erc
 	if err != nil {
 		return err
 	}
-	ibcToken, err := erc20Keeper.GetIBCToken(ctx, fxtypes.PundixChannel, purseBaseDenom)
+	ibcToken, err := erc20Keeper.GetIBCToken(ctx, purseBaseDenom, fxtypes.PundixChannel)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func migrateEthModulePurse(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bank
 	}
 	ethTokenSupply := bankKeeper.GetSupply(ctx, ethToken.BridgeDenom())
 
-	ibcToken, err := erc20Keeper.GetIBCToken(ctx, fxtypes.PundixChannel, purseBaseDenom)
+	ibcToken, err := erc20Keeper.GetIBCToken(ctx, purseBaseDenom, fxtypes.PundixChannel)
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func migrateBscModulePurse(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bank
 		return fmt.Errorf("bsc purse supply not empty %s", bscTokenSupply.String())
 	}
 
-	ibcToken, err := erc20Keeper.GetIBCToken(ctx, fxtypes.PundixChannel, purseBaseDenom)
+	ibcToken, err := erc20Keeper.GetIBCToken(ctx, purseBaseDenom, fxtypes.PundixChannel)
 	if err != nil {
 		return err
 	}

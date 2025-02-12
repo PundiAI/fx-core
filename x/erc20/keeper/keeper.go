@@ -95,7 +95,7 @@ func (k Keeper) MintingEnabled(ctx context.Context, receiver sdk.AccAddress, isB
 	}
 
 	if !erc20Token.Enabled {
-		return erc20Token, types.ErrDisabled.Wrapf("token %s is disabled", erc20Token.Denom)
+		return erc20Token, sdkerrors.ErrInvalidRequest.Wrapf("token %s is disabled", erc20Token.Denom)
 	}
 
 	if k.bankKeeper.BlockedAddr(receiver.Bytes()) {

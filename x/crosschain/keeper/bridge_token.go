@@ -51,7 +51,7 @@ func (k Keeper) BridgeCoinSupply(ctx context.Context, token, target string) (sdk
 	}
 	var targetDenom string
 	if fxTarget.IsIBC() {
-		ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, fxTarget.IBCChannel, baseDenom)
+		ibcToken, err := k.erc20Keeper.GetIBCToken(ctx, baseDenom, fxTarget.IBCChannel)
 		if err != nil {
 			return sdk.Coin{}, err
 		}
