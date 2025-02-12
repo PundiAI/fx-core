@@ -349,9 +349,9 @@ func (suite *CrosschainSuite) SendConfirmBatch() {
 		},
 	)
 	suite.Require().NoError(err)
-	suite.NotNil(response.GetBatchs())
+	suite.NotNil(response.GetBatches())
 
-	for _, outgoingTxBatch := range response.GetBatchs() {
+	for _, outgoingTxBatch := range response.GetBatches() {
 		checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
 		suite.Require().NoError(err)
 		signatureBytes := suite.SignatureCheckpoint(checkpoint)

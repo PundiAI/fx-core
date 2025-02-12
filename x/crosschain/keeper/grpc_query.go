@@ -118,7 +118,7 @@ func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 		}
 		return false
 	})
-	return &types.QueryLastPendingBatchRequestByAddrResponse{Batchs: pendingBatchReq}, nil
+	return &types.QueryLastPendingBatchRequestByAddrResponse{Batches: pendingBatchReq}, nil
 }
 
 func (k QueryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
