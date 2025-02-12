@@ -25,6 +25,12 @@ func NewBankPrecompileKeeper(caller Caller, contractAddr common.Address) BankPre
 	}
 }
 
+func (k BankPrecompileKeeper) WithContract(addr common.Address) BankPrecompileKeeper {
+	keeper := k
+	keeper.contractAddr = addr
+	return keeper
+}
+
 func (k BankPrecompileKeeper) TransferFromModuleToAccount(ctx context.Context, from common.Address, args TransferFromModuleToAccountArgs) (*evmtypes.MsgEthereumTxResponse, error) {
 	res, err := k.ApplyContract(ctx, from, k.contractAddr, nil, k.abi, "transferFromModuleToAccount", args.Module, args.Account, args.Token, args.Amount)
 	if err != nil {

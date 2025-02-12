@@ -56,7 +56,7 @@ func (suite *StakingPrecompileTestSuite) TestRedelegate() {
 			delAmt := helpers.NewRandAmount()
 			delAddr := suite.GetDelAddr()
 
-			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
+			res := suite.DelegateV2(suite.Ctx, suite.signer.Address(), contract.DelegateV2Args{
 				Validator: operator0.String(),
 				Amount:    delAmt.BigInt(),
 			})
@@ -72,7 +72,7 @@ func (suite *StakingPrecompileTestSuite) TestRedelegate() {
 
 			args, expectErr := tc.malleate(operator0, operator1, delegation0.Shares, delAmt)
 
-			res = suite.WithError(expectErr).RedelegateV2(suite.Ctx, args)
+			res = suite.WithError(expectErr).RedelegateV2(suite.Ctx, suite.signer.Address(), args)
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
 

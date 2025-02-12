@@ -68,7 +68,7 @@ func (suite *StakingPrecompileTestSuite) TestDelegationRewards() {
 			delAmt := helpers.NewRandAmount()
 			delAddr := suite.GetDelAddr()
 
-			res := suite.DelegateV2(suite.Ctx, contract.DelegateV2Args{
+			res := suite.DelegateV2(suite.Ctx, suite.signer.Address(), contract.DelegateV2Args{
 				Validator: operator0.String(),
 				Amount:    delAmt.BigInt(),
 			})

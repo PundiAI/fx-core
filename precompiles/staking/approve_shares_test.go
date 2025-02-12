@@ -78,7 +78,7 @@ func (suite *StakingPrecompileTestSuite) TestApproveShares() {
 
 			delAddr := suite.GetDelAddr()
 
-			res := suite.WithError(expectErr).ApproveShares(suite.Ctx, args)
+			res := suite.WithError(expectErr).ApproveShares(suite.Ctx, suite.signer.Address(), args)
 			if tc.result {
 				suite.Require().False(res.Failed(), res.VmError)
 

@@ -85,8 +85,8 @@ func (suite *KeeperTestSuite) TestHandlerBridgeCallInFee() {
 				suite.Require().NoError(err)
 
 				signer := suite.NewSigner()
-				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract())
-				suite.erc20TokenSuite.MintFromERC20Module(suite.Ctx, signer.Address(), big.NewInt(1))
+				suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
+					MintFromERC20Module(suite.Ctx, signer.Address(), big.NewInt(1))
 
 				quoteInfo := suite.bridgeFeeSuite.MockQuote(suite.Ctx, suite.chainName, erc20Token.Denom)
 

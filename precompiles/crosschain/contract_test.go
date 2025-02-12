@@ -59,9 +59,9 @@ func (suite *CrosschainPrecompileTestSuite) SetupTest() {
 		suite.Require().True(account.IsContract())
 	}
 
-	suite.CrosschainPrecompileSuite = helpers.NewCrosschainPrecompileSuite(suite.Require(), suite.signer, suite.App.EvmKeeper, suite.crosschainAddr)
+	suite.CrosschainPrecompileSuite = helpers.NewCrosschainPrecompileSuite(suite.Require(), suite.App.EvmKeeper).WithContract(suite.crosschainAddr)
 	suite.bridgeFeeSuite = helpers.NewBridgeFeeSuite(suite.Require(), suite.App.EvmKeeper)
-	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.signer, suite.App.EvmKeeper)
+	suite.erc20TokenSuite = helpers.NewERC20Suite(suite.Require(), suite.App.EvmKeeper)
 
 	chainNames := fxtypes.GetSupportChains()
 	suite.chainName = chainNames[tmrand.Intn(len(chainNames))]
@@ -108,8 +108,9 @@ func (suite *CrosschainPrecompileTestSuite) AddNativeERC20ToEVM(baseDenom string
 	if erc20token.IsNativeERC20() {
 		minter = suite.signer.Address()
 	}
-	suite.erc20TokenSuite.Mint(suite.Ctx, minter, suite.signer.Address(), amount.BigInt())
-	balance := suite.erc20TokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
+	tokenSuite := suite.erc20TokenSuite.WithContract(erc20token.GetERC20Contract())
+	tokenSuite.Mint(suite.Ctx, minter, suite.signer.Address(), amount.BigInt())
+	balance := tokenSuite.BalanceOf(suite.Ctx, suite.signer.Address())
 	suite.Equal(balance.String(), amount.BigInt().String())
 }
 

@@ -27,10 +27,10 @@ func NewStakingPrecompileKeeper(caller Caller, contractAddr common.Address) Stak
 	}
 }
 
-func (k StakingPrecompileKeeper) WithContractAddr(c common.Address) StakingPrecompileKeeper {
-	stakingPrecompileKeeper := k
-	stakingPrecompileKeeper.contractAddr = c
-	return stakingPrecompileKeeper
+func (k StakingPrecompileKeeper) WithContract(addr common.Address) StakingPrecompileKeeper {
+	keeper := k
+	keeper.contractAddr = addr
+	return keeper
 }
 
 func (k StakingPrecompileKeeper) AllowanceShares(ctx context.Context, args AllowanceSharesArgs) (*big.Int, error) {
