@@ -166,6 +166,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsLessThan30() {
 	}
 	proposal := suite.SubmitProposal(initCoins, suite.newAddress(), msg)
 	suite.Equal(govv1.StatusVotingPeriod, proposal.Status)
+	suite.Equal(types.DefaultEGFCustomParamVotingPeriod, proposal.VotingEndTime.Sub(*proposal.VotingStartTime))
 	minDeposit := suite.GetMinInitialDeposit(proposal)
 	suite.Equal(initCoins.String(), minDeposit.String())
 }
