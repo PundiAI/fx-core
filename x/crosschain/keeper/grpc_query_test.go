@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) TestQueryServer_LastPendingBatchRequestByAddr() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // 重置测试环境
+			suite.SetupTest()
 
 			if tc.setup != nil {
 				tc.setup()
@@ -246,12 +246,12 @@ func (suite *KeeperTestSuite) TestQueryServer_LastPendingBatchRequestByAddr() {
 
 			suite.NoError(err)
 			if tc.expLength > 0 {
-				suite.Equal(tc.expLength, len(res.GetBatchs()))
+				suite.Equal(tc.expLength, len(res.GetBatches()))
 				for i := 0; i < batchNumber; i++ {
-					res.Batchs[i].BatchNonce = uint64(i + 1)
+					res.Batches[i].BatchNonce = uint64(i + 1)
 				}
 			} else {
-				suite.Nil(res.GetBatchs())
+				suite.Nil(res.GetBatches())
 			}
 		})
 	}

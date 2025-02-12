@@ -4997,7 +4997,7 @@ paths:
           schema:
             type: object
             properties:
-              batchs:
+              batches:
                 type: array
                 items:
                   type: object
@@ -42887,7 +42887,7 @@ definitions:
   fx.gravity.crosschain.v1.QueryLastPendingBatchRequestByAddrResponse:
     type: object
     properties:
-      batchs:
+      batches:
         type: array
         items:
           type: object
