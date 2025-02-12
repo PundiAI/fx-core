@@ -4997,60 +4997,62 @@ paths:
           schema:
             type: object
             properties:
-              batch:
-                type: object
-                properties:
-                  batch_nonce:
-                    type: string
-                    format: uint64
-                  batch_timeout:
-                    type: string
-                    format: uint64
-                  transactions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uint64
-                        sender:
-                          type: string
-                        dest_address:
-                          type: string
-                        token:
-                          type: object
-                          properties:
-                            contract:
-                              type: string
-                            amount:
-                              type: string
-                          description: >-
-                            ERC20Token unique identifier for an Ethereum ERC20
-                            token.
-                        fee:
-                          type: object
-                          properties:
-                            contract:
-                              type: string
-                            amount:
-                              type: string
-                          description: >-
-                            ERC20Token unique identifier for an Ethereum ERC20
-                            token.
-                      title: >-
-                        OutgoingTransferTx represents an individual send from
-                        gravity to ETH
-                  token_contract:
-                    type: string
-                  block:
-                    type: string
-                    format: uint64
-                  fee_receive:
-                    type: string
-                title: >-
-                  OutgoingTxBatch represents a batch of transactions going from
-                  gravity to ETH
+              batches:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    batch_nonce:
+                      type: string
+                      format: uint64
+                    batch_timeout:
+                      type: string
+                      format: uint64
+                    transactions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uint64
+                          sender:
+                            type: string
+                          dest_address:
+                            type: string
+                          token:
+                            type: object
+                            properties:
+                              contract:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              ERC20Token unique identifier for an Ethereum ERC20
+                              token.
+                          fee:
+                            type: object
+                            properties:
+                              contract:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              ERC20Token unique identifier for an Ethereum ERC20
+                              token.
+                        title: >-
+                          OutgoingTransferTx represents an individual send from
+                          gravity to ETH
+                    token_contract:
+                      type: string
+                    block:
+                      type: string
+                      format: uint64
+                    fee_receive:
+                      type: string
+                  title: >-
+                    OutgoingTxBatch represents a batch of transactions going
+                    from gravity to ETH
         default:
           description: An unexpected error response.
           schema:
@@ -42885,56 +42887,58 @@ definitions:
   fx.gravity.crosschain.v1.QueryLastPendingBatchRequestByAddrResponse:
     type: object
     properties:
-      batch:
-        type: object
-        properties:
-          batch_nonce:
-            type: string
-            format: uint64
-          batch_timeout:
-            type: string
-            format: uint64
-          transactions:
-            type: array
-            items:
-              type: object
-              properties:
-                id:
-                  type: string
-                  format: uint64
-                sender:
-                  type: string
-                dest_address:
-                  type: string
-                token:
-                  type: object
-                  properties:
-                    contract:
-                      type: string
-                    amount:
-                      type: string
-                  description: ERC20Token unique identifier for an Ethereum ERC20 token.
-                fee:
-                  type: object
-                  properties:
-                    contract:
-                      type: string
-                    amount:
-                      type: string
-                  description: ERC20Token unique identifier for an Ethereum ERC20 token.
-              title: >-
-                OutgoingTransferTx represents an individual send from gravity to
-                ETH
-          token_contract:
-            type: string
-          block:
-            type: string
-            format: uint64
-          fee_receive:
-            type: string
-        title: >-
-          OutgoingTxBatch represents a batch of transactions going from gravity
-          to ETH
+      batches:
+        type: array
+        items:
+          type: object
+          properties:
+            batch_nonce:
+              type: string
+              format: uint64
+            batch_timeout:
+              type: string
+              format: uint64
+            transactions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uint64
+                  sender:
+                    type: string
+                  dest_address:
+                    type: string
+                  token:
+                    type: object
+                    properties:
+                      contract:
+                        type: string
+                      amount:
+                        type: string
+                    description: ERC20Token unique identifier for an Ethereum ERC20 token.
+                  fee:
+                    type: object
+                    properties:
+                      contract:
+                        type: string
+                      amount:
+                        type: string
+                    description: ERC20Token unique identifier for an Ethereum ERC20 token.
+                title: >-
+                  OutgoingTransferTx represents an individual send from gravity
+                  to ETH
+            token_contract:
+              type: string
+            block:
+              type: string
+              format: uint64
+            fee_receive:
+              type: string
+          title: >-
+            OutgoingTxBatch represents a batch of transactions going from
+            gravity to ETH
   fx.gravity.crosschain.v1.QueryLastPendingBridgeCallByAddrResponse:
     type: object
     properties:

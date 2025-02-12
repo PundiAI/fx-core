@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"sort"
 
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
@@ -107,7 +106,7 @@ func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 		return nil, err
 	}
 	oracleAddr := oracle.GetOracle()
-	var pendingBatchReq *types.OutgoingTxBatch
+	var pendingBatchReq []*types.OutgoingTxBatch
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		// filter startHeight before confirm
 		if oracle.StartHeight > int64(batch.Block) {
@@ -115,12 +114,11 @@ func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 		}
 		foundConfirm := k.GetBatchConfirm(ctx, batch.TokenContract, batch.BatchNonce, oracleAddr) != nil
 		if !foundConfirm {
-			pendingBatchReq = batch
-			return true
+			pendingBatchReq = append(pendingBatchReq, batch)
 		}
 		return false
 	})
-	return &types.QueryLastPendingBatchRequestByAddrResponse{Batch: pendingBatchReq}, nil
+	return &types.QueryLastPendingBatchRequestByAddrResponse{Batches: pendingBatchReq}, nil
 }
 
 func (k QueryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
@@ -128,9 +126,6 @@ func (k QueryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoing
 	k.IterateOutgoingTxBatches(sdk.UnwrapSDKContext(c), func(batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
 		return len(batches) == types.MaxResults
-	})
-	sort.Slice(batches, func(i, j int) bool {
-		return batches[i].BatchTimeout < batches[j].BatchTimeout
 	})
 	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
 }
