@@ -95,7 +95,7 @@ func (keeper Keeper) GetCustomMsgQuorum(ctx context.Context, defaultQuorum strin
 func getProposalMsgType(proposal v1.Proposal) string {
 	message := proposal.GetMessages()
 	for _, msg := range message {
-		return sdk.MsgTypeURL(msg)
+		return msg.TypeUrl
 	}
 	return ""
 }
