@@ -318,19 +318,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 }
 
 func (suite *KeeperTestSuite) TestOracleDelete() {
-	for i := 0; i < len(suite.oracleAddrs); i++ {
-		msgBondedOracle := &types.MsgBondedOracle{
-			OracleAddress:    suite.oracleAddrs[i].String(),
-			BridgerAddress:   suite.bridgerAddrs[i].String(),
-			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
-			ChainName:        suite.chainName,
-		}
-		suite.Require().NoError(msgBondedOracle.ValidateBasic())
-		_, err := suite.MsgServer().BondedOracle(suite.Ctx, msgBondedOracle)
-		suite.Require().NoError(err)
-	}
+	suite.BondOracles()
 	suite.EndBlocker()
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
 	allOracles := suite.Keeper().GetAllOracles(suite.Ctx, false)
@@ -385,19 +373,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 }
 
 func (suite *KeeperTestSuite) TestOracleSetSlash() {
-	for i := 0; i < len(suite.oracleAddrs); i++ {
-		msgBondedOracle := &types.MsgBondedOracle{
-			OracleAddress:    suite.oracleAddrs[i].String(),
-			BridgerAddress:   suite.bridgerAddrs[i].String(),
-			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
-			ChainName:        suite.chainName,
-		}
-		suite.Require().NoError(msgBondedOracle.ValidateBasic())
-		_, err := suite.MsgServer().BondedOracle(suite.Ctx, msgBondedOracle)
-		suite.Require().NoError(err)
-	}
+	suite.BondOracles()
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
 	suite.Keeper().EndBlocker(suite.Ctx)
 
@@ -443,20 +419,7 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 }
 
 func (suite *KeeperTestSuite) TestSlashOracle() {
-	for i := 0; i < len(suite.oracleAddrs); i++ {
-		msgBondedOracle := &types.MsgBondedOracle{
-			OracleAddress:    suite.oracleAddrs[i].String(),
-			BridgerAddress:   suite.bridgerAddrs[i].String(),
-			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
-			ChainName:        suite.chainName,
-		}
-		suite.Require().NoError(msgBondedOracle.ValidateBasic())
-		_, err := suite.MsgServer().BondedOracle(suite.Ctx, msgBondedOracle)
-		suite.Require().NoError(err)
-	}
-
+	suite.BondOracles()
 	params := suite.Keeper().GetParams(suite.Ctx)
 	err := suite.Keeper().SetParams(suite.Ctx, &params)
 	suite.Require().NoError(err)
@@ -486,6 +449,32 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 		oracle, found = suite.Keeper().GetOracle(suite.Ctx, suite.oracleAddrs[i])
 		suite.Require().True(found)
 		suite.Require().False(oracle.Online)
+		suite.Require().Equal(int64(1), oracle.SlashTimes)
+	}
+}
+
+func (suite *KeeperTestSuite) TestBridgeCallSlashing() {
+	suite.BondOracles()
+	for i := 0; i < len(suite.oracleAddrs); i++ {
+		oracle, found := suite.Keeper().GetOracle(suite.Ctx, suite.oracleAddrs[i])
+		suite.True(found)
+		suite.True(oracle.Online)
+		suite.Require().Equal(int64(0), oracle.SlashTimes)
+	}
+
+	suite.Keeper().SetOutgoingBridgeCall(suite.Ctx, &types.OutgoingBridgeCall{
+		Nonce:       10,
+		BlockHeight: uint64(suite.Ctx.BlockHeight()),
+	})
+	signedWindow := suite.Keeper().GetSignedWindow(suite.Ctx)
+	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + int64(signedWindow) + 1)
+	suite.Keeper().EndBlocker(suite.Ctx)
+
+	suite.Equal(uint64(10), suite.Keeper().GetLastSlashedBridgeCallNonce(suite.Ctx))
+	for i := 0; i < len(suite.oracleAddrs); i++ {
+		oracle, found := suite.Keeper().GetOracle(suite.Ctx, suite.oracleAddrs[i])
+		suite.True(found)
+		suite.False(oracle.Online)
 		suite.Require().Equal(int64(1), oracle.SlashTimes)
 	}
 }

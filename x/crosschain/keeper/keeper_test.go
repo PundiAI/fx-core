@@ -157,3 +157,19 @@ func (suite *KeeperTestSuite) GetERC20TokenByBridgeContract(bridgeContract strin
 	suite.Require().NoError(err)
 	return &erc20Token
 }
+
+func (suite *KeeperTestSuite) BondOracles() {
+	for i := 0; i < len(suite.oracleAddrs); i++ {
+		msgBondedOracle := &types.MsgBondedOracle{
+			OracleAddress:    suite.oracleAddrs[i].String(),
+			BridgerAddress:   suite.bridgerAddrs[i].String(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+			ValidatorAddress: suite.ValPrivs[i].ValAddress().String(),
+			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(100).MulRaw(1e18)),
+			ChainName:        suite.chainName,
+		}
+		suite.Require().NoError(msgBondedOracle.ValidateBasic())
+		_, err := suite.MsgServer().BondedOracle(suite.Ctx, msgBondedOracle)
+		suite.Require().NoError(err)
+	}
+}
