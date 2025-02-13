@@ -3,7 +3,7 @@ package ethermint.evm.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/pundiai/fx-core/types/legacy";
+option go_package = "github.com/pundiai/fx-core/v8/types/legacy";
 
 // Deprecated: Do not use.
 message InitEvmParamsProposal {

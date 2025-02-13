@@ -3,7 +3,7 @@ package fx.auth.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/pundiai/fx-core/server/grpc/auth";
+option go_package = "github.com/pundiai/fx-core/v8/server/grpc/auth";
 
 service Query {
   rpc ConvertAddress(ConvertAddressRequest) returns (ConvertAddressResponse) {

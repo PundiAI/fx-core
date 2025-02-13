@@ -1,7 +1,7 @@
 syntax = "proto3";
 package fx.ibc.applications.transfer.v1;
 
-option go_package = "github.com/pundiai/fx-core/x/ibc/middleware/types";
+option go_package = "github.com/pundiai/fx-core/v8/x/ibc/middleware/types";
 
 // FungibleTokenPacketData defines a struct for the packet payload
 // See FungibleTokenPacketData spec:

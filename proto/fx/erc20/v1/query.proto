@@ -7,7 +7,7 @@ import "fx/erc20/v1/genesis.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/erc20/types";
+option go_package = "github.com/pundiai/fx-core/v8/x/erc20/types";
 
 // Query defines the gRPC querier service.
 service Query {

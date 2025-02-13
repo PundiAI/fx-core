@@ -52,6 +52,9 @@ const (
 	Query_BridgeChainList_FullMethodName                   = "/fx.gravity.crosschain.v1.Query/BridgeChainList"
 	Query_BridgeCallQuoteByNonce_FullMethodName            = "/fx.gravity.crosschain.v1.Query/BridgeCallQuoteByNonce"
 	Query_BridgeCallsByFeeReceiver_FullMethodName          = "/fx.gravity.crosschain.v1.Query/BridgeCallsByFeeReceiver"
+	Query_BridgeTokensByChain_FullMethodName               = "/fx.gravity.crosschain.v1.Query/BridgeTokensByChain"
+	Query_BridgeTokensByDenom_FullMethodName               = "/fx.gravity.crosschain.v1.Query/BridgeTokensByDenom"
+	Query_BridgeTokensByERC20_FullMethodName               = "/fx.gravity.crosschain.v1.Query/BridgeTokensByERC20"
 )
 
 // QueryClient is the client API for Query service.
@@ -74,7 +77,9 @@ type QueryClient interface {
 	OutgoingTxBatch(ctx context.Context, in *QueryOutgoingTxBatchRequest, opts ...grpc.CallOption) (*QueryOutgoingTxBatchResponse, error)
 	BatchConfirm(ctx context.Context, in *QueryBatchConfirmRequest, opts ...grpc.CallOption) (*QueryBatchConfirmResponse, error)
 	BatchConfirms(ctx context.Context, in *QueryBatchConfirmsRequest, opts ...grpc.CallOption) (*QueryBatchConfirmsResponse, error)
+	// Deprecated: Please use BridgeTokensByDenom
 	TokenToDenom(ctx context.Context, in *QueryTokenToDenomRequest, opts ...grpc.CallOption) (*QueryTokenToDenomResponse, error)
+	// Deprecated: Please use BridgeTokensByDenom
 	DenomToToken(ctx context.Context, in *QueryDenomToTokenRequest, opts ...grpc.CallOption) (*QueryDenomToTokenResponse, error)
 	GetOracleByAddr(ctx context.Context, in *QueryOracleByAddrRequest, opts ...grpc.CallOption) (*QueryOracleResponse, error)
 	GetOracleByExternalAddr(ctx context.Context, in *QueryOracleByExternalAddrRequest, opts ...grpc.CallOption) (*QueryOracleResponse, error)
@@ -93,6 +98,9 @@ type QueryClient interface {
 	BridgeChainList(ctx context.Context, in *QueryBridgeChainListRequest, opts ...grpc.CallOption) (*QueryBridgeChainListResponse, error)
 	BridgeCallQuoteByNonce(ctx context.Context, in *QueryBridgeCallQuoteByNonceRequest, opts ...grpc.CallOption) (*QueryBridgeCallQuoteByNonceResponse, error)
 	BridgeCallsByFeeReceiver(ctx context.Context, in *QueryBridgeCallsByFeeReceiverRequest, opts ...grpc.CallOption) (*QueryBridgeCallsByFeeReceiverResponse, error)
+	BridgeTokensByChain(ctx context.Context, in *QueryBridgeTokensByChainRequest, opts ...grpc.CallOption) (*QueryBridgeTokensByChainResponse, error)
+	BridgeTokensByDenom(ctx context.Context, in *QueryBridgeTokensByDenomRequest, opts ...grpc.CallOption) (*QueryBridgeTokensByDenomResponse, error)
+	BridgeTokensByERC20(ctx context.Context, in *QueryBridgeTokensByERC20Request, opts ...grpc.CallOption) (*QueryBridgeTokensByERC20Response, error)
 }
 
 type queryClient struct {
@@ -400,6 +408,33 @@ func (c *queryClient) BridgeCallsByFeeReceiver(ctx context.Context, in *QueryBri
 	return out, nil
 }
 
+func (c *queryClient) BridgeTokensByChain(ctx context.Context, in *QueryBridgeTokensByChainRequest, opts ...grpc.CallOption) (*QueryBridgeTokensByChainResponse, error) {
+	out := new(QueryBridgeTokensByChainResponse)
+	err := c.cc.Invoke(ctx, Query_BridgeTokensByChain_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) BridgeTokensByDenom(ctx context.Context, in *QueryBridgeTokensByDenomRequest, opts ...grpc.CallOption) (*QueryBridgeTokensByDenomResponse, error) {
+	out := new(QueryBridgeTokensByDenomResponse)
+	err := c.cc.Invoke(ctx, Query_BridgeTokensByDenom_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) BridgeTokensByERC20(ctx context.Context, in *QueryBridgeTokensByERC20Request, opts ...grpc.CallOption) (*QueryBridgeTokensByERC20Response, error) {
+	out := new(QueryBridgeTokensByERC20Response)
+	err := c.cc.Invoke(ctx, Query_BridgeTokensByERC20_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -420,7 +455,9 @@ type QueryServer interface {
 	OutgoingTxBatch(context.Context, *QueryOutgoingTxBatchRequest) (*QueryOutgoingTxBatchResponse, error)
 	BatchConfirm(context.Context, *QueryBatchConfirmRequest) (*QueryBatchConfirmResponse, error)
 	BatchConfirms(context.Context, *QueryBatchConfirmsRequest) (*QueryBatchConfirmsResponse, error)
+	// Deprecated: Please use BridgeTokensByDenom
 	TokenToDenom(context.Context, *QueryTokenToDenomRequest) (*QueryTokenToDenomResponse, error)
+	// Deprecated: Please use BridgeTokensByDenom
 	DenomToToken(context.Context, *QueryDenomToTokenRequest) (*QueryDenomToTokenResponse, error)
 	GetOracleByAddr(context.Context, *QueryOracleByAddrRequest) (*QueryOracleResponse, error)
 	GetOracleByExternalAddr(context.Context, *QueryOracleByExternalAddrRequest) (*QueryOracleResponse, error)
@@ -439,6 +476,9 @@ type QueryServer interface {
 	BridgeChainList(context.Context, *QueryBridgeChainListRequest) (*QueryBridgeChainListResponse, error)
 	BridgeCallQuoteByNonce(context.Context, *QueryBridgeCallQuoteByNonceRequest) (*QueryBridgeCallQuoteByNonceResponse, error)
 	BridgeCallsByFeeReceiver(context.Context, *QueryBridgeCallsByFeeReceiverRequest) (*QueryBridgeCallsByFeeReceiverResponse, error)
+	BridgeTokensByChain(context.Context, *QueryBridgeTokensByChainRequest) (*QueryBridgeTokensByChainResponse, error)
+	BridgeTokensByDenom(context.Context, *QueryBridgeTokensByDenomRequest) (*QueryBridgeTokensByDenomResponse, error)
+	BridgeTokensByERC20(context.Context, *QueryBridgeTokensByERC20Request) (*QueryBridgeTokensByERC20Response, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -544,6 +584,15 @@ func (UnimplementedQueryServer) BridgeCallQuoteByNonce(context.Context, *QueryBr
 }
 func (UnimplementedQueryServer) BridgeCallsByFeeReceiver(context.Context, *QueryBridgeCallsByFeeReceiverRequest) (*QueryBridgeCallsByFeeReceiverResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BridgeCallsByFeeReceiver not implemented")
+}
+func (UnimplementedQueryServer) BridgeTokensByChain(context.Context, *QueryBridgeTokensByChainRequest) (*QueryBridgeTokensByChainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeTokensByChain not implemented")
+}
+func (UnimplementedQueryServer) BridgeTokensByDenom(context.Context, *QueryBridgeTokensByDenomRequest) (*QueryBridgeTokensByDenomResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeTokensByDenom not implemented")
+}
+func (UnimplementedQueryServer) BridgeTokensByERC20(context.Context, *QueryBridgeTokensByERC20Request) (*QueryBridgeTokensByERC20Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BridgeTokensByERC20 not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -1152,6 +1201,60 @@ func _Query_BridgeCallsByFeeReceiver_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_BridgeTokensByChain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBridgeTokensByChainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BridgeTokensByChain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_BridgeTokensByChain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BridgeTokensByChain(ctx, req.(*QueryBridgeTokensByChainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_BridgeTokensByDenom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBridgeTokensByDenomRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BridgeTokensByDenom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_BridgeTokensByDenom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BridgeTokensByDenom(ctx, req.(*QueryBridgeTokensByDenomRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_BridgeTokensByERC20_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBridgeTokensByERC20Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BridgeTokensByERC20(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_BridgeTokensByERC20_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BridgeTokensByERC20(ctx, req.(*QueryBridgeTokensByERC20Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1290,6 +1393,18 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BridgeCallsByFeeReceiver",
 			Handler:    _Query_BridgeCallsByFeeReceiver_Handler,
+		},
+		{
+			MethodName: "BridgeTokensByChain",
+			Handler:    _Query_BridgeTokensByChain_Handler,
+		},
+		{
+			MethodName: "BridgeTokensByDenom",
+			Handler:    _Query_BridgeTokensByDenom_Handler,
+		},
+		{
+			MethodName: "BridgeTokensByERC20",
+			Handler:    _Query_BridgeTokensByERC20_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

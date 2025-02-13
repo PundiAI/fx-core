@@ -4,7 +4,7 @@ package fx.erc20.v1;
 import "fx/erc20/v1/types.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/erc20/types";
+option go_package = "github.com/pundiai/fx-core/v8/x/erc20/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {

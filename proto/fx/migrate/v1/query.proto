@@ -5,7 +5,7 @@ import "fx/migrate/v1/migrate.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/migrate/types";
+option go_package = "github.com/pundiai/fx-core/v8/x/migrate/types";
 
 // Query provides defines the gRPC querier service.
 service Query {

@@ -13,6 +13,24 @@ func (k Keeper) GetIBCToken(ctx context.Context, baseDenom, channel string) (typ
 	return k.IBCToken.Get(ctx, collections.Join(baseDenom, channel))
 }
 
+func (k Keeper) GetBaseIBCTokens(ctx context.Context, baseDenom string) ([]types.IBCToken, error) {
+	rng := collections.NewPrefixedPairRange[string, string](baseDenom)
+	iter, err := k.IBCToken.Iterate(ctx, rng)
+	if err != nil {
+		return nil, err
+	}
+	kvs, err := iter.KeyValues()
+	if err != nil {
+		return nil, err
+	}
+
+	tokens := make([]types.IBCToken, 0, len(kvs))
+	for _, kv := range kvs {
+		tokens = append(tokens, kv.Value)
+	}
+	return tokens, nil
+}
+
 func (k Keeper) AddIBCToken(ctx context.Context, baseDenom, channel, ibcDenom string) error {
 	key := collections.Join(baseDenom, channel)
 	has, err := k.IBCToken.Has(ctx, key)

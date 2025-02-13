@@ -5,7 +5,7 @@ import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/evm/types";
+option go_package = "github.com/pundiai/fx-core/v8/x/evm/types";
 
 // Msg defines the x/evm Msg service.
 service Msg {

@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	"cosmossdk.io/collections"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
@@ -38,6 +40,22 @@ func (k Keeper) GetBridgeTokens(ctx context.Context, chainName string) ([]types.
 		tokens = append(tokens, kv.Value)
 	}
 
+	return tokens, nil
+}
+
+func (k Keeper) GetBaseBridgeTokens(ctx context.Context, baseDenom string) ([]types.BridgeToken, error) {
+	chains := fxtypes.GetSupportChains()
+	tokens := make([]types.BridgeToken, 0, len(chains))
+	for _, chainName := range chains {
+		token, err := k.GetBridgeToken(ctx, chainName, baseDenom)
+		if err != nil && !errors.Is(err, collections.ErrNotFound) {
+			return nil, err
+		}
+		if errors.Is(err, collections.ErrNotFound) {
+			continue
+		}
+		tokens = append(tokens, token)
+	}
 	return tokens, nil
 }
 

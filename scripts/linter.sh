@@ -56,7 +56,7 @@ for pattern_limit in "${patternLimits[@]}"; do
 done
 
 pattern_result=$(rg functionx --glob '!**/genesis.json' --glob '!**/config.toml' --glob '!**/linter.sh' ./)
-if [[ "$(echo "$pattern_result" | wc -l)" -ne 19 ]]; then
+if [[ "$(echo "$pattern_result" | wc -l)" -ne 20 ]]; then
   echo "functionx should be replaced with pundiai"
   echo "$pattern_result"
   exit 1

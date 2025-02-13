@@ -9,7 +9,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -19,6 +18,7 @@ import (
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	"github.com/pundiai/fx-core/v8/x/eth/types"
 	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
@@ -142,7 +142,7 @@ func (suite *CrosschainSuite) AddBridgeTokenClaim(name, symbol string, decimals 
 	return response.Denom
 }
 
-func (suite *CrosschainSuite) GetBridgeTokens() (denoms []*crosschaintypes.BridgeToken) {
+func (suite *CrosschainSuite) GetBridgeTokens() (denoms []erc20types.BridgeToken) {
 	response, err := suite.CrosschainQuery().BridgeTokens(suite.ctx, &crosschaintypes.QueryBridgeTokensRequest{
 		ChainName: suite.chainName,
 	})
@@ -380,16 +380,6 @@ func (suite *CrosschainSuite) SendConfirmBatch() {
 func (suite *CrosschainSuite) SendToExternalAndConfirm(coin sdk.Coin) {
 	suite.SendToExternal(1, coin)
 	suite.SendConfirmBatch()
-}
-
-func (suite *CrosschainSuite) AddBridgeToken(md banktypes.Metadata) (string, crosschaintypes.BridgeToken) {
-	bridgeTokenAddr := helpers.GenExternalAddr(suite.chainName)
-	suite.AddBridgeTokenClaim(md.Name, md.Symbol, uint64(md.DenomUnits[1].Exponent), bridgeTokenAddr)
-	bridgeTokenDenom := suite.GetBridgeDenomByToken(bridgeTokenAddr)
-	return bridgeTokenDenom, crosschaintypes.BridgeToken{
-		Token: bridgeTokenAddr,
-		Denom: bridgeTokenDenom,
-	}
 }
 
 func (suite *CrosschainSuite) FormatAddress(address common.Address) string {

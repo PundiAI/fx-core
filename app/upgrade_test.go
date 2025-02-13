@@ -504,7 +504,7 @@ func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountB
 				require.NoError(t, err)
 				tokenDenoms[bridgeToken.BridgeDenom()] = struct{}{}
 			}
-			ibcTokens, err := getIBCTokens(ctx, myApp, baseDenom)
+			ibcTokens, err := myApp.Erc20Keeper.GetBaseIBCTokens(ctx, baseDenom)
 			require.NoError(t, err)
 			for _, ibcToken := range ibcTokens {
 				tokenDenoms[ibcToken.GetIbcDenom()] = struct{}{}
@@ -568,7 +568,7 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	for _, et := range erc20Tokens {
 		aliasDenoms := make([]string, 0, 10)
 
-		bridgeTokens, err := getBridgeToken(ctx, myApp, et.GetDenom())
+		bridgeTokens, err := myApp.Erc20Keeper.GetBaseBridgeTokens(ctx, et.GetDenom())
 		require.NoError(t, err)
 		for _, bt := range bridgeTokens {
 			if bt.IsOrigin() || bt.IsNative {
@@ -577,7 +577,7 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			aliasDenoms = append(aliasDenoms, bt.BridgeDenom())
 		}
 
-		ibcTokens, err := getIBCTokens(ctx, myApp, et.GetDenom())
+		ibcTokens, err := myApp.Erc20Keeper.GetBaseIBCTokens(ctx, et.GetDenom())
 		require.NoError(t, err)
 		for _, ibcToken := range ibcTokens {
 			aliasDenoms = append(aliasDenoms, ibcToken.GetIbcDenom())
@@ -734,7 +734,7 @@ func checkNewErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 		baseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, et.Erc20Address)
 		require.NoError(t, err)
 
-		bridgeTokens, err := getBridgeToken(ctx, myApp, baseDenom)
+		bridgeTokens, err := myApp.Erc20Keeper.GetBaseBridgeTokens(ctx, baseDenom)
 		require.NoError(t, err)
 		for _, token := range bridgeTokens {
 			bridgeBaseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, erc20types.NewBridgeDenom(token.ChainName, token.Contract))
@@ -742,7 +742,7 @@ func checkNewErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			require.Equal(t, baseDenom, bridgeBaseDenom)
 		}
 
-		ibcTokens, err := getIBCTokens(ctx, myApp, baseDenom)
+		ibcTokens, err := myApp.Erc20Keeper.GetBaseIBCTokens(ctx, baseDenom)
 		require.NoError(t, err)
 		for _, token := range ibcTokens {
 			ibcBaseDenom, err := myApp.Erc20Keeper.GetBaseDenom(ctx, token.GetIbcDenom())
@@ -765,7 +765,7 @@ func checkNewErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			continue
 		}
 		if strings.HasPrefix(kv.Key, "ibc/") {
-			ibcTokens, err := getIBCTokens(ctx, myApp, kv.Value)
+			ibcTokens, err := myApp.Erc20Keeper.GetBaseIBCTokens(ctx, kv.Value)
 			require.NoError(t, err)
 			has := false
 			for _, it := range ibcTokens {
@@ -777,7 +777,7 @@ func checkNewErc20Token(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			require.True(t, has)
 			continue
 		}
-		bridgeTokens, err := getBridgeToken(ctx, myApp, kv.Value)
+		bridgeTokens, err := myApp.Erc20Keeper.GetBaseBridgeTokens(ctx, kv.Value)
 		require.NoError(t, err)
 		has := false
 		for _, bt := range bridgeTokens {
@@ -944,41 +944,6 @@ func allOldDenom(ctx sdk.Context, myApp *app.App) (map[string]erc20types.ERC20To
 		metadata[md.Base] = md
 	}
 	return erc20Token, metadata
-}
-
-func getIBCTokens(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.IBCToken, error) {
-	rng := collections.NewPrefixedPairRange[string, string](baseDenom)
-	iter, err := myApp.Erc20Keeper.IBCToken.Iterate(ctx, rng)
-	if err != nil {
-		return nil, err
-	}
-	kvs, err := iter.KeyValues()
-	if err != nil {
-		return nil, err
-	}
-
-	tokens := make([]erc20types.IBCToken, 0, len(kvs))
-	for _, kv := range kvs {
-		tokens = append(tokens, kv.Value)
-	}
-	return tokens, nil
-}
-
-func getBridgeToken(ctx sdk.Context, myApp *app.App, baseDenom string) ([]erc20types.BridgeToken, error) {
-	bridgeTokens := make([]erc20types.BridgeToken, 0, len(myApp.CrosschainKeepers.ToSlice()))
-	for _, ck := range myApp.CrosschainKeepers.ToSlice() {
-		key := collections.Join(ck.ModuleName(), baseDenom)
-		has, err := myApp.Erc20Keeper.BridgeToken.Has(ctx, key)
-		if err != nil {
-			return nil, err
-		}
-		if !has {
-			continue
-		}
-		bridgeToken, _ := myApp.Erc20Keeper.GetBridgeToken(ctx, ck.ModuleName(), baseDenom)
-		bridgeTokens = append(bridgeTokens, bridgeToken)
-	}
-	return bridgeTokens, nil
 }
 
 func allErc20Token(ctx sdk.Context, myApp *app.App) ([]erc20types.ERC20Token, error) {
