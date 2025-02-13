@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
+	"cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -14,6 +16,7 @@ import (
 	"github.com/pundiai/fx-core/v8/contract"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
 var _ types.QueryServer = QueryServer{}
@@ -280,18 +283,85 @@ func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.Que
 }
 
 func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
-	tokens, err := k.erc20Keeper.GetBridgeTokens(c, req.ChainName)
+	if len(req.GetTokenAddress()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "token")
+	}
+
+	var baseDenom string
+	var err error
+	for _, chain := range fxtypes.GetSupportChains() {
+		baseDenom, err = k.erc20Keeper.GetBaseDenom(c, erc20types.NewBridgeDenom(chain, req.GetTokenAddress()))
+		if err == nil {
+			break
+		}
+		if errors.Is(err, collections.ErrNotFound) {
+			continue
+		}
+		return nil, err
+	}
+	if err != nil {
+		return nil, status.Error(codes.NotFound, req.TokenAddress)
+	}
+	erc20Token, bridgeTokens, ibcTokens, err := k.BridgeTokensByBaseDenom(c, baseDenom)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryBridgeTokensResponse{
+		Erc20Token:   *erc20Token,
+		BridgeTokens: bridgeTokens,
+		IbcTokens:    ibcTokens,
+	}, nil
+}
+
+func (k QueryServer) BridgeTokensByChain(c context.Context, req *types.QueryBridgeTokensByChainRequest) (*types.QueryBridgeTokensByChainResponse, error) {
+	if len(req.GetChainName()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "chain")
+	}
+	bridgeTokens, err := k.erc20Keeper.GetBridgeTokens(c, req.ChainName)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	bridgeTokens := make([]*types.BridgeToken, 0, len(tokens))
-	for _, token := range tokens {
-		bridgeTokens = append(bridgeTokens, &types.BridgeToken{
-			Token: token.Contract,
-			Denom: token.GetDenom(),
-		})
+	return &types.QueryBridgeTokensByChainResponse{BridgeTokens: bridgeTokens}, nil
+}
+
+func (k QueryServer) BridgeTokensByDenom(c context.Context, req *types.QueryBridgeTokensByDenomRequest) (*types.QueryBridgeTokensByDenomResponse, error) {
+	if len(req.GetDenom()) == 0 || sdk.ValidateDenom(req.GetDenom()) != nil {
+		return nil, status.Error(codes.InvalidArgument, "denom")
 	}
-	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
+	baseDenom, err := k.erc20Keeper.GetBaseDenom(c, req.GetDenom())
+	if err != nil {
+		baseDenom = req.GetDenom()
+	}
+	erc20Token, bridgeTokens, ibcTokens, err := k.BridgeTokensByBaseDenom(c, baseDenom)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryBridgeTokensByDenomResponse{
+		Erc20Token:   *erc20Token,
+		BridgeTokens: bridgeTokens,
+		IbcTokens:    ibcTokens,
+	}, nil
+}
+
+func (k QueryServer) BridgeTokensByERC20(c context.Context, req *types.QueryBridgeTokensByERC20Request) (*types.QueryBridgeTokensByERC20Response, error) {
+	if len(req.GetErc20Address()) == 0 || contract.ValidateEthereumAddress(req.GetErc20Address()) != nil {
+		return nil, status.Error(codes.InvalidArgument, "erc20 address")
+	}
+
+	baseDenom, err := k.erc20Keeper.GetBaseDenom(c, req.GetErc20Address())
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	erc20Token, bridgeTokens, ibcTokens, err := k.BridgeTokensByBaseDenom(c, baseDenom)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryBridgeTokensByERC20Response{
+		Erc20Token:   *erc20Token,
+		BridgeTokens: bridgeTokens,
+		IbcTokens:    ibcTokens,
+	}, nil
 }
 
 func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
@@ -303,6 +373,22 @@ func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridge
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &types.QueryBridgeCoinByDenomResponse{Coin: supply}, nil
+}
+
+func (k QueryServer) BridgeTokensByBaseDenom(c context.Context, baseDenom string) (*erc20types.ERC20Token, []erc20types.BridgeToken, []erc20types.IBCToken, error) {
+	erc20Token, err := k.erc20Keeper.GetERC20Token(c, baseDenom)
+	if err != nil {
+		return nil, nil, nil, status.Error(codes.NotFound, err.Error())
+	}
+	bridgeTokens, err := k.erc20Keeper.GetBaseBridgeTokens(c, baseDenom)
+	if err != nil {
+		return nil, nil, nil, status.Error(codes.NotFound, err.Error())
+	}
+	ibcTokens, err := k.erc20Keeper.GetBaseIBCTokens(c, baseDenom)
+	if err != nil {
+		return nil, nil, nil, status.Error(codes.NotFound, err.Error())
+	}
+	return &erc20Token, bridgeTokens, ibcTokens, nil
 }
 
 func (k QueryServer) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {

@@ -203,6 +203,30 @@ func (k RouterKeeper) BridgeTokens(c context.Context, req *types.QueryBridgeToke
 	}
 }
 
+func (k RouterKeeper) BridgeTokensByChain(c context.Context, req *types.QueryBridgeTokensByChainRequest) (*types.QueryBridgeTokensByChainResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeTokensByChain(c, req)
+	}
+}
+
+func (k RouterKeeper) BridgeTokensByDenom(c context.Context, req *types.QueryBridgeTokensByDenomRequest) (*types.QueryBridgeTokensByDenomResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeTokensByDenom(c, req)
+	}
+}
+
+func (k RouterKeeper) BridgeTokensByERC20(c context.Context, req *types.QueryBridgeTokensByERC20Request) (*types.QueryBridgeTokensByERC20Response, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeTokensByERC20(c, req)
+	}
+}
+
 func (k RouterKeeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err

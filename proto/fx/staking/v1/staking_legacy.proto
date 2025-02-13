@@ -4,7 +4,7 @@ package fx.staking.v1;
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
 
-option go_package = "github.com/pundiai/fx-core/types/legacy";
+option go_package = "github.com/pundiai/fx-core/v8/types/legacy";
 
 message MsgGrantPrivilege {
   option deprecated = true;

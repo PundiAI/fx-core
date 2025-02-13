@@ -3,7 +3,7 @@ package fx.erc20.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/erc20/types";
+option go_package = "github.com/pundiai/fx-core/v8/x/erc20/types";
 
 // ERC20Owner enumerates the ownership of a ERC20 contract.
 enum Owner {

@@ -5,7 +5,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/pundiai/fx-core/x/gov/types";
+option go_package = "github.com/pundiai/fx-core/v8/x/gov/types";
 
 message UpdateStore {
   option (gogoproto.goproto_stringer) = false;

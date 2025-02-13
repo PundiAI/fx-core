@@ -7,7 +7,7 @@ import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 
-option go_package = "github.com/pundiai/fx-core/types/legacy";
+option go_package = "github.com/pundiai/fx-core/v8/types/legacy";
 
 // Deprecated: after block 5713000
 message InitCrossChainParamsProposal {
