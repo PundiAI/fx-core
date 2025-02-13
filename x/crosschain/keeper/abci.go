@@ -136,7 +136,7 @@ func (k Keeper) bridgeCallSlashing(ctx sdk.Context, oracles types.Oracles, signe
 				continue
 			}
 			if _, ok := confirmOracleMap[oracles[i].ExternalAddress]; !ok {
-				k.SlashOracle(ctx, oracles[i].String())
+				k.SlashOracle(ctx, oracles[i].OracleAddress)
 				k.Logger(ctx).Info("slash oracle by outgoing bridge call", "oracleAddress", oracles[i].OracleAddress,
 					"nonce", record.Nonce, "bridgeCallHeight", record.BlockHeight, "blockHeight", ctx.BlockHeight())
 				hasSlash = true
