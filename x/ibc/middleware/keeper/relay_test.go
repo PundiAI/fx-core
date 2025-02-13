@@ -29,74 +29,86 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		name         string
 		coin         sdk.Coin
 		isOurCoin    bool
-		malleate     func(ctx sdk.Context) sdk.Context
-		expPass      bool
+		malleate     func(packet channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData) channeltypes.Packet
+		err          error
 		checkBalance bool
-		expCoins     sdk.Coins
+		expCoin      sdk.Coin
 	}{
 		{
 			name:         "pass - send FX to ours",
 			coin:         sdk.NewCoin(fxtypes.LegacyFXDenom, sdkmath.NewInt(1000)),
 			isOurCoin:    true,
-			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10))),
+			expCoin:      sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10)),
 		},
 		{
 			name:      "pass - mainnet pundix chain send pundix to ours",
 			coin:      sdk.NewCoin(fxtypes.MainnetPundixUnWrapDenom, sdkmath.NewInt(1000)),
 			isOurCoin: true,
-			malleate: func(ctx sdk.Context) sdk.Context {
-				ctx = ctx.WithChainID(fxtypes.MainnetChainId)
-				return ctx
+			malleate: func(packet channeltypes.Packet, _ transfertypes.FungibleTokenPacketData) channeltypes.Packet {
+				suite.Ctx = suite.Ctx.WithChainID(fxtypes.MainnetChainId)
+				return packet
 			},
-			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.PundixWrapDenom, sdkmath.NewInt(1000))),
+			expCoin:      sdk.NewCoin(fxtypes.PundixWrapDenom, sdkmath.NewInt(1000)),
 		},
 		{
 			name:      "pass - testnet pundix chain send pundix to ours",
 			coin:      sdk.NewCoin(fxtypes.TestnetPundixUnWrapDenom, sdkmath.NewInt(1000)),
 			isOurCoin: true,
-			malleate: func(ctx sdk.Context) sdk.Context {
-				ctx = ctx.WithChainID(fxtypes.TestnetChainId)
-				return ctx
+			malleate: func(packet channeltypes.Packet, _ transfertypes.FungibleTokenPacketData) channeltypes.Packet {
+				suite.Ctx = suite.Ctx.WithChainID(fxtypes.TestnetChainId)
+				return packet
 			},
-			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.PundixWrapDenom, sdkmath.NewInt(1000))),
+			expCoin:      sdk.NewCoin(fxtypes.PundixWrapDenom, sdkmath.NewInt(1000)),
 		},
 		{
 			name:         "pass - send defaultDenom to ours",
 			coin:         sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
 			isOurCoin:    true,
-			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+			expCoin:      sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
 		},
 		{
 			name:         "pass - send dest chain coin to ours",
 			coin:         sdk.NewCoin("stake", sdkmath.NewInt(1000)),
 			isOurCoin:    false,
-			expPass:      true,
 			checkBalance: false,
+		},
+		{
+			name:      "failed - dest address is error",
+			coin:      sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+			isOurCoin: false,
+			malleate: func(packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData) channeltypes.Packet {
+				packetData := packetDataToFxPacketData(data)
+				packetData.Router = "tron"
+				packetData.Receiver = "errAddr"
+				packet.Data = mustProtoMarshalJSON(&packetData)
+				return packet
+			},
+			err: fmt.Errorf("wrong length"),
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.ibcMiddleware.Keeper = suite.App.IBCMiddlewareKeeper.SetCrosschainKeeper(mockCrosschainKeeper{})
-			receiveAddr, destCahnnel, packet := suite.mockOnRecvPacket(tc.coin, tc.isOurCoin)
+			packet, packetData := suite.mockOnRecvPacket(tc.coin, tc.isOurCoin)
 			if tc.malleate != nil {
-				suite.Ctx = tc.malleate(suite.Ctx)
+				packet = tc.malleate(packet, packetData)
 			}
 			if tc.isOurCoin {
-				suite.mintCoinEscrowAddr(destCahnnel, tc.expCoins[0])
+				suite.mintCoinEscrowAddr(packet.DestinationChannel, tc.expCoin)
 			}
 			acknowledgement := suite.ibcMiddleware.OnRecvPacket(suite.Ctx, packet, sdk.AccAddress{})
+			if tc.err != nil {
+				suite.Require().False(acknowledgement.Success(), tc.err.Error())
+				suite.Contains(tc.err.Error(), getErrByEvent(suite.Ctx))
+				return
+			}
 			suite.Require().True(acknowledgement.Success(), suite.Ctx.EventManager().Events())
 			if tc.checkBalance {
-				receiveAddrCoins := suite.App.BankKeeper.GetAllBalances(suite.Ctx, receiveAddr.Bytes())
-				suite.Require().Equal(tc.expCoins.String(), receiveAddrCoins.String())
+				suite.AssertBalance(common.HexToAddress(packetData.Receiver).Bytes(), tc.expCoin)
 			}
 		})
 	}
@@ -110,13 +122,13 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		malleate     func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement, packetData transfertypes.FungibleTokenPacketData)
 		expPass      bool
 		checkBalance bool
-		expCoins     sdk.Coins
+		expCoin      sdk.Coin
 	}{
 		{
 			name:         "pass - success ack - ibc transfer packet",
 			expPass:      true,
-			checkBalance: true,
-			expCoins:     sdk.Coins{},
+			checkBalance: false,
+			expCoin:      sdk.Coin{},
 		},
 		{
 			name: "pass - error ack - ibc transfer packet",
@@ -128,7 +140,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			},
 			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(coin),
+			expCoin:      coin,
 		},
 		{
 			name: "pass - error ack - denom is FX",
@@ -144,7 +156,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			},
 			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(fxtypes.SwapCoin(sdk.NewCoin(fxtypes.LegacyFXDenom, coin.Amount))),
+			expCoin:      fxtypes.SwapCoin(sdk.NewCoin(fxtypes.LegacyFXDenom, coin.Amount)),
 		},
 	}
 
@@ -164,14 +176,13 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().Error(err)
 			}
 			if tc.checkBalance {
-				senderAddrCoins := suite.App.BankKeeper.GetAllBalances(suite.Ctx, senderAddr)
-				suite.Require().Equal(tc.expCoins.String(), senderAddrCoins.String())
+				suite.AssertBalance(senderAddr, tc.expCoin)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) mockOnRecvPacket(coin sdk.Coin, ibcCoin bool) (common.Address, string, channeltypes.Packet) {
+func (suite *KeeperTestSuite) mockOnRecvPacket(coin sdk.Coin, ibcCoin bool) (channeltypes.Packet, transfertypes.FungibleTokenPacketData) {
 	senderAddr := helpers.GenAccAddress()
 	receiveAddr := helpers.GenHexAddress()
 	destChannel := fmt.Sprintf("channel-%d", tmrand.Int63n(10000))
@@ -185,7 +196,7 @@ func (suite *KeeperTestSuite) mockOnRecvPacket(coin sdk.Coin, ibcCoin bool) (com
 	packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(tmrand.Int63n(1000000)), transfertypes.PortID, sourceChannel, transfertypes.PortID, destChannel,
 		clienttypes.Height{RevisionNumber: 100, RevisionHeight: 100000}, 0,
 	)
-	return receiveAddr, destChannel, packet
+	return packet, packetData
 }
 
 func (suite *KeeperTestSuite) mockPacket(coin sdk.Coin, memo string) (sdk.AccAddress, channeltypes.Packet, transfertypes.FungibleTokenPacketData) {
@@ -366,4 +377,30 @@ func mustProtoMarshalJSON(msg proto.Message) []byte {
 
 func ackWithErr() channeltypes.Acknowledgement {
 	return channeltypes.NewErrorAcknowledgement(fmt.Errorf("test"))
+}
+
+func packetDataToFxPacketData(packetData transfertypes.FungibleTokenPacketData) types.FungibleTokenPacketData {
+	return types.FungibleTokenPacketData{
+		Denom:    packetData.Denom,
+		Amount:   packetData.Amount,
+		Sender:   packetData.Sender,
+		Receiver: packetData.Receiver,
+		Fee:      "0",
+		Memo:     packetData.Memo,
+	}
+}
+
+func getErrByEvent(ctx sdk.Context) string {
+	events := ctx.EventManager().Events()
+	for _, event := range events {
+		if event.Type != types.EventTypeReceive {
+			continue
+		}
+		for _, attr := range event.Attributes {
+			if attr.Key == types.AttributeKeyError {
+				return attr.Value
+			}
+		}
+	}
+	return ""
 }

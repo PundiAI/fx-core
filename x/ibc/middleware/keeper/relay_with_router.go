@@ -10,6 +10,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
+	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
 )
@@ -17,6 +18,10 @@ import (
 func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCModule, packet channeltypes.Packet, data types.FungibleTokenPacketData, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	receiver, transferAmount, feeAmount, err := parseReceiveAndAmountByPacketWithRouter(data)
 	if err != nil {
+		return types.NewAckErrorWithErrorEvent(ctx, err)
+	}
+
+	if err = fxtypes.ValidateExternalAddr(data.Router, data.Receiver); err != nil {
 		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
 
