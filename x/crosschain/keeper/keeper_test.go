@@ -173,3 +173,8 @@ func (suite *KeeperTestSuite) BondOracles() {
 		suite.Require().NoError(err)
 	}
 }
+
+func (suite *KeeperTestSuite) SetAutoIncrementID(key []byte, id uint64) {
+	store := suite.Ctx.KVStore(suite.App.AppKeepers.GetKey(suite.Keeper().ModuleName()))
+	store.Set(key, sdk.Uint64ToBigEndian(id))
+}

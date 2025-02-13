@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"sort"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -148,49 +147,6 @@ func (k Keeper) bridgeCallSlashing(ctx sdk.Context, oracles types.Oracles, signe
 	return hasSlash
 }
 
-func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) (err error) {
-	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
-	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		if batch.BatchTimeout < externalBlockHeight {
-			if err = k.ResendTimeoutOutgoingTxBatch(ctx, batch); err != nil {
-				return true
-			}
-		}
-		return false
-	})
-	return err
-}
-
-func (k Keeper) cleanupTimeOutBridgeCall(ctx sdk.Context) (err error) {
-	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
-	k.IterateOutgoingBridgeCalls(ctx, func(data *types.OutgoingBridgeCall) bool {
-		if data.Timeout > externalBlockHeight {
-			return true
-		}
-
-		quoteInfo, found := k.GetOutgoingBridgeCallQuoteInfo(ctx, data.Nonce)
-		if !found {
-			// 1. handler bridge call refund
-			if err = k.RefundOutgoingBridgeCall(ctx, k.evmKeeper, data); err != nil {
-				return true
-			}
-		} else {
-			// 1. resend bridge call
-			if err = k.ResendBridgeCall(ctx, *data, quoteInfo); err != nil {
-				return true
-			}
-		}
-
-		// 2. delete bridge call
-		if err = k.DeleteOutgoingBridgeCallRecord(ctx, data.Nonce); err != nil {
-			return true
-		}
-
-		return false
-	})
-	return err
-}
-
 func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
 	// Oracle set pruning
 	// prune all Oracle sets with a nonce less than the
@@ -210,53 +166,5 @@ func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
 			}
 			return false
 		})
-	}
-}
-
-// Iterate over all attestations currently being voted on in order of nonce
-// and prune those that are older than the current nonce and no longer have any
-// use. This could be combined with create attestation and save some computation
-// but (A) pruning keeps the iteration small in the first place and (B) there is
-// already enough nuance in the other handler that it's best not to complicate it further
-func (k Keeper) pruneAttestations(ctx sdk.Context) {
-	lastNonce := k.GetLastObservedEventNonce(ctx)
-	if lastNonce <= types.MaxKeepEventSize {
-		return
-	}
-
-	// we delete all attestations earlier than the current event nonce
-	// minus some buffer value. This buffer value is purely to allow
-	// frontends and other UI components to view recent oracle history
-	cutoff := lastNonce - types.MaxKeepEventSize
-	claimMap := make(map[uint64][]types.ExternalClaim)
-	// We make a slice with all the event nonces that are in the attestation mapping
-	var nonces []uint64
-	k.IterateAttestationAndClaim(ctx, func(att *types.Attestation, claim types.ExternalClaim) bool {
-		if claim.GetEventNonce() > cutoff {
-			return true
-		}
-		if v, ok := claimMap[claim.GetEventNonce()]; !ok {
-			claimMap[claim.GetEventNonce()] = []types.ExternalClaim{claim}
-			nonces = append(nonces, claim.GetEventNonce())
-		} else {
-			claimMap[claim.GetEventNonce()] = append(v, claim)
-		}
-		return false
-	})
-	// Then we sort it
-	sort.Slice(nonces, func(i, j int) bool {
-		return nonces[i] < nonces[j]
-	})
-
-	// This iterates over all keys (event nonces) in the attestation mapping. Each value contains
-	// a slice with one or more attestations at that event nonce. There can be multiple attestations
-	// at one event nonce when Oracles disagree about what event happened at that nonce.
-	for _, nonce := range nonces {
-		// This iterates over all attestations at a particular event nonce.
-		// They are ordered by when the first attestation at the event nonce was received.
-		// This order is not important.
-		for _, claim := range claimMap[nonce] {
-			k.DeleteAttestation(ctx, claim)
-		}
 	}
 }

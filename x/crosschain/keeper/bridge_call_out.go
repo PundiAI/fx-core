@@ -289,6 +289,7 @@ func (k Keeper) ResendBridgeCall(ctx sdk.Context, bridgeCall types.OutgoingBridg
 	newBridgeCallNonce := k.autoIncrementID(ctx, types.KeyLastBridgeCallID)
 	bridgeCall.Nonce = newBridgeCallNonce
 	bridgeCall.Timeout = bridgeCallTimeout
+	bridgeCall.BlockHeight = uint64(ctx.BlockHeight())
 	k.SetOutgoingBridgeCall(ctx, &bridgeCall)
 	k.SetOutgoingBridgeCallQuoteInfo(ctx, newBridgeCallNonce, quoteInfo)
 
