@@ -53,7 +53,6 @@ import (
 	fxgovtypes "github.com/pundiai/fx-core/v8/x/gov/types"
 	optimismtypes "github.com/pundiai/fx-core/v8/x/optimism/types"
 	fxstakingv8 "github.com/pundiai/fx-core/v8/x/staking/migrations/v8"
-	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 func Test_UpgradeAndMigrate(t *testing.T) {
@@ -101,9 +100,7 @@ func Test_UpgradeTestnet(t *testing.T) {
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
 
 	// 3. check the status after the upgrade
-	checkBridgeFeeContract(t, ctx, myApp)
-	checkTronOracleIsOnline(t, ctx, myApp)
-	checkTronOutgoingBatch(t, ctx, myApp)
+	checkBridgeAddress(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -245,6 +242,7 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 	checkMetadata(t, ctx, myApp, bdd)
 
 	checkModulesData(t, ctx, myApp)
+	checkBridgeAddress(t, ctx, myApp)
 }
 
 func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, myApp *app.App) {
@@ -554,8 +552,7 @@ func checkEvmSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 			require.Equal(t, sdkmath.NewIntFromBigInt(balanceOf).String(), totalSupply.Amount.String(), et.GetDenom())
 			continue
 		}
-
-		t.Log("skip check", et.GetDenom())
+		assert.Failf(t, "not check supply %s", et.GetDenom())
 	}
 }
 
@@ -567,14 +564,19 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 
 	for _, et := range erc20Tokens {
 		aliasDenoms := make([]string, 0, 10)
+		nativeDenoms := make([]string, 0, 10)
 
 		bridgeTokens, err := myApp.Erc20Keeper.GetBaseBridgeTokens(ctx, et.GetDenom())
 		require.NoError(t, err)
 		for _, bt := range bridgeTokens {
-			if bt.IsOrigin() || bt.IsNative {
+			if bt.IsOrigin() {
 				continue
 			}
-			aliasDenoms = append(aliasDenoms, bt.BridgeDenom())
+			if bt.IsNative {
+				nativeDenoms = append(nativeDenoms, bt.BridgeDenom())
+			} else {
+				aliasDenoms = append(aliasDenoms, bt.BridgeDenom())
+			}
 		}
 
 		ibcTokens, err := myApp.Erc20Keeper.GetBaseIBCTokens(ctx, et.GetDenom())
@@ -595,6 +597,14 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 		baseSupply := myApp.BankKeeper.GetSupply(ctx, et.GetDenom())
 		// NOTE: after sendToExternal fixed, fix bridge token amount
 		require.Equal(t, aliasTotal, baseSupply.Amount)
+
+		nativeTotal := sdkmath.ZeroInt()
+		for _, denom := range nativeDenoms {
+			supply := myApp.BankKeeper.GetSupply(ctx, denom)
+			nativeTotal = nativeTotal.Add(supply.Amount)
+		}
+		crossChainBalance := myApp.BankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(crosschaintypes.ModuleName), et.GetDenom())
+		require.True(t, crossChainBalance.Amount.GTE(nativeTotal))
 	}
 }
 
@@ -868,24 +878,17 @@ func checkDefaultDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.Equal(t, nextversion.GetMainnetBridgeToken(ctx).String(), bridgeToken.Contract)
 }
 
-func checkTronOracleIsOnline(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	t.Helper()
-	oracles := myApp.TronKeeper.GetAllOracles(ctx, false)
-	for _, oracle := range oracles {
-		assert.True(t, oracle.Online, oracle.OracleAddress)
-	}
-}
-
-func checkTronOutgoingBatch(t *testing.T, ctx sdk.Context, myApp *app.App) {
+func checkBridgeAddress(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
-	gravityID := myApp.TronKeeper.GetGravityID(ctx)
-	myApp.TronKeeper.IterateOutgoingTxBatches(ctx, func(batch *crosschaintypes.OutgoingTxBatch) bool {
-		require.NoError(t, fxtypes.ValidateExternalAddr(trontypes.ModuleName, batch.FeeReceive))
-		_, err := batch.GetCheckpoint(gravityID)
-		require.NoError(t, err)
-		return false
-	})
+	moduleAccount := myApp.AccountKeeper.GetModuleAccount(ctx, crosschaintypes.ModuleName)
+	assert.NotEmpty(t, moduleAccount)
+
+	bridgeCallSender := authtypes.NewModuleAddress(crosschaintypes.BridgeCallSender)
+	assert.True(t, myApp.AccountKeeper.HasAccount(ctx, bridgeCallSender))
+
+	bridgeFeeCollector := authtypes.NewModuleAddress(crosschaintypes.BridgeFeeCollectorName)
+	assert.True(t, myApp.AccountKeeper.HasAccount(ctx, bridgeFeeCollector))
 }
 
 func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {
@@ -992,41 +995,4 @@ func allEvmBalance(ctx sdk.Context, myApp *app.App) (map[string]map[string]*big.
 		evmBalance[et.GetErc20Address()] = erc20Balances
 	}
 	return evmBalance, nil
-}
-
-func checkBridgeFeeContract(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	t.Helper()
-
-	bridgeFeeQuoteKeeper := contract.NewBridgeFeeQuoteKeeper(myApp.EvmKeeper)
-
-	quote, err := bridgeFeeQuoteKeeper.GetDefaultOracleQuote(ctx, contract.MustStrToByte32(ethtypes.ModuleName), contract.MustStrToByte32(fxtypes.DefaultDenom))
-	require.NoError(t, err)
-	require.Len(t, quote, 2)
-
-	chainNames, err := bridgeFeeQuoteKeeper.GetChainNames(ctx)
-	require.NoError(t, err)
-
-	chains := fxtypes.GetSupportChains()
-	chainNamesMap := make(map[string]bool)
-	for _, chain := range chains {
-		for _, chainName := range chainNames {
-			if chainName == contract.MustStrToByte32(chain) {
-				chainNamesMap[chain] = true
-			}
-		}
-	}
-	for _, chain := range chains {
-		require.True(t, chainNamesMap[chain])
-	}
-
-	for _, chainName := range chainNames {
-		tokens, err := bridgeFeeQuoteKeeper.GetTokens(ctx, chainName)
-		require.NoError(t, err)
-		chain := contract.Byte32ToString(chainName)
-
-		bridgeTokens, err := myApp.Erc20Keeper.GetBridgeTokens(ctx, chain)
-		require.NoError(t, err)
-
-		require.Len(t, tokens, len(bridgeTokens))
-	}
 }

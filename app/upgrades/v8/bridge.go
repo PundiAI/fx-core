@@ -196,6 +196,11 @@ func migrateBscModulePurse(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, bank
 	if err != nil {
 		return err
 	}
+	erc20ModuleBalance := bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(erc20types.ModuleName), ibcToken.GetIbcDenom())
+	if !erc20ModuleBalance.IsZero() {
+		return fmt.Errorf("erc20 module ibc purse balance not zero %s", erc20ModuleBalance.String())
+	}
+
 	ibcDenomSupply := bankKeeper.GetSupply(ctx, ibcToken.GetIbcDenom())
 	baseDenomSupply := bankKeeper.GetSupply(ctx, purseBaseDenom)
 	if !ibcDenomSupply.Amount.Equal(baseDenomSupply.Amount) {
