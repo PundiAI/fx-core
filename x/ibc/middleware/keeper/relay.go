@@ -41,12 +41,6 @@ func (k Keeper) OnRecvPacketWithoutRouter(ctx sdk.Context, ibcModule porttypes.I
 }
 
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData) error {
-	// parse receive address, compatible with evm addresses
-	receiver, isEvmAddr, err := fxtypes.ParseAddress(data.Receiver)
-	if err != nil {
-		return err
-	}
-
 	// parse the transfer amount
 	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
@@ -57,26 +51,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	receiveCoin := sdk.NewCoin(receiveDenom, transferAmount)
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeReceive,
-		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, receiver.String()),
+		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
 		sdk.NewAttribute(transfertypes.AttributeKeyAmount, receiveCoin.String()),
 	))
 
-	if receiveCoin.GetDenom() != fxtypes.DefaultDenom {
-		if !isEvmAddr {
-			return sdkerrors.ErrInvalidAddress.Wrap("only support hex address")
-		}
-		if err = k.crosschainKeeper.IBCCoinToEvm(ctx, receiver, receiveCoin); err != nil {
-			return err
-		}
+	if err := k.crosschainKeeper.IBCCoinToEvm(ctx, data.Receiver, receiveCoin); err != nil {
+		return err
 	}
-
-	// ibc call
-	if len(data.Memo) > 0 {
-		if err = k.HandlerIbcCall(ctx, packet.SourcePort, packet.SourceChannel, data); err != nil {
-			return err
-		}
-	}
-	return nil
+	return k.HandlerIbcCall(ctx, packet.SourcePort, packet.SourceChannel, data)
 }
 
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, ibcModule porttypes.IBCModule, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {

@@ -15,6 +15,9 @@ import (
 )
 
 func (k Keeper) HandlerIbcCall(ctx sdk.Context, sourcePort, sourceChannel string, data transfertypes.FungibleTokenPacketData) error {
+	if len(data.Memo) == 0 {
+		return nil
+	}
 	var mp types.MemoPacket
 	if err := k.cdc.UnmarshalInterfaceJSON([]byte(data.Memo), &mp); err != nil {
 		return nil
