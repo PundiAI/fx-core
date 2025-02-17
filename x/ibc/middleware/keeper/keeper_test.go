@@ -38,7 +38,7 @@ var _ types.CrosschainKeeper = (*mockCrosschainKeeper)(nil)
 
 type mockCrosschainKeeper struct{}
 
-func (m mockCrosschainKeeper) IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) error {
+func (m mockCrosschainKeeper) IBCCoinToEvm(ctx sdk.Context, holder string, ibcCoin sdk.Coin) error {
 	return nil
 }
 

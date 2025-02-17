@@ -8,8 +8,10 @@ import (
 	"cosmossdk.io/collections"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
@@ -180,7 +182,19 @@ func (k Keeper) BaseCoinToIBCCoin(ctx context.Context, holder sdk.AccAddress, ba
 	return ibcCoin, err
 }
 
-func (k Keeper) IBCCoinToEvm(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) error {
+func (k Keeper) IBCCoinToEvm(ctx sdk.Context, holderAddr string, ibcCoin sdk.Coin) error {
+	if ibcCoin.GetDenom() == fxtypes.DefaultDenom {
+		return nil
+	}
+	// parse receive address, compatible with evm addresses
+	holder, isEvmAddr, err := fxtypes.ParseAddress(holderAddr)
+	if err != nil {
+		return err
+	}
+
+	if !isEvmAddr && !IsEthSecp256k1(k.ak.GetAccount(ctx, holder)) {
+		return sdkerrors.ErrInvalidAddress.Wrap("only support hex address")
+	}
 	found, baseDenom, err := k.IBCCoinToBaseCoin(ctx, holder, ibcCoin)
 	if err != nil {
 		return err
@@ -223,4 +237,18 @@ func (k Keeper) GetBridgeToken(ctx context.Context, tokenAddr string) (erc20type
 		return erc20types.BridgeToken{}, err
 	}
 	return k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, baseDenom)
+}
+
+func IsEthSecp256k1(account sdk.AccountI) bool {
+	if account == nil {
+		return false
+	}
+	if account.GetPubKey() == nil && account.GetSequence() > 0 {
+		return true
+	}
+
+	if account.GetPubKey() != nil && account.GetPubKey().Type() == new(ethsecp256k1.PubKey).Type() {
+		return true
+	}
+	return false
 }
