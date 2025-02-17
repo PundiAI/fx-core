@@ -45,7 +45,7 @@ func updateConfig(cmd *cobra.Command, _ []string) error {
 	rootDir := serverCtx.Config.RootDir
 	fileName := filepath.Join(rootDir, "config", configFileName)
 	tmcfg.WriteConfigFile(fileName, serverCtx.Config)
-	serverCtx.Logger.Info("Update config.toml is successful", "fileName", fileName)
+	cmd.Printf("update %s is successful\n", fileName)
 
 	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 	appConfig := fxcfg.DefaultConfig()
@@ -58,7 +58,7 @@ func updateConfig(cmd *cobra.Command, _ []string) error {
 
 	fileName = filepath.Join(rootDir, "config", appFileName)
 	config.WriteConfigFile(fileName, appConfig)
-	serverCtx.Logger.Info("Update app.toml is successful", "fileName", fileName)
+	cmd.Printf("update %s is successful\n", fileName)
 	return nil
 }
 
