@@ -30,6 +30,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	fxclient "github.com/pundiai/fx-core/v8/client"
 	"github.com/pundiai/fx-core/v8/client/grpc"
 	"github.com/pundiai/fx-core/v8/server"
 	fxcfg "github.com/pundiai/fx-core/v8/server/config"
@@ -54,6 +55,7 @@ func doctorCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := sdkserver.GetServerContextFromCmd(cmd)
 			clientCtx := client.GetClientContextFromCmd(cmd)
+			ctxClient := fxclient.SDKContext{Context: clientCtx}
 			printPrompt()
 			printOSInfo(serverCtx.Config.RootDir)
 			printSelfInfo()
@@ -64,7 +66,7 @@ func doctorCmd() *cobra.Command {
 			if err = checkUpgradeInfo(serverCtx.Config.RootDir); err != nil {
 				return err
 			}
-			bc, err := getBlockchain(clientCtx, serverCtx)
+			bc, err := getBlockchain(ctxClient, serverCtx)
 			if err != nil {
 				return err
 			}
@@ -171,7 +173,7 @@ func checkUpgradeInfo(homeDir string) error {
 	return nil
 }
 
-func getBlockchain(cliCtx client.Context, serverCtx *sdkserver.Context) (blockchain, error) {
+func getBlockchain(cliCtx fxclient.SDKContext, serverCtx *sdkserver.Context) (blockchain, error) {
 	fmt.Printf("Blockchain Data:\n")
 	grpcAddr := serverCtx.Viper.GetString(flags.FlagGRPC)
 	newClient := grpc.NewClient(cliCtx)

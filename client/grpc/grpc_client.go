@@ -71,7 +71,7 @@ func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
 	return grpc.NewClient(_url, opts...)
 }
 
-func NewClient(conn grpc1.ClientConn, ctx ...context.Context) *Client {
+func NewClient(conn ClientConn, ctx ...context.Context) *Client {
 	cli := &Client{ClientConn: conn}
 	if len(ctx) > 0 {
 		cli.ctx = ctx[0]
