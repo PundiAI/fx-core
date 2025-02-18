@@ -11,14 +11,14 @@ import (
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
 
-func updateMainnetPundiAI(ctx sdk.Context, app *keepers.AppKeepers) error {
+func updatePundiAI(ctx sdk.Context, app *keepers.AppKeepers) error {
 	if err := migrateErc20FXToPundiAI(ctx, app.Erc20Keeper); err != nil {
 		return err
 	}
 	if err := updateFXBridgeDenom(ctx, app.Erc20Keeper); err != nil {
 		return err
 	}
-	return addMainnetPundiAIBridgeToken(ctx, app.Erc20Keeper)
+	return addPundiAIBridgeToken(ctx, app.Erc20Keeper)
 }
 
 func migrateErc20FXToPundiAI(ctx sdk.Context, keeper erc20keeper.Keeper) error {
@@ -59,7 +59,7 @@ func updateFXBridgeDenom(ctx sdk.Context, keeper erc20keeper.Keeper) error {
 	return keeper.DenomIndex.Set(ctx, bridgeDenom, fxtypes.FXDenom)
 }
 
-func addMainnetPundiAIBridgeToken(ctx sdk.Context, keeper erc20keeper.Keeper) error {
-	pundiaiToken := GetMainnetBridgeToken(ctx)
+func addPundiAIBridgeToken(ctx sdk.Context, keeper erc20keeper.Keeper) error {
+	pundiaiToken := GetPundiaiTokenAddr(ctx)
 	return keeper.AddBridgeToken(ctx, fxtypes.DefaultDenom, ethtypes.ModuleName, pundiaiToken.String(), false)
 }
