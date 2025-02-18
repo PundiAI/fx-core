@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
+	fxclient "github.com/pundiai/fx-core/v8/client"
 	"github.com/pundiai/fx-core/v8/client/grpc"
 	"github.com/pundiai/fx-core/v8/testutil"
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
@@ -147,7 +148,7 @@ func (suite *IntegrationTest) GetGasPrices() sdk.Coins {
 func (suite *IntegrationTest) GRPCClient(ctx context.Context) *grpc.Client {
 	validator := suite.network.Validators[0]
 	if validator.ClientCtx.GRPCClient != nil {
-		return grpc.NewClient(validator.ClientCtx)
+		return grpc.NewClient(fxclient.SDKContext{Context: validator.ClientCtx})
 	}
 	grpcUrl := fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address)
 	client, err := grpc.DailClient(grpcUrl, ctx)
