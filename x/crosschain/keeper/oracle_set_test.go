@@ -249,5 +249,5 @@ func (suite *KeeperTestSuite) TestKeeper_UpdateOracleSetExecuted() {
 	suite.Require().NotEmpty(oracleSet)
 	suite.Equal(oracleSet.Nonce, lastOracleSet.Nonce)
 	suite.Equal(oracleSet.Members, lastOracleSet.Members)
-	suite.Equal(oracleSet.Height, oracleSet.Height)
+	suite.Equal(oracleSet.Height, lastOracleSet.Height)
 }
