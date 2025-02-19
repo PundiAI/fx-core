@@ -75,6 +75,9 @@ func upgradeMainnet(
 	if err = migrateGovDefaultParams(ctx, app.GovKeeper); err != nil {
 		return fromVM, err
 	}
+	if err = removeGovPendingProposal(ctx, app.GovKeeper); err != nil {
+		return fromVM, err
+	}
 	if err = migrateBridgeToken(ctx, app.EvmKeeper, app.Erc20Keeper, app.BankKeeper, app.AccountKeeper); err != nil {
 		return fromVM, err
 	}

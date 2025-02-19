@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"cosmossdk.io/collections"
 	coreheader "cosmossdk.io/core/header"
@@ -29,6 +30,7 @@ import (
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -149,22 +151,24 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 }
 
 type BeforeUpgradeData struct {
-	AccountBalances map[string]sdk.Coins
-	ModuleBalances  map[string]sdk.Coins
-	Delegates       map[string]*stakingtypes.DelegationResponse
-	DelegateRewards map[string]sdk.DecCoins
-	ERC20Token      map[string]erc20types.ERC20Token
-	Metadata        map[string]banktypes.Metadata
-	EvmBalances     map[string]map[string]*big.Int
+	AccountBalances  map[string]sdk.Coins
+	ModuleBalances   map[string]sdk.Coins
+	Delegates        map[string]*stakingtypes.DelegationResponse
+	DelegateRewards  map[string]sdk.DecCoins
+	ERC20Token       map[string]erc20types.ERC20Token
+	Metadata         map[string]banktypes.Metadata
+	EvmBalances      map[string]map[string]*big.Int
+	GovDepositAmount map[string]sdkmath.Int
 }
 
 func beforeUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) BeforeUpgradeData {
 	t.Helper()
 	bdd := BeforeUpgradeData{
-		AccountBalances: make(map[string]sdk.Coins),
-		ModuleBalances:  make(map[string]sdk.Coins),
-		Delegates:       make(map[string]*stakingtypes.DelegationResponse),
-		DelegateRewards: make(map[string]sdk.DecCoins),
+		AccountBalances:  make(map[string]sdk.Coins),
+		ModuleBalances:   make(map[string]sdk.Coins),
+		Delegates:        make(map[string]*stakingtypes.DelegationResponse),
+		DelegateRewards:  make(map[string]sdk.DecCoins),
+		GovDepositAmount: make(map[string]sdkmath.Int),
 	}
 
 	accountBalance, moduleBalance := allBalances(ctx, myApp)
@@ -182,6 +186,10 @@ func beforeUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) BeforeUpgradeD
 	evmBalance, err := allEvmBalance(ctx, myApp)
 	require.NoError(t, err)
 	bdd.EvmBalances = evmBalance
+
+	depositAmount, err := allGovDepositAmount(ctx, myApp)
+	require.NoError(t, err)
+	bdd.GovDepositAmount = depositAmount
 
 	return bdd
 }
@@ -243,6 +251,7 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App, bdd BeforeUp
 
 	checkModulesData(t, ctx, myApp)
 	checkBridgeAddress(t, ctx, myApp)
+	checkGovProposal(t, ctx, myApp)
 }
 
 func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, myApp *app.App) {
@@ -441,7 +450,7 @@ func checkMigrateBalance(t *testing.T, ctx sdk.Context, myApp *app.App, bdd Befo
 	require.GreaterOrEqual(t, len(bdd.AccountBalances), len(newAccountBalance))
 
 	// check address balance
-	checkAccountBalance(t, ctx, myApp, bdd.AccountBalances, newAccountBalance)
+	checkAccountBalance(t, ctx, myApp, bdd.AccountBalances, newAccountBalance, bdd.GovDepositAmount)
 
 	for moduleName, coins := range newModuleBalance {
 		if moduleName == erc20types.ModuleName {
@@ -463,7 +472,7 @@ func checkMigrateBalance(t *testing.T, ctx sdk.Context, myApp *app.App, bdd Befo
 	}
 }
 
-func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountBalances, newAccountBalance map[string]sdk.Coins) {
+func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountBalances, newAccountBalance map[string]sdk.Coins, govDepositAmount map[string]sdkmath.Int) {
 	t.Helper()
 
 	for addrStr, coins := range accountBalances {
@@ -511,6 +520,10 @@ func checkAccountBalance(t *testing.T, ctx sdk.Context, myApp *app.App, accountB
 			amount := sdkmath.ZeroInt()
 			for denom := range tokenDenoms {
 				amount = amount.Add(coins.AmountOf(denom))
+			}
+
+			if depositAmount, ok := govDepositAmount[addrStr]; ok && baseDenom == fxtypes.DefaultDenom {
+				amount = amount.Add(fxtypes.SwapAmount(depositAmount))
 			}
 
 			balance := myApp.BankKeeper.GetBalance(ctx, addr, baseDenom)
@@ -891,6 +904,37 @@ func checkBridgeAddress(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	assert.True(t, myApp.AccountKeeper.HasAccount(ctx, bridgeFeeCollector))
 }
 
+func checkGovProposal(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	proposalCount := 0
+	handle := func(_ collections.Pair[time.Time, uint64], _ uint64) (stop bool, err error) {
+		proposalCount++
+		return false, nil
+	}
+	err := myApp.GovKeeper.InactiveProposalsQueue.Walk(ctx, nil, handle)
+	require.NoError(t, err)
+	err = myApp.GovKeeper.ActiveProposalsQueue.Walk(ctx, nil, handle)
+	require.NoError(t, err)
+	require.Zero(t, proposalCount)
+
+	depositCount := 0
+	err = myApp.GovKeeper.Deposits.Walk(ctx, nil, func(_ collections.Pair[uint64, sdk.AccAddress], _ govv1.Deposit) (stop bool, err error) {
+		depositCount++
+		return false, nil
+	})
+	require.NoError(t, err)
+	require.Zero(t, depositCount)
+
+	voteCount := 0
+	err = myApp.GovKeeper.Votes.Walk(ctx, nil, func(_ collections.Pair[uint64, sdk.AccAddress], _ govv1.Vote) (stop bool, err error) {
+		voteCount++
+		return false, nil
+	})
+	require.NoError(t, err)
+	require.Zero(t, voteCount)
+}
+
 func allBalances(ctx sdk.Context, myApp *app.App) (map[string]sdk.Coins, map[string]sdk.Coins) {
 	accountBalance := make(map[string]sdk.Coins)
 	moduleBalance := make(map[string]sdk.Coins)
@@ -995,4 +1039,23 @@ func allEvmBalance(ctx sdk.Context, myApp *app.App) (map[string]map[string]*big.
 		evmBalance[et.GetErc20Address()] = erc20Balances
 	}
 	return evmBalance, nil
+}
+
+func allGovDepositAmount(ctx sdk.Context, myApp *app.App) (map[string]sdkmath.Int, error) {
+	depositAmount := make(map[string]sdkmath.Int)
+	handle := func(key collections.Pair[time.Time, uint64], _ uint64) (stop bool, err error) {
+		return false, myApp.GovKeeper.IterateDeposits(ctx, key.K2(), func(key collections.Pair[uint64, sdk.AccAddress], value govv1.Deposit) (bool, error) {
+			acc := key.K2().String()
+			amount, ok := depositAmount[acc]
+			if !ok {
+				amount = sdkmath.ZeroInt()
+			}
+			depositAmount[acc] = amount.Add(sdk.NewCoins(value.Amount...).AmountOf(fxtypes.LegacyFXDenom))
+			return false, nil
+		})
+	}
+	if err := myApp.GovKeeper.InactiveProposalsQueue.Walk(ctx, nil, handle); err != nil {
+		return nil, err
+	}
+	return depositAmount, myApp.GovKeeper.ActiveProposalsQueue.Walk(ctx, nil, handle)
 }
