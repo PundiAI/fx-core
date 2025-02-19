@@ -84,7 +84,7 @@ func doctorCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().String(flags.FlagHome, fxtypes.GetDefaultNodeHome(), "The application home directory")
-	cmd.Flags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to Tendermint RPC interface for this chain")
+	cmd.Flags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to CometBFT RPC interface for this chain")
 	cmd.Flags().String(flags.FlagGRPC, "", "the gRPC endpoint to use for this chain")
 	cmd.Flags().Bool(flags.FlagGRPCInsecure, false, "allow gRPC over insecure channels, if not TLS the server must use TLS")
 	return cmd
@@ -126,7 +126,7 @@ func printSelfInfo() {
 	fmt.Printf("%sBuild Tags: %s\n", SPACE, info.BuildTags)
 	fmt.Printf("%sGo Version: %s\n", SPACE, runtime.Version())
 	fmt.Printf("%sCosmos SDK Version: %s\n", SPACE, info.CosmosSdkVersion)
-	fmt.Printf("%sTendermint Version: %s\n", SPACE, tmversion.TMCoreSemVer)
+	fmt.Printf("%sCometBFT Version: %s\n", SPACE, tmversion.TMCoreSemVer)
 }
 
 func checkGenesis(genesisFile string) (string, error) {
@@ -341,7 +341,7 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 
 func checkAppConfig(viper *viper.Viper) error {
 	fmt.Printf("App Config:\n")
-	fmt.Printf("%sFile: %s\n", SPACE, viper.ConfigFileUsed())
+	fmt.Printf("%sFile: %s/config/app.toml\n", SPACE, viper.GetString(flags.FlagHome))
 	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 	appConfig := fxcfg.DefaultConfig()
 	if err := viper.Unmarshal(appConfig); err != nil {
@@ -363,7 +363,7 @@ func checkAppConfig(viper *viper.Viper) error {
 }
 
 func checkTmConfig(config *tmcfg.Config, needUpgrade bool) error {
-	fmt.Printf("Tendermint Config:\n")
+	fmt.Printf("CometBFT Config:\n")
 	fmt.Printf("%sFile: %s/config/config.toml\n", SPACE, config.RootDir)
 	if err := config.ValidateBasic(); err != nil {
 		fmt.Printf("%sWarning: ", err.Error())
@@ -455,7 +455,7 @@ func checkCosmovisor(rootPath string, bc blockchain) error {
 		}
 		fmt.Printf("%s%s%sUpgrade Info File: %s\n", SPACE, SPACE, SPACE, upgradeInfoFile)
 		var plan upgradetypes.Plan
-		if err := json.Unmarshal(upgradeInfo, &plan); err != nil {
+		if err = json.Unmarshal(upgradeInfo, &plan); err != nil {
 			fmt.Printf("%s%s%sWarning: %s\n", SPACE, SPACE, SPACE, err.Error())
 			continue
 		}
