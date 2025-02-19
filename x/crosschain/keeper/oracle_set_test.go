@@ -222,3 +222,32 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
 		return false
 	})
 }
+
+func (suite *KeeperTestSuite) TestKeeper_UpdateOracleSetExecuted() {
+	claim := types.MsgOracleSetUpdatedClaim{
+		OracleSetNonce: 0,
+		Members:        types.BridgeValidators{{Power: 1, ExternalAddress: helpers.GenExternalAddr(suite.chainName)}},
+		ChainName:      suite.chainName,
+	}
+	err := suite.Keeper().UpdateOracleSetExecuted(suite.Ctx, &claim)
+	suite.Require().NoError(err)
+	oracleSet := suite.Keeper().GetLastObservedOracleSet(suite.Ctx)
+	suite.Require().NotEmpty(oracleSet)
+	suite.Equal(claim.OracleSetNonce, oracleSet.Nonce)
+	suite.Equal(claim.Members, oracleSet.Members)
+
+	claim.OracleSetNonce = 1
+	err = suite.Keeper().UpdateOracleSetExecuted(suite.Ctx, &claim)
+	suite.Require().Error(err)
+	suite.ErrorIs(types.ErrInvalid.Wrapf("attested oracleSet (%v) does not exist in store", claim.OracleSetNonce), err)
+
+	oracleSet = &types.OracleSet{Nonce: claim.OracleSetNonce, Members: claim.Members, Height: 10}
+	suite.Keeper().StoreOracleSet(suite.Ctx, oracleSet)
+	err = suite.Keeper().UpdateOracleSetExecuted(suite.Ctx, &claim)
+	suite.Require().NoError(err)
+	lastOracleSet := suite.Keeper().GetLastObservedOracleSet(suite.Ctx)
+	suite.Require().NotEmpty(oracleSet)
+	suite.Equal(oracleSet.Nonce, lastOracleSet.Nonce)
+	suite.Equal(oracleSet.Members, lastOracleSet.Members)
+	suite.Equal(oracleSet.Height, lastOracleSet.Height)
+}
