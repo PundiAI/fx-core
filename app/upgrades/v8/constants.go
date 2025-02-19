@@ -13,7 +13,7 @@ import (
 )
 
 var Upgrade = upgrades.Upgrade{
-	UpgradeName:          "v8.4.1",
+	UpgradeName:          "v8.5.x",
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: func() *storetypes.StoreUpgrades {
 		return &storetypes.StoreUpgrades{
@@ -72,7 +72,7 @@ func GetMigrateEscrowDenoms(chainID string) map[string]string {
 
 const mainnetPundiAIAddr = "0x075F23b9CdfCE2cC0cA466F4eE6cb4bD29d83bef"
 
-func GetMainnetBridgeToken(ctx sdk.Context) common.Address {
+func GetPundiaiTokenAddr(ctx sdk.Context) common.Address {
 	if ctx.ChainID() == fxtypes.MainnetChainId {
 		return common.HexToAddress(mainnetPundiAIAddr)
 	}

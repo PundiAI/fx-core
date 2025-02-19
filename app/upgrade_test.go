@@ -98,9 +98,6 @@ func Test_UpgradeTestnet(t *testing.T) {
 	responsePreBlock, err := myApp.PreBlocker(ctx, nil)
 	require.NoError(t, err)
 	require.True(t, responsePreBlock.IsConsensusParamsChanged())
-
-	// 3. check the status after the upgrade
-	checkBridgeAddress(t, ctx, myApp)
 }
 
 func buildApp(t *testing.T) *app.App {
@@ -875,7 +872,7 @@ func checkDefaultDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.Equal(t, fxtypes.DefaultDenom, denom)
 	bridgeToken, err = myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.DefaultDenom)
 	require.NoError(t, err)
-	require.Equal(t, nextversion.GetMainnetBridgeToken(ctx).String(), bridgeToken.Contract)
+	require.Equal(t, nextversion.GetPundiaiTokenAddr(ctx).String(), bridgeToken.Contract)
 }
 
 func checkBridgeAddress(t *testing.T, ctx sdk.Context, myApp *app.App) {

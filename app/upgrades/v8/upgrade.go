@@ -29,8 +29,7 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 		var err error
 		var toVM module.VersionMap
 		if cacheCtx.ChainID() == fxtypes.TestnetChainId {
-			upgradeTestnet(cacheCtx, app)
-			toVM = fromVM
+			return fromVM, nil
 		} else {
 			toVM, err = upgradeMainnet(cacheCtx, codec, mm, configurator, app, fromVM, plan)
 			if err != nil {
@@ -81,7 +80,7 @@ func upgradeMainnet(
 	if err = updateMetadata(ctx, app.BankKeeper); err != nil {
 		return fromVM, err
 	}
-	if err = updateMainnetPundiAI(ctx, app); err != nil {
+	if err = updatePundiAI(ctx, app); err != nil {
 		return fromVM, err
 	}
 	if err = updateContract(ctx, app); err != nil {
