@@ -27,7 +27,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	grpc1 "github.com/cosmos/gogoproto/grpc"
 	"github.com/cosmos/gogoproto/proto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"google.golang.org/grpc"
@@ -46,7 +45,7 @@ type Client struct {
 	addrPrefix string
 	gasPrices  sdk.Coins
 	ctx        context.Context
-	grpc1.ClientConn
+	ClientConn
 }
 
 func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
