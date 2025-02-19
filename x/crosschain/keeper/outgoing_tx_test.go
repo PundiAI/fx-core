@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -73,4 +75,19 @@ func (suite *KeeperTestSuite) addOutgoingTxBatchs(batchNumber int, tokenContract
 		})
 		suite.NoError(err)
 	}
+}
+
+func (suite *KeeperTestSuite) TestKeeper_OutgoingTxBatchExecuted() {
+	batchNumber := 1
+	tokenContract := helpers.GenExternalAddr(suite.chainName)
+	suite.addOutgoingTxBatchs(batchNumber, tokenContract)
+
+	err := suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, tokenContract, 1)
+	suite.Require().NoError(err)
+	batch := suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, 1)
+	suite.Empty(batch)
+
+	err = suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, tokenContract, 1)
+	suite.Error(err)
+	suite.EqualError(err, fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, 1))
 }
