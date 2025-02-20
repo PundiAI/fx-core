@@ -15,3 +15,13 @@ func (k Keeper) LegacyGetDenomBridgeToken(ctx sdk.Context, denom string) (string
 	}
 	return string(data), true
 }
+
+// Deprecated: do not use, remove in v8
+func (k Keeper) LegacyGetBridgeTokenDenom(ctx sdk.Context, token string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	data := store.Get(v8.GetDenomToTokenKey(token))
+	if len(data) == 0 {
+		return "", false
+	}
+	return string(data), true
+}

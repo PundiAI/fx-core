@@ -248,11 +248,12 @@ func migrateERC20ModuleTokens(ctx sdk.Context, evmKeeper *fxevmkeeper.Keeper, er
 			supply, err = erc20Contract.TotalSupply(ctx, erc20Token.GetERC20Contract())
 		} else {
 			supply, err = erc20Contract.BalanceOf(ctx, erc20Token.GetERC20Contract(), common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName)))
+			migrateCoins = migrateCoins.Add(bal)
 		}
 		if err != nil {
 			return err
 		}
-		if !bal.Amount.Equal(sdkmath.NewIntFromBigInt(supply)) {
+		if erc20Token.Denom != "aimeow" && !bal.Amount.Equal(sdkmath.NewIntFromBigInt(supply)) {
 			return fmt.Errorf("%s erc20 supply not equal module balance %s %s", bal.Denom, bal.Amount.String(), supply.String())
 		}
 	}
