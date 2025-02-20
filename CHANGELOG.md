@@ -1,5 +1,18 @@
 # Change log
 
+## [v8.5.0]
+
+### Enhancements and New Features
+
+* The FX/WFX held by users will be automatically exchanged for PUNDIAI/WPUNDIAI.
+* The minimum gas price for Cosmos transactions has been adjusted from 4000 gWei to 5 gWei.
+* The minimum gas price for EVM transactions has been adjusted from 500 gWei to 5 gWei.
+* When users cross-chain $FX to Pundi AIFX chain, it will be automatically exchanged for PUNDIAI.
+* Bridge fees will adopt decentralized pricing, with the pricing data recorded in the contract at 0x0000000000000000000000000000000000001005.
+* Improved BridgeCall.
+
+---
+
 ## [v7.5.0]
 
 ### Enhancements and New Features
