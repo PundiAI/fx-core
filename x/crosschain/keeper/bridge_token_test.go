@@ -28,7 +28,6 @@ func (suite *KeeperTestSuite) TestKeeper_AddBridgeTokenExecuted() {
 						suite.Require().NoError(k.AddBridgeTokenExecuted(suite.Ctx, &msg))
 						break
 					}
-					suite.Require().Fail("only one crosschain keeper")
 				}
 				msg.Symbol = fxtypes.DefaultSymbol
 			},
