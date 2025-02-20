@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -148,7 +148,7 @@ func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ib
 	baseDenom, err = k.erc20Keeper.GetBaseDenom(ctx, ibcCoin.Denom)
 	if err != nil {
 		// NOTE: if not found in IBCToken
-		if errors.Is(err, collections.ErrNotFound) {
+		if errors.IsOf(err, collections.ErrNotFound) {
 			return false, "", nil
 		}
 		return false, "", err
