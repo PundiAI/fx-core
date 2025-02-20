@@ -2,9 +2,9 @@ package keeper
 
 import (
 	"context"
-	"errors"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -294,7 +294,7 @@ func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeToken
 		if err == nil {
 			break
 		}
-		if errors.Is(err, collections.ErrNotFound) {
+		if errors.IsOf(err, collections.ErrNotFound) {
 			continue
 		}
 		return nil, err

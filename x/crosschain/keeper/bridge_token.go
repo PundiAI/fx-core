@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -23,21 +25,24 @@ func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTo
 		}
 		baseDenom = fxtypes.DefaultDenom
 	}
-
-	err := k.erc20Keeper.AddBridgeToken(ctx, baseDenom, k.moduleName, claim.TokenContract, false)
+	erc20Token, err := k.erc20Keeper.GetERC20Token(ctx, baseDenom)
 	if err != nil {
-		return err
+		if !errors.IsOf(err, collections.ErrNotFound) {
+			return err
+		}
+		erc20Token, err = k.erc20Keeper.RegisterNativeCoin(ctx, claim.Name, claim.Symbol, uint8(claim.Decimals))
+		if err != nil {
+			return err
+		}
 	}
-
-	hasToken, err := k.erc20Keeper.HasERC20Token(ctx, baseDenom)
+	_, err = k.erc20Keeper.GetBridgeToken(ctx, k.moduleName, baseDenom)
 	if err != nil {
-		return err
+		if !errors.IsOf(err, collections.ErrNotFound) {
+			return err
+		}
+		return k.erc20Keeper.AddBridgeToken(ctx, baseDenom, k.moduleName, claim.TokenContract, erc20Token.IsNativeERC20())
 	}
-	if hasToken {
-		return nil
-	}
-	_, err = k.erc20Keeper.RegisterNativeCoin(ctx, claim.Name, claim.Symbol, uint8(claim.Decimals))
-	return err
+	return nil
 }
 
 func (k Keeper) BridgeCoinSupply(ctx context.Context, token, target string) (sdk.Coin, error) {

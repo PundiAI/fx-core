@@ -15,7 +15,86 @@ import (
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
+	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
+
+func (suite *KeeperTestSuite) TestKeeper_SwapBridgeToken() {
+	type args struct {
+		name            string
+		initBridgeToken func(*erc20types.BridgeToken)
+		amount          sdkmath.Int
+		err             error
+		swapAmount      sdkmath.Int
+	}
+	tests := []args{
+		{
+			name: "swap fx token",
+			initBridgeToken: func(token *erc20types.BridgeToken) {
+				token.Denom = fxtypes.FXDenom
+			},
+			amount:     sdkmath.NewInt(100),
+			err:        nil,
+			swapAmount: sdkmath.NewInt(1),
+		},
+		{
+			name: "swap origin token",
+			initBridgeToken: func(token *erc20types.BridgeToken) {
+				token.Denom = fxtypes.DefaultDenom
+			},
+			amount:     sdkmath.NewInt(100),
+			err:        nil,
+			swapAmount: sdkmath.NewInt(100),
+		},
+		{
+			name: "swap bridge token",
+			initBridgeToken: func(token *erc20types.BridgeToken) {
+				token.Denom = "usdt"
+			},
+			amount:     sdkmath.NewInt(100),
+			err:        nil,
+			swapAmount: sdkmath.NewInt(100),
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			bridgeToken := erc20types.BridgeToken{
+				ChainName: suite.chainName,
+				Contract:  helpers.GenExternalAddr(suite.chainName),
+				Denom:     helpers.NewRandDenom(),
+				IsNative:  false,
+			}
+			tt.initBridgeToken(&bridgeToken)
+			err := suite.App.Erc20Keeper.AddBridgeToken(suite.Ctx, bridgeToken.Denom, bridgeToken.ChainName, bridgeToken.Contract, bridgeToken.IsNative)
+			suite.Require().NoError(err)
+
+			expBridgeToken := bridgeToken
+			if bridgeToken.Denom == fxtypes.FXDenom {
+				expBridgeToken = erc20types.BridgeToken{
+					ChainName: suite.chainName,
+					Contract:  helpers.GenExternalAddr(suite.chainName),
+					Denom:     fxtypes.DefaultDenom,
+					IsNative:  false,
+				}
+				err = suite.App.Erc20Keeper.AddBridgeToken(suite.Ctx, expBridgeToken.Denom, expBridgeToken.ChainName, expBridgeToken.Contract, expBridgeToken.IsNative)
+				suite.Require().NoError(err)
+				suite.MintTokenToModule(ethtypes.ModuleName, sdk.NewCoin(expBridgeToken.Denom, tt.amount))
+			}
+
+			from := helpers.GenAccAddress()
+			suite.MintToken(from, sdk.NewCoin(bridgeToken.BridgeDenom(), tt.amount))
+			bridgeToken, swapAmount, err := suite.Keeper().SwapBridgeToken(suite.Ctx, from, bridgeToken, tt.amount)
+			if tt.err != nil {
+				suite.Require().Error(err)
+				suite.Require().Equal(tt.err.Error(), err.Error())
+				return
+			}
+			suite.Require().NoError(err)
+			suite.Equal(tt.swapAmount, swapAmount)
+			suite.Equal(expBridgeToken, bridgeToken)
+			suite.AssertBalance(from, sdk.NewCoin(expBridgeToken.BridgeDenom(), tt.swapAmount))
+		})
+	}
+}
 
 func (suite *KeeperTestSuite) TestKeeper_IBCCoinToEvm() {
 	type args struct {
@@ -116,6 +195,57 @@ func (suite *KeeperTestSuite) TestKeeper_IBCCoinToEvm() {
 					BalanceOf(suite.Ctx, common.BytesToAddress(addr))
 				suite.Equal(balance.String(), ibcCoin.Amount.String())
 			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestKeeper_DepositBridgeTokenToBaseCoin() {
+	type args struct {
+		name            string
+		initBridgeToken func(*erc20types.BridgeToken)
+		amount          sdkmath.Int
+		err             error
+	}
+	tests := []args{
+		{
+			name:            "success bridge token",
+			initBridgeToken: func(token *erc20types.BridgeToken) {},
+			amount:          sdkmath.NewInt(100),
+		},
+		{
+			name: "success origin coin",
+			initBridgeToken: func(token *erc20types.BridgeToken) {
+				token.Denom = fxtypes.DefaultDenom
+			},
+			amount: sdkmath.NewInt(100),
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			bridgeToken := erc20types.BridgeToken{
+				ChainName: suite.chainName,
+				Contract:  helpers.GenExternalAddr(suite.chainName),
+				Denom:     helpers.NewRandDenom(),
+				IsNative:  false,
+			}
+			tt.initBridgeToken(&bridgeToken)
+			err := suite.App.Erc20Keeper.AddBridgeToken(suite.Ctx, bridgeToken.Denom, bridgeToken.ChainName, bridgeToken.Contract, bridgeToken.IsNative)
+			suite.Require().NoError(err)
+
+			from := helpers.GenAccAddress()
+			if bridgeToken.IsOrigin() {
+				suite.MintTokenToModule(ethtypes.ModuleName, sdk.NewCoin(bridgeToken.BridgeDenom(), tt.amount))
+			}
+			baseCoin, err := suite.Keeper().DepositBridgeTokenToBaseCoin(suite.Ctx, from, tt.amount, bridgeToken.Contract)
+			if tt.err != nil {
+				suite.Require().Error(err)
+				suite.Require().Equal(tt.err.Error(), err.Error())
+				return
+			}
+			suite.Require().NoError(err)
+			suite.Equal(sdk.NewCoin(bridgeToken.Denom, tt.amount), baseCoin)
+
+			suite.AssertBalance(from, sdk.NewCoin(bridgeToken.Denom, tt.amount))
 		})
 	}
 }
