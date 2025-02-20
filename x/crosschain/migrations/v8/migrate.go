@@ -10,9 +10,6 @@ import (
 )
 
 var (
-	// Deprecated: OutgoingTxPoolKey indexes the last nonce for the outgoing tx pool
-	OutgoingTxPoolKey = []byte{0x18}
-
 	// Deprecated: DenomToTokenKey prefixes the index of asset denom to external token
 	DenomToTokenKey = []byte{0x26}
 
@@ -26,6 +23,11 @@ var (
 // Deprecated: GetTokenToDenomKey returns the following key format
 func GetTokenToDenomKey(denom string) []byte {
 	return append(TokenToDenomKey, []byte(denom)...)
+}
+
+// Deprecated: GetDenomToTokenKey returns the following key format
+func GetDenomToTokenKey(token string) []byte {
+	return append(DenomToTokenKey, []byte(token)...)
 }
 
 func GetRemovedStoreKeys() [][]byte {

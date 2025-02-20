@@ -94,6 +94,10 @@ func upgradeMainnet(
 	}
 
 	initBridgeAccount(ctx, app.AccountKeeper)
+
+	if err = cancelOutgoingTxPool(ctx, app.CrosschainKeepers, app.Erc20Keeper, app.EvmKeeper, app.BankKeeper, app.AccountKeeper); err != nil {
+		return fromVM, err
+	}
 	return toVM, nil
 }
 

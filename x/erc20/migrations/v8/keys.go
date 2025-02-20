@@ -3,14 +3,12 @@ package v8
 import (
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	legacytypes "github.com/pundiai/fx-core/v8/types/legacy"
-	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	"github.com/pundiai/fx-core/v8/x/erc20/types"
 )
 
@@ -19,37 +17,7 @@ func (m Migrator) migrateKeys(ctx sdk.Context) error {
 	if err := m.migrateParams(ctx, store); err != nil {
 		return err
 	}
-	if err := m.migrateTokenPair(ctx, store); err != nil {
-		return err
-	}
-	return m.migrateRelationToCache(ctx, store)
-}
-
-func (m Migrator) migrateRelationToCache(ctx sdk.Context, store storetypes.KVStore) error {
-	// 1. migrate ibc transfer relation
-	iterator := storetypes.KVStorePrefixIterator(store, KeyPrefixIBCTransfer)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-		newKey := key[len(KeyPrefixIBCTransfer):]
-		if err := m.keeper.Cache.Set(ctx, string(newKey), sdkmath.ZeroInt()); err != nil {
-			return err
-		}
-		store.Delete(key)
-	}
-
-	// 2. migrate outgoing transfer relation
-	iterator = storetypes.KVStorePrefixIterator(store, KeyPrefixOutgoingTransfer)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-		originTokenKey := OutgoingTransferKeyToOriginTokenKey(key)
-		if err := m.keeper.Cache.Set(ctx, originTokenKey, sdkmath.ZeroInt()); err != nil {
-			return err
-		}
-		store.Delete(key)
-	}
-	return nil
+	return m.migrateTokenPair(ctx, store)
 }
 
 func (m Migrator) migrateParams(ctx sdk.Context, store storetypes.KVStore) error {
@@ -96,16 +64,4 @@ func (m Migrator) migrateTokenPair(ctx sdk.Context, store storetypes.KVStore) er
 		}
 	}
 	return nil
-}
-
-func OutgoingTransferKeyToOriginTokenKey(key []byte) string {
-	// key = prefix + moduleName(string-) + sdk.Uint64ToBigEndian(id)(len = 8)
-	// 1. remove prefix
-	key = key[len(KeyPrefixOutgoingTransfer):]
-	// 2. get moduleName
-	moduleName := string(key[:len(key)-8])
-	// 3. get id
-	id := sdk.BigEndianToUint64(key[len(key)-8:])
-	// 4. new originTokenKey
-	return crosschaintypes.NewOriginTokenKey(moduleName, id)
 }
