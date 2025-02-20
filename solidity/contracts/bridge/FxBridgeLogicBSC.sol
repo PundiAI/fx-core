@@ -453,7 +453,7 @@ contract FxBridgeLogicBSC is
     }
 
     function checkAssetStatus(address _tokenAddr) public view returns (bool) {
-        return tokenStatus[_tokenAddr].isExist;
+        return tokenStatus[_tokenAddr].isActive;
     }
 
     /* ============== HELP FUNCTIONS =============== */
