@@ -90,17 +90,20 @@ func cancelOutgoingTxPool(ctx sdk.Context, keepers keepers.CrosschainKeepers, er
 		if err != nil {
 			return err
 		}
-		if err = handleLayer2Txs(ctx, k, erc20Keeper, evmKeeper, bankKeeper, accountKeeper, batchHandleTxs); err != nil {
-			return err
+		if len(batchHandleTxs) == 0 {
+			continue
 		}
+		cacheCtx, commit := ctx.CacheContext()
+		if handleErr := handleLayer2Txs(cacheCtx, k, erc20Keeper, evmKeeper, bankKeeper, accountKeeper, batchHandleTxs); handleErr != nil {
+			ctx.Logger().Error("handle layer2 txs error", "err", handleErr, "module", k.ModuleName(), "txs", len(batchHandleTxs))
+			continue
+		}
+		commit()
 	}
 	return err
 }
 
 func handleLayer2Txs(ctx sdk.Context, k crosschainkeeper.Keeper, erc20Keeper crosschaintypes.Erc20Keeper, evmKeeper crosschaintypes.EVMKeeper, bankKeeper crosschaintypes.BankKeeper, accountKeeper crosschaintypes.AccountKeeper, batchHandleTxs []crosschaintypes.OutgoingTransferTx) error {
-	if len(batchHandleTxs) == 0 {
-		return nil
-	}
 	// calculate total refund amount
 	totalRefundAmount := sdkmath.NewInt(0)
 	for _, tx := range batchHandleTxs {
