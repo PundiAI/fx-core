@@ -187,8 +187,11 @@ func checkMainnetAndBlock(genesisDoc *genutiltypes.AppGenesis, genesisHash strin
 			return errors.New("invalid version: The current block height is less than the v7.5.0 upgrade height(16_838_000)," +
 				" please use the v6.x.x version to synchronize the block or download the latest snapshot")
 		}
-		// TODO: The line of code below must be removed before the release.
-		return errors.New("invalid version: The current version is not released, please use the corresponding version")
+		if blockStore.Height() < fxtypes.MainnetBlockHeightV8 {
+			return errors.New("invalid version: The current block height is less than the v8.5.0 upgrade height(19_616_000)," +
+				" please use the v7.x.x version to synchronize the block or download the latest snapshot")
+		}
+		return nil
 	}
 	return nil
 }
