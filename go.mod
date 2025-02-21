@@ -270,7 +270,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// v0.38.x
-	github.com/cometbft/cometbft => github.com/crypto-org-chain/cometbft v0.0.0-20241106091515-ce418f845d9a
+	github.com/cometbft/cometbft => github.com/crypto-org-chain/cometbft v0.0.0-20250203071505-1964da4a0cac
 
 	github.com/ethereum/go-ethereum => github.com/crypto-org-chain/go-ethereum v1.10.20-0.20240926023215-d2275b4afb9a
 	// release/v1.4.x
