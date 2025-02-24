@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-VERSION := $(shell git describe --tags --always 2>/dev/null || echo 'unknown')
+VERSION := $(shell git describe --tags --match "v*" --always 2>/dev/null || echo 'unknown')
 COMMIT := $(shell git log -1 --format='%H' 2>/dev/null || echo 'unknown')
 
 LEDGER_ENABLED ?= true
