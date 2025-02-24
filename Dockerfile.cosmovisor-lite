@@ -1,6 +1,6 @@
 FROM ghcr.io/pundiai/fx-core:7.5.1 AS fxv7_5
 FROM ghcr.io/pundiai/fx-core:8.4.1-rc4 AS fxv8_4_1
-FROM ghcr.io/pundiai/fx-core:8.5.0 AS fxv8_5
+FROM ghcr.io/pundiai/fx-core:8.5.1 AS fxv8_5
 FROM --platform=$BUILDPLATFORM alpine:3.19 AS downloader
 
 ARG TARGETPLATFORM
