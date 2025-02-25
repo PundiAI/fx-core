@@ -4,8 +4,8 @@ pragma solidity ^0.8.10;
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import {ERC20PermitUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import {ERC20Upgradeable} from "../extensions/ERC20Upgradeable.sol";
+import {ERC20PermitUpgradeable} from "../extensions/ERC20PermitUpgradeable.sol";
 import {IPundiAIFX} from "../interfaces/IPundiAIFX.sol";
 
 /* solhint-disable custom-errors */
@@ -52,6 +52,16 @@ contract PundiAIFX is
         _burn(account, amount);
     }
 
+    /**
+     * @notice setName set a new name for PundiAIFX.
+     * @dev This function can only be called by an account with the OWNER_ROLE.
+     * @param newName The new name to set.
+     */
+    function setName(string memory newName) external onlyRole(OWNER_ROLE) {
+        _setName(newName);
+        _setEIP712Name(newName);
+    }
+
     // solhint-disable no-empty-blocks
     function _authorizeUpgrade(
         address
@@ -59,8 +69,8 @@ contract PundiAIFX is
     // solhint-disable no-empty-blocks
 
     function initialize() public virtual initializer {
-        __ERC20_init("Pundi AIFX Token", "PUNDIAI");
-        __ERC20Permit_init("Pundi AIFX Token");
+        __ERC20_init("Pundi AI", "PUNDIAI");
+        __ERC20Permit_init("Pundi AI");
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
