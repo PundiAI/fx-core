@@ -30,10 +30,11 @@ describe("pundiaifx tests", function () {
   });
 
   it("token info", async function () {
-    expect(await pundiAIFX.name()).to.equal("Pundi AIFX Token");
+    expect(await pundiAIFX.name()).to.equal("Pundi AI");
     expect(await pundiAIFX.symbol()).to.equal("PUNDIAI");
     expect(await pundiAIFX.decimals()).to.equal(18);
     expect(await pundiAIFX.totalSupply()).to.equal(0);
+    expect((await pundiAIFX.eip712Domain()).name).to.equal("Pundi AI");
   });
 
   it("mint, burn and  transfer AIFX", async function () {
@@ -95,6 +96,17 @@ describe("pundiaifx tests", function () {
     ).to.equal(false);
   });
 
+  it("set name", async function () {
+    expect(await pundiAIFX.name()).to.equal("Pundi AI");
+    expect((await pundiAIFX.eip712Domain()).name).to.equal("Pundi AI");
+
+    const newName = "xxxx";
+    await pundiAIFX.connect(deploy).setName(newName);
+
+    expect(await pundiAIFX.name()).to.equal(newName);
+    expect((await pundiAIFX.eip712Domain()).name).to.equal(newName);
+  });
+
   it("upgrade contract", async function () {
     const newPundiAIFXFactory = await ethers.getContractFactory("PundiAIFX");
     const newPundiAIFXDeploy = await newPundiAIFXFactory.deploy();
@@ -104,7 +116,7 @@ describe("pundiaifx tests", function () {
       .upgradeTo(await newPundiAIFXDeploy.getAddress());
 
     // Verify state preservation
-    expect(await pundiAIFX.name()).to.equal("Pundi AIFX Token");
+    expect(await pundiAIFX.name()).to.equal("Pundi AI");
     expect(await pundiAIFX.symbol()).to.equal("PUNDIAI");
   });
 });
