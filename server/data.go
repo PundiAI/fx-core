@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"cosmossdk.io/errors"
 	cmtdbm "github.com/cometbft/cometbft-db"
 	sm "github.com/cometbft/cometbft/state"
 	"github.com/cometbft/cometbft/store"
@@ -212,46 +213,49 @@ func pruneBlockData(cmd *cobra.Command, blockStoreDB, stateDB cmtdbm.DB) error {
 		return nil
 	}
 	fmt.Printf("--------- pruning start... from:%d,to:%d,size:%d---------\n", baseHeight, toHeight, fullHeight)
-	var wg sync.WaitGroup
-	wg.Add(2)
 	start := time.Now()
-	go pruneBlocks(blockStoreDB, baseHeight, toHeight, &wg)
-	go pruneStates(stateDB, baseHeight, toHeight, &wg)
-	wg.Wait()
+
+	prunedHeaderHeight, err := pruneBlocks(blockStoreDB, baseHeight, toHeight)
+	if err != nil {
+		return err
+	}
+
+	if err = pruneStates(stateDB, baseHeight, toHeight, prunedHeaderHeight); err != nil {
+		return err
+	}
+
 	fmt.Printf("--------- pruning end!!!   cast:%v---------\n", time.Since(start))
 	return nil
 }
 
 // pruneBlocks deletes blocks between the given heights (including from, excluding to).
-func pruneBlocks(blockStoreDB cmtdbm.DB, baseHeight, toHeight int64, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func pruneBlocks(blockStoreDB cmtdbm.DB, baseHeight, toHeight int64) (int64, error) {
 	fmt.Printf("Prune blocks start from %d to %d, pruneSize: %d\n", baseHeight, toHeight, toHeight-baseHeight)
 	start := time.Now()
-	_, _, err := store.NewBlockStore(blockStoreDB).PruneBlocks(toHeight, sm.State{})
+	amountPruned, prunedHeaderHeight, err := store.NewBlockStore(blockStoreDB).PruneBlocks(toHeight, sm.State{})
 	if err != nil {
-		panic(fmt.Errorf("failed to prune block store: %w", err))
+		return 0, errors.Wrap(err, "failed to prune blocks")
 	}
 
 	baseHeightAfter, currentHeightAfter := getBlockInfo(blockStoreDB)
-	fmt.Printf("Prune blocks done new base: %d, height:%d, cost:%v\n", baseHeightAfter, currentHeightAfter, time.Since(start))
+	fmt.Printf("Prune blocks done new base: %d, height:%d, pruned:%d, cost:%v\n", baseHeightAfter, currentHeightAfter, amountPruned, time.Since(start))
+	return prunedHeaderHeight, nil
 }
 
 // pruneStates deletes states between the given heights (including from, excluding to).
-func pruneStates(stateDB cmtdbm.DB, from, to int64, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func pruneStates(stateDB cmtdbm.DB, from, to, prunedHeaderHeight int64) error {
 	fmt.Printf("Prune states start from %d to %d, pruneSize: %d\n", from, to, to-from)
 
 	start := time.Now()
 	stateStore := sm.NewStore(stateDB, sm.StoreOptions{
 		DiscardABCIResponses: false,
 	})
-	if err := stateStore.PruneStates(from, to, 0); err != nil {
-		panic(fmt.Errorf("failed to prune state database: %w", err))
+	if err := stateStore.PruneStates(from, to, prunedHeaderHeight); err != nil {
+		return errors.Wrap(err, "failed to prune states")
 	}
 
 	fmt.Printf("Prune states done in %v \n", time.Since(start))
+	return nil
 }
 
 func compactDB(db cmtdbm.DB, name string, wg *sync.WaitGroup) {
