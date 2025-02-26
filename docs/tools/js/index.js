@@ -90,6 +90,10 @@ function getMetadatas() {
     return result.metadatas
 }
 
+function getBridgeTokens(denom) {
+    return httpGetJson(getRestUrl() + `/fx/crosschain/v1/bridge_tokens_by_denom?chain_name=eth&denom=${denom}`)
+}
+
 function getCurrentPlan() {
     const result = httpGetJson(getRestUrl() + `/cosmos/upgrade/v1beta1/current_plan`)
     return result.plan
