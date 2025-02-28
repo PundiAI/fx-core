@@ -230,7 +230,7 @@ function show_mint_info() {
 
   # inflation_per_block = (1 - bonded_ratio/goal_bonded) * inflation_rate_change / blocks_per_year
   inflation_per_block=$(printf "%.18f" "$(echo "scale=18;(1 - $bonded_ratio/$goal_bonded) * $inflation_rate_change / $blocks_per_year" | bc)")
-  printf "current mint inflation per block:\t%s\n" "$(printf "%.6f" "$(echo "scale=6;$inflation_per_block*100/1" | bc)")%"
+  printf "current mint inflation per block:\t%s\n" "$(echo "$inflation_per_block*100" | bc)%"
   printf "    |-> inflation_per_block = (1 - bonded_ratio/goal_bonded) * inflation_rate_change / blocks_per_year\n"
 
   # query mint inflation
