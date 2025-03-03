@@ -20,6 +20,7 @@ function find_change_log() {
 
 version=${1:-$VERSION}
 changelog="$(find_change_log "./CHANGELOG.md" "$version")"
+last_version=$(git tag --sort=-creatordate | grep -v '/' | head -n 2 | tail -n 1 || true)
 
 echo "writing release note for version $version"
 cat <<EOF >./release-note.md
@@ -31,5 +32,5 @@ cat <<EOF >./release-note.md
 
 $changelog
 
-**Full Changelog**: https://github.com/PundiAI/fx-core/commits/$version.
+**Full Changelog**: https://github.com/PundiAI/fx-core/compare/$last_version...$version.
 EOF
