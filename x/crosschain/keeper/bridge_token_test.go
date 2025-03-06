@@ -22,14 +22,18 @@ func (suite *KeeperTestSuite) TestKeeper_AddBridgeTokenExecuted() {
 		{
 			name: "success - add origin tokens for multiple chains",
 			initMsg: func(msg *types.MsgBridgeTokenClaim) {
+				msg.Symbol = fxtypes.DefaultSymbol
 				for _, k := range suite.App.CrosschainKeepers.ToSlice() {
 					if k.ModuleName() != suite.chainName {
-						msg := types.MsgBridgeTokenClaim{Name: "Test Token", Symbol: fxtypes.DefaultSymbol, Decimals: 18, TokenContract: helpers.GenExternalAddr(k.ModuleName())}
-						suite.Require().NoError(k.AddBridgeTokenExecuted(suite.Ctx, &msg))
+						msg2 := *msg
+						msg2.TokenContract = helpers.GenExternalAddr(k.ModuleName())
+						suite.Require().NoError(k.AddBridgeTokenExecuted(suite.Ctx, &msg2))
 						break
 					}
 				}
-				msg.Symbol = fxtypes.DefaultSymbol
+				tokens, err := suite.App.Erc20Keeper.GetBaseBridgeTokens(suite.Ctx, fxtypes.DefaultDenom)
+				suite.NoError(err)
+				suite.Len(tokens, 1)
 			},
 		},
 		{
@@ -43,6 +47,22 @@ func (suite *KeeperTestSuite) TestKeeper_AddBridgeTokenExecuted() {
 			name: "success - native coin",
 			initMsg: func(msg *types.MsgBridgeTokenClaim) {
 				msg.Symbol = helpers.NewRandSymbol()
+			},
+		},
+		{
+			name: "success - erc20 token",
+			initMsg: func(msg *types.MsgBridgeTokenClaim) {
+				metadata := fxtypes.NewMetadata(msg.Symbol, msg.Symbol, 18)
+				_, err := suite.App.Erc20Keeper.AddERC20Token(suite.Ctx, metadata, helpers.GenHexAddress(), erc20types.OWNER_MODULE)
+				suite.NoError(err)
+			},
+		},
+		{
+			name: "success - external erc20 token",
+			initMsg: func(msg *types.MsgBridgeTokenClaim) {
+				metadata := fxtypes.NewMetadata(msg.Symbol, msg.Symbol, 18)
+				_, err := suite.App.Erc20Keeper.AddERC20Token(suite.Ctx, metadata, helpers.GenHexAddress(), erc20types.OWNER_EXTERNAL)
+				suite.NoError(err)
 			},
 		},
 	}
@@ -65,9 +85,13 @@ func (suite *KeeperTestSuite) TestKeeper_AddBridgeTokenExecuted() {
 			suite.Require().NoError(err)
 			baseDenom, err := suite.App.Erc20Keeper.GetBaseDenom(suite.Ctx, erc20types.NewBridgeDenom(suite.chainName, msg.TokenContract))
 			suite.Require().NoError(err)
-			has, err := suite.App.Erc20Keeper.HasERC20Token(suite.Ctx, baseDenom)
+			suite.Equal(msg.GetBaseDenom(), baseDenom)
+			erc20Token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, baseDenom)
 			suite.Require().NoError(err)
-			suite.True(has)
+			bridgeToken, err := suite.App.Erc20Keeper.GetBridgeToken(suite.Ctx, suite.chainName, baseDenom)
+			suite.Require().NoError(err)
+			suite.Equal(erc20Token.Denom, bridgeToken.Denom)
+			suite.Equal(erc20Token.IsNativeERC20(), bridgeToken.IsNative)
 		})
 	}
 }
