@@ -42,10 +42,13 @@ func (m *ExecuteClaimMethod) IsReadonly() bool {
 }
 
 func (m *ExecuteClaimMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	if contract.Value().Sign() != 0 {
+		return nil, errors.New("msg.value must be zero")
+	}
+
 	if m.router == nil {
 		return nil, errors.New("bridge call router is empty")
 	}
-
 	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err

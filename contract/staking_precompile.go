@@ -132,8 +132,8 @@ func (k StakingPrecompileKeeper) Withdraw(ctx context.Context, from common.Addre
 	return res, ret.Reward, nil
 }
 
-func (k StakingPrecompileKeeper) DelegateV2(ctx context.Context, from common.Address, args DelegateV2Args) (*evmtypes.MsgEthereumTxResponse, error) {
-	res, err := k.ApplyContract(ctx, from, k.contractAddr, nil, k.abi, "delegateV2", args.Validator, args.Amount)
+func (k StakingPrecompileKeeper) DelegateV2(ctx context.Context, from common.Address, value *big.Int, args DelegateV2Args) (*evmtypes.MsgEthereumTxResponse, error) {
+	res, err := k.ApplyContract(ctx, from, k.contractAddr, value, k.abi, "delegateV2", args.Validator, args.Amount)
 	if err != nil {
 		return nil, err
 	}

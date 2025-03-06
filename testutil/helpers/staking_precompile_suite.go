@@ -100,8 +100,11 @@ func (s StakingPrecompileSuite) Withdraw(ctx context.Context, from common.Addres
 	return res, reward
 }
 
-func (s StakingPrecompileSuite) DelegateV2(ctx context.Context, from common.Address, args contract.DelegateV2Args) *evmtypes.MsgEthereumTxResponse {
-	res, err := s.keeper.DelegateV2(ctx, from, args)
+func (s StakingPrecompileSuite) DelegateV2(ctx context.Context, from common.Address, args contract.DelegateV2Args, value ...*big.Int) *evmtypes.MsgEthereumTxResponse {
+	if len(value) == 0 {
+		value = []*big.Int{big.NewInt(0)}
+	}
+	res, err := s.keeper.DelegateV2(ctx, from, value[0], args)
 	s.requireError(err)
 	return res
 }

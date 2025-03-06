@@ -11,7 +11,7 @@ interface IStaking {
     function delegateV2(
         string memory _val,
         uint256 _amount
-    ) external payable returns (bool _result);
+    ) external returns (bool _result);
 
     function undelegateV2(
         string memory _val,
