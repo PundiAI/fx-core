@@ -130,7 +130,7 @@ run-local: install
 ###                                Linting                                  ###
 ###############################################################################
 
-golangci_version=v1.60.3
+golangci_version=v1.63.4
 
 lint-install:
 	@echo "--> Installing golangci-lint $(golangci_version)"
@@ -146,10 +146,10 @@ custom-lint:
 
 lint: custom-lint lint-install
 	@echo "--> Running linter"
-	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
+	@golangci-lint run --verbose --build-tags=$(GO_BUILD) --out-format=tab
 
 format: lint-install
-	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab --fix
+	@golangci-lint run --verbose --build-tags=$(GO_BUILD) --out-format=tab --fix
 
 shell-lint:
 	# install shellcheck > https://github.com/koalaman/shellcheck

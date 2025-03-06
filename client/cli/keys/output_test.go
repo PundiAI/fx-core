@@ -25,6 +25,6 @@ func TestNewKeyOutput(t *testing.T) {
 	assert.Equal(t, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", keyOutput.Eip55Address)
 	assert.Equal(t, "", keyOutput.Mnemonic)
 	assert.Equal(t, "test", keyOutput.Name)
-	assert.Equal(t, pubKeyJson, keyOutput.PubKey)
+	assert.JSONEq(t, pubKeyJson, keyOutput.PubKey)
 	assert.Equal(t, "local", keyOutput.Type)
 }

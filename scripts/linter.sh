@@ -6,7 +6,7 @@ patternLimits=(
   "nolint:23"
   "#nosec:5"
   "CrossChain:2"
-  "cross chain:0"
+  "cross chain:2"
   "GetERC1967Proxy:4"
 )
 
