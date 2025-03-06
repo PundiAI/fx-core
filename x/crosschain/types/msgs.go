@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -594,6 +595,13 @@ func (m *MsgBridgeTokenClaim) GetType() ClaimType {
 func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/%s/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals, m.Memo)
 	return tmhash.Sum([]byte(path))
+}
+
+func (m *MsgBridgeTokenClaim) GetBaseDenom() string {
+	if m.Symbol == fxtypes.DefaultSymbol {
+		return fxtypes.DefaultDenom
+	}
+	return strings.ToLower(m.Symbol)
 }
 
 func (m *MsgOracleSetUpdatedClaim) GetType() ClaimType {
