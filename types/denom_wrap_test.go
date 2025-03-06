@@ -117,3 +117,56 @@ func Test_SendPacketDenomNeedWrap(t *testing.T) {
 		})
 	}
 }
+
+func Test_AckPacketDenomNeedWrap(t *testing.T) {
+	testCases := []struct {
+		name      string
+		chainId   string
+		channel   string
+		denom     string
+		expected  bool
+		wrapDenom string
+	}{
+		{
+			name:      "mainnet pundix to ethPundix",
+			chainId:   MainnetChainId,
+			channel:   PundixChannel,
+			denom:     MainnetPundixUnWrapDenom,
+			expected:  true,
+			wrapDenom: PundixWrapDenom,
+		},
+		{
+			name:      "testnet pundix to ethPundix",
+			chainId:   TestnetChainId,
+			channel:   PundixChannel,
+			denom:     TestnetPundixUnWrapDenom,
+			expected:  true,
+			wrapDenom: PundixWrapDenom,
+		},
+		{
+			name:      "no need wrap with random denom",
+			chainId:   MainnetChainId,
+			channel:   PundixChannel,
+			denom:     strings.ToLower(tmrand.Str(6)),
+			expected:  false,
+			wrapDenom: "",
+		},
+		{
+			name:      "no need wrap eth0xpundix with other channel",
+			chainId:   MainnetChainId,
+			channel:   fmt.Sprintf("channel-%d", tmrand.Intn(1000)+1),
+			denom:     MainnetPundixUnWrapDenom,
+			expected:  false,
+			wrapDenom: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			needWrap, wrapDenom := AckPacketDenomNeedWrap(tc.chainId, tc.channel, tc.denom)
+			require.Equal(t, tc.expected, needWrap)
+			require.Equal(t, tc.wrapDenom, wrapDenom)
+		})
+	}
+}

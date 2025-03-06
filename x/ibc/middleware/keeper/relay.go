@@ -69,7 +69,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, ibcModule porttypes.IBC
 
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
-		ibcPacketData, isZeroAmount, err := UnmarshalAckPacketData(packet.Data)
+		ibcPacketData, isZeroAmount, err := UnmarshalAckPacketData(ctx.ChainID(), packet.SourceChannel, packet.Data)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, ibcModule porttypes.IBC
 // OnTimeoutPacket refunds the sender since the original packet sent was
 // never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, ibcModule porttypes.IBCModule, relayer sdk.AccAddress) error {
-	ibcPacketData, isZeroAmount, err := UnmarshalAckPacketData(packet.Data)
+	ibcPacketData, isZeroAmount, err := UnmarshalAckPacketData(ctx.ChainID(), packet.SourceChannel, packet.Data)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, ibc
 // @return transfertypes.FungibleTokenPacketData
 // @return bool isZeroAmount
 // @return error
-func UnmarshalAckPacketData(packetData []byte) (transfertypes.FungibleTokenPacketData, bool, error) {
+func UnmarshalAckPacketData(chainId, sourceChannel string, packetData []byte) (transfertypes.FungibleTokenPacketData, bool, error) {
 	var data types.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packetData, &data); err != nil {
 		return transfertypes.FungibleTokenPacketData{}, false, sdkerrors.ErrUnknownRequest.Wrapf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
@@ -124,6 +124,10 @@ func UnmarshalAckPacketData(packetData []byte) (transfertypes.FungibleTokenPacke
 	if ibcPacketData.Denom == fxtypes.LegacyFXDenom {
 		ibcPacketData.Denom = fxtypes.DefaultDenom
 		totalAmount = fxtypes.SwapAmount(totalAmount)
+	}
+	denomNeedWrap, wrapDenom := fxtypes.AckPacketDenomNeedWrap(chainId, sourceChannel, ibcPacketData.Denom)
+	if denomNeedWrap {
+		ibcPacketData.Denom = wrapDenom
 	}
 	ibcPacketData.Amount = totalAmount.String()
 	return ibcPacketData, !totalAmount.IsPositive(), nil

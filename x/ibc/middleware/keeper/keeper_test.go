@@ -47,9 +47,9 @@ func (m mockCrosschainKeeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.
 }
 
 func (m mockCrosschainKeeper) IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddress, ibcCoin sdk.Coin, ibcChannel string, ibcSequence uint64) error {
-	panic("implement me")
+	return nil
 }
 
 func (m mockCrosschainKeeper) AfterIBCAckSuccess(ctx sdk.Context, sourceChannel string, sequence uint64) error {
-	panic("implement me")
+	return nil
 }

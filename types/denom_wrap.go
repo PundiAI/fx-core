@@ -29,6 +29,10 @@ var (
 	MainnetSendPacketWrap = map[string]string{
 		SendPacketDenomWrapKey(PundixChannel, PundixWrapDenom): MainnetPundixUnWrapDenom,
 	}
+
+	MainnetAckPacketWrap = map[string]string{
+		SendPacketDenomWrapKey(PundixChannel, MainnetPundixUnWrapDenom): PundixWrapDenom,
+	}
 )
 
 var (
@@ -38,6 +42,9 @@ var (
 	}
 	TestnetSendPacketWrap = map[string]string{
 		SendPacketDenomWrapKey(PundixChannel, PundixWrapDenom): TestnetPundixUnWrapDenom,
+	}
+	TestnetAckPacketWrap = map[string]string{
+		SendPacketDenomWrapKey(PundixChannel, TestnetPundixUnWrapDenom): PundixWrapDenom,
 	}
 )
 
@@ -60,14 +67,26 @@ func OnRecvDenomNeedWrap(chainId, sourcePort, sourceChannel, denom string) (need
 	return needWrap, wrapDenom, packetDenom
 }
 
-func SendPacketDenomNeedWrap(chainId, channel, denom string) (bool, string) {
+func SendPacketDenomNeedWrap(chainId, sourceChannel, denom string) (bool, string) {
 	var needWrap bool
 	var wrapDenom string
-	denomWrapKey := SendPacketDenomWrapKey(channel, denom)
+	denomWrapKey := SendPacketDenomWrapKey(sourceChannel, denom)
 	if chainId == MainnetChainId {
 		wrapDenom, needWrap = MainnetSendPacketWrap[denomWrapKey]
 	} else {
 		wrapDenom, needWrap = TestnetSendPacketWrap[denomWrapKey]
+	}
+	return needWrap, wrapDenom
+}
+
+func AckPacketDenomNeedWrap(chainId, sourceChannel, denom string) (bool, string) {
+	var needWrap bool
+	var wrapDenom string
+	denomWrapKey := SendPacketDenomWrapKey(sourceChannel, denom)
+	if chainId == MainnetChainId {
+		wrapDenom, needWrap = MainnetAckPacketWrap[denomWrapKey]
+	} else {
+		wrapDenom, needWrap = TestnetAckPacketWrap[denomWrapKey]
 	}
 	return needWrap, wrapDenom
 }
