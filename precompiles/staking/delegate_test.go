@@ -151,6 +151,18 @@ func (suite *StakingPrecompileTestSuite) TestDelegateV2() {
 	}
 }
 
+func (suite *StakingPrecompileTestSuite) TestDelegateV2WithValue() {
+	if !suite.IsCallPrecompile() {
+		suite.T().Skip()
+	}
+	args := contract.DelegateV2Args{
+		Validator: suite.GetFirstValAddr().String(),
+		Amount:    helpers.NewRandAmount().BigInt(),
+	}
+	expectErr := errors.New("msg.value must be zero")
+	suite.WithError(expectErr).DelegateV2(suite.Ctx, suite.signer.Address(), args, args.Amount)
+}
+
 func (suite *StakingPrecompileTestSuite) CheckDelegateLogs(logs []*evmtypes.Log, delAddr common.Address, valAddr string, amount *big.Int) {
 	delegateV2ABI := staking.NewDelegateV2ABI()
 	existLog := false

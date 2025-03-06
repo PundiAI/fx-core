@@ -40,6 +40,10 @@ func (m *DelegateV2Method) RequiredGas() uint64 {
 }
 
 func (m *DelegateV2Method) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	if contract.Value().Sign() != 0 {
+		return nil, errors.New("msg.value must be zero")
+	}
+
 	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err

@@ -15,7 +15,7 @@ contract StakingTest is IStaking {
     function delegateV2(
         string memory _val,
         uint256 _amount
-    ) external payable override returns (bool _result) {
+    ) external override returns (bool _result) {
         require(address(this).balance >= _amount, "insufficient balance");
         return IStaking(STAKING_ADDRESS).delegateV2(_val, _amount);
     }

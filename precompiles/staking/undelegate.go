@@ -40,13 +40,16 @@ func (m *UndelegateV2Method) RequiredGas() uint64 {
 }
 
 func (m *UndelegateV2Method) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	if contract.Value().Sign() != 0 {
+		return nil, errors.New("msg.value must be zero")
+	}
+
 	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
 	}
 
 	stateDB := evm.StateDB.(types.ExtStateDB)
-
 	if err = stateDB.ExecuteNativeAction(contract.Address(), nil, func(ctx sdk.Context) error {
 		resp, err := m.stakingMsgServer.Undelegate(ctx, &stakingtypes.MsgUndelegate{
 			DelegatorAddress: sdk.AccAddress(contract.Caller().Bytes()).String(),

@@ -40,6 +40,10 @@ func (m *WithdrawMethod) RequiredGas() uint64 {
 }
 
 func (m *WithdrawMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, error) {
+	if contract.Value().Sign() != 0 {
+		return nil, errors.New("msg.value must be zero")
+	}
+
 	args, err := m.UnpackInput(contract.Input)
 	if err != nil {
 		return nil, err
