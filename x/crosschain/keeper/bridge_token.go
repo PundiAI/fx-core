@@ -2,14 +2,12 @@ package keeper
 
 import (
 	"context"
-	"strings"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 )
@@ -17,14 +15,20 @@ import (
 func (k Keeper) AddBridgeTokenExecuted(ctx sdk.Context, claim *types.MsgBridgeTokenClaim) error {
 	k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract)
 
-	baseDenom := strings.ToLower(claim.Symbol)
-	if claim.Symbol == fxtypes.DefaultSymbol {
-		if uint64(fxtypes.DenomUnit) != claim.Decimals {
-			return types.ErrInvalid.Wrapf("%s denom decimals not match %d, expect %d",
-				fxtypes.DefaultSymbol, claim.Decimals, fxtypes.DenomUnit)
+	baseDenom := claim.GetBaseDenom()
+	metaData, found := k.bankKeeper.GetDenomMetaData(ctx, baseDenom)
+	if found {
+		foundUnit := false
+		for _, unit := range metaData.DenomUnits {
+			if unit.Exponent == uint32(claim.Decimals) {
+				foundUnit = true
+			}
 		}
-		baseDenom = fxtypes.DefaultDenom
+		if !foundUnit {
+			return types.ErrInvalid.Wrapf("%s denom decimals not match %d", claim.Symbol, claim.Decimals)
+		}
 	}
+
 	erc20Token, err := k.erc20Keeper.GetERC20Token(ctx, baseDenom)
 	if err != nil {
 		if !errors.IsOf(err, collections.ErrNotFound) {
