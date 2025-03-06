@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}
 			suite.Require().True(acknowledgement.Success(), suite.Ctx.EventManager().Events())
 			if tc.checkBalance {
-				suite.AssertBalance(common.HexToAddress(packetData.Receiver).Bytes(), tc.expCoin)
+				suite.AssertAllBalance(common.HexToAddress(packetData.Receiver).Bytes(), tc.expCoin)
 			}
 		})
 	}
@@ -136,7 +136,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				*ack = ackWithErr()
 
 				suite.mintCoinEscrowAddr(packet.SourceChannel, coin)
-				suite.Require().NoError(suite.App.Erc20Keeper.SetCache(suite.Ctx, crosschaintypes.NewIBCTransferKey(packet.SourceChannel, packet.Sequence), coin.Amount))
 			},
 			expPass:      true,
 			checkBalance: true,
@@ -152,16 +151,46 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				swapCoin := fxtypes.SwapCoin(sdk.NewCoin(packetData.Denom, coin.Amount))
 
 				suite.mintCoinEscrowAddr(packet.SourceChannel, swapCoin)
-				suite.Require().NoError(suite.App.Erc20Keeper.SetCache(suite.Ctx, crosschaintypes.NewIBCTransferKey(packet.SourceChannel, packet.Sequence), swapCoin.Amount))
 			},
 			expPass:      true,
 			checkBalance: true,
 			expCoin:      fxtypes.SwapCoin(sdk.NewCoin(fxtypes.LegacyFXDenom, coin.Amount)),
 		},
+		{
+			name: "pass - error ack - denom is eth0xpundix(testnet)",
+			malleate: func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement, packetData transfertypes.FungibleTokenPacketData) {
+				*ack = ackWithErr()
+
+				packetData.Denom = fxtypes.TestnetPundixUnWrapDenom
+				suite.Ctx = suite.Ctx.WithChainID(fxtypes.TestnetChainId)
+
+				packet.Data = packetData.GetBytes()
+				suite.mintCoinEscrowAddr(packet.SourceChannel, sdk.NewCoin(fxtypes.PundixWrapDenom, coin.Amount))
+			},
+			expPass:      true,
+			checkBalance: true,
+			expCoin:      sdk.NewCoin(fxtypes.PundixWrapDenom, coin.Amount),
+		},
+		{
+			name: "pass - error ack - denom is eth0xpundix(mainnet)",
+			malleate: func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement, packetData transfertypes.FungibleTokenPacketData) {
+				*ack = ackWithErr()
+
+				packetData.Denom = fxtypes.MainnetPundixUnWrapDenom
+				suite.Ctx = suite.Ctx.WithChainID(fxtypes.MainnetChainId)
+
+				packet.Data = packetData.GetBytes()
+				suite.mintCoinEscrowAddr(packet.SourceChannel, sdk.NewCoin(fxtypes.PundixWrapDenom, coin.Amount))
+			},
+			expPass:      true,
+			checkBalance: true,
+			expCoin:      sdk.NewCoin(fxtypes.PundixWrapDenom, coin.Amount),
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			suite.ibcMiddleware.Keeper = suite.App.IBCMiddlewareKeeper.SetCrosschainKeeper(mockCrosschainKeeper{})
 			senderAddr, packet, packetData := suite.mockPacket(coin, "")
 
 			ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
@@ -176,7 +205,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().Error(err)
 			}
 			if tc.checkBalance {
-				suite.AssertBalance(senderAddr, tc.expCoin)
+				suite.AssertAllBalance(senderAddr, tc.expCoin)
 			}
 		})
 	}
@@ -218,7 +247,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		malleate     func(packet *channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData)
 		expPass      bool
 		checkBalance bool
-		expCoins     sdk.Coins
+		expCoin      sdk.Coin
 	}{
 		{
 			name: "pass - normal - ibc transfer packet",
@@ -228,7 +257,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			},
 			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(coin),
+			expCoin:      coin,
 		},
 		{
 			name: "pass - normal - denom is FX",
@@ -238,16 +267,29 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				swapCoin := fxtypes.SwapCoin(sdk.NewCoin(packetData.Denom, coin.Amount))
 
 				suite.mintCoinEscrowAddr(packet.SourceChannel, swapCoin)
-				suite.Require().NoError(suite.App.Erc20Keeper.SetCache(suite.Ctx, crosschaintypes.NewIBCTransferKey(packet.SourceChannel, packet.Sequence), swapCoin.Amount))
 			},
 			expPass:      true,
 			checkBalance: true,
-			expCoins:     sdk.NewCoins(fxtypes.SwapCoin(sdk.NewCoin(fxtypes.LegacyFXDenom, coin.Amount))),
+			expCoin:      fxtypes.SwapCoin(sdk.NewCoin(fxtypes.LegacyFXDenom, coin.Amount)),
+		},
+		{
+			name: "pass - normal - denom is eth0xPundix",
+			malleate: func(packet *channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData) {
+				suite.Ctx = suite.Ctx.WithChainID(fxtypes.TestnetChainId)
+				packetData.Denom = fxtypes.TestnetPundixUnWrapDenom
+				packet.Data = packetData.GetBytes()
+
+				suite.mintCoinEscrowAddr(packet.SourceChannel, sdk.NewCoin(fxtypes.PundixWrapDenom, coin.Amount))
+			},
+			expPass:      true,
+			checkBalance: true,
+			expCoin:      sdk.NewCoin(fxtypes.PundixWrapDenom, coin.Amount),
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			suite.ibcMiddleware.Keeper = suite.App.IBCMiddlewareKeeper.SetCrosschainKeeper(mockCrosschainKeeper{})
 			senderAddr, packet, packetData := suite.mockPacket(coin, "")
 
 			if tc.malleate != nil {
@@ -260,8 +302,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				suite.Require().Error(err)
 			}
 			if tc.checkBalance {
-				senderAddrCoins := suite.App.BankKeeper.GetAllBalances(suite.Ctx, senderAddr)
-				suite.Require().Equal(tc.expCoins.String(), senderAddrCoins.String())
+				suite.AssertAllBalance(senderAddr, tc.expCoin)
 			}
 		})
 	}
@@ -339,7 +380,7 @@ func TestUnmarshalAckPacketData(t *testing.T) {
 			}
 			packetDateByte, err := sdk.SortJSON(mustProtoMarshalJSON(&tcData))
 			require.NoError(t, err)
-			data, isZeroAmount, err := keeper.UnmarshalAckPacketData(packetDateByte)
+			data, isZeroAmount, err := keeper.UnmarshalAckPacketData("", "", packetDateByte)
 			if tc.err != nil {
 				require.Error(t, err)
 				return
