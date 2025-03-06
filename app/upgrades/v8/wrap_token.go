@@ -1,3 +1,4 @@
+//nolint:unused // @fx0x55 fix it later
 package v8
 
 import (

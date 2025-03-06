@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"testing"
 
 	"cosmossdk.io/collections"
@@ -299,7 +298,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 				suite.Equal(govv1.StatusVotingPeriod, proposal.Status)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().True(strings.Contains(err.Error(), tc.expectedErr))
+				suite.Require().Contains(err.Error(), tc.expectedErr)
 			}
 		})
 	}

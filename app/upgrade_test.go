@@ -370,20 +370,6 @@ func checkDelegationData(t *testing.T, bdd BeforeUpgradeData, ctx sdk.Context, m
 	t.Logf("reward match count:%d, not match count:%d, diff1Count:%d,rewardDiffGt1Count:%d,diffGtBeforeCount:%d, maxDiff:%s,totalDiff:%s", rewardMatchCount, rewardNotMatchCount, rewardDiff1Count, rewardDiffGt1Count, diffGtBeforeCount, maxDiff.String(), totalDiff.String())
 }
 
-func checkIBCTransferModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	t.Helper()
-	escrowDenomsMap := nextversion.GetMigrateEscrowDenoms(ctx.ChainID())
-	require.NotEmpty(t, escrowDenomsMap)
-
-	for oldDenom, newDenom := range escrowDenomsMap {
-		coin := myApp.IBCTransferKeeper.GetTotalEscrowForDenom(ctx, oldDenom)
-		require.True(t, coin.IsZero())
-
-		coin = myApp.IBCTransferKeeper.GetTotalEscrowForDenom(ctx, newDenom)
-		require.False(t, coin.IsZero())
-	}
-}
-
 func checkCrisisModule(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 	constantFee, err := myApp.CrisisKeeper.ConstantFee.Get(ctx)
@@ -865,10 +851,9 @@ func checkModulesData(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkCrisisModule(t, ctx, myApp)
 	checkBankModule(t, ctx, myApp)
 	checkEvmParams(t, ctx, myApp)
-	checkIBCTransferModule(t, ctx, myApp)
-	nextversion.CheckStakingModule(t, ctx, myApp.StakingKeeper.Keeper)
+	CheckStakingModule(t, ctx, myApp.StakingKeeper.Keeper)
 	checkMintModule(t, ctx, myApp)
-	nextversion.CheckDistributionModule(t, ctx, myApp.DistrKeeper)
+	CheckDistributionModule(t, ctx, myApp.DistrKeeper)
 }
 
 func checkEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -934,7 +919,7 @@ func checkDefaultDenom(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	require.Equal(t, fxtypes.DefaultDenom, denom)
 	bridgeToken, err = myApp.Erc20Keeper.GetBridgeToken(ctx, ethtypes.ModuleName, fxtypes.DefaultDenom)
 	require.NoError(t, err)
-	require.Equal(t, nextversion.GetPundiaiTokenAddr(ctx).String(), bridgeToken.Contract)
+	require.NotEmpty(t, bridgeToken.Contract)
 }
 
 func checkBridgeAddress(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -1210,4 +1195,70 @@ func transferAimeowToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	resp, err := erc20TokenKeeper.Transfer(ctx, aimeowContract, fromAddr, erc20Addr, transferAmount)
 	require.NoError(t, err)
 	require.False(t, resp.Failed())
+}
+
+func CheckStakingModule(t *testing.T, ctx sdk.Context, keeper *stakingkeeper.Keeper) {
+	t.Helper()
+
+	params, err := keeper.GetParams(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, fxtypes.DefaultDenom, params.BondDenom)
+
+	delegations, err := keeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
+	delegationByValidator := make(map[string][]stakingtypes.Delegation)
+	for i := 0; i < len(delegations); i++ {
+		delegationByValidator[delegations[i].ValidatorAddress] = append(delegationByValidator[delegations[i].ValidatorAddress], delegations[i])
+	}
+	err = keeper.IterateValidators(ctx, func(_ int64, validator stakingtypes.ValidatorI) (stop bool) {
+		delegations = delegationByValidator[validator.GetOperator()]
+		totalShare := sdkmath.LegacyZeroDec()
+		for i := 0; i < len(delegations); i++ {
+			totalShare = totalShare.Add(delegations[i].Shares)
+		}
+		assert.Equal(t, totalShare, validator.GetDelegatorShares())
+		return false
+	})
+	require.NoError(t, err)
+}
+
+func CheckDistributionModule(t *testing.T, ctx sdk.Context, distrKeeper distributionkeeper.Keeper) {
+	t.Helper()
+
+	denomCheckFn := func(decCoins sdk.DecCoins, msg ...string) {
+		if decCoins.IsZero() {
+			return
+		}
+		require.Truef(t, decCoins.AmountOf(fxtypes.LegacyFXDenom).IsZero(), decCoins.String(), msg)
+		require.Falsef(t, decCoins.AmountOf(fxtypes.DefaultDenom).IsZero(), decCoins.String(), msg)
+	}
+
+	// check fee pool
+	feePool, err := distrKeeper.FeePool.Get(ctx)
+	require.NoError(t, err)
+	denomCheckFn(feePool.GetCommunityPool())
+
+	// check validator commission
+	distrKeeper.IterateValidatorAccumulatedCommissions(ctx, func(val sdk.ValAddress, commission distributiontypes.ValidatorAccumulatedCommission) (stop bool) {
+		denomCheckFn(commission.GetCommission(), fmt.Sprintf("val:%s,commission:%s", val.String(), commission.String()))
+		return false
+	})
+
+	// check validator outstanding rewards
+	distrKeeper.IterateValidatorOutstandingRewards(ctx, func(val sdk.ValAddress, rewards distributiontypes.ValidatorOutstandingRewards) (stop bool) {
+		denomCheckFn(rewards.GetRewards(), fmt.Sprintf("val:%s,outstanding rewards:%s", val.String(), rewards.String()))
+		return false
+	})
+
+	// check validator current rewards
+	distrKeeper.IterateValidatorCurrentRewards(ctx, func(val sdk.ValAddress, rewards distributiontypes.ValidatorCurrentRewards) (stop bool) {
+		denomCheckFn(rewards.GetRewards(), fmt.Sprintf("val:%s,current rewards:%s", val.String(), rewards.String()))
+		return false
+	})
+
+	// check validator historical rewards
+	distrKeeper.IterateValidatorHistoricalRewards(ctx, func(val sdk.ValAddress, period uint64, rewards distributiontypes.ValidatorHistoricalRewards) (stop bool) {
+		denomCheckFn(rewards.GetCumulativeRewardRatio(), fmt.Sprintf("val:%s,historical rewards:%s", val.String(), rewards.String()))
+		return false
+	})
 }

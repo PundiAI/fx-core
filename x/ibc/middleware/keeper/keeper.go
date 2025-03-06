@@ -27,7 +27,7 @@ func NewKeeper(cdc codec.Codec, evmKeeper types.EvmKeeper, accountKeeper types.A
 	}
 }
 
-//nolint:revive // SetCrosschainKeeper only for testing
+// SetCrosschainKeeper only for testing
 func (k Keeper) SetCrosschainKeeper(crosschainKeeper types.CrosschainKeeper) Keeper {
 	k.crosschainKeeper = crosschainKeeper
 	return k
