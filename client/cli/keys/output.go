@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -14,12 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"gopkg.in/yaml.v2"
-)
-
-// available output formats.
-const (
-	OutputFormatText = "text"
-	OutputFormatJSON = "json"
 )
 
 // Use protobuf interface marshaler rather then generic JSON
@@ -108,14 +103,14 @@ func MkAccKeysOutput(records []*keyring.Record) ([]KeyOutput, error) {
 
 func printInfo(w io.Writer, kos interface{}, output string) {
 	switch output {
-	case OutputFormatText:
+	case flags.OutputFormatText:
 		out, err := yaml.Marshal(&kos)
 		if err != nil {
 			panic(err)
 		}
 		_, _ = fmt.Fprintln(w, string(out))
 
-	case OutputFormatJSON:
+	case flags.OutputFormatJSON:
 		out, err := json.Marshal(kos)
 		if err != nil {
 			panic(err)
