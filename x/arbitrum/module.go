@@ -106,7 +106,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	migrator := crosschainkeeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(am.Name(), 2, migrator.Migrate7to8WithArbExternalBlockTime); err != nil {
+	if err := cfg.RegisterMigration(am.Name(), 2, migrator.Migrate); err != nil {
 		panic(err)
 	}
 }
