@@ -21,7 +21,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
@@ -37,7 +36,6 @@ const (
 	flagMultisig    = "multisig"
 	flagNoSort      = "nosort"
 	flagHDPath      = "hd-path"
-	flagIndiscreet  = "indiscreet"
 	flagMnemonicSrc = "source"
 )
 
@@ -83,7 +81,6 @@ Example:
 	f.Uint32(flagAccount, 0, "Account number for HD derivation (less than equal 2147483647)")
 	f.Uint32(flagIndex, 0, "Address index number for HD derivation (less than equal 2147483647)")
 	f.String(flags.FlagKeyType, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
-	f.Bool(flagIndiscreet, false, "Print seed phrase directly on current terminal (only valid when --no-backup is false)")
 	f.String(flagMnemonicSrc, "", "Import mnemonic from a file (only usable when recover or interactive is passed)")
 
 	// support old flags name for backwards compatibility
@@ -189,7 +186,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 				return err
 			}
 
-			return printCreate(cmd, info, false, false, "", outputFormat)
+			return printCreate(cmd, info, false, "", outputFormat)
 		}
 	}
 
@@ -206,7 +203,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 			return err
 		}
 
-		return printCreate(cmd, info, false, false, "", outputFormat)
+		return printCreate(cmd, info, false, "", outputFormat)
 	}
 
 	coinType, _ := cmd.Flags().GetUint32(flagCoinType)
@@ -230,7 +227,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 			return err
 		}
 
-		return printCreate(cmd, info, false, false, "", outputFormat)
+		return printCreate(cmd, info, false, "", outputFormat)
 	}
 
 	// Get bip39 mnemonic
@@ -314,20 +311,18 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 
 	noBackup, _ := cmd.Flags().GetBool(flagNoBackup)
 	showMnemonic := !noBackup
-	showMnemonicIndiscreetly, _ := cmd.Flags().GetBool(flagIndiscreet)
 
 	// Recover key from seed passphrase
 	if recoverFlag {
 		// Hide mnemonic from output
 		showMnemonic = false
-		showMnemonicIndiscreetly = false
 		mnemonic = ""
 	}
 
-	return printCreate(cmd, info, showMnemonic, showMnemonicIndiscreetly, mnemonic, outputFormat)
+	return printCreate(cmd, info, showMnemonic, mnemonic, outputFormat)
 }
 
-func printCreate(cmd *cobra.Command, k *keyring.Record, showMnemonic, showMnemonicIndiscreetly bool, mnemonic, outputFormat string) error {
+func printCreate(cmd *cobra.Command, k *keyring.Record, showMnemonic bool, mnemonic, outputFormat string) error {
 	switch outputFormat {
 	case OutputFormatText:
 		output, err := MkAccKeyOutput(k)
@@ -343,14 +338,8 @@ func printCreate(cmd *cobra.Command, k *keyring.Record, showMnemonic, showMnemon
 
 		// print mnemonic unless requested not to.
 		if showMnemonic {
-			if showMnemonicIndiscreetly {
-				if _, err = fmt.Fprintf(cmd.ErrOrStderr(), "\n**Important** write this mnemonic phrase in a safe place.\nIt is the only way to recover your account if you ever forget your password.\n\n%s\n", mnemonic); err != nil {
-					return fmt.Errorf("failed to print mnemonic: %w", err)
-				}
-			} else {
-				if err = printDiscreetly(cmd.ErrOrStderr(), "**Important** write this mnemonic phrase in a safe place.\nIt is the only way to recover your account if you ever forget your password.", mnemonic); err != nil {
-					return fmt.Errorf("failed to print mnemonic: %w", err)
-				}
+			if _, err = fmt.Fprintf(cmd.ErrOrStderr(), "\n**Important** write this mnemonic phrase in a safe place.\nIt is the only way to recover your account if you ever forget your password.\n\n%s\n", mnemonic); err != nil {
+				return fmt.Errorf("failed to print mnemonic: %w", err)
 			}
 		}
 	case OutputFormatJSON:
@@ -374,19 +363,6 @@ func printCreate(cmd *cobra.Command, k *keyring.Record, showMnemonic, showMnemon
 		return fmt.Errorf("invalid output format %s", outputFormat)
 	}
 
-	return nil
-}
-
-func printDiscreetly(w io.Writer, promptMsg, secretMsg string) error {
-	output := termenv.NewOutput(w)
-	output.AltScreen()
-	defer output.ExitAltScreen()
-	if _, err := fmt.Fprintf(output, "%s\n\n%s\n\nPress 'Enter' key to continue.", promptMsg, secretMsg); err != nil {
-		return err
-	}
-	if _, err := fmt.Scanln(); err != nil {
-		return err
-	}
 	return nil
 }
 
