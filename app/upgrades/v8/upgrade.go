@@ -23,6 +23,7 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 		}
 
 		updateMetadataDesc(cacheCtx, app.BankKeeper)
+		renameWPUNDIAI(cacheCtx, app.EvmKeeper)
 
 		commit()
 		cacheCtx.Logger().Info("upgrade complete", "module", "upgrade")

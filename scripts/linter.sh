@@ -3,8 +3,8 @@
 set -eo pipefail
 
 patternLimits=(
-  "nolint:23"
-  "#nosec:5"
+  "nolint:22"
+  "#nosec:4"
   "CrossChain:2"
   "cross chain:2"
   "GetERC1967Proxy:4"
