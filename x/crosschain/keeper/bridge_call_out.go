@@ -142,7 +142,7 @@ func (k Keeper) BridgeCallOnRevert(ctx sdk.Context, caller contract.Caller, nonc
 	gasLimit := k.GetBridgeCallMaxGasLimit(ctx)
 	toAddr := fxtypes.ExternalAddrToHexAddr(k.moduleName, contractAddr)
 
-	txResp, err := caller.ExecuteEVM(ctx, k.GetCallbackFrom(), &toAddr, nil, gasLimit, args)
+	txResp, err := caller.ExecuteEVM(ctx, k.GetCallSender(), &toAddr, nil, gasLimit, args)
 	if err != nil {
 		return err
 	}

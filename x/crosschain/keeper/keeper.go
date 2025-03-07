@@ -30,7 +30,7 @@ type Keeper struct {
 	evmKeeper          types.EVMKeeper
 
 	authority          string
-	callbackFrom       common.Address
+	sender             common.Address
 	bridgeFeeCollector sdk.AccAddress
 }
 
@@ -38,7 +38,7 @@ type Keeper struct {
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionMsgServer,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
-	evmKeeper types.EVMKeeper, authority string,
+	evmKeeper types.EVMKeeper, sender common.Address, authority string,
 ) Keeper {
 	if addr := ak.GetModuleAddress(moduleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", moduleName))
@@ -59,7 +59,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		evmKeeper:          evmKeeper,
 
 		authority:          authority,
-		callbackFrom:       common.BytesToAddress(autytypes.NewModuleAddress(types.BridgeCallSender)),
+		sender:             sender,
 		bridgeFeeCollector: autytypes.NewModuleAddress(types.BridgeFeeCollectorName),
 	}
 }
@@ -68,8 +68,8 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func (k Keeper) GetCallbackFrom() common.Address {
-	return k.callbackFrom
+func (k Keeper) GetCallSender() common.Address {
+	return k.sender
 }
 
 // Logger returns a module-specific logger.

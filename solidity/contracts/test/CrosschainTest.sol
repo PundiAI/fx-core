@@ -16,8 +16,6 @@ contract CrosschainTest is IBridgeCallContext {
         address(0x0000000000000000000000000000000000001004);
     address public constant BRIDGE_FEE_ADDRESS =
         address(0x0000000000000000000000000000000000001005);
-    address public constant BRIDGE_CALLBACK_ADDRESS =
-        address(0x8D5C3128408b212F7F0Dc206a981fC16c079DE19); // bridge_call
 
     function crossChain(
         address _token,
@@ -138,11 +136,11 @@ contract CrosschainTest is IBridgeCallContext {
         bytes memory,
         bytes memory
     ) external view override {
-        require(msg.sender == BRIDGE_CALLBACK_ADDRESS, "only bridge callback");
+        require(msg.sender == CROSS_CHAIN_ADDRESS, "only cross-chain address");
     }
 
     function onRevert(uint256, bytes memory) external view override {
-        require(msg.sender == BRIDGE_CALLBACK_ADDRESS, "only bridge callback");
+        require(msg.sender == CROSS_CHAIN_ADDRESS, "only cross-chain address");
     }
 
     function hasOracle(

@@ -10,8 +10,6 @@ const (
 	// ModuleName is the name of the module
 	ModuleName = "crosschain"
 
-	BridgeCallSender = "bridge_call"
-
 	BridgeFeeCollectorName = "bridge_fee_collector"
 )
 

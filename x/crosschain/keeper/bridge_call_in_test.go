@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestBridgeCallHandler() {
 				suite.Equal(hex.EncodeToString([]byte("Ownable: caller is not the owner: evm transaction execution failed")), outgoingBridgeCall.Data)
 				suite.Equal(msg.EventNonce, outgoingBridgeCall.EventNonce)
 				suite.Equal(
-					fxtypes.ExternalAddrToStr(suite.chainName, suite.Keeper().GetCallbackFrom().Bytes()),
+					fxtypes.ExternalAddrToStr(suite.chainName, suite.Keeper().GetCallSender().Bytes()),
 					outgoingBridgeCall.Sender,
 				)
 
