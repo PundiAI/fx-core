@@ -136,7 +136,9 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 
 	if dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun); dryRun {
 		// use in memory keybase
-		kb = keyring.NewInMemory(ctx.Codec)
+		kb = keyring.NewInMemory(ctx.Codec, func(options *keyring.Options) {
+			options.SupportedAlgos = keyringAlgos
+		})
 	} else {
 		_, err = kb.Key(name)
 		if err == nil {
