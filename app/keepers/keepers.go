@@ -394,6 +394,8 @@ func NewAppKeeper(
 		authAddr,
 	)
 
+	precompileCrosschainAddr := new(crosschain.Contract).Address()
+
 	// init crosschain module
 	appKeepers.BscKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -407,6 +409,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
@@ -421,6 +424,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
@@ -435,6 +439,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
@@ -449,6 +454,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 	appKeepers.ArbitrumKeeper = crosschainkeeper.NewKeeper(
@@ -463,6 +469,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
@@ -477,6 +484,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 	appKeepers.Layer2Keeper = crosschainkeeper.NewKeeper(
@@ -491,6 +499,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 	appKeepers.TronKeeper = crosschainkeeper.NewKeeper(
@@ -505,6 +514,7 @@ func NewAppKeeper(
 		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		appKeepers.EvmKeeper,
+		precompileCrosschainAddr,
 		authAddr,
 	)
 

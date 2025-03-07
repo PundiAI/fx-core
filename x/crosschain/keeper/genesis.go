@@ -17,9 +17,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 
 	k.ak.GetModuleAccount(ctx, types.ModuleName)
 
-	bridgeCallFrom := authtypes.NewModuleAddress(types.BridgeCallSender)
-	if account := k.ak.GetAccount(ctx, bridgeCallFrom); account == nil {
-		k.ak.SetAccount(ctx, k.ak.NewAccountWithAddress(ctx, bridgeCallFrom))
+	if account := k.ak.GetAccount(ctx, k.GetCallSender().Bytes()); account == nil {
+		k.ak.SetAccount(ctx, k.ak.NewAccountWithAddress(ctx, k.GetCallSender().Bytes()))
 	}
 	bridgeFeeCollector := authtypes.NewModuleAddress(types.BridgeFeeCollectorName)
 	if account := k.ak.GetAccount(ctx, bridgeFeeCollector); account == nil {

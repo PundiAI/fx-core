@@ -59,7 +59,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 		if err != nil {
 			return err
 		}
-		callEvmSender = k.GetCallbackFrom()
+		callEvmSender = k.GetCallSender()
 	}
 
 	cacheCtx, commit := sdk.UnwrapSDKContext(ctx).CacheContext()
@@ -104,7 +104,7 @@ func (k Keeper) BridgeCallExecuted(ctx sdk.Context, caller contract.Caller, msg 
 	))
 
 	// onRevert bridgeCall
-	_, err = k.AddOutgoingBridgeCall(ctx, k.GetCallbackFrom(), common.Address{}, sdk.Coins{},
+	_, err = k.AddOutgoingBridgeCall(ctx, k.GetCallSender(), common.Address{}, sdk.Coins{},
 		msg.GetSenderAddr(), []byte(revertMsg), []byte{}, 0, msg.EventNonce)
 	return err
 }
