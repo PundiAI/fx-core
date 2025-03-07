@@ -125,7 +125,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 			return ctx, err
 		}
 
-		if err = ethante.CheckAndSetEthSenderNonce(ctx, tx, options.AccountKeeper, options.UnsafeUnorderedTx, accountGetter); err != nil {
+		if err = CheckAndSetEthSenderNonce(ctx, tx, options.AccountKeeper, options.UnsafeUnorderedTx, accountGetter, ethSigner); err != nil {
 			return ctx, err
 		}
 
