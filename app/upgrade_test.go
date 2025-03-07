@@ -8,6 +8,7 @@ import (
 
 	coreheader "cosmossdk.io/core/header"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
@@ -99,6 +100,7 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
 	checkWrapToken(t, ctx, myApp)
+	checkRefundDelegate(t, ctx, myApp)
 }
 
 func checkWrapToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -120,4 +122,12 @@ func checkWrapToken(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	supply, err := erc20TokenKeeper.TotalSupply(ctx, wrapTokenAddress)
 	require.NoError(t, err)
 	assert.EqualValues(t, 1, supply.Cmp(big.NewInt(0)))
+}
+
+func checkRefundDelegate(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	refundContract := common.HexToAddress(nextversion.RefundContractAddress)
+	bal := myApp.BankKeeper.GetBalance(ctx, refundContract.Bytes(), fxtypes.DefaultDenom)
+	require.True(t, bal.Amount.GT(sdkmath.ZeroInt()))
 }
