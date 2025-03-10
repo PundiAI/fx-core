@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	coreheader "cosmossdk.io/core/header"
@@ -109,6 +110,7 @@ func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 
 	checkWrapToken(t, ctx, myApp)
 	checkRefundDelegate(t, ctx, myApp)
+	checkMetadata(t, ctx, myApp)
 	nextversion.UnwrapEscrowBalanceCheckAfter(t, ctx, myApp.BankKeeper)
 }
 
@@ -139,4 +141,20 @@ func checkRefundDelegate(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	refundContract := common.HexToAddress(nextversion.RefundContractAddress)
 	bal := myApp.BankKeeper.GetBalance(ctx, refundContract.Bytes(), fxtypes.DefaultDenom)
 	require.True(t, bal.Amount.GT(sdkmath.ZeroInt()))
+}
+
+func checkMetadata(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	mds := myApp.BankKeeper.GetAllDenomMetaData(ctx)
+	for _, md := range mds {
+		if strings.HasPrefix(md.Base, "ibc/") {
+			continue
+		}
+		if md.Base == fxtypes.DefaultDenom {
+			require.Equal(t, md.Description, fxtypes.NewDefaultMetadata().Description)
+		} else {
+			require.Equal(t, "The crosschain token of the Pundi AIFX", md.Description)
+		}
+	}
 }
