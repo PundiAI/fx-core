@@ -36,6 +36,8 @@ func Test_UpgradeAndMigrate(t *testing.T) {
 
 	ctx := newContext(t, myApp, chainId, false)
 
+	checkAppBeforeUpgrade(t, ctx, myApp)
+
 	// 1. set upgrade plan
 	require.NoError(t, myApp.UpgradeKeeper.ScheduleUpgrade(ctx, upgradetypes.Plan{
 		Name:   nextversion.Upgrade.UpgradeName,
@@ -96,11 +98,18 @@ func newContext(t *testing.T, myApp *app.App, chainId string, deliveState bool) 
 	return ctx
 }
 
+func checkAppBeforeUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	t.Helper()
+
+	nextversion.UnwrapEscrowBalanceCheckBefore(t, ctx, myApp.BankKeeper)
+}
+
 func checkAppUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	t.Helper()
 
 	checkWrapToken(t, ctx, myApp)
 	checkRefundDelegate(t, ctx, myApp)
+	nextversion.UnwrapEscrowBalanceCheckAfter(t, ctx, myApp.BankKeeper)
 }
 
 func checkWrapToken(t *testing.T, ctx sdk.Context, myApp *app.App) {

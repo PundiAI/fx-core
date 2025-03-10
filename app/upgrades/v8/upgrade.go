@@ -25,6 +25,10 @@ func CreateUpgradeHandler(codec codec.Codec, mm *module.Manager, configurator mo
 		updateMetadataDesc(cacheCtx, app.BankKeeper)
 		renameWPUNDIAI(cacheCtx, app.EvmKeeper)
 
+		if err = unwrapEscrowBalance(cacheCtx, app.BankKeeper); err != nil {
+			return fromVM, err
+		}
+
 		if err = refundDelegate(cacheCtx, app.BankKeeper); err != nil {
 			return fromVM, err
 		}
