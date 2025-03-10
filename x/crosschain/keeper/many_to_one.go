@@ -107,7 +107,7 @@ func (k Keeper) BaseCoinToBridgeToken(ctx context.Context, holder sdk.AccAddress
 
 // DepositBridgeToken get bridge token from k.moduleName
 func (k Keeper) DepositBridgeToken(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, tokenAddr string) (bridgeToken erc20types.BridgeToken, err error) {
-	bridgeToken, err = k.GetBridgeToken(ctx, tokenAddr)
+	bridgeToken, err = k.GetBridgeToken(ctx, types.NewBridgeDenom(k.moduleName, tokenAddr))
 	if err != nil {
 		return bridgeToken, err
 	}
@@ -141,6 +141,19 @@ func (k Keeper) WithdrawBridgeToken(ctx context.Context, holder sdk.AccAddress, 
 }
 
 func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) (foundBase bool, baseDenom string, err error) {
+	// Ensure compatibility with the case where ibcCoin could be a bridgeToken.
+	bridgeToken, err := k.GetBridgeToken(ctx, ibcCoin.Denom)
+	if err == nil {
+		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, holder, ibcCoin.Amount, bridgeToken)
+		if err != nil {
+			return false, "", err
+		}
+		return true, baseCoin.Denom, err
+	}
+	if !errors.IsOf(err, collections.ErrNotFound) {
+		return false, "", err
+	}
+
 	isNative := !strings.HasPrefix(ibcCoin.Denom, ibctransfertypes.DenomPrefix+"/")
 	if isNative {
 		return true, ibcCoin.Denom, nil
@@ -231,8 +244,8 @@ func (k Keeper) AfterIBCAckSuccess(ctx sdk.Context, ibcChannel string, ibcSequen
 	return k.erc20Keeper.DeleteCache(ctx, ibcTransferKey)
 }
 
-func (k Keeper) GetBridgeToken(ctx context.Context, tokenAddr string) (erc20types.BridgeToken, error) {
-	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, types.NewBridgeDenom(k.moduleName, tokenAddr))
+func (k Keeper) GetBridgeToken(ctx context.Context, bridgeDenom string) (erc20types.BridgeToken, error) {
+	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, bridgeDenom)
 	if err != nil {
 		return erc20types.BridgeToken{}, err
 	}

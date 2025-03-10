@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) SetIBCDenom(portID, channelID, denom string) ibctr
 }
 
 func (suite *KeeperTestSuite) GetERC20TokenByBridgeContract(bridgeContract string) *erc20types.ERC20Token {
-	bridgeToken, err := suite.Keeper().GetBridgeToken(suite.Ctx, bridgeContract)
+	bridgeToken, err := suite.Keeper().GetBridgeToken(suite.Ctx, types.NewBridgeDenom(suite.chainName, bridgeContract))
 	suite.Require().NoError(err)
 	erc20Token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, bridgeToken.Denom)
 	suite.Require().NoError(err)

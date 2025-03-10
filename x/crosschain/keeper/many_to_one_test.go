@@ -14,6 +14,7 @@ import (
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
+	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
@@ -97,6 +98,19 @@ func (suite *KeeperTestSuite) TestKeeper_SwapBridgeToken() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IBCCoinToEvm() {
+	erc20TokenInit := func() (string, sdk.Coin) {
+		holder := helpers.GenHexAddress()
+		symbol := helpers.NewRandSymbol()
+		erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, suite.signer.Address(), symbol)
+		erc20Token, err := suite.App.Erc20Keeper.RegisterNativeERC20(suite.Ctx, erc20TokenAddr)
+		suite.Require().NoError(err)
+		coin := sdk.NewCoin(erc20Token.Denom, sdkmath.NewInt(100))
+		suite.MintToken(holder.Bytes(), coin)
+		erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
+		suite.erc20TokenSuite.WithContract(erc20TokenAddr).
+			Mint(suite.Ctx, suite.signer.Address(), erc20ModuleAddr, big.NewInt(100))
+		return holder.String(), coin
+	}
 	type args struct {
 		name string
 		init func() (holderAddr string, ibcCoin sdk.Coin)
@@ -106,8 +120,7 @@ func (suite *KeeperTestSuite) TestKeeper_IBCCoinToEvm() {
 		{
 			name: "success origin coin",
 			init: func() (string, sdk.Coin) {
-				holder := helpers.GenHexAddress()
-				return holder.String(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100))
+				return helpers.GenHexAddress().String(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100))
 			},
 		},
 		{
@@ -123,57 +136,63 @@ func (suite *KeeperTestSuite) TestKeeper_IBCCoinToEvm() {
 				symbol := helpers.NewRandSymbol()
 				erc20Token, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, symbol, symbol, 18)
 				suite.Require().NoError(err)
+
 				coin := sdk.NewCoin(erc20Token.Denom, sdkmath.NewInt(100))
 				suite.MintToken(holder.Bytes(), coin)
+
+				return holder.String(), coin
+			},
+		},
+		{
+			name: "success bridge token",
+			init: func() (string, sdk.Coin) {
+				holder := helpers.GenHexAddress()
+				symbol := helpers.NewRandSymbol()
+				erc20Token, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, symbol, symbol, 18)
+				suite.Require().NoError(err)
+
+				contractAddr := helpers.GenExternalAddr(suite.chainName)
+				err = suite.App.Erc20Keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, contractAddr, erc20Token.IsNativeERC20())
+				suite.Require().NoError(err)
+
+				coin := sdk.NewCoin(types.NewBridgeDenom(suite.chainName, contractAddr), sdkmath.NewInt(100))
+				suite.MintToken(holder.Bytes(), coin)
+
 				return holder.String(), coin
 			},
 		},
 		{
 			name: "success erc20 token",
-			init: func() (string, sdk.Coin) {
-				holder := helpers.GenHexAddress()
-				symbol := helpers.NewRandSymbol()
-				erc20TokenAddr := suite.erc20TokenSuite.DeployERC20Token(suite.Ctx, suite.signer.Address(), symbol)
-				erc20Token, err := suite.App.Erc20Keeper.RegisterNativeERC20(suite.Ctx, erc20TokenAddr)
-				suite.Require().NoError(err)
-				coin := sdk.NewCoin(erc20Token.Denom, sdkmath.NewInt(100))
-				suite.MintToken(holder.Bytes(), coin)
-				erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(erc20types.ModuleName).Bytes())
-				suite.erc20TokenSuite.WithContract(erc20TokenAddr).
-					Mint(suite.Ctx, suite.signer.Address(), erc20ModuleAddr, big.NewInt(100))
-				return holder.String(), coin
-			},
+			init: erc20TokenInit,
 		},
-	}
-	tests = append(tests, []args{
 		{
 			name: "success erc20 token with fx address and sequence",
 			init: func() (string, sdk.Coin) {
-				test := tests[3]
-				suite.Require().Equal("success erc20 token", test.name)
-				holderAddr, coin := test.init()
+				holderAddr, coin := erc20TokenInit()
 				hexAddr := common.HexToAddress(holderAddr)
+
 				account := suite.App.AccountKeeper.GetAccount(suite.Ctx, hexAddr.Bytes())
 				suite.Require().NoError(account.SetSequence(1))
 				suite.App.AccountKeeper.SetAccount(suite.Ctx, account)
+
 				return sdk.AccAddress(hexAddr.Bytes()).String(), coin
 			},
 		},
 		{
 			name: "success erc20 token with fx address and pubkey",
 			init: func() (string, sdk.Coin) {
-				test := tests[3]
-				suite.Require().Equal("success erc20 token", test.name)
-				holderAddr, coin := test.init()
+				holderAddr, coin := erc20TokenInit()
 				hexAddr := common.HexToAddress(holderAddr)
+
 				account := suite.App.AccountKeeper.GetAccount(suite.Ctx, hexAddr.Bytes())
 				suite.Require().NoError(account.SetSequence(1))
 				suite.Require().NoError(account.SetPubKey(helpers.NewEthPrivKey().PubKey()))
 				suite.App.AccountKeeper.SetAccount(suite.Ctx, account)
+
 				return sdk.AccAddress(hexAddr.Bytes()).String(), coin
 			},
 		},
-	}...)
+	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
@@ -185,16 +204,23 @@ func (suite *KeeperTestSuite) TestKeeper_IBCCoinToEvm() {
 				return
 			}
 			suite.Require().NoError(err)
-			erc20Token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, ibcCoin.Denom)
+
+			denom, err := suite.App.Erc20Keeper.GetBaseDenom(suite.Ctx, ibcCoin.Denom)
 			if err != nil {
 				suite.Require().ErrorIs(err, collections.ErrNotFound)
-			} else {
-				addr, _, err := fxtypes.ParseAddress(holderAddr)
-				suite.Require().NoError(err)
-				balance := suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
-					BalanceOf(suite.Ctx, common.BytesToAddress(addr))
-				suite.Equal(balance.String(), ibcCoin.Amount.String())
+				denom = ibcCoin.Denom
 			}
+			erc20Token, err := suite.App.Erc20Keeper.GetERC20Token(suite.Ctx, denom)
+			if err != nil {
+				suite.Require().ErrorIs(err, collections.ErrNotFound)
+				return
+			}
+
+			addr, _, err := fxtypes.ParseAddress(holderAddr)
+			suite.Require().NoError(err)
+			balance := suite.erc20TokenSuite.WithContract(erc20Token.GetERC20Contract()).
+				BalanceOf(suite.Ctx, common.BytesToAddress(addr))
+			suite.Equal(balance.String(), ibcCoin.Amount.String())
 		})
 	}
 }
