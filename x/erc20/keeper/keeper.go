@@ -77,21 +77,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-func (k Keeper) MintingEnabled(ctx context.Context, receiver sdk.AccAddress, isBaseDenom bool, tokenName string) (erc20Token types.ERC20Token, err error) {
+func (k Keeper) MintingEnabled(ctx context.Context, receiver sdk.AccAddress, tokenName string) (erc20Token types.ERC20Token, err error) {
 	if err = k.CheckEnableErc20(ctx); err != nil {
 		return types.ERC20Token{}, err
 	}
 
-	if isBaseDenom {
-		erc20Token, err = k.ERC20Token.Get(ctx, tokenName)
-		if err != nil {
-			return types.ERC20Token{}, err
-		}
-	} else {
-		erc20Token, err = k.GetERC20Token(ctx, tokenName)
-		if err != nil {
-			return types.ERC20Token{}, err
-		}
+	erc20Token, err = k.ERC20Token.Get(ctx, tokenName)
+	if err != nil {
+		return types.ERC20Token{}, err
 	}
 
 	if !erc20Token.Enabled {

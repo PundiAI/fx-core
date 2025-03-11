@@ -19,7 +19,7 @@ func (k Keeper) BaseCoinToEvm(ctx context.Context, caller contract.Caller, holde
 }
 
 func (k Keeper) ConvertCoin(ctx context.Context, caller contract.Caller, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) (erc20Addr string, err error) {
-	erc20Token, err := k.MintingEnabled(ctx, receiver.Bytes(), true, coin.Denom)
+	erc20Token, err := k.MintingEnabled(ctx, receiver.Bytes(), coin.Denom)
 	if err != nil {
 		return erc20Addr, err
 	}
