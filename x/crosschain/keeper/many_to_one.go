@@ -141,19 +141,6 @@ func (k Keeper) WithdrawBridgeToken(ctx context.Context, holder sdk.AccAddress, 
 }
 
 func (k Keeper) IBCCoinToBaseCoin(ctx context.Context, holder sdk.AccAddress, ibcCoin sdk.Coin) (foundBase bool, baseDenom string, err error) {
-	// Ensure compatibility with the case where ibcCoin could be a bridgeToken.
-	bridgeToken, err := k.GetBridgeToken(ctx, ibcCoin.Denom)
-	if err == nil {
-		baseCoin, err := k.BridgeTokenToBaseCoin(ctx, holder, ibcCoin.Amount, bridgeToken)
-		if err != nil {
-			return false, "", err
-		}
-		return true, baseCoin.Denom, err
-	}
-	if !errors.IsOf(err, collections.ErrNotFound) {
-		return false, "", err
-	}
-
 	isNative := !strings.HasPrefix(ibcCoin.Denom, ibctransfertypes.DenomPrefix+"/")
 	if isNative {
 		return true, ibcCoin.Denom, nil

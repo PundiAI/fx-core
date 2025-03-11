@@ -14,7 +14,6 @@ import (
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	"github.com/pundiai/fx-core/v8/x/crosschain/keeper"
-	"github.com/pundiai/fx-core/v8/x/crosschain/types"
 	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ethtypes "github.com/pundiai/fx-core/v8/x/eth/types"
 )
@@ -138,24 +137,6 @@ func (suite *KeeperTestSuite) TestKeeper_IBCCoinToEvm() {
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(erc20Token.Denom, sdkmath.NewInt(100))
-				suite.MintToken(holder.Bytes(), coin)
-
-				return holder.String(), coin
-			},
-		},
-		{
-			name: "success bridge token",
-			init: func() (string, sdk.Coin) {
-				holder := helpers.GenHexAddress()
-				symbol := helpers.NewRandSymbol()
-				erc20Token, err := suite.App.Erc20Keeper.RegisterNativeCoin(suite.Ctx, symbol, symbol, 18)
-				suite.Require().NoError(err)
-
-				contractAddr := helpers.GenExternalAddr(suite.chainName)
-				err = suite.App.Erc20Keeper.AddBridgeToken(suite.Ctx, erc20Token.Denom, suite.chainName, contractAddr, erc20Token.IsNativeERC20())
-				suite.Require().NoError(err)
-
-				coin := sdk.NewCoin(types.NewBridgeDenom(suite.chainName, contractAddr), sdkmath.NewInt(100))
 				suite.MintToken(holder.Bytes(), coin)
 
 				return holder.String(), coin
