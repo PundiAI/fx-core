@@ -4,11 +4,13 @@ import (
 	"context"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/pundiai/fx-core/v8/testutil/helpers"
+	erc20types "github.com/pundiai/fx-core/v8/x/erc20/types"
 	ibcmiddleware "github.com/pundiai/fx-core/v8/x/ibc/middleware"
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
 )
@@ -52,4 +54,8 @@ func (m mockCrosschainKeeper) IBCCoinRefund(ctx sdk.Context, holder sdk.AccAddre
 
 func (m mockCrosschainKeeper) AfterIBCAckSuccess(ctx sdk.Context, sourceChannel string, sequence uint64) error {
 	return nil
+}
+
+func (m mockCrosschainKeeper) BridgeTokenToBaseCoin(ctx context.Context, holder sdk.AccAddress, amount sdkmath.Int, bridgeToken erc20types.BridgeToken) (sdk.Coin, error) {
+	panic("implement me")
 }

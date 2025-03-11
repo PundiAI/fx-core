@@ -33,14 +33,14 @@ func (k Keeper) OnRecvPacketWithoutRouter(ctx sdk.Context, ibcModule porttypes.I
 	}
 
 	// Use the original package to handle ibc to evm
-	if err = k.OnRecvPacket(zeroGasConfigCtx(ctx), packet, data.ToIBCPacketData()); err != nil {
+	if err = k.OnRecvPacket(zeroGasConfigCtx(ctx), packet, data.ToIBCPacketData(), receiver); err != nil {
 		return types.NewAckErrorWithErrorEvent(ctx, err)
 	}
 
 	return ack
 }
 
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData) error {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData, receive sdk.AccAddress) error {
 	// parse the transfer amount
 	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
@@ -49,13 +49,17 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 	receiveDenom := parseIBCCoinDenom(packet, data.GetDenom())
 	receiveCoin := sdk.NewCoin(receiveDenom, transferAmount)
+	receiveCoin, err := k.compatibleWithOldData(ctx, receive, receiveCoin)
+	if err != nil {
+		return err
+	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeReceive,
 		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
 		sdk.NewAttribute(transfertypes.AttributeKeyAmount, receiveCoin.String()),
 	))
 
-	if err := k.crosschainKeeper.IBCCoinToEvm(ctx, data.Receiver, receiveCoin); err != nil {
+	if err = k.crosschainKeeper.IBCCoinToEvm(ctx, data.Receiver, receiveCoin); err != nil {
 		return err
 	}
 	return k.HandlerIbcCall(ctx, packet.SourcePort, packet.SourceChannel, data)

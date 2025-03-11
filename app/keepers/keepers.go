@@ -576,7 +576,7 @@ func NewAppKeeper(
 		appCodec,
 		authAddr,
 	)
-	appKeepers.IBCMiddlewareKeeper = ibcmiddlewarekeeper.NewKeeper(appCodec, appKeepers.EvmKeeper, appKeepers.AccountKeeper, appKeepers.EthKeeper, crosschainkeeper.NewMsgServerRouterImpl(appKeepers.CrosschainRouterKeeper))
+	appKeepers.IBCMiddlewareKeeper = ibcmiddlewarekeeper.NewKeeper(appCodec, appKeepers.EvmKeeper, appKeepers.Erc20Keeper, appKeepers.AccountKeeper, appKeepers.EthKeeper, crosschainkeeper.NewMsgServerRouterImpl(appKeepers.CrosschainRouterKeeper))
 	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
 	transferIBCModule := ibcmiddleware.NewIBCMiddleware(appKeepers.IBCMiddlewareKeeper, appKeepers.IBCKeeper.ChannelKeeper, ibcTransferModule)
 

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,6 +14,8 @@ import (
 	fxtypes "github.com/pundiai/fx-core/v8/types"
 	crosschaintypes "github.com/pundiai/fx-core/v8/x/crosschain/types"
 	"github.com/pundiai/fx-core/v8/x/ibc/middleware/types"
+	polygontypes "github.com/pundiai/fx-core/v8/x/polygon/types"
+	trontypes "github.com/pundiai/fx-core/v8/x/tron/types"
 )
 
 func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCModule, packet channeltypes.Packet, data types.FungibleTokenPacketData, relayer sdk.AccAddress) ibcexported.Acknowledgement {
@@ -36,6 +39,12 @@ func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCM
 
 	receiveDenom := parseIBCCoinDenom(packet, data.GetDenom())
 	receiveCoin := sdk.NewCoin(receiveDenom, receiveAmount)
+	receiveCoin, err = k.compatibleWithOldData(ctx, receiver, receiveCoin)
+	if err != nil {
+		return types.NewAckErrorWithErrorEvent(ctx, err)
+	}
+
+	// bridgeCoinToBase()
 	found, baseDenom, err := k.crosschainKeeper.IBCCoinToBaseCoin(ctx, receiver, receiveCoin)
 	if err != nil {
 		return types.NewAckErrorWithErrorEvent(ctx, err)
@@ -70,4 +79,37 @@ func (k Keeper) OnRecvPacketWithRouter(ctx sdk.Context, ibcModule porttypes.IBCM
 	}
 	ctx.EventManager().EmitEvent(routerEvent)
 	return ack
+}
+
+func (k Keeper) compatibleWithOldData(ctx sdk.Context, holder sdk.AccAddress, receiveCoin sdk.Coin) (sdk.Coin, error) {
+	// Try to confirm the bridge token
+	baseDenom, err := k.erc20Keeper.GetBaseDenom(ctx, receiveCoin.Denom)
+	if err != nil {
+		return receiveCoin, nil
+	}
+
+	// If the denom is a bridge token, convert it to the base coin
+	bridgeModule := ""
+	if strings.HasPrefix(receiveCoin.Denom, polygontypes.ModuleName) {
+		bridgeModule = polygontypes.ModuleName
+	} else if strings.HasPrefix(receiveCoin.Denom, trontypes.ModuleName) {
+		bridgeModule = trontypes.ModuleName
+	}
+	if len(bridgeModule) == 0 {
+		return receiveCoin, nil
+	}
+
+	// if get bridge token fail, return the original coin
+	bridgeToken, err := k.erc20Keeper.GetBridgeToken(ctx, bridgeModule, baseDenom)
+	if err != nil {
+		return receiveCoin, nil
+	}
+
+	baseCoin, err := k.crosschainKeeper.BridgeTokenToBaseCoin(ctx, holder, receiveCoin.Amount, bridgeToken)
+	if err != nil {
+		return receiveCoin, err
+	}
+
+	// return the base coin
+	return sdk.NewCoin(baseCoin.Denom, receiveCoin.Amount), nil
 }
