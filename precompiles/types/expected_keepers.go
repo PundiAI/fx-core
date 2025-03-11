@@ -66,7 +66,7 @@ type StakingKeeper interface {
 	BeginRedelegation(
 		ctx context.Context, delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress, sharesAmount sdkmath.LegacyDec,
 	) (completionTime time.Time, err error)
-	GetLastValidators(ctx context.Context) (validators []stakingtypes.Validator, err error)
+	GetBondedValidatorsByPower(ctx context.Context) ([]stakingtypes.Validator, error)
 }
 
 type DistrKeeper interface {

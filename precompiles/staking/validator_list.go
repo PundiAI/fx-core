@@ -41,12 +41,12 @@ func (m *ValidatorListMethod) Run(evm *vm.EVM, contract *vm.Contract) ([]byte, e
 	stateDB := evm.StateDB.(types.ExtStateDB)
 	cacheCtx := stateDB.Context()
 
-	bondedVals, err := m.stakingKeeper.GetLastValidators(cacheCtx)
+	bondedVals, err := m.stakingKeeper.GetBondedValidatorsByPower(cacheCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	valAddrs := make([]string, 0, len(bondedVals))
+	var valAddrs []string
 	switch args.GetSortBy() {
 	case fxcontract.ValidatorSortByPower:
 		valAddrs = validatorListPower(bondedVals)
