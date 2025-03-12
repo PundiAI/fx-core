@@ -295,6 +295,8 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 			fmt.Printf("%sVersion: v6\n", SPACE)
 		} else if blockHeight < fxtypes.MainnetBlockHeightV8 {
 			fmt.Printf("%sVersion: v7\n", SPACE)
+		} else if blockHeight < fxtypes.MainnetBlockHeightV86 {
+			fmt.Printf("%sVersion: v8.5\n", SPACE)
 		}
 	}
 	if chainId == fxtypes.TestnetChainId {
@@ -325,18 +327,20 @@ func checkBlockchainData(bc blockchain, genesisId, privValidatorKeyFile string) 
 		} else if blockHeight < fxtypes.TestnetBlockHeightV75 {
 			fmt.Printf("%sVersion: v7.4\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV8 {
-			fmt.Printf("%sVersion: v8\n", SPACE)
+			fmt.Printf("%sVersion: v7.5\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV81 {
-			fmt.Printf("%sVersion: v8.1\n", SPACE)
+			fmt.Printf("%sVersion: v8.0\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV82 {
-			fmt.Printf("%sVersion: v8.2\n", SPACE)
+			fmt.Printf("%sVersion: v8.1\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV83 {
-			fmt.Printf("%sVersion: v8.3\n", SPACE)
+			fmt.Printf("%sVersion: v8.2\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV84 {
-			fmt.Printf("%sVersion: v8.4\n", SPACE)
+			fmt.Printf("%sVersion: v8.3\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV841 {
-			fmt.Printf("%sVersion: v8.4.1\n", SPACE)
+			fmt.Printf("%sVersion: v8.4\n", SPACE)
 		} else if blockHeight < fxtypes.TestnetBlockHeightV85 {
+			fmt.Printf("%sVersion: v8.4.1\n", SPACE)
+		} else if blockHeight < fxtypes.TestnetBlockHeightV86 {
 			fmt.Printf("%sVersion: v8.5\n", SPACE)
 		}
 	}
