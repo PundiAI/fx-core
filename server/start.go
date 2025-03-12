@@ -143,6 +143,7 @@ func StartCmd(appCreator types.AppCreator, defaultNodeHome string) *cobra.Comman
 	return startCmd
 }
 
+//nolint:gocyclo // for validator
 func checkMainnetAndBlock(genesisDoc *genutiltypes.AppGenesis, genesisHash string, config *cmtcfg.Config) error {
 	if genesisDoc.InitialHeight > 1 || genesisDoc.ChainID != fxtypes.MainnetChainId || config.StateSync.Enable {
 		return nil
