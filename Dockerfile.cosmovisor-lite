@@ -1,6 +1,5 @@
-FROM ghcr.io/pundiai/fx-core:7.5.1 AS fxv7_5
-FROM ghcr.io/pundiai/fx-core:8.4.1-rc4 AS fxv8_4_1
-FROM ghcr.io/pundiai/fx-core:8.5.3 AS fxv8_5
+FROM ghcr.io/pundiai/fx-core:8.5.2 AS fxv8_5_2
+FROM ghcr.io/pundiai/fx-core:8.6.0 AS fxv8_6
 FROM --platform=$BUILDPLATFORM alpine:3.19 AS downloader
 
 ARG TARGETPLATFORM
@@ -27,12 +26,11 @@ ENV COSMOVISOR_COLOR_LOGS=true
 
 ENV PATH="/root/.fxcore/cosmovisor/current/bin:${PATH}"
 
-COPY --from=fxv7_5 /usr/bin/fxcored /root/.fxcore/cosmovisor/genesis/bin/fxcored
-RUN mkdir -p /root/.fxcore/cosmovisor/upgrades/v7.5.x/bin && \
-    ln -s /root/.fxcore/cosmovisor/genesis/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v7.5.x/bin/fxcored
+COPY --from=fxv8_5_2 /usr/bin/fxcored /root/.fxcore/cosmovisor/genesis/bin/fxcored
+RUN mkdir -p /root/.fxcore/cosmovisor/upgrades/v8.5.x/bin && \
+    ln -s /root/.fxcore/cosmovisor/genesis/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.5.x/bin/fxcored
 
-COPY --from=fxv8_4_1 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.4.1/bin/fxcored
-COPY --from=fxv8_5 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.5.x/bin/fxcored
+COPY --from=fxv8_6 /usr/bin/fxcored /root/.fxcore/cosmovisor/upgrades/v8.6.x/bin/fxcored
 
 COPY --from=downloader /cosmovisor /usr/bin/cosmovisor
 

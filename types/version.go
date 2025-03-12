@@ -16,27 +16,33 @@ const (
 	MainnetBlockHeightV5 = 11_601_700
 	MainnetBlockHeightV6 = 13_598_000
 	MainnetBlockHeightV7 = 16_838_000
-	MainnetBlockHeightV8 = 19_616_000
+
+	MainnetBlockHeightV8  = 19_616_000
+	MainnetBlockHeightV86 = 19_908_000 // v8.6
 )
 
 // testnet
 const (
-	TestnetChainId         = "dhobyghaut"
-	testnetEvmChainID      = 90001
-	TestnetGenesisHash     = "ec2bf940c025434d1fd17e2338a60b8803900310dc71f71ea55c185b24ddba23"
-	TestnetBlockHeightV2   = 3_418_880
-	TestnetBlockHeightV3   = 6_578_000
-	TestnetBlockHeightV4   = 8_088_000
-	TestnetBlockHeightV41  = 8_376_000 // v4.1
-	TestnetBlockHeightV42  = 8_481_000 // v4.2
-	TestnetBlockHeightV5   = 9_773_000
-	TestnetBlockHeightV6   = 11_701_000
-	TestnetBlockHeightV7   = 12_961_500
-	TestnetBlockHeightV71  = 14_369_500 // v7.1
-	TestnetBlockHeightV72  = 14_389_000 // v7.2
-	TestnetBlockHeightV73  = 14_551_500 // v7.3
-	TestnetBlockHeightV74  = 15_614_000 // v7.4
-	TestnetBlockHeightV75  = 15_660_500 // v7.5
+	TestnetChainId       = "dhobyghaut"
+	testnetEvmChainID    = 90001
+	TestnetGenesisHash   = "ec2bf940c025434d1fd17e2338a60b8803900310dc71f71ea55c185b24ddba23"
+	TestnetBlockHeightV2 = 3_418_880
+	TestnetBlockHeightV3 = 6_578_000
+
+	TestnetBlockHeightV4  = 8_088_000
+	TestnetBlockHeightV41 = 8_376_000 // v4.1
+	TestnetBlockHeightV42 = 8_481_000 // v4.2
+
+	TestnetBlockHeightV5 = 9_773_000
+	TestnetBlockHeightV6 = 11_701_000
+
+	TestnetBlockHeightV7  = 12_961_500
+	TestnetBlockHeightV71 = 14_369_500 // v7.1
+	TestnetBlockHeightV72 = 14_389_000 // v7.2
+	TestnetBlockHeightV73 = 14_551_500 // v7.3
+	TestnetBlockHeightV74 = 15_614_000 // v7.4
+	TestnetBlockHeightV75 = 15_660_500 // v7.5
+
 	TestnetBlockHeightV8   = 18_005_000 // v8
 	TestnetBlockHeightV81  = 18_019_000 // v8.1
 	TestnetBlockHeightV82  = 18_332_000 // v8.2
@@ -44,6 +50,7 @@ const (
 	TestnetBlockHeightV84  = 18_583_700 // v8.4
 	TestnetBlockHeightV841 = 18_722_000 // v8.4.1
 	TestnetBlockHeightV85  = 18_783_000 // v8.5
+	TestnetBlockHeightV86  = 19_086_000 // v8.6
 )
 
 func EIP155ChainID(chainId string) *big.Int {

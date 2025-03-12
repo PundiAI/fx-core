@@ -1,5 +1,15 @@
 # Change log
 
+## [v8.6.0]
+
+### Bug Fixes
+
+* Fix for Precompiled Delegation Interface Call.
+* Fix for IBC EscrowAddress Module Balance.
+* Unified bridge call sender Address.
+
+---
+
 ## [v8.5.0]
 
 ### Enhancements and New Features
