@@ -25,7 +25,11 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
+<<<<<<< HEAD
 	github.com/cosmos/ibc-go/v8 v8.6.0
+=======
+	github.com/cosmos/ibc-go/v8 v8.7.0
+>>>>>>> 7b37b071 (build(deps): bump github.com/cosmos/ibc-go/v8 from v8.6.1 to v8.7.0 (#1067))
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.22.0
 	github.com/fbsobreira/gotron-sdk v0.0.0-20211012084317-763989224068
