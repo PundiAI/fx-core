@@ -17,14 +17,14 @@ pull_request_rules:
     actions:
       queue:
         name: default
-  - name: backport patches to v7.5.x branch
+  - name: backport patches to v8.5.x branch
     conditions:
       - base=main
-      - label=backport/v7.5.x
+      - label=backport/v8.5.x
     actions:
       backport:
         branches:
-          - release/v7.5.x
+          - release/v8.5.x
   - name: Ping PR author when conflicting
     description: Warn the pull request author when their PR are conflicting
     conditions:
