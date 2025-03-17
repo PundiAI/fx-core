@@ -300,7 +300,7 @@ func startInProcess(svrCtx *server.Context, clientCtx client.Context, opts ether
 	app := opts.AppCreator(svrCtx.Logger, db, traceWriter, svrCtx.Viper)
 	defer func() {
 		if closeErr := app.Close(); closeErr != nil {
-			logger.Error("close application failed", "error", err.Error())
+			logger.Error("close application failed", "error", closeErr.Error())
 		}
 	}()
 
