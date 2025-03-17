@@ -7,8 +7,6 @@ on:
   pull_request:
     paths:
       - 'Dockerfile'
-      - 'Dockerfile.cosmovisor'
-      - 'Dockerfile.cosmovisor-lite'
       - '.github/workflows/docker.yml'
 
 permissions:
