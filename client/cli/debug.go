@@ -37,6 +37,7 @@ func Debug() *cobra.Command {
 		RunE:  client.ValidateCmd,
 	}
 	cmd.AddCommand(
+		debug.CodecCmd(),
 		ToStringCmd(),
 		ToBytes32Cmd(),
 		ChecksumEthAddressCmd(),
