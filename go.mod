@@ -65,7 +65,7 @@ require (
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
-	github.com/hashicorp/go-metrics v0.5.3
+	github.com/hashicorp/go-metrics v0.5.4
 	github.com/hashicorp/go-plugin v1.6.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
