@@ -19,7 +19,7 @@ require (
 	github.com/coder/websocket v1.8.13
 	github.com/cometbft/cometbft v0.38.13-0.20240920204745-fdf90d16f608
 	github.com/cometbft/cometbft-db v0.15.0
-	github.com/cosmos/cosmos-db v1.0.3-0.20240408151834-e75f6e4b28d8
+	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/go-bip39 v1.0.0
