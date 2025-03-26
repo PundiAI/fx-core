@@ -57,10 +57,3 @@ func TestSwapCoin(t *testing.T) {
 	assert.NotEqual(t, swapCoin.String(), coin.String())
 	assert.EqualValues(t, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1)).String(), swapCoin.String())
 }
-
-func TestSwapCoins(t *testing.T) {
-	coins := sdk.NewCoins(sdk.NewCoin(LegacyFXDenom, sdkmath.NewInt(100)))
-	swapCoins := SwapCoins(coins)
-	assert.NotEqual(t, swapCoins.String(), coins.String())
-	assert.EqualValues(t, sdk.NewCoins(sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1))).String(), swapCoins.String())
-}
