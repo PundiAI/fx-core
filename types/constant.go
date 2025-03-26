@@ -98,10 +98,6 @@ func SwapAmount(amount sdkmath.Int) sdkmath.Int {
 	return amount.QuoRaw(100)
 }
 
-func SwapDecAmount(amount sdkmath.LegacyDec) sdkmath.LegacyDec {
-	return amount.QuoInt64(100)
-}
-
 func SwapCoin(coin sdk.Coin) sdk.Coin {
 	if coin.Denom != LegacyFXDenom {
 		return coin
@@ -109,30 +105,4 @@ func SwapCoin(coin sdk.Coin) sdk.Coin {
 	coin.Amount = SwapAmount(coin.Amount)
 	coin.Denom = DefaultDenom
 	return coin
-}
-
-func SwapCoins(coins sdk.Coins) sdk.Coins {
-	swapCoins := sdk.Coins{}
-	for _, coin := range coins {
-		swapCoins = swapCoins.Add(SwapCoin(coin))
-	}
-	return swapCoins
-}
-
-func SwapDecCoins(decCoins sdk.DecCoins) sdk.DecCoins {
-	result := sdk.NewDecCoins()
-	if len(decCoins) == 0 {
-		return result
-	}
-	for _, decCoin := range decCoins {
-		if decCoin.Denom == LegacyFXDenom {
-			decCoin.Denom = DefaultDenom
-			decCoin.Amount = SwapDecAmount(decCoin.Amount)
-			if !decCoin.IsPositive() {
-				continue
-			}
-		}
-		result = result.Add(decCoin)
-	}
-	return result
 }
