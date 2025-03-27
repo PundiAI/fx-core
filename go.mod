@@ -71,7 +71,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 )
