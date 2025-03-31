@@ -57,7 +57,7 @@ jobs:
       - run: |
           version=$(grep golangci_version= ./Makefile | awk -F '=' '{print $2}')
           echo "GOLANGCI_VERSION=$version" >> $GITHUB_ENV
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v7
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           args: --timeout 10m
