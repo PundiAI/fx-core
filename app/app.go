@@ -128,8 +128,7 @@ func New(
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
 
-	// todo: enable optimistic execution
-	// baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
+	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 
 	bApp := baseapp.NewBaseApp(
 		fxtypes.Name,
