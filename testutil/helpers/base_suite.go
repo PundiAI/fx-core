@@ -135,7 +135,17 @@ func (s *BaseSuite) Commit(block ...int64) sdk.Context {
 			panic(err)
 		}
 
-		// 4. get new ctx for finalizeBlockState
+		// 4. try to finalize the block + commit finalizeBlockState (wait optimisticExec done)
+		if _, err := s.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+			Height:            i + 1,
+			Time:              tmtime.Now(),
+			ProposerAddress:   s.Ctx.BlockHeader().ProposerAddress,
+			DecidedLastCommit: commitInfo,
+		}); err != nil {
+			panic(err)
+		}
+
+		// 5. get new ctx for finalizeBlockState
 		ctx = s.App.GetContextForFinalizeBlock(nil)
 	}
 	s.Ctx = ctx
