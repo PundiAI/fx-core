@@ -62,6 +62,7 @@ func (options HandlerOptions) Validate() error {
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	decorators := []sdk.AnteDecorator{
 		NewEthPubKeyDecorator(options.AccountKeeper),
+		NewEthBlockAddrMsgDecorator(),
 		newTxListenerDecorator(options.PendingTxListener),
 	}
 	return func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
@@ -153,6 +154,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		NewBlockAddrMsgDecorator(),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IbcKeeper),
 	)
