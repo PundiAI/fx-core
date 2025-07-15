@@ -7,9 +7,12 @@ import {
   txFee,
   getSigner,
   waitForTransaction,
+  requireSourceChainTokenAddress,
 } from "./common";
 
 async function main() {
+  requireSourceChainTokenAddress();
+
   const signer = await getSigner();
 
   const interchainTokenService = new ethers.Contract(

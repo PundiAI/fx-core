@@ -8,9 +8,14 @@ import {
   salt,
   getSigner,
   waitForTransaction,
+  requireSourceChainTokenAddress,
+  requireInterchainTokenManagerAddress,
 } from "./common";
 
 async function main() {
+  requireSourceChainTokenAddress();
+  requireInterchainTokenManagerAddress();
+
   const signer = await getSigner();
 
   const pundiaifxContract = new ethers.Contract(

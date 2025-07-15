@@ -10,9 +10,12 @@ import {
   getSigner,
   waitForTransaction,
   interchainTokenServiceContractAddress,
+  requireSourceChainTokenAddress,
 } from "./common";
 
 async function main() {
+  requireSourceChainTokenAddress();
+
   const signer = await getSigner();
 
   const interchainTokenFactoryContract = new ethers.Contract(
@@ -21,12 +24,13 @@ async function main() {
     signer
   );
 
+  let sigerAddr = await signer.getAddress();
   const registerCustomTokenTx =
     await interchainTokenFactoryContract.registerCustomToken(
       salt,
       sourceChainTokenAddress,
       tokenManagerTypeMintBurn,
-      await signer.getAddress(),
+      sigerAddr,
       { value: ethers.parseEther(txFee) }
     );
   console.log("registerCustomToken tx:", registerCustomTokenTx.hash);

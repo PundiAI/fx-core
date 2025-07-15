@@ -92,3 +92,17 @@ export async function waitForTransaction(tx: any): Promise<any> {
   );
   return receipt;
 }
+
+export function requireSourceChainTokenAddress() {
+  if (!sourceChainTokenAddress) {
+    throw new Error(
+      "SOURCE_CHAIN_TOKEN_ADDRESS environment variable is required"
+    );
+  }
+}
+
+export function requireInterchainTokenManagerAddress() {
+  if (!interchainTokenManagerAddress) {
+    throw new Error("TOKEN_MANAGER_ADDRESS environment variable is required");
+  }
+}

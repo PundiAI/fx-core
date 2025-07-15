@@ -1,8 +1,21 @@
 # Register Custom Token to Axelar ITS
 
+## Install Dependencies
+
+```bash
+yarn install
+```
+
+## Compile Contracts
+
+```bash
+yarn compile
+```
+
 ## Deploy ERC20 Token
 
 ```bash
+export RAW_PRIVATE_KEY="<YOUR PRIVATE KEY>"
 npx hardhat ignition deploy ignition/modules/interchain_token.ts --network bsc
 ```
 

@@ -21,12 +21,13 @@ async function main() {
     signer
   );
 
+  let signerAddr = await signer.getAddress();
   const linkToken = await interchainTokenFactoryContract.linkToken(
     salt,
     destinationChainName,
     destinationChainTokenAddress,
     tokenManagerTypeLockUnLock,
-    await signer.getAddress(),
+    signerAddr,
     ethers.parseEther(txFee),
     { value: ethers.parseEther(txFee) }
   );

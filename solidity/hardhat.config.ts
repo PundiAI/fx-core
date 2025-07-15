@@ -71,6 +71,9 @@ const config: HardhatUserConfig = {
         "https://bsc-testnet-dataseed.bnbchain.org"
       }`,
       chainId: 97,
+      accounts: process.env.RAW_PRIVATE_KEY
+        ? [process.env.RAW_PRIVATE_KEY]
+        : undefined,
     },
     bsc: {
       url: `${process.env.BSC_URL || "https://bsc-mainnet.public.blastapi.io"}`,

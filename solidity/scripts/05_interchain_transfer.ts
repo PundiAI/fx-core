@@ -25,8 +25,9 @@ async function main() {
     interchainTokenFactoryContractABI,
     signer
   );
+  let signerAddr = await signer.getAddress();
   const tokenId = await interchainTokenFactoryContract.linkedTokenId(
-    await signer.getAddress(),
+    signerAddr,
     salt
   );
 
@@ -39,7 +40,7 @@ async function main() {
   const interchainTransferTx = await interchainTokenService.interchainTransfer(
     tokenId,
     destChainName,
-    await signer.getAddress(),
+    signerAddr,
     ethers.parseEther("0.12"),
     "0x",
     ethers.parseEther(txFee),
