@@ -1,4 +1,3 @@
-// @ts-ignore
 import { ethers, keccak256, toUtf8Bytes } from "ethers";
 import {
   sourceChainTokenAddress,

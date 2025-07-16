@@ -63,21 +63,7 @@ contract PundiAIFXInterchainToken is
         address account,
         uint256 amount
     ) external onlyRole(OWNER_ROLE) {
-        bool isBlocklist = _blacklist[account];
-        bool isPaused = paused();
-        if (isPaused) {
-            _paused = false;
-        }
-        if (isBlocklist) {
-            _blacklist[account] = false;
-        }
         _burn(account, amount);
-        if (isPaused) {
-            _paused = true;
-        }
-        if (isBlocklist) {
-            _blacklist[account] = true;
-        }
     }
 
     function _spendAllowance(
@@ -181,6 +167,9 @@ contract PundiAIFXInterchainToken is
         address to,
         uint256
     ) internal view override {
+        if (hasRole(OWNER_ROLE, _msgSender())) {
+            return;
+        }
         require(!paused(), "Pausable: paused");
         require(!_blacklist[from], "Sender is blacklisted");
         require(!_blacklist[to], "Recipient is blacklisted");

@@ -60,6 +60,7 @@ console.log(
 );
 console.log("destinationChainTokenAddress:", destinationChainTokenAddress);
 console.log("destinationChainName:", destinationChainName);
+console.log("sourceChainName:", hre.network.name);
 console.log("sourceChainTokenAddress:", sourceChainTokenAddress);
 console.log("interchainTokenManagerAddress:", interchainTokenManagerAddress);
 console.log("salt:", salt);
@@ -90,6 +91,9 @@ export async function waitForTransaction(tx: any): Promise<any> {
     "status:",
     receipt.status
   );
+  if (receipt.status !== 1) {
+    throw new Error(`Transaction failed with status: ${receipt.status}`);
+  }
   return receipt;
 }
 

@@ -11,6 +11,7 @@ import {
 } from "./subtasks";
 import { FxBridgeLogic } from "../typechain-types";
 import { FxBridgeBase } from "../typechain-types/contracts/interfaces/IFxBridgeLogic";
+import { ContractFactory } from "ethers";
 
 const deploy = task("deploy-contract", "deploy contract")
   .addParam("contractName", "deploy contract name", undefined, string, false)
@@ -28,13 +29,11 @@ const deploy = task("deploy-contract", "deploy contract")
     const contractAddress = await hre.run(SUB_GET_CONTRACT_ADDR, {
       from: from,
     });
-    const contractFactory = await hre.ethers.getContractFactory(
+    const contractFactory = (await hre.ethers.getContractFactory(
       taskArgs.contractName
-    );
+    )) as ContractFactory;
 
-    // @ts-ignore
     const paramData = contractFactory.interface.encodeDeploy(taskArgs.params);
-    // @ts-ignore
     const data = contractFactory.bytecode + paramData.slice(2);
 
     const tx = await hre.run(SUB_CREATE_TRANSACTION, {
