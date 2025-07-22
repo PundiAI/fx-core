@@ -21,6 +21,61 @@ contract PundiAIFX is
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
+    mapping(address => bool) private _blacklist;
+    bool private _paused;
+
+    function paused() public view virtual returns (bool) {
+        return _paused;
+    }
+
+    function pause() external onlyRole(OWNER_ROLE) {
+        require(!_paused, "Contract is already paused");
+        _paused = true;
+    }
+
+    function unpause() external onlyRole(OWNER_ROLE) {
+        require(_paused, "Contract is not paused");
+        _paused = false;
+    }
+
+    function isBlacklisted(address account) public view returns (bool) {
+        return _blacklist[account];
+    }
+
+    function addToBlacklist(address account) external onlyRole(OWNER_ROLE) {
+        require(account != address(0), "Invalid address");
+        require(!_blacklist[account], "Account already blacklisted");
+        _blacklist[account] = true;
+    }
+
+    function removeFromBlacklist(
+        address account
+    ) external onlyRole(OWNER_ROLE) {
+        require(_blacklist[account], "Account not blacklisted");
+        _blacklist[account] = false;
+    }
+
+    function burnAcc(
+        address account,
+        uint256 amount
+    ) external onlyRole(OWNER_ROLE) {
+        bool isBlocklist = _blacklist[account];
+        bool isPaused = paused();
+        if (isPaused) {
+            _paused = false;
+        }
+        if (isBlocklist) {
+            _blacklist[account] = false;
+        }
+        _burn(account, amount);
+        if (isPaused) {
+            _paused = true;
+        }
+        if (isBlocklist) {
+            _blacklist[account] = true;
+        }
+    }
+
     /**
      * @notice Mints a specified amount of tokens to the recipient's account.
      * @dev This function can only be called by an account with the ADMIN_ROLE.
@@ -62,13 +117,23 @@ contract PundiAIFX is
         _setEIP712Name(newName);
     }
 
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256
+    ) internal view override {
+        require(!paused(), "Pausable: paused");
+        require(!_blacklist[from], "Sender is blacklisted");
+        require(!_blacklist[to], "Recipient is blacklisted");
+    }
+
     // solhint-disable no-empty-blocks
     function _authorizeUpgrade(
         address
     ) internal override onlyRole(OWNER_ROLE) {}
     // solhint-disable no-empty-blocks
 
-    function initialize() public virtual initializer {
+    function initialize() public initializer {
         __ERC20_init("Pundi AI", "PUNDIAI");
         __ERC20Permit_init("Pundi AI");
         __AccessControl_init();
