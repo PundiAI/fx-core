@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"sort"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -130,6 +131,11 @@ func (k QueryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoing
 		batches = append(batches, batch)
 		return len(batches) == types.MaxResults
 	})
+	if len(batches) > 0 {
+		sort.Slice(batches, func(i, j int) bool {
+			return batches[i].BatchNonce < batches[j].BatchNonce
+		})
+	}
 	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
 }
 
