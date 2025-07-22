@@ -1,18 +1,11 @@
 {
   "extends": "solhint:recommended",
-  "plugins": ["prettier"],
   "rules": {
     "code-complexity": ["error", 8],
     "compiler-version": ["error", ">=0.8.0"],
     "constructor-syntax": "error",
     "func-visibility": ["error", { "ignoreConstructors": true }],
     "max-line-length": ["error", 150],
-    "prettier/prettier": [
-      "error",
-      {
-        "endOfLine": "auto"
-      }
-    ],
     "reason-string": ["warn", { "maxLength": 64 }]
   }
 }

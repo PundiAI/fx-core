@@ -20,6 +20,11 @@ async function main() {
     signer
   );
 
+  console.log("registerTokenMetadata tx params:", {
+    sourceChainTokenAddress,
+    txFee,
+    value: ethers.parseEther(txFee),
+  });
   const registerTokenMetadata =
     await interchainTokenService.registerTokenMetadata(
       sourceChainTokenAddress,
@@ -27,6 +32,9 @@ async function main() {
       { value: ethers.parseEther(txFee) }
     );
   console.log("registerTokenMetadata tx:", registerTokenMetadata.hash);
+  console.log(
+    "axelascan: https://axelarscan.io/gmp/" + registerTokenMetadata.hash
+  );
 
   await waitForTransaction(registerTokenMetadata);
 }

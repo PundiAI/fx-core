@@ -23,17 +23,52 @@ async function main() {
     signer
   );
 
+  /*
+  console.log("setItsSalt tx params:", {
+    sourceChainTokenAddress,
+    interchainTokenServiceContractAddress,
+    interchainTokenManagerAddress,
+    salt,
+  });
   const setItsSaltTx = await pundiaifxContract.setItsSalt(salt);
   console.log("setItsSalt tx:", setItsSaltTx.hash);
   await waitForTransaction(setItsSaltTx);
 
+  console.log("setInterchainTokenService tx params:", {
+    sourceChainTokenAddress,
+    interchainTokenServiceContractAddress,
+    interchainTokenManagerAddress,
+  });
   const setItsTx = await pundiaifxContract.setInterchainTokenService(
     interchainTokenServiceContractAddress
   );
   console.log("setInterchainTokenService tx:", setItsTx.hash);
   await waitForTransaction(setItsTx);
+  */
 
   const roleBytes = keccak256(toUtf8Bytes("ADMIN_ROLE"));
+  if (
+    interchainTokenManagerAddress ===
+    "0xa6C9f238eC99917319Bd8b7b2888EDFC14E47854"
+  ) {
+    const hasRole = await pundiaifxContract.hasRole(
+      roleBytes,
+      interchainTokenManagerAddress
+    );
+    if (hasRole) {
+      console.log("revokeRole tx params:", {
+        roleBytes,
+        interchainTokenManagerAddress,
+      });
+      const revokeRole = await pundiaifxContract.revokeRole(
+        roleBytes,
+        interchainTokenManagerAddress
+      );
+      await waitForTransaction(revokeRole);
+    }
+    return;
+  }
+
   const hasRole = await pundiaifxContract.hasRole(
     roleBytes,
     interchainTokenManagerAddress
@@ -44,6 +79,10 @@ async function main() {
   }
   console.log("interchainTokenManagerAddress does not have ADMIN_ROLE");
 
+  console.log("grantRole tx params:", {
+    roleBytes,
+    interchainTokenManagerAddress,
+  });
   const grantRoleTx = await pundiaifxContract.grantRole(
     roleBytes,
     interchainTokenManagerAddress

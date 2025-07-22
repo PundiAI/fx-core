@@ -74,10 +74,19 @@ const config: HardhatUserConfig = {
       accounts: process.env.RAW_PRIVATE_KEY
         ? [process.env.RAW_PRIVATE_KEY]
         : undefined,
+      ledgerAccounts: process.env.LEDGER_ADDRESS
+        ? [process.env.LEDGER_ADDRESS]
+        : [],
     },
     bsc: {
       url: `${process.env.BSC_URL || "https://bsc-mainnet.public.blastapi.io"}`,
       chainId: 56,
+      accounts: process.env.RAW_PRIVATE_KEY
+        ? [process.env.RAW_PRIVATE_KEY]
+        : undefined,
+      ledgerAccounts: process.env.LEDGER_ADDRESS
+        ? [process.env.LEDGER_ADDRESS]
+        : undefined,
     },
   },
   solidity: {

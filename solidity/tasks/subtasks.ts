@@ -1,5 +1,4 @@
 import { subtask } from "hardhat/config";
-import { LedgerSigner } from "@ethersproject/hardware-wallets";
 import { Block, HDNodeWallet, TransactionLike } from "ethers";
 import axios from "axios";
 import { ConfigurableTaskDefinition } from "hardhat/types";
@@ -183,13 +182,9 @@ subtask(
 
 subtask(SUB_CREATE_LEDGER_WALLET, "create ledger wallet").setAction(
   async (taskArgs, hre) => {
-    const { driverPath } = taskArgs;
-    const nodeUrl = await hre.run(SUB_GET_NODE_URL);
-    const _path = driverPath ? driverPath : DEFAULT_DRIVE_PATH;
-    const provider = new hre.ethers.JsonRpcProvider(nodeUrl);
-
-    // @ts-ignore
-    const wallet = new LedgerSigner(provider, "default", _path);
+    const wallet = await hre.ethers.getSigner(
+      hre.network.config.ledgerAccounts[0]
+    );
     return { wallet };
   }
 );

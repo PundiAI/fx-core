@@ -24,6 +24,14 @@ async function main() {
   );
 
   let sigerAddr = await signer.getAddress();
+  console.log("registerCustomToken tx params:", {
+    sourceChainTokenAddress,
+    tokenManagerTypeMintBurn,
+    sigerAddr,
+    salt,
+    txFee,
+    value: ethers.parseEther(txFee),
+  });
   const registerCustomTokenTx =
     await interchainTokenFactoryContract.registerCustomToken(
       salt,
@@ -35,17 +43,24 @@ async function main() {
   console.log("registerCustomToken tx:", registerCustomTokenTx.hash);
 
   const receipt = await waitForTransaction(registerCustomTokenTx);
-  receipt.logs.forEach((log) => {
-    if (
-      log.index === 0 &&
-      log.address === interchainTokenServiceContractAddress
-    ) {
-      console.log("source chain new tokenId:", log.topics[1]);
+  receipt.logs.forEach(
+    (log: { address: string; topics: any[] }, index: number) => {
+      if (
+        index === 0 &&
+        log.address === interchainTokenServiceContractAddress
+      ) {
+        console.log(
+          "source chain new tokenId:",
+          log.topics[1],
+          "salt:",
+          log.topics[3]
+        );
+      }
+      if (index === 1) {
+        console.log("source chain new tokenManagerAddress:", log.address);
+      }
     }
-    if (log.index === 1) {
-      console.log("source chain new tokenManagerAddress:", log.address);
-    }
-  });
+  );
 }
 
 main().catch((error) => {

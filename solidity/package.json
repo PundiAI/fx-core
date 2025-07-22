@@ -17,7 +17,8 @@
     "typechain": "npx hardhat typechain",
     "fork": "npx hardhat node --fork ${NETWORK_URL}",
     "fork:blocknumber": "npx hardhat node --fork ${NETWORK_URL} --fork-block-number ${BLOCK_NUMBER}",
-    "format:ts": "prettier --write \"./**/*.{ts,tsx}\" && prettier --write \"./*.{ts,tsx}\""
+    "format:ts": "npx prettier --write \"./**/*.{ts,tsx}\" && prettier --write \"./*.{ts,tsx}\"",
+    "format:sol": "npx prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'"
   },
   "keywords": [
     "solidity",
@@ -44,7 +45,6 @@
     "@openzeppelin/contracts-upgradeable": "4.9.6"
   },
   "devDependencies": {
-    "@ethersproject/hardware-wallets": "^5.8.0",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
     "@nomicfoundation/hardhat-ethers": "^3.0.9",
     "@nomicfoundation/hardhat-ignition": "^0.15.12",
@@ -70,7 +70,6 @@
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-dev.23",
     "solhint": "^3.4.1",
-    "solhint-plugin-prettier": "^0.0.5",
     "ts-node": "^10.9.1",
     "typechain": "^8.3.2",
     "typescript": "^5.0.4"

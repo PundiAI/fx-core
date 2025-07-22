@@ -21,6 +21,15 @@ async function main() {
   );
 
   let signerAddr = await signer.getAddress();
+  console.log("linkToken tx params:", {
+    destinationChainTokenAddress,
+    destinationChainName,
+    tokenManagerTypeLockUnLock,
+    signerAddr,
+    salt,
+    txFee,
+    value: ethers.parseEther(txFee),
+  });
   const linkToken = await interchainTokenFactoryContract.linkToken(
     salt,
     destinationChainName,
@@ -31,6 +40,7 @@ async function main() {
     { value: ethers.parseEther(txFee) }
   );
   console.log("linkToken tx:", linkToken.hash);
+  console.log("axelascan: https://axelarscan.io/gmp/" + linkToken.hash);
 
   await waitForTransaction(linkToken);
 }

@@ -46,3 +46,8 @@ npx hardhat run scripts/03_link_token.ts --network bsc
 ```bash
 npx hardhat run scripts/04_interchain_token.ts --network bsc
 ```
+
+## Set Flow Limit
+```bash
+npx hardhat run scripts/06_set_flow_limit.ts --network bsc
+```
