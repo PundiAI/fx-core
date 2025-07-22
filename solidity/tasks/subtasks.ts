@@ -1,18 +1,10 @@
 import { subtask } from "hardhat/config";
-import { LedgerSigner } from "@ethers-ext/signer-ledger";
-import {
-  AbiCoder,
-  Block,
-  HDNodeWallet,
-  solidityPacked,
-  TransactionLike,
-} from "ethers";
+import { Block, HDNodeWallet, TransactionLike } from "ethers";
 import axios from "axios";
 import { ConfigurableTaskDefinition } from "hardhat/types";
 import { boolean, string } from "hardhat/internal/core/params/argumentTypes";
-import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
 import inquirer from "inquirer";
-import { IFxBridgeLogic } from "../typechain-types";
+import { FxBridgeBase } from "../typechain-types/contracts/interfaces/IFxBridgeLogic";
 
 // sub task name
 export const SUB_CHECK_PRIVATE_KEY: string = "sub:check-private-key";
@@ -190,12 +182,9 @@ subtask(
 
 subtask(SUB_CREATE_LEDGER_WALLET, "create ledger wallet").setAction(
   async (taskArgs, hre) => {
-    const { driverPath } = taskArgs;
-    const nodeUrl = await hre.run(SUB_GET_NODE_URL);
-    const _path = driverPath ? driverPath : DEFAULT_DRIVE_PATH;
-    const provider = new hre.ethers.JsonRpcProvider(nodeUrl);
-
-    const wallet = new LedgerSigner(TransportNodeHid, provider, _path);
+    const wallet = await hre.ethers.getSigner(
+      hre.network.config.ledgerAccounts[0]
+    );
     return { wallet };
   }
 );
@@ -282,7 +271,7 @@ export function BridgeStateInfoToJson(
   lastOracleSetCheckpoint: string,
   bridgeTokenAddress: string[],
   lastBatchNonce: bigint[],
-  tokenStatus: IFxBridgeLogic.TokenStatusStruct[]
+  tokenStatus: FxBridgeBase.TokenStatusStruct[]
 ): string {
   return JSON.stringify(
     {

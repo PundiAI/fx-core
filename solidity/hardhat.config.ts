@@ -6,6 +6,8 @@ import "hardhat-gas-reporter";
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "hardhat-ignore-warnings";
+import "@nomicfoundation/hardhat-ignition";
+import "@nomicfoundation/hardhat-ledger";
 
 import "./tasks/task";
 
@@ -16,7 +18,7 @@ const config: HardhatUserConfig = {
       chainId: process.env.CHAIN_ID ? parseInt(process.env.CHAIN_ID) : 1337,
     },
     ethereum: {
-      url: `${process.env.ETHEREUM_URL || "https://1rpc.io/eth"}`,
+      url: `${process.env.ETHEREUM_URL || "https://eth1.lava.build"}`,
       chainId: 1,
     },
     base: {
@@ -62,6 +64,29 @@ const config: HardhatUserConfig = {
     },
     localhost: {
       url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
+    },
+    bscTestnet: {
+      url: `${
+        process.env.BSC_TESTNET_URL ||
+        "https://bsc-testnet-dataseed.bnbchain.org"
+      }`,
+      chainId: 97,
+      accounts: process.env.RAW_PRIVATE_KEY
+        ? [process.env.RAW_PRIVATE_KEY]
+        : undefined,
+      ledgerAccounts: process.env.LEDGER_ADDRESS
+        ? [process.env.LEDGER_ADDRESS]
+        : [],
+    },
+    bsc: {
+      url: `${process.env.BSC_URL || "https://bsc-mainnet.public.blastapi.io"}`,
+      chainId: 56,
+      accounts: process.env.RAW_PRIVATE_KEY
+        ? [process.env.RAW_PRIVATE_KEY]
+        : undefined,
+      ledgerAccounts: process.env.LEDGER_ADDRESS
+        ? [process.env.LEDGER_ADDRESS]
+        : undefined,
     },
   },
   solidity: {

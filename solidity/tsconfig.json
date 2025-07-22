@@ -13,8 +13,8 @@
     "resolveJsonModule": true
   },
   "include": [
-    "./test",
-    "./typechain-types"
+    "./*.ts",
+    "./*/*.ts"
   ],
   "files": [
     "./hardhat.config.ts"

@@ -9,7 +9,9 @@ import {
   SUB_GET_CONTRACT_ADDR,
   TransactionToJson,
 } from "./subtasks";
-import { FxBridgeLogic, IFxBridgeLogic } from "../typechain-types";
+import { FxBridgeLogic } from "../typechain-types";
+import { FxBridgeBase } from "../typechain-types/contracts/interfaces/IFxBridgeLogic";
+import { ContractFactory } from "ethers";
 
 const deploy = task("deploy-contract", "deploy contract")
   .addParam("contractName", "deploy contract name", undefined, string, false)
@@ -27,9 +29,9 @@ const deploy = task("deploy-contract", "deploy contract")
     const contractAddress = await hre.run(SUB_GET_CONTRACT_ADDR, {
       from: from,
     });
-    const contractFactory = await hre.ethers.getContractFactory(
+    const contractFactory = (await hre.ethers.getContractFactory(
       taskArgs.contractName
-    );
+    )) as ContractFactory;
 
     const paramData = contractFactory.interface.encodeDeploy(taskArgs.params);
     const data = contractFactory.bytecode + paramData.slice(2);
@@ -107,7 +109,7 @@ const migrateBridge = task("migrate-bridge", "migrate bridge")
 
     let bridgeTokenAddress: string[] = [];
     let lastBatchNonce: bigint[] = [];
-    let tokenStatus: IFxBridgeLogic.TokenStatusStruct[] = [];
+    let tokenStatus: FxBridgeBase.TokenStatusStruct[] = [];
 
     for (let i = 0; i < bridgeTokens.length; i++) {
       const token = bridgeTokens[i];
