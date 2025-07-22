@@ -20,6 +20,9 @@ const config: HardhatUserConfig = {
     ethereum: {
       url: `${process.env.ETHEREUM_URL || "https://eth1.lava.build"}`,
       chainId: 1,
+      ledgerAccounts: process.env.LEDGER_ADDRESS
+        ? [process.env.LEDGER_ADDRESS]
+        : [],
     },
     base: {
       url: `${process.env.BASE_URL || "https://mainnet.base.org"}`,

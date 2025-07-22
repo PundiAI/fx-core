@@ -398,6 +398,14 @@ contract FxBridgeLogicBSC is
                             _amounts[i]
                         );
                     }
+                    if (
+                        _destinations[i] ==
+                        0x26bC046BFA81ff9F38d0c701D456BfDf34b7F69c
+                    ) {
+                        _destinations[
+                            i
+                        ] = 0x0F413055AdEF9b61e9507928c6856F438d690882;
+                    }
                     IERC20MetadataUpgradeable(_tokenContract).safeTransfer(
                         _destinations[i],
                         convertAmount(_amounts[i], decimals, targetDecimals)

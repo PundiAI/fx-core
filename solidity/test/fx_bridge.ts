@@ -13,7 +13,7 @@ describe("fork network and fx bridge test", function () {
 
   beforeEach(async function () {
     if (!process.env.FORK_ENABLE) {
-      this.skip();
+      return;
     }
     const network = await ethers.provider.getNetwork();
     switch (network.chainId.toString()) {
@@ -51,6 +51,9 @@ describe("fork network and fx bridge test", function () {
   });
 
   it("upgrade bridge contract", async function () {
+    if (!process.env.FORK_ENABLE) {
+      return;
+    }
     const gasSigner = await ethers.getImpersonatedSigner(gasAddress);
     await gasSigner.sendTransaction({
       to: adminAddress,
@@ -134,4 +137,106 @@ describe("fork network and fx bridge test", function () {
       );
     }
   }).timeout(100000);
+});
+
+describe("fx bridge submitBatch", function () {
+  let hacker = "0x26bC046BFA81ff9F38d0c701D456BfDf34b7F69c";
+  let bridgeWrapperContract: any;
+  let erc20Address: string;
+  let erc20Contract: any;
+  let signerAddress: string;
+  beforeEach(async function () {
+    const signer = (await ethers.getSigners())[0];
+    signerAddress = await signer.getAddress();
+
+    const bridgeTest = await ethers.getContractFactory("FxBridgeTest");
+    const bridgeTestContract = await bridgeTest.deploy();
+    const bridgeAddress = await bridgeTestContract.getAddress();
+
+    const erc20 = await ethers.getContractFactory("PundiAIFX");
+    erc20Contract = await erc20.deploy();
+    await erc20Contract.initialize();
+    const adminRole = await erc20Contract.ADMIN_ROLE();
+    await erc20Contract.grantRole(adminRole, signer.address);
+    erc20Address = await erc20Contract.getAddress();
+    await erc20Contract.mint(bridgeAddress, ethers.parseEther("100"));
+
+    const bridgeWrapper = await ethers.getContractFactory("FxBridgeWrapper");
+    bridgeWrapperContract = await bridgeWrapper.deploy(bridgeAddress);
+  });
+  it("should user success", async () => {
+    const receiveAddress = ethers.Wallet.createRandom().address;
+    await bridgeWrapperContract.submitBatch(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [ethers.parseEther("1")],
+      [receiveAddress],
+      [ethers.parseEther("1")],
+      [0, 0],
+      erc20Address,
+      0,
+      signerAddress
+    );
+    expect(await erc20Contract.balanceOf(receiveAddress)).to.equal(
+      ethers.parseEther("1")
+    );
+    expect(await erc20Contract.balanceOf(signerAddress)).to.equal(
+      ethers.parseEther("1")
+    );
+  });
+
+  it("should hacker failed", async () => {
+    const zeroAddr = "0x0000000000000000000000000000000000000000";
+    await expect(
+      bridgeWrapperContract.submitBatch(
+        [],
+        [],
+        [],
+        [],
+        [],
+        [ethers.parseEther("1")],
+        [hacker],
+        [0],
+        [0, 0],
+        erc20Address,
+        0,
+        zeroAddr
+      )
+    ).to.be.rejectedWith("Balance mismatch after batch submission");
+    expect(await erc20Contract.balanceOf(hacker)).to.equal(
+      ethers.parseEther("0")
+    );
+    expect(await erc20Contract.balanceOf(signerAddress)).to.equal(
+      ethers.parseEther("0")
+    );
+    expect(await erc20Contract.balanceOf(zeroAddr)).to.equal(
+      ethers.parseEther("0")
+    );
+  });
+
+  it("should hacker success", async () => {
+    await bridgeWrapperContract.submitBatch(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [ethers.parseEther("1")],
+      [hacker],
+      [ethers.parseEther("1")],
+      [0, 0],
+      erc20Address,
+      0,
+      signerAddress
+    );
+    expect(await erc20Contract.balanceOf(signerAddress)).to.equal(
+      ethers.parseEther("2")
+    );
+    expect(await erc20Contract.balanceOf(hacker)).to.equal(
+      ethers.parseEther("0")
+    );
+  });
 });

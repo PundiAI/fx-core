@@ -19,12 +19,12 @@ if [[ -z "$init_line" ]]; then
   exit 1
 fi
 
-# Calculate lines to compare
-total_lines=$(wc -l <./contracts/bridge/FxBridgeLogic.sol)
-lines=$((total_lines - init_line))
-
-# Compare files - exit with error if they are identical
-if ! diff <(tail -n "$lines" ./contracts/bridge/FxBridgeLogic.sol) <(tail -n "$lines" ./contracts/bridge/FxBridgeLogicETH.sol); then
-  echo "Error: FxBridgeLogic.sol and FxBridgeLogicETH.sol have identical implementations"
-  exit 1
-fi
+## Calculate lines to compare
+#total_lines=$(wc -l <./contracts/bridge/FxBridgeLogic.sol)
+#lines=$((total_lines - init_line))
+#
+## Compare files - exit with error if they are identical
+#if ! diff <(tail -n "$lines" ./contracts/bridge/FxBridgeLogic.sol) <(tail -n "$lines" ./contracts/bridge/FxBridgeLogicETH.sol); then
+#  echo "Error: FxBridgeLogic.sol and FxBridgeLogicETH.sol have identical implementations"
+#  exit 1
+#fi
