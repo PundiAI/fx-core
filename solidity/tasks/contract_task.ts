@@ -255,4 +255,70 @@ const migrateBridge = task("migrate-bridge", "migrate bridge")
       }
     }
   });
-AddTxParam([deploy, migrateBridge]);
+
+const upgradeAndCall = task(
+  "upgrade-and-call",
+  "upgrade contract and call function"
+)
+  .addParam("proxy", "proxy contract address", undefined, string, false)
+  .addParam("newLogic", "new logic contract address", undefined, string, false)
+  .addParam(
+    "callData",
+    "encoded call data for the function",
+    undefined,
+    string,
+    false
+  )
+  .setAction(async (taskArgs, hre) => {
+    const { wallet } = await hre.run(SUB_CHECK_PRIVATE_KEY, taskArgs);
+    const from = await wallet.getAddress();
+
+    const { proxy, newLogic, callData } = taskArgs;
+
+    if (!callData.startsWith("0x")) {
+      throw new Error("Call data must start with 0x");
+    }
+
+    const proxyContract = await hre.ethers.getContractAt(
+      "ITransparentUpgradeableProxy",
+      proxy,
+      wallet
+    );
+
+    const data = proxyContract.interface.encodeFunctionData(
+      "upgradeToAndCall",
+      [newLogic, callData]
+    );
+
+    const tx = await hre.run(SUB_CREATE_TRANSACTION, {
+      from: from,
+      to: proxy,
+      data: data,
+      value: taskArgs.value,
+      gasPrice: taskArgs.gasPrice,
+      maxFeePerGas: taskArgs.maxFeePerGas,
+      maxPriorityFeePerGas: taskArgs.maxPriorityFeePerGas,
+      nonce: taskArgs.nonce,
+      gasLimit: taskArgs.gasLimit,
+    });
+
+    const { answer } = await hre.run(SUB_CONFIRM_TRANSACTION, {
+      message: `\nUpgrade and Call Transaction:\n${TransactionToJson(
+        tx
+      )}\n\nCall Data: ${callData}\n`,
+      disableConfirm: taskArgs.disableConfirm,
+    });
+    if (!answer) return;
+
+    try {
+      const upgradeTx = await wallet.sendTransaction(tx);
+      console.log(`Upgrade and call transaction hash: ${upgradeTx.hash}`);
+      await upgradeTx.wait();
+      console.log(`Upgrade and call completed successfully!`);
+    } catch (e) {
+      console.error(`Upgrade and call failed: ${e}`);
+      return;
+    }
+  });
+
+AddTxParam([deploy, migrateBridge, upgradeAndCall]);
