@@ -1,0 +1,5 @@
+{
+  "upgradeBridgeETH#FxBridgeLogicETH": "0xa0d828A754961fF78e733701Eb98d22084DB242C",
+  "upgradeBridgeETH#ITransparentUpgradeableProxy": "0x6f1D09Fed11115d65E1071CD2109eDb300D80A27",
+  "upgradeBridgeETH#FxBridgeWrapperETH": "0x4CeD05f7e1A3Eb88aA99d5471A575Acab8E28a1D"
+}

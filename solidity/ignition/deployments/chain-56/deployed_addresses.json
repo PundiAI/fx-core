@@ -1,4 +1,7 @@
 {
   "InterchainTokenModule#PundiAIFXInterchainToken": "0xF57993d15d72Be90f4e9161a483DF884d0D7F191",
-  "InterchainTokenModule#PundiAIFXInterchainTokenProxy": "0x7a986bA67227acfab86385FF33436a80E2BB4CC5"
+  "InterchainTokenModule#PundiAIFXInterchainTokenProxy": "0x7a986bA67227acfab86385FF33436a80E2BB4CC5",
+  "upgradeBridge#ITransparentUpgradeableProxy": "0x84238c00c8313920826D798e3cF6793Ef4F610ad",
+  "upgradeBridge#FxBridgeLogicBSC": "0x4e86e3C019eCBb98E2D422Ccdae50C87f4f404d8",
+  "upgradeBridge#FxBridgeWrapper": "0xb8dbdfC97DDb8B8AAc40Ac671bFfC44644cc27F3"
 }
