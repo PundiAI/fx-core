@@ -72,13 +72,8 @@ console.log("tokenManagerTypeLockUnLock:", tokenManagerTypeLockUnLock);
 console.log("txFee:", txFee);
 
 export async function getSigner(): Promise<Signer> {
-  if (!("url" in hre.network.config)) {
-    throw new Error("Network URL is not configured in hardhat config");
-  }
-  const nodeUrl = hre.network.config.url;
-  const provider = new hre.ethers.JsonRpcProvider(nodeUrl);
-  if (process.env.RAW_PRIVATE_KEY !== undefined) {
-    const signer = new hre.ethers.Wallet(process.env.RAW_PRIVATE_KEY, provider);
+  if (hre.network.config.accounts !== undefined) {
+    const signer = (await hre.ethers.getSigners())[0];
     console.log("Using raw private key signer:", await signer.getAddress());
     return signer;
   }

@@ -7,6 +7,7 @@
     "func-visibility": ["error", { "ignoreConstructors": true }],
     "max-line-length": ["error", 150],
     "reason-string": ["warn", { "maxLength": 64 }],
-    "custom-errors": "off"
+    "custom-errors": "off",
+    "one-contract-per-file": "off"
   }
 }

@@ -1,15 +1,15 @@
 import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
-import { ERC20TokenTest, FXSwapPundiAI, PundiAIFX } from "../typechain-types";
+import { ERC20TokenTest, FXtoPUNDIAISwap, PundiAIFX } from "../typechain-types";
 import { it } from "mocha";
 
-describe("pundiaifx tests", function () {
+describe("FXtoPUNDIAISwap tests", function () {
   let deploy: HardhatEthersSigner;
   let user1: HardhatEthersSigner;
   let fxToken: ERC20TokenTest;
   let pundiAIFX: PundiAIFX;
-  let fxSwapPundiAI: FXSwapPundiAI;
+  let fxToPundiAISwap: FXtoPUNDIAISwap;
   let totalSupply = "100000000";
 
   beforeEach(async function () {
@@ -38,92 +38,90 @@ describe("pundiaifx tests", function () {
     );
     await pundiAIFX.connect(deploy).initialize();
 
-    const fxSwapPundiAIFactory = await ethers.getContractFactory(
-      "FXSwapPundiAI"
+    const fxToPundiAISwapFactory = await ethers.getContractFactory(
+      "FXtoPUNDIAISwap"
     );
-    const fxSwapPundiAIDeploy = await fxSwapPundiAIFactory.deploy();
-
-    const fxSwapPundiAIProxyFactory = await ethers.getContractFactory(
-      "ERC1967Proxy"
+    fxToPundiAISwap = await fxToPundiAISwapFactory.deploy(
+      await fxToken.getAddress(),
+      await pundiAIFX.getAddress()
     );
-    const fxSwapPundiAIProxy = await fxSwapPundiAIProxyFactory
-      .connect(deploy)
-      .deploy(await fxSwapPundiAIDeploy.getAddress(), "0x");
 
-    fxSwapPundiAI = await ethers.getContractAt(
-      "FXSwapPundiAI",
-      await fxSwapPundiAIProxy.getAddress()
-    );
-    await fxSwapPundiAI
-      .connect(deploy)
-      .initialize(await fxToken.getAddress(), await pundiAIFX.getAddress());
-
-    await fxToken
-      .connect(deploy)
-      .transfer(user1.address, ethers.parseEther(totalSupply));
-    await fxToken
-      .connect(user1)
-      .approve(
-        await fxSwapPundiAI.getAddress(),
-        ethers.parseEther(totalSupply)
-      );
     await pundiAIFX
       .connect(deploy)
       .grantRole(
         await pundiAIFX.ADMIN_ROLE(),
-        await fxSwapPundiAI.getAddress()
+        await fxToPundiAISwap.getAddress()
       );
   });
 
   it("swap", async function () {
+    await fxToken
+      .connect(deploy)
+      .transfer(user1.address, ethers.parseEther(totalSupply));
     expect(await fxToken.balanceOf(user1.address)).to.equal(
       ethers.parseEther(totalSupply)
     );
     expect(await pundiAIFX.balanceOf(user1.address)).to.equal(0);
-    expect(await fxToken.balanceOf(await fxSwapPundiAI.getAddress())).to.equal(
-      0
-    );
+    expect(
+      await fxToken.balanceOf(await fxToPundiAISwap.getAddress())
+    ).to.equal(0);
     expect(await pundiAIFX.totalSupply()).to.equal(0);
 
-    await fxSwapPundiAI.connect(user1).swap(ethers.parseEther("100"));
+    await fxToPundiAISwap.connect(user1).swap();
 
     expect(await fxToken.balanceOf(user1.address)).to.equal(
-      ethers.parseEther((Number(totalSupply) - 100).toString())
+      ethers.parseEther(totalSupply)
     );
     expect(await pundiAIFX.balanceOf(user1.address)).to.equal(
-      ethers.parseEther("1")
+      ethers.parseEther((Number(totalSupply) / 100).toString())
     );
-    expect(await fxToken.balanceOf(await fxSwapPundiAI.getAddress())).to.equal(
-      ethers.parseEther("100")
+    expect(
+      await fxToken.balanceOf(await fxToPundiAISwap.getAddress())
+    ).to.equal(ethers.parseEther("0"));
+    expect(await pundiAIFX.totalSupply()).to.equal(
+      ethers.parseEther((Number(totalSupply) / 100).toString())
     );
-    expect(await pundiAIFX.totalSupply()).to.equal(ethers.parseEther("1"));
+    expect(await fxToPundiAISwap.totalMinted()).to.equal(
+      ethers.parseEther((Number(totalSupply) / 100).toString())
+    );
+    expect(await fxToPundiAISwap.MAX_TOTAL_MINT()).to.equal(
+      ethers.parseEther((Number(totalSupply) / 100).toString())
+    );
   });
 
-  it("burn FX", async function () {
+  it("swapFor", async function () {
+    let contractAddress = await fxToken.getAddress();
     await fxToken
-      .connect(user1)
-      .transfer(await fxSwapPundiAI.getAddress(), ethers.parseEther("100"));
-    expect(await fxToken.balanceOf(await fxSwapPundiAI.getAddress())).to.equal(
-      ethers.parseEther("100")
-    );
-
-    await fxSwapPundiAI.burnFXToken(ethers.parseEther("100"));
-    expect(await fxToken.balanceOf(await fxSwapPundiAI.getAddress())).to.equal(
-      ethers.parseEther("0")
-    );
-    expect(await fxToken.totalSupply()).to.equal(
-      ethers.parseEther((Number(totalSupply) - 100).toString())
-    );
-  });
-
-  it("upgrade contract", async function () {
-    const newFxSwapPundiAIFactory = await ethers.getContractFactory(
-      "FXSwapPundiAI"
-    );
-    const newFxSwapPundiAIDeploy = await newFxSwapPundiAIFactory.deploy();
-
-    await fxSwapPundiAI
       .connect(deploy)
-      .upgradeTo(await newFxSwapPundiAIDeploy.getAddress());
+      .transfer(contractAddress, ethers.parseEther(totalSupply));
+    expect(await fxToken.balanceOf(contractAddress)).to.equal(
+      ethers.parseEther(totalSupply)
+    );
+    expect(await pundiAIFX.balanceOf(contractAddress)).to.equal(0);
+    expect(
+      await fxToken.balanceOf(await fxToPundiAISwap.getAddress())
+    ).to.equal(0);
+    expect(await pundiAIFX.totalSupply()).to.equal(0);
+
+    await fxToPundiAISwap.connect(deploy).swapFor(contractAddress, user1);
+
+    expect(await fxToken.balanceOf(contractAddress)).to.equal(
+      ethers.parseEther(totalSupply)
+    );
+    expect(await pundiAIFX.balanceOf(user1.address)).to.equal(
+      ethers.parseEther((Number(totalSupply) / 100).toString())
+    );
+    expect(
+      await fxToken.balanceOf(await fxToPundiAISwap.getAddress())
+    ).to.equal(ethers.parseEther("0"));
+    expect(await pundiAIFX.totalSupply()).to.equal(
+      ethers.parseEther((Number(totalSupply) / 100).toString())
+    );
+    expect(await fxToPundiAISwap.totalMinted()).to.equal(
+      ethers.parseEther((Number(totalSupply) / 100).toString())
+    );
+    expect(await fxToPundiAISwap.MAX_TOTAL_MINT()).to.equal(
+      ethers.parseEther((Number(totalSupply) / 100).toString())
+    );
   });
 });
