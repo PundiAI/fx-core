@@ -30,8 +30,7 @@ const config: HardhatUserConfig = {
     },
     sepolia: {
       url: `${
-        process.env.SEPOLIA_URL ||
-        "https://eth-sepolia.g.alchemy.com/v2/clay8Ay0p3qVQiA8uiQEZVdiavkRKm2R"
+        process.env.SEPOLIA_URL || "https://rpc.thanos-sepolia.tokamak.network"
       }`,
       chainId: 11155111,
       accounts: process.env.RAW_PRIVATE_KEY
