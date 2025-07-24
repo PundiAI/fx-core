@@ -29,8 +29,14 @@ const config: HardhatUserConfig = {
       chainId: 8453,
     },
     sepolia: {
-      url: `${process.env.SEPOLIA_URL || "https://rpc.sepolia.org"}`,
+      url: `${
+        process.env.SEPOLIA_URL ||
+        "https://eth-sepolia.g.alchemy.com/v2/clay8Ay0p3qVQiA8uiQEZVdiavkRKm2R"
+      }`,
       chainId: 11155111,
+      accounts: process.env.RAW_PRIVATE_KEY
+        ? [process.env.RAW_PRIVATE_KEY]
+        : undefined,
     },
     arbitrumSepolia: {
       url: `${
