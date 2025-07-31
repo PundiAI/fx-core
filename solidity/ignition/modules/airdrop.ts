@@ -4,10 +4,7 @@ const AirdropModule = buildModule("AirdropModule", (m) => {
   console.log("🚀 Starting Airdrop deployment...");
 
   const airdropAddress = m.getParameter("airdropAddress");
-  const tokenAddress = m.getParameter(
-    "tokenAddress",
-    "0x7a986bA67227acfab86385FF33436a80E2BB4CC5"
-  );
+  const tokenAddress = m.getParameter("tokenAddress", "");
   const recipients = m.getParameter("recipients");
   const amounts = m.getParameter("amounts");
   const totalAmount = m.getParameter("totalAmount");

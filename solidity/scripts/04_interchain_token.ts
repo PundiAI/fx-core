@@ -47,22 +47,17 @@ async function main() {
   */
 
   const roleBytes = keccak256(toUtf8Bytes("ADMIN_ROLE"));
-  if (
-    interchainTokenManagerAddress ===
-    "0xa6C9f238eC99917319Bd8b7b2888EDFC14E47854"
-  ) {
-    const hasRole = await pundiaifxContract.hasRole(
-      roleBytes,
-      interchainTokenManagerAddress
-    );
+  const revokeAddress = process.env.REVOKE_ADDRESS;
+  if (revokeAddress) {
+    const hasRole = await pundiaifxContract.hasRole(roleBytes, revokeAddress);
     if (hasRole) {
       console.log("revokeRole tx params:", {
         roleBytes,
-        interchainTokenManagerAddress,
+        revokeAddress,
       });
       const revokeRole = await pundiaifxContract.revokeRole(
         roleBytes,
-        interchainTokenManagerAddress
+        revokeAddress
       );
       await waitForTransaction(revokeRole);
     }

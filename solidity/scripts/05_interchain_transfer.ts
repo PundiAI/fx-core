@@ -26,6 +26,7 @@ async function main() {
     throw new Error("CROSSCHAIN_TOKEN_AMOUNT environment variable is required");
   }
   const signer = await getSigner();
+  let signerAddr = await signer.getAddress();
 
   const pundiaifxContract = new ethers.Contract(
     sourceChainTokenAddress,
@@ -33,13 +34,16 @@ async function main() {
     signer
   );
   const allowance = await pundiaifxContract.allowance(
-    signer,
+    signerAddr,
     interchainTokenServiceContractAddress
   );
   if (allowance < ethers.parseEther(crosschainTokenAmount)) {
     console.log(
       "Approving allowance for interchain token service contract...",
-      interchainTokenServiceContractAddress
+      {
+        address: interchainTokenServiceContractAddress,
+        amount: ethers.parseEther(crosschainTokenAmount).toString(),
+      }
     );
     const approveTx = await pundiaifxContract.approve(
       interchainTokenServiceContractAddress,
@@ -51,7 +55,6 @@ async function main() {
     console.log("Allowance already sufficient:", allowance.toString());
   }
   let tokenId = process.env.TOKEN_ID;
-  let signerAddr = await signer.getAddress();
 
   if (tokenId === undefined || tokenId === "") {
     const interchainTokenFactoryContract = new ethers.Contract(

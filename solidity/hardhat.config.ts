@@ -27,6 +27,9 @@ const config: HardhatUserConfig = {
     base: {
       url: `${process.env.BASE_URL || "https://mainnet.base.org"}`,
       chainId: 8453,
+      ledgerAccounts: process.env.LEDGER_ADDRESS
+        ? [process.env.LEDGER_ADDRESS]
+        : [],
     },
     sepolia: {
       url: `${
@@ -140,6 +143,8 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       ethereum: `${process.env.ETHERSCAN_API_KEY}`,
+      base: `${process.env.ETHERSCAN_API_KEY}`,
+      bsc: `${process.env.ETHERSCAN_API_KEY}`,
       sepolia: `${process.env.ETHERSCAN_API_KEY}`,
       arbitrumSepolia: `${process.env.ETHERSCAN_API_KEY}`,
       optimisticSepolia: `${process.env.ETHERSCAN_API_KEY}`,
