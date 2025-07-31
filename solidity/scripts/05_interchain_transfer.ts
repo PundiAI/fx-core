@@ -40,10 +40,10 @@ async function main() {
   if (allowance < ethers.parseEther(crosschainTokenAmount)) {
     console.log(
       "Approving allowance for interchain token service contract...",
-        {
-          address:interchainTokenServiceContractAddress,
-          amount: ethers.parseEther(crosschainTokenAmount).toString(),
-        }
+      {
+        address: interchainTokenServiceContractAddress,
+        amount: ethers.parseEther(crosschainTokenAmount).toString(),
+      }
     );
     const approveTx = await pundiaifxContract.approve(
       interchainTokenServiceContractAddress,

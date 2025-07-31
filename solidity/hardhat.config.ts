@@ -143,6 +143,8 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       ethereum: `${process.env.ETHERSCAN_API_KEY}`,
+      base: `${process.env.ETHERSCAN_API_KEY}`,
+      bsc: `${process.env.ETHERSCAN_API_KEY}`,
       sepolia: `${process.env.ETHERSCAN_API_KEY}`,
       arbitrumSepolia: `${process.env.ETHERSCAN_API_KEY}`,
       optimisticSepolia: `${process.env.ETHERSCAN_API_KEY}`,
