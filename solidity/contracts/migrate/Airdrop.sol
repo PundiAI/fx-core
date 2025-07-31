@@ -26,10 +26,6 @@ contract Airdrop is Ownable {
         );
 
         for (uint256 i = 0; i < recipients.length; i++) {
-            require(
-                token.balanceOf(recipients[i]) == 0,
-                "Recipient already has tokens"
-            );
             require(recipients[i] != address(0), "Invalid recipient address");
             require(amounts[i] > 0, "Amount must be greater than zero");
             require(

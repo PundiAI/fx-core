@@ -27,6 +27,9 @@ const config: HardhatUserConfig = {
     base: {
       url: `${process.env.BASE_URL || "https://mainnet.base.org"}`,
       chainId: 8453,
+      ledgerAccounts: process.env.LEDGER_ADDRESS
+        ? [process.env.LEDGER_ADDRESS]
+        : [],
     },
     sepolia: {
       url: `${
