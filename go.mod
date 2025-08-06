@@ -43,7 +43,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
-	golang.org/x/sync v0.13.0
+	golang.org/x/sync v0.16.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576
 	google.golang.org/grpc v1.69.2
 	google.golang.org/protobuf v1.36.6
