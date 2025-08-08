@@ -16,7 +16,7 @@ yarn compile
 
 ```bash
 export RAW_PRIVATE_KEY="<YOUR PRIVATE KEY>"
-npx hardhat ignition deploy ignition/modules/interchain_token.ts --network bsc
+npx hardhat ignition deploy ignition/modules/deploy_pundiai_interchain_token.ts --network bsc
 ```
 
 ## Register Token Metadata with the ITS Contract

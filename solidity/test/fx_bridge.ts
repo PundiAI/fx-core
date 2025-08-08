@@ -153,11 +153,8 @@ describe("fx bridge submitBatch", function () {
     const bridgeTestContract = await bridgeTest.deploy();
     const bridgeAddress = await bridgeTestContract.getAddress();
 
-    const erc20 = await ethers.getContractFactory("PundiAIFX");
-    erc20Contract = await erc20.deploy();
-    await erc20Contract.initialize();
-    const adminRole = await erc20Contract.ADMIN_ROLE();
-    await erc20Contract.grantRole(adminRole, signer.address);
+    const erc20 = await ethers.getContractFactory("ERC20TokenTest");
+    erc20Contract = await erc20.deploy("test", "TEST", 18, 0);
     erc20Address = await erc20Contract.getAddress();
     await erc20Contract.mint(bridgeAddress, ethers.parseEther("100"));
 

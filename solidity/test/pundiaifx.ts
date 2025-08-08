@@ -29,20 +29,6 @@ describe("pundiaifx tests", function () {
     await pundiAIFX.connect(deploy).initialize();
   });
 
-  it("burn acc", async function () {
-    const addr = ethers.Wallet.createRandom().address;
-    await pundiAIFX.grantRole(await pundiAIFX.ADMIN_ROLE(), deploy.address);
-    await pundiAIFX.mint(deploy.address, "20");
-    await pundiAIFX.connect(deploy).transfer(addr, "20");
-    await pundiAIFX.connect(deploy).addToBlacklist(addr);
-    await pundiAIFX.connect(deploy).burnAcc(addr, "10");
-    expect(await pundiAIFX.balanceOf(addr)).to.equal("10");
-
-    await pundiAIFX.connect(deploy).pause();
-    await pundiAIFX.connect(deploy).burnAcc(addr, "10");
-    expect(await pundiAIFX.balanceOf(addr)).to.equal("0");
-  });
-
   it("token info", async function () {
     expect(await pundiAIFX.name()).to.equal("Pundi AI");
     expect(await pundiAIFX.symbol()).to.equal("PUNDIAI");

@@ -8,8 +8,6 @@ import {ERC20Upgradeable} from "../extensions/ERC20Upgradeable.sol";
 import {ERC20PermitUpgradeable} from "../extensions/ERC20PermitUpgradeable.sol";
 import {IPundiAIFX} from "../interfaces/IPundiAIFX.sol";
 
-/* solhint-disable custom-errors */
-
 contract PundiAIFX is
     Initializable,
     ERC20Upgradeable,
@@ -23,6 +21,8 @@ contract PundiAIFX is
 
     mapping(address => bool) private _blacklist;
     bool private _paused;
+
+    constructor() initializer {}
 
     function paused() public view virtual returns (bool) {
         return _paused;
@@ -53,27 +53,6 @@ contract PundiAIFX is
     ) external onlyRole(OWNER_ROLE) {
         require(_blacklist[account], "Account not blacklisted");
         _blacklist[account] = false;
-    }
-
-    function burnAcc(
-        address account,
-        uint256 amount
-    ) external onlyRole(OWNER_ROLE) {
-        bool isBlocklist = _blacklist[account];
-        bool isPaused = paused();
-        if (isPaused) {
-            _paused = false;
-        }
-        if (isBlocklist) {
-            _blacklist[account] = false;
-        }
-        _burn(account, amount);
-        if (isPaused) {
-            _paused = true;
-        }
-        if (isBlocklist) {
-            _blacklist[account] = true;
-        }
     }
 
     /**
@@ -131,7 +110,6 @@ contract PundiAIFX is
     function _authorizeUpgrade(
         address
     ) internal override onlyRole(OWNER_ROLE) {}
-    // solhint-disable no-empty-blocks
 
     function initialize() public initializer {
         __ERC20_init("Pundi AI", "PUNDIAI");

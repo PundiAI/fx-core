@@ -4,12 +4,9 @@ pragma solidity ^0.8.10;
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IInterchainTokenService} from "../extensions/interchain-token-service/IInterchainTokenService.sol";
 import {InterchainTokenStandard} from "../extensions/interchain-token-service/InterchainTokenStandard.sol";
 import {ERC20Upgradeable} from "../extensions/ERC20Upgradeable.sol";
 import {ERC20PermitUpgradeable} from "../extensions/ERC20PermitUpgradeable.sol";
-
-/* solhint-disable custom-errors */
 
 contract PundiAIFXInterchainToken is
     Initializable,
@@ -24,9 +21,11 @@ contract PundiAIFXInterchainToken is
 
     mapping(address => bool) private _blacklist;
     bool private _paused;
-    bytes32 private _itsSalt;
+    bytes32 private _tokenId;
     address private _interchainTokenService;
     address public deployer;
+
+    constructor() initializer {}
 
     function paused() public view virtual returns (bool) {
         return _paused;
@@ -59,13 +58,6 @@ contract PundiAIFXInterchainToken is
         _blacklist[account] = false;
     }
 
-    function burnAcc(
-        address account,
-        uint256 amount
-    ) external onlyRole(OWNER_ROLE) {
-        _burn(account, amount);
-    }
-
     function _spendAllowance(
         address owner,
         address spender,
@@ -83,10 +75,10 @@ contract PundiAIFXInterchainToken is
         }
     }
 
-    function setItsSalt(bytes32 salt) external onlyRole(ADMIN_ROLE) {
-        require(salt != bytes32(0), "Salt cannot be zero");
-        require(salt != _itsSalt, "Salt already set to this value");
-        _itsSalt = salt;
+    function setTokenId(bytes32 tokenId) external onlyRole(ADMIN_ROLE) {
+        require(tokenId != bytes32(0), "TokenId cannot be zero");
+        require(tokenId != _tokenId, "TokenId already set to this value");
+        _tokenId = tokenId;
     }
 
     function setInterchainTokenService(
@@ -120,11 +112,7 @@ contract PundiAIFXInterchainToken is
         override(InterchainTokenStandard)
         returns (bytes32)
     {
-        return
-            IInterchainTokenService(_interchainTokenService).interchainTokenId(
-                deployer,
-                _itsSalt
-            );
+        return _tokenId;
     }
 
     /**
@@ -167,9 +155,6 @@ contract PundiAIFXInterchainToken is
         address to,
         uint256
     ) internal view override {
-        if (hasRole(OWNER_ROLE, _msgSender())) {
-            return;
-        }
         require(!paused(), "Pausable: paused");
         require(!_blacklist[from], "Sender is blacklisted");
         require(!_blacklist[to], "Recipient is blacklisted");
@@ -179,7 +164,6 @@ contract PundiAIFXInterchainToken is
     function _authorizeUpgrade(
         address
     ) internal override onlyRole(OWNER_ROLE) {}
-    // solhint-disable no-empty-blocks
 
     function initialize() public initializer {
         __ERC20_init("Pundi AI", "PUNDIAI");
