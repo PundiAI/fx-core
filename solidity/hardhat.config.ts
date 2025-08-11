@@ -17,6 +17,9 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: process.env.CHAIN_ID ? parseInt(process.env.CHAIN_ID) : 1337,
     },
+    localhost: {
+      url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
+    },
     ethereum: {
       url: `${process.env.ETHEREUM_URL || "https://eth1.lava.build"}`,
       chainId: 1,
@@ -72,9 +75,6 @@ const config: HardhatUserConfig = {
         "https://testnet-fx-json-web3.functionx.io:8545"
       }`,
       chainId: 90001,
-    },
-    localhost: {
-      url: `${process.env.LOCAL_URL || "http://127.0.0.1:8545"}`,
     },
     bscTestnet: {
       url: `${
@@ -141,7 +141,15 @@ const config: HardhatUserConfig = {
     ],
   },
   etherscan: {
-    apiKey: `${process.env.ETHERSCAN_API_KEY}`,
+    apiKey: {
+      ethereum: `${process.env.ETHERSCAN_API_KEY}`,
+      base: `${process.env.ETHERSCAN_API_KEY}`,
+      bsc: `${process.env.ETHERSCAN_API_KEY}`,
+      sepolia: `${process.env.ETHERSCAN_API_KEY}`,
+      arbitrumSepolia: `${process.env.ETHERSCAN_API_KEY}`,
+      optimisticSepolia: `${process.env.ETHERSCAN_API_KEY}`,
+      baseSepolia: `${process.env.ETHERSCAN_API_KEY}`,
+    },
     customChains: [
       {
         network: "ethereum",

@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("upgradeBridgeETH", (m) => {
-  const bridgeAddress = m.getParameter("bridgeAddress");
+  const bridgeAddress = "0x6f1D09Fed11115d65E1071CD2109eDb300D80A27";
 
   console.log(
     `🏗️  Upgrading Bridge Contract (ETH): ${bridgeAddress.toString()}`
