@@ -6,12 +6,13 @@ import {
   getSigner,
   waitForTransaction,
   requireSourceChainTokenAddress,
-  requireInterchainTokenManagerAddress,
 } from "./common";
 
 async function main() {
   requireSourceChainTokenAddress();
-  requireInterchainTokenManagerAddress();
+  if (interchainTokenManagerAddress === "") {
+    throw new Error("TOKEN_MANAGER_ADDRESS environment variable is required");
+  }
 
   const signer = await getSigner();
 
