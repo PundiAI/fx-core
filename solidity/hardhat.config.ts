@@ -36,7 +36,7 @@ const config: HardhatUserConfig = {
     },
     sepolia: {
       url: `${
-        process.env.SEPOLIA_URL || "https://rpc.thanos-sepolia.tokamak.network"
+        process.env.SEPOLIA_URL || "https://eth-sepolia.public.blastapi.io"
       }`,
       chainId: 11155111,
       accounts: process.env.RAW_PRIVATE_KEY
@@ -56,6 +56,9 @@ const config: HardhatUserConfig = {
     baseSepolia: {
       url: `${process.env.BASE_URL || "https://sepolia.base.org"}`,
       chainId: 84532,
+      accounts: process.env.RAW_PRIVATE_KEY
+        ? [process.env.RAW_PRIVATE_KEY]
+        : undefined,
     },
     polygonAmoy: {
       url: `${
@@ -100,6 +103,14 @@ const config: HardhatUserConfig = {
         : undefined,
     },
   },
+  ignition: {
+    strategyConfig: {
+      create2: {
+        // To learn more about salts, see the CreateX documentation
+        salt: "0x355549848424f226744f74f3f661da1a6eca0df8de368542112014fd1e2a7748",
+      },
+    },
+  },
   solidity: {
     compilers: [
       {
@@ -141,15 +152,7 @@ const config: HardhatUserConfig = {
     ],
   },
   etherscan: {
-    apiKey: {
-      ethereum: `${process.env.ETHERSCAN_API_KEY}`,
-      base: `${process.env.ETHERSCAN_API_KEY}`,
-      bsc: `${process.env.ETHERSCAN_API_KEY}`,
-      sepolia: `${process.env.ETHERSCAN_API_KEY}`,
-      arbitrumSepolia: `${process.env.ETHERSCAN_API_KEY}`,
-      optimisticSepolia: `${process.env.ETHERSCAN_API_KEY}`,
-      baseSepolia: `${process.env.ETHERSCAN_API_KEY}`,
-    },
+    apiKey: `${process.env.ETHERSCAN_API_KEY}`,
     customChains: [
       {
         network: "ethereum",

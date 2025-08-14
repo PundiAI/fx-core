@@ -4,7 +4,7 @@ import {
   destinationChainName,
   interchainTokenFactoryContractABI,
   interchainTokenFactoryContractAddress,
-  tokenManagerTypeLockUnLock,
+  tokenManagerType,
   salt,
   txFee,
   getSigner,
@@ -12,7 +12,19 @@ import {
 } from "./common";
 
 async function main() {
+  if (destinationChainName === "") {
+    throw new Error("DESTINATION_CHAIN_NAME environment variable is required");
+  }
+  if (destinationChainTokenAddress === "") {
+    throw new Error(
+      "DESTINATION_CHAIN_TOKEN_ADDRESS environment variable is required"
+    );
+  }
+  if (tokenManagerType === "") {
+    throw new Error("TOKEN_MANAGER_TYPE environment variable is required");
+  }
   const signer = await getSigner();
+  let signerAddr = await signer.getAddress();
 
   const interchainTokenFactoryContract = new ethers.Contract(
     interchainTokenFactoryContractAddress,
@@ -20,11 +32,10 @@ async function main() {
     signer
   );
 
-  let signerAddr = await signer.getAddress();
   console.log("linkToken tx params:", {
     destinationChainTokenAddress,
     destinationChainName,
-    tokenManagerTypeLockUnLock,
+    tokenManagerType,
     signerAddr,
     salt,
     txFee,
@@ -34,7 +45,7 @@ async function main() {
     salt,
     destinationChainName,
     destinationChainTokenAddress,
-    tokenManagerTypeLockUnLock,
+    tokenManagerType,
     signerAddr,
     ethers.parseEther(txFee),
     { value: ethers.parseEther(txFee) }

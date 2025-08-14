@@ -7,16 +7,16 @@ const InterchainTokenModule = buildModule("InterchainTokenModule", (m) => {
     [],
     { id: "PundiAIFXInterchainToken" }
   );
-  // const initializeData = m.encodeFunctionCall(
-  //   pundiAIFXInterchainTokenLogic,
-  //   "initialize",
-  //   []
-  // );
-  // const pundiAIFXInterchainTokenProxy = m.contract(
-  //   "ERC1967Proxy",
-  //   [pundiAIFXInterchainTokenLogic, initializeData],
-  //   { id: "PundiAIFXInterchainTokenProxy" }
-  // );
+  const initializeData = m.encodeFunctionCall(
+    pundiAIFXInterchainTokenLogic,
+    "initialize",
+    []
+  );
+  const pundiAIFXInterchainTokenProxy = m.contract(
+    "ERC1967Proxy",
+    [pundiAIFXInterchainTokenLogic, initializeData],
+    { id: "PundiAIFXInterchainTokenProxy" }
+  );
   return { pundiAIFXInterchainTokenLogic };
 });
 

@@ -1,21 +1,25 @@
 import { ethers } from "ethers";
 import {
-  sourceChainTokenAddress,
+  getSigner,
   interchainTokenFactoryContractABI,
   interchainTokenFactoryContractAddress,
-  tokenManagerTypeMintBurn,
-  salt,
-  txFee,
-  getSigner,
-  waitForTransaction,
   interchainTokenServiceContractAddress,
   requireSourceChainTokenAddress,
+  salt,
+  sourceChainTokenAddress,
+  tokenManagerType,
+  txFee,
+  waitForTransaction,
 } from "./common";
 
 async function main() {
   requireSourceChainTokenAddress();
+  if (tokenManagerType === "") {
+    throw new Error("TOKEN_MANAGER_TYPE environment variable is required");
+  }
 
   const signer = await getSigner();
+  let signerAddr = await signer.getAddress();
 
   const interchainTokenFactoryContract = new ethers.Contract(
     interchainTokenFactoryContractAddress,
@@ -23,11 +27,10 @@ async function main() {
     signer
   );
 
-  let sigerAddr = await signer.getAddress();
   console.log("registerCustomToken tx params:", {
     sourceChainTokenAddress,
-    tokenManagerTypeMintBurn,
-    sigerAddr,
+    tokenManagerType,
+    signerAddr,
     salt,
     txFee,
     value: ethers.parseEther(txFee),
@@ -36,8 +39,8 @@ async function main() {
     await interchainTokenFactoryContract.registerCustomToken(
       salt,
       sourceChainTokenAddress,
-      tokenManagerTypeMintBurn,
-      sigerAddr,
+      tokenManagerType,
+      signerAddr,
       { value: ethers.parseEther(txFee) }
     );
   console.log("registerCustomToken tx:", registerCustomTokenTx.hash);

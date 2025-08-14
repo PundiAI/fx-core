@@ -3,68 +3,72 @@ import {
   sourceChainTokenAddress,
   interchainTokenABI,
   interchainTokenManagerAddress,
-  interchainTokenServiceContractAddress,
-  salt,
   getSigner,
   waitForTransaction,
   requireSourceChainTokenAddress,
-  requireInterchainTokenManagerAddress,
+  interchainTokenServiceContractAddress,
 } from "./common";
 
 async function main() {
   requireSourceChainTokenAddress();
-  requireInterchainTokenManagerAddress();
+
+  if (interchainTokenManagerAddress === "") {
+    throw new Error("TOKEN_MANAGER_ADDRESS environment variable is required");
+  }
+
+  let tokenId = process.env.TOKEN_ID || "";
+  if (tokenId === "") {
+    throw new Error("TOKEN_ID environment variable is required");
+  }
 
   const signer = await getSigner();
+  const signerAddr = await signer.getAddress();
 
-  const pundiaifxContract = new ethers.Contract(
+  const interchainTokenContract = new ethers.Contract(
     sourceChainTokenAddress,
     interchainTokenABI,
     signer
   );
 
-  /*
-  console.log("setItsSalt tx params:", {
-    sourceChainTokenAddress,
-    interchainTokenServiceContractAddress,
-    interchainTokenManagerAddress,
-    salt,
-  });
-  const setItsSaltTx = await pundiaifxContract.setItsSalt(salt);
-  console.log("setItsSalt tx:", setItsSaltTx.hash);
-  await waitForTransaction(setItsSaltTx);
-
-  console.log("setInterchainTokenService tx params:", {
-    sourceChainTokenAddress,
-    interchainTokenServiceContractAddress,
-    interchainTokenManagerAddress,
-  });
-  const setItsTx = await pundiaifxContract.setInterchainTokenService(
-    interchainTokenServiceContractAddress
-  );
-  console.log("setInterchainTokenService tx:", setItsTx.hash);
-  await waitForTransaction(setItsTx);
-  */
-
-  const roleBytes = keccak256(toUtf8Bytes("ADMIN_ROLE"));
-  const revokeAddress = process.env.REVOKE_ADDRESS;
-  if (revokeAddress) {
-    const hasRole = await pundiaifxContract.hasRole(roleBytes, revokeAddress);
-    if (hasRole) {
-      console.log("revokeRole tx params:", {
-        roleBytes,
-        revokeAddress,
-      });
-      const revokeRole = await pundiaifxContract.revokeRole(
-        roleBytes,
-        revokeAddress
-      );
-      await waitForTransaction(revokeRole);
-    }
-    return;
+  let roleBytes = keccak256(toUtf8Bytes("ADMIN_ROLE"));
+  let hasRole = await interchainTokenContract.hasRole(roleBytes, signerAddr);
+  if (!hasRole) {
+    console.log("grantRole tx params:", {
+      roleBytes,
+      signerAddr,
+    });
+    const grantRoleTx = await interchainTokenContract.grantRole(
+      roleBytes,
+      signerAddr
+    );
+    console.log("grantRole tx:", grantRoleTx.hash);
   }
 
-  const hasRole = await pundiaifxContract.hasRole(
+  const interchainTokenId = await interchainTokenContract.interchainTokenId();
+  if (interchainTokenId !== tokenId) {
+    console.log("setTokenId tx params:", {
+      tokenId,
+    });
+    const setTokenIdTx = await interchainTokenContract.setTokenId(tokenId);
+    console.log("setTokenId tx:", setTokenIdTx.hash);
+    await waitForTransaction(setTokenIdTx);
+  }
+
+  const interchainTokenService =
+    await interchainTokenContract.interchainTokenService();
+  if (interchainTokenService !== interchainTokenServiceContractAddress) {
+    console.log("setInterchainTokenService tx params:", {
+      interchainTokenServiceContractAddress,
+    });
+    const setItsTx = await interchainTokenContract.setInterchainTokenService(
+      interchainTokenServiceContractAddress
+    );
+    console.log("setInterchainTokenService tx:", setItsTx.hash);
+    await waitForTransaction(setItsTx);
+  }
+
+  roleBytes = keccak256(toUtf8Bytes("ADMIN_ROLE"));
+  hasRole = await interchainTokenContract.hasRole(
     roleBytes,
     interchainTokenManagerAddress
   );
@@ -78,7 +82,7 @@ async function main() {
     roleBytes,
     interchainTokenManagerAddress,
   });
-  const grantRoleTx = await pundiaifxContract.grantRole(
+  const grantRoleTx = await interchainTokenContract.grantRole(
     roleBytes,
     interchainTokenManagerAddress
   );

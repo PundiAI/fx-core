@@ -11,3 +11,4 @@ contracts/package.json
 typechain-types
 artifacts
 *.log
+ignition/deployments

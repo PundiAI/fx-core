@@ -17,6 +17,7 @@ async function main() {
   }
 
   const signer = await getSigner();
+  let signerAddr = await signer.getAddress();
 
   const gasServiceContract = new ethers.Contract(
     gasServiceContractAddress,
@@ -24,7 +25,6 @@ async function main() {
     signer
   );
 
-  let signerAddr = await signer.getAddress();
   console.log("addNativeGas tx params:", {
     addNativeGas: ethers.parseEther(txFee),
     txHash,
