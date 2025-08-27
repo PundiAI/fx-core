@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 /**
  * @title ITransmitInterchainToken Interface
- * @notice Interface for transmiting interchain tokens via the interchain token service
+ * @notice Interface for transmitting interchain tokens via the interchain token service
  */
 interface ITransmitInterchainToken {
     /**

@@ -184,7 +184,7 @@ contract FxBridgeLogicBSC is
         );
         require(
             tokenStatus[_tokenAddr].isActive == false,
-            "Bridge token already actived"
+            "Bridge token already activated"
         );
         tokenStatus[_tokenAddr].isActive = true;
         return true;

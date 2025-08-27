@@ -13,7 +13,7 @@ abstract contract InterchainTokenStandard is IInterchainTokenStandard {
     /**
      * @notice Getter for the tokenId used for this token.
      * @dev Needs to be overwritten.
-     * @return tokenId_ The tokenId that this token is registerred under.
+     * @return tokenId_ The tokenId that this token is registered under.
      */
     function interchainTokenId() public view virtual returns (bytes32 tokenId_);
 
