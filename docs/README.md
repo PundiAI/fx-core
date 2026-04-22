@@ -13,6 +13,7 @@
 * [PundiScan](https://pundiscan.io)
 * [Ping.Pub](https://ping.pub/fxcore)
 * [Develop Tools](tools)
+* [Validator exit guide](validator-exit-guide.md)
 
 # Pundi AIFX SDK
 
