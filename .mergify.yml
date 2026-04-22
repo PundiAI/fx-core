@@ -51,3 +51,5 @@ pull_request_rules:
       label:
         toggle:
           - merge-queued
+merge_protections_settings:
+  reporting_method: check-runs
